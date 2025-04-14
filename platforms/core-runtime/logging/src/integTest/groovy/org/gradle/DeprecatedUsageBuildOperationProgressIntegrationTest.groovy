@@ -195,12 +195,12 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         verifyAll(receivedProblem(5)) {
             fqid == 'deprecation:some-indirect-deprecation'
             contextualLabel == 'Some indirect deprecation has been deprecated.'
-            solutions == [ 'Some advice.' ]
+            solutions == ['Some advice.']
         }
         verifyAll(receivedProblem(6)) {
             fqid == 'deprecation:some-invocation-feature'
             contextualLabel == 'Some invocation feature has been deprecated.'
-            solutions == [ 'Don\'t do custom invocation.' ]
+            solutions == ['Don\'t do custom invocation.']
         }
         verifyAll(receivedProblem(7)) {
             fqid == 'deprecation:typed-task'

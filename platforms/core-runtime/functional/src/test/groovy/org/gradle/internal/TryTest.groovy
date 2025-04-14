@@ -55,7 +55,7 @@ class TryTest extends Specification {
     }
 
     def "flat map failure"() {
-        def initial = Try.<Integer>failure(new RuntimeException("failed"))
+        def initial = Try.<Integer> failure(new RuntimeException("failed"))
         expect:
         initial.flatMap { it.toString() } == initial
     }
@@ -70,7 +70,7 @@ class TryTest extends Specification {
     }
 
     def "map a failure"() {
-        def failure = Try.<Integer>failure(new RuntimeException("failed"))
+        def failure = Try.<Integer> failure(new RuntimeException("failed"))
         expect:
         failure.map { it + 1 } == failure
     }

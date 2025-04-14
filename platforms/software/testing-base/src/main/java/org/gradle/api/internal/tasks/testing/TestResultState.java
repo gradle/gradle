@@ -47,7 +47,7 @@ class TestResultState {
 
     void incrementTotalCount() {
         totalCount.incrementAndGet();
-        if (parent!=null) {
+        if (parent != null) {
             parent.incrementTotalCount();
         }
     }
@@ -55,9 +55,10 @@ class TestResultState {
     long getSuccessfulCount() {
         return successfulCount.get();
     }
+
     void incrementSuccessfulCount() {
         successfulCount.incrementAndGet();
-        if (parent!=null) {
+        if (parent != null) {
             parent.incrementSuccessfulCount();
         }
     }
@@ -65,9 +66,10 @@ class TestResultState {
     long getFailureCount() {
         return failureCount.get();
     }
+
     void incrementFailureCount() {
         failureCount.incrementAndGet();
-        if (parent!=null) {
+        if (parent != null) {
             parent.incrementFailureCount();
         }
     }

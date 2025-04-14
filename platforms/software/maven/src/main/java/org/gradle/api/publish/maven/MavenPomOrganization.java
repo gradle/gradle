@@ -21,8 +21,8 @@ import org.gradle.api.provider.Property;
 /**
  * The organization of a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
+ * @since 4.8
  */
 public interface MavenPomOrganization {
 

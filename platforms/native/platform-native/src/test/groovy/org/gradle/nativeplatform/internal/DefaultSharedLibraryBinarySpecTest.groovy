@@ -148,6 +148,6 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
     private def getSharedLibrary() {
         def library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"));
         TestNativeBinariesFactory.create(SharedLibraryBinarySpec, DefaultSharedLibraryBinarySpec, "test", library, namingScheme, resolver,
-                                         platform, buildType, new DefaultFlavor("flavorOne"))
+            platform, buildType, new DefaultFlavor("flavorOne"))
     }
 }

@@ -48,7 +48,7 @@ public abstract class Message {
      * @return the de-serialized object
      */
     public static Object receive(InputStream inputSteam, ClassLoader classLoader)
-            throws IOException, ClassNotFoundException {
+        throws IOException, ClassNotFoundException {
         ObjectInputStream ois = new ExceptionReplacingObjectInputStream(inputSteam, classLoader);
         return ois.readObject();
     }

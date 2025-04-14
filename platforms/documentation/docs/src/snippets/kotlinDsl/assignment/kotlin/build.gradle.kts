@@ -12,6 +12,7 @@ java {
 abstract class WriteJavaVersionTask : DefaultTask() {
     @get:Input
     abstract val javaVersion: Property<String>
+
     @get:OutputFile
     abstract val output: RegularFileProperty
 

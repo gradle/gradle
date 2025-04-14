@@ -54,6 +54,29 @@ public class DefaultTaskProperties implements TaskProperties {
     private final FileCollection destroyableFiles;
     private final List<ValidatingProperty> validatingProperties;
 
+    private DefaultTaskProperties(
+        ImmutableSortedSet<InputPropertySpec> inputProperties,
+        ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
+        ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
+        ImmutableSortedSet<ServiceReferenceSpec> serviceReferences,
+        boolean hasDeclaredOutputs,
+        FileCollection localStateFiles,
+        FileCollection destroyableFiles,
+        List<ValidatingProperty> validatingProperties,
+        ReplayingTypeValidationContext validationProblems
+    ) {
+        this.validatingProperties = validatingProperties;
+        this.validationProblems = validationProblems;
+
+        this.inputProperties = inputProperties;
+        this.inputFileProperties = inputFileProperties;
+        this.outputFileProperties = outputFileProperties;
+        this.serviceReferences = serviceReferences;
+        this.hasDeclaredOutputs = hasDeclaredOutputs;
+        this.localStateFiles = localStateFiles;
+        this.destroyableFiles = destroyableFiles;
+    }
+
     public static TaskProperties resolve(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
         String beanName = task.toString();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor();
@@ -95,29 +118,6 @@ public class DefaultTaskProperties implements TaskProperties {
             destroyablesVisitor.getFiles(),
             validationVisitor.getTaskPropertySpecs(),
             validationContext);
-    }
-
-    private DefaultTaskProperties(
-        ImmutableSortedSet<InputPropertySpec> inputProperties,
-        ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
-        ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
-        ImmutableSortedSet<ServiceReferenceSpec> serviceReferences,
-        boolean hasDeclaredOutputs,
-        FileCollection localStateFiles,
-        FileCollection destroyableFiles,
-        List<ValidatingProperty> validatingProperties,
-        ReplayingTypeValidationContext validationProblems
-    ) {
-        this.validatingProperties = validatingProperties;
-        this.validationProblems = validationProblems;
-
-        this.inputProperties = inputProperties;
-        this.inputFileProperties = inputFileProperties;
-        this.outputFileProperties = outputFileProperties;
-        this.serviceReferences = serviceReferences;
-        this.hasDeclaredOutputs = hasDeclaredOutputs;
-        this.localStateFiles = localStateFiles;
-        this.destroyableFiles = destroyableFiles;
     }
 
     @Override

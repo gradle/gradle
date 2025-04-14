@@ -47,14 +47,14 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        pchCompiledOnceForEach([PCHHeaderDirName])
 
         expect:
         succeeds("clean", "helloSharedLibrary")
     }
 
     @ToBeFixedForConfigurationCache
-    def "can set a precompiled header on a source set for a source header in the headers directory" () {
+    def "can set a precompiled header on a source set for a source header in the headers directory"() {
         given:
         writeStandardSourceFiles(path)
 
@@ -65,7 +65,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        pchCompiledOnceForEach([PCHHeaderDirName])
 
         when:
         librarySourceModified("hello", path)
@@ -76,11 +76,11 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchNotCompiled()
 
         where:
-        path << [ "", "subdir/to/header/" ]
+        path << ["", "subdir/to/header/"]
     }
 
     @ToBeFixedForConfigurationCache
-    def "can set a precompiled header on a source set for a header colocated with the source" () {
+    def "can set a precompiled header on a source set for a header colocated with the source"() {
         given:
         new SourceFile(app.sourceType, "hello.h", app.libraryHeader.content).writeToDir(file("src/hello"))
         app.librarySources.each { it.writeToDir(file("src/hello")) }
@@ -104,7 +104,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        pchCompiledOnceForEach([PCHHeaderDirName])
 
         when:
         librarySourceModified()
@@ -116,7 +116,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "can set a precompiled header on a source set for a source header in include path" () {
+    def "can set a precompiled header on a source set for a source header in include path"() {
         given:
         app.libraryHeader.writeToDir(file("src/include"))
         getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
@@ -144,7 +144,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        pchCompiledOnceForEach([PCHHeaderDirName])
 
         when:
         librarySourceModified("hello", path)
@@ -162,7 +162,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "a precompiled header on a source set gets used for all variants of a binary" () {
+    def "a precompiled header on a source set gets used for all variants of a binary"() {
         given:
         writeStandardSourceFiles()
 
@@ -174,7 +174,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         succeeds "assemble"
         libAndPCHTasksExecuted("hello", "shared")
         libAndPCHTasksExecuted("hello", "static")
-        pchCompiledOnceForEach([ getPCHHeaderDirName("hello", "shared"), getPCHHeaderDirName("hello", "static") ])
+        pchCompiledOnceForEach([getPCHHeaderDirName("hello", "shared"), getPCHHeaderDirName("hello", "static")])
 
         when:
         librarySourceModified()
@@ -187,7 +187,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "can set a precompiled header on multiple source sets" () {
+    def "can set a precompiled header on multiple source sets"() {
         given:
         app.headerFiles.each { it.writeToDir(file("src/hello")) }
         app.librarySources.find { it.name == "hello.${app.sourceExtension}" }.writeToDir(file("src/hello"))
@@ -214,7 +214,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted("hello", "shared", "${app.sourceType}")
         libAndPCHTasksExecuted("hello", "shared", "other")
-        pchCompiledOnceForEach([ PCHHeaderDirName, getPCHHeaderDirName("hello", "shared", "other") ])
+        pchCompiledOnceForEach([PCHHeaderDirName, getPCHHeaderDirName("hello", "shared", "other")])
 
         when:
         otherLibrarySourceModified()
@@ -228,7 +228,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "can set a precompiled header on multiple components" () {
+    def "can set a precompiled header on multiple components"() {
         given:
         writeStandardSourceFiles()
         app.library.writeSources(file("src/hello2"))
@@ -250,7 +250,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         succeeds "helloSharedLibrary", "hello2SharedLibrary"
         libAndPCHTasksExecuted("hello")
         libAndPCHTasksExecuted("hello2")
-        pchCompiledOnceForEach([ getPCHHeaderDirName("hello", "shared"), getPCHHeaderDirName("hello2", "shared") ])
+        pchCompiledOnceForEach([getPCHHeaderDirName("hello", "shared"), getPCHHeaderDirName("hello2", "shared")])
 
         when:
         librarySourceModified("hello")
@@ -264,7 +264,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "can have components both with and without precompiled headers" () {
+    def "can have components both with and without precompiled headers"() {
         given:
         writeStandardSourceFiles()
         app.libraryHeader.writeToDir(file("src/hello2"))
@@ -285,7 +285,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        pchCompiledOnceForEach([PCHHeaderDirName])
 
         when:
         librarySourceModified()
@@ -305,7 +305,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "can have sources that do not use precompiled header" () {
+    def "can have sources that do not use precompiled header"() {
         given:
         writeStandardSourceFiles()
         libraryWithoutPCH.writeToDir(file("src/hello"))
@@ -322,7 +322,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "compiler arguments set on the binary get used for the precompiled header" () {
+    def "compiler arguments set on the binary get used for the precompiled header"() {
         given:
         writeStandardSourceFiles()
 
@@ -344,7 +344,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ], FRENCH_PCH_MESSAGE)
+        pchCompiledOnceForEach([PCHHeaderDirName], FRENCH_PCH_MESSAGE)
 
         when:
         librarySourceModified()
@@ -353,11 +353,11 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         pchNotCompiled()
-        ! output.contains(FRENCH_PCH_MESSAGE)
+        !output.contains(FRENCH_PCH_MESSAGE)
     }
 
     @ToBeFixedForConfigurationCache
-    def "precompiled header compile detects changes in header files" () {
+    def "precompiled header compile detects changes in header files"() {
         given:
         writeStandardSourceFiles()
 
@@ -368,7 +368,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         args("--info")
         succeeds "helloSharedLibrary"
         libAndPCHTasksExecuted()
-        pchCompiledOnceForEach([ PCHHeaderDirName ])
+        pchCompiledOnceForEach([PCHHeaderDirName])
 
         when:
         libraryHeaderModified()
@@ -378,11 +378,11 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         succeeds "helloSharedLibrary"
         executedAndNotSkipped ":${getPCHCompileTaskName("hello", "shared")}", ":${getLibraryCompileTaskName("hello", "shared")}"
         skipped ":${getGeneratePrefixHeaderTaskName("hello")}"
-        pchCompiledOnceForEach([ PCHHeaderDirName ], ALTERNATE_PCH_MESSAGE)
+        pchCompiledOnceForEach([PCHHeaderDirName], ALTERNATE_PCH_MESSAGE)
     }
 
     @ToBeFixedForConfigurationCache
-    def "produces warning when pch cannot be used" () {
+    def "produces warning when pch cannot be used"() {
         given:
         app.getLibraryHeader().writeToDir(file("src/hello"))
         def helloDotC = app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
@@ -402,11 +402,11 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     }
 
     @ToBeFixedForConfigurationCache
-    def "produces compiler error when specified header is missing" () {
+    def "produces compiler error when specified header is missing"() {
         given:
         app.getLibraryHeader().writeToDir(file("src/hello"))
         app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
-        assert ! file("src/hello/headers/prefixHeader.h").exists()
+        assert !file("src/hello/headers/prefixHeader.h").exists()
 
         when:
         buildFile << preCompiledHeaderComponent()
@@ -419,7 +419,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
-    def "can build and run an executable with library using pch" () {
+    def "can build and run an executable with library using pch"() {
         given:
         writeStandardSourceFiles()
         app.mainSource.writeToDir(file("src/main"))
@@ -440,11 +440,11 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         install.exec().out == app.englishOutput
     }
 
-    static final String DEFAULT_PCH_MESSAGE="<==== compiling hello.h ====>"
-    static final String FRENCH_PCH_MESSAGE="<==== compiling bonjour.h ====>"
-    static final String ALTERNATE_PCH_MESSAGE="<==== compiling alternate hello.h ====>"
+    static final String DEFAULT_PCH_MESSAGE = "<==== compiling hello.h ====>"
+    static final String FRENCH_PCH_MESSAGE = "<==== compiling bonjour.h ====>"
+    static final String ALTERNATE_PCH_MESSAGE = "<==== compiling alternate hello.h ====>"
 
-    def preCompiledHeaderComponent(String path="", String pch="common.h") {
+    def preCompiledHeaderComponent(String path = "", String pch = "common.h") {
         """
             model {
                 components {
@@ -479,7 +479,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         """
     }
 
-    def writeStandardSourceFiles(path="") {
+    def writeStandardSourceFiles(path = "") {
         app.libraryHeader.writeToDir(file("src/hello"))
         getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
         getCommonHeader(path).writeToDir(file("src/hello"))
@@ -515,7 +515,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         replaceInSourceFile(toOtherSourceSet(alternateSumFile), 'include "common.h"', 'include "common2.h"').writeToDir(file("src/hello"))
     }
 
-    def librarySourceModified(String lib="hello", String path="") {
+    def librarySourceModified(String lib = "hello", String path = "") {
         getAlternateLibrarySources(path).find { it.name == "hello.${app.sourceExtension}" }.writeToDir(file("src/${lib}"))
         maybeWait()
     }
@@ -525,12 +525,12 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         maybeWait()
     }
 
-    def libAndPCHTasksExecuted(String lib="hello", String linkage="shared", String sourceSet=app.sourceType) {
+    def libAndPCHTasksExecuted(String lib = "hello", String linkage = "shared", String sourceSet = app.sourceType) {
         executedAndNotSkipped(":${getPCHCompileTaskName(lib, linkage, sourceSet)}", ":${getLibraryCompileTaskName(lib, linkage, sourceSet)}", ":${getGeneratePrefixHeaderTaskName(lib, sourceSet)}")
         true
     }
 
-    def pchCompiledOnceForEach(List pchDirs, message=DEFAULT_PCH_MESSAGE) {
+    def pchCompiledOnceForEach(List pchDirs, message = DEFAULT_PCH_MESSAGE) {
         assert output.count(getUniquePragmaOutput(message)) == pchDirs.size()
         pchDirs.each { pchHeaderDirName ->
             def outputDirectories = file(pchHeaderDirName).listFiles().findAll { it.isDirectory() }
@@ -540,7 +540,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         true
     }
 
-    def pchNotCompiled(String lib="hello", String linkage="shared", String sourceSet=app.sourceType) {
+    def pchNotCompiled(String lib = "hello", String linkage = "shared", String sourceSet = app.sourceType) {
         def pchCompileTask = getPCHCompileTaskName(lib, linkage)
         def compileTask = getLibraryCompileTaskName(lib, linkage, sourceSet)
         def generateTask = getGeneratePrefixHeaderTaskName(lib, sourceSet)
@@ -600,19 +600,19 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         new SourceFile("${sourceFile.path}/${path}", sourceFile.name, sourceFile.content)
     }
 
-    String getPCHCompileTaskName(String lib, String linkage, String sourceSet=app.sourceType) {
+    String getPCHCompileTaskName(String lib, String linkage, String sourceSet = app.sourceType) {
         return "compile${StringUtils.capitalize(lib)}${StringUtils.capitalize(linkage)}Library${StringUtils.capitalize(sourceSet)}PreCompiledHeader"
     }
 
-    String getGeneratePrefixHeaderTaskName(String lib, String sourceSet=app.sourceType) {
+    String getGeneratePrefixHeaderTaskName(String lib, String sourceSet = app.sourceType) {
         return "generate${StringUtils.capitalize(lib)}${StringUtils.capitalize(sourceSet)}PrefixHeaderFile"
     }
 
-    String getLibraryCompileTaskName(String lib, String linkage, String sourceSet=app.sourceType) {
+    String getLibraryCompileTaskName(String lib, String linkage, String sourceSet = app.sourceType) {
         return "compile${StringUtils.capitalize(lib)}${StringUtils.capitalize(linkage)}Library${StringUtils.capitalize(lib)}${StringUtils.capitalize(sourceSet)}"
     }
 
-    String getPCHHeaderDirName(String lib="hello", String linkage="shared", String sourceSet=app.sourceType) {
+    String getPCHHeaderDirName(String lib = "hello", String linkage = "shared", String sourceSet = app.sourceType) {
         return "build/objs/${lib}/${linkage}/${lib}${StringUtils.capitalize(sourceSet)}PCH"
     }
 }

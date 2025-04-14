@@ -125,8 +125,8 @@ model {
     def "stale .res files are removed when a resource source file is renamed"() {
         setup:
         def outputFileNameScheme = compilerOutputFileNamingScheme
-                .withOutputBaseFolder(file("build/objs/main/mainRc"))
-                .withObjectFileNameSuffix(".res")
+            .withOutputBaseFolder(file("build/objs/main/mainRc"))
+            .withObjectFileNameSuffix(".res")
         def oldResFile = outputFileNameScheme.map(mainResourceFile)
         def newResFile = outputFileNameScheme.map(file('src/main/rc/changed_resources.rc'))
         assert oldResFile.file
@@ -148,8 +148,8 @@ model {
 
         given: "set the generated res file timestamp to zero"
         def outputFileNameScheme = compilerOutputFileNamingScheme
-                .withOutputBaseFolder(file("build/objs/main/mainRc"))
-                .withObjectFileNameSuffix(".res")
+            .withOutputBaseFolder(file("build/objs/main/mainRc"))
+            .withObjectFileNameSuffix(".res")
         def resourceFile = outputFileNameScheme.map(mainResourceFile)
 
         resourceFile.lastModified = 0

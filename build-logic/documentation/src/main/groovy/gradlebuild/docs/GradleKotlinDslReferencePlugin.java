@@ -41,14 +41,6 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static final String TASK_NAME = "dokkatooGeneratePublicationHtml";
 
-    @Override
-    public void apply(Project project) {
-        GradleDocumentationExtension documentationExtension = project.getExtensions().getByType(GradleDocumentationExtension.class);
-        applyPlugin(project);
-        updateDocumentationExtension(project, documentationExtension);
-        configurePlugin(project, documentationExtension);
-    }
-
     private static void applyPlugin(Project project) {
         project.getPlugins().apply(DokkatooHtmlPlugin.class);
     }
@@ -155,6 +147,14 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static DokkatooExtension getDokkatooExtension(Project project) {
         return project.getExtensions().getByType(DokkatooExtension.class);
+    }
+
+    @Override
+    public void apply(Project project) {
+        GradleDocumentationExtension documentationExtension = project.getExtensions().getByType(GradleDocumentationExtension.class);
+        applyPlugin(project);
+        updateDocumentationExtension(project, documentationExtension);
+        configurePlugin(project, documentationExtension);
     }
 
 }

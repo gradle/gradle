@@ -84,12 +84,14 @@ class GenericReceiverTypesTest {
                 listOf(SchemaConfiguringGenericType::class, GenericSubtypeIntString::class, GenericSubtypeStringBoolean::class, GenericSuperType::class, Nested::class)
             )
         }.apply {
-            assertEquals("""
+            assertEquals(
+                """
                 Cannot use the parameterized class 'class org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest${'$'}GenericSuperType' as a configurable type
                   in configured type 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.GenericSuperType<kotlin.Int, kotlin.String>'
                   in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringGenericType.sup(org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.GenericSuperType<kotlin.Int, kotlin.String>.() -> kotlin.Unit): kotlin.Unit'
                   in class 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringGenericType'
-            """.trimIndent(), message)
+            """.trimIndent(), message
+            )
         }
     }
 
@@ -101,12 +103,14 @@ class GenericReceiverTypesTest {
                 listOf(SchemaConfiguringTypeArgument::class)
             )
         }.apply {
-            assertEquals("""
+            assertEquals(
+                """
                 Illegal usage of a type parameter
                   in configured type 'T'
                   in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringTypeArgument.sup(T.() -> kotlin.Unit): T'
                   in class 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringTypeArgument'
-            """.trimIndent(), message)
+            """.trimIndent(), message
+            )
         }
     }
 

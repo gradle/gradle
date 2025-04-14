@@ -3,6 +3,15 @@ package org.gradle.sample.list;
 public class LinkedList {
     private Node head;
 
+    private static Node tail(Node head) {
+        Node it;
+
+        for (it = head; it != null && it.next != null; it = it.next) {
+        }
+
+        return it;
+    }
+
     public void add(String element) {
         Node newNode = new Node(element);
 
@@ -12,14 +21,6 @@ public class LinkedList {
         } else {
             it.next = newNode;
         }
-    }
-
-    private static Node tail(Node head) {
-        Node it;
-
-        for (it = head; it != null && it.next != null; it = it.next) {}
-
-        return it;
     }
 
     public boolean remove(String element) {
@@ -48,7 +49,8 @@ public class LinkedList {
     public int size() {
         int size = 0;
 
-        for (Node it = head; it != null; ++size, it = it.next) {}
+        for (Node it = head; it != null; ++size, it = it.next) {
+        }
 
         return size;
     }

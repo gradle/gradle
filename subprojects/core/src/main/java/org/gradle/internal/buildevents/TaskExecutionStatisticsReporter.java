@@ -27,6 +27,17 @@ public class TaskExecutionStatisticsReporter {
         this.textOutputFactory = textOutputFactory;
     }
 
+    private static boolean formatDetail(StyledTextOutput textOutput, int count, String title, boolean alreadyPrintedDetail) {
+        if (count == 0) {
+            return alreadyPrintedDetail;
+        }
+        if (alreadyPrintedDetail) {
+            textOutput.format(",");
+        }
+        textOutput.format(" %d %s", count, title);
+        return true;
+    }
+
     public void buildFinished(TaskExecutionStatistics statistics) {
         int total = statistics.getTotalTaskCount();
         if (total > 0) {
@@ -38,16 +49,5 @@ public class TaskExecutionStatisticsReporter {
             formatDetail(textOutput, statistics.getUpToDateTaskCount(), "up-to-date", printedDetail);
             textOutput.println();
         }
-    }
-
-    private static boolean formatDetail(StyledTextOutput textOutput, int count, String title, boolean alreadyPrintedDetail) {
-        if (count == 0) {
-            return alreadyPrintedDetail;
-        }
-        if (alreadyPrintedDetail) {
-            textOutput.format(",");
-        }
-        textOutput.format(" %d %s", count, title);
-        return true;
     }
 }

@@ -130,6 +130,7 @@ public class TestNGTestRunner {
         testNg.addListener((Object) factory.createAdapter(listener));
         testNg.run();
     }
+
     /**
      * The setter for {@code configFailurePolicy} has a different signature depending on TestNG version.
      * This method uses reflection to detect the API and calls the version with the correct signature.

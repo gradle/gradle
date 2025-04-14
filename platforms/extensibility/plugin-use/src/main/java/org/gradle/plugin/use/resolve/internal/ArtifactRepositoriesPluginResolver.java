@@ -72,89 +72,9 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
     }
 
-    static class ExternalPluginResolution implements PluginResolution {
-        private final DependencyFactory dependencyFactory;
-        private final PluginRequestInternal pluginRequest;
-        private final boolean useWeakVersion;
-
-        /**
-         * @param dependencyFactory Creates dependency instances
-         * @param pluginRequest The original plugin request.
-         * @param useWeakVersion Whether a preferred version should be used for the plugin dependency.
-         */
-        public ExternalPluginResolution(DependencyFactory dependencyFactory, PluginRequestInternal pluginRequest, boolean useWeakVersion) {
-            this.dependencyFactory = dependencyFactory;
-            this.pluginRequest = pluginRequest;
-            this.useWeakVersion = useWeakVersion;
-        }
-
-        @Override
-        public PluginId getPluginId() {
-            return pluginRequest.getId();
-        }
-
-        @Override
-        public String getPluginVersion() {
-            if (pluginRequest.getModule() != null) {
-                return pluginRequest.getModule().getVersion();
-            } else {
-                return pluginRequest.getVersion();
-            }
-        }
-
-        @Override
-        public void accept(PluginResolutionVisitor visitor) {
-            String id = pluginRequest.getId().getId();
-
-            ModuleVersionSelector selector = pluginRequest.getModule();
-            ModuleIdentifier module = selector != null
-                ? selector.getModule()
-                : DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX);
-
-            visitDependency(visitor, module);
-            pluginRequest.getAlternativeCoordinates().ifPresent(altCoords ->
-                visitModuleReplacements(visitor, altCoords, id, module)
-            );
-        }
-
-        private void visitDependency(PluginResolutionVisitor visitor, ModuleIdentifier module) {
-            ExternalModuleDependency dependency = dependencyFactory.create(module.getGroup(), module.getName(), null);
-            dependency.version(version -> {
-                if (useWeakVersion) {
-                    version.prefer(getPluginVersion());
-                } else {
-                    version.require(getPluginVersion());
-                }
-            });
-            visitor.visitDependency(dependency);
-        }
-
-        private static void visitModuleReplacements(PluginResolutionVisitor visitor, PluginCoordinates altCoords, String id, ModuleIdentifier module) {
-            String altId = altCoords.getId().getId();
-            visitor.visitReplacement(
-                DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX),
-                DefaultModuleIdentifier.newId(altId, altId + PLUGIN_MARKER_SUFFIX)
-            );
-
-            if (altCoords.getModule() != null) {
-                visitor.visitReplacement(module, altCoords.getModule().getModule());
-            }
-        }
-
-        @Override
-        public void applyTo(PluginManagerInternal pluginManager) {
-            PluginCoordinates altCoords = pluginRequest.getAlternativeCoordinates().orElse(null);
-            if (altCoords != null && pluginManager.hasPlugin(altCoords.getId().getId())) {
-                return;
-            }
-
-            pluginManager.apply(pluginRequest.getId().getId());
-        }
-    }
-
     private PluginResolutionResult handleNotFound(String message) {
         StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
-        for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext();) {
+        for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext(); ) {
             detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
             if (it.hasNext()) {
                 detail.append("\n");
@@ -198,5 +118,85 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private DependencyFactory getDependencyFactory() {
         return resolutionServices.getDependencyFactory();
+    }
+
+    static class ExternalPluginResolution implements PluginResolution {
+        private final DependencyFactory dependencyFactory;
+        private final PluginRequestInternal pluginRequest;
+        private final boolean useWeakVersion;
+
+        /**
+         * @param dependencyFactory Creates dependency instances
+         * @param pluginRequest The original plugin request.
+         * @param useWeakVersion Whether a preferred version should be used for the plugin dependency.
+         */
+        public ExternalPluginResolution(DependencyFactory dependencyFactory, PluginRequestInternal pluginRequest, boolean useWeakVersion) {
+            this.dependencyFactory = dependencyFactory;
+            this.pluginRequest = pluginRequest;
+            this.useWeakVersion = useWeakVersion;
+        }
+
+        private static void visitModuleReplacements(PluginResolutionVisitor visitor, PluginCoordinates altCoords, String id, ModuleIdentifier module) {
+            String altId = altCoords.getId().getId();
+            visitor.visitReplacement(
+                DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX),
+                DefaultModuleIdentifier.newId(altId, altId + PLUGIN_MARKER_SUFFIX)
+            );
+
+            if (altCoords.getModule() != null) {
+                visitor.visitReplacement(module, altCoords.getModule().getModule());
+            }
+        }
+
+        @Override
+        public PluginId getPluginId() {
+            return pluginRequest.getId();
+        }
+
+        @Override
+        public String getPluginVersion() {
+            if (pluginRequest.getModule() != null) {
+                return pluginRequest.getModule().getVersion();
+            } else {
+                return pluginRequest.getVersion();
+            }
+        }
+
+        @Override
+        public void accept(PluginResolutionVisitor visitor) {
+            String id = pluginRequest.getId().getId();
+
+            ModuleVersionSelector selector = pluginRequest.getModule();
+            ModuleIdentifier module = selector != null
+                ? selector.getModule()
+                : DefaultModuleIdentifier.newId(id, id + PLUGIN_MARKER_SUFFIX);
+
+            visitDependency(visitor, module);
+            pluginRequest.getAlternativeCoordinates().ifPresent(altCoords ->
+                visitModuleReplacements(visitor, altCoords, id, module)
+            );
+        }
+
+        private void visitDependency(PluginResolutionVisitor visitor, ModuleIdentifier module) {
+            ExternalModuleDependency dependency = dependencyFactory.create(module.getGroup(), module.getName(), null);
+            dependency.version(version -> {
+                if (useWeakVersion) {
+                    version.prefer(getPluginVersion());
+                } else {
+                    version.require(getPluginVersion());
+                }
+            });
+            visitor.visitDependency(dependency);
+        }
+
+        @Override
+        public void applyTo(PluginManagerInternal pluginManager) {
+            PluginCoordinates altCoords = pluginRequest.getAlternativeCoordinates().orElse(null);
+            if (altCoords != null && pluginManager.hasPlugin(altCoords.getId().getId())) {
+                return;
+            }
+
+            pluginManager.apply(pluginRequest.getId().getId());
+        }
     }
 }

@@ -59,7 +59,7 @@ class CacheVersionTest extends Specification {
 
     def "copies input array"() {
         given:
-        int[] components = [ 23, 42 ]
+        int[] components = [23, 42]
         def version = CacheVersion.of(components)
 
         when:

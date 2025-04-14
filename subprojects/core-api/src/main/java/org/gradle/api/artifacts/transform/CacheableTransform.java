@@ -29,8 +29,8 @@ import java.lang.annotation.Target;
  * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransform}.</p>
  *
  * <p>
- *     Normalization must be specified for each file parameter of a cacheable transform.
- *     For example:
+ * Normalization must be specified for each file parameter of a cacheable transform.
+ * For example:
  * </p>
  * <pre class='autoTested'>
  * import org.gradle.api.artifacts.transform.TransformParameters;
@@ -53,7 +53,6 @@ import java.lang.annotation.Target;
  * </pre>
  *
  * @see DisableCachingByDefault
- *
  * @since 5.3
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -60,13 +60,18 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
     private final static Logger LOGGER = Logging.getLogger(ValidateAction.class);
 
-    public interface Params extends WorkParameters {
-        ConfigurableFileCollection getClasses();
-
-        RegularFileProperty getOutputFile();
-
-        Property<Boolean> getEnableStricterValidation();
-
+    private static void storeResults(List<Problem> problemMessages, RegularFileProperty outputFile) {
+        if (outputFile.isPresent()) {
+            File output = outputFile.get().getAsFile();
+            try {
+                //noinspection ResultOfMethodCallIgnored
+                output.createNewFile();
+                Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
+                Files.asCharSink(output, StandardCharsets.UTF_8).write(gson.toJson(problemMessages));
+            } catch (IOException ex) {
+                throw new java.io.UncheckedIOException(ex);
+            }
+        }
     }
 
     @Inject
@@ -83,18 +88,13 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
     }
 
 
-    private static void storeResults(List<Problem> problemMessages, RegularFileProperty outputFile) {
-        if (outputFile.isPresent()) {
-            File output = outputFile.get().getAsFile();
-            try {
-                //noinspection ResultOfMethodCallIgnored
-                output.createNewFile();
-                Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
-                Files.asCharSink(output, StandardCharsets.UTF_8).write(gson.toJson(problemMessages));
-            } catch (IOException ex) {
-                throw new java.io.UncheckedIOException(ex);
-            }
-        }
+    public interface Params extends WorkParameters {
+        ConfigurableFileCollection getClasses();
+
+        RegularFileProperty getOutputFile();
+
+        Property<Boolean> getEnableStricterValidation();
+
     }
 
     private static class TaskNameCollectorVisitor extends ClassVisitor {
@@ -124,24 +124,6 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             this.taskValidationProblems = taskValidationProblems;
             this.params = params;
             this.problems = problems;
-        }
-
-        @Override
-        public void visitFile(FileVisitDetails fileDetails) {
-            if (!fileDetails.getPath().endsWith(".class")) {
-                return;
-            }
-            List<String> classNames = getClassNames(fileDetails);
-            for (String className : classNames) {
-                Class<?> clazz;
-                try {
-                    clazz = classLoader.loadClass(className);
-                } catch (IncompatibleClassChangeError | NoClassDefFoundError | VerifyError | ClassNotFoundException e) {
-                    LOGGER.debug("Could not load class: " + className, e);
-                    continue;
-                }
-                collectValidationProblems(clazz, taskValidationProblems, params.getEnableStricterValidation().get(), problems);
-            }
         }
 
         private static void collectValidationProblems(Class<?> topLevelBean, List<Problem> taskValidationProblems, boolean enableStricterValidation, InternalProblems problems) {
@@ -218,6 +200,24 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 return new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
+            }
+        }
+
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            if (!fileDetails.getPath().endsWith(".class")) {
+                return;
+            }
+            List<String> classNames = getClassNames(fileDetails);
+            for (String className : classNames) {
+                Class<?> clazz;
+                try {
+                    clazz = classLoader.loadClass(className);
+                } catch (IncompatibleClassChangeError | NoClassDefFoundError | VerifyError | ClassNotFoundException e) {
+                    LOGGER.debug("Could not load class: " + className, e);
+                    continue;
+                }
+                collectValidationProblems(clazz, taskValidationProblems, params.getEnableStricterValidation().get(), problems);
             }
         }
     }

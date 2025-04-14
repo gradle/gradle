@@ -35,6 +35,7 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface SkipDsl {
     GradleDsl dsl();
+
     String because();
 
     @Retention(RetentionPolicy.RUNTIME)

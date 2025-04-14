@@ -42,11 +42,13 @@ public class TestCompiler {
     private final Consumer<Map<String, Set<String>>> classNameConsumer;
     private final ConstantDependentsConsumer constantDependentsConsumer;
 
-    public TestCompiler(File outputFolder,
-                        Function<File, Optional<String>> relativize,
-                        Consumer<String> classBackupService,
-                        Consumer<Map<String, Set<String>>> classNamesConsumer,
-                        ConstantDependentsConsumer constantDependentsConsumer) {
+    public TestCompiler(
+        File outputFolder,
+        Function<File, Optional<String>> relativize,
+        Consumer<String> classBackupService,
+        Consumer<Map<String, Set<String>>> classNamesConsumer,
+        ConstantDependentsConsumer constantDependentsConsumer
+    ) {
         this.outputFolder = outputFolder;
         this.relativize = relativize;
         this.classBackupService = classBackupService;

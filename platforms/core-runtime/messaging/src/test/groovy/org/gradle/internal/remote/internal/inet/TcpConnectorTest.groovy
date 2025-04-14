@@ -38,7 +38,8 @@ import java.nio.channels.SocketChannel
 
 @Timeout(60)
 class TcpConnectorTest extends ConcurrentSpec {
-    @Shared def serializer = Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER)
+    @Shared
+    def serializer = Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER)
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
@@ -281,7 +282,8 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     @Issue("GRADLE-2316")
-    @Requires(UnitTestPreconditions.NotMacOs) // https://github.com/gradle/gradle-private/issues/2832
+    @Requires(UnitTestPreconditions.NotMacOs)
+    // https://github.com/gradle/gradle-private/issues/2832
     def "detects self connect when outgoing connection binds to same port"() {
         given:
         def socketChannel = SocketChannel.open()

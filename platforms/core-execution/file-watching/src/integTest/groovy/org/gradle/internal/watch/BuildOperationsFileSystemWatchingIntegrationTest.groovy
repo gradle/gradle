@@ -71,7 +71,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         when:
         inputFile.text = "changed"
         waitForChangesToBePickedUp()
-        withWatchFs().run ("myTask")
+        withWatchFs().run("myTask")
         startedResult = buildStartedResult()
         finishedResult = buildFinishedResult()
         then:

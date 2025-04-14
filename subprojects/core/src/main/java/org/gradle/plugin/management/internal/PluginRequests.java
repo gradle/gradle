@@ -25,7 +25,31 @@ public interface PluginRequests extends Iterable<PluginRequestInternal> {
     @SuppressWarnings("ClassInitializationDeadlock")
     PluginRequests EMPTY = new EmptyPluginRequests();
 
+    static PluginRequests of(PluginRequestInternal request) {
+        return new SingletonPluginRequests(request);
+    }
+
+    static PluginRequests of(List<PluginRequestInternal> list) {
+        if (list.isEmpty()) {
+            return EMPTY;
+        } else if (list.size() == 1) {
+            return new SingletonPluginRequests(list.get(0));
+        } else {
+            return new MultiPluginRequests(list);
+        }
+    }
+
     boolean isEmpty();
+
+    default PluginRequests mergeWith(PluginRequests requests) {
+        if (isEmpty()) {
+            return requests;
+        } else if (requests.isEmpty()) {
+            return this;
+        } else {
+            return new MergedPluginRequests(this, requests);
+        }
+    }
 
     class EmptyPluginRequests implements PluginRequests {
 
@@ -42,30 +66,6 @@ public interface PluginRequests extends Iterable<PluginRequestInternal> {
         @Override
         public Iterator<PluginRequestInternal> iterator() {
             return Collections.emptyIterator();
-        }
-    }
-
-    default PluginRequests mergeWith(PluginRequests requests) {
-        if (isEmpty()) {
-            return requests;
-        } else if (requests.isEmpty()) {
-            return this;
-        } else {
-            return new MergedPluginRequests(this, requests);
-        }
-    }
-
-    static PluginRequests of(PluginRequestInternal request) {
-        return new SingletonPluginRequests(request);
-    }
-
-    static PluginRequests of(List<PluginRequestInternal> list) {
-        if (list.isEmpty()) {
-            return EMPTY;
-        } else if (list.size() == 1) {
-            return new SingletonPluginRequests(list.get(0));
-        } else {
-            return new MultiPluginRequests(list);
         }
     }
 

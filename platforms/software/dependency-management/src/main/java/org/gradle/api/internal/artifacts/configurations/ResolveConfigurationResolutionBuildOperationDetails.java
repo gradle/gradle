@@ -160,12 +160,12 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
 
         private final RepositoryDescriptor descriptor;
 
-        private static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
-            return CollectionUtils.collect(repositories, repository -> new RepositoryImpl(repository.getDescriptor()));
-        }
-
         private RepositoryImpl(RepositoryDescriptor descriptor) {
             this.descriptor = descriptor;
+        }
+
+        private static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
+            return CollectionUtils.collect(repositories, repository -> new RepositoryImpl(repository.getDescriptor()));
         }
 
         @Override

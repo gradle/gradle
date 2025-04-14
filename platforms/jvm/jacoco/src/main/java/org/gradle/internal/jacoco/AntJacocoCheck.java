@@ -101,12 +101,12 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                             "failonviolation", params.getFailOnViolation().get(),
                             "violationsproperty", VIOLATIONS_ANT_PROPERTY);
 
-                        antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
+                        antBuilder.invokeMethod("check", new Object[]{checkArgs, new Closure<Object>(this, this) {
                             @SuppressWarnings("UnusedDeclaration")
                             public Object doCall(Object ignore) {
                                 for (final JacocoViolationRule rule : rules) {
                                     Map<String, Object> ruleArgs = ImmutableMap.<String, Object>of("element", rule.getElement(), "includes", Joiner.on(':').join(rule.getIncludes()), "excludes", Joiner.on(':').join(rule.getExcludes()));
-                                    antBuilder.invokeMethod("rule", new Object[] {ruleArgs, new Closure<Object>(this, this) {
+                                    antBuilder.invokeMethod("rule", new Object[]{ruleArgs, new Closure<Object>(this, this) {
                                         @SuppressWarnings("UnusedDeclaration")
                                         public Object doCall(Object ignore) {
                                             for (JacocoLimit limit : rule.getLimits()) {
@@ -121,7 +121,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                                                     limitArgs.put("maximum", limit.getMaximum());
                                                 }
 
-                                                antBuilder.invokeMethod("limit", new Object[] {ImmutableMap.copyOf(limitArgs) });
+                                                antBuilder.invokeMethod("limit", new Object[]{ImmutableMap.copyOf(limitArgs)});
                                             }
                                             return Void.class;
                                         }

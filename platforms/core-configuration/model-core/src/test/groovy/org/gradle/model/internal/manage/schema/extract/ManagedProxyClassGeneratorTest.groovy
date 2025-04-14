@@ -320,9 +320,13 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
 
     static interface TypeWithPrimitiveMethods {
         long someLong(long l)
+
         boolean someBoolean(boolean b)
+
         char someChar(char ch)
+
         int someThing(int a, int b)
+
         void dontReturn(short s, byte b)
     }
 
@@ -330,15 +334,19 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         long someLong(long l) {
             l + 1
         }
+
         boolean someBoolean(boolean b) {
             !b
         }
+
         char someChar(char ch) {
             ch + 1
         }
+
         int someThing(int a, int b) {
             a + b
         }
+
         void dontReturn(short s, byte b) {
         }
     }
@@ -349,7 +357,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         given:
         def proxyClass = generate(SomeTypeWithReadOnlyProperty)
         def impl = proxyClass.newInstance(state, typeConverter)
-        def cl = { }
+        def cl = {}
 
         when:
         impl.value(cl)
@@ -794,16 +802,20 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     @Managed
     static interface SomeType {
         Integer getValue()
+
         void setValue(Integer value)
 
         long getPrimitive()
+
         void setPrimitive(long l)
     }
 
     @Managed
     static interface SomeTypeWithReadOnlyProperty {
         SomeType getValue()
+
         SomeUnmanagedStruct getOtherValue()
+
         boolean isReadOnly()
     }
 
@@ -828,6 +840,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         List<String> getValues();
 
         Optional<Boolean> getOptional();
+
         void setOptional(Optional<Boolean> optional);
     }
 
@@ -839,6 +852,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         String sayHello()
 
         int getIntValue()
+
         void setIntValue(int value)
     }
 
@@ -871,12 +885,14 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     @Managed
     static interface ManagedSubTypeViaInterface extends PublicUnmanagedType {
         String getManagedValue()
+
         void setManagedValue(String managedValue)
     }
 
     @Managed
     static abstract class ManagedSubTypeViaAbstractClass implements PublicUnmanagedType {
         abstract String getManagedValue()
+
         abstract void setManagedValue(String managedValue)
     }
 
@@ -888,7 +904,8 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         }
     }
 
-    @Managed static abstract class PublicTypeAsAbstractClassWithMethod implements UnmanagedSuperType {
+    @Managed
+    static abstract class PublicTypeAsAbstractClassWithMethod implements UnmanagedSuperType {
         String getSomeValue() {
             "from abstract class"
         }

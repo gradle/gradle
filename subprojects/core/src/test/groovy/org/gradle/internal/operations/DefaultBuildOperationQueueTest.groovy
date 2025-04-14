@@ -147,7 +147,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         !waitForCompletionThread.alive
         // The main thread sometimes processes items when there are more items than threads available, so
         // we may only submit workerCount - 1 work processors, but we should never submit more than workerCount
-        ((expectedWorkerCount-1)..expectedWorkerCount) * executor.execute(_) >> { args -> delegateExecutor.execute(args[0]) }
+        ((expectedWorkerCount - 1)..expectedWorkerCount) * executor.execute(_) >> { args -> delegateExecutor.execute(args[0]) }
 
         where:
         runs | threads

@@ -260,7 +260,7 @@ class IsolatedProjectsFixture {
         for (def modelExpectation in modelExpectations) {
             def buildTreePath = modelExpectation.path
             if (modelExpectation.modelNames != null) {
-                def projectModelNames =  projectModels[buildTreePath].modelName.toSorted()
+                def projectModelNames = projectModels[buildTreePath].modelName.toSorted()
                 assert projectModelNames == modelExpectation.modelNames.toSorted()
             }
         }

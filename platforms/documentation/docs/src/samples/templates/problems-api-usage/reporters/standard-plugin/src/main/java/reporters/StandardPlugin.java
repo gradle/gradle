@@ -29,14 +29,14 @@ public class StandardPlugin implements Plugin<Project> {
         // tag::problems-api-report[]
         ProblemId problemId = ProblemId.create("adhoc-plugin-deprecation", "Plugin is deprecated", PROBLEM_GROUP);
         problems.getReporter().report(problemId, problem -> problem
-                .contextualLabel("The 'standard-plugin' is deprecated")
-                .documentedAt("https://github.com/gradle/gradle/README.md")
-                .severity(Severity.WARNING)
-                .solution("Please use a more recent plugin version")
-                .additionalData(SomeAdditionalData.class, additionalData -> {
-                    additionalData.setName("Some name");
-                    additionalData.setNames(java.util.Arrays.asList("name1", "name2"));
-                })
+            .contextualLabel("The 'standard-plugin' is deprecated")
+            .documentedAt("https://github.com/gradle/gradle/README.md")
+            .severity(Severity.WARNING)
+            .solution("Please use a more recent plugin version")
+            .additionalData(SomeAdditionalData.class, additionalData -> {
+                additionalData.setName("Some name");
+                additionalData.setNames(java.util.Arrays.asList("name1", "name2"));
+            })
         );
         // end::problems-api-report[]
     }

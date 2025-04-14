@@ -61,7 +61,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSna
     }
 
     def "reads and writes directory snapshots"() {
-        def snapshots =  new DirectorySnapshot("/home/lptr/dev", "dev", DIRECT, hashCodeFrom(1111), [])
+        def snapshots = new DirectorySnapshot("/home/lptr/dev", "dev", DIRECT, hashCodeFrom(1111), [])
 
         when:
         def out = serialize(snapshots, serializer)

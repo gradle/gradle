@@ -82,15 +82,12 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  * Provides various native platform integration services.
  */
 public class NativeServices implements ServiceRegistrationProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static NativeServices instance;
-
-    // TODO All this should be static
-    private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
-
     public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
+    // TODO All this should be static
+    private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
+    private static NativeServices instance;
     private final boolean useNativeIntegrations;
     private final File userHomeDir;
 
@@ -99,146 +96,56 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     private final ServiceRegistry services;
 
-    public enum NativeFeatures {
-        FILE_SYSTEM_WATCHING {
-            @Override
-            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
-                if (!useNativeIntegrations) {
-                    return false;
+    private NativeServices(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
+        this.userHomeDir = userHomeDir;
+
+        boolean useNativeIntegrations = mode.isEnabled();
+        Native nativeIntegration = null;
+        File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
+        if (useNativeIntegrations) {
+            try {
+                nativeIntegration = Native.init(nativeBaseDir);
+            } catch (NativeIntegrationUnavailableException ex) {
+                LOGGER.debug("Native-platform is not available.", ex);
+                useNativeIntegrations = false;
+            } catch (NativeException ex) {
+                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
+                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                    useNativeIntegrations = false;
+                } else if (ex.getMessage().equals("Could not extract native JNI library.")
+                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
+                    //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
+                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                    useNativeIntegrations = false;
+                } else {
+                    throw ex;
                 }
-                OperatingSystem operatingSystem = OperatingSystem.current();
-                if (operatingSystem.isMacOsX()) {
-                    String version = operatingSystem.getVersion();
-                    if (VersionNumber.parse(version).getMajor() < 12) {
-                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
-                        return false;
-                    }
+            }
+            LOGGER.info("Initialized native services in: {}", nativeBaseDir);
+        }
+        this.useNativeIntegrations = useNativeIntegrations;
+        this.nativeIntegration = nativeIntegration;
+
+        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
+            .displayName("native services")
+            .provider(new FileSystemServices())
+            .provider(this)
+            .provider(new ServiceRegistrationProvider() {
+                @SuppressWarnings("unused")
+                public void configure(ServiceRegistration registration) {
+                    registration.add(GradleUserHomeTemporaryFileProvider.class);
                 }
-                try {
-                    final FileEvents fileEvents = FileEvents.init(nativeBaseDir);
-                    LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
-                    builder.provider(new ServiceRegistrationProvider() {
-                        @Provides
-                        FileEventFunctionsProvider createFileEventFunctionsProvider() {
-                            return new FileEventFunctionsProvider() {
-                                @Override
-                                public <T extends NativeIntegration> T getFunctions(Class<T> type) {
-                                    if (fileEvents != null) {
-                                        return fileEvents.get(type);
-                                    } else {
-                                        throw new NativeIntegrationUnavailableException("File events are not available.");
-                                    }
-                                }
-                            };
-                        }
-                    });
-                    return true;
-                } catch (NativeIntegrationUnavailableException ex) {
-                    logFileSystemWatchingUnavailable(ex);
-                }
-                return false;
-            }
+            });
 
-            @Override
-            public void doWhenDisabled(ServiceRegistryBuilder builder) {
-                // We still need to provide an implementation of FileEventFunctionsProvider,
-                // even if file watching is disabled, otherwise the service registry will throw an exception for a missing service.
-                builder.provider(new ServiceRegistrationProvider() {
-                    @Provides
-                    FileEventFunctionsProvider createFileEventFunctionsProvider() {
-                        return new FileEventFunctionsProvider() {
-                            @Override
-                            public <T extends NativeIntegration> T getFunctions(Class<T> type) {
-                                throw new UnsupportedOperationException("File system watching is disabled.");
-                            }
-                        };
-                    }
-                });
+        for (NativeFeatures nativeFeature : NativeFeatures.values()) {
+            if (requestedFeatures.contains(nativeFeature) && nativeFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
+                enabledFeatures.add(nativeFeature);
+            } else {
+                nativeFeature.doWhenDisabled(builder);
             }
-        },
-        JANSI {
-            @Override
-            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
-                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
-                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
-                return true;
-            }
-            @Override
-            public void doWhenDisabled(ServiceRegistryBuilder builder) {
-            }
-        };
-
-        public abstract boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean canUseNativeIntegrations);
-        public abstract void doWhenDisabled(ServiceRegistryBuilder builder);
-    }
-
-    public enum NativeServicesMode {
-        ENABLED {
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-
-            @Override
-            public boolean isPotentiallyEnabled() {
-                return true;
-            }
-        },
-        DISABLED {
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-
-            @Override
-            public boolean isPotentiallyEnabled() {
-                return false;
-            }
-        },
-        NOT_SET {
-            @Override
-            public boolean isEnabled() {
-                throw new UnsupportedOperationException("Cannot determine if native services are enabled or not for " + this + " mode.");
-            }
-
-            @Override
-            public boolean isPotentiallyEnabled() {
-                return true;
-            }
-        };
-
-        public abstract boolean isEnabled();
-
-        /**
-         * Check if the native services might be enabled. This is used to determine if a process needs to be started with flags that allow native access.
-         *
-         * <p>
-         * This is used instead of looking at all possible sources of system properties to determine if the native services would be used, as that would be expensive and complicated.
-         * This could result in a process being started with flags that allow native access when it's not needed by Gradle.
-         * As it's likely that the native services are enabled, this trade-off is acceptable.
-         * </p>
-         *
-         * @return {@code true} if the native services might be enabled, {@code false} otherwise
-         */
-        public abstract boolean isPotentiallyEnabled();
-
-        public static NativeServicesMode from(boolean isEnabled) {
-            return isEnabled ? ENABLED : DISABLED;
         }
 
-        public static NativeServicesMode fromSystemProperties() {
-            return fromString(System.getProperty(NATIVE_SERVICES_OPTION));
-        }
-
-        public static NativeServicesMode fromProperties(Map<String, String> properties) {
-            return fromString(properties.get(NATIVE_SERVICES_OPTION));
-        }
-
-        public static NativeServicesMode fromString(@Nullable String value) {
-            // Default to enabled, make it disabled only if explicitly set to "false"
-            value = (value == null ? "true" : value).trim();
-            return from(!"false".equalsIgnoreCase(value));
-        }
+        this.services = builder.build();
     }
 
     /**
@@ -298,62 +205,6 @@ public class NativeServices implements ServiceRegistrationProvider {
         }
     }
 
-    private NativeServices(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
-        this.userHomeDir = userHomeDir;
-
-        boolean useNativeIntegrations = mode.isEnabled();
-        Native nativeIntegration = null;
-        File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
-        if (useNativeIntegrations) {
-            try {
-                nativeIntegration = Native.init(nativeBaseDir);
-            } catch (NativeIntegrationUnavailableException ex) {
-                LOGGER.debug("Native-platform is not available.", ex);
-                useNativeIntegrations = false;
-            } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
-                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                    useNativeIntegrations = false;
-                } else if (ex.getMessage().equals("Could not extract native JNI library.")
-                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
-                    //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
-                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                    useNativeIntegrations = false;
-                } else {
-                    throw ex;
-                }
-            }
-            LOGGER.info("Initialized native services in: {}", nativeBaseDir);
-        }
-        this.useNativeIntegrations = useNativeIntegrations;
-        this.nativeIntegration = nativeIntegration;
-
-        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
-            .displayName("native services")
-            .provider(new FileSystemServices())
-            .provider(this)
-            .provider(new ServiceRegistrationProvider() {
-                @SuppressWarnings("unused")
-                public void configure(ServiceRegistration registration) {
-                    registration.add(GradleUserHomeTemporaryFileProvider.class);
-                }
-            });
-
-        for (NativeFeatures nativeFeature : NativeFeatures.values()) {
-            if (requestedFeatures.contains(nativeFeature) && nativeFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
-                enabledFeatures.add(nativeFeature);
-            } else {
-                nativeFeature.doWhenDisabled(builder);
-            }
-        }
-
-        this.services = builder.build();
-    }
-
-    private boolean isFeatureEnabled(NativeFeatures feature) {
-        return enabledFeatures.contains(feature);
-    }
-
     private static File getNativeServicesDir(File userHomeDir) {
         String overrideProperty = getNativeDirOverride();
         if (overrideProperty == null) {
@@ -380,6 +231,21 @@ public class NativeServices implements ServiceRegistrationProvider {
     @VisibleForTesting
     protected static synchronized Native getNative() {
         return checkNotNull(instance).nativeIntegration;
+    }
+
+    private static String format(Throwable throwable) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(throwable);
+        for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
+            builder.append(SystemProperties.getInstance().getLineSeparator());
+            builder.append("caused by: ");
+            builder.append(current);
+        }
+        return builder.toString();
+    }
+
+    private boolean isFeatureEnabled(NativeFeatures feature) {
+        return enabledFeatures.contains(feature);
     }
 
     @Provides
@@ -574,15 +440,152 @@ public class NativeServices implements ServiceRegistrationProvider {
         return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName(), useNativeIntegrations, operatingSystem)));
     }
 
-    private static String format(Throwable throwable) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(throwable);
-        for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
-            builder.append(SystemProperties.getInstance().getLineSeparator());
-            builder.append("caused by: ");
-            builder.append(current);
+    public enum NativeFeatures {
+        FILE_SYSTEM_WATCHING {
+            @Override
+            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
+                if (!useNativeIntegrations) {
+                    return false;
+                }
+                OperatingSystem operatingSystem = OperatingSystem.current();
+                if (operatingSystem.isMacOsX()) {
+                    String version = operatingSystem.getVersion();
+                    if (VersionNumber.parse(version).getMajor() < 12) {
+                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                        return false;
+                    }
+                }
+                try {
+                    final FileEvents fileEvents = FileEvents.init(nativeBaseDir);
+                    LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
+                    builder.provider(new ServiceRegistrationProvider() {
+                        @Provides
+                        FileEventFunctionsProvider createFileEventFunctionsProvider() {
+                            return new FileEventFunctionsProvider() {
+                                @Override
+                                public <T extends NativeIntegration> T getFunctions(Class<T> type) {
+                                    if (fileEvents != null) {
+                                        return fileEvents.get(type);
+                                    } else {
+                                        throw new NativeIntegrationUnavailableException("File events are not available.");
+                                    }
+                                }
+                            };
+                        }
+                    });
+                    return true;
+                } catch (NativeIntegrationUnavailableException ex) {
+                    logFileSystemWatchingUnavailable(ex);
+                }
+                return false;
+            }
+
+            @Override
+            public void doWhenDisabled(ServiceRegistryBuilder builder) {
+                // We still need to provide an implementation of FileEventFunctionsProvider,
+                // even if file watching is disabled, otherwise the service registry will throw an exception for a missing service.
+                builder.provider(new ServiceRegistrationProvider() {
+                    @Provides
+                    FileEventFunctionsProvider createFileEventFunctionsProvider() {
+                        return new FileEventFunctionsProvider() {
+                            @Override
+                            public <T extends NativeIntegration> T getFunctions(Class<T> type) {
+                                throw new UnsupportedOperationException("File system watching is disabled.");
+                            }
+                        };
+                    }
+                });
+            }
+        },
+        JANSI {
+            @Override
+            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
+                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
+                return true;
+            }
+
+            @Override
+            public void doWhenDisabled(ServiceRegistryBuilder builder) {
+            }
+        };
+
+        public abstract boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean canUseNativeIntegrations);
+
+        public abstract void doWhenDisabled(ServiceRegistryBuilder builder);
+    }
+
+    public enum NativeServicesMode {
+        ENABLED {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+
+            @Override
+            public boolean isPotentiallyEnabled() {
+                return true;
+            }
+        },
+        DISABLED {
+            @Override
+            public boolean isEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isPotentiallyEnabled() {
+                return false;
+            }
+        },
+        NOT_SET {
+            @Override
+            public boolean isEnabled() {
+                throw new UnsupportedOperationException("Cannot determine if native services are enabled or not for " + this + " mode.");
+            }
+
+            @Override
+            public boolean isPotentiallyEnabled() {
+                return true;
+            }
+        };
+
+        public static NativeServicesMode from(boolean isEnabled) {
+            return isEnabled ? ENABLED : DISABLED;
         }
-        return builder.toString();
+
+        public static NativeServicesMode fromSystemProperties() {
+            return fromString(System.getProperty(NATIVE_SERVICES_OPTION));
+        }
+
+        public static NativeServicesMode fromProperties(Map<String, String> properties) {
+            return fromString(properties.get(NATIVE_SERVICES_OPTION));
+        }
+
+        public static NativeServicesMode fromString(@Nullable String value) {
+            // Default to enabled, make it disabled only if explicitly set to "false"
+            value = (value == null ? "true" : value).trim();
+            return from(!"false".equalsIgnoreCase(value));
+        }
+
+        public abstract boolean isEnabled();
+
+        /**
+         * Check if the native services might be enabled. This is used to determine if a process needs to be started with flags that allow native access.
+         *
+         * <p>
+         * This is used instead of looking at all possible sources of system properties to determine if the native services would be used, as that would be expensive and complicated.
+         * This could result in a process being started with flags that allow native access when it's not needed by Gradle.
+         * As it's likely that the native services are enabled, this trade-off is acceptable.
+         * </p>
+         *
+         * @return {@code true} if the native services might be enabled, {@code false} otherwise
+         */
+        public abstract boolean isPotentiallyEnabled();
+    }
+
+    public interface FileEventFunctionsProvider {
+        <T extends NativeIntegration> T getFunctions(Class<T> type);
     }
 
     private static class BrokenService implements InvocationHandler {
@@ -613,9 +616,5 @@ public class NativeServices implements ServiceRegistrationProvider {
         public String getHostname() {
             return hostname;
         }
-    }
-
-    public interface FileEventFunctionsProvider {
-        <T extends NativeIntegration> T getFunctions(Class<T> type);
     }
 }

@@ -91,7 +91,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     List<SourceFile> getLibrarySources() {
         return [
-                sourceFile("objc", "hello.m", """
+            sourceFile("objc", "hello.m", """
             #include "common.h"
 
             @implementation Greeter
@@ -104,7 +104,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
             }
             @end
         """),
-                sourceFile("objc", "sum.m", """
+            sourceFile("objc", "sum.m", """
             #include "common.h"
 
             int sum (int a, int b)
@@ -117,7 +117,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     List<SourceFile> getAlternateLibrarySources() {
         return [
-                sourceFile("objc", "hello.m", """
+            sourceFile("objc", "hello.m", """
             #include "common.h"
 
             @implementation Greeter
@@ -132,7 +132,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
                 return 1000;
             }
         """),
-                sourceFile("objc", "sum.m", """
+            sourceFile("objc", "sum.m", """
             #include "common.h"
 
             int sum(int a, int b)

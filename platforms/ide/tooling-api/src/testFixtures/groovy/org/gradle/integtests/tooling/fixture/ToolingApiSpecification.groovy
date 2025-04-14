@@ -474,6 +474,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     private boolean filterJavaVersionDeprecation = true
+
     boolean disableDaemonJavaVersionDeprecationFiltering() {
         filterJavaVersionDeprecation = false
     }

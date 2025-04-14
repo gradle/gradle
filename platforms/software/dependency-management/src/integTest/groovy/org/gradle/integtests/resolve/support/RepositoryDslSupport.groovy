@@ -60,7 +60,7 @@ trait RepositoryDslSupport {
 
     }
 
-    def ivyPasswordCredentials(){
+    def ivyPasswordCredentials() {
         """
 repositories {
     ivy {

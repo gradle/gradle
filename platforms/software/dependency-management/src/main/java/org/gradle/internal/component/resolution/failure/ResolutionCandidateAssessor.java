@@ -53,6 +53,31 @@ public final class ResolutionCandidateAssessor {
         this.attributeMatcher = attributeMatcher;
     }
 
+    private static <T> void classifyAttribute(
+        ImmutableAttributes requestedAttributes, ImmutableAttributes candidateAttributes, AttributeMatcher attributeMatcher,
+        Attribute<T> attribute, Set<String> alreadyAssessed,
+        ImmutableList.Builder<AssessedAttribute<?>> compatible, ImmutableList.Builder<AssessedAttribute<?>> incompatible,
+        ImmutableList.Builder<AssessedAttribute<?>> onlyOnConsumer, ImmutableList.Builder<AssessedAttribute<?>> onlyOnProducer
+    ) {
+        if (alreadyAssessed.add(attribute.getName())) {
+            String attributeName = attribute.getName();
+            AttributeValue<?> consumerValue = requestedAttributes.findEntry(attributeName);
+            AttributeValue<?> producerValue = candidateAttributes.findEntry(attributeName);
+
+            if (consumerValue.isPresent() && producerValue.isPresent()) {
+                if (attributeMatcher.isMatchingValue(attribute, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
+                    compatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                } else {
+                    incompatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
+                }
+            } else if (consumerValue.isPresent()) {
+                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
+            } else if (producerValue.isPresent()) {
+                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
+            }
+        }
+    }
+
     public ImmutableAttributes getRequestedAttributes() {
         return requestedAttributes;
     }
@@ -105,31 +130,6 @@ public final class ResolutionCandidateAssessor {
             .forEach(attribute -> classifyAttribute(requestedAttributes, candidateAttributes, attributeMatcher, attribute, alreadyAssessed, compatible, incompatible, onlyOnConsumer, onlyOnProducer));
 
         return new AssessedCandidate(candidateName, candidateAttributes, candidateCapabilities, compatible.build(), incompatible.build(), onlyOnConsumer.build(), onlyOnProducer.build());
-    }
-
-    private static <T> void classifyAttribute(
-        ImmutableAttributes requestedAttributes, ImmutableAttributes candidateAttributes, AttributeMatcher attributeMatcher,
-        Attribute<T> attribute, Set<String> alreadyAssessed,
-        ImmutableList.Builder<AssessedAttribute<?>> compatible, ImmutableList.Builder<AssessedAttribute<?>> incompatible,
-        ImmutableList.Builder<AssessedAttribute<?>> onlyOnConsumer, ImmutableList.Builder<AssessedAttribute<?>> onlyOnProducer
-    ) {
-        if (alreadyAssessed.add(attribute.getName())) {
-            String attributeName = attribute.getName();
-            AttributeValue<?> consumerValue = requestedAttributes.findEntry(attributeName);
-            AttributeValue<?> producerValue = candidateAttributes.findEntry(attributeName);
-
-            if (consumerValue.isPresent() && producerValue.isPresent()) {
-                if (attributeMatcher.isMatchingValue(attribute, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
-                } else {
-                    incompatible.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), Cast.uncheckedCast(producerValue.get())));
-                }
-            } else if (consumerValue.isPresent()) {
-                onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerValue.get()), null));
-            } else if (producerValue.isPresent()) {
-                onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerValue.get())));
-            }
-        }
     }
 
     /**

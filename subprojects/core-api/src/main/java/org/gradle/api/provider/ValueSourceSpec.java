@@ -22,8 +22,8 @@ import org.gradle.api.Action;
 /**
  * Base configuration for value source definitions.
  *
- * @see org.gradle.api.provider.ProviderFactory#of(Class, Action)
  * @param <P> The value source specific parameter type.
+ * @see org.gradle.api.provider.ProviderFactory#of(Class, Action)
  * @since 6.1
  */
 public interface ValueSourceSpec<P extends ValueSourceParameters> {

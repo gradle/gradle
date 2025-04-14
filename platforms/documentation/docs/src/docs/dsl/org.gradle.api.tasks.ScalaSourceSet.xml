@@ -5,16 +5,22 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>scala</literal> plugin</td>
+                    <td>Default with <literal>scala</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>scala</td>
-                <td><literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/scala]</literal></td>
+                <td>
+                    <literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/scala]
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>allScala</td>
-                <td><literal>[scala]</literal></td>
+                <td>
+                    <literal>[scala]</literal>
+                </td>
             </tr>
         </table>
     </section>

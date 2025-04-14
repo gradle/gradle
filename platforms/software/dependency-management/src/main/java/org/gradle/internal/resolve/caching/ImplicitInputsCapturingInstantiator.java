@@ -42,7 +42,6 @@ import java.util.List;
  *
  * If recording inputs is not required, the {@link #newInstance(Class, Object...)}
  * method can still be called, in which case it creates a non capturing instance.
- *
  */
 @NullMarked
 public class ImplicitInputsCapturingInstantiator implements Instantiator {
@@ -114,7 +113,7 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
         public Object find(Type serviceType) throws ServiceLookupException {
             Object service = serviceRegistry.find(serviceType);
             if (service instanceof ImplicitInputsProvidingService) {
-                return ((ImplicitInputsProvidingService)service).withImplicitInputRecorder(registrar);
+                return ((ImplicitInputsProvidingService) service).withImplicitInputRecorder(registrar);
             }
             return service;
         }

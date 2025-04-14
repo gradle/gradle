@@ -39,16 +39,6 @@ public class DefaultBuildFeatures implements BuildFeatures {
         this.isolatedProjects = Lazy.atomic().of(() -> createIsolatedProjects(startParameter, buildModelParameters));
     }
 
-    @Override
-    public BuildFeature getConfigurationCache() {
-        return configurationCache.get();
-    }
-
-    @Override
-    public BuildFeature getIsolatedProjects() {
-        return isolatedProjects.get();
-    }
-
     private static BuildFeature createConfigurationCache(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
         Provider<Boolean> isRequested = getRequestedProvider(startParameter.getConfigurationCache());
         Provider<Boolean> isActive = Providers.of(buildModelParameters.isConfigurationCache());
@@ -63,5 +53,15 @@ public class DefaultBuildFeatures implements BuildFeatures {
 
     private static ProviderInternal<Boolean> getRequestedProvider(Option.Value<Boolean> optionValue) {
         return Providers.ofNullable(optionValue.isExplicit() ? optionValue.get() : null);
+    }
+
+    @Override
+    public BuildFeature getConfigurationCache() {
+        return configurationCache.get();
+    }
+
+    @Override
+    public BuildFeature getIsolatedProjects() {
+        return isolatedProjects.get();
     }
 }

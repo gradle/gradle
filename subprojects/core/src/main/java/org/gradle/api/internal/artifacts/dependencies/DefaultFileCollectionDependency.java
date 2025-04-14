@@ -25,9 +25,9 @@ import org.jspecify.annotations.Nullable;
 
 public class DefaultFileCollectionDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
 
-    private @Nullable String reason;
     private final ComponentIdentifier targetComponentId;
     private final FileCollectionInternal source;
+    private @Nullable String reason;
 
     public DefaultFileCollectionDependency(FileCollectionInternal source) {
         this.targetComponentId = null;

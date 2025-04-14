@@ -60,12 +60,12 @@ public interface RequestExtra {
     class OriginatingElement implements RequestExtra {
         private final ExecutableElement element;
 
-        public ExecutableElement getElement() {
-            return element;
-        }
-
         public OriginatingElement(ExecutableElement element) {
             this.element = element;
+        }
+
+        public ExecutableElement getElement() {
+            return element;
         }
     }
 }

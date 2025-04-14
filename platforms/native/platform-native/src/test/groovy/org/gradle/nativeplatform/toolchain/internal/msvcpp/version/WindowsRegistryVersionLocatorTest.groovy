@@ -28,7 +28,8 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.Visual
 class WindowsRegistryVersionLocatorTest extends Specification {
     public static final String SOFTWARE_KEY = "SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7"
     public static final String SOFTWARE_WOW6432_KEY = "SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7"
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def windowsRegistry = Mock(WindowsRegistry)
     def locator = new WindowsRegistryVersionLocator(windowsRegistry)
@@ -43,14 +44,14 @@ class WindowsRegistryVersionLocatorTest extends Specification {
         List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
-        switch(foundIn) {
+        switch (foundIn) {
             case SOFTWARE_KEY:
-                1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["14.0", "12.0", "11.0" ]
+                1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["14.0", "12.0", "11.0"]
                 1 * windowsRegistry.getValueNames(_, SOFTWARE_WOW6432_KEY) >> { throw new MissingRegistryEntryException("not found") }
                 break;
             case SOFTWARE_WOW6432_KEY:
                 1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> { throw new MissingRegistryEntryException("not found") }
-                1 * windowsRegistry.getValueNames(_, SOFTWARE_WOW6432_KEY) >> ["14.0", "12.0", "11.0" ]
+                1 * windowsRegistry.getValueNames(_, SOFTWARE_WOW6432_KEY) >> ["14.0", "12.0", "11.0"]
                 break;
         }
         1 * windowsRegistry.getStringValue(_, foundIn, "14.0") >> dir1.createDir("VC").absolutePath
@@ -105,7 +106,7 @@ class WindowsRegistryVersionLocatorTest extends Specification {
         List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
-        1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["14.0", "12.0", "11.0" ]
+        1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["14.0", "12.0", "11.0"]
         1 * windowsRegistry.getValueNames(_, SOFTWARE_WOW6432_KEY) >> { throw new MissingRegistryEntryException("not found") }
         1 * windowsRegistry.getStringValue(_, _, "14.0") >> dir1.createDir("VC").absolutePath
         1 * windowsRegistry.getStringValue(_, _, "12.0") >> dir2.createDir("VC").absolutePath
@@ -134,7 +135,7 @@ class WindowsRegistryVersionLocatorTest extends Specification {
         List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
-        1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["", "14.0", "12.0", "11.0", "ignore-me" ]
+        1 * windowsRegistry.getValueNames(_, SOFTWARE_KEY) >> ["", "14.0", "12.0", "11.0", "ignore-me"]
         1 * windowsRegistry.getValueNames(_, SOFTWARE_WOW6432_KEY) >> { throw new MissingRegistryEntryException("not found") }
         1 * windowsRegistry.getStringValue(_, _, "14.0") >> dir1.createDir("VC").absolutePath
         1 * windowsRegistry.getStringValue(_, _, "12.0") >> dir2.createDir("VC").absolutePath
@@ -142,6 +143,6 @@ class WindowsRegistryVersionLocatorTest extends Specification {
 
         and:
         metadata.size() == 3
-        metadata.collect { it.version.toString() } == [ "14.0.0", "12.0.0", "11.0.0" ]
+        metadata.collect { it.version.toString() } == ["14.0.0", "12.0.0", "11.0.0"]
     }
 }

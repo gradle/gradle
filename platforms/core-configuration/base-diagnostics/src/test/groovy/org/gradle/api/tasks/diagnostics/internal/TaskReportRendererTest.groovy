@@ -30,8 +30,8 @@ class TaskReportRendererTest extends AbstractTaskModelSpec {
         TaskDetails task1 = taskDetails(':task1', description: 'task1Description')
         taskDetails(':task2')
         TaskDetails task3 = taskDetails(':task3')
-        RuleDetails rule1 = [getDescription: {'rule1Description'}] as RuleDetails
-        RuleDetails rule2 = [getDescription: {'rule2Description'}] as RuleDetails
+        RuleDetails rule1 = [getDescription: { 'rule1Description' }] as RuleDetails
+        RuleDetails rule2 = [getDescription: { 'rule2Description' }] as RuleDetails
 
         List testDefaultTasks = ['task1', 'task2']
 
@@ -66,8 +66,8 @@ rule2Description
         TaskDetails task1 = taskDetails(':task1', description: 'task1Description', dependencies: [task11, task12])
         TaskDetails task2 = taskDetails(':task2')
         TaskDetails task3 = taskDetails(':task3', dependencies: [task1])
-        RuleDetails rule1 = [getDescription: {'rule1Description'}] as RuleDetails
-        RuleDetails rule2 = [getDescription: {'rule2Description'}] as RuleDetails
+        RuleDetails rule1 = [getDescription: { 'rule1Description' }] as RuleDetails
+        RuleDetails rule2 = [getDescription: { 'rule2Description' }] as RuleDetails
         List testDefaultTasks = ['task1', 'task2']
 
         when:
@@ -166,7 +166,7 @@ Other tasks
 
         when:
         renderer.completeTasks()
-        renderer.addRule([getDescription: {ruleDescription}] as RuleDetails)
+        renderer.addRule([getDescription: { ruleDescription }] as RuleDetails)
 
         then:
         writer.value == '''No tasks

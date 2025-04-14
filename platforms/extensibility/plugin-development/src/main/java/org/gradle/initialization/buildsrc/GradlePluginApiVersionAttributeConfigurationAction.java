@@ -34,6 +34,15 @@ import org.gradle.util.GradleVersion;
  */
 public class GradlePluginApiVersionAttributeConfigurationAction implements BuildSrcProjectConfigurationAction {
 
+    private static void setAttributeForConfiguration(NamedDomainObjectProvider<Configuration> configurationProvider, NamedObjectInstantiator instantiator) {
+        configurationProvider.configure(configuration ->
+            configuration.getAttributes().attribute(
+                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion())
+            )
+        );
+    }
+
     @Override
     public void execute(ProjectInternal project) {
         project.getPlugins().withType(JavaBasePlugin.class, javaBasePlugin -> addGradlePluginApiVersionAttributeToClasspath(project));
@@ -51,14 +60,5 @@ public class GradlePluginApiVersionAttributeConfigurationAction implements Build
     private void setAttributeForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations, NamedObjectInstantiator instantiator) {
         setAttributeForConfiguration(configurations.named(sourceSet.getCompileClasspathConfigurationName()), instantiator);
         setAttributeForConfiguration(configurations.named(sourceSet.getRuntimeClasspathConfigurationName()), instantiator);
-    }
-
-    private static void setAttributeForConfiguration(NamedDomainObjectProvider<Configuration> configurationProvider, NamedObjectInstantiator instantiator) {
-        configurationProvider.configure(configuration ->
-            configuration.getAttributes().attribute(
-                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
-                instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion())
-            )
-        );
     }
 }

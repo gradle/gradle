@@ -24,6 +24,7 @@ import java.io.OutputStream;
 
 /**
  * A signatory is an object capable of providing a signature for an arbitrary stream of bytes.
+ *
  * @since 4.5
  */
 public interface Signatory {

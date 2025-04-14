@@ -29,6 +29,19 @@ import org.slf4j.helpers.MessageFormatter;
 @SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
 abstract class BuildOperationAwareLogger implements Logger {
 
+    static LogLevel toLogLevel(@Nullable Marker marker) {
+        if (marker == null) {
+            return LogLevel.INFO;
+        }
+        if (marker == Logging.LIFECYCLE) {
+            return LogLevel.LIFECYCLE;
+        }
+        if (marker == Logging.QUIET) {
+            return LogLevel.QUIET;
+        }
+        return LogLevel.INFO;
+    }
+
     @Override
     public abstract String getName();
 
@@ -500,18 +513,5 @@ abstract class BuildOperationAwareLogger implements Logger {
         if (isErrorEnabled(marker)) {
             log(LogLevel.ERROR, t, msg);
         }
-    }
-
-    static LogLevel toLogLevel(@Nullable Marker marker) {
-        if (marker == null) {
-            return LogLevel.INFO;
-        }
-        if (marker == Logging.LIFECYCLE) {
-            return LogLevel.LIFECYCLE;
-        }
-        if (marker == Logging.QUIET) {
-            return LogLevel.QUIET;
-        }
-        return LogLevel.INFO;
     }
 }

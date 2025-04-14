@@ -30,7 +30,8 @@ import java.security.Permission
 @RedirectStdIn
 @Requires(UnitTestPreconditions.Jdk8OrEarlier)
 class BootstrapSecurityManagerTest extends Specification {
-    @Rule SetSystemProperties systemProperties
+    @Rule
+    SetSystemProperties systemProperties
 
     def cleanup() {
         System.securityManager = null

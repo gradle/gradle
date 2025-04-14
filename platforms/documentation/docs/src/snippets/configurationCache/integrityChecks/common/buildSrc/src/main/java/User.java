@@ -5,6 +5,13 @@ public class User implements Serializable {
     private transient String name;
     private transient int age;
 
+    // ...
+// end::broken-type[]
+    public User(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
 
@@ -17,12 +24,6 @@ public class User implements Serializable {
 
         this.name = (String) in.readObject();
         // this.age = in.readInt(); // <2>
-    }
-    // ...
-// end::broken-type[]
-    public User(String name, int age) {
-        this.name = name;
-        this.age = age;
     }
 
     public String getName() {

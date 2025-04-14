@@ -44,10 +44,10 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
-    private Object destination;
     private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
         MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
     );
+    private Object destination;
 
     @Inject
     protected FileResolver getFileResolver() {

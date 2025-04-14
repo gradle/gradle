@@ -149,9 +149,9 @@ public class ExtensionsStorage {
     }
 
     private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {
+        protected final T extension;
         private final String name;
         private final TypeOf<T> publicType;
-        protected final T extension;
 
         private ExtensionHolder(String name, TypeOf<T> publicType, T extension) {
             this.name = name;

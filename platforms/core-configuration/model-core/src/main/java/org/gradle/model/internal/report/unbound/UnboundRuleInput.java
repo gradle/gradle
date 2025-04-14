@@ -17,8 +17,10 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.collect.ImmutableList;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
@@ -34,6 +36,27 @@ public class UnboundRuleInput {
     private final String description;
     private final ImmutableList<String> suggestedPaths;
     private final String scope;
+
+    private UnboundRuleInput(String path, String type, boolean bound, ImmutableList<String> suggestedPaths, String description, String scope) {
+        this.path = path;
+        this.type = type;
+        this.bound = bound;
+        this.suggestedPaths = suggestedPaths;
+        this.description = description;
+        this.scope = scope;
+    }
+
+    public static Builder type(String type) {
+        return new Builder(type);
+    }
+
+    public static Builder type(Class<?> type) {
+        return type(ModelType.of(type));
+    }
+
+    public static Builder type(ModelType<?> type) {
+        return type(type.getDisplayName());
+    }
 
     public String getPath() {
         return path;
@@ -57,27 +80,6 @@ public class UnboundRuleInput {
 
     public String getScope() {
         return scope;
-    }
-
-    private UnboundRuleInput(String path, String type, boolean bound, ImmutableList<String> suggestedPaths, String description, String scope) {
-        this.path = path;
-        this.type = type;
-        this.bound = bound;
-        this.suggestedPaths = suggestedPaths;
-        this.description = description;
-        this.scope = scope;
-    }
-
-    public static Builder type(String type) {
-        return new Builder(type);
-    }
-
-    public static Builder type(Class<?> type) {
-        return type(ModelType.of(type));
-    }
-
-    public static Builder type(ModelType<?> type) {
-        return type(type.getDisplayName());
     }
 
     @NotThreadSafe

@@ -35,6 +35,7 @@ class DefaultDisambiguationRuleChainTest extends Specification {
             details.closestMatch("value1")
         }
     }
+
     static class SelectionRuleWithParams implements AttributeDisambiguationRule<String> {
         String p1
 

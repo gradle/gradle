@@ -548,7 +548,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         """
         repositoryInteractions {
             'org.test:moduleA:1.0' {
-                variant("default", ['some':'other'])
+                variant("default", ['some': 'other'])
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -585,7 +585,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         """
         repositoryInteractions {
             'org.test:moduleA:1.0' {
-                variant("default", ['some':'other'])
+                variant("default", ['some': 'other'])
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -619,7 +619,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         when:
-        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy() ? 'default' : variantToTest
         buildFile << """
             class ModifyDepRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext context) {
@@ -705,7 +705,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         mavenGradleRepo.module("org.test", "moduleC").withModuleMetadata().variant("anotherVariantWithFormatCustom", [format: "custom"]).publish()
 
         when:
-        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy() ? 'default' : variantToTest
         buildFile << """
             class AddModuleCRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext context) {
@@ -872,7 +872,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{strictly 1.0}'"""
+   ${defineAsConstraint ? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{strictly 1.0}'"""
 
         where:
         thing                    | defineAsConstraint
@@ -943,7 +943,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{require 1.+; reject 1.1 & 1.2}'"""
+   ${defineAsConstraint ? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{require 1.+; reject 1.1 & 1.2}'"""
 
         where:
         thing                    | defineAsConstraint
@@ -955,7 +955,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         given:
         repository {
             'org.test:moduleA:1.0' {
-                dependsOn group:'org.test', artifact:'moduleB', version:'1.0', reason: 'will be overwritten by rule'
+                dependsOn group: 'org.test', artifact: 'moduleB', version: '1.0', reason: 'will be overwritten by rule'
             }
             'org.test:moduleB:1.0'()
         }
@@ -1011,8 +1011,8 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         given:
         repository {
             'org.test:moduleA:1.0' {
-                dependsOn group:'org.test', artifact:'moduleB', version:'1.0', reason: 'will be overwritten by rule'
-                constraint group:'org.test', artifact:'moduleC', version:'1.0', reason: 'will be overwritten by rule'
+                dependsOn group: 'org.test', artifact: 'moduleB', version: '1.0', reason: 'will be overwritten by rule'
+                constraint group: 'org.test', artifact: 'moduleC', version: '1.0', reason: 'will be overwritten by rule'
             }
             'org.test:moduleB:1.0' {
                 dependsOn 'org.test:moduleC:1.0'

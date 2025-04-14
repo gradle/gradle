@@ -59,19 +59,19 @@ public abstract class DependencyResultSorter {
             checkRequestedComponentSelectorType(left);
             checkRequestedComponentSelectorType(right);
 
-            if(isLeftProjectButRightIsModuleComponentSelector(left, right)) {
+            if (isLeftProjectButRightIsModuleComponentSelector(left, right)) {
                 return -1;
             }
 
-            if(isLeftModuleButRightIsProjectComponentSelector(left, right)) {
+            if (isLeftModuleButRightIsProjectComponentSelector(left, right)) {
                 return 1;
             }
 
-            if(isLeftAndRightProjectComponentSelector(left, right)) {
+            if (isLeftAndRightProjectComponentSelector(left, right)) {
                 return compareRequestedProjectComponentSelectors(left, right);
             }
 
-            if(isLeftAndRightModuleComponentSelector(left, right)) {
+            if (isLeftAndRightModuleComponentSelector(left, right)) {
                 return compareModuleComponentSelectors(left, right);
             }
 
@@ -80,13 +80,13 @@ public abstract class DependencyResultSorter {
 
         private void checkRequestedComponentSelectorType(DependencyEdge dependencyEdge) {
             // Second null check is redundant according to API specification, but is tested behaviour
-            if(dependencyEdge == null || dependencyEdge.getRequested() == null) {
+            if (dependencyEdge == null || dependencyEdge.getRequested() == null) {
                 throw new IllegalArgumentException("Dependency edge or the requested component selector may not be null");
             }
 
             ComponentSelector requested = dependencyEdge.getRequested();
 
-            if(!isExpectedComponentSelector(requested)) {
+            if (!isExpectedComponentSelector(requested)) {
                 throw new IllegalArgumentException("Unexpected component selector type for dependency edge: " + requested.getClass());
             }
         }
@@ -112,8 +112,8 @@ public abstract class DependencyResultSorter {
         }
 
         private int compareModuleComponentSelectors(DependencyEdge left, DependencyEdge right) {
-            ModuleComponentSelector leftRequested = (ModuleComponentSelector)left.getRequested();
-            ModuleComponentSelector rightRequested = (ModuleComponentSelector)right.getRequested();
+            ModuleComponentSelector leftRequested = (ModuleComponentSelector) left.getRequested();
+            ModuleComponentSelector rightRequested = (ModuleComponentSelector) right.getRequested();
             int byGroup = leftRequested.getGroup().compareTo(rightRequested.getGroup());
             if (byGroup != 0) {
                 return byGroup;
@@ -164,17 +164,17 @@ public abstract class DependencyResultSorter {
         }
 
         private int compareRequestedProjectComponentSelectors(DependencyEdge left, DependencyEdge right) {
-            ProjectComponentSelector leftRequested = (ProjectComponentSelector)left.getRequested();
-            ProjectComponentSelector rightRequested = (ProjectComponentSelector)right.getRequested();
+            ProjectComponentSelector leftRequested = (ProjectComponentSelector) left.getRequested();
+            ProjectComponentSelector rightRequested = (ProjectComponentSelector) right.getRequested();
             return leftRequested.getProjectPath().compareTo(rightRequested.getProjectPath());
         }
 
         public int compareFromComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
-            if(isLeftAndRightFromProjectComponentIdentifier(left, right)) {
+            if (isLeftAndRightFromProjectComponentIdentifier(left, right)) {
                 return compareFromProjectComponentIdentifiers(left, right);
             }
 
-            if(isLeftAndRightFromModuleComponentIdentifier(left, right)) {
+            if (isLeftAndRightFromModuleComponentIdentifier(left, right)) {
                 return compareFromModuleComponentIdentifiers(left, right);
             }
 
@@ -182,14 +182,14 @@ public abstract class DependencyResultSorter {
         }
 
         private int compareFromProjectComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
-            ProjectComponentIdentifier leftFrom = (ProjectComponentIdentifier)left;
-            ProjectComponentIdentifier rightFrom = (ProjectComponentIdentifier)right;
+            ProjectComponentIdentifier leftFrom = (ProjectComponentIdentifier) left;
+            ProjectComponentIdentifier rightFrom = (ProjectComponentIdentifier) right;
             return leftFrom.getProjectPath().compareTo(rightFrom.getProjectPath());
         }
 
         private int compareFromModuleComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
-            ModuleComponentIdentifier leftFrom = (ModuleComponentIdentifier)left;
-            ModuleComponentIdentifier rightFrom = (ModuleComponentIdentifier)right;
+            ModuleComponentIdentifier leftFrom = (ModuleComponentIdentifier) left;
+            ModuleComponentIdentifier rightFrom = (ModuleComponentIdentifier) right;
             int byGroup = leftFrom.getGroup().compareTo(rightFrom.getGroup());
             if (byGroup != 0) {
                 return byGroup;

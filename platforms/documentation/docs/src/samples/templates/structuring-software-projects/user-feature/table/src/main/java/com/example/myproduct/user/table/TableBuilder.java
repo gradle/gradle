@@ -17,7 +17,7 @@ public class TableBuilder {
 
     protected static List<List<String>> build(List<MyProductRelease> releases) {
         return releases.stream().filter(TableBuilder::isInRange).map(r ->
-                Arrays.asList(r.getVersion(), r.getReleaseNotes())).collect(Collectors.toList());
+            Arrays.asList(r.getVersion(), r.getReleaseNotes())).collect(Collectors.toList());
     }
 
     protected static boolean isInRange(MyProductRelease release) {

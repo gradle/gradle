@@ -25,7 +25,7 @@ import spock.lang.Specification
 class DefaultExcludeRuleConverterTest extends Specification {
 
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
-        module(_,_) >> { args ->
+        module(_, _) >> { args ->
             Mock(ModuleIdentifier) {
                 getGroup() >> args[0]
                 getName() >> args[1]

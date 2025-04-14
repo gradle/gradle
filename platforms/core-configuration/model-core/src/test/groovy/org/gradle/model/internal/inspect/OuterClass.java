@@ -23,12 +23,6 @@ public class OuterClass {
     public static interface AnInterface {
     }
 
-    public class InnerInstanceClass extends RuleSource {
-    }
-
-    private class PrivateInnerStaticClass {
-    }
-
     public static class HasSuperclass extends InnerPublicStaticClass {
     }
 
@@ -65,5 +59,11 @@ public class OuterClass {
 
     public static class HasStaticFinalField extends RuleSource {
         private static final Object VALUE = null;
+    }
+
+    public class InnerInstanceClass extends RuleSource {
+    }
+
+    private class PrivateInnerStaticClass {
     }
 }

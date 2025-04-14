@@ -55,47 +55,6 @@ public class OutputUnpacker implements PropertyVisitor {
         this.unpackedOutputConsumer = unpackedOutputConsumer;
     }
 
-    public interface UnpackedOutputConsumer {
-        void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec);
-        void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value);
-
-        static UnpackedOutputConsumer composite(UnpackedOutputConsumer consumer1, UnpackedOutputConsumer consumer2) {
-            return new UnpackedOutputConsumer() {
-                @Override
-                public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
-                    consumer1.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
-                    consumer2.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
-                }
-
-                @Override
-                public void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value) {
-                    consumer1.visitEmptyOutputFileProperty(propertyName, optional, value);
-                    consumer2.visitEmptyOutputFileProperty(propertyName, optional, value);
-                }
-            };
-        }
-    }
-
-    @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-        hasDeclaredOutputs = true;
-        MutableBoolean hasSpecs = new MutableBoolean();
-        if (finalizeBeforeUnpacking) {
-            value.maybeFinalizeValue();
-        }
-        resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, locationOnly, spec -> {
-            hasSpecs.set(true);
-            unpackedOutputConsumer.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
-        });
-        if (!hasSpecs.get()) {
-            unpackedOutputConsumer.visitEmptyOutputFileProperty(propertyName, optional, value);
-        }
-    }
-
-    public boolean hasDeclaredOutputs() {
-        return hasDeclaredOutputs;
-    }
-
     /**
      * Resolves the given output file property to individual property specs.
      *
@@ -178,5 +137,47 @@ public class OutputUnpacker implements PropertyVisitor {
             "Only files and directories can be registered as outputs (was: %s)",
             fileTree
         ));
+    }
+
+    @Override
+    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+        hasDeclaredOutputs = true;
+        MutableBoolean hasSpecs = new MutableBoolean();
+        if (finalizeBeforeUnpacking) {
+            value.maybeFinalizeValue();
+        }
+        resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, locationOnly, spec -> {
+            hasSpecs.set(true);
+            unpackedOutputConsumer.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
+        });
+        if (!hasSpecs.get()) {
+            unpackedOutputConsumer.visitEmptyOutputFileProperty(propertyName, optional, value);
+        }
+    }
+
+    public boolean hasDeclaredOutputs() {
+        return hasDeclaredOutputs;
+    }
+
+    public interface UnpackedOutputConsumer {
+        static UnpackedOutputConsumer composite(UnpackedOutputConsumer consumer1, UnpackedOutputConsumer consumer2) {
+            return new UnpackedOutputConsumer() {
+                @Override
+                public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
+                    consumer1.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
+                    consumer2.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
+                }
+
+                @Override
+                public void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value) {
+                    consumer1.visitEmptyOutputFileProperty(propertyName, optional, value);
+                    consumer2.visitEmptyOutputFileProperty(propertyName, optional, value);
+                }
+            };
+        }
+
+        void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec);
+
+        void visitEmptyOutputFileProperty(String propertyName, boolean optional, PropertyValue value);
     }
 }

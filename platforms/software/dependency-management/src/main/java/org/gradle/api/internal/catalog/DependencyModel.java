@@ -25,11 +25,13 @@ public class DependencyModel extends AbstractContextAwareModel {
     private final String versionRef;
     private final int hashCode;
 
-    public DependencyModel(String group,
-                           String name,
-                           @Nullable String versionRef,
-                           ImmutableVersionConstraint version,
-                           @Nullable String context) {
+    public DependencyModel(
+        String group,
+        String name,
+        @Nullable String versionRef,
+        ImmutableVersionConstraint version,
+        @Nullable String context
+    ) {
         super(context);
         this.group = group;
         this.name = name;

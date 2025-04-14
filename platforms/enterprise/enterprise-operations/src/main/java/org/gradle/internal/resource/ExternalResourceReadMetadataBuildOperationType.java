@@ -25,6 +25,9 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class ExternalResourceReadMetadataBuildOperationType implements BuildOperationType<ExternalResourceReadMetadataBuildOperationType.Details, ExternalResourceReadMetadataBuildOperationType.Result> {
 
+    private ExternalResourceReadMetadataBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -37,9 +40,6 @@ public final class ExternalResourceReadMetadataBuildOperationType implements Bui
 
     public interface Result {
 
-    }
-
-    private ExternalResourceReadMetadataBuildOperationType() {
     }
 
 }

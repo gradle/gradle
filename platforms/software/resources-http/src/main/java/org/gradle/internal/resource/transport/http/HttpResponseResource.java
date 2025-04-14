@@ -47,6 +47,26 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.wasMissing());
     }
 
+    private static String getEtag(HttpClientResponse response) {
+        return response.getHeader(HttpHeaders.ETAG);
+    }
+
+    private static HashCode getSha1(HttpClientResponse response, String etag) {
+        String sha1Header = response.getHeader("X-Checksum-Sha1");
+        if (sha1Header != null) {
+            return HashCode.fromString(sha1Header);
+        }
+
+        // Nexus uses sha1 etags, with a constant prefix
+        // e.g {SHA1{b8ad5573a5e9eba7d48ed77a48ad098e3ec2590b}}
+        if (etag != null && etag.startsWith("{SHA1{")) {
+            String hash = etag.substring(6, etag.length() - 2);
+            return HashCode.fromString(hash);
+        }
+
+        return null;
+    }
+
     public URI getURI() {
         return source;
     }
@@ -145,25 +165,5 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     @Override
     public void close() {
         response.close();
-    }
-
-    private static String getEtag(HttpClientResponse response) {
-        return response.getHeader(HttpHeaders.ETAG);
-    }
-
-    private static HashCode getSha1(HttpClientResponse response, String etag) {
-        String sha1Header = response.getHeader("X-Checksum-Sha1");
-        if (sha1Header != null) {
-            return HashCode.fromString(sha1Header);
-        }
-
-        // Nexus uses sha1 etags, with a constant prefix
-        // e.g {SHA1{b8ad5573a5e9eba7d48ed77a48ad098e3ec2590b}}
-        if (etag != null && etag.startsWith("{SHA1{")) {
-            String hash = etag.substring(6, etag.length() - 2);
-            return HashCode.fromString(hash);
-        }
-
-        return null;
     }
 }

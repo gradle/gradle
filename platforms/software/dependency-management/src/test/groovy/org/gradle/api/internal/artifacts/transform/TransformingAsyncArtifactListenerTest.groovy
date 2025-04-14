@@ -33,7 +33,7 @@ import spock.lang.Specification
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformStep = Mock(TransformStep)
     def targetAttributes = Mock(ImmutableAttributes)
-    def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
+    def result = ImmutableList.<ResolvedArtifactSet.Artifacts> builder()
     def invocation = Mock(Deferrable<TransformStepSubject>)
     def operationQueue = Mock(BuildOperationQueue)
     def listener = new TransformingAsyncArtifactListener([new BoundTransformStep(transformStep, Stub(TransformUpstreamDependencies))], targetAttributes, ImmutableCapabilities.EMPTY, result)

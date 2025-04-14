@@ -68,35 +68,14 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
+    public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
     private static final Set<ClassPathNotation> GRADLE_API_NOTATIONS = EnumSet.of(
         ClassPathNotation.GRADLE_API,
         ClassPathNotation.LOCAL_GROOVY
     );
-
-    public enum InstrumentationPhase {
-        NOT_INSTRUMENTED("not-instrumented"),
-        ANALYZED_ARTIFACT("analyzed-artifact"),
-        MERGED_ARTIFACT_ANALYSIS("merged-artifact-analysis"),
-        INSTRUMENTED_AND_UPGRADED("instrumented-and-upgraded"),
-        INSTRUMENTED_ONLY("instrumented-only");
-
-        private final String value;
-
-        InstrumentationPhase(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
-
-    public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
-
     private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
-
     public DefaultScriptClassPathResolver(
         NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
@@ -111,6 +90,45 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             Lazy.atomic().of(gradle::getSharedServices)
         );
         this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
+    }
+
+    private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {
+        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+            config.componentFilter(it -> !isGradleApi(it));
+        });
+    }
+
+    private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
+        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED.value));
+            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
+        }).getArtifacts();
+    }
+
+    private static ArtifactCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
+        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
+            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_ONLY.value));
+            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
+        }).getArtifacts();
+    }
+
+    private static boolean isGradleApi(ComponentIdentifier componentId) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return DefaultScriptClassPathResolver.GRADLE_API_NOTATIONS.contains(classPathNotation);
+        }
+        return false;
+    }
+
+    private static boolean isProjectDependency(ComponentIdentifier componentId) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            return ((OpaqueComponentIdentifier) componentId).getClassPathNotation() == ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY;
+        }
+        return componentId instanceof ProjectComponentIdentifier;
+    }
+
+    private static boolean isExternalDependency(ComponentIdentifier componentId) {
+        return !isGradleApi(componentId) && !isProjectDependency(componentId);
     }
 
     @Override
@@ -176,42 +194,21 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         }).getFiles();
     }
 
-    private static ArtifactView getOriginalDependencies(Configuration classpathConfiguration) {
-        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.componentFilter(it -> !isGradleApi(it));
-        });
-    }
+    public enum InstrumentationPhase {
+        NOT_INSTRUMENTED("not-instrumented"),
+        ANALYZED_ARTIFACT("analyzed-artifact"),
+        MERGED_ARTIFACT_ANALYSIS("merged-artifact-analysis"),
+        INSTRUMENTED_AND_UPGRADED("instrumented-and-upgraded"),
+        INSTRUMENTED_ONLY("instrumented-only");
 
-    private static ArtifactCollection getInstrumentedExternalDependencies(Configuration classpathConfiguration) {
-        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_AND_UPGRADED.value));
-            config.componentFilter(DefaultScriptClassPathResolver::isExternalDependency);
-        }).getArtifacts();
-    }
+        private final String value;
 
-    private static ArtifactCollection getInstrumentedProjectDependencies(Configuration classpathConfiguration) {
-        return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
-            config.attributes(it -> it.attribute(INSTRUMENTED_ATTRIBUTE, INSTRUMENTED_ONLY.value));
-            config.componentFilter(DefaultScriptClassPathResolver::isProjectDependency);
-        }).getArtifacts();
-    }
-
-    private static boolean isGradleApi(ComponentIdentifier componentId) {
-        if (componentId instanceof OpaqueComponentIdentifier) {
-            ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-            return DefaultScriptClassPathResolver.GRADLE_API_NOTATIONS.contains(classPathNotation);
+        InstrumentationPhase(String value) {
+            this.value = value;
         }
-        return false;
-    }
 
-    private static boolean isProjectDependency(ComponentIdentifier componentId) {
-        if (componentId instanceof OpaqueComponentIdentifier) {
-            return ((OpaqueComponentIdentifier) componentId).getClassPathNotation() == ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY;
+        public String getValue() {
+            return value;
         }
-        return componentId instanceof ProjectComponentIdentifier;
-    }
-
-    private static boolean isExternalDependency(ComponentIdentifier componentId) {
-        return !isGradleApi(componentId) && !isProjectDependency(componentId);
     }
 }

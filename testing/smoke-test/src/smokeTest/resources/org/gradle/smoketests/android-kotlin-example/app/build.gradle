@@ -44,7 +44,9 @@ project.afterEvaluate {
         flavor.name
     }
     // When no product flavors defined, use empty
-    if (!productFlavors) productFlavors.add('')
+    if (!productFlavors) {
+        productFlavors.add('')
+    }
     productFlavors.each { productFlavorName ->
         buildTypes.each { buildTypeName ->
             def sourceName, sourcePath
@@ -56,7 +58,7 @@ project.afterEvaluate {
             }
             def testTaskName = "test${sourceName.capitalize()}UnitTest"
             // Create coverage task of form 'testFlavorTypeCoverage' depending on 'testFlavorTypeUnitTest'
-            task "${testTaskName}Coverage" (type:JacocoReport, dependsOn: "$testTaskName") {
+            task "${testTaskName}Coverage"(type: JacocoReport, dependsOn: "$testTaskName") {
                 group = "Reporting"
                 description = "Generate Jacoco coverage reports on the ${sourceName.capitalize()} build."
                 classDirectories.from(fileTree(

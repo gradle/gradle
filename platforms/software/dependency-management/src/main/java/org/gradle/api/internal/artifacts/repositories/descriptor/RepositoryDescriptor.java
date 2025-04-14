@@ -28,17 +28,9 @@ import java.util.Map;
  */
 public abstract class RepositoryDescriptor {
 
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    public enum Type {
-        MAVEN,
-        IVY,
-        FLAT_DIR
-    }
-
     private final String id;
     private final String name;
     private Map<String, ?> properties;
-
     RepositoryDescriptor(String id, String name) {
         this.id = id;
         this.name = name;
@@ -65,5 +57,12 @@ public abstract class RepositoryDescriptor {
     }
 
     protected abstract void addProperties(ImmutableSortedMap.Builder<String, Object> builder);
+
+    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    public enum Type {
+        MAVEN,
+        IVY,
+        FLAT_DIR
+    }
 
 }

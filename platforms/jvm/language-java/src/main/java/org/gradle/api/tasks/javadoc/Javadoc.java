@@ -107,21 +107,15 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private File destinationDir;
-
-    private boolean failOnError = true;
-
-    private String title;
-
-    private String maxMemory;
-
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
-
-    private FileCollection classpath = getProject().files();
     private final ModularitySpec modularity;
-
-    private String executable;
     private final Property<JavadocTool> javadocTool;
+    private File destinationDir;
+    private boolean failOnError = true;
+    private String title;
+    private String maxMemory;
+    private FileCollection classpath = getProject().files();
+    private String executable;
 
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -182,8 +176,8 @@ public abstract class Javadoc extends SourceTask {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-                customExecutable, "Toolchain from `executable` property",
-                toolchainExecutable, "toolchain from `javadocTool` property");
+            customExecutable, "Toolchain from `executable` property",
+            toolchainExecutable, "toolchain from `javadocTool` property");
     }
 
     private boolean isModule() {
@@ -250,6 +244,13 @@ public abstract class Javadoc extends SourceTask {
         return destinationDir;
     }
 
+    /**
+     * <p>Sets the directory to generate the documentation into.</p>
+     */
+    public void setDestinationDir(File destinationDir) {
+        this.destinationDir = destinationDir;
+    }
+
     @OutputDirectory
     protected File getOutputDirectory() {
         File destinationDir = getDestinationDir();
@@ -257,13 +258,6 @@ public abstract class Javadoc extends SourceTask {
             destinationDir = options.getDestinationDirectory();
         }
         return destinationDir;
-    }
-
-    /**
-     * <p>Sets the directory to generate the documentation into.</p>
-     */
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
     }
 
     /**

@@ -172,11 +172,11 @@ public class ClasspathTest extends Specification {
         '/pathA' | '/pathA' | 'false' | 'false' | [[path: '/pathA', test: 'false']]
         '/pathA' | '/pathA' | 'false' | 'true'  | [[path: '/pathA', test: 'false']]
         '/pathA' | '/pathA' | 'true'  | 'false' | [[path: '/pathA', test: 'false']]
-        '/pathA' | '/pathA' | 'true'  | 'true'  | [[path: '/pathA', test: 'true' ]]
+        '/pathA' | '/pathA' | 'true'  | 'true'  | [[path: '/pathA', test: 'true']]
         '/pathA' | '/pathB' | 'false' | 'false' | [[path: '/pathA', test: 'false'], [path: '/pathB', test: 'false']]
-        '/pathA' | '/pathB' | 'false' | 'true'  | [[path: '/pathA', test: 'false'], [path: '/pathB', test: 'true' ]]
-        '/pathA' | '/pathB' | 'true'  | 'false' | [[path: '/pathA', test: 'true' ], [path: '/pathB', test: 'false']]
-        '/pathA' | '/pathB' | 'true'  | 'true'  | [[path: '/pathA', test: 'true' ], [path: '/pathB', test: 'true' ]]
+        '/pathA' | '/pathB' | 'false' | 'true'  | [[path: '/pathA', test: 'false'], [path: '/pathB', test: 'true']]
+        '/pathA' | '/pathB' | 'true'  | 'false' | [[path: '/pathA', test: 'true'], [path: '/pathB', test: 'false']]
+        '/pathA' | '/pathB' | 'true'  | 'true'  | [[path: '/pathA', test: 'true'], [path: '/pathB', test: 'true']]
     }
 
     private InputStream getCustomClasspathReader() {

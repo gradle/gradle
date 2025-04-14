@@ -45,6 +45,13 @@ public class JacocoAgentJar {
         this.fileOperations = fileOperations;
     }
 
+    public static VersionNumber extractVersion(String jarName) {
+        // jarName format: org.jacoco.agent-<version>.jar
+        int versionStart = "org.jacoco.agent-".length();
+        int versionEnd = jarName.length() - ".jar".length();
+        return VersionNumber.parse(jarName.substring(versionStart, versionEnd));
+    }
+
     /**
      * @return the configuration that the agent JAR is located in
      */
@@ -91,12 +98,5 @@ public class JacocoAgentJar {
             }
         });
         return !pre076;
-    }
-
-    public static VersionNumber extractVersion(String jarName) {
-        // jarName format: org.jacoco.agent-<version>.jar
-        int versionStart = "org.jacoco.agent-".length();
-        int versionEnd = jarName.length() - ".jar".length();
-        return VersionNumber.parse(jarName.substring(versionStart, versionEnd));
     }
 }

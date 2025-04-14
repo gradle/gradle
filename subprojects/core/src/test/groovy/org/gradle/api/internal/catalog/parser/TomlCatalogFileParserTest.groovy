@@ -41,6 +41,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
 
     def supplier = Stub(Supplier)
     def problems = TestUtil.problemsService()
+
     def createVersionCatalogBuilder() {
         new DefaultVersionCatalogBuilder(
             "libs",

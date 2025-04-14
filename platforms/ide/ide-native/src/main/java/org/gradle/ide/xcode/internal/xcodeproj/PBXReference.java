@@ -124,7 +124,8 @@ public class PBXReference extends PBXContainerItem implements Named {
          * Relative to the Developer content directory inside the Xcode application
          * (e.g. {@code /Applications/Xcode.app/Contents/Developer}).
          */
-        DEVELOPER_DIR("DEVELOPER_DIR"),;
+        DEVELOPER_DIR("DEVELOPER_DIR"),
+        ;
 
         private final String rep;
 

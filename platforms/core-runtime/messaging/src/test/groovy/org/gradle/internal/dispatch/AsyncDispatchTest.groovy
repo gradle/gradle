@@ -44,16 +44,16 @@ public class AsyncDispatchTest extends Specification {
     def 'dispatch does not block while no idle target available'() {
         given:
         Dispatch<String> target1 = new DispatchStub(
-                message1: {
-                    parallel.syncAt(1)
-                    parallel.syncAt(2)
-                },
-                message3: { parallel.syncAt(3) })
+            message1: {
+                parallel.syncAt(1)
+                parallel.syncAt(2)
+            },
+            message3: { parallel.syncAt(3) })
         Dispatch<String> target2 = new DispatchStub(
-                message2: {
-                    parallel.syncAt(2)
-                    parallel.syncAt(3)
-                })
+            message2: {
+                parallel.syncAt(2)
+                parallel.syncAt(3)
+            })
 
         when:
         parallel.run {
@@ -222,6 +222,7 @@ public class AsyncDispatchTest extends Specification {
         private Map<String, Closure> behaviour
 
         private List<String> receivedMessages = []
+
         DispatchStub(Map<String, Closure> behaviour) {
             this.behaviour = behaviour
         }

@@ -59,32 +59,6 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
 
     private static final String SELF_PARAMETER_NAME = "self";
 
-    @Override
-    protected String classNameForRequest(CallInterceptionRequest request) {
-        return request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class)
-            .map(PropertyUpgradeRequestExtra::getImplementationClassName)
-            .orElse(null);
-    }
-
-    @Override
-    protected Consumer<TypeSpec.Builder> classContentForClass(
-        String className,
-        List<CallInterceptionRequest> requestsClassGroup,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super HasFailures.FailureInfo> onFailure
-    ) {
-
-        List<MethodSpec> methods = requestsClassGroup.stream()
-            .map(request -> mapToMethodSpec(request, onProcessedRequest, onFailure))
-            .collect(Collectors.toList());
-
-        return builder -> builder
-            .addAnnotation(GENERATED_ANNOTATION.asClassName())
-            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addJavadoc("Auto generated class. Should not be used directly.")
-            .addMethods(methods);
-    }
-
     private static MethodSpec mapToMethodSpec(CallInterceptionRequest request, Consumer<? super CallInterceptionRequest> onProcessedRequest, Consumer<? super HasFailures.FailureInfo> onFailure) {
         PropertyUpgradeRequestExtra implementationExtra = request.getRequestExtras()
             .getByType(PropertyUpgradeRequestExtra.class)
@@ -295,5 +269,31 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
         } else {
             return CodeBlock.of("$N.$N()$N;\nreturn $N", SELF_PARAMETER_NAME, propertyGetterName, assignment, SELF_PARAMETER_NAME);
         }
+    }
+
+    @Override
+    protected String classNameForRequest(CallInterceptionRequest request) {
+        return request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class)
+            .map(PropertyUpgradeRequestExtra::getImplementationClassName)
+            .orElse(null);
+    }
+
+    @Override
+    protected Consumer<TypeSpec.Builder> classContentForClass(
+        String className,
+        List<CallInterceptionRequest> requestsClassGroup,
+        Consumer<? super CallInterceptionRequest> onProcessedRequest,
+        Consumer<? super HasFailures.FailureInfo> onFailure
+    ) {
+
+        List<MethodSpec> methods = requestsClassGroup.stream()
+            .map(request -> mapToMethodSpec(request, onProcessedRequest, onFailure))
+            .collect(Collectors.toList());
+
+        return builder -> builder
+            .addAnnotation(GENERATED_ANNOTATION.asClassName())
+            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+            .addJavadoc("Auto generated class. Should not be used directly.")
+            .addMethods(methods);
     }
 }

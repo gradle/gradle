@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   pull_request:
     types:
-     - opened
-     - synchronize
+      - opened
+      - synchronize
 
-permissions: {}
+permissions: { }
 
 jobs:
   # See .github/workflows/CheckBadMerge.groovy for explanation

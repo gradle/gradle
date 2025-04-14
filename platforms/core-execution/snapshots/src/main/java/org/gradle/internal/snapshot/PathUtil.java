@@ -115,11 +115,11 @@ public class PathUtil {
         }
         return isFileSeparator(char1)
             ? isFileSeparator(char2)
-                ? 0
-                : -1
+            ? 0
+            : -1
             : isFileSeparator(char2)
-                ? 1
-                : compareDifferentCharsIgnoringCase(char1, char2);
+            ? 1
+            : compareDifferentCharsIgnoringCase(char1, char2);
     }
 
     private static int compareDifferentCharsIgnoringCase(char char1, char char2) {
@@ -142,11 +142,11 @@ public class PathUtil {
         }
         return isFileSeparator(char1)
             ? isFileSeparator(char2)
-                ? 0
-                : -1
+            ? 0
+            : -1
             : isFileSeparator(char2)
-                ? 1
-                : Character.compare(char1, char2);
+            ? 1
+            : Character.compare(char1, char2);
     }
 
     @VisibleForTesting

@@ -156,7 +156,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * </pre>
      *
      * @param projectPaths the projects to add.
-     *
      * @since 7.4
      */
     void include(Iterable<String> projectPaths);
@@ -188,7 +187,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * {@code $rootDir/../a}.</p>
      *
      * @param projectNames the projects to add.
-     *
      * @since 7.4
      */
     void includeFlat(Iterable<String> projectNames);
@@ -213,7 +211,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * script for settings, and manage the classpath used to compile and execute the settings script.
      *
      * @return the classpath handler. Never returns null.
-     *
      * @since 4.4
      */
     ScriptHandler getBuildscript();
@@ -300,17 +297,17 @@ public interface Settings extends PluginAware, ExtensionAware {
 
     /**
      * Includes a build at the specified path to the composite build.
-     * @param rootProject The path to the root project directory for the build.
      *
+     * @param rootProject The path to the root project directory for the build.
      * @since 3.1
      */
     void includeBuild(Object rootProject);
 
     /**
      * Includes a build at the specified path to the composite build, with the supplied configuration.
+     *
      * @param rootProject The path to the root project directory for the build.
      * @param configuration An action to configure the included build.
-     *
      * @since 3.1
      */
     void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration);
@@ -362,7 +359,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * Enables a feature preview by name.
      *
      * @param name the name of the feature to enable
-     *
      * @since 4.6
      */
     @Adding
@@ -370,8 +366,8 @@ public interface Settings extends PluginAware, ExtensionAware {
 
     /**
      * Configures the cross-project dependency resolution aspects
-     * @param dependencyResolutionConfiguration the configuration
      *
+     * @param dependencyResolutionConfiguration the configuration
      * @since 6.8
      */
     @Configuring
@@ -412,7 +408,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * Configures the settings for caches stored in the user home directory.
      *
      * @param cachesConfiguration the configuration
-     *
      * @since 8.0
      */
     @Incubating
@@ -434,7 +429,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * This is an experimental feature.
      *
      * @param action the configuration to apply
-     *
      * @since 8.10
      */
     @Incubating

@@ -23,7 +23,8 @@ import spock.lang.Specification
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ArgWriterTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final StringWriter writer = new StringWriter()
     final PrintWriter printWriter = new PrintWriter(writer, true)
     final ArgWriter argWriter = ArgWriter.unixStyle(printWriter)

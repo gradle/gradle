@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 
 public class ParsedModuleStringNotation {
+    private final String artifactType;
     private String group;
     private String name;
     private String version;
     private String classifier;
-    private final String artifactType;
 
     public ParsedModuleStringNotation(String moduleNotation, String artifactType) {
         assignValuesFromModuleNotation(moduleNotation);

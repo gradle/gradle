@@ -45,6 +45,13 @@ import static org.gradle.performance.results.FormatSupport.getFormattedConfidenc
 import static org.gradle.performance.results.FormatSupport.getFormattedDifference;
 
 public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
+    protected static void footer(Html html) {
+        html.div()
+            .id("footer")
+            .text(String.format("Generated at %s by %s", executionTimestamp(), GradleVersion.current()))
+            .end();
+    }
+
     protected int getDepth() {
         return 0;
     }
@@ -80,11 +87,12 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             .end();
     }
 
-    protected static void footer(Html html) {
-        html.div()
-            .id("footer")
-            .text(String.format("Generated at %s by %s", executionTimestamp(), GradleVersion.current()))
-            .end();
+    protected String urlEncode(String str) {
+        try {
+            return URLEncoder.encode(str, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static class NavigationItem {
@@ -219,14 +227,6 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 td().text("").end();
                 td().text("").end();
             }
-        }
-    }
-
-    protected String urlEncode(String str) {
-        try {
-            return URLEncoder.encode(str, StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
         }
     }
 }

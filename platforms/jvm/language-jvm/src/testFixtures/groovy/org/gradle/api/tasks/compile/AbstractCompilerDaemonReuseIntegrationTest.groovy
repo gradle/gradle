@@ -146,7 +146,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     void assertRunningCompilerDaemonIs(String expected) {
-        assert runningCompilerDaemons == [ expected ]
+        assert runningCompilerDaemons == [expected]
     }
 
     void assertTwoCompilerDaemonsAreRunning() {

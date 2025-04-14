@@ -41,13 +41,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes, AttributeValue<Object> {
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = Comparator.comparing(Attribute::getName);
+    final Attribute<?> attribute;
+    final Isolatable<?> value;
     // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
     // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
     // exceed a build
     private final Map<Attribute<?>, Object> coercionCache = new ConcurrentHashMap<>();
-
-    final Attribute<?> attribute;
-    final Isolatable<?> value;
     private final ImmutableMap<Attribute<?>, DefaultImmutableAttributesContainer> hierarchy;
     private final ImmutableMap<String, DefaultImmutableAttributesContainer> hierarchyByName;
     private final int hashCode;

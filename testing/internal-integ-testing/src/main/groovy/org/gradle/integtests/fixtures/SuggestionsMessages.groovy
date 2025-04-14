@@ -29,7 +29,7 @@ class SuggestionsMessages {
     public static final String GET_HELP = "Get more help at https://help.gradle.org."
     public static final String STACKTRACE_MESSAGE = "Run with --stacktrace option to get the stack trace."
 
-    static String repositoryHint(String type){
+    static String repositoryHint(String type) {
         "If the artifact you are trying to retrieve can be found in the repository but without metadata in '$type' format, you need to adjust the 'metadataSources { ... }' of the repository declaration."
     }
 

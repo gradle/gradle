@@ -41,7 +41,7 @@ class NoSourceTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
 
     private TaskSkippedResult skippedTaskResult(ProgressEvents events) {
         events.operations.size() == 1
-        (TaskSkippedResult)events.operations[0].result
+        (TaskSkippedResult) events.operations[0].result
     }
 
     private void runBuild(listener) {

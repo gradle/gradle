@@ -145,9 +145,9 @@ line comments.
         output == testOut
 
         where:
-        description | testIn | testOut
-        "line comment" | "// Comment on first line\nAnother line" | "\nAnother line"
-        "inline comment" | "/* inline comment at the start */of the line" | " of the line"
-        "line continuation" | "${BN} at the start of the content" | " at the start of the content"
+        description         | testIn                                         | testOut
+        "line comment"      | "// Comment on first line\nAnother line"       | "\nAnother line"
+        "inline comment"    | "/* inline comment at the start */of the line" | " of the line"
+        "line continuation" | "${BN} at the start of the content"            | " at the start of the content"
     }
 }

@@ -27,10 +27,6 @@ import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface VcsMappingsStore {
-    VcsResolver asResolver();
-
-    void addRule(Action<? super VcsMapping> rule, Gradle gradle);
-
     VcsResolver NO_OP = new VcsResolver() {
         @Nullable
         @Override
@@ -43,4 +39,8 @@ public interface VcsMappingsStore {
             return false;
         }
     };
+
+    VcsResolver asResolver();
+
+    void addRule(Action<? super VcsMapping> rule, Gradle gradle);
 }

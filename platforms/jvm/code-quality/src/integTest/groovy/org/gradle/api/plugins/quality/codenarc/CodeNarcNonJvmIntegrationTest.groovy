@@ -48,7 +48,7 @@ class CodeNarcNonJvmIntegrationTest extends MultiVersionIntegrationSpec implemen
             }
 
             ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
-                """
+            """
                     configurations.codenarc {
                         resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovyCoverage.MINIMAL_GROOVY_3}' // force latest Groovy 3 when using Java 14+.  Do not use GroovySystem#version as Groovy 4 needs different coordinates
                     }

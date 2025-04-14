@@ -78,11 +78,11 @@ class GradleModuleMetadata {
 
     Variant variant(String name) {
         def matches = variants.findAll { it.name == name }
-        assert matches.size() == 1 : "Variant '$name' not found in ${variants.name}"
+        assert matches.size() == 1: "Variant '$name' not found in ${variants.name}"
         return matches.first()
     }
 
-    Variant variant(String name, @DelegatesTo(value=Variant, strategy=Closure.DELEGATE_FIRST) Closure<Variant> action) {
+    Variant variant(String name, @DelegatesTo(value = Variant, strategy = Closure.DELEGATE_FIRST) Closure<Variant> action) {
         def variant = variant(name)
         action.delegate = variant
         action.resolveStrategy = Closure.DELEGATE_FIRST
@@ -199,7 +199,7 @@ class GradleModuleMetadata {
             return (values.files ?: []).collect { new File(it.name, it.url, it.size, HashCode.fromString(it.sha1), HashCode.fromString(it.md5), HashCode.fromString(it.sha256), HashCode.fromString(it.sha512)) }
         }
 
-        DependencyView dependency(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
+        DependencyView dependency(String group, String module, String version, @DelegatesTo(value = DependencyView, strategy = Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def view = new DependencyView(group, module, version)
             action.delegate = view
             action.resolveStrategy = Closure.DELEGATE_FIRST
@@ -207,12 +207,12 @@ class GradleModuleMetadata {
             view
         }
 
-        DependencyView dependency(String notation, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
+        DependencyView dependency(String notation, @DelegatesTo(value = DependencyView, strategy = Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def (String group, String module, String version) = notation.split(':') as List
             dependency(group, module, version, action)
         }
 
-        DependencyConstraintView constraint(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
+        DependencyConstraintView constraint(String group, String module, String version, @DelegatesTo(value = DependencyView, strategy = Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def view = new DependencyConstraintView(group, module, version)
             action.delegate = view
             action.resolveStrategy = Closure.DELEGATE_FIRST
@@ -220,7 +220,7 @@ class GradleModuleMetadata {
             view
         }
 
-        DependencyConstraintView constraint(String notation, @DelegatesTo(value=DependencyConstraintView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
+        DependencyConstraintView constraint(String notation, @DelegatesTo(value = DependencyConstraintView, strategy = Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def (String group, String module, String version) = notation.split(':') as List
             constraint(group, module, version, action)
         }
@@ -235,8 +235,8 @@ class GradleModuleMetadata {
         }
 
         Variant capability(String group, String name, String version) {
-            def cap = getCapabilities().find { it.group == group && it.name == name && it.version == version}
-            assert cap : "capability ${group}:${name}:${version} not found in ${getCapabilities()}"
+            def cap = getCapabilities().find { it.group == group && it.name == name && it.version == version }
+            assert cap: "capability ${group}:${name}:${version} not found in ${getCapabilities()}"
             checkedCapabilities << cap
             this
         }
@@ -281,7 +281,7 @@ class GradleModuleMetadata {
             }
 
             Dependency find() {
-                assert current : "dependency ${group}:${module}:${version} not found in $dependencies"
+                assert current: "dependency ${group}:${module}:${version} not found in $dependencies"
                 checkedDependencies << current
                 current
             }
@@ -387,7 +387,7 @@ class GradleModuleMetadata {
 
             DependencyConstraint find() {
                 def depConstraint = dependencyConstraints.find { it.group == group && it.module == module && it.version == version }
-                assert depConstraint : "constraint ${group}:${module}:${version} not found in $dependencyConstraints"
+                assert depConstraint: "constraint ${group}:${module}:${version} not found in $dependencyConstraints"
                 checkedDependencyConstraints << depConstraint
                 depConstraint
             }
@@ -494,7 +494,7 @@ class GradleModuleMetadata {
         }
 
         String toString() {
-            "${coords} ${url?url:''}"
+            "${coords} ${url ? url : ''}"
         }
     }
 

@@ -17,8 +17,6 @@
 package org.gradle.integtests.fixtures.build
 
 
-
-
 class ProjectSourceRoots {
 
     final File projectDir

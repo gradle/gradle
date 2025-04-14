@@ -37,6 +37,14 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         this.hashCode = 31 * version.hashCode() + module.hashCode();
     }
 
+    public static ModuleComponentIdentifier newId(ModuleIdentifier module, String version) {
+        return new DefaultModuleComponentIdentifier(module, version);
+    }
+
+    public static ModuleComponentIdentifier newId(ModuleVersionIdentifier moduleVersionIdentifier) {
+        return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getModule(), moduleVersionIdentifier.getVersion());
+    }
+
     @Override
     public String getDisplayName() {
         String group = moduleIdentifier.getGroup();
@@ -103,14 +111,6 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
     @Override
     public String toString() {
         return getDisplayName();
-    }
-
-    public static ModuleComponentIdentifier newId(ModuleIdentifier module, String version) {
-        return new DefaultModuleComponentIdentifier(module, version);
-    }
-
-    public static ModuleComponentIdentifier newId(ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getModule(), moduleVersionIdentifier.getVersion());
     }
 }
 

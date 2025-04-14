@@ -39,7 +39,7 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
         settingsFile << "rootProject.name = 'ear'"
 
         buildFile <<
-        """apply plugin: 'eclipse-wtp'
+            """apply plugin: 'eclipse-wtp'
            apply plugin: 'ear'
            apply plugin: 'java'
 
@@ -86,7 +86,7 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
         settingsFile << "rootProject.name = 'ear'"
 
         buildFile <<
-        """apply plugin: 'eclipse-wtp'
+            """apply plugin: 'eclipse-wtp'
            apply plugin: 'ear'
            apply plugin: 'java'
 

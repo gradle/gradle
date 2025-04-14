@@ -31,6 +31,10 @@ public class PropertiesBackedInstrumentationTypeRegistry implements Instrumentat
         this.properties = Lazy.locking().of(properties);
     }
 
+    public static InstrumentationTypeRegistry of(Supplier<Map<String, Set<String>>> properties) {
+        return new PropertiesBackedInstrumentationTypeRegistry(properties);
+    }
+
     @Override
     public Set<String> getSuperTypes(String type) {
         return properties.get().getOrDefault(type, Collections.emptySet());
@@ -39,9 +43,5 @@ public class PropertiesBackedInstrumentationTypeRegistry implements Instrumentat
     @Override
     public boolean isEmpty() {
         return properties.get().isEmpty();
-    }
-
-    public static InstrumentationTypeRegistry of(Supplier<Map<String, Set<String>>> properties) {
-        return new PropertiesBackedInstrumentationTypeRegistry(properties);
     }
 }

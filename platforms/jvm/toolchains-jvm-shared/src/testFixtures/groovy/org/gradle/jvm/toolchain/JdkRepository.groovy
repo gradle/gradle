@@ -47,7 +47,7 @@ class JdkRepository {
         this.jdk = jdk
         this.archiveName = archiveName
 
-        archiveFile = zip(jdk.javaHome, File.createTempFile(archiveName, ".tmp").with {deleteOnExit(); it })
+        archiveFile = zip(jdk.javaHome, File.createTempFile(archiveName, ".tmp").with { deleteOnExit(); it })
         server = new BlockingHttpServer(1000)
     }
 

@@ -23,7 +23,8 @@ import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class GenerateModuleMapFileTest extends Specification {
-    @TempDir File tempDir
+    @TempDir
+    File tempDir
 
     def "can generate a simple module map file"() {
         def moduleMapFile = new File(tempDir, "module.modulemap")

@@ -137,7 +137,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             other
         }
 
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             sourceSets = [project.sourceSets.main]
             config = project.resources.text.fromFile("checkstyle-config")
             configDirectory.set(project.file("custom"))
@@ -179,7 +179,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
 
     def "can customize any additional checkstyle tasks via extension"() {
         def task = project.tasks.create("checkstyleCustom", Checkstyle)
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             config = project.resources.text.fromFile("checkstyle-config")
             configDirectory.set(project.file("custom"))
             configProperties = [foo: "foo"]
@@ -204,7 +204,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
     def "can use legacy configFile extension property"() {
         project.pluginManager.apply(JavaPlugin)
 
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             configFile = project.file("checkstyle-config")
         }
 
@@ -215,7 +215,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "changing the config dir changes the config file location"() {
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             configDirectory.set(project.file("custom"))
         }
         expect:

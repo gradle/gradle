@@ -34,6 +34,7 @@ import gradlebuild.docs.model.ClassMetaDataRepository
 import gradlebuild.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+
 /**
  * Transforms userguide source into docbook, replacing custom XML elements.
  *
@@ -60,10 +61,13 @@ abstract class UserGuideTransformTask extends DefaultTask {
 
     @Input
     abstract Property<String> getJavadocUrl();
+
     @Input
     abstract Property<String> getDsldocUrl();
+
     @Input
     abstract Property<String> getWebsiteUrl();
+
     @Input
     abstract Property<String> getVersion();
 
@@ -91,7 +95,7 @@ abstract class UserGuideTransformTask extends DefaultTask {
     }
 
     def fixProgramListings(Document doc) {
-        doc.documentElement.depthFirst().findAll { it.name() == 'programlisting' || it.name() == 'screen' }.each {Element element ->
+        doc.documentElement.depthFirst().findAll { it.name() == 'programlisting' || it.name() == 'screen' }.each { Element element ->
             element.setTextContent(normalise(element.getTextContent()))
         }
     }
@@ -123,7 +127,7 @@ abstract class UserGuideTransformTask extends DefaultTask {
             } else if (style == "javadoc") {
                 def base = javadocUrl.get()
                 def packageName = classMetaData.packageName
-                href = "$base/${packageName.replace('.', '/')}/${className.substring(packageName.length()+1)}.html"
+                href = "$base/${packageName.replace('.', '/')}/${className.substring(packageName.length() + 1)}.html"
             } else {
                 throw new InvalidUserDataException("Unknown api link style '$style'.")
             }

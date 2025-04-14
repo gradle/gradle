@@ -100,12 +100,12 @@ public class AnnotationProcessingResult implements Serializable {
         return getGeneratedResourcesDependingOnAllOthers;
     }
 
-    public void setFullRebuildCause(String fullRebuildCause) {
-        this.fullRebuildCause = fullRebuildCause;
-    }
-
     public String getFullRebuildCause() {
         return fullRebuildCause;
+    }
+
+    public void setFullRebuildCause(String fullRebuildCause) {
+        this.fullRebuildCause = fullRebuildCause;
     }
 
     public List<AnnotationProcessorResult> getAnnotationProcessorResults() {

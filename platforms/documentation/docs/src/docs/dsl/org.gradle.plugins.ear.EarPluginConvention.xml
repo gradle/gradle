@@ -5,16 +5,21 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>ear</literal> plugin</td>
+                    <td>Default with <literal>ear</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>appDirName</td>
-                <td><literal>'src/main/application'</literal></td>
+                <td>
+                    <literal>'src/main/application'</literal>
+                </td>
             </tr>
             <tr>
                 <td>libDirName</td>
-                <td><literal>'lib'</literal></td>
+                <td>
+                    <literal>'lib'</literal>
+                </td>
             </tr>
             <tr>
                 <td>deploymentDescriptor</td>
@@ -22,7 +27,9 @@
             </tr>
             <tr>
                 <td>generateDeploymentDescriptor</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
         </table>
     </section>

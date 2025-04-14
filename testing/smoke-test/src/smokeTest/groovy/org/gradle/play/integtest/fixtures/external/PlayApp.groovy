@@ -86,7 +86,7 @@ abstract class PlayApp {
     }
 
     List<SourceFile> getOtherSources() {
-        return [ sourceFile("", "README", "shared") ]
+        return [sourceFile("", "README", "shared")]
     }
 
 
@@ -107,23 +107,23 @@ abstract class PlayApp {
         List sourceFiles = new ArrayList()
 
         URL resource = getClass().getResource("$rootDir/$baseDir")
-        if(resource != null){
+        if (resource != null) {
             File baseDirFile = new File(resource.toURI())
             baseDirFile.eachFileRecurse { File source ->
-                if(source.isDirectory()){
+                if (source.isDirectory()) {
                     return
                 }
 
                 def subpath = RelativePathUtil.relativePath(baseDirFile, source.parentFile)
 
-                if(oldVersion) {
-                    if(isOldVersionFile(source)) {
+                if (oldVersion) {
+                    if (isOldVersionFile(source)) {
                         sourceFiles.add(new SourceFile("$baseDir/$subpath", source.name[0..<-4], source.text))
                     } else if (!oldVersionFileExists(source)) {
                         sourceFiles.add(new SourceFile("$baseDir/$subpath", source.name, source.text))
                     }
                 } else {
-                    if(!isOldVersionFile(source)) {
+                    if (!isOldVersionFile(source)) {
                         sourceFiles.add(new SourceFile("$baseDir/$subpath", source.name, source.text))
                     }
                 }

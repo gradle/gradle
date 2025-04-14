@@ -25,8 +25,8 @@ import static org.gradle.api.logging.configuration.ConsoleOutput.Verbose
 abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     def "can have verbose task output according to --console"() {
         given:
-        def helloWorldMessage= 'Hello world'
-        def byeWorldMessage= 'Bye world'
+        def helloWorldMessage = 'Hello world'
+        def byeWorldMessage = 'Bye world'
         def hasSilenceTaskOutput = consoleType in [Verbose, Plain] || consoleType == Auto && !consoleAttachment.stdoutAttached
 
         buildFile << """

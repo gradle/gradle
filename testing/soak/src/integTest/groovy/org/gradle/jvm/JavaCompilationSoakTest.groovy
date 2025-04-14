@@ -49,7 +49,7 @@ class JavaCompilationSoakTest extends AbstractIntegrationSpec {
         expect:
         10.times {
             println("Run $it")
-            succeeds("clean", "assemble", "-Pcounter="+it)
+            succeeds("clean", "assemble", "-Pcounter=" + it)
         }
     }
 

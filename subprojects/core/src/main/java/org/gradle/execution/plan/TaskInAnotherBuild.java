@@ -34,6 +34,16 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
+    private final Path taskIdentityPath;
+    private final String taskPath;
+    private final BuildIdentifier targetBuild;
+    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild) {
+        this.taskIdentityPath = taskIdentityPath;
+        this.taskPath = taskPath;
+        this.targetBuild = targetBuild;
+    }
+
     public static TaskInAnotherBuild of(
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
@@ -76,15 +86,8 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         };
     }
 
-    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
-    private final Path taskIdentityPath;
-    private final String taskPath;
-    private final BuildIdentifier targetBuild;
-
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild) {
-        this.taskIdentityPath = taskIdentityPath;
-        this.taskPath = taskPath;
-        this.targetBuild = targetBuild;
+    private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
+        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
     }
 
     public BuildIdentifier getTargetBuild() {
@@ -204,10 +207,6 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     @Override
     public void execute(NodeExecutionContext context) {
         // This node does not do anything itself
-    }
-
-    private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
     }
 
     protected abstract IncludedBuildTaskResource getTarget();

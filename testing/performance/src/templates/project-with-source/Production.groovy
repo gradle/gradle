@@ -1,9 +1,18 @@
-package ${packageName};
+package $
 
-public class ${productionClassName} {
+{
+    packageName
+};
+
+public class $ {
+    productionClassName
+}
+
+{
     private final String property;
 
-    public ${productionClassName}(String param) {
+    public $
+    { productionClassName }(String param) {
         this.property = param;
     }
 

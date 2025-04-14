@@ -31,6 +31,25 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
         this.taskExecutionTracker = taskExecutionTracker;
     }
 
+    private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProvider<?, ?> provider) {
+        return task.getRequiredServices().isServiceRequired(provider);
+    }
+
+    private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+        deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
+            .withProblemIdDisplayName("Build Service " + provider.getName() + " undeclared usage")
+            .withAdvice("Declare the association between the task by declaring the consuming property as a '@ServiceReference'.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(7, "undeclared_build_service_usage")
+            .nagUser();
+    }
+
+    private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+        return "Build service '" + provider.getName() + "'" +
+            " is being used by task '" + task.getIdentityPath() + "'" +
+            " without the corresponding declaration via 'Task#usesService'.";
+    }
+
     @Override
     public void beforeGet(BuildServiceProvider<?, ?> provider) {
         currentTask().ifPresent(task -> {
@@ -42,24 +61,5 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     private Optional<TaskInternal> currentTask() {
         return taskExecutionTracker.getCurrentTask();
-    }
-
-    private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProvider<?, ?> provider) {
-        return task.getRequiredServices().isServiceRequired(provider);
-    }
-
-    private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
-        deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
-            .withProblemIdDisplayName("Build Service " + provider.getName()+ " undeclared usage")
-            .withAdvice("Declare the association between the task by declaring the consuming property as a '@ServiceReference'.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(7, "undeclared_build_service_usage")
-            .nagUser();
-    }
-
-    private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
-        return "Build service '" + provider.getName() + "'" +
-            " is being used by task '" + task.getIdentityPath() + "'" +
-            " without the corresponding declaration via 'Task#usesService'.";
     }
 }

@@ -87,6 +87,6 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
         }
         DefaultModuleComponentArtifactIdentifier other = (DefaultModuleComponentArtifactIdentifier) obj;
         return other.componentIdentifier.equals(componentIdentifier)
-                && other.name.equals(name);
+            && other.name.equals(name);
     }
 }

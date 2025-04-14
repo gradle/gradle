@@ -89,28 +89,13 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
 
-    private enum AliasType {
-        LIBRARY,
-        PLUGIN,
-        BUNDLE,
-        VERSION,
-        // To be removed.
-        ALIAS;
-
-        @Override
-        public String toString() {
-            return name().toLowerCase(Locale.ROOT);
-        }
-    }
-
-    private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     public final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
     public final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "convention");
     /**
      * names that are forbidden in generated accessors because we can't override getClass()
      */
     public final static Set<String> RESERVED_JAVA_NAMES = ImmutableSet.of("class");
-
+    private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
     private final ObjectFactory objects;
@@ -123,14 +108,12 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private final Set<String> aliasesInProgress = new LinkedHashSet<>();
     private final Map<String, Supplier<PluginModel>> plugins = new LinkedHashMap<>();
     private final Map<String, BundleModel> bundles = new LinkedHashMap<>();
-    private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
-    private Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
-
     private final Property<String> description;
-
+    private Import importedCatalog = null;
     private String currentContext;
+    private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
 
     @Inject
     public DefaultVersionCatalogBuilder(
@@ -147,6 +130,27 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
         this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the {@code " + name + "} extension.");
+    }
+
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+        return builder.
+            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(message)
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
+            .severity(ERROR);
+    }
+
+    private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, InternalProblem problem) {
+        throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
+    }
+
+    @NonNull
+    public static String getExcludedNames(Collection<String> reservedNames) {
+        String namesOrName = quotedOxfordListOf(reservedNames, "or");
+        if (reservedNames.size() == 1) {
+            return namesOrName;
+        }
+        return "any of " + namesOrName;
     }
 
     @Inject
@@ -211,18 +215,6 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             realizedPlugins.put(entry.getKey(), entry.getValue().get());
         }
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
-    }
-
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
-        return builder.
-            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
-            .contextualLabel(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
-            .severity(ERROR);
-    }
-
-    private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, InternalProblem problem) {
-        throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 
     @NonNull
@@ -416,15 +408,6 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                 .solution("Use a different alias which doesn't contain " + getExcludedNames(reservedNames) + ".")));
     }
 
-    @NonNull
-    public static String getExcludedNames(Collection<String> reservedNames) {
-        String namesOrName = quotedOxfordListOf(reservedNames, "or");
-        if (reservedNames.size() == 1) {
-            return namesOrName;
-        }
-        return "any of " + namesOrName;
-    }
-
     private void validateAlias(AliasType type, String value) {
         if (!DependenciesModelHelper.ALIAS_PATTERN.matcher(value).matches()) {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
@@ -464,63 +447,31 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return name;
     }
 
-    private class VersionReferencingDependencyModel implements Supplier<DependencyModel> {
-        private final String group;
-        private final String name;
-        private final String versionRef;
-        private final String context;
-
-        private VersionReferencingDependencyModel(String group, String name, String versionRef) {
-            this.group = group;
-            this.name = name;
-            this.versionRef = versionRef;
-            this.context = currentContext;
-        }
-
-        @Override
-        public DependencyModel get() {
-            VersionModel model = versionConstraints.get(versionRef);
-            if (model == null) {
-                throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder -> {
-                    ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
-                        .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
-                        .solution("Declare '" + versionRef + "' in the catalog");
-                    if (!versionConstraints.keySet().isEmpty()) {
-                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
-                    }
-                }));
-            } else {
-                return new DependencyModel(group, name, versionRef, model.getVersion(), context);
-            }
+    private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
+        Supplier<DependencyModel> previous = libraries.put(intern(AliasNormalizer.normalize(alias)), new VersionReferencingDependencyModel(group, name, AliasNormalizer.normalize(versionRef)));
+        if (previous != null) {
+            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
         }
     }
 
-    private class VersionReferencingPluginModel implements Supplier<PluginModel> {
-        private final String id;
-        private final String versionRef;
-        private final String context;
-
-        private VersionReferencingPluginModel(String id, String versionRef) {
-            this.id = id;
-            this.versionRef = versionRef;
-            this.context = currentContext;
+    private void createPluginAliasWithVersionRef(String alias, String id, String versionRef) {
+        Supplier<PluginModel> previous = plugins.put(intern(AliasNormalizer.normalize(alias)), new VersionReferencingPluginModel(id, AliasNormalizer.normalize(versionRef)));
+        if (previous != null) {
+            LOGGER.warn("Duplicate entry for plugin '{}': {} is replaced with {}", alias, previous.get(), model);
         }
+    }
+
+    private enum AliasType {
+        LIBRARY,
+        PLUGIN,
+        BUNDLE,
+        VERSION,
+        // To be removed.
+        ALIAS;
 
         @Override
-        public PluginModel get() {
-            VersionModel model = versionConstraints.get(versionRef);
-            if (model == null) {
-                throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder -> {
-                    ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
-                        .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
-                        .solution("Declare '" + versionRef + "' in the catalog");
-                    if (!versionConstraints.keySet().isEmpty()) {
-                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
-                    }
-                }));
-            } else {
-                return new PluginModel(id, versionRef, model.getVersion(), context);
-            }
+        public String toString() {
+            return name().toLowerCase(Locale.ROOT);
         }
     }
 
@@ -629,25 +580,71 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
     }
 
-    private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
-        Supplier<DependencyModel> previous = libraries.put(intern(AliasNormalizer.normalize(alias)), new VersionReferencingDependencyModel(group, name, AliasNormalizer.normalize(versionRef)));
-        if (previous != null) {
-            LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
-        }
-    }
-
-    private void createPluginAliasWithVersionRef(String alias, String id, String versionRef) {
-        Supplier<PluginModel> previous = plugins.put(intern(AliasNormalizer.normalize(alias)), new VersionReferencingPluginModel(id, AliasNormalizer.normalize(versionRef)));
-        if (previous != null) {
-            LOGGER.warn("Duplicate entry for plugin '{}': {} is replaced with {}", alias, previous.get(), model);
-        }
-    }
-
     private static class Import {
         private final Object notation;
 
         private Import(Object notation) {
             this.notation = notation;
+        }
+    }
+
+    private class VersionReferencingDependencyModel implements Supplier<DependencyModel> {
+        private final String group;
+        private final String name;
+        private final String versionRef;
+        private final String context;
+
+        private VersionReferencingDependencyModel(String group, String name, String versionRef) {
+            this.group = group;
+            this.name = name;
+            this.versionRef = versionRef;
+            this.context = currentContext;
+        }
+
+        @Override
+        public DependencyModel get() {
+            VersionModel model = versionConstraints.get(versionRef);
+            if (model == null) {
+                throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder -> {
+                    ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                        .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
+                        .solution("Declare '" + versionRef + "' in the catalog");
+                    if (!versionConstraints.keySet().isEmpty()) {
+                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
+                    }
+                }));
+            } else {
+                return new DependencyModel(group, name, versionRef, model.getVersion(), context);
+            }
+        }
+    }
+
+    private class VersionReferencingPluginModel implements Supplier<PluginModel> {
+        private final String id;
+        private final String versionRef;
+        private final String context;
+
+        private VersionReferencingPluginModel(String id, String versionRef) {
+            this.id = id;
+            this.versionRef = versionRef;
+            this.context = currentContext;
+        }
+
+        @Override
+        public PluginModel get() {
+            VersionModel model = versionConstraints.get(versionRef);
+            if (model == null) {
+                throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder -> {
+                    ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
+                        .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
+                        .solution("Declare '" + versionRef + "' in the catalog");
+                    if (!versionConstraints.keySet().isEmpty()) {
+                        configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
+                    }
+                }));
+            } else {
+                return new PluginModel(id, versionRef, model.getVersion(), context);
+            }
         }
     }
 }

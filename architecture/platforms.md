@@ -10,6 +10,7 @@ See [ADR4](standards/0004-use-a-platform-architecture.md) for a definition of th
 The diagram below shows the current set of architecture modules and platforms:
 
 <!-- This diagram is generated. Use `./gradlew :architectureDoc` to update it -->
+
 ```mermaid
     graph TD
 
@@ -71,7 +72,8 @@ This platform does not provide special support for a particular kind of automati
 
 It is made up of 3 architecture modules:
 
-- **core-runtime**: Provides the runtimes or "containers" in which code runs. These runtimes include the Gradle client, the daemon and the worker processes. This is the base module on which all other architecture modules depend.
+- **core-runtime**: Provides the runtimes or "containers" in which code runs. These runtimes include the Gradle client, the daemon and the worker processes. This is the base module on which all other
+  architecture modules depend.
 - **core-configuration**: Allows the build structure and work, such as tasks, to be specified. This includes the project model, the DSL and so on.
 - **core-execution**: Runs the work efficiently. This includes scheduling, execution, caching and so on.
 

@@ -43,11 +43,12 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
     private final BuildOperationNotificationValve buildOperationNotificationValve;
     private final ExceptionProblemRegistry exceptionProblemRegistry;
 
-    public RunAsBuildOperationBuildActionExecutor(BuildSessionActionExecutor delegate,
-                                                  BuildOperationRunner buildOperationRunner,
-                                                  LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-                                                  BuildOperationNotificationValve buildOperationNotificationValve,
-                                                  ExceptionProblemRegistry exceptionProblemRegistry
+    public RunAsBuildOperationBuildActionExecutor(
+        BuildSessionActionExecutor delegate,
+        BuildOperationRunner buildOperationRunner,
+        LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
+        BuildOperationNotificationValve buildOperationNotificationValve,
+        ExceptionProblemRegistry exceptionProblemRegistry
     ) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;

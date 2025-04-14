@@ -81,7 +81,8 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
     protected
     fun parseReleaseNotes(): Triple<List<String>, List<String>, List<String>> {
         val releaseNotesLines: List<String> = releaseNotes.asFile.get().readLines()
-        val contributorSectionBeginIndex = releaseNotesLines.indexOfFirst { it.startsWith("We would like to thank the following community members for their contributions to this release of Gradle:") } + 1
+        val contributorSectionBeginIndex =
+            releaseNotesLines.indexOfFirst { it.startsWith("We would like to thank the following community members for their contributions to this release of Gradle:") } + 1
 
         if (contributorSectionBeginIndex == 0) {
             error("Can't find the contributors section in the release notes $releaseNotes.")
@@ -91,7 +92,11 @@ abstract class AbstractCheckOrUpdateContributorsInReleaseNotes : DefaultTask() {
             val line = releaseNotesLines[it].trim()
             line.isNotEmpty() && !line.startsWith("[")
         } ?: error("Can't find the contributors section end in the release notes $releaseNotes.")
-        return Triple(releaseNotesLines.subList(0, contributorSectionBeginIndex), releaseNotesLines.subList(contributorSectionBeginIndex, contributorSectionEndIndex), releaseNotesLines.subList(contributorSectionEndIndex, releaseNotesLines.size))
+        return Triple(
+            releaseNotesLines.subList(0, contributorSectionBeginIndex),
+            releaseNotesLines.subList(contributorSectionBeginIndex, contributorSectionEndIndex),
+            releaseNotesLines.subList(contributorSectionEndIndex, releaseNotesLines.size)
+        )
     }
 
     @Internal

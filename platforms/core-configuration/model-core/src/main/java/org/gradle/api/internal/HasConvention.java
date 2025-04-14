@@ -21,8 +21,8 @@ package org.gradle.api.internal;
  *
  * Convention objects aren't going to be around forever, so this is a temporary interface.
  *
- * @deprecated Use extensions instead. This interface is scheduled for removal in Gradle 9.
  * @see org.gradle.api.plugins.ExtensionAware
+ * @deprecated Use extensions instead. This interface is scheduled for removal in Gradle 9.
  */
 @Deprecated
 public interface HasConvention {

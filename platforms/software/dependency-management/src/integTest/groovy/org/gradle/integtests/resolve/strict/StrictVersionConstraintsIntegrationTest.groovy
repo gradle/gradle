@@ -237,7 +237,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "conflicting version constraints fail resolution"() {
         given:
         repository {
@@ -469,7 +469,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         repository {
             'org:foo:2.0'()
             'org:bar:1.0' {
-               dependsOn 'org:foo:2.0'
+                dependsOn 'org:foo:2.0'
             }
         }
 

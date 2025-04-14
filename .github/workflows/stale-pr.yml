@@ -4,7 +4,7 @@ on:
     # Execute every hour at xx:05 to avoid conflicts with other workflows
     - cron: '5 * * * *'
 
-permissions: {}
+permissions: { }
 
 jobs:
   stale:

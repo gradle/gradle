@@ -66,6 +66,10 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         this.verbose = verbose;
     }
 
+    private static LogEvent spacerLine(long timestamp, String category) {
+        return new LogEvent(timestamp, category, LogLevel.LIFECYCLE, "", null);
+    }
+
     @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
@@ -122,7 +126,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onEnd(EndOutputEvent event) {
-        for (OperationState state: operationsInProgress.values()) {
+        for (OperationState state : operationsInProgress.values()) {
             state.flushOutput();
         }
         listener.onOutput(event);
@@ -131,7 +135,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private void onUpdateNow(UpdateNowEvent event) {
         currentTimePeriod = event.getTimestamp();
-        for (OperationState state: operationsInProgress.values()) {
+        for (OperationState state : operationsInProgress.values()) {
             state.maybeFlushOutput(event.getTimestamp());
         }
     }
@@ -163,10 +167,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         return null;
     }
 
-    private static LogEvent spacerLine(long timestamp, String category) {
-        return new LogEvent(timestamp, category, LogLevel.LIFECYCLE, "", null);
-    }
-
     private static class OperationState {
         final @Nullable
         OperationIdentifier parentProgressOp;
@@ -186,10 +186,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private class OperationGroup extends OperationState {
         private final String category;
-        private long lastUpdateTime;
         private final String description;
         private final BuildOperationCategory buildOperationCategory;
-
+        private long lastUpdateTime;
         private String status = "";
         private String lastHeaderStatus = "";
         private boolean failed;
@@ -234,7 +233,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                     lastHeaderStatus = status;
                 }
 
-                for (RenderableOutputEvent renderableEvent: bufferedLogs) {
+                for (RenderableOutputEvent renderableEvent : bufferedLogs) {
                     outputRendered = true;
                     listener.onOutput(renderableEvent);
                 }

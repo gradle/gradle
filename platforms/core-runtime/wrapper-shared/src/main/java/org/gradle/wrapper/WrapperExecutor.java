@@ -37,17 +37,6 @@ public class WrapperExecutor {
     private final File propertiesFile;
     private final WrapperConfiguration config = new WrapperConfiguration();
 
-    public static WrapperExecutor forProjectDirectory(File projectDir) {
-        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties());
-    }
-
-    public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile) {
-        if (!propertiesFile.exists()) {
-            throw new RuntimeException(String.format("Wrapper properties file '%s' does not exist.", propertiesFile));
-        }
-        return new WrapperExecutor(propertiesFile, new Properties());
-    }
-
     WrapperExecutor(File propertiesFile, Properties properties) {
         this.properties = properties;
         this.propertiesFile = propertiesFile;
@@ -68,11 +57,15 @@ public class WrapperExecutor {
         }
     }
 
-    private String readDistroUrl() {
-        if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) == null) {
-            reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
+    public static WrapperExecutor forProjectDirectory(File projectDir) {
+        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties());
+    }
+
+    public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile) {
+        if (!propertiesFile.exists()) {
+            throw new RuntimeException(String.format("Wrapper properties file '%s' does not exist.", propertiesFile));
         }
-        return getProperty(DISTRIBUTION_URL_PROPERTY);
+        return new WrapperExecutor(propertiesFile, new Properties());
     }
 
     private static void loadProperties(File propertiesFile, Properties properties) throws IOException {
@@ -82,6 +75,13 @@ public class WrapperExecutor {
         } finally {
             inStream.close();
         }
+    }
+
+    private String readDistroUrl() {
+        if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) == null) {
+            reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
+        }
+        return getProperty(DISTRIBUTION_URL_PROPERTY);
     }
 
     /**
@@ -136,6 +136,6 @@ public class WrapperExecutor {
 
     private String reportMissingProperty(String propertyName) {
         throw new RuntimeException(String.format(
-                "No value with key '%s' specified in wrapper properties file '%s'.", propertyName, propertiesFile));
+            "No value with key '%s' specified in wrapper properties file '%s'.", propertyName, propertiesFile));
     }
 }

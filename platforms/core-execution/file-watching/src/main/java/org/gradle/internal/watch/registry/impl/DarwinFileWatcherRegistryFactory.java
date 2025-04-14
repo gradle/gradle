@@ -37,23 +37,6 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
         super(fileEvents.getFileEventFunctions(OsxFileEventFunctions.class), immutableLocationsFilter);
     }
 
-    @Override
-    protected OsxFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
-        return fileEventFunctions.newWatcher(fileEvents)
-            // TODO Figure out a good value for this
-            .withLatency(20, TimeUnit.MICROSECONDS)
-            .start();
-    }
-
-    @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(
-        OsxFileWatcher watcher,
-        FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies
-    ) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> Collections.emptyList());
-    }
-
     /**
      * The macOS native watcher reports the canonical path for watched paths.
      * That means that we would not invalidate the right locations in the virtual file system on macOS.
@@ -75,5 +58,22 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
         } catch (IOException e) {
             throw new WatchingNotSupportedException("Unable to watch '%s' since its canonical path can't be resolved: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    protected OsxFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
+        return fileEventFunctions.newWatcher(fileEvents)
+            // TODO Figure out a good value for this
+            .withLatency(20, TimeUnit.MICROSECONDS)
+            .start();
+    }
+
+    @Override
+    protected FileWatcherUpdater createFileWatcherUpdater(
+        OsxFileWatcher watcher,
+        FileWatcherProbeRegistry probeRegistry,
+        WatchableHierarchies watchableHierarchies
+    ) {
+        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, probeRegistry, watchableHierarchies, root -> Collections.emptyList());
     }
 }

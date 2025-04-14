@@ -50,8 +50,8 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrati
         TestFile jarContents = file('jar')
         javaprojectDir.file('build/libs/customized-layout.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/Person.class'
         )
 
         where:

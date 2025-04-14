@@ -56,15 +56,14 @@ import java.util.List;
 @CacheableTask
 public abstract class ScalaDoc extends SourceTask {
 
+    private final Property<String> maxMemory;
+    private final Property<JavaLauncher> javaLauncher;
+    private final ConfigurableFileCollection compilationOutputs;
     private File destinationDir;
-
     private FileCollection classpath;
     private FileCollection scalaClasspath;
     private ScalaDocOptions scalaDocOptions;
     private String title;
-    private final Property<String> maxMemory;
-    private final Property<JavaLauncher> javaLauncher;
-    private final ConfigurableFileCollection compilationOutputs;
 
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -109,6 +108,7 @@ public abstract class ScalaDoc extends SourceTask {
      * <p>
      * NOTE: This is only useful with Scala 3 or later. Scala 2 only processes source files.
      * </p>
+     *
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
@@ -203,6 +203,7 @@ public abstract class ScalaDoc extends SourceTask {
 
     /**
      * A JavaLauncher used to run the Scaladoc tool.
+     *
      * @since 7.2
      */
     @Nested

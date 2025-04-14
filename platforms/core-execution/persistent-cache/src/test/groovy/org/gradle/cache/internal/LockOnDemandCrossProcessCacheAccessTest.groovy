@@ -66,7 +66,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         given:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
 
@@ -92,7 +93,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
         1 * action.get() >> { contendedAction.accept(signal); "result" }
@@ -135,8 +137,9 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         and:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
-            return lock
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
+                return lock
         }
 
         then:
@@ -166,7 +169,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
 
@@ -206,7 +210,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
         0 * _
@@ -230,7 +235,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
         0 * _
@@ -260,7 +266,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
         0 * _
@@ -313,7 +320,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
         0 * _
@@ -347,7 +355,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
         0 * _
@@ -373,14 +382,15 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.open()
 
         then:
-        0 *_
+        0 * _
 
         when:
         cacheAccess.withFileLock(action)
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
 
@@ -402,7 +412,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
 
@@ -438,7 +449,7 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         cacheAccess.open()
 
         then:
-        0 *_
+        0 * _
 
         when:
         cacheAccess.withFileLock(action)
@@ -474,7 +485,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
 
@@ -560,7 +572,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
 
@@ -632,7 +645,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
 
@@ -684,7 +698,8 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(file, _, _, _, _) >> {
-            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended -> contendedAction = whenContended
+            File target, LockOptions options, String targetDisplayName, String operationDisplayName, Consumer<FileLockReleasedSignal> whenContended ->
+                contendedAction = whenContended
                 return lock
         }
         1 * action.get() >> "result"

@@ -181,7 +181,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         }
     }
 
-    private static class UnsupportedToolChainDescription extends AbstractUnavailabilityToolChainSearchDescription{
+    private static class UnsupportedToolChainDescription extends AbstractUnavailabilityToolChainSearchDescription {
         public UnsupportedToolChainDescription(NativeLanguage sourceLanguage, NativePlatform targetPlatform, Map<String, PlatformToolProvider> candidates) {
             super(sourceLanguage, targetPlatform, candidates);
         }

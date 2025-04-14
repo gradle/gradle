@@ -64,8 +64,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "excludeGroup('org')",
-                "excludeGroupByRegex('or.+')"
+            "excludeGroup('org')",
+            "excludeGroupByRegex('or.+')"
         ]
     }
 
@@ -98,8 +98,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "includeGroup('other')",
-                "includeGroupByRegex('oth[a-z]+')"
+            "includeGroup('other')",
+            "includeGroupByRegex('oth[a-z]+')"
         ]
     }
 
@@ -134,8 +134,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "excludeGroup('org')",
-                "excludeGroupByRegex('or.+')"
+            "excludeGroup('org')",
+            "excludeGroupByRegex('or.+')"
         ]
     }
 
@@ -170,8 +170,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "includeGroup('other')",
-                "includeGroupByRegex('oth[a-z]+')"
+            "includeGroup('other')",
+            "includeGroupByRegex('oth[a-z]+')"
         ]
     }
 
@@ -213,8 +213,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "excludeModule('org', 'foo')",
-                "excludeModuleByRegex('or.+', 'f[o]{1,2}')"
+            "excludeModule('org', 'foo')",
+            "excludeModuleByRegex('or.+', 'f[o]{1,2}')"
         ]
     }
 
@@ -256,8 +256,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "includeModule('org', 'bar')",
-                "includeModuleByRegex('or.+', 'b[ar]+')",
+            "includeModule('org', 'bar')",
+            "includeModuleByRegex('or.+', 'b[ar]+')",
         ]
     }
 
@@ -298,8 +298,8 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                'onlyForConfigurations("other")',
-                'notForConfigurations("conf")'
+            'onlyForConfigurations("other")',
+            'notForConfigurations("conf")'
         ]
     }
 
@@ -417,12 +417,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "excludeVersion('org', 'foo', '1.1')",
-                "excludeVersion('org', 'foo', '[1.0,)')",
-                "excludeVersion('org', 'foo', '[1.0,1.2)')",
-                "excludeVersion('org', 'foo', '(,1.1]')",
-                "excludeVersion('org', 'foo', '(,1.2]')",
-                "excludeVersionByRegex('or.+', 'f.+', '1\\\\.[1-2]')"
+            "excludeVersion('org', 'foo', '1.1')",
+            "excludeVersion('org', 'foo', '[1.0,)')",
+            "excludeVersion('org', 'foo', '[1.0,1.2)')",
+            "excludeVersion('org', 'foo', '(,1.1]')",
+            "excludeVersion('org', 'foo', '(,1.2]')",
+            "excludeVersionByRegex('or.+', 'f.+', '1\\\\.[1-2]')"
         ]
     }
 
@@ -458,12 +458,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
         where:
         notation << [
-                "includeVersion('org', 'foo', '1.1')",
-                "includeVersion('org', 'foo', '[1.1,)')",
-                "includeVersion('org', 'foo', '[1.1,1.3)')",
-                "includeVersion('org', 'foo', '(,1.1]')",
-                "includeVersion('org', 'foo', '(,1.2]')",
-                "includeVersionByRegex('or.+', 'f.+', '1\\\\.[1-3]')"
+            "includeVersion('org', 'foo', '1.1')",
+            "includeVersion('org', 'foo', '[1.1,)')",
+            "includeVersion('org', 'foo', '[1.1,1.3)')",
+            "includeVersion('org', 'foo', '(,1.1]')",
+            "includeVersion('org', 'foo', '(,1.2]')",
+            "includeVersionByRegex('or.+', 'f.+', '1\\\\.[1-3]')"
         ]
     }
 

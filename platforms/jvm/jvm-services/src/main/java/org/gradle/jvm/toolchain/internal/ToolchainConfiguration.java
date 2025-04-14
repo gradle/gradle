@@ -28,20 +28,24 @@ import java.util.Collection;
  * <p>
  * Used also in the launcher for the daemon toolchain
  */
-@ServiceScope({ Scope.Build.class, Scope.Global.class })
+@ServiceScope({Scope.Build.class, Scope.Global.class})
 public interface ToolchainConfiguration {
     String AUTO_DETECT = "org.gradle.java.installations.auto-detect";
 
     Collection<String> getJavaInstallationsFromEnvironment();
+
     void setJavaInstallationsFromEnvironment(Collection<String> installations);
 
     Collection<String> getInstallationsFromPaths();
+
     void setInstallationsFromPaths(Collection<String> installations);
 
     boolean isAutoDetectEnabled();
+
     void setAutoDetectEnabled(boolean enabled);
 
     boolean isDownloadEnabled();
+
     void setDownloadEnabled(boolean enabled);
 
     File getAsdfDataDirectory();
@@ -50,7 +54,8 @@ public interface ToolchainConfiguration {
 
     void setIntelliJdkDirectory(File intellijInstallationDirectory);
 
-    @Nullable File getJabbaHomeDirectory();
+    @Nullable
+    File getJabbaHomeDirectory();
 
     File getSdkmanCandidatesDirectory();
 }

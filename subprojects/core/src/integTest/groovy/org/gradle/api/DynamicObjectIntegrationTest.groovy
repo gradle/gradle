@@ -34,42 +34,42 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
-                "ext.rootProperty = 'root'",
-                "ext.sharedProperty = 'ignore me'",
-                "ext.property = 'value'",
-                "convention.plugins.test = new ConventionBean()",
-                "task rootTask",
-                "task testTask",
-                "class ConventionBean { def getConventionProperty() { 'convention' } }"
+            "ext.rootProperty = 'root'",
+            "ext.sharedProperty = 'ignore me'",
+            "ext.property = 'value'",
+            "convention.plugins.test = new ConventionBean()",
+            "task rootTask",
+            "task testTask",
+            "class ConventionBean { def getConventionProperty() { 'convention' } }"
         )
         file("child/build.gradle").writelns(
-                "ext.childProperty = 'child'",
-                "ext.sharedProperty = 'shared'",
-                "task testTask {",
-                "  doLast { new Reporter().checkProperties(project) }",
-                "}",
-                "assert 'root' == rootProperty",
-                "assert 'root' == property('rootProperty')",
-                "assert 'root' == properties.rootProperty",
-                "assert 'child' == childProperty",
-                "assert 'child' == property('childProperty')",
-                "assert 'child' == properties.childProperty",
-                "assert 'shared' == sharedProperty",
-                "assert 'shared' == property('sharedProperty')",
-                "assert 'shared' == properties.sharedProperty",
-                "assert 'convention' == conventionProperty",
-                // Use a separate class, to isolate Project from the script
-                "class Reporter {",
-                "  def checkProperties(object) {",
-                "    assert 'root' == object.rootProperty",
-                "    assert 'child' == object.childProperty",
-                "    assert 'shared' == object.sharedProperty",
-                "    assert 'convention' == object.conventionProperty",
-                "    assert 'value' == object.property",
-                "    assert ':child:testTask' == object.testTask.path",
-                "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
-                "  }",
-                "}"
+            "ext.childProperty = 'child'",
+            "ext.sharedProperty = 'shared'",
+            "task testTask {",
+            "  doLast { new Reporter().checkProperties(project) }",
+            "}",
+            "assert 'root' == rootProperty",
+            "assert 'root' == property('rootProperty')",
+            "assert 'root' == properties.rootProperty",
+            "assert 'child' == childProperty",
+            "assert 'child' == property('childProperty')",
+            "assert 'child' == properties.childProperty",
+            "assert 'shared' == sharedProperty",
+            "assert 'shared' == property('sharedProperty')",
+            "assert 'shared' == properties.sharedProperty",
+            "assert 'convention' == conventionProperty",
+            // Use a separate class, to isolate Project from the script
+            "class Reporter {",
+            "  def checkProperties(object) {",
+            "    assert 'root' == object.rootProperty",
+            "    assert 'child' == object.childProperty",
+            "    assert 'shared' == object.sharedProperty",
+            "    assert 'convention' == object.conventionProperty",
+            "    assert 'value' == object.property",
+            "    assert ':child:testTask' == object.testTask.path",
+            "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
+            "  }",
+            "}"
         )
 
         expectConventionTypeDeprecationWarnings()
@@ -84,30 +84,30 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         createDirs("child")
         file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
-                "def rootMethod(p) { 'root' + p }",
-                "def sharedMethod(p) { 'ignore me' }",
-                "convention.plugins.test = new ConventionBean()",
-                "task rootTask",
-                "task testTask",
-                "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
+            "def rootMethod(p) { 'root' + p }",
+            "def sharedMethod(p) { 'ignore me' }",
+            "convention.plugins.test = new ConventionBean()",
+            "task rootTask",
+            "task testTask",
+            "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
         )
         file("child/build.gradle").writelns(
-                "def childMethod(p) { 'child' + p }",
-                "def sharedMethod(p) { 'shared' + p }",
-                "task testTask {",
-                "  doLast { new Reporter().checkMethods(project) }",
-                "}",
-                // Use a separate class, to isolate Project from the script
-                "class Reporter {",
-                "  def checkMethods(object) {",
-                "    assert 'rootMethod' == object.rootMethod('Method')",
-                "    assert 'childMethod' == object.childMethod('Method')",
-                "    assert 'sharedMethod'== object.sharedMethod('Method')",
-                "    assert 'conventionMethod' == object.conventionMethod('Method')",
-                "    object.testTask { assert ':child:testTask' == delegate.path }",
-                "    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }",
-                "  }",
-                "}"
+            "def childMethod(p) { 'child' + p }",
+            "def sharedMethod(p) { 'shared' + p }",
+            "task testTask {",
+            "  doLast { new Reporter().checkMethods(project) }",
+            "}",
+            // Use a separate class, to isolate Project from the script
+            "class Reporter {",
+            "  def checkMethods(object) {",
+            "    assert 'rootMethod' == object.rootMethod('Method')",
+            "    assert 'childMethod' == object.childMethod('Method')",
+            "    assert 'sharedMethod'== object.sharedMethod('Method')",
+            "    assert 'conventionMethod' == object.conventionMethod('Method')",
+            "    object.testTask { assert ':child:testTask' == delegate.path }",
+            "    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }",
+            "  }",
+            "}"
         )
 
         expectConventionTypeDeprecationWarnings()
@@ -1089,7 +1089,7 @@ task print(type: MyTask) {
 
     private void expectTaskProjectDeprecation(int repeated = 1) {
         repeated.times {
-            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. " +
                 "This will fail with an error in Gradle 10.0. " +
                 "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")

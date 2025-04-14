@@ -48,7 +48,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         and:
         succeeds "assembleRelease"
         result.assertTasksExecuted(tasks.release.allToInstall, tasks.release.extract, ":assembleRelease")
-        result.assertTasksSkipped( tasks.release.allToInstall, tasks.release.extract, ":assembleRelease")
+        result.assertTasksSkipped(tasks.release.allToInstall, tasks.release.extract, ":assembleRelease")
 
         executable("build/exe/main/release/app").assertExists()
         installation("build/install/main/release").exec().out == app.expectedOutput

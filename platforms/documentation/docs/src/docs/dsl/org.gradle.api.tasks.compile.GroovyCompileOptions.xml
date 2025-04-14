@@ -10,27 +10,39 @@
             </thead>
             <tr>
                 <td>failOnError</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>verbose</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>listFiles</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>configurationScript</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>encoding</td>
-                <td><literal>UTF-8</literal></td>
+                <td>
+                    <literal>UTF-8</literal>
+                </td>
             </tr>
             <tr>
                 <td>fork</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>forkOptions</td>
@@ -38,31 +50,45 @@
             </tr>
             <tr>
                 <td>optimizationOptions</td>
-                <td><literal>[:]</literal></td>
+                <td>
+                    <literal>[:]</literal>
+                </td>
             </tr>
             <tr>
                 <td>parameters</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>stubDir</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>fileExtensions</td>
-                <td><literal>["java", "groovy"]</literal></td>
+                <td>
+                    <literal>["java", "groovy"]</literal>
+                </td>
             </tr>
             <tr>
                 <td>keepStubs</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>javaAnnotationProcessing</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>disabledGlobalASTTransformations</td>
-                <td><literal>["groovy.grape.GrabAnnotationTransformation"]</literal></td>
+                <td>
+                    <literal>["groovy.grape.GrabAnnotationTransformation"]</literal>
+                </td>
             </tr>
         </table>
     </section>

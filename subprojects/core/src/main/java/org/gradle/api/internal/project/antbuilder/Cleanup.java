@@ -23,24 +23,20 @@ import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
 class Cleanup extends PhantomReference<CachedClassLoader> {
-    enum Mode {
-        DONT_CLOSE_CLASSLOADER,
-        CLOSE_CLASSLOADER
-    }
-
     private final ClassPath key;
     private final ClassLoader classLoader;
     private final GroovySystemLoader groovySystemForClassLoader;
     private final GroovySystemLoader gradleApiGroovyLoader;
     private final GroovySystemLoader antBuilderGroovyLoader;
-
-    Cleanup(ClassPath classPath,
-            CachedClassLoader cachedClassLoader,
-            ReferenceQueue<CachedClassLoader> referenceQueue,
-            ClassLoader classLoader,
-            GroovySystemLoader groovySystemForClassLoader,
-            GroovySystemLoader gradleApiGroovyLoader,
-            GroovySystemLoader antBuilderGroovyLoader) {
+    Cleanup(
+        ClassPath classPath,
+        CachedClassLoader cachedClassLoader,
+        ReferenceQueue<CachedClassLoader> referenceQueue,
+        ClassLoader classLoader,
+        GroovySystemLoader groovySystemForClassLoader,
+        GroovySystemLoader gradleApiGroovyLoader,
+        GroovySystemLoader antBuilderGroovyLoader
+    ) {
         super(cachedClassLoader, referenceQueue);
         this.groovySystemForClassLoader = groovySystemForClassLoader;
         this.gradleApiGroovyLoader = gradleApiGroovyLoader;
@@ -60,5 +56,10 @@ class Cleanup extends PhantomReference<CachedClassLoader> {
         if (mode == Mode.CLOSE_CLASSLOADER) {
             ClassLoaderUtils.tryClose(classLoader);
         }
+    }
+
+    enum Mode {
+        DONT_CLOSE_CLASSLOADER,
+        CLOSE_CLASSLOADER
     }
 }

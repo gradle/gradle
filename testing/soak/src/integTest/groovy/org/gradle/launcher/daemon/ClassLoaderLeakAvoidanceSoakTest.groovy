@@ -47,7 +47,7 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        for(int i = 0; i < 35; i++) {
+        for (int i = 0; i < 35; i++) {
             myTask.text = myTask.text.replace("runAction$i", "runAction${i + 1}")
             executer.withBuildJvmOpts("-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError")
             assert succeeds("myTask")
@@ -68,7 +68,7 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        for(int i = 0; i < 35; i++) {
+        for (int i = 0; i < 35; i++) {
             buildFile.text = buildFile.text.replace("Foo$i", "Foo${i + 1}")
             executer.withBuildJvmOpts("-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError")
             assert succeeds("myTask")
@@ -90,7 +90,7 @@ class ClassLoaderLeakAvoidanceSoakTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        for(int i = 0; i < 35; i++) {
+        for (int i = 0; i < 35; i++) {
             buildFile.text = buildFile.text.replace("Foo$i", "Foo${i + 1}")
             executer.withBuildJvmOpts("-Xms64m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:MaxMetaspaceSize=64m")
             assert succeeds("myTask")

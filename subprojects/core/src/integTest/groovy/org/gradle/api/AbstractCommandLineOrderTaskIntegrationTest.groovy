@@ -25,7 +25,9 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    enum ProductionType { OUTPUT, LOCAL_STATE }
+    enum ProductionType {
+        OUTPUT, LOCAL_STATE
+    }
 
     BuildFixture rootBuild = new RootBuild(testDirectory)
 
@@ -121,7 +123,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
 
         void writeFiles() {
             projectDir.file('build.gradle') << """
-                ${tasks.collect { name, task -> task.getConfig() }.join('\n') }
+                ${tasks.collect { name, task -> task.getConfig() }.join('\n')}
             """.stripIndent()
         }
     }
@@ -216,7 +218,7 @@ abstract class AbstractCommandLineOrderTaskIntegrationTest extends AbstractInteg
         String getConfig() {
             return """
                 tasks.register('${name}') {
-                    ${dependencies.collect {'dependsOn ' + dependencyFor(it) }.join('\n\t\t\t\t')}
+                    ${dependencies.collect { 'dependsOn ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${finalizers.collect { 'finalizedBy ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${mustRunAfter.collect { 'mustRunAfter ' + dependencyFor(it) }.join('\n\t\t\t\t')}
                     ${shouldRunAfter.collect { 'shouldRunAfter ' + dependencyFor(it) }.join('\n\t\t\t\t')}

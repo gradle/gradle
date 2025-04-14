@@ -26,9 +26,9 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 
 public class LockStateAccess {
-    private final LockStateSerializer protocol;
     private static final int REGION_START = 0;
     private static final int STATE_CONTENT_START = 1;
+    private final LockStateSerializer protocol;
     private final int stateRegionSize;
 
     public LockStateAccess(LockStateSerializer protocol) {

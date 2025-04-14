@@ -33,6 +33,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 @NullMarked
 public class NestedValidationUtil {
 
+    private static final ImmutableSet<Class<?>> SUPPORTED_KEY_TYPES = ImmutableSet.of(String.class, Integer.class);
+
     /**
      * Validates that the {@link org.gradle.api.tasks.Nested} annotation
      * supports the given bean type.
@@ -68,7 +70,6 @@ public class NestedValidationUtil {
             )
         );
     }
-
 
     private static Optional<String> getUnsupportedReason(Class<?> type) {
         if (type.getName().startsWith("java.") || type.getName().startsWith("javax.")) {
@@ -108,8 +109,6 @@ public class NestedValidationUtil {
             );
         }
     }
-
-    private static final ImmutableSet<Class<?>> SUPPORTED_KEY_TYPES = ImmutableSet.of(String.class, Integer.class);
 
     private static String getSupportedKeyTypes() {
         return SUPPORTED_KEY_TYPES.stream().map(cls -> "'" + cls.getCanonicalName() + "'").collect(Collectors.joining(", "));

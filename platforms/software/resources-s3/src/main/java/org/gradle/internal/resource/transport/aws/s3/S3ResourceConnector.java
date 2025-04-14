@@ -44,6 +44,27 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
         this.s3Client = s3Client;
     }
 
+    private static void discardEmptyContentAndClose(S3Object s3Object) {
+        // Consume the content stream to avoid warning from S3 SDK. The response should have only 1 byte there because Range header was specified.
+        try {
+            S3ObjectInputStream objectContent = s3Object.getObjectContent();
+            if (objectContent == null) {
+                return;
+            }
+            long downloadedContentLength = ByteStreams.exhaust(objectContent);
+            if (downloadedContentLength > 1L) {
+                // This may happen if the endpoint ignores Range HTTP header for whatever reason.
+                LOGGER.debug("Downloaded {} bytes of the object content for metadata request which is too much.", downloadedContentLength);
+            }
+        } catch (IOException e) {
+            // Don't complain loudly to the user about the error there because we were discarding the response anyway.
+            LOGGER.debug("Exception while consuming empty object content from metadata request", e);
+        } finally {
+            // This also closes objectContent, no need to close it explicitly.
+            IoActions.closeQuietly(s3Object);
+        }
+    }
+
     @Override
     public List<String> list(ExternalResourceName parent) {
         LOGGER.debug("Listing parent resources: {}", parent);
@@ -77,27 +98,6 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
                 null); // Passing null for sha1 - TODO - consider using the etag which is an MD5 hash of the file (when less than 5Gb)
         } finally {
             discardEmptyContentAndClose(s3Object);
-        }
-    }
-
-    private static void discardEmptyContentAndClose(S3Object s3Object) {
-        // Consume the content stream to avoid warning from S3 SDK. The response should have only 1 byte there because Range header was specified.
-        try {
-            S3ObjectInputStream objectContent = s3Object.getObjectContent();
-            if (objectContent == null) {
-                return;
-            }
-            long downloadedContentLength = ByteStreams.exhaust(objectContent);
-            if (downloadedContentLength > 1L) {
-                // This may happen if the endpoint ignores Range HTTP header for whatever reason.
-                LOGGER.debug("Downloaded {} bytes of the object content for metadata request which is too much.", downloadedContentLength);
-            }
-        } catch (IOException e) {
-            // Don't complain loudly to the user about the error there because we were discarding the response anyway.
-            LOGGER.debug("Exception while consuming empty object content from metadata request", e);
-        } finally {
-            // This also closes objectContent, no need to close it explicitly.
-            IoActions.closeQuietly(s3Object);
         }
     }
 

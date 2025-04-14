@@ -7,9 +7,15 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>includes</td></tr>
-            <tr><td>source</td></tr>
-            <tr><td>excludes</td></tr>
+            <tr>
+                <td>includes</td>
+            </tr>
+            <tr>
+                <td>source</td>
+            </tr>
+            <tr>
+                <td>excludes</td>
+            </tr>
         </table>
     </section>
     <section>

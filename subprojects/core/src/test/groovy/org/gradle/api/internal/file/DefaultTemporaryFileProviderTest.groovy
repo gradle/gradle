@@ -22,11 +22,12 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultTemporaryFileProviderTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     DefaultTemporaryFileProvider provider
 
     def setup() {
-        provider = new DefaultTemporaryFileProvider({tmpDir.testDirectory} as Factory)
+        provider = new DefaultTemporaryFileProvider({ tmpDir.testDirectory } as Factory)
     }
 
     def "allocates temp file"() {

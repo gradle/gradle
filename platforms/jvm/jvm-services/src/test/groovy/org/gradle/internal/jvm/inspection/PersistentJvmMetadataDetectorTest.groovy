@@ -83,9 +83,11 @@ class PersistentJvmMetadataDetectorTest extends Specification {
     private File location(String name) {
         return tmpDir.file("jdks/$name")
     }
+
     private InstallationLocation installation(File location) {
         return InstallationLocation.autoProvisioned(location, "test")
     }
+
     private InstallationLocation userDefinedInstallation(File location) {
         return InstallationLocation.userDefined(location, "test")
     }

@@ -51,19 +51,20 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
     private final ChecksumService checksumService;
 
-    public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
-                                               LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
-                                               FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                               MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                               GradleModuleMetadataParser metadataParser,
-                                               AuthenticationContainer authenticationContainer,
-                                               FileResourceRepository fileResourceRepository,
-                                               MavenMutableModuleMetadataFactory metadataFactory,
-                                               IsolatableFactory isolatableFactory,
-                                               ObjectFactory objectFactory,
-                                               DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                               ChecksumService checksumService,
-                                               VersionParser versionParser
+    public DefaultMavenLocalArtifactRepository(
+        FileResolver fileResolver, RepositoryTransportFactory transportFactory,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+        GradleModuleMetadataParser metadataParser,
+        AuthenticationContainer authenticationContainer,
+        FileResourceRepository fileResourceRepository,
+        MavenMutableModuleMetadataFactory metadataFactory,
+        IsolatableFactory isolatableFactory,
+        ObjectFactory objectFactory,
+        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+        ChecksumService checksumService,
+        VersionParser versionParser
     ) {
         super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser);
         this.checksumService = checksumService;

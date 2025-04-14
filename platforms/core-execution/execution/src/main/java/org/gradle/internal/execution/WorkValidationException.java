@@ -47,12 +47,12 @@ public class WorkValidationException extends GradleException {
         this.problems = ImmutableList.copyOf(problems);
     }
 
-    public List<String> getProblems() {
-        return problems;
-    }
-
     public static Builder forProblems(Collection<String> problems) {
         return new Builder(problems);
+    }
+
+    public List<String> getProblems() {
+        return problems;
     }
 
     /**
@@ -65,8 +65,8 @@ public class WorkValidationException extends GradleException {
 
         public Builder(Collection<String> problems) {
             this.problems = problems.stream()
-                    .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
-                    .collect(toImmutableList());
+                .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
+                .collect(toImmutableList());
         }
 
         public Builder limitTo(int maxProblems) {
@@ -85,9 +85,9 @@ public class WorkValidationException extends GradleException {
 
         private String summarizeInContext(String validatedObjectName, WorkValidationContext validationContext) {
             return String.format("%s found with the configuration of %s (%s).",
-                    problems.size() == 1 ? "A problem was" : "Some problems were",
-                    validatedObjectName,
-                    describeTypesChecked(validationContext.getValidatedTypes()));
+                problems.size() == 1 ? "A problem was" : "Some problems were",
+                validatedObjectName,
+                describeTypesChecked(validationContext.getValidatedTypes()));
         }
 
         private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
@@ -97,8 +97,8 @@ public class WorkValidationException extends GradleException {
         }
 
         private String getTypeDisplayName(Class<?> type) {
-                return ModelType.of(type).getDisplayName();
-            }
+            return ModelType.of(type).getDisplayName();
+        }
     }
 
     /**

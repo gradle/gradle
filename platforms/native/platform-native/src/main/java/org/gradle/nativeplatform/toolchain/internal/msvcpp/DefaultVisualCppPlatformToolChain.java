@@ -28,8 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolChain {
-    private final NativePlatform platform;
     protected final Map<ToolType, CommandLineToolConfigurationInternal> tools;
+    private final NativePlatform platform;
 
     public DefaultVisualCppPlatformToolChain(NativePlatform platform, Instantiator instantiator) {
         this.platform = platform;

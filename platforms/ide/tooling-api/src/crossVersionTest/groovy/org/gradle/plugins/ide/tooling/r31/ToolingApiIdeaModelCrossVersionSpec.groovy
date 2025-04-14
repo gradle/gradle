@@ -51,7 +51,7 @@ project(':impl') {
         then:
         def libs = module.dependencies
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
+        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency }
         mod.targetModuleName == 'api'
     }
 
@@ -90,7 +90,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency}
+        IdeaSingleEntryLibraryDependency lib = libs.find { it instanceof IdeaSingleEntryLibraryDependency }
 
         lib.file.exists()
         lib.file.path.endsWith('coolLib-1.0.jar')
@@ -103,7 +103,7 @@ project(':impl') {
 
         lib.scope.scope == 'TEST'
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
+        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency }
         mod.targetModuleName == 'api'
         if (targetVersion >= GradleVersion.version("3.4")) {
             mod.scope.scope == 'PROVIDED'

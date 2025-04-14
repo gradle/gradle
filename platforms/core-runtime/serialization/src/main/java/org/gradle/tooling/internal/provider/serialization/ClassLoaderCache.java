@@ -32,22 +32,9 @@ import java.util.concurrent.locks.ReentrantLock;
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
 public class ClassLoaderCache {
-    @NullMarked
-    public interface Transformer<OUT, IN> {
-        /**
-         * Transforms the given object, and returns the transformed value.
-         *
-         * @param in The object to transform.
-         * @return The transformed object.
-         */
-        OUT transform(IN in);
-    }
-
-
     private final Lock lock = new ReentrantLock();
     private final Cache<ClassLoader, ClassLoaderDetails> classLoaderDetails;
     private final Cache<UUID, ClassLoader> classLoaderIds;
-
     public ClassLoaderCache() {
         classLoaderDetails = CacheBuilder.newBuilder().weakKeys().build();
         classLoaderIds = CacheBuilder.newBuilder().softValues().build();
@@ -111,5 +98,16 @@ public class ClassLoaderCache {
         } finally {
             lock.unlock();
         }
+    }
+
+    @NullMarked
+    public interface Transformer<OUT, IN> {
+        /**
+         * Transforms the given object, and returns the transformed value.
+         *
+         * @param in The object to transform.
+         * @return The transformed object.
+         */
+        OUT transform(IN in);
     }
 }

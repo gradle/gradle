@@ -23,8 +23,8 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * The distribution management configuration of a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
+ * @since 4.8
  */
 @HasInternalProtocol
 public interface MavenPomDistributionManagement {

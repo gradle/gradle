@@ -141,6 +141,36 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         maybeCleanupDryRunFiles();
     }
 
+    private static void resolveAllConfigurationsAndForceDownload(Project project) {
+        ((ProjectInternal) project).getOwner().applyToMutableState(p ->
+            p.getConfigurations().all(cnf -> {
+                if (((DeprecatableConfiguration) cnf).canSafelyBeResolved()) {
+                    try {
+                        resolveAndDownloadExternalFiles(cnf);
+                    } catch (Exception e) {
+                        LOGGER.debug("Cannot resolve configuration {}: {}", cnf.getName(), e.getMessage());
+                    }
+                }
+            })
+        );
+    }
+
+    private static void resolveAndDownloadExternalFiles(Configuration cnf) {
+        cnf.getIncoming().artifactView(MODULE_COMPONENT_FILES).getFiles().getFiles();
+    }
+
+    private static Collection<PGPPublicKeyRing> uniqueKeyRings(Stream<PGPPublicKeyRing> keyRings) {
+        SortedMap<Long, PGPPublicKeyRing> seenKeyIds = new TreeMap<>();
+        keyRings.forEach(keyRing -> {
+            Long keyId = keyRing.getPublicKey().getKeyID();
+            PGPPublicKeyRing current = seenKeyIds.get(keyId);
+            if (current == null || PGPUtils.getSize(current) < PGPUtils.getSize(keyRing)) {
+                seenKeyIds.put(keyId, keyRing);
+            }
+        });
+        return seenKeyIds.values();
+    }
+
     private boolean isWriteVerificationFile() {
         return !checksums.isEmpty();
     }
@@ -514,24 +544,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    private static void resolveAllConfigurationsAndForceDownload(Project project) {
-        ((ProjectInternal) project).getOwner().applyToMutableState(p ->
-            p.getConfigurations().all(cnf -> {
-                if (((DeprecatableConfiguration) cnf).canSafelyBeResolved()) {
-                    try {
-                        resolveAndDownloadExternalFiles(cnf);
-                    } catch (Exception e) {
-                        LOGGER.debug("Cannot resolve configuration {}: {}", cnf.getName(), e.getMessage());
-                    }
-                }
-            })
-        );
-    }
-
-    private static void resolveAndDownloadExternalFiles(Configuration cnf) {
-        cnf.getIncoming().artifactView(MODULE_COMPONENT_FILES).getFiles().getFiles();
-    }
-
     private void exportKeyRingCollection(
         PublicKeyService publicKeyService,
         BuildTreeDefinedKeys existingKeyring,
@@ -572,18 +584,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    private static Collection<PGPPublicKeyRing> uniqueKeyRings(Stream<PGPPublicKeyRing> keyRings) {
-        SortedMap<Long, PGPPublicKeyRing> seenKeyIds = new TreeMap<>();
-        keyRings.forEach(keyRing -> {
-            Long keyId = keyRing.getPublicKey().getKeyID();
-            PGPPublicKeyRing current = seenKeyIds.get(keyId);
-            if (current == null || PGPUtils.getSize(current) < PGPUtils.getSize(keyRing)) {
-                seenKeyIds.put(keyId, keyRing);
-            }
-        });
-        return seenKeyIds.values();
-    }
-
     private void writeAsciiArmoredKeyRingFile(File ascii, Collection<PGPPublicKeyRing> allKeyRings) throws IOException {
         if (ascii.exists()) {
             ascii.delete();
@@ -602,7 +602,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     String keyType = pk.isMasterKey() ? "pub" : "sub";
                     out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase(Locale.ROOT) + "\n").getBytes(StandardCharsets.US_ASCII));
                     List<String> userIDs = PGPUtils.getUserIDs(pk);
-                    for(String uid : userIDs) {
+                    for (String uid : userIDs) {
                         hasUid = true;
                         out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
                     }
@@ -628,6 +628,16 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
+    private List<PGPPublicKeyRing> loadExistingKeyRing(BuildTreeDefinedKeys keyrings) throws IOException {
+        File effectiveFile = mayBeDryRunFile(keyrings.getEffectiveKeyringsFile());
+        if (!effectiveFile.exists()) {
+            return Collections.emptyList();
+        }
+        List<PGPPublicKeyRing> existingRings = SecuritySupport.loadKeyRingFile(effectiveFile);
+        LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());
+        return existingRings;
+    }
+
     private static class PGPPublicKeyRingListBuilder implements PublicKeyResultBuilder {
         private final ImmutableList.Builder<PGPPublicKeyRing> builder = ImmutableList.builder();
 
@@ -644,15 +654,5 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         public List<PGPPublicKeyRing> build() {
             return builder.build();
         }
-    }
-
-    private List<PGPPublicKeyRing> loadExistingKeyRing(BuildTreeDefinedKeys keyrings) throws IOException {
-        File effectiveFile = mayBeDryRunFile(keyrings.getEffectiveKeyringsFile());
-        if (!effectiveFile.exists()) {
-            return Collections.emptyList();
-        }
-        List<PGPPublicKeyRing> existingRings = SecuritySupport.loadKeyRingFile(effectiveFile);
-        LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());
-        return existingRings;
     }
 }

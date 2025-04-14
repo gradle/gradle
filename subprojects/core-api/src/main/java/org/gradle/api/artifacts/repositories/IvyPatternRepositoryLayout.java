@@ -31,12 +31,14 @@ public interface IvyPatternRepositoryLayout extends RepositoryLayout {
 
     /**
      * Adds an Ivy artifact pattern to define where artifacts are located in this repository.
+     *
      * @param pattern The ivy pattern
      */
     void artifact(String pattern);
 
     /**
      * Adds an Ivy pattern to define where ivy files are located in this repository.
+     *
      * @param pattern The ivy pattern
      */
     void ivy(String pattern);

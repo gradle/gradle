@@ -38,6 +38,7 @@ import static org.gradle.internal.fingerprint.LineEndingSensitivity.NORMALIZE_LI
 abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends BaseSnapshotInputsBuildOperationResult, VISITOR> extends Specification implements TestSnapshotFixture {
 
     abstract RESULT createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs)
+
     abstract VISITOR createMockVisitor()
 
     @Requires(UnitTestPreconditions.NotWindows)

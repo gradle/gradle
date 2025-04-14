@@ -31,13 +31,6 @@ import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
 @NullMarked
 public abstract class AbstractTaskDependency implements TaskDependencyContainerInternal {
 
-    @Nullable
-    private final TaskDependencyUsageTracker dependencyUsageTracker;
-
-    public AbstractTaskDependency(@Nullable TaskDependencyUsageTracker dependencyUsageTracker) {
-        this.dependencyUsageTracker = dependencyUsageTracker;
-    }
-
     private static final WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
         @Override
         public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
@@ -45,8 +38,13 @@ public abstract class AbstractTaskDependency implements TaskDependencyContainerI
             return node instanceof TransformNodeDependency || node instanceof WorkNodeAction;
         }
     };
-
+    @Nullable
+    private final TaskDependencyUsageTracker dependencyUsageTracker;
     private Supplier<String> toStringProvider = null;
+
+    public AbstractTaskDependency(@Nullable TaskDependencyUsageTracker dependencyUsageTracker) {
+        this.dependencyUsageTracker = dependencyUsageTracker;
+    }
 
     public void setToStringProvider(Supplier<String> toStringProvider) {
         this.toStringProvider = toStringProvider;

@@ -23,7 +23,8 @@ import org.junit.Rule
 
 class IvyPublishMultipleRepositoriesIntegTest extends AbstractIvyPublishIntegTest {
 
-    @Rule HttpServer server
+    @Rule
+    HttpServer server
 
     String moduleName = "publish"
     String org = "org.gradle"

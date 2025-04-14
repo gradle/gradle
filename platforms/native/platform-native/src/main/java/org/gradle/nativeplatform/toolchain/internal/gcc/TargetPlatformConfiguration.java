@@ -25,7 +25,7 @@ public interface TargetPlatformConfiguration {
     boolean supportsPlatform(NativePlatformInternal targetPlatform);
 
     /**
-     *  applies a platform specific toolchain configuration
+     * applies a platform specific toolchain configuration
      */
     void apply(DefaultGccPlatformToolChain platformToolChain);
 }

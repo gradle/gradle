@@ -5,9 +5,11 @@ model {
                 cpp_srcs(CppSourceSet) {
                     source {
                         srcDirs "\$rootDir/modules/\${project.name}"
-                        <% includedSourceCount.times { %>
-                        include "src/src${it}_cpp.cpp"
-                        <% } %>
+                            < % includedSourceCount.times {
+                            % >
+                            include "src/src${it}_cpp.cpp"
+                                < %
+                        } % >
                     }
                     exportedHeaders {
                         srcDirs "\$rootDir/modules/\${project.name}/src"
@@ -17,9 +19,11 @@ model {
                 c_srcs(CSourceSet) {
                     source {
                         srcDirs "\$rootDir/modules/\${project.name}"
-                        <% includedSourceCount.times { %>
-                        include "src/src${it}_c.c"
-                        <% } %>
+                            < % includedSourceCount.times {
+                            % >
+                            include "src/src${it}_c.c"
+                                < %
+                        } % >
                     }
                     exportedHeaders {
                         srcDirs "\$rootDir/modules/\${project.name}/src"
@@ -29,12 +33,14 @@ model {
             }
             binaries.all {
                 // TODO: Use dependency graph builder to created a layered native build
-                <% prebuiltLibraries.times { %>
-                // TODO: Use a different linkage
-                lib project: ':', library: "prebuilt$it", linkage: 'api'
-                <% } %>
+                < % prebuiltLibraries.times {
+                    % >
+                    // TODO: Use a different linkage
+                    lib project: ':', library: "prebuilt$it", linkage: 'api'
+                        < %
+                } % >
 
-                lib project: ':', library: "commonHeaders", linkage: 'api'
+                    lib project: ':', library: "commonHeaders", linkage: 'api'
             }
         }
     }

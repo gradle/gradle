@@ -6,5 +6,5 @@
 
 <suppressions>
     <suppress checks="TypeName"
-          files="bad_name.java"/>
+              files="bad_name.java"/>
 </suppressions>

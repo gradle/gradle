@@ -23,6 +23,10 @@ import java.lang.reflect.Type;
 
 final class InjectUtil {
 
+    private InjectUtil() {
+        /* no-op */
+    }
+
     /**
      * Selects the single injectable constructor for the given type.
      * The type must either have only one public or package-private default constructor,
@@ -98,9 +102,5 @@ final class InjectUtil {
 
     private static String format(Type type) {
         return TypeStringFormatter.format(type);
-    }
-
-    private InjectUtil() {
-        /* no-op */
     }
 }

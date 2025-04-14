@@ -18,5 +18,6 @@ package org.gradle.integtests.tooling.r813;
 
 public interface SomeData {
     String getName();
+
     void setName(String name);
 }

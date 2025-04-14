@@ -54,6 +54,16 @@ public class FailurePrinter {
             this.builder = builder;
         }
 
+        private static int countCommonTailFrames(List<StackTraceElement> frames1, List<StackTraceElement> frames2) {
+            int j1 = frames1.size() - 1;
+            int j2 = frames2.size() - 1;
+            while (j1 >= 0 && j2 >= 0 && frames1.get(j1).equals(frames2.get(j2))) {
+                j1--;
+                j2--;
+            }
+            return frames1.size() - (j1 + 1);
+        }
+
         public void print(Failure failure) {
             try {
                 printRecursively("", "", null, failure);
@@ -121,16 +131,6 @@ public class FailurePrinter {
                 .append("\tat ")
                 .append(frame.toString())
                 .append(lineSeparator);
-        }
-
-        private static int countCommonTailFrames(List<StackTraceElement> frames1, List<StackTraceElement> frames2) {
-            int j1 = frames1.size() - 1;
-            int j2 = frames2.size() - 1;
-            while (j1 >= 0 && j2 >= 0 && frames1.get(j1).equals(frames2.get(j2))) {
-                j1--;
-                j2--;
-            }
-            return frames1.size() - (j1 + 1);
         }
     }
 }

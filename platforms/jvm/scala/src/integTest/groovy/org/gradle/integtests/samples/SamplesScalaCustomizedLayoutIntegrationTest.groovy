@@ -29,7 +29,8 @@ import org.junit.Rule
 @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
@@ -49,9 +50,9 @@ class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrat
         TestFile jarContents = file('jar')
         projectDir.file("build/libs/customized-layout-1.0.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/sample/Named.class',
-                'org/gradle/sample/Person.class'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/sample/Named.class',
+            'org/gradle/sample/Person.class'
         )
 
         where:

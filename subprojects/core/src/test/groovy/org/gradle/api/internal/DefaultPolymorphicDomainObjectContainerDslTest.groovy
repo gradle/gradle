@@ -40,6 +40,7 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
 
     static class DefaultPerson implements Person {
         String name
+
         String toString() { name }
 
 
@@ -69,7 +70,7 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
     }
 
     def "create elements with default type"() {
-        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory)
 
         when:
         project.container {

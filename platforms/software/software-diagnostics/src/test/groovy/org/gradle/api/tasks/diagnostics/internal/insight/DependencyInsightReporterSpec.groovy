@@ -196,10 +196,10 @@ class DependencyInsightReporterSpec extends Specification {
     private static DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested()) {
         def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
         new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId(group, name), requested),
-                false,
-                selectedModule,
-                null,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId"))
+            false,
+            selectedModule,
+            null,
+            new DefaultResolvedComponentResult(newId("a", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId"))
     }
 
     private static DefaultResolvedVariantResult defaultVariant(String ownerGroup = 'com', String ownerModule = 'foo', String ownerVersion = '1.0') {

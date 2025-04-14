@@ -28,11 +28,11 @@ import org.jspecify.annotations.Nullable;
  */
 public interface GradleEnterprisePluginEndOfBuildListener {
 
+    void buildFinished(BuildResult buildResult);
+
     interface BuildResult {
         @Nullable
         Throwable getFailure();
     }
-
-    void buildFinished(BuildResult buildResult);
 
 }

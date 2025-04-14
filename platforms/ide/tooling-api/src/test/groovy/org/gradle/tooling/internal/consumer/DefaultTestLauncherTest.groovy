@@ -44,7 +44,7 @@ class DefaultTestLauncherTest extends Specification {
             assert request.testClassNames == ["test"]
             assert request.testExecutionDescriptors == []
 
-            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["test", null]]
+            assert request.getInternalJvmTestRequests().collect { [it.className, it.methodName] } == [["test", null]]
 
             launcher.withJvmTestClasses("test2")
             launcher.withTests(Stub(TestOperationDescriptor))
@@ -52,7 +52,7 @@ class DefaultTestLauncherTest extends Specification {
             assert request.testClassNames == ["test"]
             assert request.testExecutionDescriptors == []
             assert request.taskAndTests == [:]
-            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["test", null]]
+            assert request.getInternalJvmTestRequests().collect { [it.className, it.methodName] } == [["test", null]]
         }
     }
 
@@ -71,7 +71,7 @@ class DefaultTestLauncherTest extends Specification {
             assert request.testClassNames == ["clazz"]
             assert request.testExecutionDescriptors == []
             assert request.taskAndTests == [:]
-            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["clazz", null]]
+            assert request.getInternalJvmTestRequests().collect { [it.className, it.methodName] } == [["clazz", null]]
         }
     }
 
@@ -90,7 +90,7 @@ class DefaultTestLauncherTest extends Specification {
             assert request.testClassNames == ["clazz"]
             assert request.testExecutionDescriptors == []
             assert request.taskAndTests == [:]
-            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["clazz", "method"]]
+            assert request.getInternalJvmTestRequests().collect { [it.className, it.methodName] } == [["clazz", "method"]]
         }
     }
 
@@ -108,7 +108,7 @@ class DefaultTestLauncherTest extends Specification {
         1 * connection.runTests(_, _) >> { TestExecutionRequest request, ConsumerOperationParameters params ->
             assert request.testClassNames == []
             assert request.testExecutionDescriptors == []
-            assert request.taskAndTests.collectEntries { [it.key, it.value.collect { r -> r.className }] } == ["test" : ["clazz1", "clazz2"]]
+            assert request.taskAndTests.collectEntries { [it.key, it.value.collect { r -> r.className }] } == ["test": ["clazz1", "clazz2"]]
         }
     }
 
@@ -126,7 +126,7 @@ class DefaultTestLauncherTest extends Specification {
         1 * connection.runTests(_, _) >> { TestExecutionRequest request, ConsumerOperationParameters params ->
             assert request.testClassNames == []
             assert request.testExecutionDescriptors == []
-            assert request.taskAndTests.collectEntries { [it.key, it.value.collect { r -> "${r.className}.${r.methodName}" }] } == ["test" : ["clazz.testMethod1", "clazz.testMethod2"]]
+            assert request.taskAndTests.collectEntries { [it.key, it.value.collect { r -> "${r.className}.${r.methodName}" }] } == ["test": ["clazz.testMethod1", "clazz.testMethod2"]]
         }
     }
 }

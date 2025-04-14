@@ -40,9 +40,10 @@ import spock.lang.Specification
 @UsesNativeServices
 class SwiftLinkerTest extends Specification {
     public static final String LOG_LOCATION = "<log location>"
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
-    def operationLogger =  Mock(BuildOperationLogger)
+    def operationLogger = Mock(BuildOperationLogger)
     def executable = new File("executable")
     def invocationContext = Mock(CommandLineToolContext)
     def invocation = Mock(CommandLineToolInvocation)
@@ -100,12 +101,12 @@ class SwiftLinkerTest extends Specification {
         def outputFile = testDir.file("output/lib")
 
         final expectedArgs = [
-                "-sys1", "-sys2",
-                "-emit-library",
-                "-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath,
-                testDir.file("two.o").absolutePath,
-                "-arg1", "-arg2"].flatten()
+            "-sys1", "-sys2",
+            "-emit-library",
+            "-o", outputFile.absolutePath,
+            testDir.file("one.o").absolutePath,
+            testDir.file("two.o").absolutePath,
+            "-arg1", "-arg2"].flatten()
 
         when:
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)

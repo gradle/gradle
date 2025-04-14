@@ -62,7 +62,7 @@ public class TestClassResult {
         if (methodResult.getResultType() == TestResult.ResultType.FAILURE) {
             failuresCount++;
         }
-        if(methodResult.getResultType() == TestResult.ResultType.SKIPPED) {
+        if (methodResult.getResultType() == TestResult.ResultType.SKIPPED) {
             skippedCount++;
         }
         methodResults.add(methodResult);
@@ -80,6 +80,10 @@ public class TestClassResult {
      */
     public long getStartTime() {
         return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
 
     public int getTestsCount() {
@@ -102,10 +106,6 @@ public class TestClassResult {
             }
         }
         return end - startTime;
-    }
-
-    public void setStartTime(long startTime) {
-        this.startTime = startTime;
     }
 
     String getXmlTestSuiteName() {

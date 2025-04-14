@@ -6,7 +6,7 @@ plugins {
 model {
     toolChains {
         gcc(Gcc) {
-            target("arm"){
+            target("arm") {
                 cppCompiler.withArguments { args ->
                     args << "-m32"
                 }

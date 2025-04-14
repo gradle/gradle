@@ -1,4 +1,3 @@
-
 import com.google.gson.Gson
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.model.ReleasedVersion

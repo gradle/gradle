@@ -36,11 +36,6 @@ class NonRenamableProject extends Project {
     }
 
     @Override
-    public void setName(String name) {
-        throw new InvalidUserDataException("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.");
-    }
-
-    @Override
     public String getDefaultResourceName() {
         return delegate.getDefaultResourceName();
     }
@@ -48,6 +43,11 @@ class NonRenamableProject extends Project {
     @Override
     public String getName() {
         return delegate.getName();
+    }
+
+    @Override
+    public void setName(String name) {
+        throw new InvalidUserDataException("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.");
     }
 
     @Override

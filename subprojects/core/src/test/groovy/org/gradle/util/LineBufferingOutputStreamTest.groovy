@@ -24,7 +24,8 @@ import spock.lang.Specification
 
 class LineBufferingOutputStreamTest extends Specification {
     private TextStream action = Mock(TextStream)
-    @Shared String eol = SystemProperties.getInstance().getLineSeparator()
+    @Shared
+    String eol = SystemProperties.getInstance().getLineSeparator()
 
     def logsEachLineAsASeparateLogMessage() {
         when:
@@ -137,7 +138,7 @@ class LineBufferingOutputStreamTest extends Specification {
         action.endOfStream(null)
     }
 
-    def logsPartialLineOnClose()  {
+    def logsPartialLineOnClose() {
         LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, eol, 8)
 
         when:

@@ -26,15 +26,9 @@ import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationU
  * @param <R> the type of the receiver
  */
 public final class InvocationImpl<R> implements Invocation {
-    @FunctionalInterface
-    public interface ThrowingSupplier {
-        @Nullable Object get() throws Throwable;
-    }
-
     private final R receiver;
     private final Object[] args;
     private final ThrowingSupplier callOriginal;
-
     public InvocationImpl(R receiver, Object[] args, ThrowingSupplier callNext) {
         this.receiver = receiver;
         this.args = args;
@@ -61,5 +55,11 @@ public final class InvocationImpl<R> implements Invocation {
     @Nullable
     public Object callNext() throws Throwable {
         return callOriginal.get();
+    }
+
+    @FunctionalInterface
+    public interface ThrowingSupplier {
+        @Nullable
+        Object get() throws Throwable;
     }
 }

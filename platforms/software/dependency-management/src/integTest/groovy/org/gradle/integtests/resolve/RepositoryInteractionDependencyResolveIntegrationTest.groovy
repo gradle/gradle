@@ -24,9 +24,9 @@ import org.gradle.test.fixtures.ivy.IvyModule
 class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     private static final REPO_TYPES = ['maven', 'ivy', 'maven-gradle', 'ivy-gradle']
     private static final TEST_VARIANTS = [
-        'default':          '',
-        'runtime':          'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))',
-        'api':              'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
+        'default': '',
+        'runtime': 'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))',
+        'api': 'configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))',
     ]
 
     def setup() {
@@ -158,7 +158,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                if (leaksRuntime(testVariant, repoType, prevRepoType) || (prevRepoType==null && configuration in ['test', 'runtime'])) {
+                if (leaksRuntime(testVariant, repoType, prevRepoType) || (prevRepoType == null && configuration in ['test', 'runtime'])) {
                     "org:$repoType-runtime-dependency:1.0" {
                         expectGetMetadata()
                         expectGetArtifact()
@@ -171,7 +171,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
                     "org:$other-api-dependency:1.0" {
                         expectGetMetadataMissingThatIsFoundElsewhere()
                     }
-                    if (leaksRuntime(testVariant, other, chain.indexOf(other) > 0? chain[chain.indexOf(other) - 1] : null)) {
+                    if (leaksRuntime(testVariant, other, chain.indexOf(other) > 0 ? chain[chain.indexOf(other) - 1] : null)) {
                         "org:$other-runtime-dependency:1.0" {
                             expectGetMetadataMissingThatIsFoundElsewhere()
                         }
@@ -218,16 +218,24 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
             root(':', ':test:') {
                 module("org:${chain[0]}:1.0:${RepositoryInteractionDependencyResolveIntegrationTest.expectedConfiguration(chain[0], testVariant)}") {
                     module "org:${chain[0]}-api-dependency:1.0"
-                    if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[0])) { module "org:${chain[0]}-runtime-dependency:1.0" }
+                    if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[0])) {
+                        module "org:${chain[0]}-runtime-dependency:1.0"
+                    }
                     module("org:${chain[1]}:1.0") {
                         module "org:${chain[1]}-api-dependency:1.0"
-                        if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[1], chain[0])) { module "org:${chain[1]}-runtime-dependency:1.0" }
+                        if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[1], chain[0])) {
+                            module "org:${chain[1]}-runtime-dependency:1.0"
+                        }
                         module("org:${chain[2]}:1.0") {
                             module "org:${chain[2]}-api-dependency:1.0"
-                            if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[2], chain[1])) { module "org:${chain[2]}-runtime-dependency:1.0" }
+                            if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[2], chain[1])) {
+                                module "org:${chain[2]}-runtime-dependency:1.0"
+                            }
                             module("org:${chain[3]}:1.0") {
                                 module "org:${chain[3]}-api-dependency:1.0"
-                                if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[3], chain[2])) { module "org:${chain[3]}-runtime-dependency:1.0" }
+                                if (RepositoryInteractionDependencyResolveIntegrationTest.leaksRuntime(testVariant, chain[3], chain[2])) {
+                                    module "org:${chain[3]}-runtime-dependency:1.0"
+                                }
                             }
                         }
                     }

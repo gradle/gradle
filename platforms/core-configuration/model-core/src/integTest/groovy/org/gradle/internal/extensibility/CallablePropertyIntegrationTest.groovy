@@ -93,10 +93,10 @@ class CallablePropertyIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Could not find method prop() for arguments [] on object of type NamedThing.")
 
         where:
-        context | code
-        "Top-level call" | "container.foo.prop()"
+        context                    | code
+        "Top-level call"           | "container.foo.prop()"
         "Inside Project.configure" | "configure(container.foo) { prop() }"
-        "Inside NDOC.configure" | "container.configure { foo { prop() } }"
+        "Inside NDOC.configure"    | "container.configure { foo { prop() } }"
     }
 
 

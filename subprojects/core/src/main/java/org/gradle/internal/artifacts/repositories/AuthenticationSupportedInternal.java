@@ -30,7 +30,7 @@ public interface AuthenticationSupportedInternal extends AuthenticationSupported
      */
     Collection<Authentication> getConfiguredAuthentication();
 
-    void setConfiguredCredentials(Credentials credentials);
-
     Property<Credentials> getConfiguredCredentials();
+
+    void setConfiguredCredentials(Credentials credentials);
 }

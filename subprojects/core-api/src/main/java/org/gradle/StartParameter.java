@@ -70,6 +70,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
     private final DefaultParallelismConfiguration parallelismConfiguration = new DefaultParallelismConfiguration();
+    protected File gradleHomeDir;
     private List<TaskExecutionRequest> taskRequests = new ArrayList<>();
     private Set<String> excludedTaskNames = new LinkedHashSet<>();
     private boolean buildProjectDependencies = true;
@@ -78,7 +79,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private Map<String, String> projectProperties = new HashMap<>();
     private Map<String, String> systemPropertiesArgs = new HashMap<>();
     private File gradleUserHomeDir;
-    protected File gradleHomeDir;
     private File settingsFile;
     private File buildFile;
     private List<File> initScripts = new ArrayList<>();
@@ -103,6 +103,26 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean refreshKeys;
     private boolean exportKeys;
     private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+
+    /**
+     * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
+     */
+    public StartParameter() {
+        this(new BuildLayoutParameters());
+    }
+
+    /**
+     * Creates a {@code StartParameter} initialized from the given {@link BuildLayoutParameters}.
+     *
+     * @since 7.0
+     */
+    protected StartParameter(BuildLayoutParameters layoutParameters) {
+        gradleHomeDir = layoutParameters.getGradleInstallationHomeDir();
+        currentDir = layoutParameters.getCurrentDir();
+        projectDir = layoutParameters.getProjectDir();
+        gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
+        setTaskNames(null);
+    }
 
     /**
      * {@inheritDoc}
@@ -169,13 +189,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Sets the project's cache location. Set to null to use the default location.
-     */
-    public void setProjectCacheDir(@Nullable File projectCacheDir) {
-        this.projectCacheDir = projectCacheDir;
-    }
-
-    /**
      * Returns the project's cache dir.
      *
      * <p>Note that this directory is managed by Gradle, and it assumes full ownership of its contents.
@@ -189,22 +202,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
+     * Sets the project's cache location. Set to null to use the default location.
      */
-    public StartParameter() {
-        this(new BuildLayoutParameters());
-    }
-
-    /**
-     * Creates a {@code StartParameter} initialized from the given {@link BuildLayoutParameters}.
-     * @since 7.0
-     */
-    protected StartParameter(BuildLayoutParameters layoutParameters) {
-        gradleHomeDir = layoutParameters.getGradleInstallationHomeDir();
-        currentDir = layoutParameters.getCurrentDir();
-        projectDir = layoutParameters.getProjectDir();
-        gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
-        setTaskNames(null);
+    public void setProjectCacheDir(@Nullable File projectCacheDir) {
+        this.projectCacheDir = projectCacheDir;
     }
 
     /**
@@ -286,7 +287,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the build file to use to select the default project. Returns null when the build file is not used to select the default project.
      *
      * @return The build file. May be null.
-     *
      * @deprecated Setting custom build file to select the default project has been deprecated.
      * This method will be removed in Gradle 9.0.
      */
@@ -301,7 +301,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the build file to use to select the default project. Use null to disable selecting the default project using the build file.
      *
      * @param buildFile The build file. May be null.
-     *
      * @deprecated Setting custom build file to select the default project has been deprecated.
      * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
      * This method will be removed in Gradle 9.0.
@@ -503,10 +502,25 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Returns the explicit settings file to use for the build, or null.
+     *
+     * Will return null if the default settings file is to be used.
+     *
+     * @return The settings file. May be null.
+     * @deprecated Setting custom build file to select the default project has been deprecated.
+     * This method will be removed in Gradle 9.0.
+     */
+    @Deprecated
+    @Nullable
+    public File getSettingsFile() {
+        logBuildOrSettingsFileDeprecation("settingsFile");
+        return settingsFile;
+    }
+
+    /**
      * Sets the settings file to use for the build. Use null to use the default settings file.
      *
      * @param settingsFile The settings file to use. May be null.
-     *
      * @deprecated Setting custom settings file for the build has been deprecated.
      * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
      * This method will be removed in Gradle 9.0.
@@ -520,23 +534,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             this.settingsFile = FileUtils.canonicalize(settingsFile);
             currentDir = this.settingsFile.getParentFile();
         }
-    }
-
-    /**
-     * Returns the explicit settings file to use for the build, or null.
-     *
-     * Will return null if the default settings file is to be used.
-     *
-     * @return The settings file. May be null.
-     *
-     * @deprecated Setting custom build file to select the default project has been deprecated.
-     * This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    @Nullable
-    public File getSettingsFile() {
-        logBuildOrSettingsFileDeprecation("settingsFile");
-        return settingsFile;
     }
 
     private void logBuildOrSettingsFileDeprecation(String propertyName) {
@@ -559,15 +556,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Sets the list of init scripts to be run before the build starts. This list is in addition to the default init scripts.
-     *
-     * @param initScripts The init scripts.
-     */
-    public void setInitScripts(List<File> initScripts) {
-        this.initScripts = initScripts;
-    }
-
-    /**
      * Returns all explicitly added init scripts that will be run before the build starts.  This list does not contain the user init script located in ${user.home}/.gradle/init.gradle, even though
      * that init script will also be run.
      *
@@ -575,6 +563,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public List<File> getInitScripts() {
         return Collections.unmodifiableList(initScripts);
+    }
+
+    /**
+     * Sets the list of init scripts to be run before the build starts. This list is in addition to the default init scripts.
+     *
+     * @param initScripts The init scripts.
+     */
+    public void setInitScripts(List<File> initScripts) {
+        this.initScripts = initScripts;
     }
 
     /**
@@ -594,6 +591,18 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Returns the project dir to use to select the default project.
+     *
+     * Returns null when the build file is not used to select the default project
+     *
+     * @return The project dir. May be null.
+     */
+    @Nullable
+    public File getProjectDir() {
+        return projectDir;
+    }
+
+    /**
      * Sets the project directory to use to select the default project. Use null to use the default criteria for selecting the default project.
      *
      * @param projectDir The project directory. May be null.
@@ -610,15 +619,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns the project dir to use to select the default project.
-     *
-     * Returns null when the build file is not used to select the default project
-     *
-     * @return The project dir. May be null.
+     * Returns true if a profile report will be generated.
      */
-    @Nullable
-    public File getProjectDir() {
-        return projectDir;
+    public boolean isProfile() {
+        return profile;
     }
 
     /**
@@ -628,13 +632,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setProfile(boolean profile) {
         this.profile = profile;
-    }
-
-    /**
-     * Returns true if a profile report will be generated.
-     */
-    public boolean isProfile() {
-        return profile;
     }
 
     /**
@@ -769,6 +766,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         return configureOnDemand;
     }
 
+    @Incubating
+    public void setConfigureOnDemand(boolean configureOnDemand) {
+        this.configureOnDemand = configureOnDemand;
+    }
+
     @Override
     public String toString() {
         return "StartParameter{"
@@ -819,11 +821,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         this.gradleHomeDir = gradleHomeDir;
     }
 
-    @Incubating
-    public void setConfigureOnDemand(boolean configureOnDemand) {
-        this.configureOnDemand = configureOnDemand;
-    }
-
     public boolean isContinuous() {
         return continuous;
     }
@@ -836,12 +833,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         includedBuilds.add(includedBuild);
     }
 
-    public void setIncludedBuilds(List<File> includedBuilds) {
-        this.includedBuilds = includedBuilds;
-    }
-
     public List<File> getIncludedBuilds() {
         return Collections.unmodifiableList(includedBuilds);
+    }
+
+    public void setIncludedBuilds(List<File> includedBuilds) {
+        this.includedBuilds = includedBuilds;
     }
 
     /**
@@ -881,15 +878,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether dependency resolution needs to be persisted for locking
-     *
-     * @since 4.8
-     */
-    public void setWriteDependencyLocks(boolean writeDependencyLocks) {
-        this.writeDependencyLocks = writeDependencyLocks;
-    }
-
-    /**
      * Returns true when dependency resolution is to be persisted for locking
      *
      * @since 4.8
@@ -899,16 +887,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Indicates that specified dependencies are to be allowed to update their version.
-     * Implicitly activates dependency locking persistence.
+     * Specifies whether dependency resolution needs to be persisted for locking
      *
-     * @param lockedDependenciesToUpdate the modules to update
-     * @see #isWriteDependencyLocks()
      * @since 4.8
      */
-    public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
-        this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
-        this.writeDependencyLocks = true;
+    public void setWriteDependencyLocks(boolean writeDependencyLocks) {
+        this.writeDependencyLocks = writeDependencyLocks;
     }
 
     /**
@@ -945,6 +929,28 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Indicates that specified dependencies are to be allowed to update their version.
+     * Implicitly activates dependency locking persistence.
+     *
+     * @param lockedDependenciesToUpdate the modules to update
+     * @see #isWriteDependencyLocks()
+     * @since 4.8
+     */
+    public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
+        this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
+        this.writeDependencyLocks = true;
+    }
+
+    /**
+     * Returns the dependency verification mode.
+     *
+     * @since 6.2
+     */
+    public DependencyVerificationMode getDependencyVerificationMode() {
+        return verificationMode;
+    }
+
+    /**
      * Sets the dependency verification mode. There are three different modes:
      * <ul>
      *     <li><i>strict</i>, the default, verification is enabled as soon as a dependency verification file is present.</li>
@@ -961,12 +967,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns the dependency verification mode.
+     * If true, Gradle will try to download missing keys again.
      *
      * @since 6.2
      */
-    public DependencyVerificationMode getDependencyVerificationMode() {
-        return verificationMode;
+    public boolean isRefreshKeys() {
+        return refreshKeys;
     }
 
     /**
@@ -977,15 +983,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setRefreshKeys(boolean refresh) {
         refreshKeys = refresh;
-    }
-
-    /**
-     * If true, Gradle will try to download missing keys again.
-     *
-     * @since 6.2
-     */
-    public boolean isRefreshKeys() {
-        return refreshKeys;
     }
 
     /**

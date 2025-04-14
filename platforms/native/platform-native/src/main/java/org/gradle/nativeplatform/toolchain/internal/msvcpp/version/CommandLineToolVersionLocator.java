@@ -39,13 +39,11 @@ import java.util.List;
 @ServiceScope(Scope.BuildSession.class)
 public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
     private static final Logger LOGGER = Logging.getLogger(CommandLineToolVersionLocator.class);
-
+    private static final String INSTALLATION_PATH_KEY = "installationPath";
+    private static final String INSTALLATION_VERSION_KEY = "installationVersion";
     private final ExecActionFactory execActionFactory;
     private final VisualCppMetadataProvider visualCppMetadataProvider;
     private final VswhereVersionLocator vswhereLocator;
-
-    private static final String INSTALLATION_PATH_KEY = "installationPath";
-    private static final String INSTALLATION_VERSION_KEY = "installationVersion";
 
     public CommandLineToolVersionLocator(ExecActionFactory execActionFactory, VisualCppMetadataProvider visualCppMetadataProvider, VswhereVersionLocator vswhereLocator) {
         this.execActionFactory = execActionFactory;

@@ -99,6 +99,6 @@ class SourceFolderTest extends Specification {
 
         then:
         one.path == 'prefix-foo'
-        one.name== 'prefix-foo'
+        one.name == 'prefix-foo'
     }
 }

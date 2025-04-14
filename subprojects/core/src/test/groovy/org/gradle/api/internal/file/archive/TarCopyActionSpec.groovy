@@ -134,7 +134,7 @@ class TarCopyActionSpec extends Specification {
         details.getSize() >> content.getBytes().length
         details.isDirectory() >> false
         details.getPermissions() >> new DefaultFilePermissions(1)
-        details.copyTo(_ as OutputStream) >> {OutputStream out -> IOUtils.write(content, out)}
+        details.copyTo(_ as OutputStream) >> { OutputStream out -> IOUtils.write(content, out) }
 
         return details
     }
@@ -159,7 +159,7 @@ class TarCopyActionSpec extends Specification {
         details.isDirectory() >> false
         details.getPermissions() >> new DefaultFilePermissions(1)
         details.toString() >> "[dir/file1]"
-        details.copyTo(_ as OutputStream) >> {OutputStream out -> throw failure }
+        details.copyTo(_ as OutputStream) >> { OutputStream out -> throw failure }
 
         return details
     }

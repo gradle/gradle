@@ -34,9 +34,9 @@ See [Gradle runtimes](runtimes.md) for a list of these runtimes and more details
 As Gradle executes, it acts on various pieces of the build definition, such as each project in the build.
 Gradle tracks the state of each piece and transitions each piece through its lifecycle as the build runs.
 
-A central part of the Gradle architecture is the "build state model", which holds the state for each piece and coordinates state transitions and other mutations. 
+A central part of the Gradle architecture is the "build state model", which holds the state for each piece and coordinates state transitions and other mutations.
 Most source code in Gradle is arranged by which part(s) of the build state model it acts on.
 This affects the lifecycle of the code and the set of services available for dependency injection.
-When working on some source code it is important to be aware of the model it acts on.  
+When working on some source code it is important to be aware of the model it acts on.
 
 See [build state model](build-state-model.md) for more details.

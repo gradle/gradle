@@ -51,11 +51,11 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
 
     AbstractConfigurationMetadata(
-            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
-            ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-            ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities,
-            boolean externalVariant
+        ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+        ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+        ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities,
+        boolean externalVariant
     ) {
 
         this.componentId = componentId;
@@ -72,12 +72,12 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     AbstractConfigurationMetadata(
-            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
-            ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-            Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-            ImmutableCapabilities capabilities,
-            boolean externalVariant
+        ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
+        ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
+        Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+        ImmutableCapabilities capabilities,
+        boolean externalVariant
     ) {
 
         this.componentId = componentId;

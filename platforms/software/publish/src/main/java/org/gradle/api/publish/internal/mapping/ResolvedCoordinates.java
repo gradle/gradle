@@ -25,22 +25,6 @@ import org.jspecify.annotations.Nullable;
  */
 public interface ResolvedCoordinates {
 
-    /**
-     * The group of the dependency to publish.
-     */
-    String getGroup();
-
-    /**
-     * The name of the dependency to publish.
-     */
-    String getName();
-
-    /**
-     * The version of the dependency to publish.
-     */
-    @Nullable
-    String getVersion();
-
     static ResolvedCoordinates create(String group, String name, @Nullable String version) {
         return new ResolvedCoordinates() {
             @Override
@@ -79,4 +63,20 @@ public interface ResolvedCoordinates {
             }
         };
     }
+
+    /**
+     * The group of the dependency to publish.
+     */
+    String getGroup();
+
+    /**
+     * The name of the dependency to publish.
+     */
+    String getName();
+
+    /**
+     * The version of the dependency to publish.
+     */
+    @Nullable
+    String getVersion();
 }

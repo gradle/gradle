@@ -302,6 +302,465 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return progressListeners;
     }
 
+    @NonNull
+    static List<ProblemSummary> toProblemIdSummaries(List<InternalProblemSummary> problemIdCounts) {
+        Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = getGroupedMap(problemIdCounts);
+
+        List<ProblemSummary> problemSummaries = new ArrayList<>();
+        for (Map.Entry<ProblemId, List<InternalProblemSummary>> groupEntry : groupedSummaries.entrySet()) {
+            problemSummaries.add(new DefaultProblemSummary(groupEntry.getKey(), getCount(groupEntry)));
+        }
+        return problemSummaries;
+    }
+
+    @NonNull
+    static Map<ProblemId, List<InternalProblemSummary>> getGroupedMap(List<InternalProblemSummary> problemIdCounts) {
+        Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = new HashMap<>();
+        for (InternalProblemSummary internalSummary : problemIdCounts) {
+            ProblemId problemId = toProblemId(internalSummary.getProblemId());
+            getOrDefault(groupedSummaries, problemId).add(internalSummary);
+        }
+        return groupedSummaries;
+    }
+
+    @NonNull
+    private static List<InternalProblemSummary> getOrDefault(Map<ProblemId, List<InternalProblemSummary>> groupedSummaries, ProblemId problemId) {
+        List<InternalProblemSummary> internalProblemSummaries = groupedSummaries.get(problemId);
+        if (internalProblemSummaries == null) {
+            internalProblemSummaries = new ArrayList<>();
+            groupedSummaries.put(problemId, internalProblemSummaries);
+        }
+        return internalProblemSummaries;
+    }
+
+    static int getCount(Map.Entry<ProblemId, List<InternalProblemSummary>> groupEntry) {
+        int count = 0;
+        for (InternalProblemSummary internalProblemSummary : groupEntry.getValue()) {
+            count += internalProblemSummary.getCount();
+        }
+        return count;
+    }
+
+    @NonNull
+    private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
+        if (details instanceof InternalProblemContextDetailsV2) {
+            InternalProblemContextDetailsV2 detailsV2 = (InternalProblemContextDetailsV2) details;
+            return new DefaultProblemsOperationContext(
+                toProblemDetails(detailsV2.getDetails()),
+                toLocations(detailsV2.getOriginLocations()),
+                toLocations(detailsV2.getContextualLocations()),
+                toSolutions(detailsV2.getSolutions()),
+                toAdditionalData(detailsV2.getAdditionalData()),
+                toFailure(detailsV2.getFailure())
+            );
+        } else {
+            return new DefaultProblemsOperationContext(
+                toProblemDetails(details.getDetails()),
+                toLocations(details.getLocations()),
+                ImmutableList.<Location>of(),
+                toSolutions(details.getSolutions()),
+                toAdditionalData(details.getAdditionalData()),
+                toFailure(details.getFailure())
+            );
+        }
+    }
+
+    private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
+        ImmutableList.Builder<ProblemContext> result = builderWithExpectedSize(problems.size());
+        for (InternalProblemContextDetails problem : problems) {
+            result.add(toSingleProblemContextDetail(problem));
+        }
+        return result.build();
+    }
+
+    private static <T extends OperationDescriptor> T assertDescriptorType(Class<T> type, OperationDescriptor descriptor) {
+        Class<? extends OperationDescriptor> descriptorClass = descriptor.getClass();
+        if (!type.isAssignableFrom(descriptorClass)) {
+            throw new IllegalStateException(String.format("Unexpected operation type. Required %s but found %s", type.getName(), descriptorClass.getName()));
+        }
+        return Cast.uncheckedNonnullCast(descriptor);
+    }
+
+    private static JvmTestKind toJvmTestKind(String testKind) {
+        if (InternalJvmTestDescriptor.KIND_SUITE.equals(testKind)) {
+            return JvmTestKind.SUITE;
+        } else if (InternalJvmTestDescriptor.KIND_ATOMIC.equals(testKind)) {
+            return JvmTestKind.ATOMIC;
+        } else {
+            return JvmTestKind.UNKNOWN;
+        }
+    }
+
+    private static Problem toProblem(InternalBasicProblemDetails basicProblemDetails) {
+        return new DefaultProblem(
+            toProblemDefinition(basicProblemDetails.getLabel(), basicProblemDetails.getCategory(), basicProblemDetails.getSeverity(), basicProblemDetails.getDocumentationLink()),
+            toContextualLabel(basicProblemDetails.getLabel().getLabel()),
+            toProblemDetails(basicProblemDetails.getDetails()),
+            toLocations(basicProblemDetails.getLocations()),
+            Collections.<Location>emptyList(),
+            toSolutions(basicProblemDetails.getSolutions()),
+            toAdditionalData(basicProblemDetails.getAdditionalData()),
+            toFailure(basicProblemDetails)
+        );
+    }
+
+    private static Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+        List<InternalLocation> originLocations;
+        List<InternalLocation> contextualLocations;
+        if (basicProblemDetails instanceof InternalBasicProblemDetailsVersion4) {
+            originLocations = ((InternalBasicProblemDetailsVersion4) basicProblemDetails).getOriginLocations();
+            contextualLocations = ((InternalBasicProblemDetailsVersion4) basicProblemDetails).getContextualLocations();
+
+        } else {
+            originLocations = basicProblemDetails.getLocations();
+            contextualLocations = Collections.emptyList();
+        }
+        return new DefaultProblem(
+            toProblemDefinition(basicProblemDetails.getDefinition()),
+            toContextualLabel(basicProblemDetails.getContextualLabel()),
+            toProblemDetails(basicProblemDetails.getDetails()),
+            toLocations(originLocations),
+            toLocations(contextualLocations),
+            toSolutions(basicProblemDetails.getSolutions()),
+            toAdditionalData(basicProblemDetails.getAdditionalData()),
+            toFailure(basicProblemDetails.getFailure())
+        );
+    }
+
+    private static ProblemDefinition toProblemDefinition(InternalProblemDefinition problemDefinition) {
+        return new DefaultProblemDefinition(
+            toProblemId(problemDefinition.getId()),
+            toProblemSeverity(problemDefinition.getSeverity()),
+            toDocumentationLink(problemDefinition.getDocumentationLink())
+        );
+    }
+
+    private static ProblemDefinition toProblemDefinition(InternalLabel label, InternalProblemCategory category, InternalSeverity severity, @Nullable InternalDocumentationLink documentationLink) {
+        return new DefaultProblemDefinition(
+            toProblemId(label, category),
+            toProblemSeverity(severity),
+            toDocumentationLink(documentationLink)
+        );
+    }
+
+    private static ProblemId toProblemId(InternalProblemId problemId) {
+        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toProblemGroup(problemId.getGroup()));
+    }
+
+    private static ProblemId toProblemId(InternalLabel label, InternalProblemCategory category) {
+        List<String> categories = new ArrayList<>();
+        categories.add(category.getCategory());
+        categories.addAll(category.getSubcategories());
+
+        return new DefaultProblemId(categories.remove(categories.size() - 1), label.getLabel(), toProblemGroup(categories));
+    }
+
+    private static @Nullable ProblemGroup toProblemGroup(List<String> groupNames) {
+        if (groupNames.isEmpty()) {
+            return null;
+        } else {
+            String groupName = groupNames.remove(groupNames.size() - 1);
+            return new DefaultProblemGroup(groupName, groupName, toProblemGroup(groupNames));
+        }
+    }
+
+    private static ProblemGroup toProblemGroup(InternalProblemGroup problemGroup) {
+        return new DefaultProblemGroup(problemGroup.getName(), problemGroup.getDisplayName(), problemGroup.getParent() == null ? null : toProblemGroup(problemGroup.getParent()));
+    }
+
+    private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
+        if (additionalData instanceof InternalProxiedAdditionalData) {
+            Object proxy = ((InternalProxiedAdditionalData) additionalData).getProxy();
+            return new DefaultCustomAdditionalData(additionalData.getAsMap(), proxy);
+        }
+        if (additionalData == null) {
+            return new DefaultAdditionalData(Collections.<String, Object>emptyMap());
+        }
+        return new DefaultAdditionalData(additionalData.getAsMap());
+    }
+
+    @Nullable
+    private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {
+        return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel.getContextualLabel());
+    }
+
+    private static ContextualLabel toContextualLabel(@Nullable String contextualLabel) {
+        return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel);
+    }
+
+    private static Severity toProblemSeverity(InternalSeverity severity) {
+        return DefaultSeverity.from(severity != null ? severity.getSeverity() : Severity.WARNING.getSeverity());
+    }
+
+    private static List<Location> toLocations(List<InternalLocation> locations) {
+        List<Location> result = new ArrayList<>(locations.size());
+        for (InternalLocation location : locations) {
+            if (location instanceof InternalLineInFileLocation) {
+                InternalLineInFileLocation l = (InternalLineInFileLocation) location;
+                result.add(new DefaultLineInFileLocation(l.getPath(), l.getLine(), l.getColumn(), l.getLength()));
+            } else if (location instanceof InternalOffsetInFileLocation) {
+                InternalOffsetInFileLocation l = (InternalOffsetInFileLocation) location;
+                result.add(new DefaultOffsetInFileLocation(l.getPath(), l.getOffset(), l.getLength()));
+            } else if (location instanceof InternalFileLocation) {
+                InternalFileLocation l = (InternalFileLocation) location;
+                result.add(new DefaultFileLocation(l.getPath()));
+            } else if (location instanceof InternalPluginIdLocation) {
+                InternalPluginIdLocation pluginLocation = (InternalPluginIdLocation) location;
+                result.add(new DefaultPluginIdLocation(pluginLocation.getPluginId()));
+            } else if (location instanceof InternalTaskPathLocation) {
+                InternalTaskPathLocation taskLocation = (InternalTaskPathLocation) location;
+                result.add(new DefaultTaskPathLocation(taskLocation.getBuildTreePath()));
+            }
+        }
+        return result;
+    }
+
+    private static DocumentationLink toDocumentationLink(@Nullable InternalDocumentationLink link) {
+        return link == null || link.getUrl() == null ? null : new DefaultDocumentationLink(link.getUrl());
+    }
+
+    private static List<Solution> toSolutions(List<InternalSolution> solutions) {
+        List<Solution> result = new ArrayList<>(solutions.size());
+        for (InternalSolution solution : solutions) {
+            result.add(new DefaultSolution(solution.getSolution()));
+        }
+        return result;
+    }
+
+    private static Details toProblemDetails(@Nullable InternalDetails details) {
+        if (details != null) {
+            return new DefaultDetails(details.getDetails());
+        }
+        return null;
+    }
+
+    private static @Nullable FileDownloadResult toFileDownloadResult(InternalOperationResult result) {
+        InternalFileDownloadResult fileDownloadResult = (InternalFileDownloadResult) result;
+        if (result instanceof InternalNotFoundFileDownloadResult) {
+            return new NotFoundFileDownloadSuccessResult(result.getStartTime(), result.getEndTime());
+        }
+        if (result instanceof InternalSuccessResult) {
+            return new DefaultFileDownloadSuccessResult(result.getStartTime(), result.getEndTime(), fileDownloadResult.getBytesDownloaded());
+        }
+        if (result instanceof InternalFailureResult) {
+            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), fileDownloadResult.getBytesDownloaded());
+        }
+        return null;
+    }
+
+    private static @Nullable TestOperationResult toTestResult(InternalTestResult result) {
+        if (result instanceof InternalTestSuccessResult) {
+            return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
+        } else if (result instanceof InternalTestSkippedResult) {
+            return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
+        } else if (result instanceof InternalTestFailureResult) {
+            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
+        }
+    }
+
+    public static @Nullable TaskOperationResult toTaskResult(InternalTaskResult result) {
+        if (result instanceof InternalTaskSuccessResult) {
+            InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
+            if (result instanceof InternalJavaCompileTaskOperationResult) {
+                List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskOperationResult) result).getAnnotationProcessorResults());
+                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
+            }
+            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result));
+        } else if (result instanceof InternalTaskSkippedResult) {
+            return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
+        } else if (result instanceof InternalTaskFailureResult) {
+            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toTaskExecutionDetails(result));
+        } else {
+            return null;
+        }
+    }
+
+    private static boolean isFromCache(InternalTaskResult result) {
+        if (result instanceof InternalTaskCachedResult) {
+            return ((InternalTaskCachedResult) result).isFromCache();
+        }
+        return false;
+    }
+
+    private static TaskExecutionDetails toTaskExecutionDetails(InternalTaskResult result) {
+        if (result instanceof InternalIncrementalTaskResult) {
+            InternalIncrementalTaskResult taskResult = (InternalIncrementalTaskResult) result;
+            return TaskExecutionDetails.of(taskResult.isIncremental(), taskResult.getExecutionReasons());
+        }
+        return TaskExecutionDetails.unsupported();
+    }
+
+    private static @Nullable WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {
+        if (result instanceof InternalSuccessResult) {
+            return new DefaultWorkItemSuccessResult(result.getStartTime(), result.getEndTime());
+        } else if (result instanceof InternalFailureResult) {
+            return new DefaultWorkItemFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
+        }
+    }
+
+    private static @Nullable ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
+        if (result instanceof InternalSuccessResult) {
+            return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
+        } else if (result instanceof InternalFailureResult) {
+            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()));
+        } else {
+            return null;
+        }
+    }
+
+    private static List<? extends PluginApplicationResult> toPluginApplicationResults(List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
+        List<PluginApplicationResult> results = new ArrayList<PluginApplicationResult>();
+        for (InternalPluginApplicationResult result : pluginApplicationResults) {
+            PluginIdentifier plugin = toPluginIdentifier(result.getPlugin());
+            if (plugin != null) {
+                results.add(new DefaultPluginApplicationResult(plugin, result.getTotalConfigurationTime()));
+            }
+        }
+        return results;
+    }
+
+    private static @Nullable PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
+        if (pluginIdentifier instanceof InternalBinaryPluginIdentifier) {
+            InternalBinaryPluginIdentifier binaryPlugin = (InternalBinaryPluginIdentifier) pluginIdentifier;
+            return new DefaultBinaryPluginIdentifier(binaryPlugin.getDisplayName(), binaryPlugin.getClassName(), binaryPlugin.getPluginId());
+        } else if (pluginIdentifier instanceof InternalScriptPluginIdentifier) {
+            InternalScriptPluginIdentifier scriptPlugin = (InternalScriptPluginIdentifier) pluginIdentifier;
+            return new DefaultScriptPluginIdentifier(scriptPlugin.getDisplayName(), scriptPlugin.getUri());
+        } else {
+            return null;
+        }
+    }
+
+    private static @Nullable TransformOperationResult toTransformResult(InternalOperationResult result) {
+        if (result instanceof InternalSuccessResult) {
+            return new DefaultTransformSuccessResult(result.getStartTime(), result.getEndTime());
+        } else if (result instanceof InternalFailureResult) {
+            return new DefaultTransformFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
+        }
+    }
+
+    private static @Nullable OperationResult toResult(InternalOperationResult result) {
+        if (result instanceof InternalSuccessResult) {
+            return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
+        } else if (result instanceof InternalFailureResult) {
+            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+        } else {
+            return null;
+        }
+    }
+
+    private static List<Failure> toFailures(@Nullable List<? extends InternalFailure> causes) {
+        if (causes == null) {
+            return null;
+        }
+        List<Failure> failures = new ArrayList<>();
+        for (InternalFailure cause : causes) {
+            Failure f = toFailure(cause);
+            if (f != null) {
+                failures.add(f);
+            }
+        }
+        return failures;
+    }
+
+    @Nullable
+    private static Failure toFailure(InternalBasicProblemDetails problemDetails) {
+        if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
+            return null;
+        }
+        return toFailure(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
+    }
+
+    @Nullable
+    private static Failure toFailure(InternalFailure origFailure) {
+        if (origFailure == null) {
+            return null;
+        }
+        List<InternalBasicProblemDetailsVersion3> problemDetails = new ArrayList<>();
+        try {
+            problemDetails.addAll(origFailure.getProblems());
+        } catch (AbstractMethodError ignore) {
+            // Older Gradle versions don't have this method
+        }
+        List<Problem> clientProblems = new ArrayList<>(problemDetails.size());
+        for (InternalBasicProblemDetailsVersion3 problemDetail : problemDetails) {
+            if (problemDetail == null) { // Should not happen, but with some older snapshot versions we see this.
+                continue;
+            }
+            clientProblems.add(toProblem(problemDetail));
+        }
+        if (origFailure instanceof InternalTestAssertionFailure) {
+            if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
+                InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
+                return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
+                    assertionFailure.getDescription(),
+                    assertionFailure.getExpected(),
+                    assertionFailure.getActual(),
+                    toFailures(origFailure.getCauses()),
+                    ((InternalTestAssertionFailure) origFailure).getClassName(),
+                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
+                    ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
+                    ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
+                );
+            }
+            InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
+            return new DefaultTestAssertionFailure(
+                assertionFailure.getMessage(),
+                assertionFailure.getDescription(),
+                assertionFailure.getExpected(),
+                assertionFailure.getActual(),
+                toFailures(origFailure.getCauses()),
+                ((InternalTestAssertionFailure) origFailure).getClassName(),
+                ((InternalTestAssertionFailure) origFailure).getStacktrace()
+            );
+        } else if (origFailure instanceof InternalTestFrameworkFailure) {
+            InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
+            return new DefaultTestFrameworkFailure(
+                frameworkFailure.getMessage(),
+                frameworkFailure.getDescription(),
+                toFailures(origFailure.getCauses()),
+                ((InternalTestFrameworkFailure) origFailure).getClassName(),
+                ((InternalTestFrameworkFailure) origFailure).getStacktrace()
+            );
+        }
+        return new DefaultFailure(
+            origFailure.getMessage(),
+            origFailure.getDescription(),
+            toFailures(origFailure.getCauses()),
+            clientProblems);
+    }
+
+    private static @Nullable List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {
+        if (protocolResults == null) {
+            return null;
+        }
+        List<AnnotationProcessorResult> results = new ArrayList<AnnotationProcessorResult>();
+        for (InternalAnnotationProcessorResult result : protocolResults) {
+            results.add(toAnnotationProcessorResult(result));
+        }
+        return results;
+    }
+
+    private static AnnotationProcessorResult toAnnotationProcessorResult(InternalAnnotationProcessorResult result) {
+        return new DefaultAnnotationProcessorResult(result.getClassName(), toAnnotationProcessorResultType(result.getType()), result.getDuration());
+    }
+
+    private static AnnotationProcessorResult.Type toAnnotationProcessorResultType(String type) {
+        if (type.equals(InternalAnnotationProcessorResult.TYPE_AGGREGATING)) {
+            return AnnotationProcessorResult.Type.AGGREGATING;
+        }
+        if (type.equals(InternalAnnotationProcessorResult.TYPE_ISOLATING)) {
+            return AnnotationProcessorResult.Type.ISOLATING;
+        }
+        return AnnotationProcessorResult.Type.UNKNOWN;
+    }
+
     @Override
     public List<String> getSubscribedOperations() {
         List<String> operations = new ArrayList<>();
@@ -672,45 +1131,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    @NonNull
-    static List<ProblemSummary> toProblemIdSummaries(List<InternalProblemSummary> problemIdCounts) {
-        Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = getGroupedMap(problemIdCounts);
-
-        List<ProblemSummary> problemSummaries = new ArrayList<>();
-        for (Map.Entry<ProblemId, List<InternalProblemSummary>> groupEntry : groupedSummaries.entrySet()) {
-            problemSummaries.add(new DefaultProblemSummary(groupEntry.getKey(), getCount(groupEntry)));
-        }
-        return problemSummaries;
-    }
-
-    @NonNull
-    static Map<ProblemId, List<InternalProblemSummary>> getGroupedMap(List<InternalProblemSummary> problemIdCounts) {
-        Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = new HashMap<>();
-        for (InternalProblemSummary internalSummary : problemIdCounts) {
-            ProblemId problemId = toProblemId(internalSummary.getProblemId());
-            getOrDefault(groupedSummaries, problemId).add(internalSummary);
-        }
-        return groupedSummaries;
-    }
-
-    @NonNull
-    private static List<InternalProblemSummary> getOrDefault(Map<ProblemId, List<InternalProblemSummary>> groupedSummaries, ProblemId problemId) {
-        List<InternalProblemSummary> internalProblemSummaries = groupedSummaries.get(problemId);
-        if (internalProblemSummaries == null) {
-            internalProblemSummaries = new ArrayList<>();
-            groupedSummaries.put(problemId, internalProblemSummaries);
-        }
-        return internalProblemSummaries;
-    }
-
-    static int getCount(Map.Entry<ProblemId, List<InternalProblemSummary>> groupEntry) {
-        int count = 0;
-        for (InternalProblemSummary internalProblemSummary : groupEntry.getValue()) {
-            count += internalProblemSummary.getCount();
-        }
-        return count;
-    }
-
     private @Nullable ProblemEvent createProblemEvent(InternalProblemEventVersion2 problemEvent, InternalProblemDescriptor descriptor) {
         InternalProblemDetailsVersion2 details = problemEvent.getDetails();
         OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
@@ -738,39 +1158,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         return null;
     }
-
-    @NonNull
-    private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
-        if (details instanceof InternalProblemContextDetailsV2) {
-            InternalProblemContextDetailsV2 detailsV2 = (InternalProblemContextDetailsV2) details;
-            return new DefaultProblemsOperationContext(
-                toProblemDetails(detailsV2.getDetails()),
-                toLocations(detailsV2.getOriginLocations()),
-                toLocations(detailsV2.getContextualLocations()),
-                toSolutions(detailsV2.getSolutions()),
-                toAdditionalData(detailsV2.getAdditionalData()),
-                toFailure(detailsV2.getFailure())
-            );
-        } else {
-            return new DefaultProblemsOperationContext(
-                toProblemDetails(details.getDetails()),
-                toLocations(details.getLocations()),
-                ImmutableList.<Location>of(),
-                toSolutions(details.getSolutions()),
-                toAdditionalData(details.getAdditionalData()),
-                toFailure(details.getFailure())
-            );
-        }
-    }
-
-    private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
-        ImmutableList.Builder<ProblemContext> result = builderWithExpectedSize(problems.size());
-        for (InternalProblemContextDetails problem : problems) {
-            result.add(toSingleProblemContextDetail(problem));
-        }
-        return result.build();
-    }
-
 
     private @Nullable ProgressEvent toGenericProgressEvent(InternalProgressEvent event) {
         if (event instanceof InternalOperationStartedProgressEvent) {
@@ -870,14 +1257,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return assertDescriptorType(type, cachedTestDescriptor);
     }
 
-    private static <T extends OperationDescriptor> T assertDescriptorType(Class<T> type, OperationDescriptor descriptor) {
-        Class<? extends OperationDescriptor> descriptorClass = descriptor.getClass();
-        if (!type.isAssignableFrom(descriptorClass)) {
-            throw new IllegalStateException(String.format("Unexpected operation type. Required %s but found %s", type.getName(), descriptorClass.getName()));
-        }
-        return Cast.uncheckedNonnullCast(descriptor);
-    }
-
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         if (descriptor instanceof InternalJvmTestDescriptor) {
@@ -886,16 +1265,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
         } else {
             return new DefaultTestOperationDescriptor(descriptor, parent);
-        }
-    }
-
-    private static JvmTestKind toJvmTestKind(String testKind) {
-        if (InternalJvmTestDescriptor.KIND_SUITE.equals(testKind)) {
-            return JvmTestKind.SUITE;
-        } else if (InternalJvmTestDescriptor.KIND_ATOMIC.equals(testKind)) {
-            return JvmTestKind.ATOMIC;
-        } else {
-            return JvmTestKind.UNKNOWN;
         }
     }
 
@@ -937,149 +1306,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
     }
 
-    private static Problem toProblem(InternalBasicProblemDetails basicProblemDetails) {
-        return new DefaultProblem(
-            toProblemDefinition(basicProblemDetails.getLabel(), basicProblemDetails.getCategory(), basicProblemDetails.getSeverity(), basicProblemDetails.getDocumentationLink()),
-            toContextualLabel(basicProblemDetails.getLabel().getLabel()),
-            toProblemDetails(basicProblemDetails.getDetails()),
-            toLocations(basicProblemDetails.getLocations()),
-            Collections.<Location>emptyList(),
-            toSolutions(basicProblemDetails.getSolutions()),
-            toAdditionalData(basicProblemDetails.getAdditionalData()),
-            toFailure(basicProblemDetails)
-        );
-    }
-
-    private static Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
-        List<InternalLocation> originLocations;
-        List<InternalLocation> contextualLocations;
-        if (basicProblemDetails instanceof InternalBasicProblemDetailsVersion4) {
-            originLocations = ((InternalBasicProblemDetailsVersion4) basicProblemDetails).getOriginLocations();
-            contextualLocations = ((InternalBasicProblemDetailsVersion4) basicProblemDetails).getContextualLocations();
-
-        } else {
-            originLocations = basicProblemDetails.getLocations();
-            contextualLocations = Collections.emptyList();
-        }
-        return new DefaultProblem(
-            toProblemDefinition(basicProblemDetails.getDefinition()),
-            toContextualLabel(basicProblemDetails.getContextualLabel()),
-            toProblemDetails(basicProblemDetails.getDetails()),
-            toLocations(originLocations),
-            toLocations(contextualLocations),
-            toSolutions(basicProblemDetails.getSolutions()),
-            toAdditionalData(basicProblemDetails.getAdditionalData()),
-            toFailure(basicProblemDetails.getFailure())
-        );
-    }
-
-    private static ProblemDefinition toProblemDefinition(InternalProblemDefinition problemDefinition) {
-        return new DefaultProblemDefinition(
-            toProblemId(problemDefinition.getId()),
-            toProblemSeverity(problemDefinition.getSeverity()),
-            toDocumentationLink(problemDefinition.getDocumentationLink())
-        );
-    }
-
-    private static ProblemDefinition toProblemDefinition(InternalLabel label, InternalProblemCategory category, InternalSeverity severity, @Nullable InternalDocumentationLink documentationLink) {
-        return new DefaultProblemDefinition(
-            toProblemId(label, category),
-            toProblemSeverity(severity),
-            toDocumentationLink(documentationLink)
-        );
-    }
-
-    private static ProblemId toProblemId(InternalProblemId problemId) {
-        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toProblemGroup(problemId.getGroup()));
-    }
-
-    private static ProblemId toProblemId(InternalLabel label, InternalProblemCategory category) {
-        List<String> categories = new ArrayList<>();
-        categories.add(category.getCategory());
-        categories.addAll(category.getSubcategories());
-
-        return new DefaultProblemId(categories.remove(categories.size() - 1), label.getLabel(), toProblemGroup(categories));
-    }
-
-    private static @Nullable ProblemGroup toProblemGroup(List<String> groupNames) {
-        if (groupNames.isEmpty()) {
-            return null;
-        } else {
-            String groupName = groupNames.remove(groupNames.size() - 1);
-            return new DefaultProblemGroup(groupName, groupName, toProblemGroup(groupNames));
-        }
-    }
-
-    private static ProblemGroup toProblemGroup(InternalProblemGroup problemGroup) {
-        return new DefaultProblemGroup(problemGroup.getName(), problemGroup.getDisplayName(), problemGroup.getParent() == null ? null : toProblemGroup(problemGroup.getParent()));
-    }
-
-    private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
-        if (additionalData instanceof InternalProxiedAdditionalData) {
-            Object proxy = ((InternalProxiedAdditionalData) additionalData).getProxy();
-            return new DefaultCustomAdditionalData(additionalData.getAsMap(), proxy);
-        }
-        if (additionalData == null) {
-            return new DefaultAdditionalData(Collections.<String, Object>emptyMap());
-        }
-        return new DefaultAdditionalData(additionalData.getAsMap());
-    }
-
-    @Nullable
-    private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {
-        return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel.getContextualLabel());
-    }
-
-    private static ContextualLabel toContextualLabel(@Nullable String contextualLabel) {
-        return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel);
-    }
-
-    private static Severity toProblemSeverity(InternalSeverity severity) {
-        return DefaultSeverity.from(severity != null ? severity.getSeverity() : Severity.WARNING.getSeverity());
-    }
-
-    private static List<Location> toLocations(List<InternalLocation> locations) {
-        List<Location> result = new ArrayList<>(locations.size());
-        for (InternalLocation location : locations) {
-            if (location instanceof InternalLineInFileLocation) {
-                InternalLineInFileLocation l = (InternalLineInFileLocation) location;
-                result.add(new DefaultLineInFileLocation(l.getPath(), l.getLine(), l.getColumn(), l.getLength()));
-            } else if (location instanceof InternalOffsetInFileLocation) {
-                InternalOffsetInFileLocation l = (InternalOffsetInFileLocation) location;
-                result.add(new DefaultOffsetInFileLocation(l.getPath(), l.getOffset(), l.getLength()));
-            } else if (location instanceof InternalFileLocation) {
-                InternalFileLocation l = (InternalFileLocation) location;
-                result.add(new DefaultFileLocation(l.getPath()));
-            } else if (location instanceof InternalPluginIdLocation) {
-                InternalPluginIdLocation pluginLocation = (InternalPluginIdLocation) location;
-                result.add(new DefaultPluginIdLocation(pluginLocation.getPluginId()));
-            } else if (location instanceof InternalTaskPathLocation) {
-                InternalTaskPathLocation taskLocation = (InternalTaskPathLocation) location;
-                result.add(new DefaultTaskPathLocation(taskLocation.getBuildTreePath()));
-            }
-        }
-        return result;
-    }
-
-    private static DocumentationLink toDocumentationLink(@Nullable InternalDocumentationLink link) {
-        return link == null || link.getUrl() == null ? null : new DefaultDocumentationLink(link.getUrl());
-    }
-
-    private static List<Solution> toSolutions(List<InternalSolution> solutions) {
-        List<Solution> result = new ArrayList<>(solutions.size());
-        for (InternalSolution solution : solutions) {
-            result.add(new DefaultSolution(solution.getSolution()));
-        }
-        return result;
-    }
-
-    private static Details toProblemDetails(@Nullable InternalDetails details) {
-        if (details != null) {
-            return new DefaultDetails(details.getDetails());
-        }
-        return null;
-    }
-
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {
         Set<OperationDescriptor> result = new LinkedHashSet<OperationDescriptor>();
         for (InternalOperationDescriptor dependency : dependencies) {
@@ -1106,232 +1332,5 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             }
             return operationDescriptor;
         }
-    }
-
-    private static @Nullable FileDownloadResult toFileDownloadResult(InternalOperationResult result) {
-        InternalFileDownloadResult fileDownloadResult = (InternalFileDownloadResult) result;
-        if (result instanceof InternalNotFoundFileDownloadResult) {
-            return new NotFoundFileDownloadSuccessResult(result.getStartTime(), result.getEndTime());
-        }
-        if (result instanceof InternalSuccessResult) {
-            return new DefaultFileDownloadSuccessResult(result.getStartTime(), result.getEndTime(), fileDownloadResult.getBytesDownloaded());
-        }
-        if (result instanceof InternalFailureResult) {
-            return new DefaultFileDownloadFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), fileDownloadResult.getBytesDownloaded());
-        }
-        return null;
-    }
-
-    private static @Nullable TestOperationResult toTestResult(InternalTestResult result) {
-        if (result instanceof InternalTestSuccessResult) {
-            return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof InternalTestSkippedResult) {
-            return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof InternalTestFailureResult) {
-            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-        } else {
-            return null;
-        }
-    }
-
-    public static @Nullable TaskOperationResult toTaskResult(InternalTaskResult result) {
-        if (result instanceof InternalTaskSuccessResult) {
-            InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
-            if (result instanceof InternalJavaCompileTaskOperationResult) {
-                List<AnnotationProcessorResult> annotationProcessorResults = toAnnotationProcessorResults(((InternalJavaCompileTaskOperationResult) result).getAnnotationProcessorResults());
-                return new DefaultJavaCompileTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result), annotationProcessorResults);
-            }
-            return new DefaultTaskSuccessResult(result.getStartTime(), result.getEndTime(), successResult.isUpToDate(), isFromCache(result), toTaskExecutionDetails(result));
-        } else if (result instanceof InternalTaskSkippedResult) {
-            return new DefaultTaskSkippedResult(result.getStartTime(), result.getEndTime(), ((InternalTaskSkippedResult) result).getSkipMessage());
-        } else if (result instanceof InternalTaskFailureResult) {
-            return new DefaultTaskFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toTaskExecutionDetails(result));
-        } else {
-            return null;
-        }
-    }
-
-    private static boolean isFromCache(InternalTaskResult result) {
-        if (result instanceof InternalTaskCachedResult) {
-            return ((InternalTaskCachedResult) result).isFromCache();
-        }
-        return false;
-    }
-
-    private static TaskExecutionDetails toTaskExecutionDetails(InternalTaskResult result) {
-        if (result instanceof InternalIncrementalTaskResult) {
-            InternalIncrementalTaskResult taskResult = (InternalIncrementalTaskResult) result;
-            return TaskExecutionDetails.of(taskResult.isIncremental(), taskResult.getExecutionReasons());
-        }
-        return TaskExecutionDetails.unsupported();
-    }
-
-    private static @Nullable WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {
-        if (result instanceof InternalSuccessResult) {
-            return new DefaultWorkItemSuccessResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof InternalFailureResult) {
-            return new DefaultWorkItemFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-        } else {
-            return null;
-        }
-    }
-
-    private static @Nullable ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
-        if (result instanceof InternalSuccessResult) {
-            return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
-        } else if (result instanceof InternalFailureResult) {
-            return new DefaultProjectConfigurationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), toPluginApplicationResults(result.getPluginApplicationResults()));
-        } else {
-            return null;
-        }
-    }
-
-    private static List<? extends PluginApplicationResult> toPluginApplicationResults(List<? extends InternalPluginApplicationResult> pluginApplicationResults) {
-        List<PluginApplicationResult> results = new ArrayList<PluginApplicationResult>();
-        for (InternalPluginApplicationResult result : pluginApplicationResults) {
-            PluginIdentifier plugin = toPluginIdentifier(result.getPlugin());
-            if (plugin != null) {
-                results.add(new DefaultPluginApplicationResult(plugin, result.getTotalConfigurationTime()));
-            }
-        }
-        return results;
-    }
-
-    private static @Nullable PluginIdentifier toPluginIdentifier(InternalPluginIdentifier pluginIdentifier) {
-        if (pluginIdentifier instanceof InternalBinaryPluginIdentifier) {
-            InternalBinaryPluginIdentifier binaryPlugin = (InternalBinaryPluginIdentifier) pluginIdentifier;
-            return new DefaultBinaryPluginIdentifier(binaryPlugin.getDisplayName(), binaryPlugin.getClassName(), binaryPlugin.getPluginId());
-        } else if (pluginIdentifier instanceof InternalScriptPluginIdentifier) {
-            InternalScriptPluginIdentifier scriptPlugin = (InternalScriptPluginIdentifier) pluginIdentifier;
-            return new DefaultScriptPluginIdentifier(scriptPlugin.getDisplayName(), scriptPlugin.getUri());
-        } else {
-            return null;
-        }
-    }
-
-    private static @Nullable TransformOperationResult toTransformResult(InternalOperationResult result) {
-        if (result instanceof InternalSuccessResult) {
-            return new DefaultTransformSuccessResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof InternalFailureResult) {
-            return new DefaultTransformFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-        } else {
-            return null;
-        }
-    }
-
-    private static @Nullable OperationResult toResult(InternalOperationResult result) {
-        if (result instanceof InternalSuccessResult) {
-            return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
-        } else if (result instanceof InternalFailureResult) {
-            return new DefaultOperationFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
-        } else {
-            return null;
-        }
-    }
-
-    private static List<Failure> toFailures(@Nullable List<? extends InternalFailure> causes) {
-        if (causes == null) {
-            return null;
-        }
-        List<Failure> failures = new ArrayList<>();
-        for (InternalFailure cause : causes) {
-            Failure f = toFailure(cause);
-            if (f != null) {
-                failures.add(f);
-            }
-        }
-        return failures;
-    }
-
-    @Nullable
-    private static Failure toFailure(InternalBasicProblemDetails problemDetails) {
-        if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
-            return null;
-        }
-        return toFailure(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
-    }
-
-    @Nullable
-    private static Failure toFailure(InternalFailure origFailure) {
-        if (origFailure == null) {
-            return null;
-        }
-        List<InternalBasicProblemDetailsVersion3> problemDetails = new ArrayList<>();
-        try {
-            problemDetails.addAll(origFailure.getProblems());
-        } catch (AbstractMethodError ignore) {
-            // Older Gradle versions don't have this method
-        }
-        List<Problem> clientProblems = new ArrayList<>(problemDetails.size());
-        for (InternalBasicProblemDetailsVersion3 problemDetail : problemDetails) {
-            if (problemDetail == null) { // Should not happen, but with some older snapshot versions we see this.
-                continue;
-            }
-            clientProblems.add(toProblem(problemDetail));
-        }
-        if (origFailure instanceof InternalTestAssertionFailure) {
-            if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
-                InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
-                return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
-                    assertionFailure.getDescription(),
-                    assertionFailure.getExpected(),
-                    assertionFailure.getActual(),
-                    toFailures(origFailure.getCauses()),
-                    ((InternalTestAssertionFailure) origFailure).getClassName(),
-                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
-                    ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
-                );
-            }
-            InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
-            return new DefaultTestAssertionFailure(
-                assertionFailure.getMessage(),
-                assertionFailure.getDescription(),
-                assertionFailure.getExpected(),
-                assertionFailure.getActual(),
-                toFailures(origFailure.getCauses()),
-                ((InternalTestAssertionFailure) origFailure).getClassName(),
-                ((InternalTestAssertionFailure) origFailure).getStacktrace()
-            );
-        } else if (origFailure instanceof InternalTestFrameworkFailure) {
-            InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
-            return new DefaultTestFrameworkFailure(
-                frameworkFailure.getMessage(),
-                frameworkFailure.getDescription(),
-                toFailures(origFailure.getCauses()),
-                ((InternalTestFrameworkFailure) origFailure).getClassName(),
-                ((InternalTestFrameworkFailure) origFailure).getStacktrace()
-            );
-        }
-        return new DefaultFailure(
-            origFailure.getMessage(),
-            origFailure.getDescription(),
-            toFailures(origFailure.getCauses()),
-            clientProblems);
-    }
-
-    private static @Nullable List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {
-        if (protocolResults == null) {
-            return null;
-        }
-        List<AnnotationProcessorResult> results = new ArrayList<AnnotationProcessorResult>();
-        for (InternalAnnotationProcessorResult result : protocolResults) {
-            results.add(toAnnotationProcessorResult(result));
-        }
-        return results;
-    }
-
-    private static AnnotationProcessorResult toAnnotationProcessorResult(InternalAnnotationProcessorResult result) {
-        return new DefaultAnnotationProcessorResult(result.getClassName(), toAnnotationProcessorResultType(result.getType()), result.getDuration());
-    }
-
-    private static AnnotationProcessorResult.Type toAnnotationProcessorResultType(String type) {
-        if (type.equals(InternalAnnotationProcessorResult.TYPE_AGGREGATING)) {
-            return AnnotationProcessorResult.Type.AGGREGATING;
-        }
-        if (type.equals(InternalAnnotationProcessorResult.TYPE_ISOLATING)) {
-            return AnnotationProcessorResult.Type.ISOLATING;
-        }
-        return AnnotationProcessorResult.Type.UNKNOWN;
     }
 }

@@ -61,8 +61,8 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
+            apiElements,
+            runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -79,8 +79,8 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
+            apiElements,
+            runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -97,8 +97,8 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
+            apiElements,
+            runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -115,8 +115,8 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
+            apiElements,
+            runtimeElements,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -176,10 +176,10 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
-                apiElements11,
-                runtimeElements11,
+            apiElements,
+            runtimeElements,
+            apiElements11,
+            runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -201,10 +201,10 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
-                apiElements11,
-                runtimeElements11,
+            apiElements,
+            runtimeElements,
+            apiElements11,
+            runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -231,15 +231,15 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
+            apiElements,
 
-                runtimeElements,
-                apiElements9,
+            runtimeElements,
+            apiElements9,
 
-                runtimeElements9,
-                apiElements11,
+            runtimeElements9,
+            apiElements11,
 
-                runtimeElements11,
+            runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -266,12 +266,12 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
-                apiElements9,
-                runtimeElements9,
-                apiElements11,
-                runtimeElements11,
+            apiElements,
+            runtimeElements,
+            apiElements9,
+            runtimeElements9,
+            apiElements11,
+            runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:
@@ -292,12 +292,12 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         when:
         def candidates = [
-                apiElements,
-                runtimeElements,
-                apiElements9,
-                runtimeElements9,
-                apiElements11,
-                runtimeElements11,
+            apiElements,
+            runtimeElements,
+            apiElements9,
+            runtimeElements9,
+            apiElements11,
+            runtimeElements11,
         ]
         def matches = matchConfigurations(candidates, requested)
         then:

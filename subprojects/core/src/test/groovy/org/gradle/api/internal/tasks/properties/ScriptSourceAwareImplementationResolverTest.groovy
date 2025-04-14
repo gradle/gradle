@@ -30,7 +30,10 @@ class ScriptSourceAwareImplementationResolverTest extends Specification {
         where:
         type      | implementation
         "Closure" | { it }
-        "Action"  |  new Action<String>() { @Override void execute(String s) {} }
+        "Action"  | new Action<String>() {
+            @Override
+            void execute(String s) {}
+        }
     }
 
     def "correct implementation for closure wrapped in Action is tracked"() {

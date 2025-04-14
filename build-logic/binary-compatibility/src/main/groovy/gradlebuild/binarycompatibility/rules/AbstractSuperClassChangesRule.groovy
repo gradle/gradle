@@ -30,7 +30,7 @@ abstract class AbstractSuperClassChangesRule extends AbstractGradleViolationRule
 
     AbstractSuperClassChangesRule(Map<String, Object> params) {
         super(params)
-        final List<String> publicApiPatterns = (List<String>)params['publicApiPatterns'];
+        final List<String> publicApiPatterns = (List<String>) params['publicApiPatterns'];
         this.publicApiPatterns = publicApiPatterns.collect { Pattern.compile(it) }
     }
 

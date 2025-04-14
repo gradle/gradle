@@ -34,12 +34,12 @@ public class NativeBinaryRequirementResolveResult {
         return input;
     }
 
-    public void setRequirement(NativeLibraryRequirement requirement) {
-        this.requirement = requirement;
-    }
-
     public NativeLibraryRequirement getRequirement() {
         return requirement;
+    }
+
+    public void setRequirement(NativeLibraryRequirement requirement) {
+        this.requirement = requirement;
     }
 
     public NativeLibraryBinary getLibraryBinary() {

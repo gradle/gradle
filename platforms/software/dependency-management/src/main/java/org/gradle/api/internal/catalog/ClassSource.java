@@ -17,6 +17,8 @@ package org.gradle.api.internal.catalog;
 
 public interface ClassSource {
     String getPackageName();
+
     String getSimpleClassName();
+
     String getSource();
 }

@@ -29,16 +29,6 @@ import java.io.File;
 @Incubating
 public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
     /**
-     * Provides access to key tasks used for building the binary.
-     */
-    interface TasksCollection extends BinaryTasksCollection {
-        /**
-         * The create static library task.
-         */
-        Task getCreateStaticLib();
-    }
-
-    /**
      * The static library file.
      */
     File getStaticLibraryFile();
@@ -58,4 +48,14 @@ public interface StaticLibraryBinarySpec extends NativeLibraryBinarySpec {
      */
     @Override
     TasksCollection getTasks();
+
+    /**
+     * Provides access to key tasks used for building the binary.
+     */
+    interface TasksCollection extends BinaryTasksCollection {
+        /**
+         * The create static library task.
+         */
+        Task getCreateStaticLib();
+    }
 }

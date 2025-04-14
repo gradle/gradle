@@ -124,9 +124,9 @@ dependencies { compile 'groupA:artifactA:1.2' }
 ''')
 
         def moduleA = mavenHttpRepo.module('groupA', 'artifactA', '1.2')
-                .parent('group', 'parent', '1.0')
-                .dependsOn('groupB', 'artifactB', null)
-                .publish()
+            .parent('group', 'parent', '1.0')
+            .dependsOn('groupB', 'artifactB', null)
+            .publish()
 
         def moduleB = mavenHttpRepo.module('groupB', 'artifactB', '1.4').publish()
 

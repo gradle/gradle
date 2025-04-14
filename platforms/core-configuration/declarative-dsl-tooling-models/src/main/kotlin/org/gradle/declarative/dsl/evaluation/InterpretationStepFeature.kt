@@ -25,13 +25,15 @@ import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
-@ToolingModelContract(subTypes = [
-    DocumentChecks::class,
-    RunsBeforeClassScopeIsReady::class,
-    ResolutionResultPostprocessing::class,
+@ToolingModelContract(
+    subTypes = [
+        DocumentChecks::class,
+        RunsBeforeClassScopeIsReady::class,
+        ResolutionResultPostprocessing::class,
         DefineModelDefaults::class,
         ApplyModelDefaults::class
-])
+    ]
+)
 sealed interface InterpretationStepFeature : Serializable {
     interface DocumentChecks : InterpretationStepFeature {
         val checkKeys: Iterable<String>

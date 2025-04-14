@@ -19,7 +19,8 @@ package gradlebuild.binarycompatibility
 import groovy.transform.Immutable
 import groovy.transform.ToString
 
-@Immutable @ToString
+@Immutable
+@ToString
 class AcceptedApiChange {
     String type
     String member

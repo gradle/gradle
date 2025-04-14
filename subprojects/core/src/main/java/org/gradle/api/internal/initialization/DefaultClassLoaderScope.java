@@ -33,10 +33,8 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
     private final ClassLoaderScope parent;
-
-    private boolean locked;
-
     protected ClassPath export = ClassPath.EMPTY;
+    private boolean locked;
     private List<ClassLoader> exportLoaders; // if not null, is not empty
     private ClassPath local = ClassPath.EMPTY;
     private List<ClassLoader> ownLoaders;

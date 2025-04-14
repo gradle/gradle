@@ -397,7 +397,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         where:
         definition               | success | artifactPattern
         "url = 'http://foo.com'" | true    | false
-        "artifactPattern('foo')" | true | true
+        "artifactPattern('foo')" | true    | true
         ''                       | false   | false
     }
 

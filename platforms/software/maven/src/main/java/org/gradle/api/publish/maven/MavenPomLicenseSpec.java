@@ -21,9 +21,9 @@ import org.gradle.api.Action;
 /**
  * Allows to add licenses to a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomLicense
+ * @since 4.8
  */
 public interface MavenPomLicenseSpec {
 

@@ -117,11 +117,11 @@ class ScopedRuleTest extends ProjectRegistrySpec {
             .registerInstance("values", "foo")
             .apply("values", ByPathBoundInputsChildRule)
             .mutate {
-            it.path "values" node {
-                it.addLinkInstance("values.first", new MutableValue())
-                it.addLinkInstance("values.second", new MutableValue())
+                it.path "values" node {
+                    it.addLinkInstance("values.first", new MutableValue())
+                    it.addLinkInstance("values.second", new MutableValue())
+                }
             }
-        }
 
         when:
         registry.get("values")
@@ -145,10 +145,10 @@ class ScopedRuleTest extends ProjectRegistrySpec {
         registry.registerInstance("values", "foo")
             .apply("values", ByTypeSubjectBoundToScopeChildRule)
             .mutate {
-            it.path "values" node {
-                it.addLinkInstance("values.mutable", new MutableValue())
+                it.path "values" node {
+                    it.addLinkInstance("values.mutable", new MutableValue())
+                }
             }
-        }
 
         when:
         registry.get("values")
@@ -171,10 +171,10 @@ class ScopedRuleTest extends ProjectRegistrySpec {
             .registerInstance("values", "foo")
             .apply("values", ByTypeBindingSubjectRule)
             .mutate {
-            it.path "values" node {
-                it.addLinkInstance("values.element", new MutableValue())
+                it.path "values" node {
+                    it.addLinkInstance("values.element", new MutableValue())
+                }
             }
-        }
 
         when:
         registry.get("values")
@@ -197,10 +197,10 @@ class ScopedRuleTest extends ProjectRegistrySpec {
             .apply("values", ByTypeBindingInputRule)
             .registerInstance("element", new MutableValue(value: "outer"))
             .mutate {
-            it.path "values" node {
-                it.addLinkInstance("values.element", new MutableValue())
+                it.path "values" node {
+                    it.addLinkInstance("values.element", new MutableValue())
+                }
             }
-        }
 
         when:
         registry.get("values")

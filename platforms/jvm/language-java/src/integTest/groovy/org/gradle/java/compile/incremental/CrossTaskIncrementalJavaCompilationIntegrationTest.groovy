@@ -245,8 +245,8 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         result.hasErrorOutput("package $pkg is not visible")
 
         where:
-        module | pkg
-        "api"  | "a"
+        module     | pkg
+        "api"      | "a"
         "otherApi" | "a2"
     }
 }

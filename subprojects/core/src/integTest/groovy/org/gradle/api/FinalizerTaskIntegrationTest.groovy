@@ -944,7 +944,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         2.times {
-            run(":test",  ":publish", ":integTest")
+            run(":test", ":publish", ":integTest")
             if (GradleContextualExecuter.isConfigCache()) {
                 // With configuration cache tasks can run in parallel
                 result.assertTaskOrder(exact(any(":test", ":integTest"), ":finalizer"))

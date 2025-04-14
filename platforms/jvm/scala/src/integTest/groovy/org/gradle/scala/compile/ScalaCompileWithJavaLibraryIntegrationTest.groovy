@@ -26,8 +26,10 @@ import org.junit.Rule
 @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def setup() {
         executer.withRepositoryMirrors()

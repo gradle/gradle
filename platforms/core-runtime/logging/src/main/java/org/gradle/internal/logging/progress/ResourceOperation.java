@@ -22,19 +22,12 @@ import static org.gradle.internal.util.NumberUtil.KIB_BASE;
 import static org.gradle.internal.util.NumberUtil.formatBytes;
 
 public class ResourceOperation {
-    public enum Type {
-        download,
-        upload
-    }
-
     private final BuildOperationContext context;
     private final Type operationType;
     private long contentLengthBytes;
     private String contentLengthString;
-
     private long loggedKBytes;
     private long totalProcessedBytes;
-
     public ResourceOperation(BuildOperationContext context, Type type) {
         this.context = context;
         this.operationType = type;
@@ -61,5 +54,10 @@ public class ResourceOperation {
             String progressMessage = formatBytes(totalProcessedBytes) + contentLengthString;
             context.progress(totalProcessedBytes, contentLengthBytes, "bytes", progressMessage);
         }
+    }
+
+    public enum Type {
+        download,
+        upload
     }
 }

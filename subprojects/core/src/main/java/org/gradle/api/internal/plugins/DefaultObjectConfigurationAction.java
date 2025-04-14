@@ -52,9 +52,11 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final TextUriResourceLoader.Factory textUriFileResourceLoaderFactory;
     private final Object defaultTarget;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
-                                            ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
-                                            TextUriResourceLoader.Factory textUriFileResourceLoaderFactory, Object defaultTarget) {
+    public DefaultObjectConfigurationAction(
+        FileResolver resolver, ScriptPluginFactory configurerFactory,
+        ScriptHandlerFactory scriptHandlerFactory, ClassLoaderScope classLoaderScope,
+        TextUriResourceLoader.Factory textUriFileResourceLoaderFactory, Object defaultTarget
+    ) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.scriptHandlerFactory = scriptHandlerFactory;

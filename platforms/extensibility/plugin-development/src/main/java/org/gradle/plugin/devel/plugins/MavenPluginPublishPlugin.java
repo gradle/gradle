@@ -40,13 +40,13 @@ import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginR
 abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
     @Inject
-    protected abstract ProviderFactory getProviderFactory();
-
-    @Inject
     public MavenPluginPublishPlugin() {
         // This class is not visible outside of this package.
         // To instantiate this plugin, we need a protected constructor.
     }
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 
     @Override
     public void apply(Project project) {

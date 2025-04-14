@@ -23,8 +23,8 @@ import javax.inject.Inject;
  * {@link WorkerExecutor}.
  *
  * <p>
- *     A work action implementation is an abstract class implementing the {@link #execute()} method.
- *     A minimal implementation may look like this:
+ * A work action implementation is an abstract class implementing the {@link #execute()} method.
+ * A minimal implementation may look like this:
  * </p>
  *
  * <pre class='autoTested'>

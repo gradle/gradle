@@ -21,7 +21,8 @@ import spock.lang.Specification
 
 class TempDirIsUniquePerTestSpec extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     static tests = new HashSet()
     static tmpDirs = new HashSet()
 

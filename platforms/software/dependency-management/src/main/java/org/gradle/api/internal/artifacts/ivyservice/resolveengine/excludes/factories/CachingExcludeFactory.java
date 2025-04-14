@@ -68,6 +68,12 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
         private final ExcludeSpec right;
         private final int hashCode;
 
+        private ExcludePair(ExcludeSpec left, ExcludeSpec right) {
+            this.left = left;
+            this.right = right;
+            this.hashCode = 31 * left.hashCode() + right.hashCode();
+        }
+
         // Optimizes comparisons by making sure that the 2 elements of
         // the pair are "sorted" by hashcode ascending
         private static ExcludePair of(ExcludeSpec left, ExcludeSpec right) {
@@ -75,12 +81,6 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
                 return new ExcludePair(right, left);
             }
             return new ExcludePair(left, right);
-        }
-
-        private ExcludePair(ExcludeSpec left, ExcludeSpec right) {
-            this.left = left;
-            this.right = right;
-            this.hashCode = 31 * left.hashCode() + right.hashCode();
         }
 
         @Override

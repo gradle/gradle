@@ -55,22 +55,10 @@ import java.util.Set;
 public class GenericHtmlTestReport {
 
     private static final Logger LOG = Logging.getLogger(GenericHtmlTestReport.class);
-
-    public static String getFilePath(Path path) {
-        String filePath;
-        if (path.segmentCount() == 0) {
-            filePath = "index.html";
-        } else {
-            filePath = String.join("/", path.segments()) + "/index.html";
-        }
-        return filePath;
-    }
-
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final List<SerializableTestResultStore.OutputReader> outputReaders;
     private final MetadataRendererRegistry metadataRendererRegistry;
-
     public GenericHtmlTestReport(
         BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
@@ -81,6 +69,16 @@ public class GenericHtmlTestReport {
         this.buildOperationExecutor = buildOperationExecutor;
         this.outputReaders = outputReaders;
         this.metadataRendererRegistry = metadataRendererRegistry;
+    }
+
+    public static String getFilePath(Path path) {
+        String filePath;
+        if (path.segmentCount() == 0) {
+            filePath = "index.html";
+        } else {
+            filePath = String.join("/", path.segments()) + "/index.html";
+        }
+        return filePath;
     }
 
     public void generateReport(TestTreeModel root, java.nio.file.Path reportDir) {

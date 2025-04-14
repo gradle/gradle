@@ -68,24 +68,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         this.context = context;
     }
 
-    @Override
-    public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        switch (diagnostic.getKind()) {
-            case ERROR:
-                errorCount++;
-                break;
-            case WARNING:
-            case MANDATORY_WARNING:
-                warningCount++;
-                break;
-            default:
-                break;
-        }
-
-        Problem reportedProblem = problemReporter.create(id(diagnostic), spec -> buildProblem(diagnostic, spec));
-        problemsReported.add(reportedProblem);
-    }
-
     private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
         String code = diagnostic.getCode();
         String message = diagnostic.getMessage(Locale.getDefault());
@@ -94,35 +76,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             message == null ? "unknown" : message,
             GradleCoreProblemGroup.compilation().java()
         );
-    }
-
-    /**
-     * This method is responsible for printing the number of errors and warnings after writing the diagnostics out to the console.
-     * This count is normally printed by the compiler itself, but when a {@link DiagnosticListener} is registered, the compiled will stop reporting the number of errors and warnings.
-     *
-     * An example output with the last two lines being the count:
-     * <pre>
-     * /.../src/main/java/Foo.java:10: error: ';' expected
-     *                     String s = "Hello, World!"
-     *                                               ^
-     * /.../Bar.java:10: warning: [cast] redundant cast to String
-     *                     String s = (String)"Hello World";
-     *                                ^
-     * 1 error
-     * 1 warning
-     * </pre>
-     *
-     * @see com.sun.tools.javac.main.JavaCompiler#printCount(String, int)
-     */
-    String diagnosticCounts() {
-        Log logger = Log.instance(new Context());
-        Optional<String> error = diagnosticCount(logger, "error", errorCount);
-        Optional<String> warning = diagnosticCount(logger, "warn", warningCount);
-
-        return Stream.of(error, warning)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.joining(System.lineSeparator()));
     }
 
     /**
@@ -160,25 +113,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
 
         return Optional.of(logger.localize(keyBuilder.toString(), number));
-    }
-
-    @VisibleForTesting
-    void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        addSeverity(diagnostic, spec);
-        addLocations(diagnostic, spec);
-
-        String label = toFormattedLabel(diagnostic);
-        addContextualLabel(label, spec);
-
-        String details = toFormattedDetails(diagnostic);
-        // We cannot be sure that the compiler makes us a message, hence the defensiveness
-        if (details != null) {
-            addDetails(details, spec);
-            // NOTE: This is required to keep backward compatibility
-            // By default, when a compiler is called without a diagnostic listener
-            // the compiler will print the diagnostic message to the error stream
-            System.err.println(details);
-        }
     }
 
     /**
@@ -247,6 +181,106 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     /**
+     * Clamp the value to an int, or return {@link Diagnostic#NOPOS} if the value is too large.
+     * <p>
+     * This is used to ensure that we don't report invalid locations.
+     *
+     * @param value the value to clamp
+     * @return either the clamped value, or {@link Diagnostic#NOPOS}
+     */
+    private static int clampLocation(long value) {
+        if (value > Integer.MAX_VALUE) {
+            return Math.toIntExact(NOPOS);
+        } else {
+            return (int) value;
+        }
+    }
+
+    private static String getPath(JavaFileObject fileObject) {
+        return fileObject.getName();
+    }
+
+    private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
+        switch (kind) {
+            case ERROR:
+                return Severity.ERROR;
+            case WARNING:
+            case MANDATORY_WARNING:
+                return Severity.WARNING;
+            case NOTE:
+            case OTHER:
+            default:
+                return Severity.ADVICE;
+        }
+    }
+
+    @Override
+    public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        switch (diagnostic.getKind()) {
+            case ERROR:
+                errorCount++;
+                break;
+            case WARNING:
+            case MANDATORY_WARNING:
+                warningCount++;
+                break;
+            default:
+                break;
+        }
+
+        Problem reportedProblem = problemReporter.create(id(diagnostic), spec -> buildProblem(diagnostic, spec));
+        problemsReported.add(reportedProblem);
+    }
+
+    /**
+     * This method is responsible for printing the number of errors and warnings after writing the diagnostics out to the console.
+     * This count is normally printed by the compiler itself, but when a {@link DiagnosticListener} is registered, the compiled will stop reporting the number of errors and warnings.
+     *
+     * An example output with the last two lines being the count:
+     * <pre>
+     * /.../src/main/java/Foo.java:10: error: ';' expected
+     *                     String s = "Hello, World!"
+     *                                               ^
+     * /.../Bar.java:10: warning: [cast] redundant cast to String
+     *                     String s = (String)"Hello World";
+     *                                ^
+     * 1 error
+     * 1 warning
+     * </pre>
+     *
+     * @see com.sun.tools.javac.main.JavaCompiler#printCount(String, int)
+     */
+    String diagnosticCounts() {
+        Log logger = Log.instance(new Context());
+        Optional<String> error = diagnosticCount(logger, "error", errorCount);
+        Optional<String> warning = diagnosticCount(logger, "warn", warningCount);
+
+        return Stream.of(error, warning)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    @VisibleForTesting
+    void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+        addSeverity(diagnostic, spec);
+        addLocations(diagnostic, spec);
+
+        String label = toFormattedLabel(diagnostic);
+        addContextualLabel(label, spec);
+
+        String details = toFormattedDetails(diagnostic);
+        // We cannot be sure that the compiler makes us a message, hence the defensiveness
+        if (details != null) {
+            addDetails(details, spec);
+            // NOTE: This is required to keep backward compatibility
+            // By default, when a compiler is called without a diagnostic listener
+            // the compiler will print the diagnostic message to the error stream
+            System.err.println(details);
+        }
+    }
+
+    /**
      * Using a {@link DiagnosticFormatter}, turns a diagnostic into a human-readable multi-line message.
      * <p>
      * This method uses an internal Java compiler API to get a formatter.
@@ -291,40 +325,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         } catch (Exception ex) {
             LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
             return diagnostic.getMessage(Locale.getDefault());
-        }
-    }
-
-    /**
-     * Clamp the value to an int, or return {@link Diagnostic#NOPOS} if the value is too large.
-     * <p>
-     * This is used to ensure that we don't report invalid locations.
-     *
-     * @param value the value to clamp
-     * @return either the clamped value, or {@link Diagnostic#NOPOS}
-     */
-    private static int clampLocation(long value) {
-        if (value > Integer.MAX_VALUE) {
-            return Math.toIntExact(NOPOS);
-        } else {
-            return (int) value;
-        }
-    }
-
-    private static String getPath(JavaFileObject fileObject) {
-        return fileObject.getName();
-    }
-
-    private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return Severity.ERROR;
-            case WARNING:
-            case MANDATORY_WARNING:
-                return Severity.WARNING;
-            case NOTE:
-            case OTHER:
-            default:
-                return Severity.ADVICE;
         }
     }
 

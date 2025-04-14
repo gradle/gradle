@@ -25,13 +25,6 @@ import java.util.List;
  * A single source file.
  */
 public abstract class SourceFileElement extends SourceElement {
-    public abstract SourceFile getSourceFile();
-
-    @Override
-    public List<SourceFile> getFiles() {
-        return Collections.singletonList(getSourceFile());
-    }
-
     public static SourceFileElement ofFile(final SourceFile file) {
         return new SourceFileElement() {
             @Override
@@ -39,5 +32,12 @@ public abstract class SourceFileElement extends SourceElement {
                 return file;
             }
         };
+    }
+
+    public abstract SourceFile getSourceFile();
+
+    @Override
+    public List<SourceFile> getFiles() {
+        return Collections.singletonList(getSourceFile());
     }
 }

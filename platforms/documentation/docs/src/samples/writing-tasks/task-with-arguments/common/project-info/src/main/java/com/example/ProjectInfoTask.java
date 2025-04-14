@@ -4,20 +4,15 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+
 import java.util.EnumSet;
 import java.util.Collection;
 
 class ProjectInfoTask extends DefaultTask {
 
-    enum Format {
-        PLAIN, JSON
-    }
-
-    private Format format = Format.PLAIN;
-
     private final String projectName = getProject().getName();
     private final String projectVersion = getProject().getVersion().toString();
-
+    private Format format = Format.PLAIN;
     public ProjectInfoTask() {
     }
 
@@ -45,6 +40,10 @@ class ProjectInfoTask extends DefaultTask {
             default:
                 throw new IllegalArgumentException("Unsupported format: " + format);
         }
+    }
+
+    enum Format {
+        PLAIN, JSON
     }
 
 }

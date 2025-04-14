@@ -45,6 +45,7 @@ public interface IdeaContentRoot {
     /**
      * The set of resource directories.
      * NOTE: The resources directory is only available for Java projects, otherwise it is empty set.
+     *
      * @throws UnsupportedMethodException For Gradle versions older than 4.7 where this method is not supported.
      * @since 4.7
      */
@@ -54,6 +55,7 @@ public interface IdeaContentRoot {
     /**
      * The set of test resource directories.
      * NOTE: The test resources directory is only available for Java projects, otherwise it is empty set.
+     *
      * @throws UnsupportedMethodException For Gradle versions older than 4.7 where this method is not supported.
      * @since 4.7
      */

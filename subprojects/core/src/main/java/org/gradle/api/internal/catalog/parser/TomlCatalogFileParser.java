@@ -75,6 +75,7 @@ import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class TomlCatalogFileParser {
     public static final String CURRENT_VERSION = "1.1";
+    public static final String INVALID_TOML_CATALOG_DEFINITION = "Invalid TOML catalog definition";
     private static final Splitter SPLITTER = Splitter.on(":").trimResults();
     private static final String METADATA_KEY = "metadata";
     private static final String LIBRARIES_KEY = "libraries";
@@ -106,7 +107,6 @@ public class TomlCatalogFileParser {
         "reject",
         "rejectAll"
     );
-    public static final String INVALID_TOML_CATALOG_DEFINITION = "Invalid TOML catalog definition";
     private final Path catalogFilePath;
     private final VersionCatalogBuilder versionCatalogBuilder;
     private final Supplier<Problems> problemsServiceSupplier;
@@ -119,6 +119,107 @@ public class TomlCatalogFileParser {
 
     public static void parse(Path catalogFilePath, VersionCatalogBuilder builder, Supplier<Problems> problemsServiceSupplier) throws IOException {
         new TomlCatalogFileParser(catalogFilePath, builder, problemsServiceSupplier).parse();
+    }
+
+    @NullMarked
+    private static ProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+        return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
+    }
+
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String label, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
+        InternalProblemSpec definingLocation = builder
+            .id(screamingSnakeToKebabCase(catalogProblemId.name()), "Dependency version catalog problem", GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(label)
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
+        InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
+        return definingCategory
+            .severity(ERROR);
+    }
+
+    private static void expectedKeys(TomlTable table, Set<String> allowedKeys, String context) {
+        Set<String> actualKeys = table.keySet();
+        if (!allowedKeys.containsAll(actualKeys)) {
+            Set<String> difference = Sets.difference(actualKeys, allowedKeys);
+            throw new InvalidUserDataException("On " + context + " expected to find any of " + quotedOxfordListOf(allowedKeys, "or")
+                + " but found unexpected key" + getPluralEnding(difference) + " " + quotedOxfordListOf(difference, "and")
+                + ".");
+        }
+    }
+
+    private static void registerDependency(
+        VersionCatalogBuilder builder,
+        String alias,
+        String group,
+        String name,
+        @Nullable String versionRef,
+        @Nullable String require,
+        @Nullable String strictly,
+        @Nullable String prefer,
+        @Nullable List<String> rejectedVersions,
+        @Nullable Boolean rejectAll
+    ) {
+        VersionCatalogBuilder.LibraryAliasBuilder aliasBuilder = builder.library(alias, group, name);
+        if (versionRef != null) {
+            aliasBuilder.versionRef(versionRef);
+            return;
+        }
+        aliasBuilder.version(v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
+    }
+
+    private static void configureVersion(
+        @Nullable String require,
+        @Nullable String strictly,
+        @Nullable String prefer,
+        @Nullable List<String> rejectedVersions,
+        @Nullable Boolean rejectAll,
+        MutableVersionConstraint v
+    ) {
+        if (require != null) {
+            v.require(require);
+        }
+        if (strictly != null) {
+            v.strictly(strictly);
+        }
+        if (prefer != null) {
+            v.prefer(prefer);
+        }
+        if (rejectedVersions != null) {
+            v.reject(rejectedVersions.toArray(new String[0]));
+        }
+        if (rejectAll != null && rejectAll) {
+            v.rejectAll();
+        }
+    }
+
+    private static void registerPlugin(
+        VersionCatalogBuilder builder,
+        String alias,
+        String id,
+        @Nullable String versionRef,
+        @Nullable String require,
+        @Nullable String strictly,
+        @Nullable String prefer,
+        @Nullable List<String> rejectedVersions,
+        @Nullable Boolean rejectAll
+    ) {
+        VersionCatalogBuilder.PluginAliasBuilder aliasBuilder = builder.plugin(alias, id);
+        if (versionRef != null) {
+            aliasBuilder.versionRef(versionRef);
+            return;
+        }
+        aliasBuilder.version(v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
+    }
+
+    private static void registerVersion(
+        VersionCatalogBuilder builder,
+        String alias,
+        @Nullable String require,
+        @Nullable String strictly,
+        @Nullable String prefer,
+        @Nullable List<String> rejectedVersions,
+        @Nullable Boolean rejectAll
+    ) {
+        builder.version(alias, v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
     }
 
     private void parse() throws IOException {
@@ -148,21 +249,6 @@ public class TomlCatalogFileParser {
 
     private InternalProblemReporter getInternalReporter() {
         return getInternalProblems().getInternalReporter();
-    }
-
-    @NullMarked
-    private static ProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
-        return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
-    }
-
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String label, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
-        InternalProblemSpec definingLocation = builder
-            .id(screamingSnakeToKebabCase(catalogProblemId.name()), "Dependency version catalog problem", GradleCoreProblemGroup.versionCatalog())
-            .contextualLabel(label)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
-        InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
-        return definingCategory
-            .severity(ERROR);
     }
 
     private void assertNoParseErrors(TomlParseResult result) {
@@ -306,16 +392,6 @@ public class TomlCatalogFileParser {
             return table.getBoolean("rejectAll");
         } catch (TomlInvalidTypeException ex) {
             throw throwUnexpectedTypeError("alias", alias, "a boolean", ex);
-        }
-    }
-
-    private static void expectedKeys(TomlTable table, Set<String> allowedKeys, String context) {
-        Set<String> actualKeys = table.keySet();
-        if (!allowedKeys.containsAll(actualKeys)) {
-            Set<String> difference = Sets.difference(actualKeys, allowedKeys);
-            throw new InvalidUserDataException("On " + context + " expected to find any of " + quotedOxfordListOf(allowedKeys, "or")
-                + " but found unexpected key" + getPluralEnding(difference) + " " + quotedOxfordListOf(difference, "and")
-                + ".");
         }
     }
 
@@ -518,82 +594,6 @@ public class TomlCatalogFileParser {
                     .solution("Remove the '" + member + "' element on alias '" + alias + "'"));
         }
         return string;
-    }
-
-    private static void registerDependency(
-        VersionCatalogBuilder builder,
-        String alias,
-        String group,
-        String name,
-        @Nullable String versionRef,
-        @Nullable String require,
-        @Nullable String strictly,
-        @Nullable String prefer,
-        @Nullable List<String> rejectedVersions,
-        @Nullable Boolean rejectAll
-    ) {
-        VersionCatalogBuilder.LibraryAliasBuilder aliasBuilder = builder.library(alias, group, name);
-        if (versionRef != null) {
-            aliasBuilder.versionRef(versionRef);
-            return;
-        }
-        aliasBuilder.version(v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
-    }
-
-    private static void configureVersion(
-        @Nullable String require,
-        @Nullable String strictly,
-        @Nullable String prefer,
-        @Nullable List<String> rejectedVersions,
-        @Nullable Boolean rejectAll,
-        MutableVersionConstraint v
-    ) {
-        if (require != null) {
-            v.require(require);
-        }
-        if (strictly != null) {
-            v.strictly(strictly);
-        }
-        if (prefer != null) {
-            v.prefer(prefer);
-        }
-        if (rejectedVersions != null) {
-            v.reject(rejectedVersions.toArray(new String[0]));
-        }
-        if (rejectAll != null && rejectAll) {
-            v.rejectAll();
-        }
-    }
-
-    private static void registerPlugin(
-        VersionCatalogBuilder builder,
-        String alias,
-        String id,
-        @Nullable String versionRef,
-        @Nullable String require,
-        @Nullable String strictly,
-        @Nullable String prefer,
-        @Nullable List<String> rejectedVersions,
-        @Nullable Boolean rejectAll
-    ) {
-        VersionCatalogBuilder.PluginAliasBuilder aliasBuilder = builder.plugin(alias, id);
-        if (versionRef != null) {
-            aliasBuilder.versionRef(versionRef);
-            return;
-        }
-        aliasBuilder.version(v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
-    }
-
-    private static void registerVersion(
-        VersionCatalogBuilder builder,
-        String alias,
-        @Nullable String require,
-        @Nullable String strictly,
-        @Nullable String prefer,
-        @Nullable List<String> rejectedVersions,
-        @Nullable Boolean rejectAll
-    ) {
-        builder.version(alias, v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
     }
 
     private RuntimeException throwVersionCatalogProblemException(Action<InternalProblemSpec> action) {

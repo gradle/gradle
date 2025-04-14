@@ -46,7 +46,7 @@ class ConnectionSetTest extends AbstractQueueTest {
         messages[0] instanceof RejectedMessage
         messages[0].payload == "payload"
         messages[1] instanceof EndOfStream
-     }
+    }
 
     def "does not discard queued outgoing messages when stop requested until all connections finished"() {
         def channel = new ChannelIdentifier("channel")

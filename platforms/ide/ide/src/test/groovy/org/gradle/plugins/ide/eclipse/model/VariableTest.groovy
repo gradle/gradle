@@ -36,10 +36,10 @@ class VariableTest extends Specification {
 
     String platformXml;
 
-    def setup(){
-            //xml differs on windows and mac due to required absolute paths for javadoc uri
-            platformXml = XML_TEXT_TEMPLATE.replace("%FILE_URI%", new File("ant-javadoc.jar").toURI().toString());
-        }
+    def setup() {
+        //xml differs on windows and mac due to required absolute paths for javadoc uri
+        platformXml = XML_TEXT_TEMPLATE.replace("%FILE_URI%", new File("ant-javadoc.jar").toURI().toString());
+    }
 
     def canReadFromXml() {
         when:

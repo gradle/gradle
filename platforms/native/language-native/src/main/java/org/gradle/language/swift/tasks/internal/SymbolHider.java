@@ -32,6 +32,23 @@ public class SymbolHider {
     DataReader data;
     private byte[] objectBytes;
 
+    public SymbolHider(File inputFile) throws IOException {
+        objectBytes = Files.readAllBytes(Paths.get(inputFile.getAbsolutePath()));
+    }
+
+    public void hideSymbol(String symbolToHide) {
+        data = new DataReader(objectBytes);
+        COFFHeader coffHeader = new COFFHeader(data);
+
+        data.moveTo(coffHeader.pointerToSymbolTable);
+        SymbolTable symbolTable = new SymbolTable(coffHeader.numberOfSymbols, data, objectBytes);
+        symbolTable.hideSymbol(symbolToHide);
+    }
+
+    public void saveTo(File outputFile) throws IOException {
+        Files.write(Paths.get(outputFile.getAbsolutePath()), objectBytes);
+    }
+
     private static class DataReader {
         private byte[] dataBytes;
         private int position = 0;
@@ -119,10 +136,10 @@ public class SymbolHider {
     }
 
     private static class SymbolTable {
+        private static final int IMAGE_SYM_CLASS_STATIC = 0x3;
         private int numberOfSymbols;
         private DataReader data;
         private byte[] objectBytes;
-        private static final int IMAGE_SYM_CLASS_STATIC = 0x3;
 
         public SymbolTable(int numberOfSymbols, DataReader data, byte[] objectBytes) {
             this.numberOfSymbols = numberOfSymbols;
@@ -141,22 +158,5 @@ public class SymbolHider {
                 }
             }
         }
-    }
-
-    public SymbolHider(File inputFile) throws IOException {
-        objectBytes = Files.readAllBytes(Paths.get(inputFile.getAbsolutePath()));
-    }
-
-    public void hideSymbol(String symbolToHide) {
-        data = new DataReader(objectBytes);
-        COFFHeader coffHeader = new COFFHeader(data);
-
-        data.moveTo(coffHeader.pointerToSymbolTable);
-        SymbolTable symbolTable = new SymbolTable(coffHeader.numberOfSymbols, data, objectBytes);
-        symbolTable.hideSymbol(symbolToHide);
-    }
-
-    public void saveTo(File outputFile) throws IOException {
-        Files.write(Paths.get(outputFile.getAbsolutePath()), objectBytes);
     }
 }

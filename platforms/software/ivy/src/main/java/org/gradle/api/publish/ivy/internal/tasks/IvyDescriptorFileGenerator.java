@@ -60,22 +60,6 @@ public final class IvyDescriptorFileGenerator {
 
     private IvyDescriptorFileGenerator() {}
 
-    private static class Model {
-        private String branch;
-        private String status;
-        private String organisation;
-        private String module;
-        private String revision;
-        private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
-        private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
-        private IvyModuleDescriptorDescription description;
-        private Map<QName, String> extraInfo;
-        private final List<IvyConfiguration> configurations = new ArrayList<>();
-        private final List<NormalizedIvyArtifact> artifacts = new ArrayList<>();
-        private final List<IvyDependency> dependencies = new ArrayList<>();
-        private final List<IvyExcludeRule> globalExcludes = new ArrayList<>();
-    }
-
     public static DescriptorFileSpec generateSpec(IvyModuleDescriptorSpecInternal descriptor) {
         Model model = new Model();
 
@@ -116,12 +100,84 @@ public final class IvyDescriptorFileGenerator {
         return new DescriptorFileSpec(model, xmlTransformer);
     }
 
+    public static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
+        String comment = Joiner.on("").join(
+            Streams.concat(
+                    Arrays.stream(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES),
+                    Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
+                )
+                .map(content -> "<!-- " + content + " -->\n  ")
+                .iterator()
+        );
+
+        StringBuilder builder = xmlProvider.asString();
+        int idx = builder.indexOf("<info");
+        builder.insert(idx, comment);
+    }
+
+    private static class Model {
+        private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
+        private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
+        private final List<IvyConfiguration> configurations = new ArrayList<>();
+        private final List<NormalizedIvyArtifact> artifacts = new ArrayList<>();
+        private final List<IvyDependency> dependencies = new ArrayList<>();
+        private final List<IvyExcludeRule> globalExcludes = new ArrayList<>();
+        private String branch;
+        private String status;
+        private String organisation;
+        private String module;
+        private String revision;
+        private IvyModuleDescriptorDescription description;
+        private Map<QName, String> extraInfo;
+    }
+
     public static class ModelWriter {
         private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
         private final Model model;
 
         public ModelWriter(Model model) {
             this.model = model;
+        }
+
+        private static void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            xmlWriter.startElement("exclude")
+                .attribute("org", excludeRule.getGroup())
+                .attribute("module", excludeRule.getModule())
+                .endElement();
+        }
+
+        private static void writeDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            // TODO Use IvyArtifact here
+            xmlWriter.startElement("artifact")
+                .attribute("name", dependencyArtifact.getName())
+                .attribute("type", dependencyArtifact.getType())
+                .attribute("ext", dependencyArtifact.getExtension())
+                .attribute("m:classifier", dependencyArtifact.getClassifier())
+                .endElement();
+        }
+
+        private static void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            xmlWriter.startElement("exclude")
+                .attribute("org", excludeRule.getOrg())
+                .attribute("module", excludeRule.getModule())
+                .attribute("conf", excludeRule.getConf())
+                .endElement();
+        }
+
+        private static boolean usesClassifier(Model model) {
+            for (IvyArtifact artifact : model.artifacts) {
+                if (artifact.getClassifier() != null) {
+                    return true;
+                }
+            }
+            for (IvyDependency dependency : model.dependencies) {
+                for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
+                    if (dependencyArtifact.getClassifier() != null) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private void writeDescriptor(final Writer writer) throws IOException {
@@ -238,47 +294,6 @@ public final class IvyDescriptorFileGenerator {
             xmlWriter.endElement();
         }
 
-        private static void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-            xmlWriter.startElement("exclude")
-                .attribute("org", excludeRule.getGroup())
-                .attribute("module", excludeRule.getModule())
-                .endElement();
-        }
-
-        private static void writeDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-            // TODO Use IvyArtifact here
-            xmlWriter.startElement("artifact")
-                .attribute("name", dependencyArtifact.getName())
-                .attribute("type", dependencyArtifact.getType())
-                .attribute("ext", dependencyArtifact.getExtension())
-                .attribute("m:classifier", dependencyArtifact.getClassifier())
-                .endElement();
-        }
-
-        private static void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-            xmlWriter.startElement("exclude")
-                .attribute("org", excludeRule.getOrg())
-                .attribute("module", excludeRule.getModule())
-                .attribute("conf", excludeRule.getConf())
-                .endElement();
-        }
-
-        private static boolean usesClassifier(Model model) {
-            for (IvyArtifact artifact : model.artifacts) {
-                if (artifact.getClassifier() != null) {
-                    return true;
-                }
-            }
-            for (IvyDependency dependency : model.dependencies) {
-                for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
-                    if (dependencyArtifact.getClassifier() != null) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
         private static class OptionalAttributeXmlWriter extends SimpleXmlWriter {
             public OptionalAttributeXmlWriter(Writer writer, String indent, String encoding) throws IOException {
                 super(writer, indent, encoding);
@@ -304,21 +319,6 @@ public final class IvyDescriptorFileGenerator {
                 return this;
             }
         }
-    }
-
-    public static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
-        String comment = Joiner.on("").join(
-            Streams.concat(
-                Arrays.stream(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES),
-                Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
-            )
-            .map(content -> "<!-- " + content + " -->\n  ")
-            .iterator()
-        );
-
-        StringBuilder builder = xmlProvider.asString();
-        int idx = builder.indexOf("<info");
-        builder.insert(idx, comment);
     }
 
     public static class DescriptorFileSpec {

@@ -50,7 +50,7 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
         if (requested instanceof ModuleComponentSelector) {
             ModuleComponentSelector requestedSelector = (ModuleComponentSelector) requested;
             return requestedSelector.getGroup().equals(moduleIdentifier.getGroup())
-                    && requestedSelector.getModule().equals(moduleIdentifier.getName());
+                && requestedSelector.getModule().equals(moduleIdentifier.getName());
         }
 
         return false;
@@ -62,7 +62,7 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
         if (selected instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier selectedModule = (ModuleComponentIdentifier) selected;
             return selectedModule.getGroup().equals(moduleIdentifier.getGroup())
-                    && selectedModule.getModule().equals(moduleIdentifier.getName());
+                && selectedModule.getModule().equals(moduleIdentifier.getName());
         }
 
         return false;

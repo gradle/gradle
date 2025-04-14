@@ -10,17 +10,20 @@ class JavaConventionPluginTest : PluginTest() {
 
     @Before
     fun init() {
-        buildFile.appendText("""
+        buildFile.appendText(
+            """
             plugins {
                 id("myproject.java-conventions")
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun `fails on checkstyle error`() {
         testProjectDir.newFolder("src", "main", "java", "com", "example")
-        testProjectDir.newFile("src/main/java/com/example/Foo.java").appendText("""
+        testProjectDir.newFile("src/main/java/com/example/Foo.java").appendText(
+            """
             package com.example;
 
             import java.util.*;
@@ -29,7 +32,8 @@ class JavaConventionPluginTest : PluginTest() {
                 void bar() {
                 }
             }
-        """)
+        """
+        )
 
         val result = runTaskWithFailure("build")
 
@@ -41,7 +45,8 @@ class JavaConventionPluginTest : PluginTest() {
     @Test
     fun `fails on checkstyle warning`() {
         testProjectDir.newFolder("src", "main", "java", "com", "example")
-        testProjectDir.newFile("src/main/java/com/example/Foo.java").writeText("""
+        testProjectDir.newFile("src/main/java/com/example/Foo.java").writeText(
+            """
             package com.example;
 
             class Foo {
@@ -50,7 +55,8 @@ class JavaConventionPluginTest : PluginTest() {
                 void bar() {
                 }
             }
-        """)
+        """
+        )
 
         val result = runTaskWithFailure("build")
 
@@ -62,7 +68,8 @@ class JavaConventionPluginTest : PluginTest() {
     @Test
     fun `fails on spotbugs error`() {
         testProjectDir.newFolder("src", "main", "java", "com", "example")
-        testProjectDir.newFile("src/main/java/com/example/Foo.java").writeText("""
+        testProjectDir.newFile("src/main/java/com/example/Foo.java").writeText(
+            """
             package com.example;
 
             class Foo {
@@ -71,7 +78,8 @@ class JavaConventionPluginTest : PluginTest() {
                     s.hashCode();
                 }
             }
-        """)
+        """
+        )
 
         val result = runTaskWithFailure("build")
 
@@ -81,16 +89,19 @@ class JavaConventionPluginTest : PluginTest() {
     @Test
     fun `warns on deprecated API usage`() {
         testProjectDir.newFolder("src", "main", "java", "com", "example")
-        testProjectDir.newFile("src/main/java/com/example/Foo.java").writeText("""
+        testProjectDir.newFile("src/main/java/com/example/Foo.java").writeText(
+            """
             package com.example;
 
             public class Foo {
                 @Deprecated
                 public void deprecatedMethod() {}
             }
-        """)
+        """
+        )
 
-        testProjectDir.newFile("src/main/java/com/example/Bar.java").writeText("""
+        testProjectDir.newFile("src/main/java/com/example/Bar.java").writeText(
+            """
             package com.example;
 
             public class Bar {
@@ -98,7 +109,8 @@ class JavaConventionPluginTest : PluginTest() {
                     new Foo().deprecatedMethod();
                 }
             }
-        """)
+        """
+        )
 
         val result = runTask("build")
 

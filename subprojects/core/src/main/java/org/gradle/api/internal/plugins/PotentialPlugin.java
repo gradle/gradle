@@ -25,13 +25,6 @@ package org.gradle.api.internal.plugins;
  */
 public interface PotentialPlugin<T> {
 
-    enum Type {
-        UNKNOWN,
-        IMPERATIVE_CLASS,
-        PURE_RULE_SOURCE_CLASS,
-        HYBRID_IMPERATIVE_AND_RULES_CLASS
-    }
-
     Class<? extends T> asClass();
 
     boolean isImperative();
@@ -39,5 +32,12 @@ public interface PotentialPlugin<T> {
     boolean isHasRules();
 
     Type getType();
+
+    enum Type {
+        UNKNOWN,
+        IMPERATIVE_CLASS,
+        PURE_RULE_SOURCE_CLASS,
+        HYBRID_IMPERATIVE_AND_RULES_CLASS
+    }
 
 }

@@ -48,7 +48,7 @@ class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
     FileCollection testDependencies
 
     Map getTaskArgs() {
-        [ groovyProject: groovyProject, scalaProject: scalaProject, testComponent: createTestComponent ]
+        [groovyProject: groovyProject, scalaProject: scalaProject, testComponent: createTestComponent]
     }
 
     def generateRootProject() {
@@ -112,11 +112,11 @@ class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
             testProject.testSourceFiles.times {
                 String packageName = createPackageName(it)
                 Map classArgs = args + [
-                    packageName               : packageName,
-                    productionClassName       : createFileName(classFilePrefix, it).toString(),
-                    testClassName             : createFileName(testFilePrefix, it).toString(),
+                    packageName: packageName,
+                    productionClassName: createFileName(classFilePrefix, it).toString(),
+                    testClassName: createFileName(testFilePrefix, it).toString(),
                     extendsAndImplementsClause: createExtendsAndImplementsClause(classFilePrefix, it).toString(),
-                    extraFields               : extraFields(classFilePrefix, it)]
+                    extraFields: extraFields(classFilePrefix, it)]
                 generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
             }
         }
@@ -128,7 +128,7 @@ class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
         def dependencies = templateArgs.generatedDependencies
         if (dependencies) {
             new File(destDir, "generated-deps.groovy") << """[
-   ${dependencies.collect {"($it.key): ${it.value}"}.join(',\n   ') }
+   ${dependencies.collect { "($it.key): ${it.value}" }.join(',\n   ')}
 ]"""
         }
     }

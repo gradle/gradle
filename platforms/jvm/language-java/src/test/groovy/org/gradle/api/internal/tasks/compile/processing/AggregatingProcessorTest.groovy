@@ -142,5 +142,4 @@ class AggregatingProcessorTest extends Specification {
     }
 
 
-
 }

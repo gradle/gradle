@@ -63,7 +63,7 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
 
             public class MainModule {
                 public void run() {
-                    ${dependencies.collect { "new ${it}();"}.join('\n')}
+                    ${dependencies.collect { "new ${it}();" }.join('\n')}
                 }
 
                 protected String protectedName() {
@@ -81,6 +81,6 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
     }
 
     protected consumingModuleInfo(String... statements) {
-        file('src/main/java/module-info.java').text = "module consumer { ${statements.collect { it + ';' }.join(' ') } }"
+        file('src/main/java/module-info.java').text = "module consumer { ${statements.collect { it + ';' }.join(' ')} }"
     }
 }

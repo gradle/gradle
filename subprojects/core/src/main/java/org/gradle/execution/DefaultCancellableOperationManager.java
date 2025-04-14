@@ -41,6 +41,10 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
         this.cancellationToken = cancellationToken;
     }
 
+    private static boolean isCancellation(int c) {
+        return c == KEY_CODE_CTRL_D || c == EOF;
+    }
+
     @Override
     public void monitorInput(final Action<? super BuildCancellationToken> operation) {
         final AtomicBoolean operationCompleted = new AtomicBoolean();
@@ -82,9 +86,5 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-    }
-
-    private static boolean isCancellation(int c) {
-        return c == KEY_CODE_CTRL_D || c == EOF;
     }
 }

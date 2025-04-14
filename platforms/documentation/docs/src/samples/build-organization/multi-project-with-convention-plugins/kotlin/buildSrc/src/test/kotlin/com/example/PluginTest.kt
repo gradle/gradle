@@ -18,25 +18,27 @@ abstract class PluginTest {
     @Before
     fun setup() {
         settingsFile = testProjectDir.newFile("settings.gradle.kts")
-        settingsFile.appendText("""
+        settingsFile.appendText(
+            """
             rootProject.name = "test"
-        """)
+        """
+        )
         buildFile = testProjectDir.newFile("build.gradle.kts")
     }
 
     fun runTask(task: String): BuildResult {
         return GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
-                .withArguments(task, "--stacktrace")
-                .withPluginClasspath()
-                .build()
+            .withProjectDir(testProjectDir.root)
+            .withArguments(task, "--stacktrace")
+            .withPluginClasspath()
+            .build()
     }
 
     fun runTaskWithFailure(task: String): BuildResult {
         return GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
-                .withArguments(task, "--stacktrace")
-                .withPluginClasspath()
-                .buildAndFail()
+            .withProjectDir(testProjectDir.root)
+            .withArguments(task, "--stacktrace")
+            .withPluginClasspath()
+            .buildAndFail()
     }
 }

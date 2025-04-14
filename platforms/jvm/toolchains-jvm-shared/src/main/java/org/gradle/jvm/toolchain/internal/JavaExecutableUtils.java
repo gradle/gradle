@@ -33,11 +33,11 @@ public class JavaExecutableUtils {
         File executableFile = new File(executable);
         if (!executableFile.isAbsolute()) {
             DeprecationLogger.deprecateBehaviour("Configuring a Java executable via a relative path.")
-                    .withContext("Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against.")
-                    .withAdvice("Configure an absolute path to a Java executable instead.")
-                    .willBecomeAnErrorInGradle9()
-                    .withUpgradeGuideSection(8, "no_relative_paths_for_java_executables")
-                    .nagUser();
+                .withContext("Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against.")
+                .withAdvice("Configure an absolute path to a Java executable instead.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "no_relative_paths_for_java_executables")
+                .nagUser();
         }
         File executableAbsoluteFile = executableFile.getAbsoluteFile();
         if (!executableAbsoluteFile.exists()) {

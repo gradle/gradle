@@ -24,7 +24,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
         given:
         repository {
             'org:foo:1.0' {
-                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+                dependsOn(group: 'org', artifact: 'bar', version: '1.0', classifier: 'classy')
             }
             'org:bar:1.0' {
                 withModule {
@@ -69,7 +69,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
         given:
         repository {
             'org:foo:1.0' {
-                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+                dependsOn(group: 'org', artifact: 'bar', version: '1.0', classifier: 'classy')
             }
             'org:bar:1.0' {
                 withModule {
@@ -174,8 +174,8 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
         given:
         repository {
             'org:foo:1.0' {
-                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
-                dependsOn(group: 'org', artifact:'bar', version:'1.0')
+                dependsOn(group: 'org', artifact: 'bar', version: '1.0', classifier: 'classy')
+                dependsOn(group: 'org', artifact: 'bar', version: '1.0')
             }
             'org:bar:1.0' {
                 withModule {
@@ -223,8 +223,8 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
         given:
         repository {
             'org:foo:1.0' {
-                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
-                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'other')
+                dependsOn(group: 'org', artifact: 'bar', version: '1.0', classifier: 'classy')
+                dependsOn(group: 'org', artifact: 'bar', version: '1.0', classifier: 'other')
             }
             'org:bar:1.0' {
                 withModule {

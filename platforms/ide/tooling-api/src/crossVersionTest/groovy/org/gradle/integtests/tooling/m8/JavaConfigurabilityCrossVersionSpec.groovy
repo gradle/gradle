@@ -87,7 +87,7 @@ assert System.getProperty('some-prop') == 'BBB'
     def "customized java args are reflected in the inputArguments and the build model"() {
         given:
         file('build.gradle') <<
-                "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
+            "project.description = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join('##')"
 
         when:
         BuildEnvironment env

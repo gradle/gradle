@@ -25,7 +25,8 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
 
     TestResultProcessor target = Mock()
     TestOutputRedirector redirector = Mock()
-    @Subject processor = new CaptureTestOutputTestResultProcessor(target, redirector)
+    @Subject
+        processor = new CaptureTestOutputTestResultProcessor(target, redirector)
 
     def "starts capturing output"() {
         def suite = new DefaultTestSuiteDescriptor("1", "Foo")
@@ -34,9 +35,12 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         when:
         processor.started(suite, event)
 
-        then: 1 * target.started(suite, event)
-        then: 1 * redirector.setOutputOwner("1")
-        then: 1 * redirector.startRedirecting()
+        then:
+        1 * target.started(suite, event)
+        then:
+        1 * redirector.setOutputOwner("1")
+        then:
+        1 * redirector.startRedirecting()
         0 * _
     }
 
@@ -46,7 +50,8 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
 
         processor.started(new DefaultTestSuiteDescriptor("1", "Foo"), new TestStartEvent(1))
 
-        when: processor.started(test, testEvent)
+        when:
+        processor.started(test, testEvent)
 
         then:
         1 * target.started(test, testEvent)
@@ -62,7 +67,8 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         processor.started(new DefaultTestSuiteDescriptor("1", "Foo"), new TestStartEvent(1))
         processor.started(test, testEvent)
 
-        when: processor.completed("2", complete)
+        when:
+        processor.completed("2", complete)
 
         then:
         1 * redirector.setOutputOwner("99")
@@ -78,7 +84,8 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         processor.started(new DefaultTestSuiteDescriptor("1", "Foo"), new TestStartEvent(1))
         processor.started(test, testEvent)
 
-        when: processor.completed("2", complete)
+        when:
+        processor.completed("2", complete)
 
         then:
         1 * redirector.setOutputOwner("1")
@@ -95,7 +102,8 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         processor.started(test, testEvent)
         processor.completed("2", complete)
 
-        when: processor.completed("1", complete)
+        when:
+        processor.completed("1", complete)
 
         then:
         1 * redirector.stopRedirecting()

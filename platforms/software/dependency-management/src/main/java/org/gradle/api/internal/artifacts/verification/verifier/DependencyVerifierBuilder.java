@@ -54,15 +54,11 @@ public class DependencyVerifierBuilder {
     private final Set<DependencyVerificationConfiguration.TrustedKey> trustedKeys = new LinkedHashSet<>();
     private final List<URI> keyServers = new ArrayList<>();
     private final Set<IgnoredKey> ignoredKeys = new LinkedHashSet<>();
+    private final List<String> topLevelComments = new ArrayList<>();
     private boolean isVerifyMetadata = true;
     private boolean isVerifySignatures = false;
     private boolean useKeyServers = true;
-    private final List<String> topLevelComments = new ArrayList<>();
     private DependencyVerificationConfiguration.KeyringFormat keyringFormat = null;
-
-    public void setKeyringFormat(String newKeyringFormat) {
-        this.keyringFormat = parseKeyringFormat(newKeyringFormat);
-    }
 
     private DependencyVerificationConfiguration.KeyringFormat parseKeyringFormat(String keyringFormat) {
         if (keyringFormat == null) {
@@ -77,6 +73,10 @@ public class DependencyVerifierBuilder {
 
     public DependencyVerificationConfiguration.KeyringFormat getKeyringFormat() {
         return keyringFormat;
+    }
+
+    public void setKeyringFormat(String newKeyringFormat) {
+        this.keyringFormat = parseKeyringFormat(newKeyringFormat);
     }
 
     public void addTopLevelComment(String comment) {
@@ -101,12 +101,12 @@ public class DependencyVerifierBuilder {
             .addIgnoredKey(artifact, key);
     }
 
-    public void setVerifyMetadata(boolean verifyMetadata) {
-        isVerifyMetadata = verifyMetadata;
-    }
-
     public boolean isVerifyMetadata() {
         return isVerifyMetadata;
+    }
+
+    public void setVerifyMetadata(boolean verifyMetadata) {
+        isVerifyMetadata = verifyMetadata;
     }
 
     public boolean isVerifySignatures() {
@@ -182,6 +182,16 @@ public class DependencyVerifierBuilder {
             this.component = component;
         }
 
+        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {
+            String key = entry.getKey();
+            ArtifactVerificationBuilder value = entry.getValue();
+            return new ImmutableArtifactVerificationMetadata(
+                key,
+                value.buildChecksums(),
+                value.buildTrustedPgpKeys(),
+                value.buildIgnoredPgpKeys());
+        }
+
         void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
         }
@@ -192,16 +202,6 @@ public class DependencyVerifierBuilder {
 
         void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
-        }
-
-        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {
-            String key = entry.getKey();
-            ArtifactVerificationBuilder value = entry.getValue();
-            return new ImmutableArtifactVerificationMetadata(
-                key,
-                value.buildChecksums(),
-                value.buildTrustedPgpKeys(),
-                value.buildIgnoredPgpKeys());
         }
 
         ComponentVerificationMetadata build() {

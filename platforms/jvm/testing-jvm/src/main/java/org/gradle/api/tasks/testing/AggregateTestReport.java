@@ -40,7 +40,6 @@ public interface AggregateTestReport extends ReportSpec {
      * Contains the name of the test suite in target projects that this report will aggregate.
      *
      * @return the name of the suite that this report will aggregate.
-     *
      * @since 8.13
      */
     Property<String> getTestSuiteName();

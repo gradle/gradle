@@ -73,7 +73,7 @@ public class MavenDependencyKey {
         StringBuilder key = new StringBuilder();
         key.append(groupId).append(KEY_SEPARATOR).append(artifactId).append(KEY_SEPARATOR).append(type);
 
-        if(classifier != null) {
+        if (classifier != null) {
             key.append(KEY_SEPARATOR).append(classifier);
         }
 

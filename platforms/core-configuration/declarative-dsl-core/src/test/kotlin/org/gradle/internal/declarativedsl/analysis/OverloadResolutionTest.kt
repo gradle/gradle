@@ -39,10 +39,14 @@ class OverloadResolutionTest {
         val result = schema.resolve(code, resolver)
 
         val addedObjects = result.additions.map { it.dataObject }
-        assertEquals(FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed,
-            ((addedObjects[0] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
-        assertEquals(FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired,
-            ((addedObjects[1] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement)
+        assertEquals(
+            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed,
+            ((addedObjects[0] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement
+        )
+        assertEquals(
+            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired,
+            ((addedObjects[1] as FunctionInvocationOrigin).function.semantics as FunctionSemantics.ConfigureSemantics).configureBlockRequirement
+        )
     }
 
     private

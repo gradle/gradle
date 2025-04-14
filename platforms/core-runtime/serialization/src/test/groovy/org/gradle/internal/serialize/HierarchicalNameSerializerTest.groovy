@@ -44,7 +44,7 @@ class HierarchicalNameSerializerTest extends Specification {
 
         then:
         result == names
-        int originalSize = names.sum {it.length() } as int
+        int originalSize = names.sum { it.length() } as int
         int newSize = bytes.length
         newSize < originalSize / 2
 

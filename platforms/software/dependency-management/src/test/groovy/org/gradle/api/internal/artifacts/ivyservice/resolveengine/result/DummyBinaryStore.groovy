@@ -33,6 +33,7 @@ class DummyBinaryStore implements BinaryStore {
     BinaryData done() {
         new BinaryData() {
             Decoder decoder
+
             def <T> T read(ReadAction<T> readAction) {
                 if (decoder == null) {
                     decoder = new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray()))

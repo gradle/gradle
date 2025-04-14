@@ -34,7 +34,7 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
 
     public DefaultArtifactSelectionDetails(DefaultDependencySubstitution defaultDependencySubstitution, List<IvyArtifactName> requested) {
         this.owner = defaultDependencySubstitution;
-        this.requestedSelectors = requested.isEmpty() ? ImmutableList.of():ImmutableList.copyOf(requested.stream()
+        this.requestedSelectors = requested.isEmpty() ? ImmutableList.of() : ImmutableList.copyOf(requested.stream()
             .map(e -> new DefaultDependencyArtifactSelector(e.getType(), e.getExtension(), e.getClassifier()))
             .collect(Collectors.toList()));
     }

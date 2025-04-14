@@ -40,6 +40,21 @@ public class DefaultProjectPropertiesLoader implements ProjectPropertiesLoader {
         this.startParameter = startParameter;
     }
 
+    private static Map<String, String> byPrefix(String prefix, Environment.Properties properties) {
+        return mapKeysRemovingPrefix(prefix, properties.byNamePrefix(prefix));
+    }
+
+    private static Map<String, String> mapKeysRemovingPrefix(String prefix, Map<String, String> mapWithPrefix) {
+        Map<String, String> mapWithoutPrefix = new HashMap<>(mapWithPrefix.size());
+        for (Map.Entry<String, String> entry : mapWithPrefix.entrySet()) {
+            mapWithoutPrefix.put(
+                entry.getKey().substring(prefix.length()),
+                entry.getValue()
+            );
+        }
+        return mapWithoutPrefix;
+    }
+
     @Override
     public Map<String, Object> loadProjectProperties() {
         Map<String, Object> properties = new HashMap<>();
@@ -61,20 +76,5 @@ public class DefaultProjectPropertiesLoader implements ProjectPropertiesLoader {
         Map<String, String> envProjectProperties = byPrefix(ENV_PROJECT_PROPERTIES_PREFIX, environment.getVariables());
         LOGGER.debug("Found env project properties: {}", envProjectProperties.keySet());
         return envProjectProperties;
-    }
-
-    private static Map<String, String> byPrefix(String prefix, Environment.Properties properties) {
-        return mapKeysRemovingPrefix(prefix, properties.byNamePrefix(prefix));
-    }
-
-    private static Map<String, String> mapKeysRemovingPrefix(String prefix, Map<String, String> mapWithPrefix) {
-        Map<String, String> mapWithoutPrefix = new HashMap<>(mapWithPrefix.size());
-        for (Map.Entry<String, String> entry : mapWithPrefix.entrySet()) {
-            mapWithoutPrefix.put(
-                entry.getKey().substring(prefix.length()),
-                entry.getValue()
-            );
-        }
-        return mapWithoutPrefix;
     }
 }

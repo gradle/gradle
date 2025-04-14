@@ -88,12 +88,12 @@ public class DefaultIdeaContentRoot implements Serializable {
     @Override
     public String toString() {
         return "IdeaContentRoot{"
-                + "rootDirectory=" + rootDirectory
-                + ", sourceDirectories count=" + sourceDirectories.size()
-                + ", testDirectories count=" + testDirectories.size()
-                + ", resourceDirectories count=" + resourceDirectories.size()
-                + ", testResourceDirectories count=" + testResourceDirectories.size()
-                + ", excludeDirectories count=" + excludeDirectories.size()
-                + '}';
+            + "rootDirectory=" + rootDirectory
+            + ", sourceDirectories count=" + sourceDirectories.size()
+            + ", testDirectories count=" + testDirectories.size()
+            + ", resourceDirectories count=" + resourceDirectories.size()
+            + ", testResourceDirectories count=" + testResourceDirectories.size()
+            + ", excludeDirectories count=" + excludeDirectories.size()
+            + '}';
     }
 }

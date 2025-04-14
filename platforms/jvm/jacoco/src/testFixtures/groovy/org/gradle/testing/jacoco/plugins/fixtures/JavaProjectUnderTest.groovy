@@ -100,7 +100,7 @@ class JavaProjectUnderTest {
         }
     }
 
-    private void writeTestSourceFile(String baseDir, int count = 1, String type="Test") {
+    private void writeTestSourceFile(String baseDir, int count = 1, String type = "Test") {
         (1..count).each { index ->
             file("$baseDir/org/gradle/Class${index}${type}.java").text = """
             package org.gradle;

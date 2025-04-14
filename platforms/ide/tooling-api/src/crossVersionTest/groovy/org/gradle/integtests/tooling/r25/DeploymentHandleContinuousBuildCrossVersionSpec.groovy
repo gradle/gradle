@@ -32,7 +32,7 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
         buildTimeout = 30
     }
 
-    def "deployment is stopped when continuous build is cancelled" () {
+    def "deployment is stopped when continuous build is cancelled"() {
         when:
         runBuild(["runDeployment"]) {
             succeeds()

@@ -43,10 +43,9 @@ import static org.gradle.internal.FileUtils.hasExtension;
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTestFrameworkDetector.class);
     private static final String JAVA_LANG_OBJECT = "java/lang/Object";
-
-    private List<File> testClassDirectories;
     private final ClassFileExtractionManager classFileExtractionManager;
     private final Map<File, Boolean> superClasses;
+    private List<File> testClassDirectories;
     private TestClassProcessor testClassProcessor;
 
     private List<File> testClassesDirectories;
@@ -218,19 +217,19 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         private final String className;
         private final String superClassName;
 
+        private TestClass(boolean test, boolean isAbstract, String className, String superClassName) {
+            this.test = test;
+            this.isAbstract = isAbstract;
+            this.className = className;
+            this.superClassName = superClassName;
+        }
+
         static TestClass forParseableFile(TestClassVisitor testClassVisitor) {
             return new TestClass(testClassVisitor.isTest(), testClassVisitor.isAbstract(), testClassVisitor.getClassName(), testClassVisitor.getSuperClassName());
         }
 
         static TestClass forUnparseableFile(String className) {
             return new TestClass(true, false, className, null);
-        }
-
-        private TestClass(boolean test, boolean isAbstract, String className, String superClassName) {
-            this.test = test;
-            this.isAbstract = isAbstract;
-            this.className = className;
-            this.superClassName = superClassName;
         }
 
         boolean isTest() {

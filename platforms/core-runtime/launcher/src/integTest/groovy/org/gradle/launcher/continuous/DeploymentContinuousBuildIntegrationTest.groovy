@@ -31,7 +31,7 @@ class DeploymentContinuousBuildIntegrationTest extends AbstractContinuousIntegra
         buildTimeout = 30
     }
 
-    def "deployment promoted to continuous build reports accurate build time" () {
+    def "deployment promoted to continuous build reports accurate build time"() {
         when:
         withoutContinuousBuild()
         succeeds("runDeployment")
@@ -43,7 +43,7 @@ class DeploymentContinuousBuildIntegrationTest extends AbstractContinuousIntegra
         buildTimes[0] >= buildTimes[1]
     }
 
-    def "deployment in continuous build reports accurate build time" () {
+    def "deployment in continuous build reports accurate build time"() {
         when:
         succeeds("runDeployment")
 

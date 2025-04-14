@@ -26,12 +26,14 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 public interface ComponentMetadataSupplierDetails {
     /**
      * Returns the identifier of the component being resolved
+     *
      * @return the identifier
      */
     ModuleComponentIdentifier getId();
 
     /**
      * Returns the metadata builder, that users can use to feed metadata for the component.
+     *
      * @return the metadata builder
      */
     ComponentMetadataBuilder getResult();

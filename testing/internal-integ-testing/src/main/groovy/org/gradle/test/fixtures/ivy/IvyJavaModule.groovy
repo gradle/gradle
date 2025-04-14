@@ -93,7 +93,7 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     void assertPublishedAsWebModule() {
         super.assertPublished()
 
-        def war = backingModule.file(type:'war')
+        def war = backingModule.file(type: 'war')
         List<String> expectedArtifacts = [war.name, backingModule.moduleMetadataFile.name, backingModule.ivyFile.name]
         expectedArtifacts.addAll(additionalArtifacts.file.name)
         backingModule.assertArtifactsPublished(expectedArtifacts as String[])

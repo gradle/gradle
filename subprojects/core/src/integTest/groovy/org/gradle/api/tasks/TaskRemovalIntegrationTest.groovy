@@ -30,18 +30,18 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails ("dummy")
+        fails("dummy")
 
         then:
         failure.assertHasCause("Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead.")
 
         where:
-        description                                | code
-        "TaskContainer.remove(Object)"             | "tasks.remove(foo)"
-        "TaskContainer.removeAll(Collection)"      | "tasks.removeAll([foo])"
-        "TaskContainer.clear()"                    | "tasks.clear()"
-        "TaskContainer.retainAll(Collection)"      | "tasks.retainAll([foo])"
-        "TaskContainer.iterator()#remove()"        | "def it = tasks.iterator(); it.next(); it.remove()"
+        description                           | code
+        "TaskContainer.remove(Object)"        | "tasks.remove(foo)"
+        "TaskContainer.removeAll(Collection)" | "tasks.removeAll([foo])"
+        "TaskContainer.clear()"               | "tasks.clear()"
+        "TaskContainer.retainAll(Collection)" | "tasks.retainAll([foo])"
+        "TaskContainer.iterator()#remove()"   | "def it = tasks.iterator(); it.next(); it.remove()"
     }
 
     def "throws exception when using whenObjectRemoved"() {
@@ -55,7 +55,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails ("dummy")
+        fails("dummy")
 
         then:
         failure.assertHasCause("Registering actions on task removal is not supported.")

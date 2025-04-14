@@ -92,7 +92,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
     def "should not keep #modifier inner class if API is declared"() {
         given:
-        def api = toApi ([''], [ 'A': """
+        def api = toApi([''], ['A': """
             public class A {
                $modifier class Inner {
                   public void foo() {}
@@ -112,9 +112,9 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         extractedOuter.classes.length == 0
 
         where:
-        modifier           | access
-        ''                 | 0
-        'static'           | Opcodes.ACC_STATIC
+        modifier | access
+        ''       | 0
+        'static' | Opcodes.ACC_STATIC
     }
 
     def "should not keep anonymous inner classes"() {

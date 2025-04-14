@@ -24,29 +24,6 @@ import java.util.Objects;
 
 public class UnknownImplementationSnapshot extends ImplementationSnapshot {
 
-    public enum UnknownReason {
-        UNKNOWN_CLASSLOADER(
-            "was loaded with an unknown classloader (class '%s').",
-            "Gradle cannot track the implementation for classes loaded with an unknown classloader.",
-            "Load your class by using one of Gradle's built-in ways."
-        ),
-        UNTRACKED_LAMBDA(
-            "was implemented by the Java lambda '%s'.",
-            "Using Java lambdas is not supported as task inputs.",
-            "Use an (anonymous inner) class instead."
-        );
-
-        private final String descriptionTemplate;
-        private final String reason;
-        private final String solution;
-
-        UnknownReason(String descriptionTemplate, String reason, String solution) {
-            this.descriptionTemplate = descriptionTemplate;
-            this.reason = reason;
-            this.solution = solution;
-        }
-    }
-
     private final UnknownReason unknownReason;
 
     public UnknownImplementationSnapshot(String typeName, UnknownReason unknownReason) {
@@ -107,5 +84,28 @@ public class UnknownImplementationSnapshot extends ImplementationSnapshot {
     @Override
     public String toString() {
         return classIdentifier + "@<" + unknownReason.name() + ">";
+    }
+
+    public enum UnknownReason {
+        UNKNOWN_CLASSLOADER(
+            "was loaded with an unknown classloader (class '%s').",
+            "Gradle cannot track the implementation for classes loaded with an unknown classloader.",
+            "Load your class by using one of Gradle's built-in ways."
+        ),
+        UNTRACKED_LAMBDA(
+            "was implemented by the Java lambda '%s'.",
+            "Using Java lambdas is not supported as task inputs.",
+            "Use an (anonymous inner) class instead."
+        );
+
+        private final String descriptionTemplate;
+        private final String reason;
+        private final String solution;
+
+        UnknownReason(String descriptionTemplate, String reason, String solution) {
+            this.descriptionTemplate = descriptionTemplate;
+            this.reason = reason;
+            this.solution = solution;
+        }
     }
 }

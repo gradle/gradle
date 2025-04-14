@@ -25,12 +25,12 @@ import java.util.Optional;
  */
 public class PartialDirectoryNode extends AbstractIncompleteFileSystemNode {
 
-    public static PartialDirectoryNode withoutKnownChildren() {
-        return new PartialDirectoryNode(EmptyChildMap.getInstance());
-    }
-
     public PartialDirectoryNode(ChildMap<? extends FileSystemNode> children) {
         super(children);
+    }
+
+    public static PartialDirectoryNode withoutKnownChildren() {
+        return new PartialDirectoryNode(EmptyChildMap.getInstance());
     }
 
     @Override

@@ -34,6 +34,9 @@ import java.util.function.Supplier;
  */
 public class SerializableLambdas {
 
+    private SerializableLambdas() {
+    }
+
     public static <T> Spec<T> spec(SerializableSpec<T> spec) {
         return spec;
     }
@@ -108,9 +111,6 @@ public class SerializableLambdas {
     public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
     }
 
-    public interface SerializablePredicate<T> extends Predicate<T>, Serializable{
-    }
-
-    private SerializableLambdas() {
+    public interface SerializablePredicate<T> extends Predicate<T>, Serializable {
     }
 }

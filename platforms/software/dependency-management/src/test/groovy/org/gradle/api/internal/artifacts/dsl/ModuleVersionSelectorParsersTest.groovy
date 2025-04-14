@@ -40,8 +40,8 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v.size() == 1
         v[0].group == 'org.foo'
-        v[0].name  == 'bar'
-        v[0].version  == '1.0'
+        v[0].name == 'bar'
+        v[0].version == '1.0'
     }
 
     def "works with CharSequences"() {
@@ -51,7 +51,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
 
         then:
         v.size() == 1
-        v[0].name  == 'charsequence'
+        v[0].name == 'charsequence'
     }
 
     def "allows exact type on input"() {
@@ -64,16 +64,16 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v.size() == 1
         v[0].group == 'org.foo'
-        v[0].name  == 'bar'
-        v[0].version  == '2.0'
+        v[0].name == 'bar'
+        v[0].version == '2.0'
     }
 
     def "allows list of objects on input"() {
         def module = DefaultModuleIdentifier.newId("org.foo", "bar")
-        def id = newSelector(module,"2.0")
+        def id = newSelector(module, "2.0")
 
         when:
-        def v = multiParser("").parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
+        def v = multiParser("").parseNotation([id, ["hey:man:1.0"], [group: 'i', name: 'like', version: 'maps']]) as List
 
         then:
         v.size() == 3
@@ -84,13 +84,13 @@ class ModuleVersionSelectorParsersTest extends Specification {
 
     def "allows map on input"() {
         when:
-        def v = multiParser("").parseNotation([group: 'org.foo', name: 'bar', version:'1.0']) as List
+        def v = multiParser("").parseNotation([group: 'org.foo', name: 'bar', version: '1.0']) as List
 
         then:
         v.size() == 1
         v[0].group == 'org.foo'
-        v[0].name  == 'bar'
-        v[0].version  == '1.0'
+        v[0].name == 'bar'
+        v[0].version == '1.0'
     }
 
     def "fails for unknown types"() {
@@ -155,14 +155,14 @@ class ModuleVersionSelectorParsersTest extends Specification {
 
         then:
         v.group == 'org.foo'
-        v.name  == 'bar'
-        v.version  == '1.0'
+        v.name == 'bar'
+        v.version == '1.0'
     }
 
     def "allows provider of type MinimalExternalModuleDependency as an input"() {
         given:
         def provider = Stub(Provider.class)
-        def dependency =  Stub(MinimalExternalModuleDependency.class)
+        def dependency = Stub(MinimalExternalModuleDependency.class)
         dependency.module >> DefaultModuleIdentifier.newId("org.foo", "bar")
         dependency.versionConstraint >> new DefaultMutableVersionConstraint("1.0")
         provider.get() >> dependency
@@ -173,8 +173,8 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v
         v.group == 'org.foo'
-        v.name  == 'bar'
-        v.version  == '1.0'
+        v.name == 'bar'
+        v.version == '1.0'
     }
 
     def "allows provider convertible of type MinimalExternalModuleDependency as an input"() {
@@ -193,8 +193,8 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v
         v.group == 'org.foo'
-        v.name  == 'bar'
-        v.version  == '1.0'
+        v.name == 'bar'
+        v.version == '1.0'
     }
 
     def "reports unsupported provider type"() {

@@ -148,13 +148,6 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     Provider<Set<FileSystemLocation>> getElements();
 
     /**
-     * Ant types which a {@code FileCollection} can be mapped to.
-     */
-    enum AntType {
-        MatchingTask, FileSet, ResourceCollection
-    }
-
-    /**
      * Adds this collection to an Ant task as a nested node. The given type determines how this collection is added:
      *
      * <ul>
@@ -186,4 +179,11 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      */
     @Override
     Object addToAntBuilder(Object builder, String nodeName);
+
+    /**
+     * Ant types which a {@code FileCollection} can be mapped to.
+     */
+    enum AntType {
+        MatchingTask, FileSet, ResourceCollection
+    }
 }

@@ -39,7 +39,7 @@ class NonIncrementalInputChangesTest extends Specification {
         )
 
         Provider<FileSystemLocation> value = Mock()
-        def changes = new NonIncrementalInputChanges(ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of("input", fingerprint), new DefaultIncrementalInputProperties(ImmutableBiMap.of("input", value)))
+        def changes = new NonIncrementalInputChanges(ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of("input", fingerprint), new DefaultIncrementalInputProperties(ImmutableBiMap.of("input", value)))
         def expectedChangedFiles = [new File("/some/where")]
 
         when:

@@ -129,12 +129,12 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         """
 
         when:
-        fails'test'
+        fails 'test'
 
         then:
         testResult.assertTestClassesExecuted("TestNG18566")
         testResult.testClass('TestNG18566')
             .assertTestCount(1, 1, 0)
-            .testFailed("testTimeout",  containsNormalizedString("Method TestNG18566.testTimeout() didn't finish within the time-out 10"))
+            .testFailed("testTimeout", containsNormalizedString("Method TestNG18566.testTimeout() didn't finish within the time-out 10"))
     }
 }

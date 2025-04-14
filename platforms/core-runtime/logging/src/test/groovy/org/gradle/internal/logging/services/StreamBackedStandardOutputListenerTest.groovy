@@ -43,7 +43,7 @@ class StreamBackedStandardOutputListenerTest extends Specification {
         1 * writer.flush()
         0 * _._
     }
-    
+
     def canAppendToAnOutputStream() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
         def listener = new StreamBackedStandardOutputListener(outputStream)

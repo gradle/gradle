@@ -71,37 +71,6 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return profilerName != null && !profilerName.isEmpty();
     }
 
-    private Profiler createProfiler(String profilerName) {
-        OptionParser optionParser = new OptionParser();
-        optionParser.accepts("profiler");
-        ProfilerFactory.configureParser(optionParser);
-        ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
-        String[] options = profilerName.equals("jprofiler")
-            ? new String[] {"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")}
-            : new String[] {};
-        return profilerFactory.createFromOptions(optionParser.parse(options));
-    }
-
-    protected BenchmarkResultCollector getResultCollector() {
-        return gradleProfilerReporter.getResultCollector();
-    }
-
-    @Override
-    public void run(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
-        System.out.println();
-        System.out.printf("%s ...%n", experiment.getDisplayName());
-        System.out.println();
-
-        InvocationSpec invocationSpec = experiment.getInvocation();
-        File workingDirectory = invocationSpec.getWorkingDirectory();
-        workingDirectory.mkdirs();
-        copyTemplateTo(experiment, workingDirectory);
-
-        doRun(testId, experiment, results);
-    }
-
-    protected abstract void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results);
-
     private static void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
         try {
             File templateDir = TestProjectLocator.findProjectDir(experiment.getProjectName());
@@ -110,34 +79,6 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
-    }
-
-    protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(String testId, BuildExperimentSpec experiment) {
-        File outputDir = outputDirFor(testId, experiment);
-        InvocationSpec invocationSpec = experiment.getInvocation();
-        return new InvocationSettings.InvocationSettingsBuilder()
-            .setProjectDir(invocationSpec.getWorkingDirectory())
-            .setProfiler(profiler)
-            .setBenchmark(true)
-            .setOutputDir(outputDir)
-            .setScenarioFile(null)
-            .setSysProperties(emptyMap())
-            .setWarmupCount(warmupsForExperiment(experiment))
-            .setIterations(invocationsForExperiment(experiment))
-            .setCsvFormat(Format.LONG);
-    }
-
-    private File outputDirFor(String testId, BuildExperimentSpec spec) {
-        boolean crossVersion = spec instanceof GradleBuildExperimentSpec && ((GradleBuildExperimentSpec) spec).isCrossVersion();
-        File outputDir;
-        if (crossVersion) {
-            String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
-            outputDir = new File(outputDirSelector.outputDirFor(testId), version);
-        } else {
-            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelectorUtil.fileSafeNameFor(spec.getDisplayName()));
-        }
-        outputDir.mkdirs();
-        return outputDir;
     }
 
     private static String getExperimentOverride(String key) {
@@ -182,6 +123,69 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return false;
     }
 
+    protected static Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
+        return () -> mutatorFunction.apply(invocationSettings);
+    }
+
+    private Profiler createProfiler(String profilerName) {
+        OptionParser optionParser = new OptionParser();
+        optionParser.accepts("profiler");
+        ProfilerFactory.configureParser(optionParser);
+        ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
+        String[] options = profilerName.equals("jprofiler")
+            ? new String[]{"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")}
+            : new String[]{};
+        return profilerFactory.createFromOptions(optionParser.parse(options));
+    }
+
+    protected BenchmarkResultCollector getResultCollector() {
+        return gradleProfilerReporter.getResultCollector();
+    }
+
+    @Override
+    public void run(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
+        System.out.println();
+        System.out.printf("%s ...%n", experiment.getDisplayName());
+        System.out.println();
+
+        InvocationSpec invocationSpec = experiment.getInvocation();
+        File workingDirectory = invocationSpec.getWorkingDirectory();
+        workingDirectory.mkdirs();
+        copyTemplateTo(experiment, workingDirectory);
+
+        doRun(testId, experiment, results);
+    }
+
+    protected abstract void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results);
+
+    protected InvocationSettings.InvocationSettingsBuilder createInvocationSettingsBuilder(String testId, BuildExperimentSpec experiment) {
+        File outputDir = outputDirFor(testId, experiment);
+        InvocationSpec invocationSpec = experiment.getInvocation();
+        return new InvocationSettings.InvocationSettingsBuilder()
+            .setProjectDir(invocationSpec.getWorkingDirectory())
+            .setProfiler(profiler)
+            .setBenchmark(true)
+            .setOutputDir(outputDir)
+            .setScenarioFile(null)
+            .setSysProperties(emptyMap())
+            .setWarmupCount(warmupsForExperiment(experiment))
+            .setIterations(invocationsForExperiment(experiment))
+            .setCsvFormat(Format.LONG);
+    }
+
+    private File outputDirFor(String testId, BuildExperimentSpec spec) {
+        boolean crossVersion = spec instanceof GradleBuildExperimentSpec && ((GradleBuildExperimentSpec) spec).isCrossVersion();
+        File outputDir;
+        if (crossVersion) {
+            String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
+            outputDir = new File(outputDirSelector.outputDirFor(testId), version);
+        } else {
+            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelectorUtil.fileSafeNameFor(spec.getDisplayName()));
+        }
+        outputDir.mkdirs();
+        return outputDir;
+    }
+
     protected <T extends BuildInvocationResult> Consumer<T> consumerFor(
         ScenarioDefinition scenarioDefinition,
         MeasuredOperationList results,
@@ -197,9 +201,5 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             }
             scenarioReporter.accept(invocationResult);
         };
-    }
-
-    protected static Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
-        return () -> mutatorFunction.apply(invocationSettings);
     }
 }

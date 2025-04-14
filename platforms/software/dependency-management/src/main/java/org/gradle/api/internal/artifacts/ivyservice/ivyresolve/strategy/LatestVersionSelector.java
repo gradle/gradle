@@ -54,7 +54,7 @@ public class LatestVersionSelector extends AbstractStringVersionSelector {
     public boolean accept(ComponentMetadata candidate) {
         int selectorStatusIndex = candidate.getStatusScheme().indexOf(selectorStatus);
         int candidateStatusIndex = candidate.getStatusScheme().indexOf(candidate.getStatus());
-        return selectorStatusIndex >=0 && selectorStatusIndex <= candidateStatusIndex;
+        return selectorStatusIndex >= 0 && selectorStatusIndex <= candidateStatusIndex;
     }
 
     @Override

@@ -29,7 +29,8 @@ tasks.named('integTest') {
 // tag::distributionDirInput[]
 abstract class DistributionLocationProvider implements CommandLineArgumentProvider {  // <1>
     @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)  // <2>
+    @PathSensitive(PathSensitivity.RELATIVE)
+    // <2>
     abstract DirectoryProperty getDistribution()
 
     @Override
@@ -49,7 +50,8 @@ tasks.named('integTest') {
 
 // tag::ignoreSystemProperties[]
 abstract class CiEnvironmentProvider implements CommandLineArgumentProvider {
-    @Internal  // <1>
+    @Internal
+    // <1>
     abstract Property<String> getAgentNumber()
 
     @Override

@@ -34,6 +34,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def buildPluginWith(String gradleVersion) {
         buildPluginWith(buildContext.distribution(gradleVersion))
     }
+
     def buildPluginWith(GradleDistribution gradleDist) {
         println "Building plugin with $gradleDist"
         def pluginDir = file("plugin")

@@ -167,7 +167,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
      * Features some APIs similar to {@link InterceptorTestReceiver}, but we don't have interceptors for this class as a receiver.
      */
     private class FalseInterceptorTestReceiver {
-        void test() { }
+        void test() {}
     }
 
     def 'invoking an intercepted method on a BeanDynamicObject replaces the metaclass of the bean'() {

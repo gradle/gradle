@@ -30,11 +30,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * A handler for properties discovered without a valid annotation.
  */
 public interface MissingPropertyAnnotationHandler {
-    void handleMissingPropertyAnnotation(TypeValidationContext context, PropertyAnnotationMetadata annotationMetadata, String displayName);
-
     MissingPropertyAnnotationHandler DO_NOTHING = (context, annotationMetadata, displayName) -> {};
-
-
     MissingPropertyAnnotationHandler MISSING_INPUT_OUTPUT_HANDLER = (context, annotationMetadata, displayName) -> context.visitPropertyProblem(problem -> {
         final String missingAnnotation = "MISSING_ANNOTATION";
         problem
@@ -47,4 +43,6 @@ public interface MissingPropertyAnnotationHandler {
             .solution("Add " + displayName)
             .solution("Mark it as @Internal");
     });
+
+    void handleMissingPropertyAnnotation(TypeValidationContext context, PropertyAnnotationMetadata annotationMetadata, String displayName);
 }

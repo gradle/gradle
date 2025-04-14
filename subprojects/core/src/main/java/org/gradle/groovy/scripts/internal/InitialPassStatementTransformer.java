@@ -48,8 +48,10 @@ public class InitialPassStatementTransformer implements StatementTransformer {
     private boolean seenPluginManagementBlock;
     private boolean seenClasspathBlock;
 
-    public InitialPassStatementTransformer(ScriptTarget scriptTarget,
-                                           DocumentationRegistry documentationRegistry) {
+    public InitialPassStatementTransformer(
+        ScriptTarget scriptTarget,
+        DocumentationRegistry documentationRegistry
+    ) {
         this.scriptTarget = scriptTarget;
         this.scriptBlockNames = Arrays.asList(scriptTarget.getClasspathBlockName(), PLUGINS, PLUGIN_MANAGEMENT);
         this.documentationRegistry = documentationRegistry;

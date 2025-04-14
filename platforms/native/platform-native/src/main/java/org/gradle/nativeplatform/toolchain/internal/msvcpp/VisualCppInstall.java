@@ -29,8 +29,10 @@ public class VisualCppInstall implements Named {
     private final String name;
     private final VersionNumber version;
 
-    public VisualCppInstall(String name, VersionNumber version,
-                            Map<Architecture, ? extends VisualCpp> platforms) {
+    public VisualCppInstall(
+        String name, VersionNumber version,
+        Map<Architecture, ? extends VisualCpp> platforms
+    ) {
         this.name = name;
         this.version = version;
         this.platforms = platforms;

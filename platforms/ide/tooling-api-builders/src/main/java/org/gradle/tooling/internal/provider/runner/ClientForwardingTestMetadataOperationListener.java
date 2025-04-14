@@ -36,7 +36,7 @@ import org.jspecify.annotations.NullMarked;
  * This listener adapts build operation test events sent from the build into internal test events shared with the consumer.
  */
 @NullMarked
-/* package */ class ClientForwardingTestMetadataOperationListener implements BuildOperationListener {
+    /* package */ class ClientForwardingTestMetadataOperationListener implements BuildOperationListener {
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
 

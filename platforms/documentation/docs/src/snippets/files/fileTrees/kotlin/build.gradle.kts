@@ -21,7 +21,7 @@ tree = fileTree("dir" to "src", "include" to "**/*.java", "exclude" to "**/*test
 
 // tag::use[]
 // Iterate over the contents of a tree
-tree.forEach{ file: File ->
+tree.forEach { file: File ->
     println(file)
 }
 

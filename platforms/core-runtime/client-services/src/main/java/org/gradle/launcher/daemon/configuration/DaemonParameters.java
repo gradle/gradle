@@ -38,20 +38,16 @@ import java.util.List;
 import java.util.Map;
 
 public class DaemonParameters {
-    static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
-
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
-
+    static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     private final ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
 
     private final File gradleUserHomeDir;
-
+    private final JvmOptions jvmOptions;
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
-
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
-    private final JvmOptions jvmOptions;
     private boolean applyInstrumentationAgent = true;
     private NativeServicesMode nativeServicesMode = NativeServicesMode.ENABLED;
     private Map<String, String> envVariables;
@@ -92,6 +88,11 @@ public class DaemonParameters {
 
     public File getBaseDir() {
         return baseDir;
+    }
+
+    public DaemonParameters setBaseDir(File baseDir) {
+        this.baseDir = baseDir;
+        return this;
     }
 
     public File getGradleUserHomeDir() {
@@ -165,14 +166,6 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 
-    public void setEnvironmentVariables(Map<String, String> envVariables) {
-        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
-    }
-
-    public void setDebug(boolean debug) {
-        jvmOptions.setDebug(debug);
-    }
-
     public void setDebugPort(int debug) {
         jvmOptions.getDebugSpec().setPort(debug);
     }
@@ -189,13 +182,12 @@ public class DaemonParameters {
         jvmOptions.getDebugSpec().setServer(server);
     }
 
-    public DaemonParameters setBaseDir(File baseDir) {
-        this.baseDir = baseDir;
-        return this;
-    }
-
     public boolean getDebug() {
         return jvmOptions.getDebug();
+    }
+
+    public void setDebug(boolean debug) {
+        jvmOptions.setDebug(debug);
     }
 
     public boolean shouldApplyInstrumentationAgent() {
@@ -242,6 +234,10 @@ public class DaemonParameters {
 
     public Map<String, String> getEnvironmentVariables() {
         return envVariables;
+    }
+
+    public void setEnvironmentVariables(Map<String, String> envVariables) {
+        this.envVariables = envVariables == null ? new HashMap<String, String>(System.getenv()) : envVariables;
     }
 
     public ToolchainConfiguration getToolchainConfiguration() {

@@ -26,9 +26,9 @@
                                 import java.math.RoundingMode
 
                                 String format(def value) {
-                                    value = value / (1024 * 1024)
-                                    value = value.setScale(4, RoundingMode.DOWN)
-                                    "\${value}MB"
+                                value = value / (1024 * 1024)
+                                value = value.setScale(4, RoundingMode.DOWN)
+                                "\${value}MB"
                                 }
 
                                 def buildDir = new File(project.delegate.basedir, "build")

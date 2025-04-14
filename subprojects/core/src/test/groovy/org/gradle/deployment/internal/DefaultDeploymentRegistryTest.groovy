@@ -73,7 +73,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         registry.get("id", ParametersDeploymentHandle) == testHandle
     }
 
-    def "cannot register a duplicate deployment handle" () {
+    def "cannot register a duplicate deployment handle"() {
         def testHandle = new TestDeploymentHandle()
         objectFactory.newInstance(TestDeploymentHandle) >> testHandle
         when:
@@ -89,7 +89,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         e.message == "A deployment with id 'id' is already registered."
     }
 
-    def "stopping registry stops deployment handles" () {
+    def "stopping registry stops deployment handles"() {
         def testHandle = Mock(TestDeploymentHandle)
         objectFactory.newInstance(TestDeploymentHandle) >> testHandle
         testHandle.running >> true
@@ -104,7 +104,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         3 * testHandle.stop()
     }
 
-    def "cannot get a handle once the registry is stopped" () {
+    def "cannot get a handle once the registry is stopped"() {
         objectFactory.newInstance(TestDeploymentHandle) >> new TestDeploymentHandle()
         given:
         registry.start("id", DeploymentRegistry.ChangeBehavior.NONE, TestDeploymentHandle)
@@ -117,7 +117,7 @@ class DefaultDeploymentRegistryTest extends Specification {
         e.message == "Cannot modify deployment handles once the registry has been stopped."
     }
 
-    def "cannot register a handle once the registry is stopped" () {
+    def "cannot register a handle once the registry is stopped"() {
         given:
         registry.stop()
 

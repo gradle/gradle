@@ -46,19 +46,13 @@ import java.util.stream.Collectors;
 @CacheableTask
 public abstract class CodeNarc extends AbstractCodeQualityTask implements Reporting<CodeNarcReports> {
 
-    private FileCollection codenarcClasspath;
-
-    private FileCollection compilationClasspath;
-
-    private TextResource config;
-
-    private int maxPriority1Violations;
-
-    private int maxPriority2Violations;
-
-    private int maxPriority3Violations;
-
     private final CodeNarcReports reports;
+    private FileCollection codenarcClasspath;
+    private FileCollection compilationClasspath;
+    private TextResource config;
+    private int maxPriority1Violations;
+    private int maxPriority2Violations;
+    private int maxPriority3Violations;
 
     public CodeNarc() {
         super();
@@ -78,6 +72,13 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     }
 
     /**
+     * The CodeNarc configuration file to use.
+     */
+    public void setConfigFile(File configFile) {
+        setConfig(getProject().getResources().getText().fromFile(configFile));
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -85,13 +86,6 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
-    }
-
-    /**
-     * The CodeNarc configuration file to use.
-     */
-    public void setConfigFile(File configFile) {
-        setConfig(getProject().getResources().getText().fromFile(configFile));
     }
 
     @TaskAction

@@ -27,11 +27,11 @@ class SimpleHtmlWriterTest extends Specification {
         when:
         SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(sw)
         htmlWriter.startElement("html")
-                .startElement("head").endElement()
-                .startElement("body")
-                .startElement("h1").characters("Test Header").endElement()
-                .endElement()
-                .endElement()
+            .startElement("head").endElement()
+            .startElement("body")
+            .startElement("h1").characters("Test Header").endElement()
+            .endElement()
+            .endElement()
         sw.close()
 
         then:
@@ -46,9 +46,9 @@ class SimpleHtmlWriterTest extends Specification {
         SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(sw)
         htmlWriter.startElement("html")
             .startElement("head").endElement()
-                .startElement("body")
-                    .startElement("invalid").endElement()
-                .endElement()
+            .startElement("body")
+            .startElement("invalid").endElement()
+            .endElement()
             .endElement()
         sw.close()
 

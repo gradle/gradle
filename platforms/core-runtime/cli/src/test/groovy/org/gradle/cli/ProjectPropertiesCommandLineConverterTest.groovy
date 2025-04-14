@@ -18,15 +18,15 @@ package org.gradle.cli
 
 import spock.lang.Specification
 
-class ProjectPropertiesCommandLineConverterTest extends Specification{
-  def converter = new ProjectPropertiesCommandLineConverter();
+class ProjectPropertiesCommandLineConverterTest extends Specification {
+    def converter = new ProjectPropertiesCommandLineConverter();
 
-  def convert(String... args) {
-    converter.convert(Arrays.asList(args), new HashMap<String, String>()).sort()
-  }
+    def convert(String... args) {
+        converter.convert(Arrays.asList(args), new HashMap<String, String>()).sort()
+    }
 
-  def "parses project properties args"() {
-    expect:
-    convert("-Pa=b", "-Pc=d") == [a: "b", c: "d"]
-  }
+    def "parses project properties args"() {
+        expect:
+        convert("-Pa=b", "-Pc=d") == [a: "b", c: "d"]
+    }
 }

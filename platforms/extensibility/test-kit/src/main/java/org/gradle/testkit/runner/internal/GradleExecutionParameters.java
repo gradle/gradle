@@ -50,7 +50,8 @@ public class GradleExecutionParameters {
         OutputStream standardOutput,
         OutputStream standardError,
         InputStream standardInput,
-        Map<String, String> environment) {
+        Map<String, String> environment
+    ) {
         this.gradleProvider = gradleProvider;
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;

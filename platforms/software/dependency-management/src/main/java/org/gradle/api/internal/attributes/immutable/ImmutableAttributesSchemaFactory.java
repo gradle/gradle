@@ -50,40 +50,6 @@ public class ImmutableAttributesSchemaFactory {
         this.mergedSchemas = cacheFactory.create(this::doConcatSchemas);
     }
 
-    /**
-     * Create an immutable schema from its raw components, interning the result.
-     *
-     * @param strategies The attribute matching strategies.
-     * @param precedence The attribute matching precedence. Order is significant. Must not contain duplicates.
-     *
-     * @return The new immutable schema.
-     */
-    public ImmutableAttributesSchema create(
-        ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies,
-        ImmutableList<Attribute<?>> precedence
-    ) {
-        return schemas.intern(new ImmutableAttributesSchema(
-            strategies,
-            precedence
-        ));
-    }
-
-    /**
-     * Create a new immutable schema from the given mutable schema, interning the result.
-     *
-     * @param mutable The mutable schema to convert.
-     *
-     * @return The new immutable schema.
-     */
-    public ImmutableAttributesSchema create(AttributesSchemaInternal mutable) {
-        // TODO: "Lock in" the mutable schema once we create an immutable copy of it,
-        // as to prevent further mutations that will be ignored.
-        return create(
-            convertStrategies(mutable),
-            ImmutableList.copyOf(mutable.getAttributePrecedence())
-        );
-    }
-
     private static ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> convertStrategies(AttributesSchemaInternal mutable) {
         ImmutableMap.Builder<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies = ImmutableMap.builder();
         for (Map.Entry<Attribute<?>, DefaultAttributeMatchingStrategy<?>> entry : mutable.getStrategies().entrySet()) {
@@ -99,62 +65,6 @@ public class ImmutableAttributesSchemaFactory {
             ImmutableList.copyOf(mutableStrategy.getCompatibilityRules().getRules()),
             ImmutableList.copyOf(mutableStrategy.getDisambiguationRules().getRules())
         );
-    }
-
-    /**
-     * Merges two immutable schemas into a single schema, interning the result.
-     *
-     * @param consumer The schema from the consumer side.
-     * @param producer The schema from the producer side.
-     *
-     * @return The merged schema.
-     */
-    public ImmutableAttributesSchema concat(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
-        return mergedSchemas.get(new SchemaPair(consumer, producer));
-    }
-
-    private ImmutableAttributesSchema doConcatSchemas(SchemaPair pair) {
-        return create(
-            mergeStrategies(pair.consumer, pair.producer),
-            mergePrecedence(pair.consumer.precedence, pair.producer.precedence)
-        );
-    }
-
-    private static class SchemaPair {
-        private final ImmutableAttributesSchema consumer;
-        private final ImmutableAttributesSchema producer;
-        private final int hashCode;
-
-        SchemaPair(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
-            this.consumer = consumer;
-            this.producer = producer;
-            this.hashCode = computeHashCode(consumer, producer);
-        }
-
-        private static int computeHashCode(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
-            int result = consumer.hashCode();
-            result = 31 * result + producer.hashCode();
-            return result;
-        }
-
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            SchemaPair other = (SchemaPair) obj;
-            // We expect the consumer and producer to be interned
-            return consumer == other.consumer && producer == other.producer;
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
     }
 
     /**
@@ -220,6 +130,93 @@ public class ImmutableAttributesSchemaFactory {
             .addAll(producer) // "Elements appear in the resulting set in the same order they were first added to the builder"
             .build()
             .asList();
+    }
+
+    /**
+     * Create an immutable schema from its raw components, interning the result.
+     *
+     * @param strategies The attribute matching strategies.
+     * @param precedence The attribute matching precedence. Order is significant. Must not contain duplicates.
+     * @return The new immutable schema.
+     */
+    public ImmutableAttributesSchema create(
+        ImmutableMap<Attribute<?>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<?>> strategies,
+        ImmutableList<Attribute<?>> precedence
+    ) {
+        return schemas.intern(new ImmutableAttributesSchema(
+            strategies,
+            precedence
+        ));
+    }
+
+    /**
+     * Create a new immutable schema from the given mutable schema, interning the result.
+     *
+     * @param mutable The mutable schema to convert.
+     * @return The new immutable schema.
+     */
+    public ImmutableAttributesSchema create(AttributesSchemaInternal mutable) {
+        // TODO: "Lock in" the mutable schema once we create an immutable copy of it,
+        // as to prevent further mutations that will be ignored.
+        return create(
+            convertStrategies(mutable),
+            ImmutableList.copyOf(mutable.getAttributePrecedence())
+        );
+    }
+
+    /**
+     * Merges two immutable schemas into a single schema, interning the result.
+     *
+     * @param consumer The schema from the consumer side.
+     * @param producer The schema from the producer side.
+     * @return The merged schema.
+     */
+    public ImmutableAttributesSchema concat(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
+        return mergedSchemas.get(new SchemaPair(consumer, producer));
+    }
+
+    private ImmutableAttributesSchema doConcatSchemas(SchemaPair pair) {
+        return create(
+            mergeStrategies(pair.consumer, pair.producer),
+            mergePrecedence(pair.consumer.precedence, pair.producer.precedence)
+        );
+    }
+
+    private static class SchemaPair {
+        private final ImmutableAttributesSchema consumer;
+        private final ImmutableAttributesSchema producer;
+        private final int hashCode;
+
+        SchemaPair(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
+            this.consumer = consumer;
+            this.producer = producer;
+            this.hashCode = computeHashCode(consumer, producer);
+        }
+
+        private static int computeHashCode(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
+            int result = consumer.hashCode();
+            result = 31 * result + producer.hashCode();
+            return result;
+        }
+
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            SchemaPair other = (SchemaPair) obj;
+            // We expect the consumer and producer to be interned
+            return consumer == other.consumer && producer == other.producer;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
     }
 
 }

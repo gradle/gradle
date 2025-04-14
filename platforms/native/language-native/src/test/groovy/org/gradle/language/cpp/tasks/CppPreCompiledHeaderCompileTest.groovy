@@ -57,9 +57,9 @@ class CppPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpec {
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({CppPCHCompileSpec.class.isAssignableFrom(it)}) >> cppPCHCompiler
+        1 * platformToolChain.newCompiler({ CppPCHCompileSpec.class.isAssignableFrom(it) }) >> cppPCHCompiler
         1 * cppPCHCompiler.execute({ CppPCHCompileSpec spec ->
-            assert spec.sourceFiles*.name== ["sourceFile"]
+            assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']

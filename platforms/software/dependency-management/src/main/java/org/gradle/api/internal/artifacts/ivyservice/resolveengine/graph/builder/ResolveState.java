@@ -167,6 +167,20 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         nodes.put(rootNodeId, this.root);
     }
 
+    /**
+     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
+     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
+     * the size of the graph to avoid maps resizing.
+     */
+    private static int estimateGraphSize(VariantGraphResolveState rootVariant) {
+        int numDependencies = rootVariant.getDependencies().size();
+
+        // TODO #24641: Why are the numbers and operations here the way they are?
+        //  Are they up-to-date? We should be able to test if these values are still optimal.
+        int estimate = (int) (512 * Math.log(numDependencies));
+        return Math.max(10, estimate);
+    }
+
     public ComponentIdGenerator getIdGenerator() {
         return idGenerator;
     }
@@ -363,19 +377,5 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         public int hashCode() {
             return Objects.hash(componentSelector, ignoreVersion, virtualPlatformEdge);
         }
-    }
-
-    /**
-     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
-     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
-     * the size of the graph to avoid maps resizing.
-     */
-    private static int estimateGraphSize(VariantGraphResolveState rootVariant) {
-        int numDependencies = rootVariant.getDependencies().size();
-
-        // TODO #24641: Why are the numbers and operations here the way they are?
-        //  Are they up-to-date? We should be able to test if these values are still optimal.
-        int estimate = (int) (512 * Math.log(numDependencies));
-        return Math.max(10, estimate);
     }
 }

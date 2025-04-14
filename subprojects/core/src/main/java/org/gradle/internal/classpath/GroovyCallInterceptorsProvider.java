@@ -58,7 +58,7 @@ public interface GroovyCallInterceptorsProvider {
 
         private static List<FilterableCallInterceptor> getInterceptorsFromClassLoader(ClassLoader classLoader, String forPackage) {
             ImmutableList.Builder<FilterableCallInterceptor> interceptors = ImmutableList.builder();
-            for(FilterableCallInterceptor interceptor : ServiceLoader.load(FilterableCallInterceptor.class, classLoader)) {
+            for (FilterableCallInterceptor interceptor : ServiceLoader.load(FilterableCallInterceptor.class, classLoader)) {
                 if (interceptor.getClass().getPackage().getName().startsWith(forPackage)) {
                     interceptors.add(interceptor);
                 }
@@ -85,11 +85,6 @@ public interface GroovyCallInterceptorsProvider {
 
         public ClassSourceGroovyCallInterceptorsProvider(String className) {
             this.interceptors = Lazy.locking().of(() -> getInterceptorsFromClass(className));
-        }
-
-        @Override
-        public List<FilterableCallInterceptor> getCallInterceptors() {
-            return interceptors.get();
         }
 
         private static List<FilterableCallInterceptor> getInterceptorsFromClass(String className) {
@@ -120,6 +115,11 @@ public interface GroovyCallInterceptorsProvider {
             } catch (InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Override
+        public List<FilterableCallInterceptor> getCallInterceptors() {
+            return interceptors.get();
         }
     }
 

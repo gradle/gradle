@@ -149,23 +149,23 @@ class IdeaModuleFixture extends IdeProjectFixture {
         }
 
         void assertHasModule(List<String> scopes, String name) {
-            scopes.each {assertHasModule(it, name)}
+            scopes.each { assertHasModule(it, name) }
         }
 
         void assertHasLibrary(List<String> scopes, String name) {
-            scopes.each {assertHasLibrary(it, name)}
+            scopes.each { assertHasLibrary(it, name) }
         }
 
         void assertHasModule(String scope = 'COMPILE', String name) {
             assert modules.any { ImlModule it ->
                 it.scope == scope && it.moduleName == name
-            }  : "No module '$name' with scope $scope found in ${modules*.moduleName}"
+            }: "No module '$name' with scope $scope found in ${modules*.moduleName}"
         }
 
         void assertHasLibrary(String scope = 'COMPILE', String name) {
             assert libraries.any { ImlModuleLibrary it ->
                 it.scope == scope && it.url.contains(name)
-            }  : "No library '$name' with scope $scope found in ${libraries*.url}"
+            }: "No library '$name' with scope $scope found in ${libraries*.url}"
         }
     }
 

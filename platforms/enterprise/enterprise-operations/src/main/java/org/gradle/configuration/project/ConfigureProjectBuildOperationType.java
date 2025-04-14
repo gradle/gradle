@@ -27,6 +27,12 @@ import java.io.File;
  */
 public final class ConfigureProjectBuildOperationType implements BuildOperationType<ConfigureProjectBuildOperationType.Details, ConfigureProjectBuildOperationType.Result> {
 
+    final static Result RESULT = new Result() {
+    };
+
+    private ConfigureProjectBuildOperationType() {
+    }
+
     public interface Details {
 
         String getProjectPath();
@@ -39,12 +45,6 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
 
     public interface Result {
 
-    }
-
-    final static Result RESULT = new Result() {
-    };
-
-    private ConfigureProjectBuildOperationType() {
     }
 
 }

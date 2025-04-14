@@ -75,12 +75,12 @@ public class CommandLineTaskConfigurer {
                         commandLineOptionDescriptor.apply(task, o.getValues());
                     } catch (TypeConversionException ex) {
                         throw new TaskConfigurationException(task.getPath(),
-                                String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);
+                            String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);
                     }
                 }
             }
             assert remainingArguments == null || remainingArguments.equals(parsed.getExtraArguments())
-                    : "we expect all options to be consumed by each task so remainingArguments should be the same for each task";
+                : "we expect all options to be consumed by each task so remainingArguments should be the same for each task";
             remainingArguments = parsed.getExtraArguments();
         }
         return remainingArguments;

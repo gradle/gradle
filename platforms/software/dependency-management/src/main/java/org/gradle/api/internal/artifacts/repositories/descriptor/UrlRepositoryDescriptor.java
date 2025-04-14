@@ -31,19 +31,10 @@ import java.util.function.Consumer;
 
 public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
 
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    public enum Property {
-        URL,
-        METADATA_SOURCES,
-        AUTHENTICATED,
-        AUTHENTICATION_SCHEMES,
-    }
-
     public final URI url;
     public final ImmutableList<String> metadataSources;
     public final boolean authenticated;
     public final ImmutableList<String> authenticationSchemes;
-
     protected UrlRepositoryDescriptor(
         String id,
         String name,
@@ -71,6 +62,14 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
         builder.put(Property.METADATA_SOURCES.name(), metadataSources);
         builder.put(Property.AUTHENTICATED.name(), authenticated);
         builder.put(Property.AUTHENTICATION_SCHEMES.name(), authenticationSchemes);
+    }
+
+    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    public enum Property {
+        URL,
+        METADATA_SOURCES,
+        AUTHENTICATED,
+        AUTHENTICATION_SCHEMES,
     }
 
     static abstract class Builder<T extends Builder<T>> {

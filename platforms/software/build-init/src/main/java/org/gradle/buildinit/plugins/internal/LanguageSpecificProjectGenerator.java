@@ -33,7 +33,9 @@ public interface LanguageSpecificProjectGenerator {
 
     default boolean isJvmLanguage() {
         return false;
-    };
+    }
+
+    ;
 
     Set<ModularizationOption> getModularizationOptions();
 

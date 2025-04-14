@@ -161,7 +161,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
             'flexmark-util', 'flexmark-formatter', 'autolink-0.6', 'flexmark-jira-converter', 'antlr-3', 'jackson-annotations', 'jackson-core',
             'jackson-databind', 'snakeyaml', 'flexmark-ext-tables', 'flexmark-ext-ins', 'flexmark-ext-superscript', 'antlr-runtime', 'ST4'
         ]
-        hasProjectLibrary('root.ipr', 'scala-compiler-3.0.1',  scalaLibs + scaladocLibsAndDeps, [], [], [])
+        hasProjectLibrary('root.ipr', 'scala-compiler-3.0.1', scalaLibs + scaladocLibsAndDeps, [], [], [])
         hasScalaFacet('project1/project1.iml', 'scala-compiler-2.11.2')
         hasScalaFacet('project2/project2.iml', 'scala-compiler-2.10.0')
         hasScalaFacet('project3/project3.iml', 'scala-compiler-2.11.2')

@@ -50,8 +50,8 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         launchTests { TestLauncher launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest')
-                     .includeClass('example.MyTest')
-                     .includeClass('example2.MyOtherTest2')
+                    .includeClass('example.MyTest')
+                    .includeClass('example2.MyOtherTest2')
             }
         }
 
@@ -119,10 +119,10 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         launchTests { TestLauncher launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest')
-                     .includePackage('org')
-                     .includeClass('example2.MyOtherTest')
-                     .includeMethod('example.MyTest', 'foo')
-                     .includePattern('example2.MyOther*2.baz')
+                    .includePackage('org')
+                    .includeClass('example2.MyOtherTest')
+                    .includeMethod('example.MyTest', 'foo')
+                    .includePattern('example2.MyOther*2.baz')
             }
         }
 
@@ -174,10 +174,10 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         launchTests { TestLauncher launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':test')
-                     .includeClass('example.UnknownClass')
-                     .includePackage("com.unknown")
-                     .includeMethod('com.OtherClass', 'unknownMethod')
-                     .includePattern('not.matching.pattern')
+                    .includeClass('example.UnknownClass')
+                    .includePackage("com.unknown")
+                    .includeMethod('com.OtherClass', 'unknownMethod')
+                    .includePattern('not.matching.pattern')
             }
         }
 
@@ -206,10 +206,10 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         launchTests { TestLauncher launcher ->
             launcher.withTestsFor { TestSpecs specs ->
                 specs.forTaskPath(':secondTest')
-                     .includePackage('o*g')
-                     .includeClass('example2.MyOtherT*')
-                     .includeMethod('example.MyT*', 'f*o')
-                     .includePattern('example2.MyOther*2.ba*')
+                    .includePackage('o*g')
+                    .includeClass('example2.MyOtherT*')
+                    .includeMethod('example.MyT*', 'f*o')
+                    .includePattern('example2.MyOther*2.ba*')
             }
         }
 

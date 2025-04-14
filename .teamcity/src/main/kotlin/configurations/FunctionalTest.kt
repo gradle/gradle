@@ -81,57 +81,57 @@ class FunctionalTest(
     extraBuildSteps: BuildSteps.() -> Unit = {},
     preBuildSteps: BuildSteps.() -> Unit = {},
 ) : OsAwareBaseGradleBuildType(os = testCoverage.os, stage = stage, init = {
-        this.name = name
-        this.description = description
-        this.id(id)
-        val testTasks = getTestTaskName(testCoverage, subprojects)
+    this.name = name
+    this.description = description
+    this.id(id)
+    val testTasks = getTestTaskName(testCoverage, subprojects)
 
-        val assembledExtraParameters =
-            mutableListOf(
-                stage.getBuildScanCustomValueParam(testCoverage),
-                functionalTestExtraParameters(
-                    listOf(FUNCTIONAL_TEST_TAG),
-                    testCoverage.os,
-                    testCoverage.arch,
-                    testCoverage.testJvmVersion.major.toString(),
-                    testCoverage.vendor.name.lowercase(),
-                ),
-                "-PflakyTests=${determineFlakyTestStrategy(stage)}",
-                extraParameters,
-                parallelizationMethod.extraBuildParameters,
-            ).filter { it.isNotBlank() }.joinToString(separator = " ")
+    val assembledExtraParameters =
+        mutableListOf(
+            stage.getBuildScanCustomValueParam(testCoverage),
+            functionalTestExtraParameters(
+                listOf(FUNCTIONAL_TEST_TAG),
+                testCoverage.os,
+                testCoverage.arch,
+                testCoverage.testJvmVersion.major.toString(),
+                testCoverage.vendor.name.lowercase(),
+            ),
+            "-PflakyTests=${determineFlakyTestStrategy(stage)}",
+            extraParameters,
+            parallelizationMethod.extraBuildParameters,
+        ).filter { it.isNotBlank() }.joinToString(separator = " ")
 
-        if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests) {
-            tcParallelTests(parallelizationMethod.numberOfBatches)
+    if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests) {
+        tcParallelTests(parallelizationMethod.numberOfBatches)
+    }
+
+    features {
+        perfmon {
         }
+    }
 
-        features {
-            perfmon {
-            }
-        }
+    applyTestDefaults(
+        model,
+        this,
+        testTasks,
+        os = testCoverage.os,
+        buildJvm = testCoverage.buildJvm,
+        arch = testCoverage.arch,
+        extraParameters = assembledExtraParameters,
+        timeout = testCoverage.testType.timeout,
+        maxParallelForks = testCoverage.testType.maxParallelForks.toString(),
+        extraSteps = extraBuildSteps,
+        preSteps = preBuildSteps,
+    )
 
-        applyTestDefaults(
-            model,
-            this,
-            testTasks,
-            os = testCoverage.os,
-            buildJvm = testCoverage.buildJvm,
-            arch = testCoverage.arch,
-            extraParameters = assembledExtraParameters,
-            timeout = testCoverage.testType.timeout,
-            maxParallelForks = testCoverage.testType.maxParallelForks.toString(),
-            extraSteps = extraBuildSteps,
-            preSteps = preBuildSteps,
-        )
-
-        failureConditions {
-            // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
-            // Some soak tests produce OOM exceptions
-            // There are also random worker crashes for some tests.
-            // We have test-retry to handle the crash in tests
-            javaCrash = false
-        }
-    })
+    failureConditions {
+        // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
+        // Some soak tests produce OOM exceptions
+        // There are also random worker crashes for some tests.
+        // We have test-retry to handle the crash in tests
+        javaCrash = false
+    }
+})
 
 private fun determineFlakyTestStrategy(stage: Stage): String {
     val stageName = StageName.values().first { it.stageName == stage.stageName.stageName }

@@ -33,7 +33,8 @@ class DefaultDeploymentDescriptorTest extends Specification {
     private ObjectFactory objectFactory = TestUtil.objectFactory()
 
     def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver, objectFactory)
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "writes default descriptor"() {
         def file = tmpDir.file("out.xml")
@@ -75,7 +76,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
         acceptableDescriptors = defaultDescriptorForVersion(version)
     }
 
-    private List<String>defaultDescriptorForVersion(version) {
+    private List<String> defaultDescriptorForVersion(version) {
         // Groovy XML Node put attributes in a HashMap so does not guarantee rendering order for attributes
         // This method generates all permutations so we can assert we have at least one
         def attributesPermutations = { String template, List<String> attributes ->

@@ -44,7 +44,6 @@ public interface Dependency {
      * Returns the version of this dependency. The version is often required to find the artifacts of a dependency in a
      * repository. For example the version name corresponds to a directory name in a Maven like repository. Might return
      * null.
-     *
      */
     @Nullable
     String getVersion();
@@ -54,7 +53,6 @@ public interface Dependency {
      * key. Therefore dependencies might be equal and yet have different properties.
      *
      * @param dependency The dependency to compare this dependency with
-     *
      * @deprecated Use {@link Object#equals(Object)} instead.
      */
     @Deprecated
@@ -72,7 +70,6 @@ public interface Dependency {
      * will use it to explain why a specific dependency was selected, or why a specific dependency version was used.
      *
      * @return a reason to use this dependency
-     *
      * @since 4.6
      */
     @Nullable

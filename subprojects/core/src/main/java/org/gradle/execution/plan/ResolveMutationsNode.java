@@ -34,6 +34,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 
 public class ResolveMutationsNode extends Node implements SelfExecutingNode {
+    private static final ResolveTaskMutationsBuildOperationType.Result RESOLVE_TASK_MUTATIONS_RESULT = new ResolveTaskMutationsBuildOperationType.Result() {};
     private final LocalTaskNode node;
     private final NodeValidator nodeValidator;
     private final BuildOperationRunner buildOperationRunner;
@@ -45,6 +46,37 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         this.nodeValidator = nodeValidator;
         this.buildOperationRunner = buildOperationRunner;
         this.accessHierarchies = accessHierarchies;
+    }
+
+    private static MutationInfo resolveMutations(TaskProperties taskProperties, boolean hasValidationProblem) {
+        boolean hasOutputs = false;
+        boolean hasLocalState = false;
+        ImmutableSet.Builder<String> outputPaths = ImmutableSet.builder();
+        ImmutableSet.Builder<String> destroyablePaths = ImmutableSet.builder();
+
+        for (OutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
+            File outputLocation = spec.getOutputFile();
+            outputPaths.add(outputLocation.getAbsolutePath());
+            hasOutputs = true;
+        }
+        for (File file : taskProperties.getLocalStateFiles()) {
+            outputPaths.add(file.getAbsolutePath());
+            hasLocalState = true;
+        }
+        for (File file : taskProperties.getDestroyableFiles()) {
+            destroyablePaths.add(file.getAbsolutePath());
+        }
+
+        boolean hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+
+        return new MutationInfo(
+            outputPaths.build(),
+            destroyablePaths.build(),
+            hasFileInputs,
+            hasOutputs,
+            hasLocalState,
+            hasValidationProblem
+        );
     }
 
     public Node getNode() {
@@ -109,6 +141,38 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         });
     }
 
+    private MutationInfo resolveAndValidateMutations() {
+        boolean hasValidationProblem = nodeValidator.hasValidationProblems(node);
+
+        MutationInfo mutations;
+        try {
+            TaskProperties taskProperties = node.getTaskProperties();
+            mutations = resolveMutations(taskProperties, hasValidationProblem);
+
+            // piggyback on mutation resolution to declare service references as used services
+            node.getTask().acceptServiceReferences(taskProperties.getServiceReferences());
+        } catch (Exception e) {
+            throw new TaskExecutionException(node.getTask(), e);
+        }
+
+        validateMutations(mutations);
+        return mutations;
+    }
+
+    private void validateMutations(MutationInfo mutations) {
+        if (!mutations.getDestroyablePaths().isEmpty()) {
+            if (mutations.hasOutputs()) {
+                throw new IllegalStateException("Task " + node + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
+            }
+            if (mutations.hasFileInputs()) {
+                throw new IllegalStateException("Task " + node + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
+            }
+            if (mutations.hasLocalState()) {
+                throw new IllegalStateException("Task " + node + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
+            }
+        }
+    }
+
     private static final class ResolveTaskMutationsDetails implements ResolveTaskMutationsBuildOperationType.Details {
         private final TaskIdentity<?> taskIdentity;
 
@@ -129,71 +193,6 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         @Override
         public long getTaskId() {
             return taskIdentity.getId();
-        }
-    }
-
-    private static final ResolveTaskMutationsBuildOperationType.Result RESOLVE_TASK_MUTATIONS_RESULT = new ResolveTaskMutationsBuildOperationType.Result() {};
-
-    private MutationInfo resolveAndValidateMutations() {
-        boolean hasValidationProblem = nodeValidator.hasValidationProblems(node);
-
-        MutationInfo mutations;
-        try {
-            TaskProperties taskProperties = node.getTaskProperties();
-            mutations = resolveMutations(taskProperties, hasValidationProblem);
-
-            // piggyback on mutation resolution to declare service references as used services
-            node.getTask().acceptServiceReferences(taskProperties.getServiceReferences());
-        } catch (Exception e) {
-            throw new TaskExecutionException(node.getTask(), e);
-        }
-
-        validateMutations(mutations);
-        return mutations;
-    }
-
-    private static MutationInfo resolveMutations(TaskProperties taskProperties, boolean hasValidationProblem) {
-        boolean hasOutputs = false;
-        boolean hasLocalState = false;
-        ImmutableSet.Builder<String> outputPaths = ImmutableSet.builder();
-        ImmutableSet.Builder<String> destroyablePaths = ImmutableSet.builder();
-
-        for (OutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
-            File outputLocation = spec.getOutputFile();
-            outputPaths.add(outputLocation.getAbsolutePath());
-            hasOutputs = true;
-        }
-        for (File file : taskProperties.getLocalStateFiles()) {
-            outputPaths.add(file.getAbsolutePath());
-            hasLocalState = true;
-        }
-        for (File file : taskProperties.getDestroyableFiles()) {
-            destroyablePaths.add(file.getAbsolutePath());
-        }
-
-        boolean hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
-
-        return new MutationInfo(
-            outputPaths.build(),
-            destroyablePaths.build(),
-            hasFileInputs,
-            hasOutputs,
-            hasLocalState,
-            hasValidationProblem
-        );
-    }
-
-    private void validateMutations(MutationInfo mutations) {
-        if (!mutations.getDestroyablePaths().isEmpty()) {
-            if (mutations.hasOutputs()) {
-                throw new IllegalStateException("Task " + node + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
-            }
-            if (mutations.hasFileInputs()) {
-                throw new IllegalStateException("Task " + node + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
-            }
-            if (mutations.hasLocalState()) {
-                throw new IllegalStateException("Task " + node + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
-            }
         }
     }
 }

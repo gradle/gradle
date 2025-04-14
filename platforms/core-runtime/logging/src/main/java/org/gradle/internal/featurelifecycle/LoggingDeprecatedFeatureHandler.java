@@ -68,6 +68,83 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private Problems problemsService;
     private GradleException error;
 
+    private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
+        if (usage.getProblemId() != null) {
+            return usage.getProblemId();
+        }
+        return createDefaultDeprecationId(usage.getProblemIdDisplayName());
+    }
+
+    private static void addSolution(@Nullable String advice, InternalProblemSpec problemSpec) {
+        if (advice != null) {
+            problemSpec.solution(advice);
+        }
+    }
+
+    private static void appendLogTraceIfNecessary(StringBuilder message, List<StackTraceElement> stack, int startIndexInclusive, int endIndexExclusive) {
+        final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
+
+        int endIndex = Math.min(stack.size(), endIndexExclusive);
+        if (isTraceLoggingEnabled()) {
+            // append full stack trace
+            for (int i = startIndexInclusive; i < endIndex; ++i) {
+                StackTraceElement frame = stack.get(i);
+                appendStackTraceElement(frame, message, lineSeparator);
+            }
+        } else {
+            for (int i = startIndexInclusive; i < endIndex; ++i) {
+                StackTraceElement element = stack.get(i);
+                if (isGradleScriptElement(element)) {
+                    // only print first Gradle script stack trace element
+                    appendStackTraceElement(element, message, lineSeparator);
+                    appendRunWithStacktraceInfo(message, lineSeparator);
+                    return;
+                }
+            }
+        }
+    }
+
+    private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {
+        message.append(lineSeparator)
+            .append(ELEMENT_PREFIX)
+            .append(frame);
+    }
+
+    private static void appendRunWithStacktraceInfo(StringBuilder message, String lineSeparator) {
+        message.append(lineSeparator)
+            .append(RUN_WITH_STACKTRACE_INFO);
+    }
+
+    private static boolean isGradleScriptElement(StackTraceElement element) {
+        String fileName = element.getFileName();
+        if (fileName == null) {
+            return false;
+        }
+        fileName = fileName.toLowerCase(Locale.US);
+        return fileName.endsWith(".gradle") // ordinary Groovy Gradle script
+            || fileName.endsWith(".gradle.kts"); // Kotlin Gradle script
+    }
+
+    static boolean isTraceLoggingEnabled() {
+        String value = System.getProperty(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+        if (value == null) {
+            return traceLoggingEnabled;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    /**
+     * Whether or not deprecated features should print a full stack trace.
+     *
+     * This property can be overridden by setting the ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+     * system property.
+     *
+     * @param traceLoggingEnabled if trace logging should be enabled.
+     */
+    public static void setTraceLoggingEnabled(boolean traceLoggingEnabled) {
+        LoggingDeprecatedFeatureHandler.traceLoggingEnabled = traceLoggingEnabled;
+    }
+
     public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService, ProblemStream problemStream) {
         this.warningMode = warningMode;
         this.problemStream = problemStream;
@@ -123,19 +200,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         reporter.report(problem);
     }
 
-    private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
-        if (usage.getProblemId() != null) {
-            return usage.getProblemId();
-        }
-        return createDefaultDeprecationId(usage.getProblemIdDisplayName());
-    }
-
-    private static void addSolution(@Nullable String advice, InternalProblemSpec problemSpec) {
-        if (advice != null) {
-            problemSpec.solution(advice);
-        }
-    }
-
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         String featureMessage = usage.formattedMessage();
         Location location = diagnostics.getLocation();
@@ -189,70 +253,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(Locale.ROOT),
                 DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings"));
         }
-    }
-
-    private static void appendLogTraceIfNecessary(StringBuilder message, List<StackTraceElement> stack, int startIndexInclusive, int endIndexExclusive) {
-        final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-
-        int endIndex = Math.min(stack.size(), endIndexExclusive);
-        if (isTraceLoggingEnabled()) {
-            // append full stack trace
-            for (int i = startIndexInclusive; i < endIndex; ++i) {
-                StackTraceElement frame = stack.get(i);
-                appendStackTraceElement(frame, message, lineSeparator);
-            }
-        } else {
-            for (int i = startIndexInclusive; i < endIndex; ++i) {
-                StackTraceElement element = stack.get(i);
-                if (isGradleScriptElement(element)) {
-                    // only print first Gradle script stack trace element
-                    appendStackTraceElement(element, message, lineSeparator);
-                    appendRunWithStacktraceInfo(message, lineSeparator);
-                    return;
-                }
-            }
-        }
-    }
-
-    private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {
-        message.append(lineSeparator)
-            .append(ELEMENT_PREFIX)
-            .append(frame);
-    }
-
-    private static void appendRunWithStacktraceInfo(StringBuilder message, String lineSeparator) {
-        message.append(lineSeparator)
-            .append(RUN_WITH_STACKTRACE_INFO);
-    }
-
-    private static boolean isGradleScriptElement(StackTraceElement element) {
-        String fileName = element.getFileName();
-        if (fileName == null) {
-            return false;
-        }
-        fileName = fileName.toLowerCase(Locale.US);
-        return fileName.endsWith(".gradle") // ordinary Groovy Gradle script
-            || fileName.endsWith(".gradle.kts"); // Kotlin Gradle script
-    }
-
-    /**
-     * Whether or not deprecated features should print a full stack trace.
-     *
-     * This property can be overridden by setting the ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
-     * system property.
-     *
-     * @param traceLoggingEnabled if trace logging should be enabled.
-     */
-    public static void setTraceLoggingEnabled(boolean traceLoggingEnabled) {
-        LoggingDeprecatedFeatureHandler.traceLoggingEnabled = traceLoggingEnabled;
-    }
-
-    static boolean isTraceLoggingEnabled() {
-        String value = System.getProperty(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
-        if (value == null) {
-            return traceLoggingEnabled;
-        }
-        return Boolean.parseBoolean(value);
     }
 
     public GradleException getDeprecationFailure() {

@@ -24,7 +24,7 @@ import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.tasks.CCompile
 
 class CPluginTest extends AbstractNativeComponentPluginTest {
-   @Override
+    @Override
     Class<? extends Plugin> getPluginClass() {
         return CPlugin
     }

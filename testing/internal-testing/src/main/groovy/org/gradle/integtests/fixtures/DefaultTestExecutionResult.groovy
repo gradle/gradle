@@ -29,16 +29,16 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     HtmlTestExecutionResult htmlResult
     JUnitXmlTestExecutionResult xmlResult
 
-    DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test') {
-        String binaryPath = binary?"/$binary":''
-        binaryPath = testedBinary?"$binaryPath/$testedBinary":"$binaryPath";
-        if(binary){
+    DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary = '', String testedBinary = '', String testTaskName = 'test') {
+        String binaryPath = binary ? "/$binary" : ''
+        binaryPath = testedBinary ? "$binaryPath/$testedBinary" : "$binaryPath";
+        if (binary) {
             htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports${binaryPath}/tests/")
             xmlResult = new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results${binaryPath}")
 
             results << htmlResult
             results << xmlResult
-        }else{
+        } else {
             htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests/${testTaskName}")
             xmlResult = new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results/${testTaskName}")
 
@@ -81,7 +81,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        new DefaultTestClassExecutionResult(results.collect {it.testClass(testClass)})
+        new DefaultTestClassExecutionResult(results.collect { it.testClass(testClass) })
     }
 
     TestClassExecutionResult testClassByHtml(String testClass) {
@@ -119,7 +119,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         testNames.collect { removeParentheses(it) } as String[]
     }
 
-    static String[][] removeAllParentheses(String[]... testNames) {
+    static String[][] removeAllParentheses(String[] ... testNames) {
         testNames.collect { [removeParentheses(it[0]), it[1]] } as String[][]
     }
 

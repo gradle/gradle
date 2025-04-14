@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality.pmd
+
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class PmdPluginIntegrationTest extends WellBehavedPluginTest {

@@ -24,7 +24,8 @@ import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 
 class StandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
-    @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
+    @Rule
+    RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
     def escapeHeader = "\u001b["
 
     def "logging is not sent to System.out or System.err"() {

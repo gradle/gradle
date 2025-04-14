@@ -40,8 +40,8 @@ class DefaultMutationGuardTest extends Specification {
         callable.called
 
         where:
-        methodUnderTest    | callableClass
-        "wrapEagerAction"  | ActionCallingDisallowedMethod
+        methodUnderTest   | callableClass
+        "wrapEagerAction" | ActionCallingDisallowedMethod
     }
 
     def "throws IllegalStateException when calling a disallowed method when disallowed using #methodUnderTest(#callableClass.type)"() {
@@ -55,8 +55,8 @@ class DefaultMutationGuardTest extends Specification {
         ex.message == "${target.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
 
         where:
-        methodUnderTest         | callableClass
-        "wrapLazyAction"  | ActionCallingDisallowedMethod
+        methodUnderTest  | callableClass
+        "wrapLazyAction" | ActionCallingDisallowedMethod
     }
 
     def "doesn't throw exception when calling disallowed method when allowed"() {
@@ -85,9 +85,9 @@ class DefaultMutationGuardTest extends Specification {
         ex.message == "${target.class.simpleName}#someProtectedMethod() on ${target.toString()} cannot be executed in the current context."
 
         where:
-        methodUnderTest     | callableType | callable
-        "wrapLazyAction"    | "Action"     | Actions.doNothing()
-        "wrapEagerAction"   | "Action"     | Actions.doNothing()
+        methodUnderTest   | callableType | callable
+        "wrapLazyAction"  | "Action"     | Actions.doNothing()
+        "wrapEagerAction" | "Action"     | Actions.doNothing()
     }
 
     def "call to #methodUnderTest(#callableType) inside wrapEagerAction(Action) does enable disallow check outside scope"() {
@@ -107,9 +107,9 @@ class DefaultMutationGuardTest extends Specification {
         noExceptionThrown()
 
         where:
-        methodUnderTest     | callableType | callable
-        "wrapLazyAction"    | "Action"     | Actions.doNothing()
-        "wrapEagerAction"   | "Action"     | Actions.doNothing()
+        methodUnderTest   | callableType | callable
+        "wrapLazyAction"  | "Action"     | Actions.doNothing()
+        "wrapEagerAction" | "Action"     | Actions.doNothing()
     }
 
     def "doesn't protect across thread boundaries"() {

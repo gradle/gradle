@@ -32,10 +32,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
-    private enum State implements StateTransitionController.State {
-        NotStarted, Complete
-    }
-
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeWorkController workController;
     private final BuildTreeModelCreator modelCreator;
@@ -43,7 +39,6 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final StateTransitionController<State> state;
     private final StartParameter startParameter;
     private final BuildModelParameters buildModelParameters;
-
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
         BuildTreeWorkController workController,
@@ -129,5 +124,9 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
             return result.getValue();
         });
+    }
+
+    private enum State implements StateTransitionController.State {
+        NotStarted, Complete
     }
 }

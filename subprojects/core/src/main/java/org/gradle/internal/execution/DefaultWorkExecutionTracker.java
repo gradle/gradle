@@ -91,6 +91,10 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         final Map<OperationIdentifier, TaskInternal> runningTasks = new ConcurrentHashMap<>();
         final Set<OperationIdentifier> runningTransformActions = ConcurrentHashMap.newKeySet();
 
+        private static boolean isTransformAction(BuildOperationDescriptor buildOperation) {
+            return UncategorizedBuildOperations.TRANSFORM_ACTION.equals(buildOperation.getMetadata());
+        }
+
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
             if (isTransformAction(buildOperation)) {
@@ -132,10 +136,6 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
 
         public boolean hasRunningWork() {
             return !runningTasks.isEmpty() || !runningTransformActions.isEmpty();
-        }
-
-        private static boolean isTransformAction(BuildOperationDescriptor buildOperation) {
-            return UncategorizedBuildOperations.TRANSFORM_ACTION.equals(buildOperation.getMetadata());
         }
     }
 }

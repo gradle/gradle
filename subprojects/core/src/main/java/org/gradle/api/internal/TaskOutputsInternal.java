@@ -37,12 +37,12 @@ public interface TaskOutputsInternal extends TaskOutputs {
 
     AndSpec<? super TaskInternal> getUpToDateSpec();
 
-    void setPreviousOutputFiles(FileCollection previousOutputFiles);
-
     /**
      * Returns the output files and directories recorded during the previous execution of the task.
      */
     Set<File> getPreviousOutputFiles();
+
+    void setPreviousOutputFiles(FileCollection previousOutputFiles);
 
     List<SelfDescribingSpec<TaskInternal>> getCacheIfSpecs();
 

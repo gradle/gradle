@@ -34,6 +34,8 @@ public interface FileSystemLocationFingerprint extends Comparable<FileSystemLoca
     HashCode MISSING_FILE_SIGNATURE = Hashing.signature("MISSING");
 
     String getNormalizedPath();
+
     HashCode getNormalizedContentHash();
+
     FileType getType();
 }

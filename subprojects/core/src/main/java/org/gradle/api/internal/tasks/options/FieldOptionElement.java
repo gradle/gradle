@@ -80,7 +80,7 @@ public class FieldOptionElement {
             return field.getDeclaringClass().getMethod(setterName, field.getType());
         } catch (NoSuchMethodException e) {
             throw new OptionValidationException(String.format("No setter for Option annotated field '%s' in class '%s'.",
-                    field.getName(), field.getDeclaringClass()));
+                field.getName(), field.getDeclaringClass()));
         }
     }
 
@@ -90,7 +90,7 @@ public class FieldOptionElement {
             return field.getDeclaringClass().getMethod(getterName);
         } catch (NoSuchMethodException e) {
             throw new OptionValidationException(String.format("No getter for Option annotated field '%s' in class '%s'.",
-                    field.getName(), field.getDeclaringClass()));
+                field.getName(), field.getDeclaringClass()));
         }
     }
 
@@ -187,7 +187,7 @@ public class FieldOptionElement {
         @Override
         public void setValue(Object target, Object value) {
             FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getGetter()).invoke(target));
-            property.set(new File((String)value));
+            property.set(new File((String) value));
         }
     }
 }

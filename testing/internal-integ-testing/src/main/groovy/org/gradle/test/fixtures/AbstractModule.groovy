@@ -40,7 +40,7 @@ abstract class AbstractModule implements Module {
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
      */
-    protected void publish(TestFile file, @DelegatesTo(value=Writer, strategy=Closure.DELEGATE_FIRST) Closure cl, byte[] content = null) {
+    protected void publish(TestFile file, @DelegatesTo(value = Writer, strategy = Closure.DELEGATE_FIRST) Closure cl, byte[] content = null) {
         file.parentFile.mkdirs()
         def hashBefore = file.exists() ? Hashing.sha1().hashFile(file) : null
         def tmpFile = file.parentFile.file("${file.name}.tmp")

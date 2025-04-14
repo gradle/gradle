@@ -53,6 +53,7 @@ fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResu
                 collectFrom(current.lhs)
                 collectFrom(current.rhs)
             }
+
             is AugmentingAssignment -> {
                 collectFrom(current.lhs)
                 collectFrom(current.rhs)

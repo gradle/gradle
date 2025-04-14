@@ -35,7 +35,6 @@ public interface DirectoryReport extends ConfigurableReport {
      * @return the entry point of the report or
      * {@link DirectoryReport#getOutputLocation()}
      * if no entry point defined
-     *
      */
     @Internal
     File getEntryPoint();

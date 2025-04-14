@@ -85,10 +85,10 @@ public class WtpFacet extends XmlPersistableConfigurationObject {
         NodeList fixed = (NodeList) xml.get("fixed");
         NodeList installed = (NodeList) xml.get("installed");
         for (Object n : fixed) {
-            xml.remove((Node)n);
+            xml.remove((Node) n);
         }
         for (Object n : installed) {
-            xml.remove((Node)n);
+            xml.remove((Node) n);
         }
     }
 

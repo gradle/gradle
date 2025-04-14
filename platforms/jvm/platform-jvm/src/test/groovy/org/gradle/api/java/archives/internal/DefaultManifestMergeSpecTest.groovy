@@ -77,7 +77,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
         baseManifest.attributes key1: 'value1', key2: 'value2'
         mergeSpec.from(new DefaultManifest(Mock(FileResolver)))
-        mergeSpec.eachEntry {ManifestMergeDetails details ->
+        mergeSpec.eachEntry { ManifestMergeDetails details ->
             if (details.getKey() == 'key2') {
                 details.exclude()
             }
@@ -96,14 +96,14 @@ class DefaultManifestMergeSpecTest extends Specification {
 
         expect:
         mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == [key1: 'value1', key2: 'value2', key3: 'value3'] +
-                MANIFEST_VERSION_MAP
+            MANIFEST_VERSION_MAP
     }
 
     def mergeWithChangeValueAction() {
         DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
         baseManifest.attributes key1: 'value1', key2: 'value2'
         mergeSpec.from(new DefaultManifest(Mock(FileResolver)))
-        mergeSpec.eachEntry {ManifestMergeDetails details ->
+        mergeSpec.eachEntry { ManifestMergeDetails details ->
             if (details.getKey() == 'key2') {
                 details.setValue('newValue2')
             }
@@ -117,7 +117,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
         baseManifest.attributes('section', key1: 'value1')
         mergeSpec.from(new DefaultManifest(Mock(FileResolver)).attributes('section', key2: 'mergeValue2'))
-        mergeSpec.eachEntry {ManifestMergeDetails details ->
+        mergeSpec.eachEntry { ManifestMergeDetails details ->
             if (details.getBaseValue() != null && details.getMergeValue() == null) {
                 details.exclude();
             }
@@ -130,7 +130,7 @@ class DefaultManifestMergeSpecTest extends Specification {
     def mergeWithForeignManifest() {
         DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
         baseManifest.attributes key1: 'value1'
-        Manifest foreign = new CustomManifestInternalWrapper(new DefaultManifest(Mock(FileResolver)).attributes( key2: 'value2'))
+        Manifest foreign = new CustomManifestInternalWrapper(new DefaultManifest(Mock(FileResolver)).attributes(key2: 'value2'))
         mergeSpec.from(foreign)
 
         expect:

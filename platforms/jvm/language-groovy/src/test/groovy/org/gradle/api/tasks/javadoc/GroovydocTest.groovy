@@ -69,8 +69,8 @@ class GroovydocTest extends AbstractConventionTaskTest {
 
         expect:
         groovydoc.getLinks() == WrapUtil.toSet(
-                new Groovydoc.Link(url1, package1, package2),
-                new Groovydoc.Link(url2, package3))
+            new Groovydoc.Link(url1, package1, package2),
+            new Groovydoc.Link(url2, package3))
     }
 
     def "can set links"() {

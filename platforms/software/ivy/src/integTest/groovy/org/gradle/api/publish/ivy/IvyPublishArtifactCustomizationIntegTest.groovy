@@ -52,7 +52,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
+        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.foo", "ivyPublish-2.4.bar", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
         result.assertTasksExecuted(":customDocsTask", ":customJar", ":regularFileTask", ":generateDescriptorFileForIvyPublication", ":publishIvyPublicationToIvyRepository", ":publish")
 
         and:
@@ -67,7 +67,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         and:
         resolveArtifacts(module) {
             withoutModuleMetadata {
-                expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar"
+                expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt", "ivyPublish-2.4.foo", "ivyPublish-2.4.bar"
             }
             withModuleMetadata {
                 noComponentPublished()
@@ -124,7 +124,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.expectArtifact("regular", "txt").hasType("reg").hasConf(null)
 
         and:
-        resolveArtifacts(module){
+        resolveArtifacts(module) {
             withoutModuleMetadata {
                 expectFiles "customFile-2.4-classified.txt", "docs-2.4.htm", "ivyPublish-2.4.war", "regular-2.4.txt"
             }
@@ -200,7 +200,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.module", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.jar")
-        module.parsedIvy.artifacts.collect({"${it.name}.${it.ext}"}) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
+        module.parsedIvy.artifacts.collect({ "${it.name}.${it.ext}" }) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
     }
 
     def "can configure custom artifacts post creation"() {
@@ -283,7 +283,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.expectArtifact("ivyPublish").hasAttributes("jar", "jar", null, "classy")
 
         and:
-        resolveArtifacts(module)  {
+        resolveArtifacts(module) {
             withoutModuleMetadata {
                 expectFiles "ivyPublish-2.4-classy.jar"
             }

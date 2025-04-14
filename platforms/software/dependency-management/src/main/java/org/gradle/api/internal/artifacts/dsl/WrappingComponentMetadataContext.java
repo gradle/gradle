@@ -43,11 +43,13 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
     private MutableModuleComponentResolveMetadata mutableMetadata;
     private ComponentMetadataDetails details;
 
-    public WrappingComponentMetadataContext(ModuleComponentResolveMetadata metadata, Instantiator instantiator,
-                                            NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
-                                            NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
-                                            NotationParser<Object, ComponentIdentifier> componentIdentifierParser,
-                                            PlatformSupport platformSupport) {
+    public WrappingComponentMetadataContext(
+        ModuleComponentResolveMetadata metadata, Instantiator instantiator,
+        NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
+        NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
+        NotationParser<Object, ComponentIdentifier> componentIdentifierParser,
+        PlatformSupport platformSupport
+    ) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;

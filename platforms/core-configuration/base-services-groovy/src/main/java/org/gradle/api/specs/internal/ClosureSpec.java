@@ -31,6 +31,6 @@ public class ClosureSpec<T> implements Spec<T> {
     @Override
     public boolean isSatisfiedBy(T element) {
         Object value = closure.call(element);
-        return (Boolean)InvokerHelper.invokeMethod(value, "asBoolean", null);
+        return (Boolean) InvokerHelper.invokeMethod(value, "asBoolean", null);
     }
 }

@@ -46,11 +46,10 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
     private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<>(10);
     private final String baseName;
-    private Object next;
-
     // Sub-handlers for the different protocols implemented by ResponseProtocol
     private final WorkerLoggingProtocol loggingProtocol;
     private final WorkerProblemProtocol problemProtocol;
+    private Object next;
 
     public Receiver(String baseName, OutputEventListener outputEventListener) {
         this.loggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);

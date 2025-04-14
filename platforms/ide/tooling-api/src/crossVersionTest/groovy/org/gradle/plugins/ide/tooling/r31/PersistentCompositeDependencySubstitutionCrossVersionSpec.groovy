@@ -73,7 +73,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         then:
         assert eclipseProject.classpath.empty
-        eclipseProject.projectDependencies.collect {it.path}  == ['b1']
+        eclipseProject.projectDependencies.collect { it.path } == ['b1']
     }
 
     def "EclipseProject model honours custom project name"() {
@@ -95,7 +95,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         def eclipseProject = loadToolingModel(EclipseProject)
 
         then:
-        eclipseProject.projectDependencies.collect {it.path}.sort()  == ['b1-renamed', 'b2-renamed']
+        eclipseProject.projectDependencies.collect { it.path }.sort() == ['b1-renamed', 'b2-renamed']
     }
 
     def "Idea model has dependencies substituted in composite"() {
@@ -137,14 +137,14 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
     def "Idea models for included builds have dependencies substituted"() {
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.rootIdeaProject.modules.size() == 1
 
         def moduleA = allProjects.rootIdeaProject.modules[0]
         moduleA.dependencies.each {
-            assert it instanceof  IdeaModuleDependency
+            assert it instanceof IdeaModuleDependency
         }
         moduleA.dependencies.collect { it.targetModuleName } == ['b1']
 
@@ -157,7 +157,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         def projectB = allProjects.includedBuildIdeaProjects.get(gradleBuildB)
         projectB.modules*.name == ['buildB', 'b1', 'b2']
 
-        def moduleB1 = projectB.modules.find {it.name == 'b1'}
+        def moduleB1 = projectB.modules.find { it.name == 'b1' }
         moduleB1.dependencies.collect { it.targetModuleName } == ['buildC']
 
         and:
@@ -192,7 +192,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 """
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['buildA', 'buildB', 'buildC', 'buildD']
@@ -204,7 +204,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         def moduleA = allProjects.rootIdeaProject.modules[0]
         moduleA.dependencies.each {
-            assert it instanceof  IdeaModuleDependency
+            assert it instanceof IdeaModuleDependency
         }
         moduleA.dependencies.collect { it.targetModuleName } == ['buildB-b1', 'buildA-buildC', 'buildD-b1']
 

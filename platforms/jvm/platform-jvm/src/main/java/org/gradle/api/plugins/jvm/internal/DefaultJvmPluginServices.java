@@ -49,10 +49,12 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ProjectInternal project;
 
     @Inject
-    public DefaultJvmPluginServices(ObjectFactory objectFactory,
-                                    ProviderFactory providerFactory,
-                                    InstanceGenerator instanceGenerator,
-                                    ProjectInternal project) {
+    public DefaultJvmPluginServices(
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory,
+        InstanceGenerator instanceGenerator,
+        ProjectInternal project
+    ) {
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
         this.instanceGenerator = instanceGenerator;
@@ -142,7 +144,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("classes");
         variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
-        variant.artifactsProvider(() ->  {
+        variant.artifactsProvider(() -> {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream()
                 .map(file -> new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))

@@ -31,16 +31,6 @@ public class DefaultIdeaJavaLanguageSettings implements Serializable {
         return this;
     }
 
-    public DefaultIdeaJavaLanguageSettings setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
-        this.targetBytecodeVersion = targetBytecodeVersion;
-        return this;
-    }
-
-    public DefaultIdeaJavaLanguageSettings setJdk(DefaultInstalledJdk jdk) {
-        this.jdk = jdk;
-        return this;
-    }
-
     public JavaVersion getLanguageLevel() {
         return languageLevel;
     }
@@ -49,7 +39,17 @@ public class DefaultIdeaJavaLanguageSettings implements Serializable {
         return targetBytecodeVersion;
     }
 
+    public DefaultIdeaJavaLanguageSettings setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
+        this.targetBytecodeVersion = targetBytecodeVersion;
+        return this;
+    }
+
     public DefaultInstalledJdk getJdk() {
         return jdk;
+    }
+
+    public DefaultIdeaJavaLanguageSettings setJdk(DefaultInstalledJdk jdk) {
+        this.jdk = jdk;
+        return this;
     }
 }

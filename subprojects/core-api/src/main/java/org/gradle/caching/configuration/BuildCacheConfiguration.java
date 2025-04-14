@@ -64,8 +64,8 @@ public interface BuildCacheConfiguration {
      * <p>
      * Storing ("push") in the remote build cache is disabled by default.
      * </p>
-     * @param type the type of remote cache to configure.
      *
+     * @param type the type of remote cache to configure.
      */
     <T extends BuildCache> T remote(Class<T> type);
 
@@ -80,9 +80,9 @@ public interface BuildCacheConfiguration {
      * <p>
      * Storing ("push") in the remote build cache is disabled by default.
      * </p>
+     *
      * @param type the type of remote cache to configure.
      * @param configuration the configuration to execute against the remote cache.
-     *
      */
     <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration);
 
@@ -90,7 +90,6 @@ public interface BuildCacheConfiguration {
      * Executes the given action against the currently configured remote cache.
      *
      * @param configuration the action to execute against the currently configured remote cache.
-     *
      * @throws IllegalStateException If no remote cache has been assigned yet
      */
     void remote(Action<? super BuildCache> configuration);

@@ -53,7 +53,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
         def testSourceSet = project.sourceSets.test
         testSourceSet.scala.displayName == "test Scala source"
-        testSourceSet.scala.srcDirs ==  toLinkedSet(project.file("src/test/scala"))
+        testSourceSet.scala.srcDirs == toLinkedSet(project.file("src/test/scala"))
     }
 
     def "adds compile task for each source set"() {
@@ -66,7 +66,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof ScalaCompile
         task.description == 'Compiles the main Scala source.'
         task.classpath.files as List == [mainSourceSet.java.destinationDirectory.get().asFile]
-        task.source as List == mainSourceSet.scala  as List
+        task.source as List == mainSourceSet.scala as List
         task dependsOn(JvmConstants.COMPILE_JAVA_TASK_NAME)
 
         def testTask = project.tasks['compileTestScala']
@@ -92,16 +92,16 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         task.setClasspath(project.sourceSets.main.compileClasspath)
 
         SourceSet mainSourceSet = project.sourceSets.main
-        task  instanceof ScalaCompile
+        task instanceof ScalaCompile
         task.classpath.files as List == []
-        task.source as List == mainSourceSet.scala  as List
+        task.source as List == mainSourceSet.scala as List
         task not(dependsOn(JvmConstants.COMPILE_JAVA_TASK_NAME))
 
         def testTask = project.tasks['compileTestScala']
         testTask.setClasspath(project.sourceSets.test.compileClasspath)
 
         def testSourceSet = project.sourceSets.test
-        testTask  instanceof ScalaCompile
+        testTask instanceof ScalaCompile
         testTask.classpath.files as List == [
             mainSourceSet.java.destinationDirectory.get().asFile,
             mainSourceSet.scala.destinationDirectory.get().asFile,

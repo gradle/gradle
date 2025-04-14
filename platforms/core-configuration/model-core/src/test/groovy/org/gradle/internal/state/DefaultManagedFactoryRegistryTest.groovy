@@ -90,11 +90,11 @@ class DefaultManagedFactoryRegistryTest extends Specification {
         }
     }
 
-    static interface Foo { }
+    static interface Foo {}
 
-    static interface Bar extends Foo { }
+    static interface Bar extends Foo {}
 
-    static class Baz implements Bar { }
+    static class Baz implements Bar {}
 
-    static interface Buzz { }
+    static interface Buzz {}
 }

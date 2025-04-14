@@ -49,48 +49,6 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
         this.xmlTransformer = xmlTransformer;
     }
 
-    @Override
-    public void load(InputStream inputStream) throws Exception {
-        xml = new XmlParser().parse(inputStream);
-        load(xml);
-    }
-
-    @Override
-    public void store(OutputStream outputStream) {
-        store(xml);
-        xmlTransformer.transform(xml, outputStream);
-    }
-
-    public Node getXml() {
-        return xml;
-    }
-
-    /**
-     * Called immediately after the XML file has been read.
-     */
-    protected void load(Node xml) {
-        // no-op
-    }
-
-    /**
-     * Called immediately before the XML file is to be written.
-     */
-    protected void store(Node xml) {
-        // no-op
-    }
-
-    public void transformAction(@DelegatesTo(XmlProvider.class) Closure action) {
-        transformAction(configureUsing(action));
-    }
-
-    /**
-     * @param action transform action
-     * @since 3.5
-     */
-    public void transformAction(Action<? super XmlProvider> action) {
-        xmlTransformer.addAction(action);
-    }
-
     protected static List<Node> getChildren(@Nullable Node root, String name) {
         return root == null ? Collections.<Node>emptyList() : Cast.<List<Node>>uncheckedCast(root.get(name));
     }
@@ -131,5 +89,47 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
             child = root.appendNode(childName, attributes);
         }
         return child;
+    }
+
+    @Override
+    public void load(InputStream inputStream) throws Exception {
+        xml = new XmlParser().parse(inputStream);
+        load(xml);
+    }
+
+    @Override
+    public void store(OutputStream outputStream) {
+        store(xml);
+        xmlTransformer.transform(xml, outputStream);
+    }
+
+    public Node getXml() {
+        return xml;
+    }
+
+    /**
+     * Called immediately after the XML file has been read.
+     */
+    protected void load(Node xml) {
+        // no-op
+    }
+
+    /**
+     * Called immediately before the XML file is to be written.
+     */
+    protected void store(Node xml) {
+        // no-op
+    }
+
+    public void transformAction(@DelegatesTo(XmlProvider.class) Closure action) {
+        transformAction(configureUsing(action));
+    }
+
+    /**
+     * @param action transform action
+     * @since 3.5
+     */
+    public void transformAction(Action<? super XmlProvider> action) {
+        xmlTransformer.addAction(action);
     }
 }

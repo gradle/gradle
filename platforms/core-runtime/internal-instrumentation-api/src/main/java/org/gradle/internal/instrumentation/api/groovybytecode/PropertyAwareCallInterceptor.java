@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 public interface PropertyAwareCallInterceptor {
     /**
      * Checks if the interceptor handles property access on instances of the specified receiver type.
+     *
      * @return If property access is intercepted, the type of the property. Null otherwise.
      */
     @Nullable

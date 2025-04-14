@@ -28,7 +28,7 @@ trait ZipFileFixture {
     static byte[] readAllBytes(InputStream is) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
         int b = is.read()
-        while(b != -1) {
+        while (b != -1) {
             baos.write(b)
             b = is.read()
         }

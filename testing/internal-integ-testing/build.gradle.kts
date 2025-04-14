@@ -143,9 +143,11 @@ dependencies {
     implementation(platform(libs.sshdSftp))
 
     compileOnly(projects.configurationCache) {
-        because("""Fixes:
+        because(
+            """Fixes:
             compiler message file broken: key=compiler.misc.msg.bug arguments=11.0.21, {1}, {2}, {3}, {4}, {5}, {6}, {7}
-            java.lang.AssertionError: typeSig ERROR""")
+            java.lang.AssertionError: typeSig ERROR"""
+        )
     }
 
     runtimeOnly(libs.mavenResolverImpl) {

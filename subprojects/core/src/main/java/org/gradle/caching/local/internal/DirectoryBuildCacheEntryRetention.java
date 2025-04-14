@@ -53,17 +53,6 @@ public class DirectoryBuildCacheEntryRetention {
         this.retentionDescription = describeEntryRetention(buildCacheConfig.getEntryRetention().get());
     }
 
-    public Supplier<Long> getEntryRetentionTimestampSupplier() {
-        return entryRetentionTimestampSupplier;
-    }
-
-    public String getDescription() {
-        if (cleanupDisabled) {
-            return "disabled";
-        }
-        return retentionDescription;
-    }
-
     private static String describeEntryRetention(CacheResourceConfigurationInternal.EntryRetention entryRetention) {
         long entryRetentionMillis = entryRetention.getTimeInMillis();
 
@@ -78,5 +67,16 @@ public class DirectoryBuildCacheEntryRetention {
 
         // Always render the timestamp in UTC
         return "older than " + Instant.ofEpochMilli(entryRetentionMillis).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z"));
+    }
+
+    public Supplier<Long> getEntryRetentionTimestampSupplier() {
+        return entryRetentionTimestampSupplier;
+    }
+
+    public String getDescription() {
+        if (cleanupDisabled) {
+            return "disabled";
+        }
+        return retentionDescription;
     }
 }

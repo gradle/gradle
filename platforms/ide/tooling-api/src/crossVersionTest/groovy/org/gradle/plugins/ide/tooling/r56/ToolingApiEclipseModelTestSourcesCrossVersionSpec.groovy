@@ -138,12 +138,12 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
         EclipseProject projectD = project.children[3]
 
         then:
-        projectA.classpath.collect { it.file.name } as Set == [ 'commons-lang3-3.9.jar' ] as Set
-        projectA.projectDependencies.collect { it.path } as Set == [ 'b' ] as Set
-        projectB.classpath.collect { it.file.name } as Set == [ 'commons-lang3-3.9.jar', 'commons-io-1.4.jar' ] as Set
-        projectB.projectDependencies.collect { it.path } as Set == [ 'c', 'd' ] as Set
+        projectA.classpath.collect { it.file.name } as Set == ['commons-lang3-3.9.jar'] as Set
+        projectA.projectDependencies.collect { it.path } as Set == ['b'] as Set
+        projectB.classpath.collect { it.file.name } as Set == ['commons-lang3-3.9.jar', 'commons-io-1.4.jar'] as Set
+        projectB.projectDependencies.collect { it.path } as Set == ['c', 'd'] as Set
         projectC.classpath.empty
-        projectC.projectDependencies.collect { it.path } as Set == [ 'd' ] as Set
+        projectC.projectDependencies.collect { it.path } as Set == ['d'] as Set
         projectD.classpath.empty
         projectD.projectDependencies.empty
     }

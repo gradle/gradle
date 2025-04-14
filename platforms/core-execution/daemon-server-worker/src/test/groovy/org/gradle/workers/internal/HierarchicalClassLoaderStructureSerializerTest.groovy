@@ -29,7 +29,7 @@ class HierarchicalClassLoaderStructureSerializerTest extends Specification {
 
     def "can serialize and deserialize a classloader structure"() {
         def classLoaderStructure = new HierarchicalClassLoaderStructure(filteringClassloaderSpec())
-                .withChild(visitableUrlClassloaderSpec())
+            .withChild(visitableUrlClassloaderSpec())
 
         when:
         serializer.write(encoder, classLoaderStructure)
@@ -44,18 +44,18 @@ class HierarchicalClassLoaderStructureSerializerTest extends Specification {
     }
 
     def filteringClassloaderSpec() {
-        def classNames = [ 'allowed.Class1', 'allowed.Class2' ]
-        def disallowedClassNames = [ 'disallowed.Class1', 'disallowed.Class2' ]
-        def packagePrefixes = [ 'allowed.pkgprefix1.', 'allowed.pkgprefix2' ]
-        def disallowedPackagePrefixes = [ 'disallowed.pkgprefix1.', 'disallowed.pkgprefix2.' ]
-        def packageNames = [ 'allowed.pkg1', 'allowed.pkg2' ]
-        def resourceNames = [ 'allowed.resource1', 'allowed.resource2' ]
-        def resourcePrefixes = [ 'allowed.resourcePrefix1.', 'allowed.resourcePrefix2.' ]
+        def classNames = ['allowed.Class1', 'allowed.Class2']
+        def disallowedClassNames = ['disallowed.Class1', 'disallowed.Class2']
+        def packagePrefixes = ['allowed.pkgprefix1.', 'allowed.pkgprefix2']
+        def disallowedPackagePrefixes = ['disallowed.pkgprefix1.', 'disallowed.pkgprefix2.']
+        def packageNames = ['allowed.pkg1', 'allowed.pkg2']
+        def resourceNames = ['allowed.resource1', 'allowed.resource2']
+        def resourcePrefixes = ['allowed.resourcePrefix1.', 'allowed.resourcePrefix2.']
         return new FilteringClassLoader.Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames, disallowedPackagePrefixes)
     }
 
     def visitableUrlClassloaderSpec() {
-        def urls = [ new URL("file://some/path"), new URL("file://some/other/path") ]
+        def urls = [new URL("file://some/path"), new URL("file://some/other/path")]
         return new VisitableURLClassLoader.Spec("test", urls)
     }
 }

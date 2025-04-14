@@ -43,6 +43,7 @@ import java.util.Set;
 public interface AttributeContainer extends HasAttributes {
     /**
      * Returns the set of attribute keys of this container.
+     *
      * @return the set of attribute keys.
      */
     Set<Attribute<?>> keySet();
@@ -50,6 +51,7 @@ public interface AttributeContainer extends HasAttributes {
     /**
      * Sets an attribute value. It is not allowed to use <code>null</code> as
      * an attribute value.
+     *
      * @param <T> the type of the attribute
      * @param key the attribute key
      * @param value the attribute value
@@ -89,12 +91,14 @@ public interface AttributeContainer extends HasAttributes {
 
     /**
      * Returns true if this container is empty.
+     *
      * @return true if this container is empty.
      */
     boolean isEmpty();
 
     /**
      * Tells if a specific attribute is found in this container.
+     *
      * @param key the key of the attribute
      * @return true if this attribute is found in this container.
      */

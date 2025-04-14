@@ -65,7 +65,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
 
         when:
         def result = dependencyConstraintHandler.add(TEST_CONF_NAME, "someNotation") {
-            version { }
+            version {}
         }
 
         then:
@@ -95,7 +95,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
 
         when:
         def result = dependencyConstraintHandler.add(TEST_CONF_NAME, "someNotation") {
-            version { }
+            version {}
         }
 
         then:
@@ -125,7 +125,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:
-        def result = dependencyConstraintHandler.someConf("someNotation") { version { } }
+        def result = dependencyConstraintHandler.someConf("someNotation") { version {} }
 
         then:
         result == dependencyConstraint

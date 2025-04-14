@@ -38,7 +38,6 @@ public interface SoftwareComponentFactory {
      *
      * @param name the name of the component
      * @return the created component, which must be added to the components container later
-     *
      * @since 5.3
      */
     AdhocComponentWithVariants adhoc(String name);

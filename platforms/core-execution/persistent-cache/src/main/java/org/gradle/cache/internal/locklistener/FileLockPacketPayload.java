@@ -42,14 +42,6 @@ public class FileLockPacketPayload {
         this.type = type;
     }
 
-    public long getLockId() {
-        return lockId;
-    }
-
-    public FileLockPacketType getType() {
-        return type;
-    }
-
     public static byte[] encode(long lockId, FileLockPacketType type) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataOutputStream dataOutput = new DataOutputStream(out);
@@ -93,6 +85,14 @@ public class FileLockPacketPayload {
             // old versions don't send a type
         }
         return UNKNOWN;
+    }
+
+    public long getLockId() {
+        return lockId;
+    }
+
+    public FileLockPacketType getType() {
+        return type;
     }
 
 }

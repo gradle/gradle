@@ -5,16 +5,21 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>plusConfigurations</td>
-                <td><literal>project.configurations.testRuntime</literal></td>
+                <td>
+                    <literal>project.configurations.testRuntime</literal>
+                </td>
             </tr>
             <tr>
                 <td>minusConfigurations</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>containers</td>
@@ -22,15 +27,22 @@
             </tr>
             <tr>
                 <td>defaultOutputDir</td>
-                <td><filename><replaceable>${project.projectDir}</replaceable>/bin/default</filename></td>
+                <td>
+                    <filename><replaceable>${project.projectDir}</replaceable>/bin/default
+                    </filename>
+                </td>
             </tr>
             <tr>
                 <td>downloadSources</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>downloadJavadoc</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>file</td>

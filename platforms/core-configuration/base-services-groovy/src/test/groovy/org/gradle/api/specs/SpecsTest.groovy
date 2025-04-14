@@ -40,7 +40,7 @@ class SpecsTest extends Specification {
 
         expect:
         !spec.isSatisfiedBy("")
-        spec.isSatisfiedBy([1,2,3])
+        spec.isSatisfiedBy([1, 2, 3])
     }
 
     def "negation of all is none"() {

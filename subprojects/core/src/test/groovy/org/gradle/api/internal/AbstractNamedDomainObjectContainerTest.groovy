@@ -189,7 +189,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         missingProp.property == 'obj1'
 
         when:
-        container.obj2 { }
+        container.obj2 {}
 
         then:
         MissingMethodException missingMethod = thrown()

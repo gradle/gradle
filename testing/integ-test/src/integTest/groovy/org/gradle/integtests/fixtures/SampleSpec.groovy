@@ -26,7 +26,8 @@ class SampleSpec extends Specification {
 
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
-    @Rule TestRule rule = RuleChain.outerRule(testDirectoryProvider).around(sample)
+    @Rule
+    TestRule rule = RuleChain.outerRule(testDirectoryProvider).around(sample)
 
     def 'sample dir'() {
         // Sample.dir is named after sample, test method and test class

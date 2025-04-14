@@ -590,7 +590,7 @@ foo configured
         thrown(ModelPath.InvalidNameException)
     }
 
-    def "tasks are visible to rules using their public type"(){
+    def "tasks are visible to rules using their public type"() {
         given:
         buildFile << """
 tasks.create(name: 'taskContainerTask', type: DefaultTask) { }

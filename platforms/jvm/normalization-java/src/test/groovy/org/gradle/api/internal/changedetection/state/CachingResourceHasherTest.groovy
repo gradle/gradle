@@ -29,7 +29,7 @@ class CachingResourceHasherTest extends Specification {
     def path = "some"
     def snapshotterCacheService = Mock(ResourceSnapshotterCacheService)
     private RegularFileSnapshot snapshot = new RegularFileSnapshot(path, "path", TestHashCodes.hashCodeFrom(456), DefaultFileMetadata.file(3456, 456, AccessType.DIRECT))
-    def snapshotContext = new DefaultRegularFileSnapshotContext({path}, snapshot)
+    def snapshotContext = new DefaultRegularFileSnapshotContext({ path }, snapshot)
     def cachingHasher = new CachingResourceHasher(delegate, snapshotterCacheService)
 
 

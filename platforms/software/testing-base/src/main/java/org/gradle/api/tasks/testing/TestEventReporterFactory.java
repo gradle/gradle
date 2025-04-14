@@ -39,9 +39,7 @@ public interface TestEventReporterFactory {
      * @param rootName the name for the root node of the test tree
      * @param binaryResultsDirectory the directory to write binary test results to
      * @param htmlReportDirectory the directory to write HTML test reports to
-     *
      * @return the test event reporter
-     *
      * @since 8.13
      */
     GroupTestEventReporter createTestEventReporter(

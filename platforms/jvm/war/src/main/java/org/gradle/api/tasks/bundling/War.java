@@ -51,11 +51,10 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class War extends Jar {
     public static final String WAR_EXTENSION = "war";
-
-    private File webXml;
-    private FileCollection classpath;
     private final DefaultCopySpec webInf;
     private final DirectoryProperty webAppDirectory;
+    private File webXml;
+    private FileCollection classpath;
 
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);

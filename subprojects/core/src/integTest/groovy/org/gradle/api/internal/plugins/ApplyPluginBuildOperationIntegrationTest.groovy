@@ -38,7 +38,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 it.details.buildPath == ":"
         }
 
-        def pluginIdByClass = plugins.details.collectEntries ( { [it.pluginClass, it.pluginId ] })
+        def pluginIdByClass = plugins.details.collectEntries({ [it.pluginClass, it.pluginId] })
         def expectedPlugins = [
             "org.gradle.api.plugins.HelpTasksPlugin": "org.gradle.help-tasks",
             // This tests runs in :core using a reduced distribution (JVM)

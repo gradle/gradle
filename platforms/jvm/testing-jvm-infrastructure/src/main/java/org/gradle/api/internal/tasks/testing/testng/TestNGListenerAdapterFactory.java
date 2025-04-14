@@ -128,7 +128,7 @@ class TestNGListenerAdapterFactory {
 
         private int proxyHashCode(Object proxy) {
             AdaptedListener invocationHandler = (AdaptedListener) Proxy.getInvocationHandler(proxy);
-            return Arrays.hashCode(new Object[] {invocationHandler.getClass(), invocationHandler.delegate.getClass()});
+            return Arrays.hashCode(new Object[]{invocationHandler.getClass(), invocationHandler.delegate.getClass()});
         }
     }
 }

@@ -111,21 +111,21 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         }
 
         when:
-        succeeds  "write"
+        succeeds "write"
 
         then:
         skipped ":write"
         originBuildInvocationId(":write") == thirdBuildId
 
         when:
-        succeeds  "write"
+        succeeds "write"
 
         then:
         skipped ":write"
         originBuildInvocationId(":write") == thirdBuildId
 
         when:
-        succeeds  "clean", "write"
+        succeeds "clean", "write"
 
         then:
         skipped ":write"

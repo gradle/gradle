@@ -29,7 +29,8 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
 
     TestStyledTextOutput ignoreStyle() {
         return new TestStyledTextOutput() {
-            @Override protected void doStyleChange(Style style) {
+            @Override
+            protected void doStyleChange(Style style) {
             }
         }
     }

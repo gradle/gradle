@@ -31,13 +31,13 @@ import java.util.List;
 public class DefaultEclipseProject implements Serializable, GradleProjectIdentity {
     private final String name;
     private final String path;
-    private DefaultEclipseProject parent;
-    private List<DefaultEclipseExternalDependency> classpath;
     private final List<DefaultEclipseProject> children;
-    private List<DefaultEclipseSourceDirectory> sourceDirectories;
-    private List<DefaultEclipseProjectDependency> projectDependencies;
     private final String description;
     private final File projectDirectory;
+    private DefaultEclipseProject parent;
+    private List<DefaultEclipseExternalDependency> classpath;
+    private List<DefaultEclipseSourceDirectory> sourceDirectories;
+    private List<DefaultEclipseProjectDependency> projectDependencies;
     private Iterable<? extends DefaultEclipseTask> tasks;
     private Iterable<? extends DefaultEclipseLinkedResource> linkedResources;
     private DefaultGradleProject gradleProject;
@@ -84,12 +84,12 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         return parent;
     }
 
-    public File getProjectDirectory() {
-        return projectDirectory;
-    }
-
     public void setParent(DefaultEclipseProject parent) {
         this.parent = parent;
+    }
+
+    public File getProjectDirectory() {
+        return projectDirectory;
     }
 
     public List<DefaultEclipseProject> getChildren() {

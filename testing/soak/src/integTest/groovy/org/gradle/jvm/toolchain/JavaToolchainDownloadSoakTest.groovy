@@ -73,7 +73,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
-                .withToolchainDownloadEnabled()
+            .withToolchainDownloadEnabled()
     }
 
     def cleanup() {
@@ -83,8 +83,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     def "can download missing jdk automatically"() {
         when:
         result = executer
-                .withTasks("compileJava")
-                .run()
+            .withTasks("compileJava")
+            .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
@@ -94,8 +94,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     def "clean destination folder when downloading toolchain"() {
         when: "build runs and doesn't have a local JDK to use for compilation"
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .run()
+            .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+            .run()
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
@@ -110,8 +110,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         and: "build runs again"
         jdkRepository.expectHead()
         executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
-                .run()
+            .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
+            .run()
 
         then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
         markerFile.exists()
@@ -120,8 +120,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     def "issue warning on using auto-provisioned toolchain with no configured repositories"() {
         when: "build runs and doesn't have a local JDK to use for compilation"
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .run()
+            .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+            .run()
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
@@ -132,11 +132,11 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
         executer
-                .expectDocumentedDeprecationWarning("Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured. " +
-                        "This behavior is deprecated. Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
-                        "see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
-                .run()
+            .expectDocumentedDeprecationWarning("Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured. " +
+                "This behavior is deprecated. Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
+                "see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
+            .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
+            .run()
     }
 
     @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])

@@ -167,9 +167,9 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         }
         javaLibrary.parsedPom.scope('compile') {
             assertOptionalDependencies(
-                    'org:optionaldep-g1:1.0',
-                    'org:optionaldep1-g2:1.0',
-                    'org:optionaldep2-g2:1.0')
+                'org:optionaldep-g1:1.0',
+                'org:optionaldep1-g2:1.0',
+                'org:optionaldep2-g2:1.0')
         }
         javaLibrary.parsedPom.hasNoScope('runtime')
 
@@ -244,10 +244,10 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         } else {
             javaLibrary.withClassifiedArtifact("optional-feature", "jar")
             javaLibrary.mavenModule.assertArtifactsPublished(
-                    "publishTest-1.9.jar" ,
-                    "publishTest-1.9-optional-feature.jar" ,
-                    "publishTest-1.9.pom",
-                    "publishTest-1.9.module")
+                "publishTest-1.9.jar",
+                "publishTest-1.9-optional-feature.jar",
+                "publishTest-1.9.pom",
+                "publishTest-1.9.module")
             javaLibrary.parsedModuleMetadata.variant("apiElements") {
                 assert files*.name == ["publishTest-1.9.jar"]
                 noMoreDependencies()

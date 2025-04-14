@@ -68,6 +68,21 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
         this.eventConsumerThread = createAndStartEventConsumerThread(handler);
     }
 
+    private static Type convertType(FileWatchEvent.ChangeType type) {
+        switch (type) {
+            case CREATED:
+                return CREATED;
+            case MODIFIED:
+                return MODIFIED;
+            case REMOVED:
+                return REMOVED;
+            case INVALIDATED:
+                return INVALIDATED;
+            default:
+                throw new AssertionError();
+        }
+    }
+
     private Thread createAndStartEventConsumerThread(ChangeHandler handler) {
         Thread thread = new Thread(() -> {
             LOGGER.debug("Started listening to file system change events");
@@ -160,21 +175,6 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     @Override
     public SnapshotHierarchy updateVfsAfterBuildFinished(SnapshotHierarchy root) {
         return fileWatcherUpdater.updateVfsBeforeAfterFinished(root);
-    }
-
-    private static Type convertType(FileWatchEvent.ChangeType type) {
-        switch (type) {
-            case CREATED:
-                return CREATED;
-            case MODIFIED:
-                return MODIFIED;
-            case REMOVED:
-                return REMOVED;
-            case INVALIDATED:
-                return INVALIDATED;
-            default:
-                throw new AssertionError();
-        }
     }
 
     @Override

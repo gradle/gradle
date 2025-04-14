@@ -62,6 +62,12 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         input = new Input(this.inputStream, bufferSize);
     }
 
+    private static String[] growStringArray(String[] strings) {
+        String[] grow = new String[strings == INITIAL_CAPACITY_MARKER ? INITIAL_CAPACITY : strings.length * 3 / 2];
+        System.arraycopy(strings, 0, grow, 0, strings.length);
+        return grow;
+    }
+
     @Override
     protected int maybeReadBytes(byte[] buffer, int offset, int count) {
         return input.read(buffer, offset, count);
@@ -216,12 +222,6 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         String string = input.readString();
         strings[nextString++] = string;
         return string;
-    }
-
-    private static String[] growStringArray(String[] strings) {
-        String[] grow = new String[strings == INITIAL_CAPACITY_MARKER ? INITIAL_CAPACITY : strings.length * 3 / 2];
-        System.arraycopy(strings, 0, grow, 0, strings.length);
-        return grow;
     }
 
     /**

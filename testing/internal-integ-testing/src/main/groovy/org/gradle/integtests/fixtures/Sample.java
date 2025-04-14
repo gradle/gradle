@@ -57,6 +57,22 @@ public class Sample implements TestRule {
         this.testSampleDirName = testSampleDirName;
     }
 
+    /**
+     * Shortens path as much as possible to prevent long path issues on Windows
+     * by keeping the last segment only, ignoring /groovy or /kotlin suffix.
+     */
+    @VisibleForTesting
+    static String dirNameFor(String sampleName) {
+        String dirName = sampleName.endsWith("/") ? sampleName.substring(0, sampleName.length() - 1) : sampleName;
+        for (String dslLanguageCodeName : GradleDsl.languageCodeNames()) {
+            String dslPathFragment = '/' + dslLanguageCodeName;
+            if (dirName.endsWith(dslPathFragment)) {
+                dirName = dirName.substring(0, dirName.lastIndexOf(dslPathFragment));
+            }
+        }
+        return dirName.substring(dirName.lastIndexOf('/') + 1);
+    }
+
     @Override
     public Statement apply(final Statement base, Description description) {
         sampleName = getSampleName(description);
@@ -99,22 +115,6 @@ public class Sample implements TestRule {
             return testFile(dirNameFor(sampleName));
         }
         return null;
-    }
-
-    /**
-     * Shortens path as much as possible to prevent long path issues on Windows
-     * by keeping the last segment only, ignoring /groovy or /kotlin suffix.
-     */
-    @VisibleForTesting
-    static String dirNameFor(String sampleName) {
-        String dirName = sampleName.endsWith("/") ? sampleName.substring(0, sampleName.length() - 1) : sampleName;
-        for (String dslLanguageCodeName : GradleDsl.languageCodeNames()) {
-            String dslPathFragment = '/' + dslLanguageCodeName;
-            if (dirName.endsWith(dslPathFragment)) {
-                dirName = dirName.substring(0, dirName.lastIndexOf(dslPathFragment));
-            }
-        }
-        return dirName.substring(dirName.lastIndexOf('/') + 1);
     }
 
     private TestFile testFile(String testSampleDirName) {

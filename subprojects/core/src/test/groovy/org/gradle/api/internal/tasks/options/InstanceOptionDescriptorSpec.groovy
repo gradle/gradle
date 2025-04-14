@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.options
 import org.gradle.internal.reflect.JavaMethod
 import spock.lang.Specification
 
-class InstanceOptionDescriptorSpec extends Specification{
+class InstanceOptionDescriptorSpec extends Specification {
 
     OptionElement optionElement = optionElement("someOption")
 
@@ -44,7 +44,7 @@ class InstanceOptionDescriptorSpec extends Specification{
 
         then:
         values == ["dynValue1", "dynValue2"] as Set
-        1 * optionValueMethod.invoke(_,_) >> ["dynValue1", "dynValue2"]
+        1 * optionValueMethod.invoke(_, _) >> ["dynValue1", "dynValue2"]
     }
 
     def "should sort alphabetically by name by default"() {

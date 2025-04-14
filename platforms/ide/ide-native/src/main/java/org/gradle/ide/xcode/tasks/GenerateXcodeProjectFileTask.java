@@ -76,13 +76,44 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
     private static final String PRODUCTS_GROUP_NAME = "Products";
     private static final String UNBUILDABLE_BUILD_CONFIGURATION_NAME = "unbuildable";
     private final GidGenerator gidGenerator;
-    private transient DefaultXcodeProject xcodeProject;
     private final Map<String, PBXFileReference> pathToFileReference = new HashMap<>();
+    private transient DefaultXcodeProject xcodeProject;
     private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
 
     @Inject
     public GenerateXcodeProjectFileTask(GidGenerator gidGenerator) {
         this.gidGenerator = gidGenerator;
+    }
+
+    private static String toXcodeArchitecture(String architectureName) {
+        if (architectureName.equals(MachineArchitecture.X86)) {
+            return "i386";
+        } else if (architectureName.equals(MachineArchitecture.X86_64)) {
+            return "x86_64";
+        } else if (architectureName.equals(MachineArchitecture.ARM64)) {
+            return "arm64e";
+        }
+
+        return architectureName;
+    }
+
+    private static String toXcodeSwiftVersion(Provider<SwiftVersion> swiftVersion) {
+        if (swiftVersion.isPresent()) {
+            return String.format("%d.0", swiftVersion.get().getVersion());
+        }
+        return null;
+    }
+
+    private static Iterable<File> parentDirs(Iterable<File> files) {
+        List<File> parents = new ArrayList<File>();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                parents.add(file);
+            } else {
+                parents.add(file.getParentFile());
+            }
+        }
+        return parents;
     }
 
     private ProjectSpec calculateSpec() {
@@ -320,37 +351,6 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
             result.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.compileModules)));
         }
         return result;
-    }
-
-    private static String toXcodeArchitecture(String architectureName) {
-        if (architectureName.equals(MachineArchitecture.X86)) {
-            return "i386";
-        } else if (architectureName.equals(MachineArchitecture.X86_64)) {
-            return "x86_64";
-        } else if (architectureName.equals(MachineArchitecture.ARM64)) {
-            return "arm64e";
-        }
-
-        return architectureName;
-    }
-
-    private static String toXcodeSwiftVersion(Provider<SwiftVersion> swiftVersion) {
-        if (swiftVersion.isPresent()) {
-            return String.format("%d.0", swiftVersion.get().getVersion());
-        }
-        return null;
-    }
-
-    private static Iterable<File> parentDirs(Iterable<File> files) {
-        List<File> parents = new ArrayList<File>();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                parents.add(file);
-            } else {
-                parents.add(file.getParentFile());
-            }
-        }
-        return parents;
     }
 
     @Internal

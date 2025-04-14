@@ -21,11 +21,11 @@ import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.internal.remote.internal.hub.queue.EndPointQueue;
 
 class ConnectionState {
-    private boolean receiveFinished;
-    private boolean dispatchFinished;
     private final RemoteConnection<InterHubMessage> connection;
     private final ConnectionSet owner;
     private final EndPointQueue dispatchQueue;
+    private boolean receiveFinished;
+    private boolean dispatchFinished;
 
     ConnectionState(ConnectionSet owner, RemoteConnection<InterHubMessage> connection, EndPointQueue dispatchQueue) {
         this.owner = owner;

@@ -75,7 +75,7 @@ project.logger.debug("debug logging yyy");
             out.count("sys err logging xxx") == 1
 
             err.count("logging") == 0
-        }  else {
+        } else {
             out.count("logging xxx") == 0
 
             err.count("logging yyy") == 0
@@ -158,7 +158,7 @@ project.logger.debug("debug logging");
             executer.withTestConsoleAttached()
             // We changed the test console system property values in 4.9, need to use "both" instead of "BOTH"
             if (targetVersion.baseVersion >= GradleVersion.version("4.8")
-                    && targetVersion.baseVersion < GradleVersion.version("4.9")) {
+                && targetVersion.baseVersion < GradleVersion.version("4.9")) {
                 executer.withCommandLineGradleOpts("-Dorg.gradle.internal.console.test-console=both")
             }
         }

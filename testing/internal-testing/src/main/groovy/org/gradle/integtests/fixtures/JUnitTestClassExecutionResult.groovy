@@ -59,7 +59,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
      * Note that the JUnit XML schema currently does not support both name and display name, so this extra data is effectively ignored for
      * XML test reports.  See https://github.com/junit-team/junit5/issues/373 for further information.
      *
-     * This method exists for compatibility purposes, but is equivalent to {@link #assertTestsExecuted(java.lang.String[])}.
+     * This method exists for compatibility purposes, but is equivalent to {@link #assertTestsExecuted(java.lang.String [ ])}.
      */
     @Override
     TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
@@ -162,7 +162,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
         def skippedTest = findSkippedTests().get(name)
         assert skippedTest
-        assertions.accept(new SkippedExecutionResult(skippedTest.skipped.@message.text(), skippedTest.skipped.@type.text(),skippedTest.skipped.text()))
+        assertions.accept(new SkippedExecutionResult(skippedTest.skipped.@message.text(), skippedTest.skipped.@type.text(), skippedTest.skipped.text()))
         this
     }
 
@@ -244,7 +244,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     private NodeChild testCase(String name) {
-        testClassNode.testcase.find { it.@name == name || it.@name == "$name()"}
+        testClassNode.testcase.find { it.@name == name || it.@name == "$name()" }
     }
 
     private def findTests() {

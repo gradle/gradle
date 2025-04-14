@@ -22,7 +22,7 @@ dependencies {
 // end::dependency[]
 
 // tag::task[]
-tasks.register("runWithInstrumentation",JavaExec) {
+tasks.register("runWithInstrumentation", JavaExec) {
     classpath = configurations["instrumentedRuntime"]
     mainClass.set("com.example.Main")
 }

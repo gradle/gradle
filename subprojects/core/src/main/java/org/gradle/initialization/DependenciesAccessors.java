@@ -30,11 +30,15 @@ import java.util.Map;
 
 @ServiceScope(Scope.Build.class)
 public interface DependenciesAccessors {
-    void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings);
-    void createExtensions(ProjectInternal project);
-    Map<String, ExternalModuleDependencyFactory> createPluginsBlockFactories(ObjectFactory objects);
-    ClassPath getSources();
-    ClassPath getClasses();
-
     String IN_PLUGINS_BLOCK_FACTORIES_SUFFIX = "InPluginsBlock";
+
+    void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings);
+
+    void createExtensions(ProjectInternal project);
+
+    Map<String, ExternalModuleDependencyFactory> createPluginsBlockFactories(ObjectFactory objects);
+
+    ClassPath getSources();
+
+    ClassPath getClasses();
 }

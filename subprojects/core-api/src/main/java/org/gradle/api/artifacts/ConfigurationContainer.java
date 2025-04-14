@@ -140,9 +140,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @param name The name of the configuration to register.
      * @return A provider which creates a new resolvable configuration.
-     *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
-     *
      * @since 8.4
      */
     @Incubating
@@ -157,11 +155,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @param name The name of the configuration to register.
      * @param action The action to apply to the configuration.
-     *
      * @return A provider which creates a new resolvable configuration.
-     *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
-     *
      * @since 8.4
      */
     @Incubating
@@ -175,11 +170,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
-     *
      * @return A provider which creates a new consumable configuration.
-     *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
-     *
      * @since 8.4
      */
     @Incubating
@@ -194,11 +186,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @param name The name of the configuration to register.
      * @param action The action to apply to the configuration.
-     *
      * @return A provider which creates a new consumable configuration.
-     *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
-     *
      * @since 8.4
      */
     @Incubating
@@ -213,11 +202,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
-     *
      * @return A provider which creates a new dependency scope configuration.
-     *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
-     *
      * @since 8.4
      */
     @Incubating
@@ -232,11 +218,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      *
      * @param name The name of the configuration to register.
      * @param action The action to apply to the configuration.
-     *
      * @return A provider which creates a new dependency scope configuration.
-     *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
-     *
      * @since 8.4
      */
     @Incubating

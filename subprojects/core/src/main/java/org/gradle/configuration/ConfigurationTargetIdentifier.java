@@ -38,25 +38,6 @@ public abstract class ConfigurationTargetIdentifier {
     private ConfigurationTargetIdentifier() {
     }
 
-    public enum Type {
-        GRADLE,
-        SETTINGS,
-        PROJECT;
-
-        public final String label = name().toLowerCase(Locale.ROOT);
-    }
-
-    public abstract Type getTargetType();
-
-    /**
-     * If type == project, that project's path (not identity path).
-     * Else, null.
-     */
-    @Nullable
-    public abstract String getTargetPath();
-
-    public abstract String getBuildPath();
-
     /**
      * Returns null if the thing is of an unknown type.
      * This can happen with {@code apply(from: "foo", to: someTask)},
@@ -129,6 +110,25 @@ public abstract class ConfigurationTargetIdentifier {
                 return gradle.getIdentityPath().getPath();
             }
         };
+    }
+
+    public abstract Type getTargetType();
+
+    /**
+     * If type == project, that project's path (not identity path).
+     * Else, null.
+     */
+    @Nullable
+    public abstract String getTargetPath();
+
+    public abstract String getBuildPath();
+
+    public enum Type {
+        GRADLE,
+        SETTINGS,
+        PROJECT;
+
+        public final String label = name().toLowerCase(Locale.ROOT);
     }
 
 }

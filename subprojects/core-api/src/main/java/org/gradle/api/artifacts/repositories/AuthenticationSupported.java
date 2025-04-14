@@ -118,7 +118,6 @@ public interface AuthenticationSupported {
      * </ul>
      *
      * @throws IllegalArgumentException if {@code credentialsType} is not of a supported type
-     *
      * @since 6.6
      */
     void credentials(Class<? extends Credentials> credentialsType);

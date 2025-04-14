@@ -25,6 +25,12 @@ import org.gradle.internal.service.ServiceRegistry;
 
 public class RootBuildCacheControllerSettingsProcessor implements SettingsProcessor {
 
+    private final SettingsProcessor delegate;
+
+    public RootBuildCacheControllerSettingsProcessor(SettingsProcessor delegate) {
+        this.delegate = delegate;
+    }
+
     public static void process(GradleInternal gradle) {
         // The strategy for sharing build cache configuration across included builds in a composite,
         // requires that the cache configuration be finalized (and cache controller available)
@@ -34,12 +40,6 @@ public class RootBuildCacheControllerSettingsProcessor implements SettingsProces
         LifecycleAwareBuildCacheController cacheController = services.get(LifecycleAwareBuildCacheController.class);
         BuildCacheConfigurationInternal buildCacheConfiguration = services.get(BuildCacheConfigurationInternal.class);
         cacheController.configurationAvailable(buildCacheConfiguration);
-    }
-
-    private final SettingsProcessor delegate;
-
-    public RootBuildCacheControllerSettingsProcessor(SettingsProcessor delegate) {
-        this.delegate = delegate;
     }
 
     @Override

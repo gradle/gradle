@@ -26,7 +26,7 @@ class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecificat
 
     def "EclipseProject with default java attributes"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
         """
 
@@ -42,7 +42,7 @@ class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecificat
 
     def "EclipseProject attributes defined"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            import org.gradle.plugins.ide.eclipse.model.BuildCommand
 
@@ -63,7 +63,7 @@ class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecificat
     @Issue('eclipse/buildship#694')
     def "EclipseProject attributes modified via beforeMerged"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            import org.gradle.plugins.ide.eclipse.model.BuildCommand
 
@@ -84,7 +84,7 @@ class ToolingApiEclipseModelProjectCrossVersionSpec extends ToolingApiSpecificat
     @Issue('eclipse/buildship#694')
     def "EclipseProject attributes modified via whenMerged"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            import org.gradle.plugins.ide.eclipse.model.BuildCommand
 

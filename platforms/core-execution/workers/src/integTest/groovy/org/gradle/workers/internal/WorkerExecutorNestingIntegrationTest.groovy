@@ -103,6 +103,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
      * This is not intended, but current behavior. We'll need to find a way to pass the service
      * registry across the classloader isolation barrier.
      */
+
     def "workers with classpath isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
             ${getWorkActionWithNesting("classLoaderIsolation", nestedIsolationMode)}
@@ -124,6 +125,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
      * Ideally this would be possible, but it would require coordination between workers and the daemon
      * to figure out who is allowed to schedule more work without violating the max-workers setting.
      */
+
     def "workers with process isolation cannot spawn more work with #nestedIsolationMode"() {
         buildFile << """
             ${getWorkActionWithNesting("'processIsolation'", nestedIsolationMode)}

@@ -21,21 +21,11 @@ import java.util.List;
 
 public class ScenarioResult {
 
-    enum Status {
-        SUCCESS,
-        FAILURE,
-        UNKNOWN,
-        STABLE_REGRESSION,
-        SMALL_FLAKY_REGRESSION,
-        BIG_FLAKY_REGRESSION
-    }
-
     private final Status status;
     private final List<PerformanceTestExecutionResult> individualResults;
     private final List<PerformanceReportScenarioHistoryExecution> currentBuildExecutions = new ArrayList<>();
     private final List<PerformanceReportScenarioHistoryExecution> recentExecutions = new ArrayList<>();
     private final boolean crossVersion;
-
     public ScenarioResult(Status status, List<PerformanceTestExecutionResult> individualResults, boolean crossVersion) {
         this.status = status;
         this.individualResults = individualResults;
@@ -60,5 +50,14 @@ public class ScenarioResult {
 
     public boolean isCrossVersion() {
         return crossVersion;
+    }
+
+    enum Status {
+        SUCCESS,
+        FAILURE,
+        UNKNOWN,
+        STABLE_REGRESSION,
+        SMALL_FLAKY_REGRESSION,
+        BIG_FLAKY_REGRESSION
     }
 }

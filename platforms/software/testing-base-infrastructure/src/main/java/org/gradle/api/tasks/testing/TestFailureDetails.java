@@ -64,26 +64,26 @@ public interface TestFailureDetails {
      * <p>
      * If this field is {@code true}, then the {@link #getExpectedContent()} and {@link #getActualContent()} methods <i>might</i> return non-null values.
      *
-     * @since 8.3
      * @return {@code true} if this failure is a file comparison failure
+     * @since 8.3
      */
     boolean isFileComparisonFailure();
 
     /**
      * Returns the expected content of a file comparison assertion failure.
      *
-     * @since 8.3
-     * @see #isFileComparisonFailure()
      * @return the expected file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures, or it is not a file comparison failure
+     * @see #isFileComparisonFailure()
+     * @since 8.3
      */
     byte @Nullable [] getExpectedContent();
 
     /**
      * Returns the actual content of a file comparison assertion failure.
      *
-     * @since 8.3
-     * @see #isFileComparisonFailure()
      * @return the expected file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures, or it is not a file comparison failure
+     * @see #isFileComparisonFailure()
+     * @since 8.3
      */
     byte @Nullable [] getActualContent();
 
@@ -110,8 +110,8 @@ public interface TestFailureDetails {
     /**
      * Is this an assumption failure?
      *
-     * @since 8.14
      * @return true if this is an assumption failure
+     * @since 8.14
      */
     boolean isAssumptionFailure();
 }

@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 public interface DependencyVariant {
     void mutateAttributes(AttributeContainer attributes);
+
     void mutateCapabilities(ModuleDependencyCapabilitiesHandler capabilitiesHandler);
 
     @Nullable

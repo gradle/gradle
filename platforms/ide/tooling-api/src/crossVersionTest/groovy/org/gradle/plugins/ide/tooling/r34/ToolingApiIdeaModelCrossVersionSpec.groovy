@@ -23,7 +23,7 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
-    def setup(){
+    def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 
@@ -69,7 +69,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child2' }.jdkName == 'MyJDK3'
         ideaProject.modules.find { it.name == 'child3' }.jdkName == null
     }
-    
+
     @TargetGradleVersion(">=4.0 <4.5")
     def "provides correct dependencies when using java-library plugin"() {
         given:
@@ -102,7 +102,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         def ideaProject = withConnection { connection -> connection.getModel(IdeaProject) }
-        def module = ideaProject.modules.find {it. name == 'root'}
+        def module = ideaProject.modules.find { it.name == 'root' }
 
         then:
         module.dependencies.size() == 11
@@ -151,7 +151,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         def ideaProject = withConnection { connection -> connection.getModel(IdeaProject) }
-        def module = ideaProject.modules.find {it. name == 'root'}
+        def module = ideaProject.modules.find { it.name == 'root' }
 
         then:
         module.dependencies.size() == 7

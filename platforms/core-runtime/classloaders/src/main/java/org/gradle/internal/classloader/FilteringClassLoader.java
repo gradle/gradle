@@ -35,16 +35,9 @@ import java.util.Set;
  * packages and resources are visible.
  */
 public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy {
+    public static final String DEFAULT_PACKAGE = "DEFAULT";
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
-    public static final String DEFAULT_PACKAGE = "DEFAULT";
-    private final Set<String> packageNames;
-    private final TrieSet packagePrefixes;
-    private final TrieSet resourcePrefixes;
-    private final Set<String> resourceNames;
-    private final Set<String> classNames;
-    private final Set<String> disallowedClassNames;
-    private final TrieSet disallowedPackagePrefixes;
 
     static {
         EXT_CLASS_LOADER = ClassLoaderUtils.getPlatformClassLoader();
@@ -59,16 +52,13 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
     }
 
-    private static class RetrieveSystemPackagesClassLoader extends ClassLoader {
-        RetrieveSystemPackagesClassLoader(ClassLoader parent) {
-            super(parent);
-        }
-
-        @Override
-        protected Package[] getPackages() {
-            return super.getPackages();
-        }
-    }
+    private final Set<String> packageNames;
+    private final TrieSet packagePrefixes;
+    private final TrieSet resourcePrefixes;
+    private final Set<String> resourceNames;
+    private final Set<String> classNames;
+    private final Set<String> disallowedClassNames;
+    private final TrieSet disallowedPackagePrefixes;
 
     public FilteringClassLoader(ClassLoader parent, Spec spec) {
         super(parent);
@@ -79,6 +69,10 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         classNames = new HashSet<String>(spec.classNames);
         disallowedClassNames = new HashSet<String>(spec.disallowedClassNames);
         disallowedPackagePrefixes = new TrieSet(spec.disallowedPackagePrefixes);
+    }
+
+    private static boolean isInDefaultPackage(String className) {
+        return !className.contains(".");
     }
 
     @Override
@@ -182,8 +176,19 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
     }
 
-    private static boolean isInDefaultPackage(String className) {
-        return !className.contains(".");
+    public interface Action<T> {
+        void execute(T target);
+    }
+
+    private static class RetrieveSystemPackagesClassLoader extends ClassLoader {
+        RetrieveSystemPackagesClassLoader(ClassLoader parent) {
+            super(parent);
+        }
+
+        @Override
+        protected Package[] getPackages() {
+            return super.getPackages();
+        }
     }
 
     public static class Spec extends ClassLoaderSpec {
@@ -388,18 +393,18 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         private final boolean terminal;
         private final Trie[] transitions;
 
+        private Trie(char chr, boolean terminal, Trie[] transitions) {
+            this.chr = chr;
+            this.terminal = terminal;
+            this.transitions = transitions;
+        }
+
         public static Trie from(Iterable<String> words) {
             Builder builder = new Builder();
             for (String word : words) {
                 builder.addWord(word);
             }
             return builder.build();
-        }
-
-        private Trie(char chr, boolean terminal, Trie[] transitions) {
-            this.chr = chr;
-            this.terminal = terminal;
-            this.transitions = transitions;
         }
 
         @Override
@@ -500,9 +505,5 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
                 return new Trie(chr, terminal, transitions);
             }
         }
-    }
-
-    public interface Action<T> {
-        void execute(T target);
     }
 }

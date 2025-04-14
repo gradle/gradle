@@ -30,6 +30,25 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class RequestGroupingInstrumentationClassSourceGenerator implements InstrumentationCodeGenerator {
+    private static GenerationResult.CanGenerateClasses successResult(Set<CallInterceptionRequest> processedRequests, Map<String, Consumer<TypeSpec.Builder>> classContentByName) {
+        return new GenerationResult.CanGenerateClasses() {
+            @Override
+            public Collection<String> getClassNames() {
+                return classContentByName.keySet();
+            }
+
+            @Override
+            public void buildType(String className, TypeSpec.Builder builder) {
+                classContentByName.get(className).accept(builder);
+            }
+
+            @Override
+            public List<CallInterceptionRequest> getCoveredRequests() {
+                return new ArrayList<>(processedRequests);
+            }
+        };
+    }
+
     protected abstract String classNameForRequest(CallInterceptionRequest request);
 
     protected abstract Consumer<TypeSpec.Builder> classContentForClass(
@@ -58,24 +77,5 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
         } else {
             return new GenerationResult.CodeFailures(failuresInfo);
         }
-    }
-
-    private static GenerationResult.CanGenerateClasses successResult(Set<CallInterceptionRequest> processedRequests, Map<String, Consumer<TypeSpec.Builder>> classContentByName) {
-        return new GenerationResult.CanGenerateClasses() {
-            @Override
-            public Collection<String> getClassNames() {
-                return classContentByName.keySet();
-            }
-
-            @Override
-            public void buildType(String className, TypeSpec.Builder builder) {
-                classContentByName.get(className).accept(builder);
-            }
-
-            @Override
-            public List<CallInterceptionRequest> getCoveredRequests() {
-                return new ArrayList<>(processedRequests);
-            }
-        };
     }
 }

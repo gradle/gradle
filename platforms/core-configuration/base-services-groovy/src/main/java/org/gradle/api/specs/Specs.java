@@ -35,17 +35,16 @@ public class Specs {
             return true;
         }
     };
-
-    public static <T> Spec<T> satisfyAll() {
-        return Cast.uncheckedCast(SATISFIES_ALL);
-    }
-
     public static final Spec<Object> SATISFIES_NONE = new Spec<Object>() {
         @Override
         public boolean isSatisfiedBy(Object element) {
             return false;
         }
     };
+
+    public static <T> Spec<T> satisfyAll() {
+        return Cast.uncheckedCast(SATISFIES_ALL);
+    }
 
     public static <T> Spec<T> satisfyNone() {
         return Cast.uncheckedCast(SATISFIES_NONE);

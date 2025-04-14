@@ -140,7 +140,7 @@ class ClassDocExtensionsBuilderTest extends gradlebuild.docs.XmlSpecification {
         def type = args.type instanceof TypeMetaData ? args.type : new TypeMetaData(args.type ?: 'org.gradle.Type')
         _ * property.type >> type
         _ * property.signature >> "$name-signature"
-        _ * javadocConverter.parse(property, !null) >> ({[parse("<para>${args.comment ?: 'comment'}</para>")]} as DocComment)
+        _ * javadocConverter.parse(property, !null) >> ({ [parse("<para>${args.comment ?: 'comment'}</para>")] } as DocComment)
         return property
     }
 
@@ -164,7 +164,7 @@ class ClassDocExtensionsBuilderTest extends gradlebuild.docs.XmlSpecification {
         }
         _ * method.ownerClass >> classMetaData
         _ * method.returnType >> new TypeMetaData(args.returnType ?: 'ReturnType')
-        _ * javadocConverter.parse(method, !null) >> ({[parse("<para>${args.comment ?: 'comment'}</para>")]} as DocComment)
+        _ * javadocConverter.parse(method, !null) >> ({ [parse("<para>${args.comment ?: 'comment'}</para>")] } as DocComment)
         return method
     }
 

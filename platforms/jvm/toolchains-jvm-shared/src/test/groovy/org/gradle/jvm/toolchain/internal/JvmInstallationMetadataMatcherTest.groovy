@@ -40,6 +40,7 @@ class JvmInstallationMetadataMatcherTest extends Specification {
     File temporaryFolder
 
     TestFile tmpDir
+
     def setup() {
         tmpDir = new TestFile(new File(temporaryFolder, "tmp").tap { mkdirs() })
     }
@@ -61,14 +62,14 @@ class JvmInstallationMetadataMatcherTest extends Specification {
         new JvmInstallationMetadataMatcher(spec, Collections.emptySet()).test(metadata)
 
         where:
-        jdk              | systemProperties         | javaVersion             | vendor                    | implementation
-        'semeru11'       | semeruJvm11()            | JavaVersion.VERSION_11  | JvmVendorSpec.IBM         | JvmImplementation.VENDOR_SPECIFIC
-        'semeru16'       | semeruJvm16()            | JavaVersion.VERSION_16  | JvmVendorSpec.IBM         | JvmImplementation.VENDOR_SPECIFIC
-        'semeru17'       | semeruJvm17()            | JavaVersion.VERSION_17  | JvmVendorSpec.IBM         | JvmImplementation.VENDOR_SPECIFIC
+        jdk        | systemProperties | javaVersion            | vendor            | implementation
+        'semeru11' | semeruJvm11()    | JavaVersion.VERSION_11 | JvmVendorSpec.IBM | JvmImplementation.VENDOR_SPECIFIC
+        'semeru16' | semeruJvm16()    | JavaVersion.VERSION_16 | JvmVendorSpec.IBM | JvmImplementation.VENDOR_SPECIFIC
+        'semeru17' | semeruJvm17()    | JavaVersion.VERSION_17 | JvmVendorSpec.IBM | JvmImplementation.VENDOR_SPECIFIC
 
-        'semeru11'       | semeruJvm11()            | JavaVersion.VERSION_11  | JvmVendorSpec.IBM         | JvmImplementation.J9
-        'semeru16'       | semeruJvm16()            | JavaVersion.VERSION_16  | JvmVendorSpec.IBM         | JvmImplementation.J9
-        'semeru17'       | semeruJvm17()            | JavaVersion.VERSION_17  | JvmVendorSpec.IBM         | JvmImplementation.J9
+        'semeru11' | semeruJvm11()    | JavaVersion.VERSION_11 | JvmVendorSpec.IBM | JvmImplementation.J9
+        'semeru16' | semeruJvm16()    | JavaVersion.VERSION_16 | JvmVendorSpec.IBM | JvmImplementation.J9
+        'semeru17' | semeruJvm17()    | JavaVersion.VERSION_17 | JvmVendorSpec.IBM | JvmImplementation.J9
     }
 
     def createExecHandleFactory(Map<String, String> actualProperties) {
@@ -104,8 +105,8 @@ class JvmInstallationMetadataMatcherTest extends Specification {
 
     private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory) {
         return new DefaultJvmMetadataDetector(
-                execHandleFactory,
-                TestFiles.tmpDirTemporaryFileProvider(tmpDir)
+            execHandleFactory,
+            TestFiles.tmpDirTemporaryFileProvider(tmpDir)
         )
     }
 

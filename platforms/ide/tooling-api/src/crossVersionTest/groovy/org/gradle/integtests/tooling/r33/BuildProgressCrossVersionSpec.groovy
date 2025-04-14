@@ -48,9 +48,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events)
-                        .forTasks("build")
-                        .run()
+                    .addProgressListener(events)
+                    .forTasks("build")
+                    .run()
         }
 
         then:
@@ -85,9 +85,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements W
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events)
-                        .forTasks("build")
-                        .run()
+                    .addProgressListener(events)
+                    .forTasks("build")
+                    .run()
         }
 
         then:

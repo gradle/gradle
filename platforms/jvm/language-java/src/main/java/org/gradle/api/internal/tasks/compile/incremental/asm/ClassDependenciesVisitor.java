@@ -46,10 +46,10 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final Set<String> accessibleTypes;
     private final Predicate<String> typeFilter;
     private final StringInterner interner;
+    private final RetentionPolicyVisitor retentionPolicyVisitor;
     private boolean isAnnotationType;
     private String dependencyToAllReason;
     private String moduleName;
-    private final RetentionPolicyVisitor retentionPolicyVisitor;
 
     private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);
@@ -70,6 +70,18 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         visitor.privateTypes.removeAll(visitor.accessibleTypes);
         String name = visitor.moduleName != null ? visitor.moduleName : className;
         return new ClassAnalysis(interner.intern(name), visitor.getPrivateClassDependencies(), visitor.getAccessibleClassDependencies(), visitor.getDependencyToAllReason(), visitor.getConstants());
+    }
+
+    private static boolean isAccessible(int access) {
+        return (access & Opcodes.ACC_PRIVATE) == 0;
+    }
+
+    private static boolean isAccessibleConstant(int access, Object value) {
+        return isConstant(access) && isAccessible(access) && value != null;
+    }
+
+    private static boolean isConstant(int access) {
+        return (access & Opcodes.ACC_FINAL) != 0 && (access & Opcodes.ACC_STATIC) != 0;
     }
 
     @Override
@@ -181,18 +193,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             maybeAddDependentType(accessibleTypes, Type.getType(desc));
             return new AnnotationVisitor(accessibleTypes);
         }
-    }
-
-    private static boolean isAccessible(int access) {
-        return (access & Opcodes.ACC_PRIVATE) == 0;
-    }
-
-    private static boolean isAccessibleConstant(int access, Object value) {
-        return isConstant(access) && isAccessible(access) && value != null;
-    }
-
-    private static boolean isConstant(int access) {
-        return (access & Opcodes.ACC_FINAL) != 0 && (access & Opcodes.ACC_STATIC) != 0;
     }
 
     public String getDependencyToAllReason() {

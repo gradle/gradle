@@ -56,7 +56,7 @@ sourceSets {
 """
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        EclipseProject subprojectA = rootProject.children.find {EclipseProject project -> project.name == "subprojectA"}
+        EclipseProject subprojectA = rootProject.children.find { EclipseProject project -> project.name == "subprojectA" }
         then:
         subprojectA.linkedResources.size() == 4
         subprojectA.sourceDirectories.size() == 5

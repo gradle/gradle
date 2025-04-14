@@ -88,14 +88,14 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
             return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s of type %s.", name,
-                    getDisplayName(), publicType.getName()), name, publicType);
+                getDisplayName(), publicType.getName()), name, publicType);
         } else if (publicType != null) {
             return new MissingPropertyException(String.format("Could not get unknown property '%s' for object of type %s.", name,
-                    publicType.getName()), name, publicType);
+                publicType.getName()), name, publicType);
         } else {
             // Use the display name anyway
             return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s.", name,
-                    getDisplayName()), name, null);
+                getDisplayName()), name, null);
         }
     }
 
@@ -104,14 +104,14 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot get the value of write-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
+                "Cannot get the value of write-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot get the value of write-only property '%s' for object of type %s.", name, publicType.getName()));
+                "Cannot get the value of write-only property '%s' for object of type %s.", name, publicType.getName()));
         } else {
             // Use the display name anyway
             return new GroovyRuntimeException(String.format(
-                    "Cannot get the value of write-only property '%s' for %s.", name, getDisplayName()));
+                "Cannot get the value of write-only property '%s' for %s.", name, getDisplayName()));
         }
     }
 
@@ -121,14 +121,14 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
             return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s of type %s.", name,
-                    getDisplayName(), publicType.getName()), name, publicType);
+                getDisplayName(), publicType.getName()), name, publicType);
         } else if (publicType != null) {
             return new MissingPropertyException(String.format("Could not set unknown property '%s' for object of type %s.", name,
-                    publicType.getName()), name, publicType);
+                publicType.getName()), name, publicType);
         } else {
             // Use the display name anyway
             return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s.", name,
-                    getDisplayName()), name, null);
+                getDisplayName()), name, null);
         }
     }
 
@@ -137,14 +137,14 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
+                "Cannot set the value of read-only property '%s' for %s of type %s.", name, getDisplayName(), publicType.getName()));
         } else if (publicType != null) {
             return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for object of type %s.", name, publicType.getName()));
+                "Cannot set the value of read-only property '%s' for object of type %s.", name, publicType.getName()));
         } else {
             // Use the display name anyway
             return new GroovyRuntimeException(String.format(
-                    "Cannot set the value of read-only property '%s' for %s.", name, getDisplayName()));
+                "Cannot set the value of read-only property '%s' for %s.", name, getDisplayName()));
         }
     }
 

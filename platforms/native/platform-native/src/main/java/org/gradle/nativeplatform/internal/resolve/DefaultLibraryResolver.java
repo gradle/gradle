@@ -116,7 +116,7 @@ class DefaultLibraryResolver {
 
             String typeName = GUtil.elvis(requirement.getLinkage(), "shared");
             throw new LibraryResolveException(String.format("No %s library binary available for library '%s' with [flavor: '%s', platform: '%s', buildType: '%s']",
-                    typeName, requirement.getLibraryName(), flavor.getName(), platform.getName(), buildType.getName()));
+                typeName, requirement.getLibraryName(), flavor.getName(), platform.getName(), buildType.getName()));
         }
     }
 }

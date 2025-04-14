@@ -20,5 +20,5 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-class DependencyMetadataRulesMavenIntegrationTest extends AbstractDependencyMetadataRulesIntegrationTest{
+class DependencyMetadataRulesMavenIntegrationTest extends AbstractDependencyMetadataRulesIntegrationTest {
 }

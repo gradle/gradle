@@ -23,8 +23,10 @@ import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart/groovy')
-    @Rule ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
+    @Rule
+    public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart/groovy')
+    @Rule
+    ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 
     def setup() {
         executer.withRepositoryMirrors()
@@ -42,12 +44,12 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
         TestFile warContents = file('war-tmp')
         sample.dir.file("build/libs/quickstart.war").unzipTo(warContents)
         warContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'index.jsp',
-                'WEB-INF/classes/org/gradle/sample/Greeter.class',
-                'WEB-INF/classes/greeting.txt',
-                'WEB-INF/lib/log4j-1.2.15.jar',
-                'WEB-INF/lib/commons-io-1.4.jar',
+            'META-INF/MANIFEST.MF',
+            'index.jsp',
+            'WEB-INF/classes/org/gradle/sample/Greeter.class',
+            'WEB-INF/classes/greeting.txt',
+            'WEB-INF/lib/log4j-1.2.15.jar',
+            'WEB-INF/lib/commons-io-1.4.jar',
         )
     }
 }

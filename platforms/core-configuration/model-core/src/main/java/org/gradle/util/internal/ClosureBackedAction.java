@@ -32,10 +32,6 @@ public class ClosureBackedAction<T> implements Action<T> {
     private final int resolveStrategy;
     private final boolean configurableAware;
 
-    public static <T> ClosureBackedAction<T> of(Closure<?> closure) {
-        return new ClosureBackedAction<T>(closure);
-    }
-
     public ClosureBackedAction(Closure closure) {
         this(closure, Closure.DELEGATE_FIRST, true);
     }
@@ -48,6 +44,10 @@ public class ClosureBackedAction<T> implements Action<T> {
         this.closure = closure;
         this.resolveStrategy = resolveStrategy;
         this.configurableAware = configurableAware;
+    }
+
+    public static <T> ClosureBackedAction<T> of(Closure<?> closure) {
+        return new ClosureBackedAction<T>(closure);
     }
 
     public static <T> void execute(T delegate, Closure<?> closure) {

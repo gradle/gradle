@@ -66,25 +66,21 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 
 public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMethodReaderExtension {
 
-    @Override
-    public Collection<Result> readRequest(ExecutableElement input, ReadRequestContext context) {
-        if (input.getKind() != ElementKind.METHOD) {
-            return emptyList();
-        }
-
-        if (!input.getModifiers().containsAll(Arrays.asList(Modifier.STATIC, Modifier.PUBLIC))) {
-            return emptyList();
-        }
-
-        try {
-            CallableInfo callableInfo = extractCallableInfo(input);
-            ImplementationInfoImpl implementationInfo = extractImplementationInfo(input);
-            List<RequestExtra> requestExtras = Collections.singletonList(new OriginatingElement(input));
-            return singletonList(new Result.Success(new CallInterceptionRequestImpl(callableInfo, implementationInfo, requestExtras)));
-        } catch (Failure e) {
-            return singletonList(new Result.InvalidRequest(e.reason));
-        }
-    }
+    private static final String INTERCEPT_PREFIX = "intercept_";
+    private static final Class<? extends Annotation>[] CALLABLE_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
+        CallableKind.InstanceMethod.class,
+        CallableKind.StaticMethod.class,
+        CallableKind.AfterConstructor.class,
+        CallableKind.GroovyPropertyGetter.class,
+        CallableKind.GroovyPropertySetter.class
+    });
+    private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
+        ParameterKind.Receiver.class,
+        ParameterKind.CallerClassName.class,
+        ParameterKind.KotlinDefaultMask.class,
+        ParameterKind.VarargParameter.class,
+        ParameterKind.InjectVisitorContext.class
+    });
 
     private static CallableInfo extractCallableInfo(ExecutableElement methodElement) {
         CallableKindInfo kindInfo = extractCallableKind(methodElement);
@@ -138,8 +134,6 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         }
         return methodName.replace(INTERCEPT_PREFIX, "");
     }
-
-    private static final String INTERCEPT_PREFIX = "intercept_";
 
     private static boolean isInterceptPatternName(String methodName) {
         return methodName.startsWith(INTERCEPT_PREFIX);
@@ -236,6 +230,26 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         return extractType(receiverType);
     }
 
+    @Override
+    public Collection<Result> readRequest(ExecutableElement input, ReadRequestContext context) {
+        if (input.getKind() != ElementKind.METHOD) {
+            return emptyList();
+        }
+
+        if (!input.getModifiers().containsAll(Arrays.asList(Modifier.STATIC, Modifier.PUBLIC))) {
+            return emptyList();
+        }
+
+        try {
+            CallableInfo callableInfo = extractCallableInfo(input);
+            ImplementationInfoImpl implementationInfo = extractImplementationInfo(input);
+            List<RequestExtra> requestExtras = Collections.singletonList(new OriginatingElement(input));
+            return singletonList(new Result.Success(new CallInterceptionRequestImpl(callableInfo, implementationInfo, requestExtras)));
+        } catch (Failure e) {
+            return singletonList(new Result.InvalidRequest(e.reason));
+        }
+    }
+
     private static class Failure extends RuntimeException {
         final String reason;
 
@@ -243,20 +257,4 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
             this.reason = reason;
         }
     }
-
-    private static final Class<? extends Annotation>[] CALLABLE_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
-        CallableKind.InstanceMethod.class,
-        CallableKind.StaticMethod.class,
-        CallableKind.AfterConstructor.class,
-        CallableKind.GroovyPropertyGetter.class,
-        CallableKind.GroovyPropertySetter.class
-    });
-
-    private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
-        ParameterKind.Receiver.class,
-        ParameterKind.CallerClassName.class,
-        ParameterKind.KotlinDefaultMask.class,
-        ParameterKind.VarargParameter.class,
-        ParameterKind.InjectVisitorContext.class
-    });
 }

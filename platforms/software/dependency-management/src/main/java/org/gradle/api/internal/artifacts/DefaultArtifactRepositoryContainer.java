@@ -33,7 +33,7 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 
 public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
-        implements ArtifactRepositoryContainer {
+    implements ArtifactRepositoryContainer {
 
     private final Action<ArtifactRepository> addLastAction = DefaultArtifactRepositoryContainer.super::add;
 
@@ -45,13 +45,6 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
                 repository.onAddToContainer(DefaultArtifactRepositoryContainer.this);
             }
         });
-    }
-
-    private static class RepositoryNamer implements Namer<ArtifactRepository> {
-        @Override
-        public String determineName(ArtifactRepository r) {
-            return r.getName();
-        }
     }
 
     @Override
@@ -111,6 +104,13 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
             if (findByName(candidate) == null) {
                 return candidate;
             }
+        }
+    }
+
+    private static class RepositoryNamer implements Namer<ArtifactRepository> {
+        @Override
+        public String determineName(ArtifactRepository r) {
+            return r.getName();
         }
     }
 

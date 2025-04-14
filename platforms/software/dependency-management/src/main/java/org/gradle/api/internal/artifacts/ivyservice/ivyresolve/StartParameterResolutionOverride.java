@@ -117,6 +117,20 @@ public class StartParameterResolutionOverride {
         return new File(verifyReportsDirectory, "at-" + timeProvider.getCurrentTime());
     }
 
+    public ExternalResourceCachePolicy overrideExternalResourceCachePolicy(ExternalResourceCachePolicy original) {
+        if (startParameter.isOffline()) {
+            return ageMillis -> false;
+        }
+        return original;
+    }
+
+    public ExternalResourceConnector overrideExternalResourceConnector(ExternalResourceConnector original) {
+        if (startParameter.isOffline()) {
+            return new OfflineExternalResourceConnector();
+        }
+        return original;
+    }
+
     private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository<ModuleComponentResolveMetadata> {
 
         private final FailedRemoteAccess failedRemoteAccess = new FailedRemoteAccess();
@@ -161,20 +175,6 @@ public class StartParameterResolutionOverride {
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
             return MetadataFetchingCost.CHEAP;
         }
-    }
-
-    public ExternalResourceCachePolicy overrideExternalResourceCachePolicy(ExternalResourceCachePolicy original) {
-        if (startParameter.isOffline()) {
-            return ageMillis -> false;
-        }
-        return original;
-    }
-
-    public ExternalResourceConnector overrideExternalResourceConnector(ExternalResourceConnector original) {
-        if (startParameter.isOffline()) {
-            return new OfflineExternalResourceConnector();
-        }
-        return original;
     }
 
     private static class OfflineExternalResourceConnector implements ExternalResourceConnector {

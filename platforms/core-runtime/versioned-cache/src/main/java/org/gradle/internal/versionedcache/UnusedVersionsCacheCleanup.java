@@ -51,11 +51,6 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
 
     private Set<CacheVersion> usedVersions;
 
-    public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
-        Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-((?:\\d+" + Pattern.quote(CacheVersion.COMPONENT_SEPARATOR) + ")*\\d+)$");
-        return new UnusedVersionsCacheCleanup(cacheNamePattern, cacheVersionMapping, usedGradleVersions);
-    }
-
     private UnusedVersionsCacheCleanup(final Pattern cacheNamePattern, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
         super((baseDir, filter) -> {
             FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter(cacheNamePattern), asFileFilter(filter),
@@ -66,6 +61,11 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
         this.cacheNamePattern = cacheNamePattern;
         this.cacheVersionMapping = cacheVersionMapping;
         this.usedGradleVersions = usedGradleVersions;
+    }
+
+    public static UnusedVersionsCacheCleanup create(String cacheName, CacheVersionMapping cacheVersionMapping, UsedGradleVersions usedGradleVersions) {
+        Pattern cacheNamePattern = Pattern.compile('^' + Pattern.quote(cacheName) + "-((?:\\d+" + Pattern.quote(CacheVersion.COMPONENT_SEPARATOR) + ")*\\d+)$");
+        return new UnusedVersionsCacheCleanup(cacheNamePattern, cacheVersionMapping, usedGradleVersions);
     }
 
     @Override

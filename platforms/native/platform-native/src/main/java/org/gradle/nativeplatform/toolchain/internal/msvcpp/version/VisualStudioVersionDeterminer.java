@@ -33,6 +33,19 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
         this.visualCppMetadataProvider = visualCppMetadataProvider;
     }
 
+    private static File getNthParent(File file, int n) {
+        if (n == 0) {
+            return file;
+        } else {
+            File parent = file.getParentFile();
+            if (parent != null) {
+                return getNthParent(parent, --n);
+            } else {
+                return file;
+            }
+        }
+    }
+
     @Override
     public VisualStudioInstallCandidate getVisualStudioMetadataFromInstallDir(final File installDir) {
         // Check the normal metadata first
@@ -101,7 +114,7 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
                     .build();
             } else {
                 File visualCppDir = getNthParent(compilerFile, 2);
-                if (!"VC".equals(visualCppDir.getName()))  {
+                if (!"VC".equals(visualCppDir.getName())) {
                     visualCppDir = getNthParent(compilerFile, 3);
                 }
                 return new VisualStudioMetadataBuilder()
@@ -140,18 +153,5 @@ public class VisualStudioVersionDeterminer implements VisualStudioMetaDataProvid
             }
         }
         return null;
-    }
-
-    private static File getNthParent(File file, int n) {
-        if (n == 0) {
-            return file;
-        } else {
-            File parent = file.getParentFile();
-            if (parent != null) {
-                return getNthParent(parent, --n);
-            } else {
-                return file;
-            }
-        }
     }
 }

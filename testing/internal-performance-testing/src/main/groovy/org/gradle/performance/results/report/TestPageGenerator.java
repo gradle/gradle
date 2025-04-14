@@ -45,6 +45,35 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         this.projectName = projectName;
     }
 
+    private static String getTasks(PerformanceTestHistory testHistory) {
+        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
+        if (performanceTestExecution == null || performanceTestExecution.getTasks() == null) {
+            return "";
+        }
+        return Joiner.on(" ").join(performanceTestExecution.getTasks());
+    }
+
+    private static String getCleanTasks(PerformanceTestHistory testHistory) {
+        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
+        if (performanceTestExecution == null || performanceTestExecution.getCleanTasks() == null) {
+            return "";
+        }
+        return Joiner.on(" ").join(performanceTestExecution.getCleanTasks());
+    }
+    // @formatter:on
+
+    private static PerformanceTestExecution getExecution(PerformanceTestHistory testHistory) {
+        List<? extends PerformanceTestExecution> executions = testHistory.getExecutions();
+        if (executions.isEmpty()) {
+            return null;
+        }
+        return executions.get(0);
+    }
+
+    private static String shorten(String string, int maxLength) {
+        return string.substring(0, Math.min(maxLength, string.length()));
+    }
+
     @Override
     protected int getDepth() {
         return 1;
@@ -222,7 +251,41 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             }
         };
     }
-    // @formatter:on
+
+    private String getReproductionInstructions(PerformanceTestHistory history) {
+        String baseline = "";
+        if (history instanceof CrossVersionPerformanceTestHistory) {
+            baseline = ((CrossVersionPerformanceTestHistory) history).getResults().stream().findFirst()
+                .flatMap(result -> result.getBaselineVersions().stream().findFirst())
+                .map(baselineVersion -> "-PperformanceBaselines='" + baselineVersion.getVersion() + "'")
+                .orElse("");
+        }
+        PerformanceScenario scenario = history.getExperiment().getScenario();
+        return String.format("To reproduce, run ./gradlew :%s:%sPerformanceAdhocTest --tests '%s' %s",
+            projectName,
+            history.getExperiment().getTestProject(),
+            scenario.getClassName() + "." + scenario.getTestName(),
+            baseline
+        );
+    }
+
+    private List<GitHubLink> createGitHubLinks(List<String> commits) {
+        if (null == commits || commits.size() == 0) {
+            return Collections.emptyList();
+        }
+        GitHubLink gradleUrl = new GitHubLink("gradle/gradle", commits.get(0));
+        if (commits.size() == 1) {
+            return Collections.singletonList(gradleUrl);
+        } else if (commits.size() == 2) {
+            GitHubLink dotComUrl = new GitHubLink("gradle/dotcom", commits.get(1));
+            List<GitHubLink> links = new ArrayList<>();
+            links.add(gradleUrl);
+            links.add(dotComUrl);
+            return links;
+        } else {
+            throw new IllegalArgumentException("No more than 2 commit SHAs are supported");
+        }
+    }
 
     private static class Chart {
         private String field;
@@ -260,47 +323,6 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         }
     }
 
-    private static String getTasks(PerformanceTestHistory testHistory) {
-        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
-        if (performanceTestExecution == null || performanceTestExecution.getTasks() == null) {
-            return "";
-        }
-        return Joiner.on(" ").join(performanceTestExecution.getTasks());
-    }
-
-    private static String getCleanTasks(PerformanceTestHistory testHistory) {
-        PerformanceTestExecution performanceTestExecution = getExecution(testHistory);
-        if (performanceTestExecution == null || performanceTestExecution.getCleanTasks() == null) {
-            return "";
-        }
-        return Joiner.on(" ").join(performanceTestExecution.getCleanTasks());
-    }
-
-    private static PerformanceTestExecution getExecution(PerformanceTestHistory testHistory) {
-        List<? extends PerformanceTestExecution> executions = testHistory.getExecutions();
-        if (executions.isEmpty()) {
-            return null;
-        }
-        return executions.get(0);
-    }
-
-    private String getReproductionInstructions(PerformanceTestHistory history) {
-        String baseline = "";
-        if (history instanceof CrossVersionPerformanceTestHistory) {
-            baseline = ((CrossVersionPerformanceTestHistory) history).getResults().stream().findFirst()
-                .flatMap(result -> result.getBaselineVersions().stream().findFirst())
-                .map(baselineVersion -> "-PperformanceBaselines='" + baselineVersion.getVersion() + "'")
-                .orElse("");
-        }
-        PerformanceScenario scenario = history.getExperiment().getScenario();
-        return String.format("To reproduce, run ./gradlew :%s:%sPerformanceAdhocTest --tests '%s' %s",
-            projectName,
-            history.getExperiment().getTestProject(),
-            scenario.getClassName() + "." + scenario.getTestName(),
-            baseline
-        );
-    }
-
     private static class GitHubLink {
         private final String repo;
         private final String hash;
@@ -330,28 +352,6 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             String range = String.format("%s...%s", formatHash(previousHash), formatHash(hash));
             html.a().classAttr("compare-link").href(String.format("https://github.com/%s/compare/%s", repo, range)).text("changes").end();
         }
-    }
-
-    private List<GitHubLink> createGitHubLinks(List<String> commits) {
-        if (null == commits || commits.size() == 0) {
-            return Collections.emptyList();
-        }
-        GitHubLink gradleUrl = new GitHubLink("gradle/gradle", commits.get(0));
-        if (commits.size() == 1) {
-            return Collections.singletonList(gradleUrl);
-        } else if (commits.size() == 2) {
-            GitHubLink dotComUrl = new GitHubLink("gradle/dotcom", commits.get(1));
-            List<GitHubLink> links = new ArrayList<>();
-            links.add(gradleUrl);
-            links.add(dotComUrl);
-            return links;
-        } else {
-            throw new IllegalArgumentException("No more than 2 commit SHAs are supported");
-        }
-    }
-
-    private static String shorten(String string, int maxLength) {
-        return string.substring(0, Math.min(maxLength, string.length()));
     }
 
 }

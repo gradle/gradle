@@ -40,21 +40,21 @@ import java.util.Set;
  * Assertions can also be nested:
  *
  * exact(':a', any(':b', ':c'), ':d') would match any of the following:
- *   - [ ':a', ':b', ':c', ':d' ]
- *   - [ ':a', ':c', ':b', ':d' ]
- *   but not
- *   - [ ':b', ':a', ':c', ':d' ]
+ * - [ ':a', ':b', ':c', ':d' ]
+ * - [ ':a', ':c', ':b', ':d' ]
+ * but not
+ * - [ ':b', ':a', ':c', ':d' ]
  *
  * Similarly, an exact rule can be nested inside of an any rule:
  *
  * any(':a', exact(':b', ':c)) would match any of the following:
- *   - [ ':a', ':b', ':c' ]
- *   - [ ':b', ':c', ':a' ]
- *   - [ ':b', ':a', ':c' ]
- *   but not
- *   - [ ':c', ':a', ':b' ]
- *   - [ ':a', ':c', ':b' ]
- *   or any other combination where :c occurs before :b
+ * - [ ':a', ':b', ':c' ]
+ * - [ ':b', ':c', ':a' ]
+ * - [ ':b', ':a', ':c' ]
+ * but not
+ * - [ ':c', ':a', ':b' ]
+ * - [ ':a', ':c', ':b' ]
+ * or any other combination where :c occurs before :b
  */
 public class TaskOrderSpecs {
 
@@ -79,7 +79,7 @@ public class TaskOrderSpecs {
             if (constraint instanceof String) {
                 index = executedTaskPaths.indexOf(constraint);
             } else if (constraint instanceof TaskOrderSpec) {
-                index = ((TaskOrderSpec)constraint).assertMatches(lastIndex, executedTaskPaths);
+                index = ((TaskOrderSpec) constraint).assertMatches(lastIndex, executedTaskPaths);
             } else {
                 throw new IllegalArgumentException();
             }

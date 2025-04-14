@@ -76,21 +76,13 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  */
 @NullMarked
 public class BuildExceptionReporter implements Action<Throwable> {
-    private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
-
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
-
-    @NullMarked
-    private enum ExceptionStyle {
-        NONE, FULL
-    }
-
+    private static final String NO_ERROR_MESSAGE_INDICATOR = "(no error message)";
     private final StyledTextOutputFactory textOutputFactory;
     private final LoggingConfiguration loggingConfiguration;
     private final BuildClientMetaData clientMetaData;
     private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
-
     public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
@@ -100,6 +92,124 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData) {
         this(textOutputFactory, loggingConfiguration, clientMetaData, null);
+    }
+
+    private static boolean hasCauseAncestry(Throwable failure, Class<?> type) {
+        Throwable cause = failure.getCause();
+        while (cause != null) {
+            if (hasCause(cause, type)) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private static boolean hasCause(Throwable cause, Class<?> type) {
+        if (cause instanceof NonGradleCauseExceptionsHolder) {
+            return ((NonGradleCauseExceptionsHolder) cause).hasCause(type);
+        }
+        return false;
+    }
+
+    private static boolean hasProblemReportsWithSolutions(Throwable throwable, ProblemLocator problemLookup) {
+        Optional<String> solution = problemLookup.findAll(throwable).stream().flatMap(p -> p.getSolutions().stream()).findFirst();
+        if (solution.isPresent()) {
+            return true;
+        } else {
+            return hasProblemReportsWithSolutions(getCauses(throwable), problemLookup);
+        }
+    }
+
+    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLocator problemLookup) {
+        return throwables.stream().anyMatch(t -> hasProblemReportsWithSolutions(t, problemLookup));
+    }
+
+    private static void runWithOption(StyledTextOutput output, String optionName, String text) {
+        output.text("Run with ");
+        output.withStyle(UserInput).format("--%s", optionName);
+        output.text(text);
+    }
+
+    private static List<String> getResolutions(Throwable throwable, ProblemLocator problemLocator) {
+        ImmutableList.Builder<String> resolutions = ImmutableList.builder();
+
+        if (throwable instanceof ResolutionProvider) {
+            resolutions.addAll(((ResolutionProvider) throwable).getResolutions());
+        }
+
+        Collection<InternalProblem> all = problemLocator.findAll(throwable);
+        for (InternalProblem problem : all) {
+            resolutions.addAll(problem.getSolutions());
+        }
+
+        for (Throwable cause : getCauses(throwable)) {
+            resolutions.addAll(getResolutions(cause, problemLocator));
+        }
+
+        return resolutions.build();
+    }
+
+    private static List<? extends Throwable> getCauses(Throwable cause) {
+        if (cause instanceof MultiCauseException) {
+            return ((MultiCauseException) cause).getCauses();
+        }
+        Throwable nextCause = cause.getCause();
+        return nextCause == null ? ImmutableList.of() : ImmutableList.of(nextCause);
+    }
+
+    private static String getMessage(Throwable throwable, ProblemLocator problemLocator) {
+        try {
+            String msg = throwable instanceof CompilationFailedIndicator ? ((CompilationFailedIndicator) throwable).getShortMessage() : throwable.getMessage();
+            StringBuilder builder = new StringBuilder();
+            Collection<InternalProblem> problems = problemLocator.findAll(throwable);
+            if (!problems.isEmpty()) {
+                // Skip the exception message unless it is a compilation error
+                if (throwable instanceof CompilationFailedIndicator) {
+                    builder.append(msg == null ? "" : msg);
+                    builder.append(System.lineSeparator());
+                }
+                StringWriter problemWriter = new StringWriter();
+                new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
+                builder.append(problemWriter);
+
+                // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.
+                if (throwable instanceof CompilationFailedIndicator) {
+                    String diagnosticCounts = ((CompilationFailedIndicator) throwable).getDiagnosticCounts();
+                    if (diagnosticCounts != null) {
+                        builder.append(System.lineSeparator());
+                        builder.append(diagnosticCounts);
+                    }
+                }
+            } else {
+                builder.append(msg == null ? "" : msg);
+            }
+
+            String message = builder.toString();
+            if (GUtil.isTrue(message)) {
+                return message;
+            }
+            return String.format("%s %s", throwable.getClass().getName(), NO_ERROR_MESSAGE_INDICATOR);
+        } catch (Throwable t) {
+            return String.format("Unable to get message for failure of type %s due to %s", throwable.getClass().getSimpleName(), t.getMessage());
+        }
+    }
+
+    private static void writeSection(BufferingStyledTextOutput textOutput, StyledTextOutput output, String sectionTitle) {
+        if (textOutput.getHasContent()) {
+            output.println();
+            output.println(sectionTitle);
+            textOutput.writeTo(output);
+            output.println();
+        }
+    }
+
+    static void renderStyledError(Throwable failure, StyledTextOutput details, ProblemLocator problemLocator) {
+        if (failure instanceof StyledException) {
+            ((StyledException) failure).render(details);
+        } else {
+            details.text(getMessage(failure, problemLocator));
+        }
     }
 
     public void buildFinished(BuildResult result) {
@@ -163,24 +273,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
         writeFailureDetails(output, details);
     }
 
-    private static boolean hasCauseAncestry(Throwable failure, Class<?> type) {
-        Throwable cause = failure.getCause();
-        while (cause != null) {
-            if (hasCause(cause, type)) {
-                return true;
-            }
-            cause = cause.getCause();
-        }
-        return false;
-    }
-
-    private static boolean hasCause(Throwable cause, Class<?> type) {
-        if (cause instanceof NonGradleCauseExceptionsHolder) {
-            return ((NonGradleCauseExceptionsHolder) cause).hasCause(type);
-        }
-        return false;
-    }
-
     private ExceptionStyle getShowStackTraceOption() {
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS) {
             return ExceptionStyle.FULL;
@@ -202,6 +294,73 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
         details.renderStackTrace();
         return details;
+    }
+
+    private void fillInFailureResolution(FailureDetails details, ProblemLocator problemLocator) {
+        ContextImpl context = new ContextImpl(details.resolution);
+        if (details.failure instanceof FailureResolutionAware) {
+            ((FailureResolutionAware) details.failure).appendResolutions(context);
+        }
+        getResolutions(details.failure, problemLocator).stream()
+            .distinct()
+            .forEach(resolution ->
+                context.appendResolution(output ->
+                    output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
+            );
+        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure, problemLocator);
+        if (details.exceptionStyle == ExceptionStyle.NONE && shouldDisplayGenericResolutions) {
+            context.appendResolution(output ->
+                runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
+            );
+        }
+
+        LogLevel logLevel = loggingConfiguration.getLogLevel();
+        boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
+        if (logLevel != DEBUG && shouldDisplayGenericResolutions) {
+            context.appendResolution(output -> {
+                output.text("Run with ");
+                if (isLessThanInfo) {
+                    output.withStyle(UserInput).format("--%s", INFO_LONG_OPTION);
+                    output.text(" or ");
+                }
+                output.withStyle(UserInput).format("--%s", DEBUG_LONG_OPTION);
+                output.text(" option to get more log output.");
+            });
+        }
+
+        if (!context.missingBuild && !isGradleEnterprisePluginApplied()) {
+            addBuildScanMessage(context);
+        }
+
+        if (shouldDisplayGenericResolutions) {
+            context.appendResolution(this::writeGeneralTips);
+        }
+    }
+
+    private void addBuildScanMessage(ContextImpl context) {
+        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights."));
+    }
+
+    private boolean isGradleEnterprisePluginApplied() {
+        return gradleEnterprisePluginManager != null && gradleEnterprisePluginManager.isPresent();
+    }
+
+    private void writeGeneralTips(StyledTextOutput resolution) {
+        resolution.text("Get more help at ");
+        resolution.withStyle(UserInput).text("https://help.gradle.org");
+        resolution.text(".");
+    }
+
+    private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
+        writeSection(details.location, output, "* Where:");
+        writeSection(details.details, output, "* What went wrong:");
+        writeSection(details.resolution, output, "* Try:");
+        writeSection(details.stackTrace, output, "* Exception is:");
+    }
+
+    @NullMarked
+    private enum ExceptionStyle {
+        NONE, FULL
     }
 
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
@@ -317,169 +476,15 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private void fillInFailureResolution(FailureDetails details, ProblemLocator problemLocator) {
-        ContextImpl context = new ContextImpl(details.resolution);
-        if (details.failure instanceof FailureResolutionAware) {
-            ((FailureResolutionAware) details.failure).appendResolutions(context);
-        }
-        getResolutions(details.failure, problemLocator).stream()
-            .distinct()
-            .forEach(resolution ->
-                context.appendResolution(output ->
-                    output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
-            );
-        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure, problemLocator);
-        if (details.exceptionStyle == ExceptionStyle.NONE && shouldDisplayGenericResolutions) {
-            context.appendResolution(output ->
-                runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
-            );
-        }
-
-        LogLevel logLevel = loggingConfiguration.getLogLevel();
-        boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
-        if (logLevel != DEBUG && shouldDisplayGenericResolutions) {
-            context.appendResolution(output -> {
-                output.text("Run with ");
-                if (isLessThanInfo) {
-                    output.withStyle(UserInput).format("--%s", INFO_LONG_OPTION);
-                    output.text(" or ");
-                }
-                output.withStyle(UserInput).format("--%s", DEBUG_LONG_OPTION);
-                output.text(" option to get more log output.");
-            });
-        }
-
-        if (!context.missingBuild && !isGradleEnterprisePluginApplied()) {
-            addBuildScanMessage(context);
-        }
-
-        if (shouldDisplayGenericResolutions) {
-            context.appendResolution(this::writeGeneralTips);
-        }
-    }
-
-    private static boolean hasProblemReportsWithSolutions(Throwable throwable, ProblemLocator problemLookup) {
-        Optional<String> solution = problemLookup.findAll(throwable).stream().flatMap(p -> p.getSolutions().stream()).findFirst();
-        if (solution.isPresent()) {
-            return true;
-        } else {
-            return hasProblemReportsWithSolutions(getCauses(throwable), problemLookup);
-        }
-    }
-
-    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLocator problemLookup) {
-        return throwables.stream().anyMatch(t -> hasProblemReportsWithSolutions(t, problemLookup));
-    }
-
-    private static void runWithOption(StyledTextOutput output, String optionName, String text) {
-        output.text("Run with ");
-        output.withStyle(UserInput).format("--%s", optionName);
-        output.text(text);
-    }
-
-    private static List<String> getResolutions(Throwable throwable, ProblemLocator problemLocator) {
-        ImmutableList.Builder<String> resolutions = ImmutableList.builder();
-
-        if (throwable instanceof ResolutionProvider) {
-            resolutions.addAll(((ResolutionProvider) throwable).getResolutions());
-        }
-
-        Collection<InternalProblem> all = problemLocator.findAll(throwable);
-        for (InternalProblem problem : all) {
-            resolutions.addAll(problem.getSolutions());
-        }
-
-        for (Throwable cause : getCauses(throwable)) {
-            resolutions.addAll(getResolutions(cause, problemLocator));
-        }
-
-        return resolutions.build();
-    }
-
-    private static List<? extends Throwable> getCauses(Throwable cause) {
-        if (cause instanceof MultiCauseException) {
-            return ((MultiCauseException) cause).getCauses();
-        }
-        Throwable nextCause = cause.getCause();
-        return nextCause == null ? ImmutableList.of() : ImmutableList.of(nextCause);
-    }
-
-    private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights."));
-    }
-
-    private boolean isGradleEnterprisePluginApplied() {
-        return gradleEnterprisePluginManager != null && gradleEnterprisePluginManager.isPresent();
-    }
-
-    private void writeGeneralTips(StyledTextOutput resolution) {
-        resolution.text("Get more help at ");
-        resolution.withStyle(UserInput).text("https://help.gradle.org");
-        resolution.text(".");
-    }
-
-    private static String getMessage(Throwable throwable, ProblemLocator problemLocator) {
-        try {
-            String msg = throwable instanceof CompilationFailedIndicator ? ((CompilationFailedIndicator) throwable).getShortMessage() : throwable.getMessage();
-            StringBuilder builder = new StringBuilder();
-            Collection<InternalProblem> problems = problemLocator.findAll(throwable);
-            if (!problems.isEmpty()) {
-                // Skip the exception message unless it is a compilation error
-                if (throwable instanceof CompilationFailedIndicator) {
-                    builder.append(msg == null ? "" : msg);
-                    builder.append(System.lineSeparator());
-                }
-                StringWriter problemWriter = new StringWriter();
-                new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
-                builder.append(problemWriter);
-
-                // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.
-                if (throwable instanceof CompilationFailedIndicator) {
-                    String diagnosticCounts = ((CompilationFailedIndicator) throwable).getDiagnosticCounts();
-                    if (diagnosticCounts != null) {
-                        builder.append(System.lineSeparator());
-                        builder.append(diagnosticCounts);
-                    }
-                }
-            } else {
-                builder.append(msg == null ? "" : msg);
-            }
-
-            String message = builder.toString();
-            if (GUtil.isTrue(message)) {
-                return message;
-            }
-            return String.format("%s %s", throwable.getClass().getName(), NO_ERROR_MESSAGE_INDICATOR);
-        } catch (Throwable t) {
-            return String.format("Unable to get message for failure of type %s due to %s", throwable.getClass().getSimpleName(), t.getMessage());
-        }
-    }
-
-    private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
-        writeSection(details.location, output, "* Where:");
-        writeSection(details.details, output, "* What went wrong:");
-        writeSection(details.resolution, output, "* Try:");
-        writeSection(details.stackTrace, output, "* Exception is:");
-    }
-
-    private static void writeSection(BufferingStyledTextOutput textOutput, StyledTextOutput output, String sectionTitle) {
-        if (textOutput.getHasContent()) {
-            output.println();
-            output.println(sectionTitle);
-            textOutput.writeTo(output);
-            output.println();
-        }
-    }
-
     @NullMarked
     private static class FailureDetails {
-        Throwable failure;
         final BufferingStyledTextOutput summary = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput details = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput location = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput stackTrace = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput resolution = new BufferingStyledTextOutput();
         final ExceptionStyle exceptionStyle;
+        Throwable failure;
 
         public FailureDetails(Throwable failure, ExceptionStyle exceptionStyle) {
             this.failure = failure;
@@ -498,14 +503,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     // Discard. Should also render this as a separate build failure
                 }
             }
-        }
-    }
-
-    static void renderStyledError(Throwable failure, StyledTextOutput details, ProblemLocator problemLocator) {
-        if (failure instanceof StyledException) {
-            ((StyledException) failure).render(details);
-        } else {
-            details.text(getMessage(failure, problemLocator));
         }
     }
 

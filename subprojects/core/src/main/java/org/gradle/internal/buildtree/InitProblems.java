@@ -20,7 +20,7 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.invocation.BuildAction;
 
-public class InitProblems implements BuildTreeActionExecutor  {
+public class InitProblems implements BuildTreeActionExecutor {
 
     private final BuildTreeActionExecutor delegate;
     private final InternalProblems problemsService;

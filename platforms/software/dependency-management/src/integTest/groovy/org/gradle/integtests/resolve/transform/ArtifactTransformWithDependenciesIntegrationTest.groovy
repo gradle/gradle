@@ -1268,7 +1268,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
             singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
             singleStep('common.jar', 'common2.jar'), // Requested behavior: transforming common includes common2 as a dependency
             singleStep('common2.jar', 'common.jar'), // Requested behavior: transforming common2 includes common as a dependency
-            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar', 'common2.jar'),
+            singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common.jar', 'common2.jar'),
         )
     }
 

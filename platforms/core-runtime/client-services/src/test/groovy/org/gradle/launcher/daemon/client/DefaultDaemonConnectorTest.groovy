@@ -63,13 +63,13 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def createConnector() {
         def connector = Spy(DefaultDaemonConnector, constructorArgs: [
-                new DaemonDir(new File("registry")),
-                new EmbeddedDaemonRegistry(),
-                Spy(OutgoingConnectorStub),
-                { startBusyDaemon() } as DaemonStarter,
-                Stub(DaemonStartListener),
-                Stub(ProgressLoggerFactory),
-                Stub(Serializer)]
+            new DaemonDir(new File("registry")),
+            new EmbeddedDaemonRegistry(),
+            Spy(OutgoingConnectorStub),
+            { startBusyDaemon() } as DaemonStarter,
+            Stub(DaemonStartListener),
+            Stub(ProgressLoggerFactory),
+            Stub(Serializer)]
         )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector
@@ -119,7 +119,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.maybeConnect({it.pid < 12} as ExplainingSpec)
+        def connection = connector.maybeConnect({ it.pid < 12 } as ExplainingSpec)
         connection && connection.connection.num < 12
     }
 
@@ -129,7 +129,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        connector.maybeConnect({it.pid == 12} as DummyExplainingSpec) == null
+        connector.maybeConnect({ it.pid == 12 } as DummyExplainingSpec) == null
     }
 
     def "maybeConnect() ignores daemons that do not match spec"() {
@@ -138,7 +138,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.maybeConnect({it.pid == 1} as DummyExplainingSpec)
+        def connection = connector.maybeConnect({ it.pid == 1 } as DummyExplainingSpec)
         connection && connection.connection.num == 1
     }
 
@@ -148,7 +148,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.pid < 12} as ExplainingSpec)
+        def connection = connector.connect({ it.pid < 12 } as ExplainingSpec)
         connection && connection.connection.num < 12
 
         and:
@@ -160,7 +160,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.pid > 0} as DummyExplainingSpec)
+        def connection = connector.connect({ it.pid > 0 } as DummyExplainingSpec)
         connection == null
 
         and:
@@ -172,7 +172,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.pid != 0} as DummyExplainingSpec)
+        def connection = connector.connect({ it.pid != 0 } as DummyExplainingSpec)
         connection == null
 
         and:
@@ -187,7 +187,7 @@ class DefaultDaemonConnectorTest extends Specification {
         connector.connector.connect(_ as Address) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
 
         when:
-        def connection = connector.maybeConnect( { true } as ExplainingSpec)
+        def connection = connector.maybeConnect({ true } as ExplainingSpec)
 
         then:
         !connection

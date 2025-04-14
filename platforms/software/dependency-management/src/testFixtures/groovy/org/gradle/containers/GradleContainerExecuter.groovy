@@ -52,7 +52,7 @@ class GradleContainerExecuter extends AbstractGradleExecuter {
     @CompileDynamic
     private OutputScrapingExecutionResult executeInContainer() {
         def invocation = buildInvocation()
-        container.withEnv(invocation.environmentVars.collectEntries { k, v -> [k, v]})
+        container.withEnv(invocation.environmentVars.collectEntries { k, v -> [k, v] })
         def containerResult = container.execute(["/gradle-under-test/bin/gradle", *invocation.args] as String[])
         def result
         if (containerResult.exitCode == 0) {

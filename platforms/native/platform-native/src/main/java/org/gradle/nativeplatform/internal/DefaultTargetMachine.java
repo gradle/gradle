@@ -51,7 +51,7 @@ public class DefaultTargetMachine implements TargetMachine {
         }
         DefaultTargetMachine that = (DefaultTargetMachine) o;
         return Objects.equals(operatingSystemFamily, that.operatingSystemFamily) &&
-                Objects.equals(architecture, that.architecture);
+            Objects.equals(architecture, that.architecture);
     }
 
     @Override

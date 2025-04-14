@@ -50,7 +50,6 @@ public interface SharedModelDefaults {
      * @param name the name of the software type
      * @param publicType the public type of the software type
      * @param configureAction the action to configure the software type
-     *
      * @since 8.10
      */
     <T> void add(String name, Class<T> publicType, Action<? super T> configureAction);

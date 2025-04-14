@@ -47,6 +47,10 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         this.baseInterface = ModelType.of(baseInterface);
     }
 
+    private static boolean isManaged(ModelType<?> type) {
+        return type.isAnnotationPresent(Managed.class);
+    }
+
     @Override
     public ModelType<PUBLIC> getBaseInterface() {
         return baseInterface;
@@ -78,7 +82,8 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         return new TypeRegistrationBuilderImpl<S>(source, registration);
     }
 
-    @Override @Nullable
+    @Override
+    @Nullable
     public <S extends PUBLIC> ImplementationInfo getImplementationInfo(ModelType<S> publicType) {
         ImplementationRegistration<S> implementationRegistration = getImplementationRegistration(publicType);
         if (implementationRegistration == null) {
@@ -158,8 +163,21 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         }
     }
 
-    private static boolean isManaged(ModelType<?> type) {
-        return type.isAnnotationPresent(Managed.class);
+    @Nullable
+    private <S extends PUBLIC> ImplementationFactory<S, ?> findFactory(Class<?> implementationClass) {
+        ImplementationFactory<? extends PUBLIC, ?> implementationFactory = factories.get(implementationClass);
+        if (implementationFactory != null) {
+            return Cast.uncheckedCast(implementationFactory);
+        }
+
+        Class<?> superclass = implementationClass.getSuperclass();
+        if (superclass != null && superclass != Object.class) {
+            implementationFactory = findFactory(superclass);
+            factories.put(implementationClass, implementationFactory);
+            return Cast.uncheckedCast(implementationFactory);
+        }
+
+        return null;
     }
 
     public interface ImplementationFactory<PUBLIC, BASEIMPL> {
@@ -170,6 +188,81 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         TypeRegistrationBuilder<T> withImplementation(ModelType<?> implementationType);
 
         TypeRegistrationBuilder<T> withInternalView(ModelType<?> internalView);
+    }
+
+    private static class ImplementationRegistration<PUBLIC> {
+        private final ModelRuleDescriptor source;
+        private final ModelType<?> implementationType;
+        private final ImplementationFactory<? super PUBLIC, ?> factory;
+
+        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<?> implementationType, ImplementationFactory<? super PUBLIC, ?> factory) {
+            this.source = source;
+            this.implementationType = implementationType;
+            this.factory = factory;
+        }
+
+        public ModelRuleDescriptor getSource() {
+            return source;
+        }
+
+        public ModelType<?> getImplementationType() {
+            return implementationType;
+        }
+
+        public ImplementationFactory<? super PUBLIC, ?> getFactory() {
+            return factory;
+        }
+    }
+
+    private static class InternalViewRegistration<T> {
+        private final ModelRuleDescriptor source;
+        private final ModelType<T> internalView;
+
+        private InternalViewRegistration(ModelRuleDescriptor source, ModelType<T> internalView) {
+            this.source = source;
+            this.internalView = internalView;
+        }
+
+        public ModelRuleDescriptor getSource() {
+            return source;
+        }
+
+        public ModelType<T> getInternalView() {
+            return internalView;
+        }
+    }
+
+    private static class ImplementationInfoImpl<PUBLIC> implements ImplementationInfo {
+        private final ModelType<PUBLIC> publicType;
+        private final ImplementationRegistration<? super PUBLIC> implementationRegistration;
+        private final Set<ModelType<?>> internalViews;
+
+        public ImplementationInfoImpl(ModelType<PUBLIC> publicType, ImplementationRegistration<?> implementationRegistration, Set<ModelType<?>> internalViews) {
+            this.publicType = publicType;
+            this.internalViews = internalViews;
+            this.implementationRegistration = Cast.uncheckedCast(implementationRegistration);
+        }
+
+        @Override
+        public Object create(MutableModelNode modelNode) {
+            ImplementationFactory<PUBLIC, Object> implementationFactory = Cast.uncheckedNonnullCast(implementationRegistration.getFactory());
+            return implementationFactory.create(publicType, implementationRegistration.getImplementationType(), modelNode.getPath().getName(), modelNode);
+        }
+
+        @Override
+        public ModelType<?> getDelegateType() {
+            return implementationRegistration.getImplementationType();
+        }
+
+        @Override
+        public Set<ModelType<?>> getInternalViews() {
+            return internalViews;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(publicType);
+        }
     }
 
     private class TypeRegistrationBuilderImpl<S extends PUBLIC> implements TypeRegistrationBuilder<S> {
@@ -197,8 +290,8 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     private class TypeRegistration<S extends PUBLIC> {
         private final ModelType<S> publicType;
         private final boolean managedPublicType;
-        private ImplementationRegistration<S> implementationRegistration;
         private final List<InternalViewRegistration<?>> internalViewRegistrations = new ArrayList<>();
+        private ImplementationRegistration<S> implementationRegistration;
 
         public TypeRegistration(ModelType<S> publicType) {
             this.publicType = publicType;
@@ -293,98 +386,6 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
                         internalViewRegistration.getSource()));
                 }
             }
-        }
-    }
-
-    @Nullable
-    private <S extends PUBLIC> ImplementationFactory<S, ?> findFactory(Class<?> implementationClass) {
-        ImplementationFactory<? extends PUBLIC, ?> implementationFactory = factories.get(implementationClass);
-        if (implementationFactory != null) {
-            return Cast.uncheckedCast(implementationFactory);
-        }
-
-        Class<?> superclass = implementationClass.getSuperclass();
-        if (superclass != null && superclass != Object.class) {
-            implementationFactory = findFactory(superclass);
-            factories.put(implementationClass, implementationFactory);
-            return Cast.uncheckedCast(implementationFactory);
-        }
-
-        return null;
-    }
-
-    private static class ImplementationRegistration<PUBLIC> {
-        private final ModelRuleDescriptor source;
-        private final ModelType<?> implementationType;
-        private final ImplementationFactory<? super PUBLIC, ?> factory;
-
-        private ImplementationRegistration(ModelRuleDescriptor source, ModelType<?> implementationType, ImplementationFactory<? super PUBLIC, ?> factory) {
-            this.source = source;
-            this.implementationType = implementationType;
-            this.factory = factory;
-        }
-
-        public ModelRuleDescriptor getSource() {
-            return source;
-        }
-
-        public ModelType<?> getImplementationType() {
-            return implementationType;
-        }
-
-        public ImplementationFactory<? super PUBLIC, ?> getFactory() {
-            return factory;
-        }
-    }
-
-    private static class InternalViewRegistration<T> {
-        private final ModelRuleDescriptor source;
-        private final ModelType<T> internalView;
-
-        private InternalViewRegistration(ModelRuleDescriptor source, ModelType<T> internalView) {
-            this.source = source;
-            this.internalView = internalView;
-        }
-
-        public ModelRuleDescriptor getSource() {
-            return source;
-        }
-
-        public ModelType<T> getInternalView() {
-            return internalView;
-        }
-    }
-
-    private static class ImplementationInfoImpl<PUBLIC> implements ImplementationInfo {
-        private final ModelType<PUBLIC> publicType;
-        private final ImplementationRegistration<? super PUBLIC> implementationRegistration;
-        private final Set<ModelType<?>> internalViews;
-
-        public ImplementationInfoImpl(ModelType<PUBLIC> publicType, ImplementationRegistration<?> implementationRegistration, Set<ModelType<?>> internalViews) {
-            this.publicType = publicType;
-            this.internalViews = internalViews;
-            this.implementationRegistration = Cast.uncheckedCast(implementationRegistration);
-        }
-
-        @Override
-        public Object create(MutableModelNode modelNode) {
-            ImplementationFactory<PUBLIC, Object> implementationFactory = Cast.uncheckedNonnullCast(implementationRegistration.getFactory());
-            return implementationFactory.create(publicType, implementationRegistration.getImplementationType(), modelNode.getPath().getName(), modelNode);
-        }
-
-        @Override
-        public ModelType<?> getDelegateType() {
-            return implementationRegistration.getImplementationType();
-        }
-
-        @Override
-        public Set<ModelType<?>> getInternalViews() {
-            return internalViews;
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(publicType);
         }
     }
 

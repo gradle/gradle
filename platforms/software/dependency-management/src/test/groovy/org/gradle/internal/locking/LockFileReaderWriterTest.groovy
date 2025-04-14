@@ -85,7 +85,7 @@ empty=c
 
     def 'writes dependencies and configurations sorted in the unique lock file'() {
         when:
-        lockFileReaderWriter.writeUniqueLockfile([b: ['foo', 'bar'], d: ['bar', 'foobar'],a: ['foo'], e: [], f: [], c: []])
+        lockFileReaderWriter.writeUniqueLockfile([b: ['foo', 'bar'], d: ['bar', 'foobar'], a: ['foo'], e: [], f: [], c: []])
 
         then:
         tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}

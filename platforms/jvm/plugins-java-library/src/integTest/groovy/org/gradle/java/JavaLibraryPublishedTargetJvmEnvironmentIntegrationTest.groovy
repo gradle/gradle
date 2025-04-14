@@ -58,16 +58,16 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
         """
 
         module = mavenHttpRepo.module('org', 'producer', '1.0')
-                .withModuleMetadata()
-                .adhocVariants()
-                .variant("apiElementsAndroid", [
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElementsAndroid", [
                 'org.gradle.jvm.environment': 'android',
                 'org.gradle.jvm.version': '6',
                 'org.gradle.category': 'library',
                 'org.gradle.libraryelements': 'jar',
                 'org.gradle.dependency.bundling': 'external',
                 'org.gradle.usage': 'java-api'], { artifact('producer-1.0-android.jar') })
-                .variant("apiElementsJre", [
+            .variant("apiElementsJre", [
                 'org.gradle.jvm.environment': 'standard-jvm',
                 'org.gradle.jvm.version': '8',
                 'org.gradle.category': 'library',
@@ -178,10 +178,10 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
     def "can select unknown environment"() {
         given:
         module.adhocVariants().variant("apiElements", [
-                'org.gradle.jvm.environment': 'another-jvm-env',
-                'org.gradle.category': 'library',
-                'org.gradle.libraryelements': 'jar',
-                'org.gradle.usage': 'java-api'], { artifact('producer-1.0.jar') })
+            'org.gradle.jvm.environment': 'another-jvm-env',
+            'org.gradle.category': 'library',
+            'org.gradle.libraryelements': 'jar',
+            'org.gradle.usage': 'java-api'], { artifact('producer-1.0.jar') })
         prepareResolve('compileClasspath', '')
 
         when:
@@ -190,7 +190,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:producer:1.0')  {
+                module('org:producer:1.0') {
                     variant('apiElements', [
                         'org.gradle.jvm.environment': 'another-jvm-env',
                         'org.gradle.category': 'library',

@@ -25,7 +25,7 @@ class MavenComponentMetadataRulesChangingModulesIntegrationTest extends Componen
     }
 
     String getRepoDeclaration() {
-"""
+        """
 repositories {
     maven {
         url = "$repo.uri"
@@ -43,7 +43,7 @@ repositories {
         moduleB.allowAll()
 
         buildFile <<
-"""
+            """
 $repoDeclaration
 configurations {
     modules

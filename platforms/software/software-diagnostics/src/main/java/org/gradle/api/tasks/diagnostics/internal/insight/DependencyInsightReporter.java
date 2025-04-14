@@ -57,10 +57,6 @@ import java.util.Set;
 
 public class DependencyInsightReporter {
 
-    private final VersionSelectorScheme versionSelectorScheme;
-    private final VersionComparator versionComparator;
-    private final VersionParser versionParser;
-
     private static final InternalTransformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
         if (result instanceof UnresolvedDependencyResult) {
             return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
@@ -68,68 +64,14 @@ public class DependencyInsightReporter {
             return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
         }
     };
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final VersionComparator versionComparator;
+    private final VersionParser versionParser;
 
     public DependencyInsightReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
-    }
-
-    public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
-        LinkedList<RenderableDependency> out = new LinkedList<>();
-        Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
-
-        //remember if module id was annotated
-        Set<ComponentIdentifier> annotated = new HashSet<>();
-        Set<Throwable> alreadyReportedErrors = new HashSet<>();
-        RequestedVersion current = null;
-        for (DependencyEdge dependency : sortedEdges) {
-            //add description only to the first module
-            if (annotated.add(dependency.getActual())) {
-                DependencyReportHeader header = createHeaderForDependency(dependency, alreadyReportedErrors);
-                out.add(header);
-                current = newRequestedVersion(out, dependency);
-            } else if (!current.getRequested().equals(dependency.getRequested())) {
-                current = newRequestedVersion(out, dependency);
-            }
-            if (!singlePathToDependency || current.getChildren().isEmpty()) {
-                current.addChild(dependency);
-            }
-        }
-
-        return out;
-    }
-
-    private DependencyReportHeader createHeaderForDependency(DependencyEdge dependency, Set<Throwable> alreadyReportedErrors) {
-        ComponentSelectionReasonInternal reason = (ComponentSelectionReasonInternal) dependency.getReason();
-        Section selectionReasonsSection = buildSelectionReasonSection(reason);
-        List<Section> reasonSections = selectionReasonsSection.getChildren();
-
-        String reasonShortDescription;
-        List<Section> extraDetails = new ArrayList<>();
-
-        boolean displayFullReasonSection = reason.hasCustomDescriptions() || reasonSections.size() > 1;
-        if (displayFullReasonSection) {
-            reasonShortDescription = null;
-            extraDetails.add(selectionReasonsSection);
-        } else {
-            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase(Locale.ROOT);
-        }
-
-        buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
-        return new DependencyReportHeader(dependency, reasonShortDescription, extraDetails);
-    }
-
-    private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
-        RequestedVersion current;
-        current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable());
-        out.add(current);
-        return current;
-    }
-
-    private Collection<DependencyEdge> toDependencyEdges(Collection<DependencyResult> dependencies) {
-        List<DependencyEdge> edges = CollectionUtils.collect(dependencies, TO_EDGES);
-        return DependencyResultSorter.sort(edges, versionSelectorScheme, versionComparator, versionParser);
     }
 
     private static void buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors, List<Section> sections) {
@@ -252,5 +194,62 @@ public class DependencyInsightReporter {
                 assert false : "Missing an enum value " + cause;
                 return cause.getDefaultReason();
         }
+    }
+
+    public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
+        LinkedList<RenderableDependency> out = new LinkedList<>();
+        Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
+
+        //remember if module id was annotated
+        Set<ComponentIdentifier> annotated = new HashSet<>();
+        Set<Throwable> alreadyReportedErrors = new HashSet<>();
+        RequestedVersion current = null;
+        for (DependencyEdge dependency : sortedEdges) {
+            //add description only to the first module
+            if (annotated.add(dependency.getActual())) {
+                DependencyReportHeader header = createHeaderForDependency(dependency, alreadyReportedErrors);
+                out.add(header);
+                current = newRequestedVersion(out, dependency);
+            } else if (!current.getRequested().equals(dependency.getRequested())) {
+                current = newRequestedVersion(out, dependency);
+            }
+            if (!singlePathToDependency || current.getChildren().isEmpty()) {
+                current.addChild(dependency);
+            }
+        }
+
+        return out;
+    }
+
+    private DependencyReportHeader createHeaderForDependency(DependencyEdge dependency, Set<Throwable> alreadyReportedErrors) {
+        ComponentSelectionReasonInternal reason = (ComponentSelectionReasonInternal) dependency.getReason();
+        Section selectionReasonsSection = buildSelectionReasonSection(reason);
+        List<Section> reasonSections = selectionReasonsSection.getChildren();
+
+        String reasonShortDescription;
+        List<Section> extraDetails = new ArrayList<>();
+
+        boolean displayFullReasonSection = reason.hasCustomDescriptions() || reasonSections.size() > 1;
+        if (displayFullReasonSection) {
+            reasonShortDescription = null;
+            extraDetails.add(selectionReasonsSection);
+        } else {
+            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase(Locale.ROOT);
+        }
+
+        buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
+        return new DependencyReportHeader(dependency, reasonShortDescription, extraDetails);
+    }
+
+    private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
+        RequestedVersion current;
+        current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable());
+        out.add(current);
+        return current;
+    }
+
+    private Collection<DependencyEdge> toDependencyEdges(Collection<DependencyResult> dependencies) {
+        List<DependencyEdge> edges = CollectionUtils.collect(dependencies, TO_EDGES);
+        return DependencyResultSorter.sort(edges, versionSelectorScheme, versionComparator, versionParser);
     }
 }

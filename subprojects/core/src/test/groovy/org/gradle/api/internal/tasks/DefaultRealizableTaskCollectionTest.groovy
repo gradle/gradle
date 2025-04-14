@@ -34,10 +34,10 @@ class DefaultRealizableTaskCollectionTest extends Specification {
         ModelPath path = ModelPath.path("tasks")
         registry.registerInstance("tasks", "foo tasks")
             .mutate {
-            it.path "tasks" node {
-                it.addLinkInstance(taskPath, Mock(realizableType))
+                it.path "tasks" node {
+                    it.addLinkInstance(taskPath, Mock(realizableType))
+                }
             }
-        }
 
         when:
         new DefaultRealizableTaskCollection(realizableType, Stub(TaskCollection), registry.node(path), instantiator).visitDependencies(Stub(TaskDependencyResolveContext))
@@ -58,10 +58,10 @@ class DefaultRealizableTaskCollectionTest extends Specification {
 
         registry.registerInstance("tasks", "foo tasks")
             .mutate {
-            it.path "tasks" node {
-                it.addLinkInstance("tasks.redundant", Mock(RedundantTask))
+                it.path "tasks" node {
+                    it.addLinkInstance("tasks.redundant", Mock(RedundantTask))
+                }
             }
-        }
 
         when:
         def collection = new DefaultRealizableTaskCollection(BasicTask, Stub(TaskCollection), registry.node(path), instantiator)
@@ -78,10 +78,10 @@ class DefaultRealizableTaskCollectionTest extends Specification {
 
         registry.registerInstance("tasks", "foo tasks")
             .mutate {
-            it.path "tasks" node {
-                it.addLinkInstance("tasks.redundant", Mock(RedundantTask))
+                it.path "tasks" node {
+                    it.addLinkInstance("tasks.redundant", Mock(RedundantTask))
+                }
             }
-        }
 
 
         when:

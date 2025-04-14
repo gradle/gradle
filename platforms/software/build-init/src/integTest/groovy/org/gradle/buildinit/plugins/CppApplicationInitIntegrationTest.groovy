@@ -50,7 +50,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("${subprojectName()}/build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/app").exec().out == "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -77,7 +77,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("${subprojectName()}/build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/app").exec().out == "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -134,7 +134,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         executed(":app:test")
 
         and:
-        executable("${subprojectName()}/build/exe/main/debug/app").exec().out ==  "Hola, Mundo!\n"
+        executable("${subprojectName()}/build/exe/main/debug/app").exec().out == "Hola, Mundo!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

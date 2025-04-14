@@ -37,12 +37,12 @@ public class TaskDependencyResolver {
         this.context = createTaskDependencyResolverContext(dependencyResolvers);
     }
 
-    public void clear() {
-        context = createTaskDependencyResolverContext(dependencyResolvers);
-    }
-
     private static CachingTaskDependencyResolveContext<Node> createTaskDependencyResolverContext(List<DependencyResolver> workResolvers) {
         return new CachingTaskDependencyResolveContext<Node>(workResolvers);
+    }
+
+    public void clear() {
+        context = createTaskDependencyResolverContext(dependencyResolvers);
     }
 
     public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {

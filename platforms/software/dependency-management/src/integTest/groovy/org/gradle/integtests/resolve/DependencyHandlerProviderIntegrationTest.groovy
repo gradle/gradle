@@ -56,7 +56,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         """
 
         when:
-        succeeds'checkDeps'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -112,7 +112,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
 
         when:
         args('-Pproject.version=1.1')
-        succeeds"checkDeps"
+        succeeds "checkDeps"
 
         then:
         executedAndNotSkipped ":checkDeps"

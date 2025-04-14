@@ -244,22 +244,27 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             NestedType getNested() {
                 return null
             }
+
             @TestNested
             Object getNestedObject() {
                 return null
             }
+
             @TestNested
             List<?> getNestedList() {
                 return null
             }
+
             @TestNested
             Map<?, ?> getNestedMap() {
                 return null
             }
+
             @TestNested
             Provider<Provider<Provider<NestedType>>> getNestedProvider() {
                 return null
             }
+
             @TestNested
             Provider<Provider<Provider<?>>> getNestedGenericProvider() {
                 return null
@@ -286,14 +291,17 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             Provider<NestedType> getNested() {
                 return TestUtil.providerFactory().provider { null } as Provider<NestedType>
             }
+
             @TestNested
             Object getNestedObject() {
                 return TestUtil.providerFactory().provider { null }
             }
+
             @TestNested
             Provider<Provider<Provider<NestedType>>> getNestedProvider() {
                 return TestUtil.providerFactory().provider { TestUtil.providerFactory().provider { null } } as Provider<Provider<Provider<NestedType>>>
             }
+
             @TestNested
             Provider<Provider<?>> getNestedGenericProvider() {
                 return TestUtil.providerFactory().provider { null } as Provider<Provider<?>>
@@ -318,22 +326,27 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             NestedType getNested() {
                 return null
             }
+
             @TestNested
             Object getNestedObject() {
                 return null
             }
+
             @TestNested
             List<?> getNestedList() {
                 return null
             }
+
             @TestNested
             Map<?, ?> getNestedMap() {
                 return null
             }
+
             @TestNested
             Provider<Provider<Provider<NestedType>>> getNestedProvider() {
                 return null
             }
+
             @TestNested
             Provider<Provider<Provider<?>>> getNestedGenericProvider() {
                 return null

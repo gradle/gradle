@@ -99,7 +99,7 @@ class OutputsCleanerTest extends Specification {
         cleaner.didWork
     }
 
-    private void cleanupOutput(File... files)  {
+    private void cleanupOutput(File... files) {
         for (File file : files) {
             cleaner.cleanupOutput(file, file.directory ? FileType.Directory : FileType.RegularFile)
         }

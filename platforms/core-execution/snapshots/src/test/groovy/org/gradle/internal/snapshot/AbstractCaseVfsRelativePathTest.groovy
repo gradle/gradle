@@ -67,19 +67,19 @@ abstract class AbstractCaseVfsRelativePathTest extends Specification {
         VfsRelativePath.of(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
         where:
-        prefix              | absolutePath            | offset | result
-        "hello/world"       | "hello/other"           | 0      | 5
-        "hello/world"       | "/var/hello/other"      | 5      | 5
-        "hello/world"       | "/var/hello/world"      | 5      | 11
-        "hello/world"       | "/var/hello\\world"     | 5      | 11
-        "hello/world"       | "/var/hello/world/next" | 5      | 11
-        "hello/world"       | "/var/hello1/other"     | 5      | 0
-        "hello1/world"      | "/var/hello/other"      | 5      | 0
-        "hello/world/some"  | "/var/hello/other"      | 5      | 5
-        "hello/world"       | "/var/hello1/other"     | 5      | 0
-        "bbc/some"          | "/var/abc/other"        | 5      | 0
-        "hello/world/some"  | "/var/hello/other"      | 1      | 0
-        "hello/world/some"  | "/var/hello/other"      | 5      | 5
+        prefix             | absolutePath            | offset | result
+        "hello/world"      | "hello/other"           | 0      | 5
+        "hello/world"      | "/var/hello/other"      | 5      | 5
+        "hello/world"      | "/var/hello/world"      | 5      | 11
+        "hello/world"      | "/var/hello\\world"     | 5      | 11
+        "hello/world"      | "/var/hello/world/next" | 5      | 11
+        "hello/world"      | "/var/hello1/other"     | 5      | 0
+        "hello1/world"     | "/var/hello/other"      | 5      | 0
+        "hello/world/some" | "/var/hello/other"      | 5      | 5
+        "hello/world"      | "/var/hello1/other"     | 5      | 0
+        "bbc/some"         | "/var/abc/other"        | 5      | 0
+        "hello/world/some" | "/var/hello/other"      | 1      | 0
+        "hello/world/some" | "/var/hello/other"      | 5      | 5
     }
 
     def "#prefix is prefix of #absolutePath at offset #offset: #result"() {

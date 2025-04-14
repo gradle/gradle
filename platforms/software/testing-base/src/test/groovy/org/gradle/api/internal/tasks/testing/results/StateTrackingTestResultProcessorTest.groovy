@@ -62,9 +62,9 @@ class StateTrackingTestResultProcessorTest extends Specification {
         then:
         1 * listener.started(_, _)
         1 * listener.completed(
-                { it instanceof DecoratingTestDescriptor && it.descriptor == test },
-                { it.successfulTestCount == 1 && it.testCount == 1 && it.failedTestCount == 0 },
-                completeEvent
+            { it instanceof DecoratingTestDescriptor && it.descriptor == test },
+            { it.successfulTestCount == 1 && it.testCount == 1 && it.failedTestCount == 0 },
+            completeEvent
         )
         0 * _
     }
@@ -84,8 +84,8 @@ class StateTrackingTestResultProcessorTest extends Specification {
         then:
         1 * listener.started(_, _)
         1 * listener.completed({ it.descriptor == test },
-                { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 1 && it.exception.is(failure.rawFailure) },
-                completeEvent
+            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 1 && it.exception.is(failure.rawFailure) },
+            completeEvent
         )
         0 * _
     }
@@ -127,8 +127,8 @@ class StateTrackingTestResultProcessorTest extends Specification {
 
         then:
         1 * listener.completed(_,
-                { it.exception.is(failure1.rawFailure) && it.exceptions == [failure1.rawFailure, failure2.rawFailure] },
-                completeEvent
+            { it.exception.is(failure1.rawFailure) && it.exceptions == [failure1.rawFailure, failure2.rawFailure] },
+            completeEvent
         )
     }
 
@@ -143,8 +143,8 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.completed('15', completeEvent)
 
         then:
-        1 * listener.started({it.descriptor == suite}, startEvent)
-        1 * listener.completed({it.descriptor == suite}, {
+        1 * listener.started({ it.descriptor == suite }, startEvent)
+        1 * listener.completed({ it.descriptor == suite }, {
             it.testCount == 0 && it.resultType == ResultType.SUCCESS
         },
             completeEvent
@@ -168,10 +168,10 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.completed('suiteId', completeEvent)
 
         then:
-        1 * listener.started({it.descriptor == suite}, startEvent)
-        1 * listener.started({it.descriptor == test}, testStartEvent)
-        1 * listener.completed({it.descriptor == test}, _ as TestResult, testCompleteEvent)
-        1 * listener.completed({it.descriptor == suite}, { it.testCount == 1 }, completeEvent)
+        1 * listener.started({ it.descriptor == suite }, startEvent)
+        1 * listener.started({ it.descriptor == test }, testStartEvent)
+        1 * listener.completed({ it.descriptor == test }, _ as TestResult, testCompleteEvent)
+        1 * listener.completed({ it.descriptor == suite }, { it.testCount == 1 }, completeEvent)
         0 * _
     }
 
@@ -191,12 +191,12 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.completed('suiteId', new TestCompleteEvent(200L))
 
         then:
-        1 * listener.started({it.descriptor == suite}, _)
-        1 * listener.started({it.descriptor == ok && it.parent.descriptor == suite}, _)
-        1 * listener.started({it.descriptor == broken && it.parent.descriptor == suite}, _)
-        1 * listener.completed({it.descriptor == ok}, _ as TestResult, _)
-        1 * listener.completed({it.descriptor == broken}, _ as TestResult, _)
-        1 * listener.completed({it.descriptor == suite}, { it.testCount == 2 && it.failedTestCount == 1 && it.successfulTestCount == 1 }, _)
+        1 * listener.started({ it.descriptor == suite }, _)
+        1 * listener.started({ it.descriptor == ok && it.parent.descriptor == suite }, _)
+        1 * listener.started({ it.descriptor == broken && it.parent.descriptor == suite }, _)
+        1 * listener.completed({ it.descriptor == ok }, _ as TestResult, _)
+        1 * listener.completed({ it.descriptor == broken }, _ as TestResult, _)
+        1 * listener.completed({ it.descriptor == suite }, { it.testCount == 2 && it.failedTestCount == 1 && it.successfulTestCount == 1 }, _)
         0 * _
     }
 
@@ -212,12 +212,12 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.completed('suiteId', new TestCompleteEvent(200L))
 
         then:
-        1 * listener.started({it.descriptor == suite}, _)
-        1 * listener.started({it.descriptor == test && it.parent.descriptor == suite}, _)
-        1 * listener.completed({it.descriptor == test}, _ as TestResult, _)
-        1 * listener.completed({it.descriptor == suite},
-                { it.resultType == ResultType.SUCCESS && it.testCount == 1 && it.failedTestCount == 0 && it.successfulTestCount == 0 },
-                _
+        1 * listener.started({ it.descriptor == suite }, _)
+        1 * listener.started({ it.descriptor == test && it.parent.descriptor == suite }, _)
+        1 * listener.completed({ it.descriptor == test }, _ as TestResult, _)
+        1 * listener.completed({ it.descriptor == suite },
+            { it.resultType == ResultType.SUCCESS && it.testCount == 1 && it.failedTestCount == 0 && it.successfulTestCount == 0 },
+            _
         )
         0 * _
     }
@@ -244,20 +244,20 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.completed('root', new TestCompleteEvent(200L))
 
         then:
-        1 * listener.started({it.descriptor == root}, _)
-        1 * listener.started({it.descriptor == suite1}, _)
-        1 * listener.started({it.descriptor == suite2}, _)
+        1 * listener.started({ it.descriptor == root }, _)
+        1 * listener.started({ it.descriptor == suite1 }, _)
+        1 * listener.started({ it.descriptor == suite2 }, _)
 
 
-        1 * listener.started({it.descriptor == ok && it.parent.descriptor == suite1}, _)
-        1 * listener.started({it.descriptor == broken && it.parent.descriptor == suite2}, _)
+        1 * listener.started({ it.descriptor == ok && it.parent.descriptor == suite1 }, _)
+        1 * listener.started({ it.descriptor == broken && it.parent.descriptor == suite2 }, _)
 
-        1 * listener.completed({it.descriptor == ok}, _ as TestResult, _)
-        1 * listener.completed({it.descriptor == broken}, _ as TestResult, _)
+        1 * listener.completed({ it.descriptor == ok }, _ as TestResult, _)
+        1 * listener.completed({ it.descriptor == broken }, _ as TestResult, _)
 
-        1 * listener.completed({it.descriptor == root}, { it.successfulTestCount == 1 && it.testCount == 2 && it.resultType == ResultType.FAILURE}, _)
-        1 * listener.completed({it.descriptor == suite1}, { it.successfulTestCount == 1 && it.testCount == 1 && it.resultType == ResultType.SUCCESS}, _)
-        1 * listener.completed({it.descriptor == suite2}, { it.successfulTestCount == 0 && it.testCount == 1 && it.resultType == ResultType.FAILURE}, _)
+        1 * listener.completed({ it.descriptor == root }, { it.successfulTestCount == 1 && it.testCount == 2 && it.resultType == ResultType.FAILURE }, _)
+        1 * listener.completed({ it.descriptor == suite1 }, { it.successfulTestCount == 1 && it.testCount == 1 && it.resultType == ResultType.SUCCESS }, _)
+        1 * listener.completed({ it.descriptor == suite2 }, { it.successfulTestCount == 0 && it.testCount == 1 && it.resultType == ResultType.FAILURE }, _)
 
         0 * _
     }
@@ -276,12 +276,12 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.completed('id', new TestCompleteEvent(200L))
 
         then:
-        1 * listener.started({it.descriptor == suite}, _)
-        1 * listener.started({it.descriptor == test && it.parent.descriptor == suite}, _)
-        1 * listener.completed({it.descriptor == test}, _ as TestResult, _)
-        1 * listener.completed({it.descriptor == suite},
-                { it.resultType == ResultType.FAILURE && it.exception.is(failure.rawFailure) && it.exceptions == [failure.rawFailure] },
-                _
+        1 * listener.started({ it.descriptor == suite }, _)
+        1 * listener.started({ it.descriptor == test && it.parent.descriptor == suite }, _)
+        1 * listener.completed({ it.descriptor == test }, _ as TestResult, _)
+        1 * listener.completed({ it.descriptor == suite },
+            { it.resultType == ResultType.FAILURE && it.exception.is(failure.rawFailure) && it.exceptions == [failure.rawFailure] },
+            _
         )
         0 * _
     }
@@ -296,7 +296,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.output("testid", event)
 
         then:
-        1 * listener.output({it.descriptor == test}, event)
+        1 * listener.output({ it.descriptor == test }, event)
     }
 
     @Issue("GRADLE-2035")
@@ -308,7 +308,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
         adapter.output("testid", event)
 
         then:
-        1 * listener.output({it instanceof UnknownTestDescriptor}, event)
+        1 * listener.output({ it instanceof UnknownTestDescriptor }, event)
     }
 
     @Issue("GRADLE-2035")

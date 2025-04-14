@@ -36,14 +36,14 @@ class PosixFilePermissionConverterTest extends Specification {
         PosixFilePermissionConverter.convertToInt(perms) == intValue
 
         where:
-        perms                                                                |       intValue
-        EnumSet.noneOf(PosixFilePermission)                                  |       0
-        EnumSet.allOf(PosixFilePermission)                                   |       0777
-        EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)                   |       0700
-        EnumSet.of(OWNER_READ, GROUP_READ, GROUP_WRITE, GROUP_EXECUTE)       |       0470
-        EnumSet.of(OWNER_READ, GROUP_READ, OTHERS_READ)                      |       0444
-        EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, OTHERS_READ)         |       0644
-        EnumSet.of(OWNER_READ, OWNER_EXECUTE, GROUP_READ, GROUP_WRITE)       |       0560
+        perms                                                          | intValue
+        EnumSet.noneOf(PosixFilePermission)                            | 0
+        EnumSet.allOf(PosixFilePermission)                             | 0777
+        EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)             | 0700
+        EnumSet.of(OWNER_READ, GROUP_READ, GROUP_WRITE, GROUP_EXECUTE) | 0470
+        EnumSet.of(OWNER_READ, GROUP_READ, OTHERS_READ)                | 0444
+        EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, OTHERS_READ)   | 0644
+        EnumSet.of(OWNER_READ, OWNER_EXECUTE, GROUP_READ, GROUP_WRITE) | 0560
     }
 
 
@@ -52,14 +52,14 @@ class PosixFilePermissionConverterTest extends Specification {
         perms == PosixFilePermissionConverter.convertToPermissionsSet(intValue)
 
         where:
-        perms                                                                |       intValue
-        EnumSet.noneOf(PosixFilePermission)                                  |       0
-        EnumSet.allOf(PosixFilePermission)                                   |       0777
-        EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)                   |       0700
-        EnumSet.of(OWNER_READ, GROUP_READ, GROUP_WRITE, GROUP_EXECUTE)       |       0470
-        EnumSet.of(OWNER_READ, GROUP_READ, OTHERS_READ)                      |       0444
-        EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, OTHERS_READ)         |       0644
-        EnumSet.of(OWNER_READ, OWNER_EXECUTE, GROUP_READ, GROUP_WRITE)       |       0560
+        perms                                                          | intValue
+        EnumSet.noneOf(PosixFilePermission)                            | 0
+        EnumSet.allOf(PosixFilePermission)                             | 0777
+        EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)             | 0700
+        EnumSet.of(OWNER_READ, GROUP_READ, GROUP_WRITE, GROUP_EXECUTE) | 0470
+        EnumSet.of(OWNER_READ, GROUP_READ, OTHERS_READ)                | 0444
+        EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, OTHERS_READ)   | 0644
+        EnumSet.of(OWNER_READ, OWNER_EXECUTE, GROUP_READ, GROUP_WRITE) | 0560
 
     }
 }

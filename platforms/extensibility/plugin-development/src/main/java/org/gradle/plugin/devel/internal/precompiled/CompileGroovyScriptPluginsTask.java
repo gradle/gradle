@@ -61,6 +61,10 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
         this.intermediatePluginMetadataDirectory = buildDir.dir("groovy-dsl-plugins/work/metadata");
     }
 
+    private static File subdirectory(Provider<Directory> root, String subdirPath) {
+        return root.get().dir(subdirPath).getAsFile();
+    }
+
     @Inject
     abstract protected FileSystemOperations getFileSystemOperations();
 
@@ -118,10 +122,6 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
             scriptPlugin.getBodySource(), compileClassLoader, scriptClassesDir,
             scriptMetadataDir, scriptCompileOperation, target.getScriptClass(),
             ClosureCreationInterceptingVerifier.INSTANCE);
-    }
-
-    private static File subdirectory(Provider<Directory> root, String subdirPath) {
-        return root.get().dir(subdirPath).getAsFile();
     }
 
 }

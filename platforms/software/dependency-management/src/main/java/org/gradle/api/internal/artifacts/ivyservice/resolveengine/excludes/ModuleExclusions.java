@@ -56,6 +56,10 @@ public class ModuleExclusions {
         nothing = factory.nothing();
     }
 
+    private static boolean isWildcard(String attribute) {
+        return PatternMatchers.ANY_EXPRESSION.equals(attribute);
+    }
+
     public ExcludeSpec excludeAny(Collection<? extends ExcludeMetadata> excludes) {
         if (excludes.isEmpty()) {
             // avoids creation of empty hashset
@@ -102,10 +106,6 @@ public class ModuleExclusions {
                 return factory.ivyPatternExclude(moduleId, artifact, rule.getMatcher());
             }
         });
-    }
-
-    private static boolean isWildcard(String attribute) {
-        return PatternMatchers.ANY_EXPRESSION.equals(attribute);
     }
 
     public ExcludeSpec excludeAny(ExcludeSpec one, ExcludeSpec two) {

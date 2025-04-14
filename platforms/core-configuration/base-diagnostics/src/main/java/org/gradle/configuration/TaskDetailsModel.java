@@ -46,18 +46,6 @@ class TaskDetailsModel {
         this.failure = failure;
     }
 
-    public List<TaskDetails> getTasks() {
-        if (failure != null) {
-            // rethrow the original failure
-            throw failure;
-        }
-        return tasks;
-    }
-
-    public String getTaskPath() {
-        return taskPath;
-    }
-
     public static TaskDetailsModel from(String taskPath, BuildTaskSelector.BuildSpecificSelector taskSelector, OptionReader optionReader) {
         try {
             Stream<Task> selectedTasks = taskSelector.resolveTaskName(taskPath).getTasks().stream();
@@ -68,5 +56,17 @@ class TaskDetailsModel {
             // collect exception so we can rethrow it during task execution
             return new TaskDetailsModel(taskPath, exception);
         }
+    }
+
+    public List<TaskDetails> getTasks() {
+        if (failure != null) {
+            // rethrow the original failure
+            throw failure;
+        }
+        return tasks;
+    }
+
+    public String getTaskPath() {
+        return taskPath;
     }
 }

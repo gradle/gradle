@@ -25,7 +25,8 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "shows default message if no daemons are running"() {
         when:
@@ -86,7 +87,7 @@ task block {
         out =~ /\n   PID STATUS\s+INFO/
         out =~ /\n\s*12345\s+STOPPED\s+\(IMMEDIATE_EXPIRE_REASON\)/
         out =~ /\n\s*12346\s+STOPPED\s+\(GRACEFUL_EXPIRE_REASON\)/
-        out !=~ /\n\s*12345\s+STOPPED\s+\(GRACEFUL_EXPIRE_REASON\)/
+        out != ~/\n\s*12345\s+STOPPED\s+\(GRACEFUL_EXPIRE_REASON\)/
     }
 }
 

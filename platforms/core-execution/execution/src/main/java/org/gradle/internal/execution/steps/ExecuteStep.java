@@ -49,37 +49,6 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         this.buildOperationRunner = buildOperationRunner;
     }
 
-    @Override
-    public Result execute(UnitOfWork work, C context) {
-        Class<? extends UnitOfWork> workType = work.getClass();
-        UnitOfWork.Identity identity = context.getIdentity();
-        return buildOperationRunner.call(new CallableBuildOperation<Result>() {
-            @Override
-            public Result call(BuildOperationContext operationContext) {
-                Result result = executeInternal(work, context);
-                operationContext.setResult(Operation.Result.INSTANCE);
-                return result;
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor
-                    .displayName("Executing " + work.getDisplayName())
-                    .details(new Operation.Details() {
-                        @Override
-                        public Class<?> getWorkType() {
-                            return workType;
-                        }
-
-                        @Override
-                        public UnitOfWork.Identity getIdentity() {
-                            return identity;
-                        }
-                    });
-            }
-        });
-    }
-
     private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
         UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
             @Override
@@ -127,12 +96,44 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
     }
 
+    @Override
+    public Result execute(UnitOfWork work, C context) {
+        Class<? extends UnitOfWork> workType = work.getClass();
+        UnitOfWork.Identity identity = context.getIdentity();
+        return buildOperationRunner.call(new CallableBuildOperation<Result>() {
+            @Override
+            public Result call(BuildOperationContext operationContext) {
+                Result result = executeInternal(work, context);
+                operationContext.setResult(Operation.Result.INSTANCE);
+                return result;
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Executing " + work.getDisplayName())
+                    .details(new Operation.Details() {
+                        @Override
+                        public Class<?> getWorkType() {
+                            return workType;
+                        }
+
+                        @Override
+                        public UnitOfWork.Identity getIdentity() {
+                            return identity;
+                        }
+                    });
+            }
+        });
+    }
+
     /*
      * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
      */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
             Class<?> getWorkType();
+
             UnitOfWork.Identity getIdentity();
         }
 

@@ -49,14 +49,15 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final boolean isRunDefaultTasks;
     private final List<InternalTaskSpec> taskSpecs;
 
-    public TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions,
-                                      StartParameterInternal startParameter,
-                                      Set<InternalTestDescriptor> testDescriptors,
-                                      Set<String> providerClassNames,
-                                      Set<InternalJvmTestRequest> internalJvmTestRequests,
-                                      InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests,
-                                      boolean isRunDefaultTasks,
-                                      List<InternalTaskSpec> taskSpecs
+    public TestExecutionRequestAction(
+        BuildEventSubscriptions clientSubscriptions,
+        StartParameterInternal startParameter,
+        Set<InternalTestDescriptor> testDescriptors,
+        Set<String> providerClassNames,
+        Set<InternalJvmTestRequest> internalJvmTestRequests,
+        InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests,
+        boolean isRunDefaultTasks,
+        List<InternalTaskSpec> taskSpecs
     ) {
         super(clientSubscriptions);
         this.startParameter = startParameter;

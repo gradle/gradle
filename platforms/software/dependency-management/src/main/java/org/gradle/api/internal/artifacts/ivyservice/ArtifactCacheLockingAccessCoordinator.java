@@ -31,7 +31,6 @@ public interface ArtifactCacheLockingAccessCoordinator extends ExclusiveCacheAcc
      *
      * <p>The returned cache may only be used by an action being run from {@link #useCache(org.gradle.internal.Factory)}.
      * In this instance, an exclusive lock will be held on the cache.
-     *
      */
     <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
 }

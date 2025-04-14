@@ -29,12 +29,19 @@ import spock.lang.Specification
 @Requires(UnitTestPreconditions.Symlinks)
 @UsesNativeServices
 class FileCollectionSymlinkTest extends Specification {
-    @Shared Project project = ProjectBuilder.builder().build()
-    @Shared @ClassRule TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-    @Shared TestFile baseDir = temporaryFolder.createDir('baseDir')
-    @Shared TestFile file = baseDir.file("file")
-    @Shared TestFile symlink = baseDir.file("symlink")
-    @Shared TestFile symlinked = baseDir.file("symlinked")
+    @Shared
+    Project project = ProjectBuilder.builder().build()
+    @Shared
+    @ClassRule
+    TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+    @Shared
+    TestFile baseDir = temporaryFolder.createDir('baseDir')
+    @Shared
+    TestFile file = baseDir.file("file")
+    @Shared
+    TestFile symlink = baseDir.file("symlink")
+    @Shared
+    TestFile symlinked = baseDir.file("symlinked")
 
     def setupSpec() {
         file.text = 'some contents'
@@ -52,9 +59,9 @@ class FileCollectionSymlinkTest extends Specification {
         (fileCollection - project.getLayout().files(symlink)).files == [file, symlinked] as Set
 
         where:
-        desc                                    | fileCollection
-        "project.files()"                       | project.files(file, symlink, symlinked)
-        "project.layout.files()"                | project.getLayout().files(file, symlink, symlinked)
-        "project.fileTree()"                    | project.fileTree(baseDir)
+        desc                     | fileCollection
+        "project.files()"        | project.files(file, symlink, symlinked)
+        "project.layout.files()" | project.getLayout().files(file, symlink, symlinked)
+        "project.fileTree()"     | project.fileTree(baseDir)
     }
 }

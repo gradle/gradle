@@ -41,22 +41,6 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 @AnalyzeClasses(packages = "org.gradle")
 public class TempDirectoryCreationControlTest {
 
-    private static final String RATIONALE =
-        "for security reasons, all temporary file creation should through TemporaryFileProvider";
-
-    @ArchTest
-    public static final ArchRule forbid_illegal_calls_to_File_createTempFile =
-        classes()
-            .that(doNot(belongToAnyOf(TestFile.class)))
-            .should(not(callMethod(File.class, "createTempFile", String.class, String.class)))
-            .because(RATIONALE);
-
-    @ArchTest
-    public static final ArchRule forbid_calls_to_guava_Files_createTempDir =
-        classes()
-            .should(not(callMethod(com.google.common.io.Files.class, "createTempDir")))
-            .because(RATIONALE);
-
     @ArchTest
     public static final ArchRule forbid_illegal_calls_to_File_createTempFile_overload =
         classes()
@@ -66,7 +50,19 @@ public class TempDirectoryCreationControlTest {
                 "for security reasons, all createTempFile calls taking a 'directory' argument must go through `%s`",
                 org.gradle.api.internal.file.temp.TempFiles.class
             ));
-
+    private static final String RATIONALE =
+        "for security reasons, all temporary file creation should through TemporaryFileProvider";
+    @ArchTest
+    public static final ArchRule forbid_illegal_calls_to_File_createTempFile =
+        classes()
+            .that(doNot(belongToAnyOf(TestFile.class)))
+            .should(not(callMethod(File.class, "createTempFile", String.class, String.class)))
+            .because(RATIONALE);
+    @ArchTest
+    public static final ArchRule forbid_calls_to_guava_Files_createTempDir =
+        classes()
+            .should(not(callMethod(com.google.common.io.Files.class, "createTempDir")))
+            .because(RATIONALE);
     @ArchTest
     public static final ArchRule forbid_illegal_calls_to_Files_createTempFile =
         classes()

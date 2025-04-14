@@ -53,6 +53,21 @@ public final class ConfigurationReportModelFactory {
         this.fileResolver = fileResolver;
     }
 
+    /**
+     * Recursively calling {@link Map#computeIfAbsent(Object, Function)} to insert multiple keys could pose issues, depending on the implementation of the underlying map.
+     *
+     * This method exists to externalize that usage and avoid the potential for these sort of issues.
+     */
+    private static <K, V> V computeIfAbsentExternal(Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction) {
+        if (map.containsKey(key)) {
+            return map.get(key);
+        } else {
+            V v = mappingFunction.apply(key);
+            map.put(key, v);
+            return v;
+        }
+    }
+
     public ConfigurationReportModel buildForProject(Project project) {
         final ConfigurationRuleScanner scanner = new ConfigurationRuleScanner(project);
         final List<ReportAttribute> attributesWithCompatibilityRules = scanner.getAttributesWithCompatibilityRules();
@@ -205,21 +220,6 @@ public final class ConfigurationReportModelFactory {
             final AttributeMatchingStrategy<?> matchingStrategy = attributesSchema.getMatchingStrategy(attribute);
             final DefaultDisambiguationRuleChain<?> ruleChain = (DefaultDisambiguationRuleChain<?>) matchingStrategy.getDisambiguationRules();
             return !ruleChain.getRules().isEmpty();
-        }
-    }
-
-    /**
-     * Recursively calling {@link Map#computeIfAbsent(Object, Function)} to insert multiple keys could pose issues, depending on the implementation of the underlying map.
-     *
-     * This method exists to externalize that usage and avoid the potential for these sort of issues.
-     */
-    private static <K, V> V computeIfAbsentExternal(Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction) {
-        if (map.containsKey(key)) {
-            return map.get(key);
-        } else {
-            V v = mappingFunction.apply(key);
-            map.put(key, v);
-            return v;
         }
     }
 }

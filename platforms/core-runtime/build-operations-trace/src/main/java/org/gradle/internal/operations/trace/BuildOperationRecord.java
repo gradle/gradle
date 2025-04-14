@@ -40,13 +40,12 @@ public final class BuildOperationRecord {
     public final long startTime;
     public final long endTime;
     public final Map<String, ?> details;
-    private final String detailsClassName;
     public final Map<String, ?> result;
-    private final String resultClassName;
     public final String failure;
-
     public final List<Progress> progress;
     public final List<BuildOperationRecord> children;
+    private final String detailsClassName;
+    private final String resultClassName;
 
     BuildOperationRecord(
         Long id,

@@ -58,12 +58,8 @@ import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIO
 public class HttpClientHelper implements Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
-    private CloseableHttpClient client;
     private final DocumentationRegistry documentationRegistry;
     private final HttpSettings settings;
-
-    private Collection<String> supportedTlsVersions;
-
     /**
      * Maintains a queue of contexts which are shared between threads when authentication
      * is activated. When a request is performed, it will pick a context from the queue,
@@ -72,6 +68,8 @@ public class HttpClientHelper implements Closeable {
      * the max number of concurrent requests executed.
      */
     private final ConcurrentLinkedQueue<HttpContext> sharedContext;
+    private CloseableHttpClient client;
+    private Collection<String> supportedTlsVersions;
 
     /**
      * Use {@link HttpClientHelper.Factory#create(HttpSettings)} to instantiate instances.
@@ -84,6 +82,51 @@ public class HttpClientHelper implements Closeable {
             sharedContext = new ConcurrentLinkedQueue<HttpContext>();
         } else {
             sharedContext = null;
+        }
+    }
+
+    @NonNull
+    private static HttpRequestException createHttpRequestException(String method, Throwable cause, URI uri) {
+        return new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(uri)), cause);
+    }
+
+    @NonNull
+    private static String getConfidenceNote(SSLHandshakeException sslException) {
+        if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
+            // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
+            return "does";
+        }
+        // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of the error.
+        // Tell the user this but with less confidence.
+        return "may";
+    }
+
+    @NonNull
+    private static List<URI> getRedirectLocations(HttpContext httpContext) {
+        @SuppressWarnings("unchecked")
+        List<URI> redirects = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
+        return redirects == null ? Collections.emptyList() : redirects;
+    }
+
+    private static URI getLastRedirectLocation(HttpContext httpContext) {
+        List<URI> redirectLocations = getRedirectLocations(httpContext);
+        return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
+    }
+
+    /**
+     * Strips the {@link URI#getUserInfo() user info} from the {@link URI} making it
+     * safe to appear in log messages.
+     */
+    @Nullable
+    @VisibleForTesting
+    static URI stripUserCredentials(URI uri) {
+        if (uri == null) {
+            return null;
+        }
+        try {
+            return new URIBuilder(uri).setUserInfo(null).build();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e, true);
         }
     }
 
@@ -118,11 +161,6 @@ public class HttpClientHelper implements Closeable {
         }
     }
 
-    @NonNull
-    private static HttpRequestException createHttpRequestException(String method, Throwable cause, URI uri) {
-        return new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(uri)), cause);
-    }
-
     private Exception wrapWithExplanation(IOException e) {
         if (e instanceof SocketException || (e instanceof SSLException && e.getMessage().contains("readHandshakeRecord"))) {
             return new HttpRequestException("Got socket exception during request. It might be caused by SSL misconfiguration", e);
@@ -148,17 +186,6 @@ public class HttpClientHelper implements Closeable {
             );
         }
         return new HttpRequestException(message, e);
-    }
-
-    @NonNull
-    private static String getConfidenceNote(SSLHandshakeException sslException) {
-        if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
-            // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
-            return "does";
-        }
-        // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of the error.
-        // Tell the user this but with less confidence.
-        return "may";
     }
 
     protected HttpClientResponse executeGetOrHead(HttpRequestBase method) throws IOException {
@@ -222,19 +249,6 @@ public class HttpClientHelper implements Closeable {
     }
 
     @NonNull
-    private static List<URI> getRedirectLocations(HttpContext httpContext) {
-        @SuppressWarnings("unchecked")
-        List<URI> redirects = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
-        return redirects == null ? Collections.emptyList() : redirects;
-    }
-
-
-    private static URI getLastRedirectLocation(HttpContext httpContext) {
-        List<URI> redirectLocations = getRedirectLocations(httpContext);
-        return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
-    }
-
-    @NonNull
     private HttpClientResponse processResponse(HttpClientResponse response) {
         if (response.wasMissing()) {
             LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), stripUserCredentials(response.getEffectiveUri()));
@@ -272,20 +286,20 @@ public class HttpClientHelper implements Closeable {
     }
 
     /**
-     * Strips the {@link URI#getUserInfo() user info} from the {@link URI} making it
-     * safe to appear in log messages.
+     * Factory for creating the {@link HttpClientHelper}
      */
-    @Nullable
-    @VisibleForTesting
-    static URI stripUserCredentials(URI uri) {
-        if (uri == null) {
-            return null;
+    @FunctionalInterface
+    @ServiceScope(Scope.Global.class)
+    public interface Factory {
+        /**
+         * Method should only be used for DI registry and testing.
+         * For other uses of {@link HttpClientHelper}, inject an instance of {@link Factory} to create one.
+         */
+        static Factory createFactory(DocumentationRegistry documentationRegistry) {
+            return settings -> new HttpClientHelper(documentationRegistry, settings);
         }
-        try {
-            return new URIBuilder(uri).setUserInfo(null).build();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e, true);
-        }
+
+        HttpClientHelper create(HttpSettings settings);
     }
 
     private static class FailureFromRedirectLocation extends IOException {
@@ -298,23 +312,6 @@ public class HttpClientHelper implements Closeable {
 
         private URI getLastRedirectLocation() {
             return lastRedirectLocation;
-        }
-    }
-
-    /**
-     * Factory for creating the {@link HttpClientHelper}
-     */
-    @FunctionalInterface
-    @ServiceScope(Scope.Global.class)
-    public interface Factory {
-        HttpClientHelper create(HttpSettings settings);
-
-        /**
-         * Method should only be used for DI registry and testing.
-         * For other uses of {@link HttpClientHelper}, inject an instance of {@link Factory} to create one.
-         */
-        static Factory createFactory(DocumentationRegistry documentationRegistry) {
-            return settings -> new HttpClientHelper(documentationRegistry, settings);
         }
     }
 

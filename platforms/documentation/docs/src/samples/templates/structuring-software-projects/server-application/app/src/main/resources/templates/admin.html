@@ -1,14 +1,14 @@
 <!DOCTYPE HTML>
 <html xmlns:th='https://www.thymeleaf.org'>
 <head>
-  <title>My Product Configurator</title>
-  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+    <title>My Product Configurator</title>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
 </head>
 <body>
-  <form action='#' th:action='@{/admin}' th:object='${versionRange}' method='post'>
-    <p>From Version: <input type='text' th:field='*{fromVersion}'/></p>
-    <p>To Version:   <input type='text' th:field='*{toVersion}'/></p>
+<form action='#' method='post' th:action='@{/admin}' th:object='${versionRange}'>
+    <p>From Version: <input th:field='*{fromVersion}' type='text'/></p>
+    <p>To Version: <input th:field='*{toVersion}' type='text'/></p>
     <p><input type='submit' value='Submit'/></p>
-  </form>
+</form>
 </body>
 </html>

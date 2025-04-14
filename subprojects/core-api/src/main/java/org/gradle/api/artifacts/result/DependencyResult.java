@@ -35,6 +35,7 @@ public interface DependencyResult {
      *     <li>{@link org.gradle.api.artifacts.component.ProjectComponentSelector} for those dependencies that request a component from some other project in the current build.</li>
      *     <li>{@link org.gradle.api.artifacts.component.ModuleComponentSelector} for those dependencies that request a component to be found in some repository.</li>
      * </ul>
+     *
      * @return the requested component
      */
     ComponentSelector getRequested();

@@ -25,26 +25,27 @@ import spock.lang.Specification
 class S3ConnectorFactoryTest extends Specification {
 
     S3ConnectorFactory factory = new S3ConnectorFactory()
+
     def "fails when no aws credentials provided for auth"() {
         setup:
         def resourceConnectorSpecification = Mock(ResourceConnectorSpecification)
         1 * resourceConnectorSpecification.getCredentials(AwsCredentials) >> null
-        1 * resourceConnectorSpecification.getAuthentications() >> [ new AllSchemesAuthentication(null) ]
-        
+        1 * resourceConnectorSpecification.getAuthentications() >> [new AllSchemesAuthentication(null)]
+
         when:
         factory.createResourceConnector(resourceConnectorSpecification)
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message ==  "AwsCredentials must be set for S3 backed repository."
+        e.message == "AwsCredentials must be set for S3 backed repository."
     }
 
-        def "ok when no aws credentials provided for Iam Auth"() {
+    def "ok when no aws credentials provided for Iam Auth"() {
         setup:
         def resourceConnectorSpecification = Mock(ResourceConnectorSpecification)
         0 * resourceConnectorSpecification.getCredentials(AwsCredentials) >> null
-        1 * resourceConnectorSpecification.getAuthentications() >> [ new DefaultAwsImAuthentication(null) ]
-        
+        1 * resourceConnectorSpecification.getAuthentications() >> [new DefaultAwsImAuthentication(null)]
+
         when:
         def resourceConnector = factory.createResourceConnector(resourceConnectorSpecification)
 

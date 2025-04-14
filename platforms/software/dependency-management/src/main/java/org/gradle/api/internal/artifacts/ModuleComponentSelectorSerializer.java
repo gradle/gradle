@@ -76,7 +76,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getModule());
         writeVersionConstraint(encoder, value.getVersionConstraint());
-        writeAttributes(encoder, ((AttributeContainerInternal)value.getAttributes()).asImmutable());
+        writeAttributes(encoder, ((AttributeContainerInternal) value.getAttributes()).asImmutable());
         writeCapabilitySelectors(encoder, value.getCapabilitySelectors());
     }
 

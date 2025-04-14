@@ -61,8 +61,10 @@ object CachedEnvironmentStateCodec : Codec<ConfigurationCacheEnvironmentChangeTr
             when (clazz) {
                 ConfigurationCacheEnvironmentChangeTracker.SystemPropertyMutate::class.java ->
                     ConfigurationCacheEnvironmentChangeTracker.SystemPropertyMutate(key, value, PropertyTrace.Unknown)
+
                 ConfigurationCacheEnvironmentChangeTracker.SystemPropertyLoad::class.java ->
                     ConfigurationCacheEnvironmentChangeTracker.SystemPropertyLoad(key, value, null)
+
                 else -> error("$clazz instances is not expected to be stored")
             }
         }

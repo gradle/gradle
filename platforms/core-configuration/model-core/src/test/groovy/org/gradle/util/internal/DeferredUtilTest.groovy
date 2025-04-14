@@ -38,9 +38,9 @@ class DeferredUtilTest extends Specification {
         DeferredUtil.unpackOrNull(value) == null
 
         where:
-        description | value
-        'Provider'  | Providers.notDefined()
-        'Provider in Callable'      | { -> Providers.notDefined() }
+        description            | value
+        'Provider'             | Providers.notDefined()
+        'Provider in Callable' | { -> Providers.notDefined() }
     }
 
     def "unpack of #description fails"() {

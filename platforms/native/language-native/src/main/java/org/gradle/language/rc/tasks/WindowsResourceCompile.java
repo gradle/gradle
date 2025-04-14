@@ -67,11 +67,11 @@ public abstract class WindowsResourceCompile extends DefaultTask {
 
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
+    private final ListProperty<String> compilerArgs;
     private File outputDir;
     private ConfigurableFileCollection includes;
     private ConfigurableFileCollection source;
     private Map<String, String> macros = new LinkedHashMap<String, String>();
-    private final ListProperty<String> compilerArgs;
     // Don't serialize the compiler. It holds state that is mostly only required at execution time and that can be calculated from the other fields of this task
     // after being deserialized. However, it is also required to calculate the producers of the header files to calculate the work graph.
     // It would be better to provide some way for a task to express these things separately.

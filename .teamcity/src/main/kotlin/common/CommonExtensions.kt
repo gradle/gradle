@@ -322,7 +322,7 @@ fun functionalTestExtraParameters(
         ) +
             buildScanTags.map { buildScanTagParam(it) } +
             buildScanValues.map { buildScanCustomValueParam(it.key, it.value) }
-    ).filter { it.isNotBlank() }.joinToString(separator = " ")
+        ).filter { it.isNotBlank() }.joinToString(separator = " ")
 }
 
 fun functionalTestParameters(
@@ -379,7 +379,7 @@ fun BuildSteps.killProcessStep(
                     arch,
                 )
             }/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
-            if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
+                if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
         skipConditionally(buildType)
         if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
             onlyRunOnGitHubMergeQueueBranch()

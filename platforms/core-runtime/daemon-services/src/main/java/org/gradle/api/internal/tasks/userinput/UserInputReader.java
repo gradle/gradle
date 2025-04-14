@@ -24,6 +24,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Global.class)
 public interface UserInputReader {
+    UserInput END_OF_INPUT = new UserInput() {
+        @Override
+        String getText() {
+            throw new IllegalStateException("No response available.");
+        }
+    };
+
     /**
      * Called when the current process starts receiving user input from the client.
      */
@@ -39,13 +46,6 @@ public interface UserInputReader {
     abstract class UserInput {
         abstract String getText();
     }
-
-    UserInput END_OF_INPUT = new UserInput() {
-        @Override
-        String getText() {
-            throw new IllegalStateException("No response available.");
-        }
-    };
 
     class TextResponse extends UserInput {
         private final String text;

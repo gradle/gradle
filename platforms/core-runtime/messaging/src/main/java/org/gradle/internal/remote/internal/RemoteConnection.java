@@ -36,6 +36,7 @@ public interface RemoteConnection<T> extends Connection<T> {
 
     /**
      * {@inheritDoc}
+     *
      * @throws MessageIOException On failure to receive the message from the peer.
      */
     @Override

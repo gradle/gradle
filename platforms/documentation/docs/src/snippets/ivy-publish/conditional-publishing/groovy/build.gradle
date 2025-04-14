@@ -1,4 +1,4 @@
-plugins  {
+plugins {
     id 'java'
     id 'ivy-publish'
 }
@@ -39,10 +39,12 @@ publishing {
 // tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
     def publishIf = provider {
-        if (repository == publishing.repositories.external)
+        if (repository == publishing.repositories.external) {
             return publication == publishing.publications.binary
-        if (repository == publishing.repositories.internal)
+        }
+        if (repository == publishing.repositories.internal) {
             return publication == publishing.publications.binaryAndSources
+        }
         return false
     }
     onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {

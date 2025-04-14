@@ -29,7 +29,8 @@ import spock.lang.Issue
 import java.util.concurrent.CyclicBarrier
 
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.start()
@@ -69,7 +70,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         def thread = new Thread({
             while (!nonDaemonProcess.closed) {
                 try {
-                    nonDaemonProcess.accept(false) {client ->
+                    nonDaemonProcess.accept(false) { client ->
                         // When a client connects, drain the input from the client and shutdown any IO
                         // This causes the launcher to receive an empty result
                         println("Client ${client.remoteSocketAddress} tried to connect")
@@ -244,7 +245,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         daemons.daemons.size() == 3
-        def idleDaemon = daemons.daemons.find { ! (it.context.pid in [ canceledDaemon1.context.pid, canceledDaemon2.context.pid ]) }
+        def idleDaemon = daemons.daemons.find { !(it.context.pid in [canceledDaemon1.context.pid, canceledDaemon2.context.pid]) }
         idleDaemon.assertIdle()
         canceledDaemon1.assertBusy()
         canceledDaemon2.assertBusy()

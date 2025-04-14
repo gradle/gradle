@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
 
-subprojects{
+subprojects {
     task hello(type: CustomTask)
 }
 
@@ -15,7 +15,7 @@ class CustomTask extends DefaultTask {
     }
 
     @OptionValues("stringValue")
-    public List<String> possibleValues(){
+    public List<String> possibleValues() {
         return Arrays.asList("optionA", "optionB", "optionC", "$path")
     }
 }

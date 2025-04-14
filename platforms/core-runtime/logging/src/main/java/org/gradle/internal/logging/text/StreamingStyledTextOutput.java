@@ -31,6 +31,7 @@ public class StreamingStyledTextOutput extends AbstractStyledTextOutput implemen
 
     /**
      * Creates a text output which forwards text to the given listener.
+     *
      * @param listener The listener.
      */
     public StreamingStyledTextOutput(StandardOutputListener listener) {
@@ -39,6 +40,7 @@ public class StreamingStyledTextOutput extends AbstractStyledTextOutput implemen
 
     /**
      * Creates a text output which writes text to the given appendable.
+     *
      * @param appendable The appendable.
      */
     public StreamingStyledTextOutput(final Appendable appendable) {

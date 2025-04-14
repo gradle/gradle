@@ -27,7 +27,6 @@ import org.gradle.api.tasks.Internal;
  * @see JavaLauncher
  * @see JavaCompiler
  * @see JavadocTool
- *
  * @since 6.7
  */
 public interface JavaInstallationMetadata {

@@ -35,11 +35,6 @@ public class CurrentGradleInstallation {
     }
 
     @Nullable // if no installation can be located
-    public GradleInstallation getInstallation() {
-        return gradleInstallation;
-    }
-
-    @Nullable // if no installation can be located
     public static GradleInstallation get() {
         return locate().getInstallation();
     }
@@ -49,6 +44,11 @@ public class CurrentGradleInstallation {
             instance = CurrentGradleInstallationLocator.locate();
         }
         return instance;
+    }
+
+    @Nullable // if no installation can be located
+    public GradleInstallation getInstallation() {
+        return gradleInstallation;
     }
 
 }

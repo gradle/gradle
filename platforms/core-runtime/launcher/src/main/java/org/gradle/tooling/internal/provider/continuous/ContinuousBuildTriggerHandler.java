@@ -44,6 +44,10 @@ public class ContinuousBuildTriggerHandler {
         this.quietPeriod = continuousBuildQuietPeriod;
     }
 
+    private static Instant nowFromMonotonicClock() {
+        return Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()));
+    }
+
     public void wait(Runnable notifier) {
         Runnable cancellationHandler = () -> {
             changeOrCancellationArrived.countDown();
@@ -83,9 +87,5 @@ public class ContinuousBuildTriggerHandler {
         changeArrived = true;
         lastChangeAt = nowFromMonotonicClock();
         changeOrCancellationArrived.countDown();
-    }
-
-    private static Instant nowFromMonotonicClock() {
-        return Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()));
     }
 }

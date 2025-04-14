@@ -28,6 +28,8 @@ import java.util.List;
 
 public class OperationFiringBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
 
+    private static final FinishRootBuildTreeBuildOperationType.Details DETAILS = new FinishRootBuildTreeBuildOperationType.Details() {};
+    private static final FinishRootBuildTreeBuildOperationType.Result RESULT = new FinishRootBuildTreeBuildOperationType.Result() {};
     private final BuildOperationRunner buildOperationRunner;
     private final BuildTreeFinishExecutor delegate;
 
@@ -56,7 +58,4 @@ public class OperationFiringBuildTreeFinishExecutor implements BuildTreeFinishEx
             }
         });
     }
-
-    private static final FinishRootBuildTreeBuildOperationType.Details DETAILS = new FinishRootBuildTreeBuildOperationType.Details() {};
-    private static final FinishRootBuildTreeBuildOperationType.Result RESULT = new FinishRootBuildTreeBuildOperationType.Result() {};
 }

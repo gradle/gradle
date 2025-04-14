@@ -5,6 +5,6 @@
 format.version = "1.1"
 
 [libraries]
-api-dep = {group = "org", name = "api-dep", version = "1.0" }
-runtime-dep = {group = "org", name = "runtime-dep", version = "1.4" }
+api-dep = { group = "org", name = "api-dep", version = "1.0" }
+runtime-dep = { group = "org", name = "runtime-dep", version = "1.4" }
 

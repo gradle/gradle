@@ -45,15 +45,19 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             .appendText("""rootProject.name = "build-logic"""")
         withKotlinDslPluginIn("build-logic")
         withFile("build-logic/src/main/kotlin/my-plugin.gradle.kts", "")
-        val className = kotlinClassSourceFile("build-logic", """
+        val className = kotlinClassSourceFile(
+            "build-logic", """
             inline fun foo() { println("bar") }
-        """)
+        """
+        )
         withSettings(""" pluginManagement { includeBuild("build-logic") } """)
 
-        withUniqueScript("""
+        withUniqueScript(
+            """
             plugins { id("my-plugin") }
             $className().foo()
-        """)
+        """
+        )
         configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
 
         // Delete the JAR as this is not cacheable and by default JARs are not reproducible

@@ -26,7 +26,8 @@ import org.junit.Rule
 class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
     TestKeyStore keyStore
 
-    @Rule public final HttpServer server = new HttpServer()
+    @Rule
+    public final HttpServer server = new HttpServer()
 
     MavenHttpRepository mavenRemoteRepo
     MavenHttpModule module

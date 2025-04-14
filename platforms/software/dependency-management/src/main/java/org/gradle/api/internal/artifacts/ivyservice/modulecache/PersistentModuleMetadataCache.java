@@ -38,9 +38,9 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
-    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
     private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
+    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
 
     public PersistentModuleMetadataCache(
         BuildCommencedTimeProvider timeProvider,

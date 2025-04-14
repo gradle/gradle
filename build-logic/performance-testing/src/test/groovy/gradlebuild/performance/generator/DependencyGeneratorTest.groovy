@@ -79,12 +79,12 @@ class DependencyGeneratorTest extends Specification {
         projectDependencies == projectDependencies2
 
         where:
-        num  | distribution
-        1    | [1]
-        4    | [2, 2]
-        9    | [1, 2, 3, 2, 1]
-        50   | [1, 2, 6, 16, 16, 6, 2, 1]
-        74   | [2, 3, 8, 24, 24, 8, 3, 2]
-        150  | [1, 2, 6, 16, 50, 50, 16, 6, 2, 1]
+        num | distribution
+        1   | [1]
+        4   | [2, 2]
+        9   | [1, 2, 3, 2, 1]
+        50  | [1, 2, 6, 16, 16, 6, 2, 1]
+        74  | [2, 3, 8, 24, 24, 8, 3, 2]
+        150 | [1, 2, 6, 16, 50, 50, 16, 6, 2, 1]
     }
 }

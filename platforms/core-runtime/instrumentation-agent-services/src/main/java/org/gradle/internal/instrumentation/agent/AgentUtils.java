@@ -20,9 +20,9 @@ package org.gradle.internal.instrumentation.agent;
  * Common utilities used for Gradle's own Java agents.
  */
 public final class AgentUtils {
-    private AgentUtils() {}
-
     public static final String AGENT_MODULE_NAME = "gradle-instrumentation-agent";
+
+    private AgentUtils() {}
 
     /**
      * Checks if the command-line argument looks like JVM switch that applies gradle instrumentation agent.

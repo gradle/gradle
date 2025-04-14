@@ -108,7 +108,7 @@ class DependencyGenerator {
         }
         int currentProjectNumber = 1
         (1..layerSizes.size()).collect {
-            def maxProjects = layerSizes[it-1]
+            def maxProjects = layerSizes[it - 1]
             (1..maxProjects).collect {
                 currentProjectNumber++
             }
@@ -131,7 +131,7 @@ class DependencyGenerator {
             projectsForLayer.each { projectNumber ->
                 def resolvedDependencies = []
                 def startingLayer = Math.max(layerIndex - numLayersToDependOn, 0)
-                if(startingLayer < layerIndex) {
+                if (startingLayer < layerIndex) {
                     def possibleDependencies = (startingLayer..<layerIndex).collect {
                         projectsInLayers[it]
                     }.flatten()

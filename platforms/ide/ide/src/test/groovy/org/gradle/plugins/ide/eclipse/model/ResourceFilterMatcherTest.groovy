@@ -25,9 +25,9 @@ public class ResourceFilterMatcherTest extends Specification {
     def "ResourceFilterMatcher equals and hashCode satisfies contract"() {
         when:
         EqualsVerifier.forClass(DefaultResourceFilterMatcher.class)
-                .suppress(Warning.NONFINAL_FIELDS)
-                .withPrefabValues(Set.class, [new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-node_modules', [] as LinkedHashSet), new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-target', [] as LinkedHashSet)] as LinkedHashSet, [] as LinkedHashSet)
-                .verify()
+            .suppress(Warning.NONFINAL_FIELDS)
+            .withPrefabValues(Set.class, [new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-node_modules', [] as LinkedHashSet), new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-target', [] as LinkedHashSet)] as LinkedHashSet, [] as LinkedHashSet)
+            .verify()
 
         then:
         noExceptionThrown()

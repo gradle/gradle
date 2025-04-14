@@ -65,10 +65,10 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     @Override
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
-                && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
+            && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {
             logEvent(descriptor, TestLogEvent.STANDARD_OUT, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
-                && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
+            && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
             logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         }
     }
@@ -90,10 +90,14 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
 
     private TestLogEvent getEvent(TestResult result) {
         switch (result.getResultType()) {
-            case SUCCESS: return TestLogEvent.PASSED;
-            case FAILURE: return TestLogEvent.FAILED;
-            case SKIPPED: return TestLogEvent.SKIPPED;
-            default: throw new AssertionError();
+            case SUCCESS:
+                return TestLogEvent.PASSED;
+            case FAILURE:
+                return TestLogEvent.FAILED;
+            case SKIPPED:
+                return TestLogEvent.SKIPPED;
+            default:
+                throw new AssertionError();
         }
     }
 

@@ -79,7 +79,7 @@ class DefaultSettingsLoaderTest extends Specification {
     }
 
     void setup() {
-        startParameterInternal.setCurrentDir( projectRootDir )
+        startParameterInternal.setCurrentDir(projectRootDir)
     }
 
     private logger = new ToStringLogger()

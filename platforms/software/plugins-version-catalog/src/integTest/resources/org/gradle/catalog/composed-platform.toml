@@ -5,6 +5,6 @@
 format.version = "1.1"
 
 [libraries]
-my-lib = {group = "org.test", name = "lib", version = "1.1" }
-other = {group = "org", name = "other", version = "1.5" }
+my-lib = { group = "org.test", name = "lib", version = "1.1" }
+other = { group = "org", name = "other", version = "1.5" }
 

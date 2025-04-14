@@ -29,6 +29,7 @@ import java.util.List;
 @NullMarked
 public interface InternalProblemContextDetails {
     InternalAdditionalData getAdditionalData();
+
     @Nullable
     InternalDetails getDetails();
 

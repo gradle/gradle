@@ -27,7 +27,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
-@TargetCoverage({GroovyCoverage.SUPPORTS_GROOVYDOC})
+@TargetCoverage({ GroovyCoverage.SUPPORTS_GROOVYDOC })
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {

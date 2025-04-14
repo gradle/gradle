@@ -38,26 +38,6 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
 @NullMarked
 public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolingModelBuilder<IsolatedGradleProjectParameter> {
 
-    @Override
-    public Class<IsolatedGradleProjectParameter> getParameterType() {
-        return IsolatedGradleProjectParameter.class;
-    }
-
-    @Override
-    public boolean canBuild(String modelName) {
-        return modelName.equals(IsolatedGradleProjectInternal.class.getName());
-    }
-
-    @Override
-    public IsolatedGradleProjectInternal buildAll(String modelName, IsolatedGradleProjectParameter parameter, Project project) {
-        return build(project, parameter.getRealizeTasks());
-    }
-
-    @Override
-    public IsolatedGradleProjectInternal buildAll(String modelName, Project project) {
-        return build(project, true);
-    }
-
     private static IsolatedGradleProjectInternal build(Project project, boolean realizeTasks) {
         IsolatedGradleProjectInternal gradleProject = new IsolatedGradleProjectInternal()
             .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
@@ -91,6 +71,26 @@ public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolin
 
     private static String getBuildTreePath(Task task) {
         return ((TaskInternal) task).getIdentityPath().getPath();
+    }
+
+    @Override
+    public Class<IsolatedGradleProjectParameter> getParameterType() {
+        return IsolatedGradleProjectParameter.class;
+    }
+
+    @Override
+    public boolean canBuild(String modelName) {
+        return modelName.equals(IsolatedGradleProjectInternal.class.getName());
+    }
+
+    @Override
+    public IsolatedGradleProjectInternal buildAll(String modelName, IsolatedGradleProjectParameter parameter, Project project) {
+        return build(project, parameter.getRealizeTasks());
+    }
+
+    @Override
+    public IsolatedGradleProjectInternal buildAll(String modelName, Project project) {
+        return build(project, true);
     }
 
 }

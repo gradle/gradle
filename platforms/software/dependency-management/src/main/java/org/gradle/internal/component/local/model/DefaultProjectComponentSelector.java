@@ -62,6 +62,33 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return result;
     }
 
+    public static ProjectComponentSelector withAttributes(ProjectComponentSelector selector, ImmutableAttributes attributes) {
+        ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
+        return new DefaultProjectComponentSelector(
+            current.getProjectIdentity(),
+            attributes,
+            current.getCapabilitySelectors()
+        );
+    }
+
+    public static ProjectComponentSelector withCapabilities(ProjectComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+        ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
+        return new DefaultProjectComponentSelector(
+            current.getProjectIdentity(),
+            current.getAttributes(),
+            capabilitySelectors
+        );
+    }
+
+    public static ProjectComponentSelector withAttributesAndCapabilities(ProjectComponentSelector selector, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+        ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
+        return new DefaultProjectComponentSelector(
+            current.getProjectIdentity(),
+            attributes,
+            capabilitySelectors
+        );
+    }
+
     @Override
     public ProjectIdentity getProjectIdentity() {
         return projectIdentity;
@@ -141,33 +168,6 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @Override
     public String toString() {
         return getDisplayName();
-    }
-
-    public static ProjectComponentSelector withAttributes(ProjectComponentSelector selector, ImmutableAttributes attributes) {
-        ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
-        return new DefaultProjectComponentSelector(
-            current.getProjectIdentity(),
-            attributes,
-            current.getCapabilitySelectors()
-        );
-    }
-
-    public static ProjectComponentSelector withCapabilities(ProjectComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
-        ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
-        return new DefaultProjectComponentSelector(
-            current.getProjectIdentity(),
-            current.getAttributes(),
-            capabilitySelectors
-        );
-    }
-
-    public static ProjectComponentSelector withAttributesAndCapabilities(ProjectComponentSelector selector, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
-        ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
-        return new DefaultProjectComponentSelector(
-            current.getProjectIdentity(),
-            attributes,
-            capabilitySelectors
-        );
     }
 
     // TODO: It seems fishy to be able to go directly from a selector to an identifier.

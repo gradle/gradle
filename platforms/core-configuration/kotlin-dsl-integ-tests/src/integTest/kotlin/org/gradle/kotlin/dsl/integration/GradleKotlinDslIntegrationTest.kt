@@ -641,7 +641,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         assertThat(
             buildFailureOutput().normaliseLineSeparators(),
             containsMultiLineString(
-            """
+                """
                 * What went wrong:
                 Script compilation error:
 

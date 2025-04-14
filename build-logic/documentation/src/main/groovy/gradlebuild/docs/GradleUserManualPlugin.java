@@ -49,18 +49,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
     public static final String DOCS_GRADLE_ORG = "https://docs.gradle.org/";
 
-    @Override
-    public void apply(Project project) {
-        ProjectLayout layout = project.getLayout();
-        TaskContainer tasks = project.getTasks();
-
-        GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
-        generateDefaultImports(project, tasks, extension);
-        generateUserManual(project, tasks, layout, extension);
-
-        checkXrefLinksInUserManualAreValid(layout, tasks, extension);
-    }
-
     public static List<String> getDefaultExcludedPackages() {
         // TODO: This should be configured via the extension vs hardcoded in the plugin
         List<String> excludedPackages = new ArrayList<>();
@@ -79,6 +67,18 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         // Exclude classes that were moved in a different package but the deprecated ones are not removed yet
         excludedPackages.add("org.gradle.platform.base.test");
         return excludedPackages;
+    }
+
+    @Override
+    public void apply(Project project) {
+        ProjectLayout layout = project.getLayout();
+        TaskContainer tasks = project.getTasks();
+
+        GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
+        generateDefaultImports(project, tasks, extension);
+        generateUserManual(project, tasks, layout, extension);
+
+        checkXrefLinksInUserManualAreValid(layout, tasks, extension);
     }
 
     // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it

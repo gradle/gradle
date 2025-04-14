@@ -1,4 +1,3 @@
-
 <!--
   ~ Copyright 2010 the original author or authors.
   ~
@@ -22,12 +21,17 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java-base</literal> plugin</td>
+                    <td>Default with <literal>java-base</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>srcDirs</td>
-                <td><literal>src/<replaceable>${sourceSet.name}</replaceable>/<replaceable>${sourceDirectorySet.name}</replaceable></literal></td>
+                <td>
+                    <literal>src/<replaceable>${sourceSet.name}</replaceable>/
+                        <replaceable>${sourceDirectorySet.name}</replaceable>
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>filter</td>
@@ -35,11 +39,19 @@
             </tr>
             <tr>
                 <td>destinationDirectory</td>
-                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>
+                    <literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/
+                        <replaceable>${sourceSet.name}</replaceable>
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>classesDirectory</td>
-                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>
+                    <literal><replaceable>${project.layout.buildDirectory}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/
+                        <replaceable>${sourceSet.name}</replaceable>
+                    </literal>
+                </td>
             </tr>
         </table>
     </section>

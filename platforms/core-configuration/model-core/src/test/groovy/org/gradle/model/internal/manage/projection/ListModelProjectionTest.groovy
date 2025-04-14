@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.projection
+
 import org.gradle.model.Managed
 
 class ListModelProjectionTest extends AbstractCollectionModelProjectionTest<String, List<String>> {

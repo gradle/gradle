@@ -26,9 +26,6 @@ import java.util.concurrent.ConcurrentMap;
 
 public class CachingClassLoader extends ClassLoader implements DelegatingClassLoader, ClassLoaderHierarchy, Closeable {
     private static final Object MISSING = new Object();
-    private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
-    private final ConcurrentMap<String, Object> resources = new MapMaker().makeMap();
-    private final ClassLoader parent;
 
     static {
         try {
@@ -38,6 +35,10 @@ public class CachingClassLoader extends ClassLoader implements DelegatingClassLo
             // Not supported on Java 6
         }
     }
+
+    private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
+    private final ConcurrentMap<String, Object> resources = new MapMaker().makeMap();
+    private final ClassLoader parent;
 
     public CachingClassLoader(ClassLoader parent) {
         super(parent);
@@ -95,18 +96,6 @@ public class CachingClassLoader extends ClassLoader implements DelegatingClassLo
         return CachingClassLoader.class.getSimpleName() + "(" + getParent() + ")";
     }
 
-    public static class Spec extends ClassLoaderSpec {
-        @Override
-        public boolean equals(Object obj) {
-            return obj != null && obj.getClass().equals(Spec.class);
-        }
-
-        @Override
-        public int hashCode() {
-            return getClass().getName().hashCode();
-        }
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -123,5 +112,17 @@ public class CachingClassLoader extends ClassLoader implements DelegatingClassLo
     @Override
     public int hashCode() {
         return parent.hashCode();
+    }
+
+    public static class Spec extends ClassLoaderSpec {
+        @Override
+        public boolean equals(Object obj) {
+            return obj != null && obj.getClass().equals(Spec.class);
+        }
+
+        @Override
+        public int hashCode() {
+            return getClass().getName().hashCode();
+        }
     }
 }

@@ -32,19 +32,23 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
 ) : ScriptCompilationConfiguration({
 
     isStandalone(true)
-    compilerOptions.put(listOf(
-        "-language-version", "2.1",
-        "-api-version", "2.1",
-        "-Xjvm-default=all",
-        "-Xjsr305=strict",
-        "-Xjspecify-annotations=strict",
-        "-Xskip-prerelease-check",
-        "-Xallow-unstable-dependencies",
-        "-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading",
-    ))
-    annotationsForSamWithReceivers.put(listOf(
-        KotlinType(HasImplicitReceiver::class),
-    ))
+    compilerOptions.put(
+        listOf(
+            "-language-version", "2.1",
+            "-api-version", "2.1",
+            "-Xjvm-default=all",
+            "-Xjsr305=strict",
+            "-Xjspecify-annotations=strict",
+            "-Xskip-prerelease-check",
+            "-Xallow-unstable-dependencies",
+            "-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading",
+        )
+    )
+    annotationsForSamWithReceivers.put(
+        listOf(
+            KotlinType(HasImplicitReceiver::class),
+        )
+    )
 
     body()
 })

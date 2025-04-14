@@ -421,20 +421,6 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             this.arrayType = arrayType;
         }
 
-        public abstract Object clone(Object array);
-
-        public abstract boolean equals(Object x, Object y);
-
-        public abstract int hashCode(Object array);
-
-        public abstract String toString(Object array);
-
-        public abstract void appendTo(Hasher hasher, Object array);
-
-        public abstract void encode(Encoder encoder, Object array) throws IOException;
-
-        public abstract Object decode(Decoder decoder) throws IOException;
-
         public static PrimitiveType of(Class<?> arrayType) {
             PrimitiveType primitiveType = maybeOf(arrayType);
             if (primitiveType == null) {
@@ -463,5 +449,19 @@ public class ArrayOfPrimitiveValueSnapshot implements ValueSnapshot, Isolatable<
             assert ordinal >= 0 && ordinal < primitiveTypes.length;
             return primitiveTypes[ordinal];
         }
+
+        public abstract Object clone(Object array);
+
+        public abstract boolean equals(Object x, Object y);
+
+        public abstract int hashCode(Object array);
+
+        public abstract String toString(Object array);
+
+        public abstract void appendTo(Hasher hasher, Object array);
+
+        public abstract void encode(Encoder encoder, Object array) throws IOException;
+
+        public abstract Object decode(Decoder decoder) throws IOException;
     }
 }

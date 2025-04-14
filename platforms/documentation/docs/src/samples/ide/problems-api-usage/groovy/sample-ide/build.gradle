@@ -31,5 +31,9 @@ tasks.register("importBuild") {
 }
 
 Gradle rootBuild(Gradle gradle) {
-    if (gradle?.parent) rootBuild(gradle.parent) else gradle
+    if (gradle?.parent) {
+        rootBuild(gradle.parent)
+    } else {
+        gradle
+    }
 }

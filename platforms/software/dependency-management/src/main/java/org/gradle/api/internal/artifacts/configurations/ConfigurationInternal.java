@@ -34,15 +34,22 @@ import java.util.Set;
 
 public interface ConfigurationInternal extends DeprecatableConfiguration, Configuration {
 
-    enum InternalState {
-        UNRESOLVED,
-        BUILD_DEPENDENCIES_RESOLVED,
-        GRAPH_RESOLVED,
-
-        // This state should be removed, but it is referenced by nebula gradle-resolution-rules-plugin.
-        // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/623bbbcd4f187101bc233e46c4d9ec960c02e1a7/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L62
-        @Deprecated
-        ARTIFACTS_RESOLVED
+    /**
+     * Test if the given configuration can either be declared against or extends another
+     * configuration which can be declared against.
+     * This method should probably be made {@code private} when upgrading to Java 9.
+     *
+     * @param configuration the configuration to test
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
+        if (configuration.isCanBeDeclared()) {
+            return true;
+        } else {
+            return configuration.getExtendsFrom().stream()
+                .map(ConfigurationInternal.class::cast)
+                .anyMatch(ci -> ci.isDeclarableByExtension());
+        }
     }
 
     String getDisplayName();
@@ -153,24 +160,17 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      *
      * @param role the role specifying the usage the conf should possess
      */
-     void setAllowedUsageFromRole(ConfigurationRole role);
+    void setAllowedUsageFromRole(ConfigurationRole role);
 
-    /**
-     * Test if the given configuration can either be declared against or extends another
-     * configuration which can be declared against.
-     * This method should probably be made {@code private} when upgrading to Java 9.
-     *
-     * @param configuration the configuration to test
-     * @return {@code true} if so; {@code false} otherwise
-     */
-    static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
-        if (configuration.isCanBeDeclared()) {
-            return true;
-        } else {
-            return configuration.getExtendsFrom().stream()
-                    .map(ConfigurationInternal.class::cast)
-                    .anyMatch(ci -> ci.isDeclarableByExtension());
-        }
+    enum InternalState {
+        UNRESOLVED,
+        BUILD_DEPENDENCIES_RESOLVED,
+        GRAPH_RESOLVED,
+
+        // This state should be removed, but it is referenced by nebula gradle-resolution-rules-plugin.
+        // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/623bbbcd4f187101bc233e46c4d9ec960c02e1a7/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L62
+        @Deprecated
+        ARTIFACTS_RESOLVED
     }
 
     interface VariantVisitor {

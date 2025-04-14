@@ -53,16 +53,16 @@ public interface DependentSourceSet extends LanguageSourceSet {
     void lib(Object library);
 
     /**
-     * Sets the pre-compiled header to be used when compiling sources in this source set.
-     *
-     * @param header the header to precompile
-     */
-    void setPreCompiledHeader(String header);
-
-    /**
      * Returns the pre-compiled header configured for this source set.
      *
      * @return the pre-compiled header
      */
     String getPreCompiledHeader();
+
+    /**
+     * Sets the pre-compiled header to be used when compiling sources in this source set.
+     *
+     * @param header the header to precompile
+     */
+    void setPreCompiledHeader(String header);
 }

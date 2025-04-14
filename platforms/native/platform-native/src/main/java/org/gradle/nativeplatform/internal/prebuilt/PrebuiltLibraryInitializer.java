@@ -39,12 +39,14 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
-    public PrebuiltLibraryInitializer(Instantiator instantiator,
-                                      FileCollectionFactory fileCollectionFactory,
-                                      NativePlatforms nativePlatforms,
-                                      Collection<? extends NativePlatform> allPlatforms,
-                                      Collection<? extends BuildType> allBuildTypes,
-                                      Collection<? extends Flavor> allFlavors) {
+    public PrebuiltLibraryInitializer(
+        Instantiator instantiator,
+        FileCollectionFactory fileCollectionFactory,
+        NativePlatforms nativePlatforms,
+        Collection<? extends NativePlatform> allPlatforms,
+        Collection<? extends BuildType> allBuildTypes,
+        Collection<? extends Flavor> allFlavors
+    ) {
         this.instantiator = instantiator;
         this.fileCollectionFactory = fileCollectionFactory;
         this.allPlatforms.addAll(allPlatforms);
@@ -77,10 +79,10 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
 
     private String getName(String typeName, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
         BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(library.getName())
-                .withBinaryType(typeName)
-                .withVariantDimension(platform.getName())
-                .withVariantDimension(buildType.getName())
-                .withVariantDimension(flavor.getName());
+            .withBinaryType(typeName)
+            .withVariantDimension(platform.getName())
+            .withVariantDimension(buildType.getName())
+            .withVariantDimension(flavor.getName());
         return namingScheme.getBinaryName();
     }
 }

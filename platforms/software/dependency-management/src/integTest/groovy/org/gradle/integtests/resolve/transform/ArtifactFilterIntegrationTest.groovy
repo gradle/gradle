@@ -144,7 +144,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         notExecuted ":libExclude:jar"
     }
 
-    def "can filter for external artifacts based on component type" () {
+    def "can filter for external artifacts based on component type"() {
         given:
         buildFile << """
             dependencies {
@@ -172,7 +172,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         notExecuted ":libExclude:jar"
     }
 
-    def "can filter for local artifacts based on component type" () {
+    def "can filter for local artifacts based on component type"() {
         given:
         buildFile << """
             dependencies {
@@ -228,7 +228,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         output.contains("filter applied to internalLocalLibExclude.jar")
     }
 
-    def "transforms are not triggered for artifacts that are not accessed" () {
+    def "transforms are not triggered for artifacts that are not accessed"() {
         given:
         buildFile << """
             def artifactType = Attribute.of('artifactType', String)

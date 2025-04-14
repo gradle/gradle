@@ -55,7 +55,8 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds("test")
+        when:
+        succeeds("test")
 
         then:
         outputContains("Test method foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
@@ -83,7 +84,8 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds("test")
+        when:
+        succeeds("test")
         then:
         outputContains("Test method foo(FooTest) -> cool output from test")
         outputContains("Test method foo(FooTest) -> err output from test")

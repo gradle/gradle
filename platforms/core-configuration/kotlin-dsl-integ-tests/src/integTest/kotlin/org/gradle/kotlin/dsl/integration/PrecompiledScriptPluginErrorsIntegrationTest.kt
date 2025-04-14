@@ -53,10 +53,10 @@ class PrecompiledScriptPluginErrorsIntegrationTest : AbstractKotlinIntegrationTe
         buildAndFail("help")
             .assertHasCauseWorkingAroundIssue25636(
                 "The precompiled plugin (${
-                "src/main/kotlin/java.gradle.kts".replace(
-                    "/",
-                    File.separator
-                )
+                    "src/main/kotlin/java.gradle.kts".replace(
+                        "/",
+                        File.separator
+                    )
                 }) conflicts with the core plugin 'java'. Rename your plugin."
             )
             .assertHasResolution(getPrecompiledPluginsLink())
@@ -76,10 +76,10 @@ class PrecompiledScriptPluginErrorsIntegrationTest : AbstractKotlinIntegrationTe
         buildAndFail("help")
             .assertHasCauseWorkingAroundIssue25636(
                 "The precompiled plugin (${
-                "src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace(
-                    "/",
-                    File.separator
-                )
+                    "src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace(
+                        "/",
+                        File.separator
+                    )
                 }) cannot start with 'org.gradle' or be in the 'org.gradle' package."
             )
             .assertHasResolution(getPrecompiledPluginsLink())
@@ -101,10 +101,10 @@ class PrecompiledScriptPluginErrorsIntegrationTest : AbstractKotlinIntegrationTe
         buildAndFail("help")
             .assertHasCauseWorkingAroundIssue25636(
                 "The precompiled plugin (${
-                "src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace(
-                    "/",
-                    File.separator
-                )
+                    "src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace(
+                        "/",
+                        File.separator
+                    )
                 }) cannot start with 'org.gradle' or be in the 'org.gradle' package."
             )
             .assertHasResolution(getPrecompiledPluginsLink())

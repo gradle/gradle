@@ -10,35 +10,51 @@
             </thead>
             <tr>
                 <td>includes</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>excludes</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>source</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>caseSensitive</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>dirPermissions</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>filePermissions</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>includeEmptyDirs</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>duplicatesStrategy</td>
-                <td><literal>DuplicatesStrategy.INHERIT</literal></td>
+                <td>
+                    <literal>DuplicatesStrategy.INHERIT</literal>
+                </td>
             </tr>
         </table>
     </section>

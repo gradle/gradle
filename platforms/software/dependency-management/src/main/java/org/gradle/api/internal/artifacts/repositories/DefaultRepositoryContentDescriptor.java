@@ -43,30 +43,41 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorInternal {
-    private enum MatcherKind {
-        SIMPLE,
-        REGEX,
-        SUB_GROUP,
-    }
-
+    private final Supplier<String> repositoryNameSupplier;
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final ConcurrentHashMap<String, VersionSelector> versionSelectors = new ConcurrentHashMap<>();
+    private final VersionParser versionParser;
     private Set<String> includedConfigurations;
     private Set<String> excludedConfigurations;
     private Set<ContentSpec> includeSpecs;
     private Set<ContentSpec> excludeSpecs;
     private Map<Attribute<Object>, Set<Object>> requiredAttributes;
     private boolean locked;
-
     private Action<? super ArtifactResolutionDetails> cachedAction;
-    private final Supplier<String> repositoryNameSupplier;
-    private final VersionSelectorScheme versionSelectorScheme;
-    private final ConcurrentHashMap<String, VersionSelector> versionSelectors = new ConcurrentHashMap<>();
-
-    private final VersionParser versionParser;
 
     public DefaultRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, VersionParser versionParser) {
         this.versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser);
         this.repositoryNameSupplier = repositoryNameSupplier;
         this.versionParser = versionParser;
+    }
+
+    @Nullable
+    private static ImmutableList<SpecMatcher> createSpecMatchers(@Nullable Set<ContentSpec> specs) {
+        ImmutableList<SpecMatcher> matchers = null;
+        if (specs != null) {
+            ImmutableList.Builder<SpecMatcher> builder = ImmutableList.builderWithExpectedSize(specs.size());
+            for (ContentSpec spec : specs) {
+                builder.add(spec.toMatcher());
+            }
+            matchers = builder.build();
+        }
+        return matchers;
+    }
+
+    private static void checkNotNull(@Nullable String value, String message) {
+        if (value == null) {
+            throw new IllegalArgumentException(message);
+        }
     }
 
     protected VersionParser getVersionParser() {
@@ -114,25 +125,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             copy.requiredAttributes = Maps.newHashMap(requiredAttributes);
         }
         return copy;
-    }
-
-    @Nullable
-    private static ImmutableList<SpecMatcher> createSpecMatchers(@Nullable Set<ContentSpec> specs) {
-        ImmutableList<SpecMatcher> matchers = null;
-        if (specs != null) {
-            ImmutableList.Builder<SpecMatcher> builder = ImmutableList.builderWithExpectedSize(specs.size());
-            for (ContentSpec spec : specs) {
-                builder.add(spec.toMatcher());
-            }
-            matchers = builder.build();
-        }
-        return matchers;
-    }
-
-    private static void checkNotNull(@Nullable String value, String message) {
-        if (value == null) {
-            throw new IllegalArgumentException(message);
-        }
     }
 
     @Override
@@ -324,6 +316,18 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         this.requiredAttributes = requiredAttributes;
     }
 
+    private enum MatcherKind {
+        SIMPLE,
+        REGEX,
+        SUB_GROUP,
+    }
+
+    private interface SpecMatcher {
+        boolean matches(ModuleIdentifier id);
+
+        boolean matches(ModuleComponentIdentifier id);
+    }
+
     private static class ContentSpec {
         private final MatcherKind matcherKind;
         private final String group;
@@ -380,12 +384,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                     throw new AssertionError("Unknown matcher kind: " + matcherKind);
             }
         }
-    }
-
-    private interface SpecMatcher {
-        boolean matches(ModuleIdentifier id);
-
-        boolean matches(ModuleComponentIdentifier id);
     }
 
     private static class SimpleSpecMatcher implements SpecMatcher {

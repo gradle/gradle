@@ -19,12 +19,14 @@ package org.gradle;
 import org.testng.Assert;
 
 public class FooTest {
-    @org.testng.annotations.Test public void ok() {
+    @org.testng.annotations.Test
+    public void ok() {
         System.out.println("sys out ok");
         System.err.println("sys err ok");
     }
 
-    @org.testng.annotations.Test public void fail() {
+    @org.testng.annotations.Test
+    public void fail() {
         System.out.println("sys out fail");
         System.err.println("sys err fail");
         Assert.fail();

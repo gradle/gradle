@@ -66,9 +66,9 @@ class InstrumentationMetadataPluginTest {
         val upgradedProperties = File(projectRoot, "distribution/build/instrumentation/upgraded-properties.json")
         upgradedProperties.assertHasContentEqualTo(
             "[{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"maxErrors\"}," +
-            "{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"minErrors\"}," +
-            "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"enabled\"}," +
-            "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"dependencies\"}]"
+                "{\"containingType\":\"org.gradle.api.plugins.quality.Checkstyle\",\"propertyName\":\"minErrors\"}," +
+                "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"enabled\"}," +
+                "{\"containingType\":\"org.gradle.api.Task\",\"propertyName\":\"dependencies\"}]"
         )
     }
 
@@ -76,19 +76,23 @@ class InstrumentationMetadataPluginTest {
     fun `should not output files if none of types is instrumented`() {
         // Given
         // Override the build.gradle files to not write instrumented-classes.txt or upgraded-properties.json file
-        File(projectRoot, "core/build.gradle").writeText("""
+        File(projectRoot, "core/build.gradle").writeText(
+            """
             plugins {
                 id("java-library")
             }
-        """)
-        File(projectRoot, "code-quality/build.gradle").writeText("""
+        """
+        )
+        File(projectRoot, "code-quality/build.gradle").writeText(
+            """
             plugins {
                 id("java-library")
             }
             dependencies {
                 implementation(project(":core"))
             }
-        """)
+        """
+        )
 
         // When
         assertSucceeds()
@@ -113,10 +117,12 @@ class InstrumentationMetadataPluginTest {
         upgradedProperties.assertContentContains("org.gradle.api.plugins.quality.Checkstyle")
 
         // Given, change only some classes but not metadata
-        File(projectRoot, "core/src/main/java/org/gradle/api/TaskAction.java").writeText("""
+        File(projectRoot, "core/src/main/java/org/gradle/api/TaskAction.java").writeText(
+            """
             package org.gradle.api;
             public interface TaskAction {}
-        """)
+        """
+        )
 
         // When
         assertSucceeds()
@@ -167,15 +173,18 @@ class InstrumentationMetadataPluginTest {
         val codeQualityDir = File(projectRoot, "code-quality")
         val distributionDir = File(projectRoot, "distribution")
         listOf(coreDir, codeQualityDir, distributionDir).forEach { it.mkdirs() }
-        File(projectRoot, "settings.gradle").writeText("""
+        File(projectRoot, "settings.gradle").writeText(
+            """
             rootProject.name = "instrumentation-metadata-test"
             include("core")
             include("code-quality")
             include("distribution")
-        """)
+        """
+        )
 
         // Setup core project
-        File(coreDir, "build.gradle").writeText("""
+        File(coreDir, "build.gradle").writeText(
+            """
             plugins {
                 id("java-library")
             }
@@ -195,25 +204,33 @@ class InstrumentationMetadataPluginTest {
                     }
                 }
             }
-        """)
+        """
+        )
         File(coreDir, "src/main/java/org/gradle/api").mkdirs()
         File(coreDir, "src/main/java/org/gradle/api").mkdirs()
         File(coreDir, "src/main/java/org/gradle/internal/instrumentation").mkdirs()
-        File(coreDir, "src/main/java/org/gradle/api/Task.java").writeText("""
+        File(coreDir, "src/main/java/org/gradle/api/Task.java").writeText(
+            """
             package org.gradle.api;
             public interface Task {}
-        """)
-        File(coreDir, "src/main/java/org/gradle/api/AbstractTask.java").writeText("""
+        """
+        )
+        File(coreDir, "src/main/java/org/gradle/api/AbstractTask.java").writeText(
+            """
             package org.gradle.api;
             public class AbstractTask implements Task {}
-        """)
-        File(coreDir, "src/main/java/org/gradle/api/DefaultTask.java").writeText("""
+        """
+        )
+        File(coreDir, "src/main/java/org/gradle/api/DefaultTask.java").writeText(
+            """
             package org.gradle.api;
             public class DefaultTask extends AbstractTask {}
-        """)
+        """
+        )
 
         // Setup code-quality project
-        File(codeQualityDir, "build.gradle").writeText("""
+        File(codeQualityDir, "build.gradle").writeText(
+            """
             plugins {
                 id("java-library")
             }
@@ -230,24 +247,32 @@ class InstrumentationMetadataPluginTest {
                     }
                 }
             }
-        """)
+        """
+        )
         File(codeQualityDir, "src/main/java/org/gradle/quality").mkdirs()
-        File(codeQualityDir, "src/main/java/org/gradle/quality/SourceTask.java").writeText("""
+        File(codeQualityDir, "src/main/java/org/gradle/quality/SourceTask.java").writeText(
+            """
             package org.gradle.quality;
             import org.gradle.api.DefaultTask;
             public class SourceTask extends DefaultTask {}
-        """)
-        File(codeQualityDir, "src/main/java/org/gradle/quality/Checkstyle.java").writeText("""
+        """
+        )
+        File(codeQualityDir, "src/main/java/org/gradle/quality/Checkstyle.java").writeText(
+            """
             package org.gradle.quality;
             public class Checkstyle extends SourceTask {}
-        """)
-        File(codeQualityDir, "src/main/java/org/gradle/quality/Unrelated.java").writeText("""
+        """
+        )
+        File(codeQualityDir, "src/main/java/org/gradle/quality/Unrelated.java").writeText(
+            """
             package org.gradle.quality;
             public class Unrelated {}
-        """)
+        """
+        )
 
         // Setup distribution project
-        File(distributionDir, "build.gradle").writeText("""
+        File(distributionDir, "build.gradle").writeText(
+            """
             plugins {
                 id("java-library")
                 id("gradlebuild.instrumentation-metadata")
@@ -263,6 +288,7 @@ class InstrumentationMetadataPluginTest {
                 superTypesOutputFile = layout.buildDirectory.file("instrumentation/instrumented-super-types.properties")
                 upgradedPropertiesFile = layout.buildDirectory.file("instrumentation/upgraded-properties.json")
             }
-        """)
+        """
+        )
     }
 }

@@ -204,7 +204,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(complete)
 
         then:
-        1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == logLevel})
+        1 * listener.onOutput({ it instanceof LogLevelChangeEvent && it.newLogLevel == logLevel })
         1 * listener.onOutput(start)
         1 * listener.onOutput(progress)
         1 * listener.onOutput(complete)

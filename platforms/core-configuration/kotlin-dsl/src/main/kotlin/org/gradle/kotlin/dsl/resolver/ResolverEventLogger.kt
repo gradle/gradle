@@ -99,6 +99,7 @@ object DefaultResolverEventLogger : ResolverEventLogger {
                     System.getenv("LOCALAPPDATA")
                         ?.let { File("$it/gradle-kotlin-dsl/log") }
                         ?: userHome().resolve("AppData/Local/gradle-kotlin-dsl/log")
+
                 else -> userHome().resolve(".gradle-kotlin-dsl/log")
             }
         }
@@ -172,6 +173,7 @@ fun prettyPrint(e: ResolverEvent): String = e.run {
                     "failure" to stringForException(failure, indentation = 2)
                 )
             )
+
         else ->
             prettyPrintAny(this)
     }

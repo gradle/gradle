@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.jspecify.annotations.Nullable;
 
 /**
- *  Thrown when there is an error while serializing/deserializing a test result.
+ * Thrown when there is an error while serializing/deserializing a test result.
  */
 public class TestFailureSerializationException extends GradleException {
     public TestFailureSerializationException(String message, @Nullable Throwable cause) {

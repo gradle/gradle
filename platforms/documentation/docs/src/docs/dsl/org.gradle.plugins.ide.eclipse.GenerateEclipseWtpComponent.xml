@@ -5,16 +5,22 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse-wtp</literal> and <literal>war</literal> or <literal>ear</literal> plugins</td>
+                    <td>Default with <literal>eclipse-wtp</literal> and <literal>war</literal> or <literal>ear</literal> plugins
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>component</td>
-                <td><literal>project.eclipse.wtp.component</literal></td>
+                <td>
+                    <literal>project.eclipse.wtp.component</literal>
+                </td>
             </tr>
             <tr>
                 <td>outputFile</td>
-                <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.component</filename></td>
+                <td>
+                    <filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.component
+                    </filename>
+                </td>
             </tr>
         </table>
     </section>

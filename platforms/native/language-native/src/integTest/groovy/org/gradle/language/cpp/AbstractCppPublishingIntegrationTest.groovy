@@ -26,12 +26,18 @@ import static org.gradle.language.VariantContext.dimensions
 
 abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
-    abstract int getVariantCount(List<Map<String,String>> targetMachines)
+    abstract int getVariantCount(List<Map<String, String>> targetMachines)
+
     abstract List<String> getLinkages()
+
     abstract List<String> getMainModuleArtifacts(String module, String version)
+
     abstract List<String> getVariantModuleArtifacts(String variantModuleNameWithVersion)
+
     abstract TestFile getVariantSourceFile(String module, VariantContext variantContext)
+
     abstract Map<String, String> getVariantFileInformation(String linkage, String module, String variantModuleNameWithVersion)
+
     abstract boolean publishesArtifactForLinkage(String linkage)
 
     void assertMainModuleIsPublished(String group, String module, String version, List<Map<String, String>> targetMachines, List<String> apiDependencies = []) {

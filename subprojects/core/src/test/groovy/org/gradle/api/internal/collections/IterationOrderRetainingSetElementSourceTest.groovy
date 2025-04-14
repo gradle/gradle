@@ -56,7 +56,7 @@ class IterationOrderRetainingSetElementSourceTest extends AbstractIterationOrder
     def "can add the same element multiple times"() {
         when:
         3.times { source.add("foo") }
-        3.times { source.addPending(provider("bar"))}
+        3.times { source.addPending(provider("bar")) }
 
         then:
         source.iteratorNoFlush().collect() == ["foo"]

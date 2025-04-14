@@ -34,11 +34,6 @@ import static org.gradle.internal.instrumentation.reporting.MethodInterceptionRe
 
 public class InstrumentationClasspathMerger {
 
-    public enum FileType {
-        INTERCEPTED_METHODS_REPORT,
-        ARTIFACT
-    }
-
     /**
      * Merges external dependencies and project dependencies to one classpath that is sorted based on the original classpath.
      *
@@ -68,6 +63,11 @@ public class InstrumentationClasspathMerger {
 
     private static FileType getFileType(File file) {
         return file.getName().equals(INTERCEPTED_METHODS_REPORT_FILE) ? FileType.INTERCEPTED_METHODS_REPORT : FileType.ARTIFACT;
+    }
+
+    public enum FileType {
+        INTERCEPTED_METHODS_REPORT,
+        ARTIFACT
     }
 
     private static class ClassPathTransformedArtifact {

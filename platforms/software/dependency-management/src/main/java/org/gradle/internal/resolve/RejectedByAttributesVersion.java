@@ -33,6 +33,14 @@ public class RejectedByAttributesVersion extends RejectedVersion {
         this.matchingDescription = matchingDescription;
     }
 
+    private static String prettify(AttributeValue<?> value) {
+        if (value.isPresent()) {
+            return "'" + value.get() + "'";
+        } else {
+            return "not found";
+        }
+    }
+
     @Override
     public void describeTo(TreeFormatter builder) {
         matchingDescription.sort(DESCRIPTION_COMPARATOR);
@@ -68,14 +76,6 @@ public class RejectedByAttributesVersion extends RejectedVersion {
     @Override
     public int hashCode() {
         return getId().hashCode();
-    }
-
-    private static String prettify(AttributeValue<?> value) {
-        if (value.isPresent()) {
-            return "'" + value.get() + "'";
-        } else {
-            return "not found";
-        }
     }
 
     public List<AttributeMatcher.MatchingDescription<?>> getMatchingDescription() {

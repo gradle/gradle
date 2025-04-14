@@ -45,6 +45,23 @@ public class ModelActionBuilder<T> {
         return new ModelActionBuilder<Object>(null, ModelType.UNTYPED, new SimpleModelRuleDescriptor("testrule"));
     }
 
+    private static <T> ModelAction toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
+        return DirectNodeInputUsingModelAction.of(subject(path, type), descriptor, references, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
+            @Override
+            public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> inputs) {
+                action.execute(modelNode, t, inputs);
+            }
+        });
+    }
+
+    private static <T> ModelAction toAction(Action<? super MutableModelNode> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
+        return DirectNodeNoInputsModelAction.of(subject(path, type), descriptor, action);
+    }
+
+    private static <T> ModelReference<T> subject(ModelPath path, ModelType<T> type) {
+        return path != null ? ModelReference.of(path, type) : ModelReference.of(type).inScope(ModelPath.ROOT);
+    }
+
     private <N> ModelActionBuilder<N> copy(ModelType<N> type) {
         return new ModelActionBuilder<N>(path, type, descriptor);
     }
@@ -131,22 +148,5 @@ public class ModelActionBuilder<T> {
 
     private ModelAction build(List<ModelReference<?>> references, TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
         return toAction(references, action, path, type, descriptor);
-    }
-
-    private static <T> ModelAction toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
-        return DirectNodeInputUsingModelAction.of(subject(path, type), descriptor, references, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
-            @Override
-            public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> inputs) {
-                action.execute(modelNode, t, inputs);
-            }
-        });
-    }
-
-    private static <T> ModelAction toAction(Action<? super MutableModelNode> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
-        return DirectNodeNoInputsModelAction.of(subject(path, type), descriptor, action);
-    }
-
-    private static <T> ModelReference<T> subject(ModelPath path, ModelType<T> type) {
-        return path != null ? ModelReference.of(path, type) : ModelReference.of(type).inScope(ModelPath.ROOT);
     }
 }

@@ -59,7 +59,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         } catch (ClassNotFoundException e) {
             throw new InvalidUserCodeException(
                 "Failed to load TestNG. " +
-                "Please ensure that TestNG is available on the test runtime classpath."
+                    "Please ensure that TestNG is available on the test runtime classpath."
             );
         }
 

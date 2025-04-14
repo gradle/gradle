@@ -48,12 +48,14 @@ public interface LoggingConfiguration {
 
     /**
      * Specifies which type of warnings should be written to the console.
+     *
      * @since 4.5
      */
     WarningMode getWarningMode();
 
     /**
      * Specifies which type of warnings should be written to the console.
+     *
      * @since 4.5
      */
     void setWarningMode(WarningMode warningMode);

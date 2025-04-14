@@ -46,6 +46,7 @@ public interface BuildInvocations extends Model, ProjectModel {
      * Returns tasks selectors that can be used to execute a build.
      *
      * Selector is a {@link org.gradle.tooling.model.Launchable} that requests to build all tasks with a given name in context of some project and all its subprojects.
+     *
      * @return The task selectors.
      * @since 1.12
      */

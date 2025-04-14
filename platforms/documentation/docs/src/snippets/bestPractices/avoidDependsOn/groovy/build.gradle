@@ -6,7 +6,8 @@ abstract class SimplePrintingTask extends DefaultTask {
     @OutputFile
     abstract RegularFileProperty getAudienceFile()
 
-    @TaskAction // <1>
+    @TaskAction
+    // <1>
     void run() {
         messageFile.get().asFile.write("Hello")
         audienceFile.get().asFile.write("World")
@@ -32,7 +33,8 @@ abstract class SimpleTranslationTask extends DefaultTask {
         translatedFile.convention(project.layout.buildDirectory.file("translated.txt"))
     }
 
-    @TaskAction // <1>
+    @TaskAction
+    // <1>
     void run() {
         def message = messageFile.get().asFile.text
         def translatedMessage = message == "Hello" ? "Bonjour" : "Unknown"

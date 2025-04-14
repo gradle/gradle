@@ -24,8 +24,8 @@ import javax.inject.Inject;
  * Interface for artifact transform actions.
  *
  * <p>
- *     A transform action implementation is an abstract class implementing the {@link #transform(TransformOutputs)} method.
- *     A minimal implementation may look like this:
+ * A transform action implementation is an abstract class implementing the {@link #transform(TransformOutputs)} method.
+ * A minimal implementation may look like this:
  * </p>
  *
  * <pre class='autoTested'>
@@ -65,8 +65,8 @@ public interface TransformAction<T extends TransformParameters> {
      * The object provided by {@link TransformSpec#getParameters()} when registering the artifact transform.
      *
      * <p>
-     *     Do not implement this method in your subclass.
-     *     Gradle provides the implementation when registering the transform action via {@link org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)}.
+     * Do not implement this method in your subclass.
+     * Gradle provides the implementation when registering the transform action via {@link org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)}.
      * </p>
      */
     @Inject

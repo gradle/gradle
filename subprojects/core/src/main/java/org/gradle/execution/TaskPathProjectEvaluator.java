@@ -65,6 +65,27 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         this.internalOptions = internalOptions;
     }
 
+    private static RunnableBuildOperation traverseProject(ProjectState project, LinkedBlockingQueue<ProjectState> readyQueue) {
+        return new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                try {
+                    project.ensureSelfConfigured();
+                } finally {
+                    if (project.hasChildren()) {
+                        // Only enqueue projects that have children to be configured
+                        readyQueue.add(project);
+                    }
+                }
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Parallelize configuration");
+            }
+        };
+    }
+
     @Override
     public void configure(ProjectInternal project) {
         project.getOwner().ensureConfigured();
@@ -149,27 +170,6 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
                 }
             }
         });
-    }
-
-    private static RunnableBuildOperation traverseProject(ProjectState project, LinkedBlockingQueue<ProjectState> readyQueue) {
-        return new RunnableBuildOperation() {
-            @Override
-            public void run(BuildOperationContext context) {
-                try {
-                    project.ensureSelfConfigured();
-                } finally {
-                    if (project.hasChildren()) {
-                        // Only enqueue projects that have children to be configured
-                        readyQueue.add(project);
-                    }
-                }
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Parallelize configuration");
-            }
-        };
     }
 
     private void runAllWithAccessToProjectState(Action<BuildOperationQueue<RunnableBuildOperation>> buildOperationQueueAction) {

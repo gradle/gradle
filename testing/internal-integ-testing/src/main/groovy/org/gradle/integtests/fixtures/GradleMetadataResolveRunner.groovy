@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 
 // TODO: rename the class. Not doing it as part of Spock2 upgrade change so that there is less non-essential changes noise
 @CompileStatic
-class GradleMetadataResolveRunner  {
+class GradleMetadataResolveRunner {
     public final static String GRADLE_METADATA = "org.gradle.internal.resolution.testWithGradleMetadata"
     public final static String REPOSITORY_TYPE = "org.gradle.internal.resolution.testRepositoryType"
 

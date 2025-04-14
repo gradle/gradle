@@ -140,7 +140,7 @@ class ValidatingIvyPublisherTest extends Specification {
         "someBranch"       | "relea/se"      | "status cannot contain '/'"
     }
 
-    def "delegates with valid ivy metadata" () {
+    def "delegates with valid ivy metadata"() {
         given:
         def descriptor = ivyDescriptor()
         descriptor.branch = branch
@@ -154,14 +154,14 @@ class ValidatingIvyPublisherTest extends Specification {
         delegate.publish(publication, repository)
 
         where:
-        branch                  | status
-        null                    | null
-        "someBranch"            | "release"
-        "feature/someBranch"    | "release"
+        branch                   | status
+        null                     | null
+        "someBranch"             | "release"
+        "feature/someBranch"     | "release"
         "someBranch_ぴ₦ガき∆ç√∫" | "release_ぴ₦ガき∆ç√∫"
     }
 
-    def "delegates with valid extra info elements" () {
+    def "delegates with valid extra info elements"() {
         given:
         def descriptor = ivyDescriptor()
         elements.each { descriptor.extraInfo(it, it, "${it}Value") }
@@ -174,10 +174,10 @@ class ValidatingIvyPublisherTest extends Specification {
         delegate.publish(publication, repository)
 
         where:
-        elements             | _
-        [ ]                  | _
-        [ 'foo' ]            | _
-        [ 'foo', 'bar' ]     | _
+        elements       | _
+        []             | _
+        ['foo']        | _
+        ['foo', 'bar'] | _
     }
 
     def "project coordinates must match ivy descriptor file"() {
@@ -196,7 +196,7 @@ class ValidatingIvyPublisherTest extends Specification {
         e.message == "Invalid publication 'pub-name': $message"
 
         where:
-        organisation | module       | version       | message
+        organisation | module         | version       | message
         "org-mod"    | "the-artifact" | "the-version" | "supplied organisation does not match ivy descriptor (cannot edit organisation directly in the ivy descriptor file)."
         "the-group"  | "module-mod"   | "the-version" | "supplied module name does not match ivy descriptor (cannot edit module name directly in the ivy descriptor file)."
         "the-group"  | "the-artifact" | "version-mod" | "supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file)."

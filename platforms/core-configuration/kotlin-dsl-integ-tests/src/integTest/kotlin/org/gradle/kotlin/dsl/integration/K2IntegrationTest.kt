@@ -35,7 +35,8 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
     fun `can try k2 with included build for build logic using kotlin-jvm plugin`() {
 
         withDefaultSettingsIn("build-logic")
-        withBuildScriptIn("build-logic", """
+        withBuildScriptIn(
+            "build-logic", """
             plugins {
                 id("java-gradle-plugin")
                 kotlin("jvm") version "$kotlinVersion"
@@ -53,7 +54,8 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
             }
-        """)
+        """
+        )
         withK2BuildLogic()
 
         withK2BuildLogicConsumingBuild()
@@ -68,7 +70,8 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
         // This test doesn't use a .gradle.kts precompiled script because K2 doesn't support scripts yet
 
         withDefaultSettingsIn("build-logic")
-        withBuildScriptIn("build-logic", """
+        withBuildScriptIn(
+            "build-logic", """
             import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -91,7 +94,8 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """)
+        """
+        )
         withK2BuildLogic()
 
         withK2BuildLogicConsumingBuild()
@@ -101,37 +105,45 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun withK2BuildLogic() {
-        withFile("build-logic/src/main/kotlin/MyTask.kt", """
+        withFile(
+            "build-logic/src/main/kotlin/MyTask.kt", """
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.TaskAction
 
             abstract class MyTask : DefaultTask() {
                 @TaskAction fun action() { println("Doing something") }
             }
-        """)
-        withFile("build-logic/src/main/kotlin/MyPlugin.kt", """
+        """
+        )
+        withFile(
+            "build-logic/src/main/kotlin/MyPlugin.kt", """
             import org.gradle.api.Project
             import org.gradle.api.Plugin
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project) {}
             }
-        """)
+        """
+        )
     }
 
     private
     fun withK2BuildLogicConsumingBuild() {
-        withSettings("""
+        withSettings(
+            """
             pluginManagement {
                 ${mavenCentralRepository(KOTLIN)}
                 includeBuild("build-logic")
             }
             rootProject.name = "k2-gradle"
-        """)
-        withBuildScript("""
+        """
+        )
+        withBuildScript(
+            """
             plugins { id("my-plugin") }
             project.tasks.register("myTask", MyTask::class)
-        """)
+        """
+        )
     }
 
     private

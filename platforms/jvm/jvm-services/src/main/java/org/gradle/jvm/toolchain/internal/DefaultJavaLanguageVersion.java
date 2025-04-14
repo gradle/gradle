@@ -34,6 +34,12 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
         }
     }
 
+    private final int version;
+
+    private DefaultJavaLanguageVersion(int version) {
+        this.version = version;
+    }
+
     public static JavaLanguageVersion of(int version) {
         if (version <= 0) {
             throw new IllegalArgumentException("JavaLanguageVersion must be a positive integer, not '" + version + "'");
@@ -47,12 +53,6 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
 
     public static JavaLanguageVersion fromFullVersion(String version) {
         return of(JavaVersionParser.parseMajorVersion(version));
-    }
-
-    private final int version;
-
-    private DefaultJavaLanguageVersion(int version) {
-        this.version = version;
     }
 
     @Override

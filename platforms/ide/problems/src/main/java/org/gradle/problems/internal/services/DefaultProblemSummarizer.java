@@ -40,15 +40,14 @@ import java.util.List;
 
 public class DefaultProblemSummarizer implements ProblemSummarizer {
 
+    public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
+    public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> problemEmitters;
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
     private final TaskIdentityProvider taskProvider;
-
-    public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
-    public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
 
     public DefaultProblemSummarizer(
         BuildOperationProgressEventEmitter eventEmitter,

@@ -123,7 +123,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * the implicit default artifact won't be used any longer.</p>
      *
      * @return the added artifact
-     *
      * @see DependencyArtifact
      */
     DependencyArtifact artifact(@DelegatesTo(value = DependencyArtifact.class, strategy = DELEGATE_FIRST) Closure configureClosure);
@@ -137,9 +136,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * the implicit default artifact won't be used any longer.</p>
      *
      * @return the added artifact
-     *
      * @see DependencyArtifact
-     *
      * @since 3.1
      */
     DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction);
@@ -194,7 +191,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * the {@link #attributes(Action)} method.
      *
      * @return the attributes container for this dependency
-     *
      * @since 4.8
      */
     @Override
@@ -206,7 +202,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @param configureAction the attributes mutation action
      * @return this
-     *
      * @since 4.8
      */
     @Override
@@ -217,7 +212,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @param configureAction the configuration action
      * @return this
-     *
      * @since 5.3
      */
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
@@ -228,7 +222,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Prefer {@link #getCapabilitySelectors()}. This method is not Isolated Projects compatible.
      *
      * @return An immutable view of all explicitly requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
-     *
      * @since 5.3
      */
     List<Capability> getRequestedCapabilities();
@@ -237,7 +230,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Returns the set of capabilities that are requested for this dependency
      *
      * @return A view of all requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
-     *
      * @since 8.11
      */
     @Incubating

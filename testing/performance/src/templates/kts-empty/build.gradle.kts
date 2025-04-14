@@ -14,33 +14,45 @@
  * limitations under the License.
  */
 
-<% if (binding.hasVariable("buildScanPluginVersion") || binding.hasVariable("springDmPluginVersion")) {%>
+<% if (binding.hasVariable("buildScanPluginVersion") || binding.hasVariable("springDmPluginVersion")) {
+    %>
 
-buildscript {
-    repositories {
-<% if(binding.hasVariable("springDmPluginVersion")) { %>
-        mavenLocal()
-        mavenCentral()
-<% } %>
-<% if (binding.hasVariable("buildScanPluginVersion")) { %>
-        maven {
-            setUrl("https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local")
+    buildscript {
+        repositories {
+            <% if(binding.hasVariable("springDmPluginVersion")) {
+            %>
+            mavenLocal()
+            mavenCentral()
+            <%
+        } % >
+            <% if (binding.hasVariable("buildScanPluginVersion")) {
+            %>
+            maven {
+                setUrl("https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local")
+            }
+            <%
+        } % >
         }
-<% } %>
-    }
 
-    dependencies {
-<% if (binding.hasVariable("buildScanPluginVersion")) { %>
-        classpath("com.gradle:build-scan-plugin:${buildScanPluginVersion}")
-<% }%>
-<% if(binding.hasVariable("springDmPluginVersion")) { %>
-        classpath("io.spring.gradle:dependency-management-plugin:$springDmPluginVersion")
-<% }%>
+        dependencies {
+            <% if (binding.hasVariable("buildScanPluginVersion")) {
+            %>
+            classpath("com.gradle:build-scan-plugin:${buildScanPluginVersion}")
+            <%
+        } % >
+            <% if(binding.hasVariable("springDmPluginVersion")) {
+            %>
+            classpath("io.spring.gradle:dependency-management-plugin:$springDmPluginVersion")
+            <%
+        } % >
+        }
     }
-}
-<% if (binding.hasVariable("buildScanPluginVersion")) { %>
-apply(plugin = "com.gradle.build-scan")
+    <% if (binding.hasVariable("buildScanPluginVersion")) {
+        %>
+        apply(plugin = "com.gradle.build-scan")
 // TODO: fix buildScan configuration
 // buildScan { licenseAgreementUrl = 'https://gradle.com/terms-of-service'; licenseAgree = 'yes' }
-<% }%>
-<% } %>
+        <%
+    } % >
+    <%
+} % >

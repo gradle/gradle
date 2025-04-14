@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.reporting.components.internal
+
 import org.gradle.api.Named
 import spock.lang.Specification
 
@@ -82,6 +83,7 @@ class RendererUtilsTest extends Specification {
 
     static class HasToString {
         String superToString
+
         @Override
         String toString() {
             return superToString

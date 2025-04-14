@@ -42,7 +42,6 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
 
     /**
      * Returns any additional JVM argument providers for the compiler process.
-     *
      */
     @Optional
     @Nested

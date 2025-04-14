@@ -23,17 +23,17 @@ import java.io.IOException;
  * Protocol interface to be implemented by a client to a build cache backend.
  *
  * <p>
- *     Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
- *     Non-fatal failures could include failing to retrieve a cache entry or unsuccessfully completing an upload a new cache entry.
- *     Gradle will not fail the build when catching a {@code BuildCacheException}, but it may disable caching for the build if too
- *     many failures occur.
+ * Build cache implementations should report a non-fatal failure as a {@link BuildCacheException}.
+ * Non-fatal failures could include failing to retrieve a cache entry or unsuccessfully completing an upload a new cache entry.
+ * Gradle will not fail the build when catching a {@code BuildCacheException}, but it may disable caching for the build if too
+ * many failures occur.
  * </p>
  * <p>
- *     All other failures will be considered fatal and cause the Gradle build to fail.
- *     Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
+ * All other failures will be considered fatal and cause the Gradle build to fail.
+ * Fatal failures could include failing to read or write cache entries due to file permissions, authentication or corruption errors.
  * </p>
  * <p>
- *     Every build cache implementation should define a {@code org.gradle.caching.configuration.BuildCache} configuration and {@code BuildCacheServiceFactory} factory.
+ * Every build cache implementation should define a {@code org.gradle.caching.configuration.BuildCache} configuration and {@code BuildCacheServiceFactory} factory.
  * </p>
  *
  * @since 3.5

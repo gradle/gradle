@@ -43,8 +43,7 @@ public interface AttributeSelectionSchema {
      * @param attribute The attribute being disambiguated.
      * @param requested The requested attribute. If null, {@code attribute} is an extra attribute.
      * @param candidates All candidate values. If a remaining candidates does not include a value
-     *      for {@code attribute}, null is not included in this set.
-     *
+     * for {@code attribute}, null is not included in this set.
      * @return A subset of {@code candidates} which contain matched attribute values. Or, null if no matches were found.
      */
     @Nullable
@@ -84,6 +83,15 @@ public interface AttributeSelectionSchema {
      */
     Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested);
 
+    /**
+     * Given a set of attributes, order those attributes based on the precedence defined by
+     * this schema.
+     *
+     * @param requested The attributes to order. <strong>Must have a consistent iteration ordering and cannot contain duplicates</strong>.
+     * @return The ordered attributes.
+     */
+    PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested);
+
     class PrecedenceResult {
         private final List<Integer> sortedIndices;
         private final Collection<Integer> unsortedIndices;
@@ -105,14 +113,4 @@ public interface AttributeSelectionSchema {
             return unsortedIndices;
         }
     }
-
-    /**
-     * Given a set of attributes, order those attributes based on the precedence defined by
-     * this schema.
-     *
-     * @param requested The attributes to order. <strong>Must have a consistent iteration ordering and cannot contain duplicates</strong>.
-     *
-     * @return The ordered attributes.
-     */
-    PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested);
 }

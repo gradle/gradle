@@ -25,16 +25,16 @@ public interface EnvironmentChangeTracker {
 
     /**
      * System properties mutated in runtime
-     * */
+     */
     void systemPropertyChanged(Object key, @Nullable Object value, @Nullable String consumer);
 
     /**
      * System properties loaded from included build/buildSrc gradle.properties
-     * */
+     */
     void systemPropertyLoaded(Object key, @Nullable Object value, @Nullable Object oldValue);
 
     /**
      * System properties overridden by passing CLI argument
-     * */
+     */
     void systemPropertyOverridden(Object key);
 }

@@ -91,13 +91,6 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
         }
     }
 
-    public enum FailureKind {
-        PASSED_NOT_TRUSTED,
-        FAILED,
-        IGNORED_KEY,
-        MISSING_KEY
-    }
-
     public void appendKeyDetails(StringBuilder sb, PGPPublicKey key) {
         keyService.findByFingerprint(key.getFingerprint(), new PublicKeyResultBuilder() {
             @Override
@@ -123,6 +116,13 @@ public class SignatureVerificationFailure extends AbstractVerificationFailure {
 
     private void collectUserIds(Set<String> userIds, PGPPublicKey userkey) {
         userIds.addAll(PGPUtils.getUserIDs(userkey));
+    }
+
+    public enum FailureKind {
+        PASSED_NOT_TRUSTED,
+        FAILED,
+        IGNORED_KEY,
+        MISSING_KEY
     }
 
     public static class SignatureError {

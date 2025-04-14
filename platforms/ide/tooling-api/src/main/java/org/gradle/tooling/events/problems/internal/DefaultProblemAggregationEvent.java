@@ -27,7 +27,7 @@ public class DefaultProblemAggregationEvent extends BaseProgressEvent implements
     private final ProblemAggregation problemAggregation;
 
     public DefaultProblemAggregationEvent(long eventTime, @Nullable OperationDescriptor descriptor, ProblemAggregation problemAggregation) {
-        super(eventTime, descriptor == null? "<null>" : descriptor.getDisplayName(), descriptor);
+        super(eventTime, descriptor == null ? "<null>" : descriptor.getDisplayName(), descriptor);
         this.problemAggregation = problemAggregation;
     }
 

@@ -44,11 +44,12 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
         getObjects() >> TestUtil.objectFactory()
         getProviders() >> TestUtil.providerFactory()
         provider(_ as Callable<Object>) >> {
-            Callable producer -> TestUtil.providerFactory().provider(
-                {
-                    producer.call()
-                }
-            )
+            Callable producer ->
+                TestUtil.providerFactory().provider(
+                    {
+                        producer.call()
+                    }
+                )
         }
         getLayout() >> Stub(ProjectLayout) {
             def projectDirProperty = TestFiles.filePropertyFactory().newDirectoryProperty()

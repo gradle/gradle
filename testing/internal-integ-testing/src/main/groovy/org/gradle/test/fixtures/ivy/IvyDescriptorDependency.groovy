@@ -43,6 +43,6 @@ class IvyDescriptorDependency {
 
     @Override
     String toString() {
-        "$org:$module:$revision $confs ${transitive?'(transitive)':''}"
+        "$org:$module:$revision $confs ${transitive ? '(transitive)' : ''}"
     }
 }

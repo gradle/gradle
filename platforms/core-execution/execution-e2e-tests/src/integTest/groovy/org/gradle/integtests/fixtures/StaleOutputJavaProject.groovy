@@ -114,6 +114,7 @@ class StaleOutputJavaProject {
     String getCompileTaskPath() {
         "${projectPath}:compileJava"
     }
+
     String getJarTaskPath() {
         "${projectPath}:$JAR_TASK_NAME"
     }

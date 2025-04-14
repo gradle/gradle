@@ -95,7 +95,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
     }
 
     private static String[] getExpectedTasks(String task) {
-        switch(task) {
+        switch (task) {
             case 'assembleDependentsMainExecutable':
                 return [':mainExecutable']
             case 'assembleDependentsMain':
@@ -109,7 +109,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
             case 'assembleDependentsGreetingsStaticLibrary':
                 return [':greetingsStaticLibrary', ':helloStaticLibrary', ':helloSharedLibrary', ':mainExecutable']
             case 'assembleDependentsGreetingsSharedLibrary':
-                return[':greetingsSharedLibrary']
+                return [':greetingsSharedLibrary']
             case 'assembleDependentsGreetings':
                 return [':greetingsStaticLibrary', ':greetingsSharedLibrary', ':helloStaticLibrary', ':helloSharedLibrary', ':mainExecutable']
             default:
@@ -118,7 +118,7 @@ class NativeDependentComponentsIntegrationSpec extends AbstractInstalledToolChai
     }
 
     private static String[] getUnexpectedTasks(String task) {
-        switch(task) {
+        switch (task) {
             case 'assembleDependentsHelloStaticLibrary':
                 return [':mainExecutable']
             case 'assembleDependentsGreetingsStaticLibrary':

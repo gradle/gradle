@@ -27,7 +27,8 @@ import spock.lang.Issue
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class PropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties()
 
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build property set on command line takes precedence over properties file"() {
@@ -85,7 +86,8 @@ task printSystemProp {
         outputContains('mySystemProp=commandline')
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // needs to run Gradle from command line
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    // needs to run Gradle from command line
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "build property set on command line takes precedence over jvm args"() {
         when:
@@ -115,7 +117,8 @@ task assertCodDisabled {
         succeeds ':assertCodDisabled'
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // needs to run Gradle from command line
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    // needs to run Gradle from command line
     def "system property set on command line takes precedence over jvm args"() {
         given:
         executer.withEnvironmentVars 'GRADLE_OPTS': '-DmySystemProp=jvmarg'

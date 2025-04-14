@@ -109,14 +109,8 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     }
 
     public static class BridgedMethodInfo {
-        public enum BridgeType {
-            ADAPTER_METHOD_BRIDGE,
-            INSTANCE_METHOD_BRIDGE
-        }
-
         private final ExecutableElement bridgedMethod;
         private final BridgeType bridgeType;
-
         public BridgedMethodInfo(ExecutableElement bridgedMethod, BridgeType bridgeType) {
             this.bridgedMethod = bridgedMethod;
             this.bridgeType = bridgeType;
@@ -128,6 +122,11 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
 
         public BridgeType getBridgeType() {
             return bridgeType;
+        }
+
+        public enum BridgeType {
+            ADAPTER_METHOD_BRIDGE,
+            INSTANCE_METHOD_BRIDGE
         }
     }
 }

@@ -28,12 +28,11 @@ public final class ExecuteTaskActionBuildOperationType implements BuildOperation
     // Info about the owning task can be inferred, and we don't provide any further info at this point.
     // This is largely to expose timing information about executed tasks
 
-    public interface Details {
-    }
-
-    public interface Result {
-    }
-
     static final Details DETAILS_INSTANCE = new Details() {};
     static final Result RESULT_INSTANCE = new Result() {};
+
+    public interface Details {
+    }
+    public interface Result {
+    }
 }

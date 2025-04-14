@@ -36,14 +36,12 @@ import java.util.regex.Pattern;
  * or less than 40 chars for "{TestClass}/{testMethod}/qqlj8"
  */
 public abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    protected final TestFile root;
-    private final String className;
-
     private static final Random RANDOM = new Random();
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
     private static final int MAX_RANDOM_PART_VALUE = Integer.parseInt("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
     private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
-
+    protected final TestFile root;
+    private final String className;
     private String prefix;
     private TestFile dir;
     private boolean cleanup = true;
@@ -84,57 +82,6 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
         init(description.getMethodName());
 
         return new TestDirectoryCleaningStatement(base, description);
-    }
-
-    public class TestDirectoryCleaningStatement extends Statement {
-        private final Statement base;
-        private final Description description;
-
-        TestDirectoryCleaningStatement(Statement base, Description description) {
-            this.base = base;
-            this.description = description;
-        }
-
-        public void cleanup() {
-            try {
-                AbstractTestDirectoryProvider.this.cleanup();
-            } catch (Exception e) {
-                if (suppressCleanupErrors()) {
-                    System.err.println(cleanupErrorMessage());
-                    e.printStackTrace(System.err);
-                } else {
-                    throw new GradleException(cleanupErrorMessage(), e);
-                }
-            }
-        }
-
-        @Override
-        public void evaluate() throws Throwable {
-            // implicitly don't clean up if this throws exceptions
-            // so that we can inspect the test directory
-            base.evaluate();
-
-            cleanup();
-        }
-
-        private boolean suppressCleanupErrors() {
-            return suppressCleanupErrors
-                || testClass().getAnnotation(LeaksFileHandles.class) != null
-                || description.getAnnotation(LeaksFileHandles.class) != null;
-        }
-
-        private Class<?> testClass() {
-            return description.getTestClass();
-        }
-
-        private String cleanupErrorMessage() {
-            return "Couldn't delete test dir for `" + displayName() + "` (test is holding files open). "
-                + "In order to find out which files are held open, you may find `org.gradle.integtests.fixtures.executer.GradleExecuter.withFileLeakDetection` useful.";
-        }
-
-        private String displayName() {
-            return description.getDisplayName();
-        }
     }
 
     protected void init(String methodName) {
@@ -202,5 +149,56 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
 
     public TestFile createDir(Object... path) {
         return file(path).createDir();
+    }
+
+    public class TestDirectoryCleaningStatement extends Statement {
+        private final Statement base;
+        private final Description description;
+
+        TestDirectoryCleaningStatement(Statement base, Description description) {
+            this.base = base;
+            this.description = description;
+        }
+
+        public void cleanup() {
+            try {
+                AbstractTestDirectoryProvider.this.cleanup();
+            } catch (Exception e) {
+                if (suppressCleanupErrors()) {
+                    System.err.println(cleanupErrorMessage());
+                    e.printStackTrace(System.err);
+                } else {
+                    throw new GradleException(cleanupErrorMessage(), e);
+                }
+            }
+        }
+
+        @Override
+        public void evaluate() throws Throwable {
+            // implicitly don't clean up if this throws exceptions
+            // so that we can inspect the test directory
+            base.evaluate();
+
+            cleanup();
+        }
+
+        private boolean suppressCleanupErrors() {
+            return suppressCleanupErrors
+                || testClass().getAnnotation(LeaksFileHandles.class) != null
+                || description.getAnnotation(LeaksFileHandles.class) != null;
+        }
+
+        private Class<?> testClass() {
+            return description.getTestClass();
+        }
+
+        private String cleanupErrorMessage() {
+            return "Couldn't delete test dir for `" + displayName() + "` (test is holding files open). "
+                + "In order to find out which files are held open, you may find `org.gradle.integtests.fixtures.executer.GradleExecuter.withFileLeakDetection` useful.";
+        }
+
+        private String displayName() {
+            return description.getDisplayName();
+        }
     }
 }

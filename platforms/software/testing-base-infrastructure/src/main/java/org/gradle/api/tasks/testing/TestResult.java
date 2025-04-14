@@ -26,13 +26,6 @@ import java.util.List;
  */
 public interface TestResult {
     /**
-     * The final status of a test.
-     */
-    enum ResultType {
-        SUCCESS, FAILURE, SKIPPED
-    }
-
-    /**
      * Returns the type of result.  Generally one wants it to be SUCCESS!
      *
      * @return The result type.
@@ -70,7 +63,6 @@ public interface TestResult {
      * If the test failed with assumption violation, this will contain the failure.
      *
      * @return the failure, if any, logged for this test. If none, null is returned.
-     *
      * @since 8.14
      */
     @Incubating
@@ -118,4 +110,11 @@ public interface TestResult {
      * @return The number of tests, possibly 0
      */
     long getSkippedTestCount();
+
+    /**
+     * The final status of a test.
+     */
+    enum ResultType {
+        SUCCESS, FAILURE, SKIPPED
+    }
 }

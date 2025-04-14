@@ -38,6 +38,17 @@ public class TaskIdentityFactory {
         this.idFactory = idFactory;
     }
 
+    private static <T extends Task> TaskIdentity<T> doCreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
+        return new TaskIdentity<>(
+            type,
+            name,
+            project.projectPath(name),
+            project.identityPath(name),
+            project.getGradle().getIdentityPath(),
+            uniqueId
+        );
+    }
+
     /**
      * Create a task identity.
      */
@@ -54,17 +65,6 @@ public class TaskIdentityFactory {
     public <T extends Task> TaskIdentity<T> recreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
         idFactory.idRecreated();
         return doCreate(name, type, project, uniqueId);
-    }
-
-    private static <T extends Task> TaskIdentity<T> doCreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
-        return new TaskIdentity<>(
-            type,
-            name,
-            project.projectPath(name),
-            project.identityPath(name),
-            project.getGradle().getIdentityPath(),
-            uniqueId
-        );
     }
 
 }

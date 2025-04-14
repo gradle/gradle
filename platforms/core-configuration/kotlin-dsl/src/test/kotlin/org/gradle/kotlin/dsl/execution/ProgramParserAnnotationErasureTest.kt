@@ -24,9 +24,11 @@ class ProgramParserAnnotationErasureTest {
     @Test
     fun `empty Stage 1 with non-empty Stage 2 parse to Stage 2 with Stage 1 fragments erased`() {
         val scriptOnlySource =
-            programSourceWith("""
+            programSourceWith(
+                """
                 @Suppress("unused_variable")
-                println("Stage 2")""".trimIndent())
+                println("Stage 2")""".trimIndent()
+            )
 
         assertProgramOf(
             scriptOnlySource,
@@ -34,10 +36,12 @@ class ProgramParserAnnotationErasureTest {
         )
 
         val emptyBuildscriptSource =
-            programSourceWith("""
+            programSourceWith(
+                """
                 buildscript { }
                 @Suppress("unused_variable")
-                println("Stage 2")""".trimIndent())
+                println("Stage 2")""".trimIndent()
+            )
 
         assertProgramOf(
             emptyBuildscriptSource,
@@ -51,10 +55,12 @@ class ProgramParserAnnotationErasureTest {
 
     @Test
     fun `non-empty Stage 1 with empty Stage 2 parse to Stage 1`() {
-        val source = programSourceWith("""
+        val source = programSourceWith(
+            """
             @Suppress("unused_variable")
             buildscript { println("Stage 1") }
-            """.trimIndent())
+            """.trimIndent()
+        )
 
         assertProgramOf(
             source,

@@ -16,6 +16,7 @@
 
 
 package org.gradle.test.fixtures.maven
+
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -126,6 +127,6 @@ class M2Installation implements Action<GradleExecuter> {
     }
 
     private static void setMavenLocalLocation(GradleExecuter gradleExecuter, File destination) {
-        gradleExecuter.withArgument("-Dmaven.repo.local=${destination?:''}" )
+        gradleExecuter.withArgument("-Dmaven.repo.local=${destination ?: ''}")
     }
 }

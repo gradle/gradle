@@ -215,7 +215,7 @@ class DependencyGraphBuilderTest extends Specification {
         def moduleA = DefaultModuleIdentifier.newId("group", "a")
         def moduleB = DefaultModuleIdentifier.newId("group", "b")
         moduleReplacements.getReplacementFor(moduleA) >> new ImmutableModuleReplacements.Replacement(moduleB, null)
-        1 * conflictResolver.select(!null) >> {  args ->
+        1 * conflictResolver.select(!null) >> { args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
             def sel = candidates.find { it.id.name == 'b' }
@@ -411,7 +411,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.components == ids(root, selected, b, c, d)
     }
 
-    def"does not include evicted module required by another evicted module"() {
+    def "does not include evicted module required by another evicted module"() {
         given:
         def selectedA = revision('a', '1.2')
         def evictedA = revision('a', '1.1')

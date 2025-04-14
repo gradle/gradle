@@ -23,16 +23,11 @@ import org.jspecify.annotations.Nullable;
 
 public class DefaultImmutableCapability implements ImmutableCapability {
 
-    public static DefaultImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
-        return new DefaultImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
-    }
-
     private final String group;
     private final String name;
     private final String version;
     private final int hashCode;
     private final String cachedId;
-
     public DefaultImmutableCapability(String group, String name, @Nullable String version) {
         this.group = group;
         this.name = name;
@@ -52,17 +47,21 @@ public class DefaultImmutableCapability implements ImmutableCapability {
         this.cachedId = group + ":" + name;
     }
 
+    public static DefaultImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
+        return new DefaultImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
+    }
+
+    private static int safeHash(@Nullable String o) {
+        return o == null ? 0 : o.hashCode();
+    }
+
     private int computeHashcode(String group, String name, @Nullable String version) {
         // Do NOT change the order of members used in hash code here, it's been empirically
         // tested to reduce the number of collisions on a large dependency graph (performance test)
         int hash = safeHash(version);
         hash = 31 * hash + name.hashCode();
         hash = 31 * hash + group.hashCode();
-        return  hash;
-    }
-
-    private static int safeHash(@Nullable String o) {
-        return o == null ? 0 : o.hashCode();
+        return hash;
     }
 
     @Override

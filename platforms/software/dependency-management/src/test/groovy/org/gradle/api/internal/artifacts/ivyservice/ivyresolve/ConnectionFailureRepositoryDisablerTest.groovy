@@ -22,7 +22,8 @@ import spock.lang.Subject
 
 class ConnectionFailureRepositoryDisablerTest extends Specification {
 
-    @Subject RepositoryDisabler disabler = new ConnectionFailureRepositoryDisabler()
+    @Subject
+    RepositoryDisabler disabler = new ConnectionFailureRepositoryDisabler()
 
     def "disables repository for critical exception [#exception]"() {
         given:

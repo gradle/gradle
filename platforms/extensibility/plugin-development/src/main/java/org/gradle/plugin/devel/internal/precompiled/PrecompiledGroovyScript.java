@@ -43,34 +43,6 @@ class PrecompiledGroovyScript {
     private final ScriptTarget scriptTarget;
     private final String precompiledScriptClassName;
 
-    private enum Type {
-        PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION),
-        SETTINGS(SettingsInternal.class, ".settings" + SCRIPT_PLUGIN_EXTENSION),
-        INIT(GradleInternal.class, ".init" + SCRIPT_PLUGIN_EXTENSION);
-
-        private final Class<?> targetClass;
-        private final String fileExtension;
-
-        Type(Class<?> targetClass, String fileExtension) {
-            this.targetClass = targetClass;
-            this.fileExtension = fileExtension;
-        }
-
-        static Type getType(String fileName) {
-            if (fileName.endsWith(SETTINGS.fileExtension)) {
-                return SETTINGS;
-            }
-            if (fileName.endsWith(INIT.fileExtension)) {
-                return INIT;
-            }
-            return PROJECT;
-        }
-
-        PluginId toPluginId(String fileName) {
-            return DefaultPluginId.of(fileName.substring(0, fileName.lastIndexOf(fileExtension)));
-        }
-    }
-
     PrecompiledGroovyScript(File scriptFile, TextFileResourceLoader resourceLoader) {
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
@@ -83,6 +55,26 @@ class PrecompiledGroovyScript {
 
     static void filterPluginFiles(PatternFilterable patternFilterable) {
         patternFilterable.include("**/*" + SCRIPT_PLUGIN_EXTENSION);
+    }
+
+    private static String kebabCaseToPascalCase(String s) {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, s);
+    }
+
+    private static String toJavaIdentifier(String s) {
+        StringBuilder sb = new StringBuilder();
+        if (!Character.isJavaIdentifierStart(s.charAt(0))) {
+            sb.append("_");
+        }
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isJavaIdentifierPart(c)) {
+                sb.append(c);
+            } else {
+                sb.append("_");
+            }
+        }
+        return sb.toString();
     }
 
     void declarePlugin(PluginDeclaration pluginDeclaration) {
@@ -130,24 +122,32 @@ class PrecompiledGroovyScript {
         return type.targetClass.getName();
     }
 
-    private static String kebabCaseToPascalCase(String s) {
-        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, s);
-    }
+    private enum Type {
+        PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION),
+        SETTINGS(SettingsInternal.class, ".settings" + SCRIPT_PLUGIN_EXTENSION),
+        INIT(GradleInternal.class, ".init" + SCRIPT_PLUGIN_EXTENSION);
 
-    private static String toJavaIdentifier(String s) {
-        StringBuilder sb = new StringBuilder();
-        if (!Character.isJavaIdentifierStart(s.charAt(0))) {
-            sb.append("_");
+        private final Class<?> targetClass;
+        private final String fileExtension;
+
+        Type(Class<?> targetClass, String fileExtension) {
+            this.targetClass = targetClass;
+            this.fileExtension = fileExtension;
         }
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (Character.isJavaIdentifierPart(c)) {
-                sb.append(c);
-            } else {
-                sb.append("_");
+
+        static Type getType(String fileName) {
+            if (fileName.endsWith(SETTINGS.fileExtension)) {
+                return SETTINGS;
             }
+            if (fileName.endsWith(INIT.fileExtension)) {
+                return INIT;
+            }
+            return PROJECT;
         }
-        return sb.toString();
+
+        PluginId toPluginId(String fileName) {
+            return DefaultPluginId.of(fileName.substring(0, fileName.lastIndexOf(fileExtension)));
+        }
     }
 
     private static class PrecompiledScriptPluginSource extends DelegatingScriptSource {

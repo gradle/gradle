@@ -20,7 +20,6 @@ import org.gradle.tooling.events.ProgressEvent;
 import org.jspecify.annotations.NullMarked;
 
 /**
- *
  * An event representing a problem.
  *
  * @since 8.4

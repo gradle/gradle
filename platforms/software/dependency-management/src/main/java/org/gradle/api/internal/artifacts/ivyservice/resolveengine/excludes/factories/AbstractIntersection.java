@@ -39,7 +39,7 @@ public abstract class AbstractIntersection<L extends ExcludeSpec, R extends Excl
     @Override
     public boolean applies(ExcludeSpec left, ExcludeSpec right) {
         return (leftType.isInstance(left) && rightType.isInstance(right))
-                || (leftType.isInstance(right) && rightType.isInstance(left));
+            || (leftType.isInstance(right) && rightType.isInstance(left));
     }
 
     @Override
@@ -60,7 +60,6 @@ public abstract class AbstractIntersection<L extends ExcludeSpec, R extends Excl
      * @param left an exclude spec
      * @param right another exclude spec
      * @param factory the factory that can be used to create a new exclude spec
-     *
      * @return the simplified exclude spec, or {@code null} if the given exclude specs cannot be simplified
      */
     @Nullable

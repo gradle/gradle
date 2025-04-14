@@ -501,10 +501,10 @@ public class BuildActionSerializer {
     }
 
     private static class ValueSerializer implements Serializer<Option.Value<Boolean>> {
-        private static final byte EXPLICIT_TRUE = (byte) 1;
-        private static final byte EXPLICIT_FALSE = (byte) 2;
         public static final byte IMPLICIT_TRUE = (byte) 3;
         public static final byte IMPLICIT_FALSE = (byte) 4;
+        private static final byte EXPLICIT_TRUE = (byte) 1;
+        private static final byte EXPLICIT_FALSE = (byte) 2;
 
         @Override
         public Option.Value<Boolean> read(Decoder decoder) throws Exception {

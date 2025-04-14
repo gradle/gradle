@@ -23,7 +23,8 @@ import spock.lang.Specification
 
 class DefaultBinaryStoreTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def "stores binary data"() {
         def store = new DefaultBinaryStore(temp.file("foo.bin"))

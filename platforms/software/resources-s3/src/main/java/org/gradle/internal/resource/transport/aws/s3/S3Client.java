@@ -54,10 +54,9 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
-
+    private final S3ConnectionProperties s3ConnectionProperties;
     private S3ResourceResolver resourceResolver = new S3ResourceResolver();
     private AmazonS3Client amazonS3Client;
-    private final S3ConnectionProperties s3ConnectionProperties;
 
     public S3Client(AmazonS3Client amazonS3Client, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
@@ -66,6 +65,7 @@ public class S3Client {
 
     /**
      * Constructor without provided credentials to delegate to the default provider chain.
+     *
      * @since 3.1
      */
     public S3Client(S3ConnectionProperties s3ConnectionProperties) {
@@ -79,9 +79,9 @@ public class S3Client {
         AWSCredentials credentials = null;
         if (awsCredentials != null) {
             if (awsCredentials.getSessionToken() == null) {
-                credentials =  new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+                credentials = new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
             } else {
-                credentials =  new BasicSessionCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken());
+                credentials = new BasicSessionCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken());
             }
         }
         amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());

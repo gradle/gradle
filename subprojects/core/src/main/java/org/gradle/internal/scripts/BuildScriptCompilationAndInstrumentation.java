@@ -56,12 +56,11 @@ import static org.gradle.internal.instrumentation.reporting.MethodInterceptionRe
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
 
     private static final CachingDisabledReason CACHING_DISABLED_FOR_PROPERTY_REPORT = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of buildscript compilation disabled due for property upgrade report");
-
+    protected final FileCollectionFactory fileCollectionFactory;
     private final ScriptSource source;
     private final ImmutableWorkspaceProvider workspaceProvider;
     private final InputFingerprinter inputFingerprinter;
     private final ClasspathElementTransformFactoryForLegacy transformFactory;
-    protected final FileCollectionFactory fileCollectionFactory;
     private final GradleCoreInstrumentationTypeRegistry gradleCoreTypeRegistry;
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 

@@ -81,7 +81,7 @@ class IvyPublishDescriptorCustomizationKotlinDslIntegTest extends AbstractIvyPub
 
         then:
         def module = ivyRepo.module("org.gradle.test", "customizeIvy", "1.0")
-        with (module.parsedIvy) {
+        with(module.parsedIvy) {
             status == "custom-status"
             branch == "custom-branch"
             licenses.size() == 1

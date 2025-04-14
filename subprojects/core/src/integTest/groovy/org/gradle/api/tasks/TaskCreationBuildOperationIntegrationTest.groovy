@@ -285,11 +285,11 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     private void verifyUniqueIdPerTaskPath() {
         def allRealizeOps = buildOperations.all(RealizeTaskBuildOperationType)
         def idsByTaskPath = allRealizeOps.stream()
-                .map(it -> it.details)
-                .collect(groupingBy(
-                        { it -> Path.path((String) it.buildPath).append(Path.path((String) it.taskPath)) },
-                        mapping({ it -> (Long) it.taskId }, Collectors.toSet())
-                ))
+            .map(it -> it.details)
+            .collect(groupingBy(
+                { it -> Path.path((String) it.buildPath).append(Path.path((String) it.taskPath)) },
+                mapping({ it -> (Long) it.taskId }, Collectors.toSet())
+            ))
         idsByTaskPath.each { entry ->
             assert entry.value.size() == 1
         }

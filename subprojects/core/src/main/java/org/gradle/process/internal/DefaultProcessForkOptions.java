@@ -33,6 +33,14 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         this.resolver = resolver;
     }
 
+    public static Map<String, String> getActualEnvironment(ProcessForkOptions forkOptions) {
+        Map<String, String> actual = new HashMap<>();
+        for (Map.Entry<String, Object> entry : forkOptions.getEnvironment().entrySet()) {
+            actual.put(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        return actual;
+    }
+
     @Override
     public String getExecutable() {
         return executable == null ? null : executable.toString();
@@ -86,25 +94,17 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         return environment;
     }
 
+    @Override
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        environment = Maps.newHashMap(environmentVariables);
+    }
+
     protected Map<String, ?> getInheritableEnvironment() {
         return System.getenv();
     }
 
     public Map<String, String> getActualEnvironment() {
         return getActualEnvironment(this);
-    }
-
-    public static Map<String, String> getActualEnvironment(ProcessForkOptions forkOptions) {
-        Map<String, String> actual = new HashMap<>();
-        for (Map.Entry<String, Object> entry : forkOptions.getEnvironment().entrySet()) {
-            actual.put(entry.getKey(), String.valueOf(entry.getValue()));
-        }
-        return actual;
-    }
-
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        environment = Maps.newHashMap(environmentVariables);
     }
 
     @Override

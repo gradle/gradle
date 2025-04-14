@@ -137,6 +137,7 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
         0 * _
     }
 
-    abstract class SoftwareTypePlugin implements Plugin<Project> { }
+    abstract class SoftwareTypePlugin implements Plugin<Project> {}
+
     private static class Rule {}
 }

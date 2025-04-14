@@ -20,30 +20,39 @@
     padding: 8px;
     background-color: #FFFFEE
 }
+
 .alreadyRendered > a, .unresolvable > a {
     border-radius: 4px;
 }
+
 .alreadyRendered > a {
     border: solid 1px #EEEEEE;
     background-color: #EEEEEE !IMPORTANT;
 }
+
 .hasConflict > a {
     font-weight: bold !IMPORTANT;
     color: #FAA732 !IMPORTANT;
 }
+
 .unresolvable > a {
     border: solid 1px #DD514C;
     background-color: #DD514C !IMPORTANT;
     color: white !IMPORTANT;
 }
+
 .leaf a {
     font-style: italic !IMPORTANT;
 }
+
 .configuration h3 {
     cursor: pointer;
 }
+
 .configuration h3 ins {
-    background-image: url(../images/d.png); background-repeat:no-repeat; background-color:white;
+    background-image: url(../images/d.png);
+    background-repeat: no-repeat;
+    background-color: white;
     background-position: -18px 0;
     display: inline-block;
     width: 18px;
@@ -51,12 +60,15 @@
     position: relative;
     top: 4px;
 }
-.configuration h3.closed  ins {
+
+.configuration h3.closed ins {
     background-position: 0 0;
 }
+
 #dependencies {
     margin-right: 30px;
 }
+
 #insight {
     position: fixed;
     right: 50px;
@@ -65,20 +77,24 @@
     width: 70%;
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
 }
+
 #dismissInsight {
     float: right;
-    background:url("../images/d.png") -18px -53px no-repeat !important;
+    background: url("../images/d.png") -18px -53px no-repeat !important;
     width: 20px;
     height: 20px;
     cursor: pointer;
 }
+
 .insightTree {
     height: 450px;
     overflow: auto;
 }
+
 .insightTree a {
     cursor: default;
 }
+
 .configurationDescription {
     font-size: small;
 }

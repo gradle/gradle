@@ -95,7 +95,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         skipped(":jar")
 
         and:
-        with (module.parsedIvy) {
+        with(module.parsedIvy) {
             resolver == "test"
             status == "custom-status"
             branch == "custom-branch"
@@ -178,7 +178,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         failure.assertHasCause("Invalid publication 'ivy': supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file).")
     }
 
-    def "produces sensible error with invalid extra info elements" () {
+    def "produces sensible error with invalid extra info elements"() {
         buildFile << """
             publishing {
                 publications {
@@ -199,14 +199,14 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         failure.assertHasCause("Invalid ivy extra info element name: '${name}'")
 
         where:
-        name        | _
-        ''          | _
-        'foo\\n'    | _
-        'foo<'      | _
-        '1foo'      | _
-     }
+        name     | _
+        ''       | _
+        'foo\\n' | _
+        'foo<'   | _
+        '1foo'   | _
+    }
 
-    def "produces sensible error with extra info containing null values" () {
+    def "produces sensible error with extra info containing null values"() {
         buildFile << """
             publishing {
                 publications {

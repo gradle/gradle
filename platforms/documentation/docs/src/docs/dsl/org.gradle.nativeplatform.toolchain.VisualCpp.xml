@@ -23,8 +23,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>installDir</td></tr>
-            <tr><td>windowsSdkDir</td></tr>
+            <tr>
+                <td>installDir</td>
+            </tr>
+            <tr>
+                <td>windowsSdkDir</td>
+            </tr>
         </table>
     </section>
     <section>

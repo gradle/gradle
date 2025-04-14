@@ -63,6 +63,17 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
         this.problems = problems;
     }
 
+    private static <T> ModelDefault.Visitor<Action<? super T>> executeActionVisitor(SoftwareTypeImplementation<T> softwareTypeImplementation, @Nullable Object modelObject) {
+        if (modelObject == null) {
+            throw new IllegalStateException("The model object for " + softwareTypeImplementation.getSoftwareType() + " declared in " + softwareTypeImplementation.getPluginClass().getName() + " is null.");
+        }
+        return action -> action.execute(Cast.uncheckedNonnullCast(modelObject));
+    }
+
+    private static String getPluginObjectDisplayName(Object parameterObject) {
+        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
+    }
+
     @Override
     public <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareTypeName, Plugin<?> plugin) {
         SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
@@ -101,17 +112,6 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
                     .collect(toImmutableList())
             );
         }
-    }
-
-    private static <T> ModelDefault.Visitor<Action<? super T>> executeActionVisitor(SoftwareTypeImplementation<T> softwareTypeImplementation, @Nullable Object modelObject) {
-        if (modelObject == null) {
-            throw new IllegalStateException("The model object for " + softwareTypeImplementation.getSoftwareType() + " declared in " + softwareTypeImplementation.getPluginClass().getName() + " is null.");
-        }
-        return action -> action.execute(Cast.uncheckedNonnullCast(modelObject));
-    }
-
-    private static String getPluginObjectDisplayName(Object parameterObject) {
-        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
 }

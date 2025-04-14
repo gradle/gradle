@@ -88,9 +88,9 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
 
     private boolean requiredOnly() {
         return (getPreferredVersion().isEmpty() || getRequiredVersion().equals(getPreferredVersion()))
-                && getStrictVersion().isEmpty()
-                && getRejectedVersions().isEmpty()
-                && getBranch() == null;
+            && getStrictVersion().isEmpty()
+            && getRejectedVersions().isEmpty()
+            && getBranch() == null;
     }
 
     private String rejectedVersionsString() {

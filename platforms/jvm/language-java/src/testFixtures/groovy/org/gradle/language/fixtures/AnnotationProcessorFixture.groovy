@@ -155,9 +155,11 @@ class AnnotationProcessorFixture {
     protected String getGeneratorCode() {
         ""
     }
+
     protected String getSupportedOptionsBlock() {
         ""
     }
+
     protected String getMembersBlock() {
         ""
     }

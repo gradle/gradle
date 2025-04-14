@@ -41,6 +41,14 @@ import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProj
 public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private Map<String, Boolean> projectOpenStatus;
 
+    private static String parentTaskName(Project project, String baseName) {
+        if (project.getTasks().findByName(baseName) == null) {
+            return baseName;
+        } else {
+            return parentTaskName(project, baseName + "_");
+        }
+    }
+
     @Override
     public Class<EclipseRuntime> getParameterType() {
         return EclipseRuntime.class;
@@ -96,14 +104,6 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
     public Object buildAll(String modelName, Project project) {
         // nothing to do if no EclipseRuntime is supplied.
         return DefaultRunClosedProjectBuildDependencies.INSTANCE;
-    }
-
-    private static String parentTaskName(Project project, String baseName) {
-        if (project.getTasks().findByName(baseName) == null) {
-            return baseName;
-        } else {
-            return parentTaskName(project, baseName + "_");
-        }
     }
 
 }

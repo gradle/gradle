@@ -31,7 +31,6 @@ public interface ConfigurableReport extends Report {
      * @param file The destination for the report.
      * @see #getOutputLocation()
      * @since 4.0
-     *
      * @deprecated Use {@link #getOutputLocation()}.set() instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated

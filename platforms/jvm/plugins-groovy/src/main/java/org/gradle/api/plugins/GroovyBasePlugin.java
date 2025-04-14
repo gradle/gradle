@@ -74,6 +74,30 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
         this.jvmLanguageUtils = jvmPluginServices;
     }
 
+    private static void configureLibraryElements(SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
+        // Explain that Groovy, for compile, also needs the resources (#9872)
+        configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
+            attrs.attribute(
+                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES)
+            )
+        );
+    }
+
+    private static Provider<JavaLauncher> getJavaLauncher(Project project) {
+        final JavaPluginExtension extension = javaPluginExtension(project);
+        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain());
+    }
+
+    private static JavaPluginExtension javaPluginExtension(Project project) {
+        return extensionOf(project, JavaPluginExtension.class);
+    }
+
+    private static <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
+        return extensionAware.getExtensions().getByType(type);
+    }
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
@@ -138,16 +162,6 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
         return groovySourceSet.getGroovy();
     }
 
-    private static void configureLibraryElements(SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
-        // Explain that Groovy, for compile, also needs the resources (#9872)
-        configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
-            attrs.attribute(
-                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES)
-            )
-        );
-    }
-
     private void configureTargetPlatform(TaskProvider<GroovyCompile> compileTask, SourceSet sourceSet, ConfigurationContainer configurations) {
         jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()), compileTask);
         jvmLanguageUtils.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
@@ -188,19 +202,5 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getProcessScripts().convention(true);
             groovydoc.getIncludeMainForScripts().convention(true);
         });
-    }
-
-    private static Provider<JavaLauncher> getJavaLauncher(Project project) {
-        final JavaPluginExtension extension = javaPluginExtension(project);
-        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
-        return service.launcherFor(extension.getToolchain());
-    }
-
-    private static JavaPluginExtension javaPluginExtension(Project project) {
-        return extensionOf(project, JavaPluginExtension.class);
-    }
-
-    private static <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
-        return extensionAware.getExtensions().getByType(type);
     }
 }

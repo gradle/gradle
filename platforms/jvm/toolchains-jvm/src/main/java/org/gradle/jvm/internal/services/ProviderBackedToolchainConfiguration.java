@@ -35,7 +35,6 @@ import java.util.Collection;
  * Instead of puling from ProviderFactory, the settings for toolchain discovery should come from build options.
  *
  * Build options are not exposed to services in the daemon, so this is a temporary solution to keep existing code working.
- *
  */
 public class ProviderBackedToolchainConfiguration implements ToolchainConfiguration {
     private final ProviderFactory providerFactory;

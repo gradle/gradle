@@ -156,7 +156,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
         @Override
         public LocallyAvailableResourceCandidates findCandidates(ModuleComponentArtifactMetadata criterion) {
-            if(!logged){
+            if (!logged) {
                 LOGGER.warn("Unable to locate local Maven repository.");
                 LOGGER.debug("Problems while locating local Maven repository.", ex);
                 logged = true;

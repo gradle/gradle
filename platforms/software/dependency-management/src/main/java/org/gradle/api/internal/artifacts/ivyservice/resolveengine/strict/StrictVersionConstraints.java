@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class StrictVersionConstraints {
 
-    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints() {
+    private final Set<ModuleIdentifier> modules;    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints() {
         @Override
         public final StrictVersionConstraints union(StrictVersionConstraints other) {
             return other;
@@ -51,8 +51,6 @@ public class StrictVersionConstraints {
             return "no modules";
         }
     };
-
-    private final Set<ModuleIdentifier> modules;
 
     private StrictVersionConstraints() {
         modules = Collections.emptySet();
@@ -112,4 +110,6 @@ public class StrictVersionConstraints {
     public String toString() {
         return "modules=" + modules;
     }
+
+
 }

@@ -84,29 +84,29 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
         application.getTargetMachines().convention(Dimensions.useHostAsDefaultTargetMachine(targetMachineFactory));
         application.getDevelopmentBinary().convention(project.provider(() -> {
             return application.getBinaries().get().stream()
+                .filter(SwiftExecutable.class::isInstance)
+                .map(SwiftExecutable.class::cast)
+                .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
+                .findFirst()
+                .orElseGet(() -> application.getBinaries().get().stream()
                     .filter(SwiftExecutable.class::isInstance)
                     .map(SwiftExecutable.class::cast)
-                    .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
+                    .filter(binary -> !binary.isOptimized())
                     .findFirst()
-                    .orElseGet(() -> application.getBinaries().get().stream()
-                            .filter(SwiftExecutable.class::isInstance)
-                            .map(SwiftExecutable.class::cast)
-                            .filter(binary -> !binary.isOptimized())
-                            .findFirst()
-                            .orElse(null));
+                    .orElse(null));
         }));
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
             Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                    variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            application.getSourceCompatibility().finalizeValue();
-                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), application.getSourceCompatibility().getOrNull()));
-                            application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                        }
-                    });
+                providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                variantIdentity -> {
+                    if (tryToBuildOnHost(variantIdentity)) {
+                        application.getSourceCompatibility().finalizeValue();
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), application.getSourceCompatibility().getOrNull()));
+                        application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    }
+                });
 
             // Configure the binaries
             application.getBinaries().realizeNow();

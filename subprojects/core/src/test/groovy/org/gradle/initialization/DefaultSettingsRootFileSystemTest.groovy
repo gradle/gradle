@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 class DefaultSettingsRootFileSystemTest extends DefaultSettingsCommonTest {
 
     def setup() {
-       createSettings('/')
+        createSettings('/')
     }
 
     def 'root project name generation in file system root'() {
@@ -31,7 +31,7 @@ class DefaultSettingsRootFileSystemTest extends DefaultSettingsCommonTest {
     }
 
     private getRootProjectNamePattern() {
-        if(OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isWindows()) {
             return 'generated-[a-zA-Z]-[a-z0-9]{6}'
         }
         return 'generated-[a-z0-9]{6}'

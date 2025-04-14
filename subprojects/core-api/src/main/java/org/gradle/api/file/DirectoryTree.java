@@ -27,6 +27,7 @@ import java.io.File;
 public interface DirectoryTree {
     /**
      * Returns the base directory of this tree.
+     *
      * @return The base dir, never returns null.
      */
     File getDir();

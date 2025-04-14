@@ -65,6 +65,58 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
     private interface State extends Action<StateContext> {}
 
+    private static class SeenFromEol {
+
+        private final char[] eol;
+        private final char[] seen;
+        private int count;
+
+        SeenFromEol(char[] eol) {
+            this.eol = eol;
+            this.seen = new char[eol.length];
+            this.count = 0;
+        }
+
+        private SeenFromEol(char[] eol, char[] seen, int count) {
+            this.eol = eol;
+            this.seen = seen;
+            this.count = count;
+        }
+
+        SeenFromEol copy() {
+            return new SeenFromEol(eol, Arrays.copyOf(seen, seen.length), count);
+        }
+
+        public void add(char c) {
+            seen[count++] = c;
+        }
+
+        public void add() {
+            seen[count] = eol[count];
+            count++;
+        }
+
+        void clear() {
+            count = 0;
+        }
+
+        int size() {
+            return count;
+        }
+
+        boolean all() {
+            return count == seen.length;
+        }
+
+        boolean none() {
+            return count == 0;
+        }
+
+        public String string(int length) {
+            return new String(seen, 0, length);
+        }
+    }
+
     private class StateContext {
         private final SeenFromEol seenFromEol = AbstractLineChoppingStyledTextOutput.this.seenFromEol.copy();
         private final char[] eolChars = AbstractLineChoppingStyledTextOutput.this.eolChars;
@@ -94,7 +146,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         boolean isCurrentCharEquals(char value) {
             char ch;
             if (seenFromEol.size() + pos < 0) {
-                ch = eolChars[pos+AbstractLineChoppingStyledTextOutput.this.seenFromEol.size()];
+                ch = eolChars[pos + AbstractLineChoppingStyledTextOutput.this.seenFromEol.size()];
             } else {
                 ch = text.charAt(pos + seenFromEol.size());
             }
@@ -122,7 +174,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 // Flushing data split across previous and current appending
                 if (start < 0 && pos >= 0) {
                     data = seenFromEol.string(Math.abs(start)) + text.substring(0, pos);
-                // Flushing data coming only from current appending
+                    // Flushing data coming only from current appending
                 } else if (start >= 0) {
                     data = text.substring(start, pos);
                 }
@@ -140,9 +192,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         void flushStartLine() {
             doStartLine();
         }
-    }
-
-    private static final State SYSTEM_EOL_PARSING_STATE = new State() {
+    }    private static final State SYSTEM_EOL_PARSING_STATE = new State() {
         @Override
         public void execute(StateContext context) {
             if (!context.seenFromEol.all()) {
@@ -217,55 +267,5 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         }
     };
 
-    private static class SeenFromEol {
 
-        private final char[] eol;
-        private final char[] seen;
-        private int count;
-
-        SeenFromEol(char[] eol) {
-            this.eol = eol;
-            this.seen = new char[eol.length];
-            this.count = 0;
-        }
-
-        private SeenFromEol(char[] eol, char[] seen, int count) {
-            this.eol = eol;
-            this.seen = seen;
-            this.count = count;
-        }
-
-        SeenFromEol copy() {
-            return new SeenFromEol(eol, Arrays.copyOf(seen, seen.length), count);
-        }
-
-        public void add(char c) {
-            seen[count++] = c;
-        }
-
-        public void add() {
-            seen[count] = eol[count];
-            count++;
-        }
-
-        void clear() {
-            count = 0;
-        }
-
-        int size() {
-            return count;
-        }
-
-        boolean all() {
-            return count == seen.length;
-        }
-
-        boolean none() {
-            return count == 0;
-        }
-
-        public String string(int length) {
-            return new String(seen, 0, length);
-        }
-    }
 }

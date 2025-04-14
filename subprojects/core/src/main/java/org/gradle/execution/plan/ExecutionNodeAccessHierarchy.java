@@ -33,8 +33,8 @@ import java.util.function.Supplier;
 
 @ThreadSafe
 public class ExecutionNodeAccessHierarchy {
-    private volatile ValuedVfsHierarchy<NodeAccess> root;
     private final SingleFileTreeElementMatcher matcher;
+    private volatile ValuedVfsHierarchy<NodeAccess> root;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
         this.root = ValuedVfsHierarchy.emptyHierarchy(caseSensitivity);
@@ -120,6 +120,12 @@ public class ExecutionNodeAccessHierarchy {
         return visitor.getResult();
     }
 
+    private interface NodeAccess {
+        Node getNode();
+
+        boolean accessesChild(VfsRelativePath childPath);
+    }
+
     private abstract static class AbstractNodeAccessVisitor<T> implements ValueVisitor<NodeAccess> {
         @Override
         public void visitExact(NodeAccess value) {
@@ -162,12 +168,6 @@ public class ExecutionNodeAccessHierarchy {
         ImmutableSet<Node> getResult() {
             return builder.build();
         }
-    }
-
-    private interface NodeAccess {
-        Node getNode();
-
-        boolean accessesChild(VfsRelativePath childPath);
     }
 
     private static class DefaultNodeAccess implements NodeAccess {

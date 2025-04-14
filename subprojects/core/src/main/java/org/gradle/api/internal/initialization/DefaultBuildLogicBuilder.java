@@ -46,6 +46,10 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
         this.buildQueue = buildQueue;
     }
 
+    private static BuildState owningBuildOf(Task task) {
+        return ((ProjectInternal) task.getProject()).getOwner().getOwner();
+    }
+
     @Override
     public ScriptClassPathResolutionContext prepareDependencyHandler(DependencyHandler dependencyHandler) {
         return scriptClassPathResolver.prepareDependencyHandler(dependencyHandler);
@@ -75,9 +79,5 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
             tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
         }
         return tasksToBuild;
-    }
-
-    private static BuildState owningBuildOf(Task task) {
-        return ((ProjectInternal) task.getProject()).getOwner().getOwner();
     }
 }

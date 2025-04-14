@@ -25,5 +25,6 @@ import java.io.File;
 @ServiceScope(Scope.Build.class)
 public interface ClassSetAnalyzer {
     ClassSetAnalysisData analyzeClasspathEntry(File classpathEntry);
+
     ClassSetAnalysisData analyzeOutputFolder(File outputFolder);
 }

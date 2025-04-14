@@ -65,7 +65,6 @@ public interface DependencySubstitution {
      * </ul>
      *
      * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
-     *
      * @since 4.5
      */
     void useTarget(Object notation, String reason);
@@ -79,7 +78,6 @@ public interface DependencySubstitution {
      * and therefore do not provide proper variants to reason with.
      *
      * @param action the artifact selection configuration action
-     *
      * @since 6.6
      */
     void artifactSelection(Action<? super ArtifactSelectionDetails> action);

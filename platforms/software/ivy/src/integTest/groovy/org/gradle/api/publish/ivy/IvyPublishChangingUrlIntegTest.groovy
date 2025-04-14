@@ -24,7 +24,8 @@ import org.junit.Rule
 
 class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
 
-    @Rule HttpServer server
+    @Rule
+    HttpServer server
 
     String moduleName = "publish"
     String org = "org.gradle"

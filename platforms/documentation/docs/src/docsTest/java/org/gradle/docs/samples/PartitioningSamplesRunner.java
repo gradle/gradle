@@ -24,6 +24,37 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 abstract class PartitioningSamplesRunner extends IntegrationTestSamplesRunner {
+    private static final Predicate<String> SAMPLES_BUCKET = s -> !s.startsWith("snippet-");
+    private static final Predicate<String> SNIPPETS_BUCKET_1 = s ->
+        s.startsWith("snippet-dependency-management-") ||
+            s.startsWith("snippet-tutorial-") ||
+            s.startsWith("snippet-kotlin-dsl") ||
+            s.startsWith("snippet-testing-") ||
+            s.startsWith("snippet-scala-");
+    private static final Predicate<String> SNIPPETS_BUCKET_2 = s ->
+        s.startsWith("snippet-configuration-cache-") ||
+            s.startsWith("snippet-test-kit-") ||
+            s.startsWith("snippet-java-") ||
+            s.startsWith("snippet-maven-") ||
+            s.startsWith("snippet-plugins-") ||
+            s.startsWith("snippet-tasks-") ||
+            s.startsWith("snippet-files-");
+    private static final Predicate<String> SNIPPETS_BUCKET_3 = s ->
+        !SAMPLES_BUCKET.test(s) && !SNIPPETS_BUCKET_1.test(s) && !SNIPPETS_BUCKET_2.test(s);
+
+    public PartitioningSamplesRunner(Class<?> testClass) throws InitializationError {
+        super(testClass);
+    }
+
+    abstract Predicate<String> sampleIdFilter();
+
+    protected List<Sample> getChildren() {
+        List<Sample> allSamples = super.getChildren();
+        return allSamples.stream()
+            .filter(s -> sampleIdFilter().test(s.getId()))
+            .collect(Collectors.toList());
+    }
+
     public static class SamplesBucket extends PartitioningSamplesRunner {
         public SamplesBucket(Class<?> testClass) throws InitializationError {
             super(testClass);
@@ -66,36 +97,5 @@ abstract class PartitioningSamplesRunner extends IntegrationTestSamplesRunner {
         Predicate<String> sampleIdFilter() {
             return SNIPPETS_BUCKET_3;
         }
-    }
-
-    private static final Predicate<String> SAMPLES_BUCKET = s -> !s.startsWith("snippet-");
-    private static final Predicate<String> SNIPPETS_BUCKET_1 = s ->
-        s.startsWith("snippet-dependency-management-") ||
-            s.startsWith("snippet-tutorial-") ||
-            s.startsWith("snippet-kotlin-dsl") ||
-            s.startsWith("snippet-testing-") ||
-            s.startsWith("snippet-scala-");
-    private static final Predicate<String> SNIPPETS_BUCKET_2 = s ->
-        s.startsWith("snippet-configuration-cache-") ||
-            s.startsWith("snippet-test-kit-") ||
-            s.startsWith("snippet-java-") ||
-            s.startsWith("snippet-maven-") ||
-            s.startsWith("snippet-plugins-") ||
-            s.startsWith("snippet-tasks-") ||
-            s.startsWith("snippet-files-");
-    private static final Predicate<String> SNIPPETS_BUCKET_3 = s ->
-        !SAMPLES_BUCKET.test(s) && !SNIPPETS_BUCKET_1.test(s) && !SNIPPETS_BUCKET_2.test(s);
-
-    abstract Predicate<String> sampleIdFilter();
-
-    public PartitioningSamplesRunner(Class<?> testClass) throws InitializationError {
-        super(testClass);
-    }
-
-    protected List<Sample> getChildren() {
-        List<Sample> allSamples = super.getChildren();
-        return allSamples.stream()
-            .filter(s -> sampleIdFilter().test(s.getId()))
-            .collect(Collectors.toList());
     }
 }

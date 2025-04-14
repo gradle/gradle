@@ -43,7 +43,7 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
         executer.run(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             ConsumerAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]
@@ -70,13 +70,13 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
         executer.run(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             adaptedHandler = args[1]
             adaptedHandler.onFailure(failure)
         }
 
         and:
-        1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
+        1 * handler.onFailure(!null) >> { args -> wrappedFailure = args[0] }
         _ * asyncConnection.displayName >> '[connection]'
         wrappedFailure.message == 'Could not run build action using [connection].'
         wrappedFailure.cause.is(failure)
@@ -173,7 +173,7 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
         executer.forTasks('a', 'b').run(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             ConsumerAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]
@@ -188,7 +188,7 @@ class DefaultBuildActionExecuterTest extends ConcurrentSpec {
         executer.forTasks(Collections.singleton("a")).run(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             ConsumerAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]

@@ -5,21 +5,20 @@ package org.gradle.test;
  */
 public class JavaClass extends A implements CombinedInterface, JavaInterface {
     /**
-     * A read-only property.
+     * Another ignored field.
      */
-    public String getReadOnly() {
-        return "value";
-    }
-
+    final long ignoreMe2 = 9;
     /**
      * An ignored field.
      */
     String ignoreMe1;
 
     /**
-     * Another ignored field.
+     * A read-only property.
      */
-    final long ignoreMe2 = 9;
+    public String getReadOnly() {
+        return "value";
+    }
 
     /**
      * Not a setter.
@@ -48,7 +47,6 @@ public class JavaClass extends A implements CombinedInterface, JavaInterface {
 
     /**
      * The setter for a property.
-     * @param value
      */
     public void setSomeProp(JavaInterface value) {
     }

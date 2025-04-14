@@ -27,6 +27,7 @@ import java.util.List;
 public final class PGPUtils {
 
     private static final Field KEYS_FIELD = getKeysField();
+
     private PGPUtils() {
     }
 

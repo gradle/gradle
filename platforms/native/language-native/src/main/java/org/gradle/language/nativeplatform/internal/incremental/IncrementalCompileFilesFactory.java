@@ -60,6 +60,79 @@ public class IncrementalCompileFilesFactory {
         return new DefaultIncrementalCompileSourceProcessor(previousCompileState);
     }
 
+    private enum IncludeFileResolutionResult {
+        NoMacroIncludes,
+        HasMacroIncludes, // but all resolved ok
+        UnresolvedMacroIncludes
+    }
+
+    /**
+     * Details of a file that are independent of where the file appears in the file include graph.
+     */
+    private static class FileDetails {
+        final IncludeDirectives directives;
+        // Non-null when the result of visiting this file can be reused
+        @Nullable
+        FileVisitResult results;
+
+        FileDetails(IncludeDirectives directives) {
+            this.directives = directives;
+        }
+    }
+
+    /**
+     * Details of a file included in a specific location in the file include graph.
+     */
+    private static class FileVisitResult implements CollectingMacroLookup.MacroSource {
+        private final File file;
+        private final IncludeFileResolutionResult result;
+        private final IncludeDirectives includeDirectives;
+        private final List<FileVisitResult> included;
+        private final List<IncludeFileEdge> edges;
+        private final CollectingMacroLookup includeFileDirectives;
+
+        FileVisitResult(File file, IncludeFileResolutionResult result, IncludeDirectives includeDirectives, List<FileVisitResult> included, List<IncludeFileEdge> edges, CollectingMacroLookup dependentIncludeDirectives) {
+            this.file = file;
+            this.result = result;
+            this.includeDirectives = includeDirectives;
+            this.included = included;
+            this.edges = edges;
+            this.includeFileDirectives = dependentIncludeDirectives;
+        }
+
+        FileVisitResult(File file) {
+            this.file = file;
+            result = IncludeFileResolutionResult.NoMacroIncludes;
+            includeDirectives = null;
+            included = Collections.emptyList();
+            edges = Collections.emptyList();
+            includeFileDirectives = null;
+        }
+
+        void collectDependencies(CollectingMacroLookup directives) {
+            if (includeDirectives != null) {
+                directives.append(this);
+            }
+        }
+
+        void collectFilesInto(Collection<IncludeFileEdge> files, Set<File> seen) {
+            if (includeDirectives != null && seen.add(file)) {
+                files.addAll(edges);
+                for (FileVisitResult include : included) {
+                    include.collectFilesInto(files, seen);
+                }
+            }
+        }
+
+        @Override
+        public void collectInto(CollectingMacroLookup lookup) {
+            if (includeDirectives != null) {
+                lookup.append(file, includeDirectives);
+                includeFileDirectives.appendTo(lookup);
+            }
+        }
+    }
+
     private class DefaultIncrementalCompileSourceProcessor implements IncrementalCompileSourceProcessor {
         private final CompilationState previous;
         private final BuildableCompilationState current = new BuildableCompilationState();
@@ -225,79 +298,6 @@ public class IncrementalCompileFilesFactory {
                 }
             }
             return removed;
-        }
-    }
-
-    private enum IncludeFileResolutionResult {
-        NoMacroIncludes,
-        HasMacroIncludes, // but all resolved ok
-        UnresolvedMacroIncludes
-    }
-
-    /**
-     * Details of a file that are independent of where the file appears in the file include graph.
-     */
-    private static class FileDetails {
-        final IncludeDirectives directives;
-        // Non-null when the result of visiting this file can be reused
-        @Nullable
-        FileVisitResult results;
-
-        FileDetails(IncludeDirectives directives) {
-            this.directives = directives;
-        }
-    }
-
-    /**
-     * Details of a file included in a specific location in the file include graph.
-     */
-    private static class FileVisitResult implements CollectingMacroLookup.MacroSource {
-        private final File file;
-        private final IncludeFileResolutionResult result;
-        private final IncludeDirectives includeDirectives;
-        private final List<FileVisitResult> included;
-        private final List<IncludeFileEdge> edges;
-        private final CollectingMacroLookup includeFileDirectives;
-
-        FileVisitResult(File file, IncludeFileResolutionResult result, IncludeDirectives includeDirectives, List<FileVisitResult> included, List<IncludeFileEdge> edges, CollectingMacroLookup dependentIncludeDirectives) {
-            this.file = file;
-            this.result = result;
-            this.includeDirectives = includeDirectives;
-            this.included = included;
-            this.edges = edges;
-            this.includeFileDirectives = dependentIncludeDirectives;
-        }
-
-        FileVisitResult(File file) {
-            this.file = file;
-            result = IncludeFileResolutionResult.NoMacroIncludes;
-            includeDirectives = null;
-            included = Collections.emptyList();
-            edges = Collections.emptyList();
-            includeFileDirectives = null;
-        }
-
-        void collectDependencies(CollectingMacroLookup directives) {
-            if (includeDirectives != null) {
-                directives.append(this);
-            }
-        }
-
-        void collectFilesInto(Collection<IncludeFileEdge> files, Set<File> seen) {
-            if (includeDirectives != null && seen.add(file)) {
-                files.addAll(edges);
-                for (FileVisitResult include : included) {
-                    include.collectFilesInto(files, seen);
-                }
-            }
-        }
-
-        @Override
-        public void collectInto(CollectingMacroLookup lookup) {
-            if (includeDirectives != null) {
-                lookup.append(file, includeDirectives);
-                includeFileDirectives.appendTo(lookup);
-            }
         }
     }
 }

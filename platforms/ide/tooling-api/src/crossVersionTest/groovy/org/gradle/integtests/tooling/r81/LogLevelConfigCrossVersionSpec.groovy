@@ -42,10 +42,10 @@ class LogLevelConfigCrossVersionSpec extends ToolingApiSpecification {
         validateLogs(stdOut, expectedLevel)
 
         where:
-        expectedLevel  | arguments
+        expectedLevel      | arguments
         LogLevel.LIFECYCLE | []
-        LogLevel.INFO  | ["--info"]
-        LogLevel.LIFECYCLE  | ["-Dorg.gradle.logging.level=info"]
+        LogLevel.INFO      | ["--info"]
+        LogLevel.LIFECYCLE | ["-Dorg.gradle.logging.level=info"]
     }
 
     @ToolingApiVersion(">=8.0 <8.1")

@@ -25,8 +25,8 @@ import java.util.List;
 
 public class DefaultMutableVariantFilesMetadata implements MutableVariantFilesMetadata {
 
-    private boolean clearExistingFiles = false;
     private final List<VariantFileMetadata> files = new ArrayList<>();
+    private boolean clearExistingFiles = false;
 
     @Override
     public void removeAllFiles() {

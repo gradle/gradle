@@ -111,6 +111,18 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Nullable
+    @Optional
+    @Input
+    @Override
+    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
+    public List<String> getArgs() {
+        return execSpec.getArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public T setArgs(List<String> arguments) {
         execSpec.setArgs(arguments);
@@ -124,18 +136,6 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     public T setArgs(@Nullable Iterable<?> arguments) {
         execSpec.setArgs(arguments);
         return taskType.cast(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Nullable
-    @Optional
-    @Input
-    @Override
-    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
-    public List<String> getArgs() {
-        return execSpec.getArgs();
     }
 
     /**
@@ -303,15 +303,6 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Override
-    public T setStandardInput(InputStream inputStream) {
-        execSpec.setStandardInput(inputStream);
-        return taskType.cast(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
@@ -323,8 +314,8 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
-    public T setStandardOutput(OutputStream outputStream) {
-        execSpec.setStandardOutput(outputStream);
+    public T setStandardInput(InputStream inputStream) {
+        execSpec.setStandardInput(inputStream);
         return taskType.cast(this);
     }
 
@@ -342,8 +333,8 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
-    public T setErrorOutput(OutputStream outputStream) {
-        execSpec.setErrorOutput(outputStream);
+    public T setStandardOutput(OutputStream outputStream) {
+        execSpec.setStandardOutput(outputStream);
         return taskType.cast(this);
     }
 
@@ -361,8 +352,8 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
-    public T setIgnoreExitValue(boolean ignoreExitValue) {
-        execSpec.setIgnoreExitValue(ignoreExitValue);
+    public T setErrorOutput(OutputStream outputStream) {
+        execSpec.setErrorOutput(outputStream);
         return taskType.cast(this);
     }
 
@@ -374,6 +365,15 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
     public boolean isIgnoreExitValue() {
         return execSpec.isIgnoreExitValue();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public T setIgnoreExitValue(boolean ignoreExitValue) {
+        execSpec.setIgnoreExitValue(ignoreExitValue);
+        return taskType.cast(this);
     }
 
     /**

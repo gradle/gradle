@@ -67,6 +67,110 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         this.parameters = parameters;
     }
 
+    private static VersionNumber determineCheckstyleVersion(ClassLoader antLoader) {
+        Class<?> checkstyleTaskClass;
+        try {
+            checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.CheckStyleTask");
+        } catch (ClassNotFoundException e) {
+            try {
+                checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask");
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return VersionNumber.parse(checkstyleTaskClass.getPackage().getImplementationVersion());
+    }
+
+    private static boolean isSarifSupported(VersionNumber versionNumber) {
+        return versionNumber.compareTo(VersionNumber.parse("10.3.3")) >= 0;
+    }
+
+    private static void assertUnsupportedReportFormatSARIF(VersionNumber version) {
+        throw new GradleException("SARIF report format is supported on Checkstyle versions 10.3.3 and newer. Please upgrade from Checkstyle " + version + " or disable the SARIF format.");
+    }
+
+    @Nullable
+    private static Node parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {
+        try {
+            return isXmlRequired ? new XmlParser().parse(xmlOutputLocation) : null;
+        } catch (IOException | SAXException | ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String getMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation, Node reportXml) {
+        return String.format("Checkstyle rule violations were found.%s%s",
+            getReportUrlMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation),
+            getViolationMessage(reportXml)
+        );
+    }
+
+    private static String getReportUrlMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation) {
+        File outputLocation;
+        if (isHtmlRequired) {
+            outputLocation = htmlOutputLocation;
+        } else if (isXmlRequired) {
+            outputLocation = xmlOutputLocation;
+        } else if (isSarifRequired) {
+            outputLocation = sarifOutputLocation;
+        } else {
+            outputLocation = null;
+        }
+        return outputLocation != null ? String.format(" See the report at: %s", new ConsoleRenderer().asClickableFileUrl(outputLocation)) : "\n";
+    }
+
+    private static String getViolationMessage(@Nullable Node reportXml) {
+        if (violationsExist(reportXml)) {
+            int errorFileCount = getErrorFileCount(reportXml);
+            List<String> violations = getViolations(reportXml);
+            return String.format("\n" +
+                    "Checkstyle files with violations: %s\n" +
+                    "Checkstyle violations by severity: %s\n",
+                errorFileCount,
+                violations
+            );
+        }
+        return "\n";
+    }
+
+    private static String readText(InputStream stream) {
+        try {
+            return IOUtils.toString(stream, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static List<String> getViolations(Node reportXml) {
+        @SuppressWarnings("unchecked")
+        List<Node> errorNodes = reportXml.getAt(QName.valueOf("file")).getAt("error");
+        return errorNodes.stream()
+            .map(node -> (String) node.attribute("severity"))
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+            .entrySet().stream()
+            .map(entry -> entry.getKey() + ":" + entry.getValue())
+            .collect(Collectors.toList());
+    }
+
+    private static boolean violationsExist(@Nullable Node reportXml) {
+        return reportXml != null && getErrorFileCount(reportXml) > 0;
+    }
+
+    private static int getErrorFileCount(Node reportXml) {
+        int count = 0;
+        for (Object node : reportXml.getAt(QName.valueOf("file"))) {
+            NodeList errors = ((Node) node).getAt(QName.valueOf("error"));
+            if (!errors.isEmpty()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static boolean isHtmlReportEnabledOnly(boolean isXmlRequired, boolean isHtmlRequired) {
+        return !isXmlRequired && isHtmlRequired;
+    }
+
     @Override
     public void execute(AntBuilderDelegate ant) {
         FileTree source = parameters.getSource().getAsFileTree();
@@ -183,109 +287,5 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
             return new File(parameters.getTemporaryDir().getAsFile().get(), xmlOutputLocation.getName());
         }
         return xmlOutputLocation;
-    }
-
-    private static VersionNumber determineCheckstyleVersion(ClassLoader antLoader) {
-        Class<?> checkstyleTaskClass;
-        try {
-            checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.CheckStyleTask");
-        } catch (ClassNotFoundException e) {
-            try {
-                checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask");
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        return VersionNumber.parse(checkstyleTaskClass.getPackage().getImplementationVersion());
-    }
-
-    private static boolean isSarifSupported(VersionNumber versionNumber) {
-        return versionNumber.compareTo(VersionNumber.parse("10.3.3")) >= 0;
-    }
-
-    private static void assertUnsupportedReportFormatSARIF(VersionNumber version) {
-        throw new GradleException("SARIF report format is supported on Checkstyle versions 10.3.3 and newer. Please upgrade from Checkstyle " + version +" or disable the SARIF format.");
-    }
-
-    @Nullable
-    private static Node parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {
-        try {
-            return isXmlRequired ? new XmlParser().parse(xmlOutputLocation) : null;
-        } catch (IOException | SAXException | ParserConfigurationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static String getMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation, Node reportXml) {
-        return String.format("Checkstyle rule violations were found.%s%s",
-            getReportUrlMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation),
-            getViolationMessage(reportXml)
-        );
-    }
-
-    private static String getReportUrlMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation) {
-        File outputLocation;
-        if (isHtmlRequired) {
-            outputLocation = htmlOutputLocation;
-        } else if (isXmlRequired) {
-            outputLocation = xmlOutputLocation;
-        } else if (isSarifRequired) {
-            outputLocation = sarifOutputLocation;
-        } else {
-            outputLocation = null;
-        }
-        return outputLocation != null ? String.format(" See the report at: %s", new ConsoleRenderer().asClickableFileUrl(outputLocation)) : "\n";
-    }
-
-    private static String getViolationMessage(@Nullable Node reportXml) {
-        if (violationsExist(reportXml)) {
-            int errorFileCount = getErrorFileCount(reportXml);
-            List<String> violations = getViolations(reportXml);
-            return String.format("\n" +
-                "Checkstyle files with violations: %s\n" +
-                "Checkstyle violations by severity: %s\n",
-                errorFileCount,
-                violations
-            );
-        }
-        return "\n";
-    }
-
-    private static String readText(InputStream stream) {
-        try {
-            return IOUtils.toString(stream, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static List<String> getViolations(Node reportXml) {
-        @SuppressWarnings("unchecked")
-        List<Node> errorNodes = reportXml.getAt(QName.valueOf("file")).getAt("error");
-        return errorNodes.stream()
-            .map(node -> (String) node.attribute("severity"))
-            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-            .entrySet().stream()
-            .map(entry -> entry.getKey() + ":" + entry.getValue())
-            .collect(Collectors.toList());
-    }
-
-    private static boolean violationsExist(@Nullable Node reportXml) {
-        return reportXml != null && getErrorFileCount(reportXml) > 0;
-    }
-
-    private static int getErrorFileCount(Node reportXml) {
-        int count = 0;
-        for (Object node : reportXml.getAt(QName.valueOf("file"))) {
-            NodeList errors = ((Node) node).getAt(QName.valueOf("error"));
-            if (!errors.isEmpty()) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private static boolean isHtmlReportEnabledOnly(boolean isXmlRequired, boolean isHtmlRequired) {
-        return !isXmlRequired && isHtmlRequired;
     }
 }

@@ -261,7 +261,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
 
         then:
         progressArea.buildProgressLabels.size() == newCount
-        oldBuildProgressLabels.eachWithIndex{ StyledLabel entry, int i ->
+        oldBuildProgressLabels.eachWithIndex { StyledLabel entry, int i ->
             assert progressArea.buildProgressLabels.get(i) == entry
         }
     }

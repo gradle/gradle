@@ -44,9 +44,8 @@ import java.util.Set;
 public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
     private final Map<Class<? extends Plugin<Settings>>, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
-    private Map<String, SoftwareTypeImplementation<?>> softwareTypeImplementations;
-
     private final InspectionScheme inspectionScheme;
+    private Map<String, SoftwareTypeImplementation<?>> softwareTypeImplementations;
 
     public DefaultSoftwareTypeRegistry(InspectionScheme inspectionScheme) {
         this.inspectionScheme = inspectionScheme;
@@ -102,14 +101,19 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
         private final ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder;
 
         public SoftwareTypeImplementationRecordingVisitor(
-                Class<? extends Plugin<Project>> pluginClass,
-                Class<? extends Plugin<Settings>> registeringPluginClass,
-                Map<String, Class<? extends Plugin<Project>>> registeredTypes,
-                ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder) {
+            Class<? extends Plugin<Project>> pluginClass,
+            Class<? extends Plugin<Settings>> registeringPluginClass,
+            Map<String, Class<? extends Plugin<Project>>> registeredTypes,
+            ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder
+        ) {
             this.pluginClass = pluginClass;
             this.registeringPluginClass = registeringPluginClass;
             this.registeredTypes = registeredTypes;
             this.softwareTypeImplementationsBuilder = softwareTypeImplementationsBuilder;
+        }
+
+        private static Class<?> publicTypeOf(PropertyMetadata propertyMetadata, SoftwareType softwareType) {
+            return softwareType.modelPublicType() == Void.class ? propertyMetadata.getDeclaredType().getRawType() : softwareType.modelPublicType();
         }
 
         @Override
@@ -134,10 +138,6 @@ public class DefaultSoftwareTypeRegistry implements SoftwareTypeRegistry {
                     )
                 );
             });
-        }
-
-        private static Class<?> publicTypeOf(PropertyMetadata propertyMetadata, SoftwareType softwareType) {
-            return softwareType.modelPublicType() == Void.class ? propertyMetadata.getDeclaredType().getRawType() : softwareType.modelPublicType();
         }
     }
 

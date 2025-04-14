@@ -36,7 +36,7 @@ class MavenJarCreator {
                     addZipEntry(out, artifactFile.name + ".properties", "testcontent")
                     if (minimumSizeKB > 0) {
                         int sizeInBytes
-                        if(maximumSizeKB > minimumSizeKB) {
+                        if (maximumSizeKB > minimumSizeKB) {
                             sizeInBytes = (minimumSizeKB + random.nextInt(maximumSizeKB - minimumSizeKB)) * 1024
                         } else {
                             sizeInBytes = minimumSizeKB * 1024

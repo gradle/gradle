@@ -51,28 +51,8 @@ public abstract class Transformers {
         };
     }
 
-    private static class CastingTransformer<O, I> implements Transformer<O, I> {
-        final Class<O> outputType;
-
-        public CastingTransformer(Class<O> outputType) {
-            this.outputType = outputType;
-        }
-
-        @Override
-        public O transform(I input) {
-            return Cast.cast(outputType, input);
-        }
-    }
-
     public static <T> Transformer<String, T> asString() {
         return new ToStringTransformer<T>();
-    }
-
-    private static class ToStringTransformer<T> implements Transformer<String, T> {
-        @Override
-        public String transform(T original) {
-            return original == null ? null : original.toString();
-        }
     }
 
     /**
@@ -81,29 +61,6 @@ public abstract class Transformers {
      */
     public static Transformer<String, String> asSafeCommandLineArgument() {
         return new CommandLineArgumentTransformer();
-    }
-
-    private static class CommandLineArgumentTransformer implements Transformer<String, String> {
-        private static final Pattern SINGLE_QUOTED = Pattern.compile("^'.*'$");
-        private static final Pattern DOUBLE_QUOTED = Pattern.compile("^\".*\"$");
-        private static final Pattern A_SINGLE_QUOTE =  Pattern.compile("'");
-
-        @Override
-        public String transform(String input) {
-            if (SINGLE_QUOTED.matcher(input).matches() || DOUBLE_QUOTED.matcher(input).matches() || !input.contains(" ")) {
-                return input;
-            } else {
-                return wrapWithSingleQuotes(input);
-            }
-        }
-
-        private String wrapWithSingleQuotes(String input) {
-            return String.format("'%1$s'", escapeSingleQuotes(input));
-        }
-
-        private String escapeSingleQuotes(String input) {
-            return A_SINGLE_QUOTE.matcher(input).replaceAll("\\\\'");
-        }
     }
 
     /**
@@ -168,5 +125,48 @@ public abstract class Transformers {
                 return t;
             }
         };
+    }
+
+    private static class CastingTransformer<O, I> implements Transformer<O, I> {
+        final Class<O> outputType;
+
+        public CastingTransformer(Class<O> outputType) {
+            this.outputType = outputType;
+        }
+
+        @Override
+        public O transform(I input) {
+            return Cast.cast(outputType, input);
+        }
+    }
+
+    private static class ToStringTransformer<T> implements Transformer<String, T> {
+        @Override
+        public String transform(T original) {
+            return original == null ? null : original.toString();
+        }
+    }
+
+    private static class CommandLineArgumentTransformer implements Transformer<String, String> {
+        private static final Pattern SINGLE_QUOTED = Pattern.compile("^'.*'$");
+        private static final Pattern DOUBLE_QUOTED = Pattern.compile("^\".*\"$");
+        private static final Pattern A_SINGLE_QUOTE = Pattern.compile("'");
+
+        @Override
+        public String transform(String input) {
+            if (SINGLE_QUOTED.matcher(input).matches() || DOUBLE_QUOTED.matcher(input).matches() || !input.contains(" ")) {
+                return input;
+            } else {
+                return wrapWithSingleQuotes(input);
+            }
+        }
+
+        private String wrapWithSingleQuotes(String input) {
+            return String.format("'%1$s'", escapeSingleQuotes(input));
+        }
+
+        private String escapeSingleQuotes(String input) {
+            return A_SINGLE_QUOTE.matcher(input).replaceAll("\\\\'");
+        }
     }
 }

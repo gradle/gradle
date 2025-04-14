@@ -140,7 +140,8 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"
     }
 
-    static String check(String moduleName, String declaredDependencyId, String confName, String winner) { """
+    static String check(String moduleName, String declaredDependencyId, String confName, String winner) {
+        """
         task check${moduleName}_${confName} {
             def result = configurations.${confName}.incoming.resolutionResult.rootComponent
             def declared = $declaredDependencyId
@@ -158,7 +159,8 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 """
     }
 
-    static String checkHelper(String buildId, String projectPath) { """
+    static String checkHelper(String buildId, String projectPath) {
+        """
         def moduleId(String group, String name, String version) {
             def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
             return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)

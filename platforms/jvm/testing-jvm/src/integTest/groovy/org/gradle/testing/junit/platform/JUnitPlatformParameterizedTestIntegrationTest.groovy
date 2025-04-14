@@ -33,7 +33,8 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         return testDirectory
     }
 
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/20081")
     def "test report receives events for disabled parameterized test"() {
@@ -118,11 +119,11 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         """
         testClass("FailingTest")
             .testMethod('failingTest')
-                .shouldFail()
-                .customContent(server.callFromBuild("failingTest"))
+            .shouldFail()
+            .customContent(server.callFromBuild("failingTest"))
         testClass("WithParameterizedTest")
             .parameterizedMethod('enabledParameterizedTest')
-                .customContent(server.callFromBuild("enabledParameterizedTest"))
+            .customContent(server.callFromBuild("enabledParameterizedTest"))
         writeTestClassFiles()
 
         def testExecution = server.expectConcurrentAndBlock('failingTest', 'enabledParameterizedTest')

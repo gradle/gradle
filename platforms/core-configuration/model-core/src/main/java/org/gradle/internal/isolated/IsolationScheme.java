@@ -57,6 +57,11 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         this.noParamsType = noParamsType;
     }
 
+    private static boolean isAssignableFromType(Class<?> clazz, Type type) {
+        return (type instanceof Class && clazz.isAssignableFrom((Class<?>) type))
+            || (type instanceof ParameterizedType && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType()));
+    }
+
     /**
      * Determines the parameters type for the given implementation.
      *
@@ -164,11 +169,6 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
             }
         }
         return type;
-    }
-
-    private static boolean isAssignableFromType(Class<?> clazz, Type type) {
-        return (type instanceof Class && clazz.isAssignableFrom((Class<?>) type))
-            || (type instanceof ParameterizedType && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType()));
     }
 
     /**

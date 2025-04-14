@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest

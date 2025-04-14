@@ -26,7 +26,8 @@ class DefaultBuildScanUserInputHandlerTest extends Specification {
 
     def userInputHandler = Mock(UserInputHandler)
     def userQuestions = Mock(UserQuestions)
-    @Subject def buildScanUserInputHandler = new DefaultBuildScanUserInputHandler(userInputHandler)
+    @Subject
+    def buildScanUserInputHandler = new DefaultBuildScanUserInputHandler(userInputHandler)
 
     def "can ask yes/no question and capture user input '#input'"() {
         given:

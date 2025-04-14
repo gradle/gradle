@@ -41,10 +41,6 @@ public class BuildLogLevelMixIn {
         this.logLevel = calcBuildLogLevel(parameters);
     }
 
-    public LogLevel getBuildLogLevel() {
-        return this.logLevel;
-    }
-
     private static LogLevel calcBuildLogLevel(ProviderOperationParameters parameters) {
         LoggingConfigurationBuildOptions loggingBuildOptions = new LoggingConfigurationBuildOptions();
         CommandLineConverter<LoggingConfiguration> converter = loggingBuildOptions.commandLineConverter();
@@ -90,5 +86,9 @@ public class BuildLogLevelMixIn {
         }
         return empty();
 
+    }
+
+    public LogLevel getBuildLogLevel() {
+        return this.logLevel;
     }
 }

@@ -33,7 +33,8 @@ import spock.lang.Subject
 
 class TestNGTestClassProcessorTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
 
     def processor = Mock(TestResultProcessor)
     def filterSpec = Spy(new TestFilterSpec([] as Set, [] as Set, [] as Set))
@@ -43,7 +44,8 @@ class TestNGTestClassProcessorTest extends Specification {
         [] as Set, [] as Set, [] as Set,
         TestNGTestRunner.DEFAULT_CONFIG_FAILURE_POLICY, false, false, false))
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+    @Subject
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
     void process(Class... clazz) {
         process(clazz*.name)
@@ -58,14 +60,21 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes the test class"() {
-        when: process(ATestNGClass)
+        when:
+        process(ATestNGClass)
 
-        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.completed(1, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
+        then:
+        1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
+        then:
+        1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
@@ -73,12 +82,18 @@ class TestNGTestClassProcessorTest extends Specification {
         when:
         process(ATestNGFactoryClass)
 
-        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.completed(1, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
+        then:
+        1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
+        then:
+        1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
 
         0 * processor._
     }
@@ -86,14 +101,21 @@ class TestNGTestClassProcessorTest extends Specification {
     void "executes selected included method"() {
         filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
 
-        when: process(ATestNGClassWithManyMethods)
+        when:
+        process(ATestNGClassWithManyMethods)
 
-        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.completed(1, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
+        then:
+        1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, { it.parentId == 1 })
+        then:
+        1 * processor.started({ it.id == 3 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 2 })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
 
         0 * processor._
     }
@@ -101,7 +123,8 @@ class TestNGTestClassProcessorTest extends Specification {
     void "executes multiple included methods"() {
         filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
 
-        when: process(ATestNGClassWithManyMethods)
+        when:
+        process(ATestNGClassWithManyMethods)
 
         then:
         1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
@@ -114,7 +137,8 @@ class TestNGTestClassProcessorTest extends Specification {
     void "executes methods from multiple classes by pattern"() {
         filterSpec.getIncludedTests() >> ["*Methods.ok*"]
 
-        when: process(ATestNGClassWithManyMethods)
+        when:
+        process(ATestNGClassWithManyMethods)
 
         then:
         1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' }, _)
@@ -127,60 +151,92 @@ class TestNGTestClassProcessorTest extends Specification {
     void "executes no tests if none of the included test methods match"() {
         filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
 
-        when: process(ATestNGClassWithManyMethods)
+        when:
+        process(ATestNGClassWithManyMethods)
 
-        then: 1 * processor.started({ it.id == 1 && it.className == null  && it.name == 'Gradle suite' }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.className == null && it.name == 'Gradle test' }, { it.parentId == 1 })
-        then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.completed(1, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 1 && it.className == null && it.name == 'Gradle suite' }, { it.parentId == null })
+        then:
+        1 * processor.started({ it.id == 2 && it.className == null && it.name == 'Gradle test' }, { it.parentId == 1 })
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
     void "executes test with expected exception"() {
-        when: process(ATestNGClassWithExpectedException)
+        when:
+        process(ATestNGClassWithExpectedException)
 
-        then: 1 * processor.started({ it.id == 1 } , _)
-        then: 1 * processor.started({ it.id == 2 } , _)
-        then: 1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithExpectedException.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.completed(1, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 1 }, _)
+        then:
+        1 * processor.started({ it.id == 2 }, _)
+        then:
+        1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithExpectedException.name }, { it.parentId == 2 })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
     void "executes test with broken setup"() {
-        when: process(ATestNGClassWithBrokenSetupMethod)
+        when:
+        process(ATestNGClassWithBrokenSetupMethod)
 
-        then: 1 * processor.started({ it.id == 1 } , _)
-        then: 1 * processor.started({ it.id == 2 } , _)
-        then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
-        then: 1 * processor.failure(3, { assertRuntimExceptionWith(it, "broken") })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
+        then:
+        1 * processor.started({ it.id == 1 }, _)
+        then:
+        1 * processor.started({ it.id == 2 }, _)
+        then:
+        1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
+        then:
+        1 * processor.failure(3, { assertRuntimExceptionWith(it, "broken") })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
 
-        then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
-        then: 1 * processor.completed(4, { it.resultType == ResultType.SKIPPED})
+        then:
+        1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
+        then:
+        1 * processor.completed(4, { it.resultType == ResultType.SKIPPED })
 
-        then: 1 * processor.completed(2, { it.resultType == null})
-        then: 1 * processor.completed(1, { it.resultType == null})
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
 
         0 * processor._
     }
 
     void "executes test class with dependency method"() {
-        when: process(ATestNGClassWithBrokenDependencyMethod)
+        when:
+        process(ATestNGClassWithBrokenDependencyMethod)
 
-        then: 1 * processor.started({ it.id == 1 } , _)
-        then: 1 * processor.started({ it.id == 2 } , _)
-        then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
+        then:
+        1 * processor.started({ it.id == 1 }, _)
+        then:
+        1 * processor.started({ it.id == 2 }, _)
+        then:
+        1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
 
-        then: 1 * processor.failure(3, { assertRuntimExceptionWith(it, "broken") })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
+        then:
+        1 * processor.failure(3, { assertRuntimExceptionWith(it, "broken") })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
 
-        then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
-        then: 1 * processor.completed(4, { it.resultType == ResultType.SKIPPED})
+        then:
+        1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
+        then:
+        1 * processor.completed(4, { it.resultType == ResultType.SKIPPED })
 
-        then: 1 * processor.completed(2, { it.resultType == null})
-        then: 1 * processor.completed(1, { it.resultType == null})
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
 
         0 * processor._
     }
@@ -190,28 +246,31 @@ class TestNGTestClassProcessorTest extends Specification {
         _ * spec.getIncludeGroups() >> ['group1', 'group2']
         _ * spec.getExcludeGroups() >> ['group3']
 
-        when: process(ATestNGClassWithGroups)
+        when:
+        process(ATestNGClassWithGroups)
 
         then:
-        1 * processor.started({ it.id == 1 } , _)
-        1 * processor.started({ it.id == 2 } , _)
+        1 * processor.started({ it.id == 1 }, _)
+        1 * processor.started({ it.id == 2 }, _)
         1 * processor.started({ it.name == 'group1' && it.className == ATestNGClassWithGroups.name }, _)
         1 * processor.started({ it.name == 'group2' && it.className == ATestNGClassWithGroups.name }, _)
         4 * processor.completed(_, _)
         0 * processor._
     }
 
-    @Ignore //not implemented yet
+    @Ignore
+    //not implemented yet
     void "executes class with broken constructor"() {
-        when: process(ATestNGClassWithBrokenConstructor)
+        when:
+        process(ATestNGClassWithBrokenConstructor)
 
         then:
         //below needs to revisited when we attempt to fix the problem
         //e.g. decide what's the behavior we want in this scenario
-        1 * processor.started({ it.id == 1} , _)
+        1 * processor.started({ it.id == 1 }, _)
         1 * processor.started({ it.name == 'initializationError' && it.className == ATestNGClassWithBrokenConstructor.name }, _)
         1 * processor.failure(1, ATestNGClassWithBrokenConstructor.failure)
-        1 * processor.completed(1, { it.resultType == ResultType.FAILURE})
+        1 * processor.completed(1, { it.resultType == ResultType.FAILURE })
         0 * processor._
     }
 
@@ -233,21 +292,29 @@ class TestNGTestClassProcessorTest extends Specification {
         process(ATestNGClass, ATestNGClassWithBeforeAndAfter) //the latter is not matched
 
         then:
-        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, _)
-        then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, _)
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, _)
-        then: 1 * processor.completed(3, _)
-        then: 1 * processor.completed(2, _)
-        then: 1 * processor.completed(1, _)
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, _)
+        then:
+        1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, _)
+        then:
+        1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, _)
+        then:
+        1 * processor.completed(3, _)
+        then:
+        1 * processor.completed(2, _)
+        then:
+        1 * processor.completed(1, _)
         0 * processor._
     }
 
     void "custom test listeners can change test status"() {
         spec.listeners << FailSkippedTestsListener.class.name
 
-        when: process(ATestNGClassWithSkippedTest)
+        when:
+        process(ATestNGClassWithSkippedTest)
 
-        then: 1 * processor.completed(_, { it.resultType == ResultType.FAILURE})
+        then:
+        1 * processor.completed(_, { it.resultType == ResultType.FAILURE })
     }
 
     void "executes test from suite"() {
@@ -266,12 +333,18 @@ class TestNGTestClassProcessorTest extends Specification {
         classProcessor.startProcessing(processor)
         classProcessor.stop()
 
-        then: 1 * processor.started({ it.id == 1 && it.name == 'AwesomeSuite' && it.className == null }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == 'AwesomeTest' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(2, { it.resultType == null })
-        then: 1 * processor.completed(1, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'AwesomeSuite' && it.className == null }, { it.parentId == null })
+        then:
+        1 * processor.started({ it.id == 2 && it.name == 'AwesomeTest' && it.className == null }, { it.parentId == 1 })
+        then:
+        1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
@@ -310,35 +383,56 @@ class TestNGTestClassProcessorTest extends Specification {
         classProcessor.startProcessing(processor)
         classProcessor.stop()
 
-        then: 1 * processor.started({ it.id == 1 && it.name == 'suite 1' && it.className == null }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == 'test 1' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
-        then: 1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(2, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'suite 1' && it.className == null }, { it.parentId == null })
+        then:
+        1 * processor.started({ it.id == 2 && it.name == 'test 1' && it.className == null }, { it.parentId == 1 })
+        then:
+        1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 2 })
+        then:
+        1 * processor.completed(3, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(2, { it.resultType == null })
 
-        then: 1 * processor.started({ it.id == 4 && it.name == 'test 2' && it.className == null }, { it.parentId == 1 })
-        then: 1 * processor.started({ it.id == 5 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 4 })
-        then: 1 * processor.completed(5, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(4, { it.resultType == null })
-        then: 1 * processor.completed(1, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 4 && it.name == 'test 2' && it.className == null }, { it.parentId == 1 })
+        then:
+        1 * processor.started({ it.id == 5 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 4 })
+        then:
+        1 * processor.completed(5, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(4, { it.resultType == null })
+        then:
+        1 * processor.completed(1, { it.resultType == null })
 
-        then: 1 * processor.started({ it.id == 6 && it.name == 'suite 2' && it.className == null }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 7 && it.name == 'test 1' && it.className == null }, { it.parentId == 6 })
-        then: 1 * processor.started({ it.id == 8 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 7 })
-        then: 1 * processor.completed(8, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(7, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 6 && it.name == 'suite 2' && it.className == null }, { it.parentId == null })
+        then:
+        1 * processor.started({ it.id == 7 && it.name == 'test 1' && it.className == null }, { it.parentId == 6 })
+        then:
+        1 * processor.started({ it.id == 8 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 7 })
+        then:
+        1 * processor.completed(8, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(7, { it.resultType == null })
 
-        then: 1 * processor.started({ it.id == 9 && it.name == 'test 2' && it.className == null }, { it.parentId == 6 })
-        then: 1 * processor.started({ it.id == 10 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 9 })
-        then: 1 * processor.completed(10, { it.resultType == ResultType.SUCCESS })
-        then: 1 * processor.completed(9, { it.resultType == null })
-        then: 1 * processor.completed(6, { it.resultType == null })
+        then:
+        1 * processor.started({ it.id == 9 && it.name == 'test 2' && it.className == null }, { it.parentId == 6 })
+        then:
+        1 * processor.started({ it.id == 10 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 9 })
+        then:
+        1 * processor.completed(10, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * processor.completed(9, { it.resultType == null })
+        then:
+        1 * processor.completed(6, { it.resultType == null })
 
         0 * processor._
     }
 
     def "stopNow should fail on call"() {
-        when: classProcessor.stopNow()
+        when:
+        classProcessor.stopNow()
 
         then:
         UnsupportedOperationException uoe = thrown()

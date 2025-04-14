@@ -39,13 +39,13 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
     }
 
     @Override
-    public void setStaticLibraryFile(File staticLibraryFile) {
-        this.staticLibraryFile = staticLibraryFile;
+    public File getStaticLibraryFile() {
+        return staticLibraryFile;
     }
 
     @Override
-    public File getStaticLibraryFile() {
-        return staticLibraryFile;
+    public void setStaticLibraryFile(File staticLibraryFile) {
+        this.staticLibraryFile = staticLibraryFile;
     }
 
     @Override

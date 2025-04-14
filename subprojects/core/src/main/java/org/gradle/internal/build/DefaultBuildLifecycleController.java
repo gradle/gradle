@@ -54,20 +54,7 @@ import static org.gradle.util.Path.path;
 
 @SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
-    private enum State implements StateTransitionController.State {
-        // Configuring the build, can access build model
-        Configure,
-        // Scheduling tasks for execution
-        TaskSchedule,
-        ReadyToRun,
-        BuildFinishHooks,
-        ReadyToReset,
-        // build has finished and should do no further work
-        Finished
-    }
-
     private static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
-
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final BuildModelLifecycleListener buildModelLifecycleListener;
@@ -79,7 +66,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final GradleInternal gradle;
     private boolean hasTasks;
     private boolean hasFiredBeforeModelDiscarded;
-
     public DefaultBuildLifecycleController(
         GradleInternal gradle,
         BuildModelController buildModelController,
@@ -203,6 +189,116 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         });
     }
 
+    @Override
+    public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
+        // Execute tasks and transition back to "configure", as this build may run more tasks;
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        if (workPlan.empty) {
+            return ExecutionResult.succeeded();
+        }
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> {
+            List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = workPlan.finalizations;
+            if (!finalizations.isEmpty()) {
+                EntryTaskSelectorContext context = new EntryTaskSelectorContext();
+                for (BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization : finalizations) {
+                    finalization.accept(context, workPlan.finalizedPlan.getContents());
+                }
+                workPlan.finalizations.clear();
+            }
+            return workExecutor.execute(gradle, workPlan.finalizedPlan);
+        });
+    }
+
+    private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
+        DefaultBuildWorkPlan workPlan = (DefaultBuildWorkPlan) plan;
+        if (workPlan.owner != this) {
+            throw new IllegalArgumentException("Unexpected plan owner.");
+        }
+        return workPlan;
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this));
+    }
+
+    private BuildState targetBuild() {
+        return gradle.getOwner();
+    }
+
+    @Override
+    public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
+        return state.transition(CONFIGURATION_STATES, State.BuildFinishHooks, stageFailures -> {
+            // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
+            // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
+            // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
+
+            Throwable reportableFailure = failure;
+            if (reportableFailure == null && !stageFailures.getFailures().isEmpty()) {
+                reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
+            }
+            BuildResult buildResult = new BuildResult(hasTasks ? "Build" : "Configure", gradle, reportableFailure);
+            return ExecutionResult.maybeFailing(() -> buildListener.buildFinished(buildResult));
+        });
+    }
+
+    /**
+     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build.
+     * See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener types.</p>
+     *
+     * @param listener The listener to add. Has no effect if the listener has already been added.
+     */
+    @Override
+    public void addListener(Object listener) {
+        getGradle().addListener(listener);
+    }
+
+    private enum State implements StateTransitionController.State {
+        // Configuring the build, can access build model
+        Configure,
+        // Scheduling tasks for execution
+        TaskSchedule,
+        ReadyToRun,
+        BuildFinishHooks,
+        ReadyToReset,
+        // build has finished and should do no further work
+        Finished
+    }
+
+    private static class DefaultBuildWorkPlan implements BuildWorkPlan {
+        private final DefaultBuildLifecycleController owner;
+        private final ExecutionPlan plan;
+        private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
+        private final List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = new ArrayList<>();
+        private FinalizedExecutionPlan finalizedPlan;
+        private boolean empty = true;
+
+        public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
+            this.owner = owner;
+            this.plan = plan;
+        }
+
+        @Override
+        public void stop() {
+            plan.close();
+        }
+
+        @Override
+        public void addFilter(Spec<Task> filter) {
+            plan.addFilter(filter);
+        }
+
+        @Override
+        public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
+            finalizations.add(finalization);
+        }
+
+        @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            handlers.add(handler);
+        }
+    }
+
     @NullMarked
     private class EntryTaskSelectorContext implements EntryTaskSelector.Context {
 
@@ -291,104 +387,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
         private BuildStateRegistry getBuildStateRegistry() {
             return gradle.getServices().get(BuildStateRegistry.class);
-        }
-    }
-
-    @Override
-    public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
-        // Execute tasks and transition back to "configure", as this build may run more tasks;
-        DefaultBuildWorkPlan workPlan = unpack(plan);
-        if (workPlan.empty) {
-            return ExecutionResult.succeeded();
-        }
-        return state.tryTransition(State.ReadyToRun, State.Configure, () -> {
-            List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = workPlan.finalizations;
-            if (!finalizations.isEmpty()) {
-                EntryTaskSelectorContext context = new EntryTaskSelectorContext();
-                for (BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization : finalizations) {
-                    finalization.accept(context, workPlan.finalizedPlan.getContents());
-                }
-                workPlan.finalizations.clear();
-            }
-            return workExecutor.execute(gradle, workPlan.finalizedPlan);
-        });
-    }
-
-    private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
-        DefaultBuildWorkPlan workPlan = (DefaultBuildWorkPlan) plan;
-        if (workPlan.owner != this) {
-            throw new IllegalArgumentException("Unexpected plan owner.");
-        }
-        return workPlan;
-    }
-
-    @Override
-    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this));
-    }
-
-    private BuildState targetBuild() {
-        return gradle.getOwner();
-    }
-
-    @Override
-    public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return state.transition(CONFIGURATION_STATES, State.BuildFinishHooks, stageFailures -> {
-            // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
-            // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
-            // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
-
-            Throwable reportableFailure = failure;
-            if (reportableFailure == null && !stageFailures.getFailures().isEmpty()) {
-                reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
-            }
-            BuildResult buildResult = new BuildResult(hasTasks ? "Build" : "Configure", gradle, reportableFailure);
-            return ExecutionResult.maybeFailing(() -> buildListener.buildFinished(buildResult));
-        });
-    }
-
-    /**
-     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build.
-     * See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener types.</p>
-     *
-     * @param listener The listener to add. Has no effect if the listener has already been added.
-     */
-    @Override
-    public void addListener(Object listener) {
-        getGradle().addListener(listener);
-    }
-
-    private static class DefaultBuildWorkPlan implements BuildWorkPlan {
-        private final DefaultBuildLifecycleController owner;
-        private final ExecutionPlan plan;
-        private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
-        private final List<BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan>> finalizations = new ArrayList<>();
-        private FinalizedExecutionPlan finalizedPlan;
-        private boolean empty = true;
-
-        public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
-            this.owner = owner;
-            this.plan = plan;
-        }
-
-        @Override
-        public void stop() {
-            plan.close();
-        }
-
-        @Override
-        public void addFilter(Spec<Task> filter) {
-            plan.addFilter(filter);
-        }
-
-        @Override
-        public void addFinalization(BiConsumer<EntryTaskSelector.Context, QueryableExecutionPlan> finalization) {
-            finalizations.add(finalization);
-        }
-
-        @Override
-        public void onComplete(Consumer<LocalTaskNode> handler) {
-            handlers.add(handler);
         }
     }
 

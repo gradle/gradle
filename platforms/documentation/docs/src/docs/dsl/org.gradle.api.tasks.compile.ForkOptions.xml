@@ -26,15 +26,21 @@
             </thead>
             <tr>
                 <td>executable</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>javaHome</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>tempDir</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
         </table>
     </section>

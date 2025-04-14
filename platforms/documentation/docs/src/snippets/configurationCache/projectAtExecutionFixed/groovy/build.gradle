@@ -3,7 +3,8 @@
 // end::ad-hoc-task[]
 abstract class SomeTask extends DefaultTask {
 
-    @Inject abstract FileSystemOperations getFs() // <1>
+    @Inject
+    abstract FileSystemOperations getFs() // <1>
 
     @TaskAction
     void action() {
@@ -19,8 +20,10 @@ tasks.register('someTaskType', SomeTask)
 
 // tag::ad-hoc-task[]
 interface Injected {
-    @Inject FileSystemOperations getFs() // <1>
+    @Inject
+    FileSystemOperations getFs() // <1>
 }
+
 tasks.register('someTask') {
     def injected = project.objects.newInstance(Injected) // <2>
     doLast {

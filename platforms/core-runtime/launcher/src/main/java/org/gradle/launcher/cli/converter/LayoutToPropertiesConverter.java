@@ -61,6 +61,22 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new ToolchainBuildOptions().getAllOptions());
     }
 
+    private static Properties readProperties(File propertiesFile) {
+        Properties properties = new Properties();
+
+        if (propertiesFile.isFile()) {
+
+            try {
+                try (FileInputStream inputStream = new FileInputStream(propertiesFile)) {
+                    properties.load(inputStream);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return properties;
+    }
+
     public AllProperties convert(InitialProperties initialProperties, BuildLayoutResult layout) {
         Map<String, String> properties = new HashMap<>();
         configureFromHomeDir(layout.getGradleInstallationHomeDir(), properties);
@@ -116,22 +132,6 @@ public class LayoutToPropertiesConverter {
                 result.put(key.toString(), properties.get(key).toString());
             }
         }
-    }
-
-    private static Properties readProperties(File propertiesFile) {
-        Properties properties = new Properties();
-
-        if (propertiesFile.isFile()) {
-
-            try {
-                try (FileInputStream inputStream = new FileInputStream(propertiesFile)) {
-                    properties.load(inputStream);
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-        return properties;
     }
 
     private static class Result implements AllProperties {

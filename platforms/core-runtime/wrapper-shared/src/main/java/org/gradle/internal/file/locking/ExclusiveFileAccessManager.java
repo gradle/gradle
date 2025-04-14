@@ -35,6 +35,16 @@ public class ExclusiveFileAccessManager {
         this.pollIntervalMs = pollIntervalMs;
     }
 
+    private static void maybeCloseQuietly(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (Exception ignore) {
+                //
+            }
+        }
+    }
+
     public <T> T access(File exclusiveFile, Callable<T> task) throws Exception {
         final File lockFile = new File(exclusiveFile.getParentFile(), exclusiveFile.getName() + LOCK_FILE_SUFFIX);
         File lockFileDirectory = lockFile.getParentFile();
@@ -83,15 +93,5 @@ public class ExclusiveFileAccessManager {
 
     private long getTimeMillis() {
         return System.nanoTime() / (1000L * 1000L);
-    }
-
-    private static void maybeCloseQuietly(Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (Exception ignore) {
-                //
-            }
-        }
     }
 }

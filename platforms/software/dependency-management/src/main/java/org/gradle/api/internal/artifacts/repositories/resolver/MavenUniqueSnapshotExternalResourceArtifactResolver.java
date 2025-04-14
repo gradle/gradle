@@ -50,7 +50,7 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
 
     protected ModuleComponentArtifactMetadata timestamp(ModuleComponentArtifactMetadata artifact) {
         MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier =
-                new MavenUniqueSnapshotComponentIdentifier(artifact.getId().getComponentIdentifier(), snapshot.getTimestamp());
+            new MavenUniqueSnapshotComponentIdentifier(artifact.getId().getComponentIdentifier(), snapshot.getTimestamp());
         return new DefaultModuleComponentArtifactMetadata(snapshotComponentIdentifier, artifact.getName());
     }
 }

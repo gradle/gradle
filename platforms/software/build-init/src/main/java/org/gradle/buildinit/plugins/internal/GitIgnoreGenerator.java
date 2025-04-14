@@ -35,30 +35,10 @@ import java.util.stream.StreamSupport;
 
 public class GitIgnoreGenerator implements BuildContentGenerator {
 
-    @Override
-    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
-        File file = settings.getTarget().file(".gitignore").getAsFile();
-        Set<String> gitignoresToAppend = getGitignoresToAppend(file);
-        if (!gitignoresToAppend.isEmpty()) {
-            boolean shouldAppendNewLine = file.exists();
-            try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
-                if (shouldAppendNewLine) {
-                    writer.println();
-                }
-                Spliterator<String> it = gitignoresToAppend.spliterator();
-                if (it.tryAdvance(e -> withComment(e).forEach(writer::println))) {
-                    StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-    }
-
     private static Set<String> getGitignoresToAppend(File gitignoreFile) {
         Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build"));
         if (gitignoreFile.exists()) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){
+            try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))) {
                 result.removeAll(reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -84,5 +64,25 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
         result.add("");
         result.addAll(entry);
         return result;
+    }
+
+    @Override
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        File file = settings.getTarget().file(".gitignore").getAsFile();
+        Set<String> gitignoresToAppend = getGitignoresToAppend(file);
+        if (!gitignoresToAppend.isEmpty()) {
+            boolean shouldAppendNewLine = file.exists();
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+                if (shouldAppendNewLine) {
+                    writer.println();
+                }
+                Spliterator<String> it = gitignoresToAppend.spliterator();
+                if (it.tryAdvance(e -> withComment(e).forEach(writer::println))) {
+                    StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 }

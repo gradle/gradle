@@ -421,11 +421,11 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                           [File, 'new File("foo")']].collect { propertyDef ->
             def (type, value) = propertyDef
             def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
-            [dsl       : """${type.canonicalName} get${propName.capitalize()}()
+            [dsl: """${type.canonicalName} get${propName.capitalize()}()
                void set${propName.capitalize()}(${type.canonicalName} value)
 """,
              assignment: "p.$propName=$value",
-             check     : "assert p.$propName == $value"]
+             check: "assert p.$propName == $value"]
         }
 
         buildFile """
@@ -489,11 +489,11 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                           [File, 'new File("foo")']].collect { propertyDef ->
             def (type, value) = propertyDef
             def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
-            [dsl       : """${type.canonicalName} get${propName.capitalize()}();
+            [dsl: """${type.canonicalName} get${propName.capitalize()}();
                void set${propName.capitalize()}(${type.canonicalName} value);
 """,
              assignment: "p.set${propName.capitalize()}($value);",
-             check     : (type.primitive?"assert p.get${propName.capitalize()}() == $value":"assert p.get${propName.capitalize()}().equals($value)") + ":\"$propName validation failed\";"
+             check: (type.primitive ? "assert p.get${propName.capitalize()}() == $value" : "assert p.get${propName.capitalize()}().equals($value)") + ":\"$propName validation failed\";"
             ]
         }
 
@@ -569,7 +569,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         def properties = datatable.collect { propertyDef ->
             def (type, value) = propertyDef
             def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
-            [dsl       : """${type.canonicalName} get${propName.capitalize()}()
+            [dsl: """${type.canonicalName} get${propName.capitalize()}()
                void set${propName.capitalize()}(${type.canonicalName} value)
 """,
              check: """
@@ -602,7 +602,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: PluginRules
 
         """
-        i=0
+        i = 0
 
         expect:
         datatable.each { propertyDef ->

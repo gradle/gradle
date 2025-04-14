@@ -154,6 +154,22 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         );
     }
 
+    private static <T> Set<T> linkedHashSetOf(Stream<T> stream) {
+        LinkedHashSet<T> set = new LinkedHashSet<>();
+        stream.forEach(set::add);
+        return set;
+    }
+
+    private static Stream<IvyArtifact> normalized(Stream<IvyArtifact> artifacts, Predicate<IvyArtifact> predicate) {
+        return artifacts
+            .filter(predicate)
+            .map(DefaultIvyPublication::normalizedArtifactFor);
+    }
+
+    private static NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
+        return ((IvyArtifactInternal) artifact).asNormalisedArtifact();
+    }
+
     @Override
     @NonNull
     public String getName() {
@@ -290,18 +306,18 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
+    public DefaultIvyArtifactSet getArtifacts() {
+        populateFromComponent();
+        return mainArtifacts;
+    }
+
+    @Override
     public void setArtifacts(Iterable<?> sources) {
         artifactsOverridden = true;
         mainArtifacts.clear();
         for (Object source : sources) {
             artifact(source);
         }
-    }
-
-    @Override
-    public DefaultIvyArtifactSet getArtifacts() {
-        populateFromComponent();
-        return mainArtifacts;
     }
 
     @Override
@@ -390,12 +406,6 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         );
     }
 
-    private static <T> Set<T> linkedHashSetOf(Stream<T> stream) {
-        LinkedHashSet<T> set = new LinkedHashSet<>();
-        stream.forEach(set::add);
-        return set;
-    }
-
     private boolean isValidArtifact(IvyArtifact artifact) {
         // Validation is done this way for backwards compatibility
         File artifactFile = artifact.getFile();
@@ -412,12 +422,6 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         return true;
     }
 
-    private static Stream<IvyArtifact> normalized(Stream<IvyArtifact> artifacts, Predicate<IvyArtifact> predicate) {
-        return artifacts
-            .filter(predicate)
-            .map(DefaultIvyPublication::normalizedArtifactFor);
-    }
-
     private boolean isPublishableArtifact(IvyArtifact element) {
         if (!((PublicationArtifactInternal) element).shouldBePublished()) {
             return false;
@@ -427,10 +431,6 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
             return gradleModuleDescriptorArtifact.isEnabled();
         }
         return true;
-    }
-
-    private static NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
-        return ((IvyArtifactInternal) artifact).asNormalisedArtifact();
     }
 
     @Override

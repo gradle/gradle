@@ -21,5 +21,6 @@ import org.gradle.caching.configuration.BuildCache;
 
 public interface BuildCacheServiceRegistration {
     Class<? extends BuildCache> getConfigurationType();
+
     Class<? extends BuildCacheServiceFactory<?>> getFactoryType();
 }

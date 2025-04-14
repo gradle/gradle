@@ -28,10 +28,9 @@ import org.gradle.util.internal.CollectionUtils;
 import java.util.Collection;
 
 public class CompatibleDaemonExpirationStrategy implements DaemonExpirationStrategy {
+    public static final String EXPIRATION_REASON = "other compatible daemons were started";
     private final Daemon daemon;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
-
-    public static final String EXPIRATION_REASON = "other compatible daemons were started";
 
     CompatibleDaemonExpirationStrategy(Daemon daemon, ExplainingSpec<DaemonContext> compatibilitySpec) {
         this.daemon = daemon;

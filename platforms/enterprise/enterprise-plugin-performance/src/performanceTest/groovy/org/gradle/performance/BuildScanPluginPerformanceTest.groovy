@@ -76,7 +76,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         "clean build - 50 projects"                             | ['clean', 'build']                 | true        | ['--build-cache']                                             | true
         "clean build - 20 projects - slow tasks - less console" | ['clean', 'project20:buildNeeded'] | true        | ['--build-cache', '-DreducedOutput=true', '-DslowTasks=true'] | true
         "help"                                                  | ['help']                           | false       | []                                                            | false
-        "help - no console output"                              | ['help']    | false                                                         | ['-DreducedOutput=true']                                      | false
+        "help - no console output"                              | ['help']                           | false       | ['-DreducedOutput=true']                                      | false
     }
 
     @Override

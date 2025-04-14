@@ -133,6 +133,7 @@ fun GradleConnector.useGradleFrom(gradleInstallation: GradleInstallation): Gradl
                 embedded(true)
                 useClasspathDistribution()
             }
+
             GradleInstallation.Wrapper -> useBuildDistribution()
         }
     }

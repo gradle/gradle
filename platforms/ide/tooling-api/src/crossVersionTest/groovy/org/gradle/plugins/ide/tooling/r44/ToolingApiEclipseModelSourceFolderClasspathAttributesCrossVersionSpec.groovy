@@ -64,10 +64,10 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         then:
         project.sourceDirectories.size() == 1
         project.sourceDirectories[0].classpathAttributes.size() == 4
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_scope' && it.value == 'main'}
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'main,test'}
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key1' && it.value == 'value1'}
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key2' && it.value == 'value2'}
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_scope' && it.value == 'main' }
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'main,test' }
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key1' && it.value == 'value1' }
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key2' && it.value == 'value2' }
     }
 
 
@@ -95,7 +95,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         then:
         project.sourceDirectories.size() == 1
         project.sourceDirectories[0].classpathAttributes.size() == 2
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_scope' && it.value == 'foo'}
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'foo,bar'}
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_scope' && it.value == 'foo' }
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'foo,bar' }
     }
 }

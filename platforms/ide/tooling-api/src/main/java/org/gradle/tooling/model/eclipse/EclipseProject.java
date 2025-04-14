@@ -82,8 +82,8 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * The result can be customized via the 'eclipse' plugin configuration.
      *
      * @return The list of Eclipse project natures.
-     * @since 2.9
      * @throws UnsupportedMethodException For Gradle versions older than 2.9, where this method is not supported.
+     * @since 2.9
      */
     DomainObjectSet<? extends EclipseProjectNature> getProjectNatures() throws UnsupportedMethodException;
 
@@ -98,8 +98,8 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * The result can be customized via the 'eclipse' plugin configuration.
      *
      * @return The list of Eclipse build commands.
-     * @since 2.9
      * @throws UnsupportedMethodException For Gradle versions older than 2.9, where this method is not supported.
+     * @since 2.9
      */
     DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands() throws UnsupportedMethodException;
 
@@ -107,8 +107,8 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * Returns the Eclipse classpath containers defined on the project.
      *
      * @return The list of classpath containers.
-     * @since 3.0
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     * @since 3.0
      */
     DomainObjectSet<? extends EclipseClasspathContainer> getClasspathContainers() throws UnsupportedMethodException;
 
@@ -116,8 +116,8 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * Returns the output location of this project.
      *
      * @return The project's output location.
-     * @since 3.0
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     * @since 3.0
      */
     EclipseOutputLocation getOutputLocation() throws UnsupportedMethodException;
 
@@ -126,8 +126,8 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * every time the auto-build is triggered for the target project.
      *
      * @return whether the project has auto-build tasks configured
-     * @since 5.4
      * @see RunEclipseAutoBuildTasks
+     * @since 5.4
      */
     boolean hasAutoBuildTasks();
 }

@@ -96,6 +96,31 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         callInterceptors.forEach(this::addInterceptor);
     }
 
+    // This method is used via the `MAYBE_INSTRUMENTED_DYNAMIC_CALL_MH` method handle
+    @SuppressWarnings("unused")
+    private static @Nullable Object maybeInstrumentedDynamicCallViaMethodHandle(
+        Set<String> interceptedCallSiteNames,
+        String callerClassName,
+        String callSiteName,
+        InstrumentedGroovyCallsTracker.CallKind kind,
+        MethodHandle delegate,
+        Object[] delegateArgs
+    ) throws Throwable {
+        if (interceptedCallSiteNames.contains(callSiteName)) {
+            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
+            return withEntryPoint(callerClassName, callSiteName, kind, () -> delegate.invokeWithArguments(delegateArgs));
+        } else {
+            return delegate.invokeWithArguments(delegateArgs);
+        }
+    }
+
+    private static CacheableCallSite toGroovyCacheableCallSite(java.lang.invoke.CallSite cs) {
+        if (!(cs instanceof CacheableCallSite)) {
+            throw new GradleException("Groovy produced unrecognized call site type of " + cs.getClass());
+        }
+        return (CacheableCallSite) cs;
+    }
+
     private void addInterceptor(CallInterceptor interceptor) {
         for (InterceptScope scope : interceptor.getInterceptScopes()) {
             interceptors.compute(scope, (__, previous) -> previous == null ? interceptor : new CompositeCallInterceptor(previous, interceptor));
@@ -153,31 +178,6 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
             .asType(methodHandle.type());
     }
 
-    // This method is used via the `MAYBE_INSTRUMENTED_DYNAMIC_CALL_MH` method handle
-    @SuppressWarnings("unused")
-    private static @Nullable Object maybeInstrumentedDynamicCallViaMethodHandle(
-        Set<String> interceptedCallSiteNames,
-        String callerClassName,
-        String callSiteName,
-        InstrumentedGroovyCallsTracker.CallKind kind,
-        MethodHandle delegate,
-        Object[] delegateArgs
-    ) throws Throwable {
-        if (interceptedCallSiteNames.contains(callSiteName)) {
-            InstrumentedClosuresHelper.INSTANCE.hitInstrumentedDynamicCall();
-            return withEntryPoint(callerClassName, callSiteName, kind, () -> delegate.invokeWithArguments(delegateArgs));
-        } else {
-            return delegate.invokeWithArguments(delegateArgs);
-        }
-    }
-
-    private static CacheableCallSite toGroovyCacheableCallSite(java.lang.invoke.CallSite cs) {
-        if (!(cs instanceof CacheableCallSite)) {
-            throw new GradleException("Groovy produced unrecognized call site type of " + cs.getClass());
-        }
-        return (CacheableCallSite) cs;
-    }
-
     /**
      * Decorates a Groovy {@link CallSite} if the interceptor is registered for the method/property/constructor.
      * The returned CallSite instance will perform the actual interception.
@@ -208,6 +208,11 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         return interceptedCallSiteNames.contains(name);
     }
 
+    @NullMarked
+    enum CallStrategy {
+        CALL_CURRENT, CALL_GET_PROPERTY, CALL_GROOVY_OBJECT_GET_PROPERTY
+    }
+
     private class DecoratingCallSite extends AbstractCallSite {
         private @Nullable CallSite groovyDefaultCallSite = null;
 
@@ -234,7 +239,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
             CallInterceptor interceptor = resolveCallInterceptor(InterceptScope.methodsNamed(getName()));
             if (interceptor != null) {
                 return interceptor.intercept(
-                    new InvocationImpl<>(receiver, args, () ->super.callStatic(receiver, args)),
+                    new InvocationImpl<>(receiver, args, () -> super.callStatic(receiver, args)),
                     callSiteOwnerClassName()
                 );
             }
@@ -358,10 +363,5 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         private String callSiteOwnerClassName() {
             return array.owner.getName();
         }
-    }
-
-    @NullMarked
-    enum CallStrategy {
-        CALL_CURRENT, CALL_GET_PROPERTY, CALL_GROOVY_OBJECT_GET_PROPERTY
     }
 }

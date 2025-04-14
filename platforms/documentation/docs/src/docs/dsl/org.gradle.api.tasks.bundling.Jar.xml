@@ -10,7 +10,9 @@
             </thead>
             <tr>
                 <td>metadataCharset</td>
-                <td><literal>UTF-8</literal></td>
+                <td>
+                    <literal>UTF-8</literal>
+                </td>
             </tr>
         </table>
     </section>

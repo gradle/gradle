@@ -33,7 +33,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
     def "defaults to kotlin build scripts"() {
         when:
-        run ('init', '--type', 'kotlin-library')
+        run('init', '--type', 'kotlin-library')
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
@@ -69,7 +69,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
+        run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -91,7 +91,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
     @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
-        run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
+        run('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         gradlePropertiesGenerated {

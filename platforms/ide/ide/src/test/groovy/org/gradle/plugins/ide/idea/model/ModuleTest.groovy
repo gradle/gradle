@@ -29,12 +29,12 @@ class ModuleTest extends Specification {
     final customGeneratedSourceFolders = [path('file://$MODULE_DIR$/generated-src'), path('file://$MODULE_DIR$/generated-test-src'), path('file://$MODULE_DIR$/generated-resource'), path('file://$MODULE_DIR$/generated-test-resource')] as LinkedHashSet
     final customExcludeFolders = [path('file://$MODULE_DIR$/target')] as LinkedHashSet
     final customDependencies = [
-            new ModuleLibrary([path('file://$MODULE_DIR$/gradle/lib')] as Set,
-                    [path('file://$MODULE_DIR$/gradle/javadoc')] as Set, [path('file://$MODULE_DIR$/gradle/src')] as Set,
-                    [] as Set, null),
-            new ModuleLibrary([path('file://$MODULE_DIR$/ant/lib'), path('jar://$GRADLE_CACHE$/gradle.jar!/')] as Set, [] as Set, [] as Set,
-                    [new JarDirectory(path('file://$MODULE_DIR$/ant/lib'), false)] as Set, "RUNTIME"),
-            new ModuleDependency('someModule', null)]
+        new ModuleLibrary([path('file://$MODULE_DIR$/gradle/lib')] as Set,
+            [path('file://$MODULE_DIR$/gradle/javadoc')] as Set, [path('file://$MODULE_DIR$/gradle/src')] as Set,
+            [] as Set, null),
+        new ModuleLibrary([path('file://$MODULE_DIR$/ant/lib'), path('jar://$GRADLE_CACHE$/gradle.jar!/')] as Set, [] as Set, [] as Set,
+            [new JarDirectory(path('file://$MODULE_DIR$/ant/lib'), false)] as Set, "RUNTIME"),
+        new ModuleDependency('someModule', null)]
 
     Module module = new Module(xmlTransformer, pathFactory)
 
@@ -68,13 +68,13 @@ class ModuleTest extends Specification {
         def constructorLanguageLevel = JavaVersion.VERSION_1_6.toString()
         def constructorTestOutputDir = path('someTestOut')
         def constructorModuleDependencies = [
-                customDependencies[0],
-                new ModuleLibrary([path('x')], [], [], [new JarDirectory(path('y'), false)], null)] as LinkedHashSet
+            customDependencies[0],
+            new ModuleLibrary([path('x')], [], [], [new JarDirectory(path('y'), false)], null)] as LinkedHashSet
 
         when:
         module.load(customModuleReader)
         module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorResourceFolders, constructorTestResourceFolders, constructorGeneratedSourceFolders, constructorExcludeFolders,
-                constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion, constructorLanguageLevel)
+            constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion, constructorLanguageLevel)
 
         then:
         module.sourceFolders == customSourceFolders + constructorSourceFolders
@@ -92,7 +92,7 @@ class ModuleTest extends Specification {
     def "configures default java version"() {
         when:
         module.configure(null, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set,
-                true, null, null, [] as Set, null, null)
+            true, null, null, [] as Set, null, null)
 
         then:
         module.jdkName == Module.INHERITED
@@ -117,7 +117,7 @@ class ModuleTest extends Specification {
         when:
         module.loadDefaults()
         module.configure(null, constructorSourceFolders, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set,
-                false, constructorOutputDir, constructorTestOutputDir, [] as Set, null, null)
+            false, constructorOutputDir, constructorTestOutputDir, [] as Set, null, null)
         def xml = toXmlReader
         def newModule = new Module(xmlTransformer, pathFactory)
         newModule.load(xml)

@@ -25,9 +25,8 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 public class HandleStop implements DaemonCommandAction {
-    private final DaemonExpirationListener listenerBroadcast;
-
     public static final String EXPIRATION_REASON = "stop command received";
+    private final DaemonExpirationListener listenerBroadcast;
 
     public HandleStop(ListenerManager listenerManager) {
         this.listenerBroadcast = listenerManager.getBroadcaster(DaemonExpirationListener.class);

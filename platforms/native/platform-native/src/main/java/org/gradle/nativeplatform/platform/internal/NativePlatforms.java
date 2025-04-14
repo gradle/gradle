@@ -27,6 +27,14 @@ public class NativePlatforms {
     private static final String OS_UNIX = "unix";
     private static final String ARCH_X86 = "x86";
 
+    private static DefaultNativePlatform createPlatform(OperatingSystemInternal os, ArchitectureInternal arch) {
+        return new DefaultNativePlatform(platformName(os.getName(), arch.getName()), os, arch);
+    }
+
+    private static String platformName(String os, String arch) {
+        return os + "_" + arch;
+    }
+
     public Set<DefaultNativePlatform> defaultPlatformDefinitions() {
         Set<DefaultNativePlatform> platforms = new LinkedHashSet<DefaultNativePlatform>();
 
@@ -81,14 +89,6 @@ public class NativePlatforms {
         platforms.add(createPlatform(solaris, ultrasparc));
 
         return platforms;
-    }
-
-    private static DefaultNativePlatform createPlatform(OperatingSystemInternal os, ArchitectureInternal arch) {
-        return new DefaultNativePlatform(platformName(os.getName(), arch.getName()), os, arch);
-    }
-
-    private static String platformName(String os, String arch) {
-        return os + "_" + arch;
     }
 
     public String getDefaultPlatformName() {

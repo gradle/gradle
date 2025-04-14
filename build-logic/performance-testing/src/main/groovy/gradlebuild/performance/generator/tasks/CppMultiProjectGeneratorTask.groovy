@@ -43,7 +43,7 @@ class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
         ] + args
         generateWithTemplate(projectDir, 'build.gradle', 'build.gradle', projectArgs)
         if (projectArgs.projectType == 'exe') {
-            generateWithTemplate(projectDir,'src/main/cpp/exe.cpp', 'exe.cpp', projectArgs)
+            generateWithTemplate(projectDir, 'src/main/cpp/exe.cpp', 'exe.cpp', projectArgs)
         }
         testProject.sourceFiles.times { s ->
             def fName = projectNumber == -1 ? "lib${s + 1}" : "project${projectNumber}lib${s + 1}"

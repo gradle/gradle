@@ -22,9 +22,9 @@ import org.gradle.api.provider.Property;
  * The relocation information of a Maven publication that has been moved
  * to a new group and/or artifact ID.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomDistributionManagement
+ * @since 4.8
  */
 public interface MavenPomRelocation {
 

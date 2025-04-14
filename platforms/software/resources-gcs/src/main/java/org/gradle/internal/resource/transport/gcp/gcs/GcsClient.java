@@ -55,6 +55,11 @@ public class GcsClient {
 
     private final Storage storage;
 
+    @VisibleForTesting
+    GcsClient(Storage storage) {
+        this.storage = storage;
+    }
+
     public static GcsClient create(GcsConnectionProperties gcsConnectionProperties) throws GeneralSecurityException, IOException {
         HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
         JsonFactory jsonFactory = new GsonFactory();
@@ -73,9 +78,33 @@ public class GcsClient {
         return new GcsClient(builder.build());
     }
 
-    @VisibleForTesting
-    GcsClient(Storage storage) {
-        this.storage = storage;
+    private static String cleanResourcePath(URI uri) {
+        String path;
+        try {
+            path = URLDecoder.decode(uri.getPath(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e); // fail fast, this should not happen
+        }
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return path;
+    }
+
+    private static Supplier<Credential> getCredentialSupplier(final HttpTransport transport, final JsonFactory jsonFactory) {
+        return Suppliers.memoize(new Supplier<Credential>() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public Credential get() {
+                try {
+                    GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
+                    // Ensure we have a scope
+                    return googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Failed to get Google credentials for GCS connection", e);
+                }
+            }
+        });
     }
 
     public void put(InputStream inputStream, Long contentLength, URI destination) throws ResourceException {
@@ -141,7 +170,7 @@ public class GcsClient {
                 objects = listRequest.execute();
                 // Add the items in this page of results to the list we'll return.
                 // GCS API will return null on an empty list.
-                if(objects.getItems() != null) {
+                if (objects.getItems() != null) {
                     results.addAll(objects.getItems());
                 }
 
@@ -158,34 +187,5 @@ public class GcsClient {
         }
 
         return resultStrings;
-    }
-
-    private static String cleanResourcePath(URI uri) {
-        String path;
-        try {
-            path = URLDecoder.decode(uri.getPath(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.throwAsUncheckedException(e); // fail fast, this should not happen
-        }
-        while (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        return path;
-    }
-
-    private static Supplier<Credential> getCredentialSupplier(final HttpTransport transport, final JsonFactory jsonFactory) {
-        return Suppliers.memoize(new Supplier<Credential>() {
-            @Override
-            @SuppressWarnings("deprecation")
-            public Credential get() {
-                try {
-                    GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
-                    // Ensure we have a scope
-                    return googleCredential.createScoped(singletonList("https://www.googleapis.com/auth/devstorage.read_write"));
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Failed to get Google credentials for GCS connection", e);
-                }
-            }
-        });
     }
 }

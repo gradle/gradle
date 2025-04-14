@@ -41,15 +41,25 @@ import static org.gradle.internal.Cast.uncheckedCast;
 @SuppressWarnings("deprecation")
 public class DslObject implements DynamicObjectAware, ExtensionAware, IConventionAware, org.gradle.api.internal.HasConvention {
 
+    private final Object object;
     private DynamicObject dynamicObject;
     private ExtensionContainer extensionContainer;
     private ConventionMapping conventionMapping;
     private org.gradle.api.plugins.Convention convention;
 
-    private final Object object;
-
     public DslObject(Object object) {
         this.object = object;
+    }
+
+    private static <T> T toType(Object delegate, Class<T> type) {
+        if (type.isInstance(delegate)) {
+            return type.cast(delegate);
+        } else {
+            throw new IllegalStateException(
+                String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
+                    delegate, delegate.getClass().getSimpleName(), type.getName())
+            );
+        }
     }
 
     @Override
@@ -106,17 +116,6 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
 
     public Class<?> getImplementationType() {
         return GeneratedSubclasses.unpackType(object);
-    }
-
-    private static <T> T toType(Object delegate, Class<T> type) {
-        if (type.isInstance(delegate)) {
-            return type.cast(delegate);
-        } else {
-            throw new IllegalStateException(
-                String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
-                    delegate, delegate.getClass().getSimpleName(), type.getName())
-            );
-        }
     }
 
 }

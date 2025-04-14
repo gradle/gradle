@@ -45,6 +45,7 @@ import org.gradle.testing.base.TestSuite;
 public interface JvmTestSuite extends TestSuite, Buildable {
 
     // TODO: Rename to getSourceSet next time changes are made in this area.
+
     /**
      * Returns the container of {@link JvmTestSuiteTarget} objects part of this suite.
      *
@@ -75,7 +76,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
      *
      * <p>
-     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.8.2}
+     * Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.8.2}
      * </p>
      */
     void useJUnitJupiter();
@@ -91,7 +92,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
      *
      * @param version provider supplying the version of JUnit Jupiter to use
-     *
      * @since 7.6
      */
     void useJUnitJupiter(Provider<String> version);
@@ -99,7 +99,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework.
      * <p>
-     *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13.2}
+     * Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13.2}
      * </p>
      */
     void useJUnit();
@@ -115,7 +115,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
      *
      * @param version provider supplying the version of JUnit4 to use
-     *
      * @since 7.6
      */
     void useJUnit(Provider<String> version);
@@ -123,7 +122,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
      * <p>
-     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.2-groovy-3.0}
+     * Gradle will provide the version of Spock to use. Defaults to version {@code 2.2-groovy-3.0}
      * </p>
      */
     void useSpock();
@@ -139,7 +138,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
      *
      * @param version provider supplying the version of Spock to use
-     *
      * @since 7.6
      */
     void useSpock(Provider<String> version);
@@ -147,7 +145,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
      * <p>
-     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.20}
+     * Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.20}
      * </p>
      */
     void useKotlinTest();
@@ -163,7 +161,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
      *
      * @param version provider supplying the version of kotlin.test to use
-     *
      * @since 7.6
      */
     void useKotlinTest(Provider<String> version);
@@ -171,7 +168,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
      * <p>
-     *     Gradle will provide the version of TestNG to use. Defaults to version {@code 7.4.0}
+     * Gradle will provide the version of TestNG to use. Defaults to version {@code 7.4.0}
      * </p>
      */
     void useTestNG();
@@ -187,7 +184,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
      *
      * @param version provider supplying the version of TestNG to use
-     *
      * @since 7.6
      */
     void useTestNG(Provider<String> version);

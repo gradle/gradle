@@ -103,6 +103,78 @@ import java.util.concurrent.atomic.AtomicReference;
  * The set of dependency management services that are created per build tree.
  */
 class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationProvider {
+    private static ModuleRepositoryCaches prepareModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
+        DefaultModuleVersionsCache moduleVersionsCache = new DefaultModuleVersionsCache(
+            timeProvider,
+            cacheAccessCoordinator,
+            moduleIdentifierFactory);
+        PersistentModuleMetadataCache moduleMetadataCache = new PersistentModuleMetadataCache(
+            timeProvider,
+            cacheAccessCoordinator,
+            artifactCacheMetadata,
+            moduleIdentifierFactory,
+            attributeContainerSerializer,
+            capabilitySelectorSerializer,
+            mavenMetadataFactory,
+            ivyMetadataFactory,
+            stringInterner,
+            moduleSourcesSerializer,
+            checksumService);
+        DefaultModuleArtifactsCache moduleArtifactsCache = new DefaultModuleArtifactsCache(
+            timeProvider,
+            cacheAccessCoordinator
+        );
+        DefaultModuleArtifactCache moduleArtifactCache = new DefaultModuleArtifactCache(
+            "module-artifact",
+            timeProvider,
+            cacheAccessCoordinator,
+            artifactIdentifierFileStore.getFileAccessTracker(),
+            artifactCacheMetadata.getCacheDir().toPath()
+        );
+        return new ModuleRepositoryCaches(
+            moduleVersionsCache,
+            moduleMetadataCache,
+            moduleArtifactsCache,
+            moduleArtifactCache
+        );
+    }
+
+    private static ModuleRepositoryCaches prepareReadOnlyModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
+        ReadOnlyModuleVersionsCache moduleVersionsCache = new ReadOnlyModuleVersionsCache(
+            timeProvider,
+            cacheAccessCoordinator,
+            moduleIdentifierFactory);
+        ReadOnlyModuleMetadataCache moduleMetadataCache = new ReadOnlyModuleMetadataCache(
+            timeProvider,
+            cacheAccessCoordinator,
+            artifactCacheMetadata,
+            moduleIdentifierFactory,
+            attributeContainerSerializer,
+            capabilitySelectorSerializer,
+            mavenMetadataFactory,
+            ivyMetadataFactory,
+            stringInterner,
+            moduleSourcesSerializer,
+            checksumService);
+        ReadOnlyModuleArtifactsCache moduleArtifactsCache = new ReadOnlyModuleArtifactsCache(
+            timeProvider,
+            cacheAccessCoordinator
+        );
+        ReadOnlyModuleArtifactCache moduleArtifactCache = new ReadOnlyModuleArtifactCache(
+            "module-artifact",
+            timeProvider,
+            cacheAccessCoordinator,
+            artifactIdentifierFileStore.getFileAccessTracker(),
+            artifactCacheMetadata.getCacheDir().toPath()
+        );
+        return new ModuleRepositoryCaches(
+            moduleVersionsCache,
+            moduleMetadataCache,
+            moduleArtifactsCache,
+            moduleArtifactCache
+        );
+    }
+
     void configure(ServiceRegistration registration) {
         registration.add(ProjectArtifactResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);
@@ -224,77 +296,5 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
             new InMemoryModuleArtifactCache(timeProvider)
         );
         return new ModuleRepositoryCacheProvider(persistentCaches, inMemoryOnlyCaches);
-    }
-
-    private static ModuleRepositoryCaches prepareModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
-        DefaultModuleVersionsCache moduleVersionsCache = new DefaultModuleVersionsCache(
-            timeProvider,
-            cacheAccessCoordinator,
-            moduleIdentifierFactory);
-        PersistentModuleMetadataCache moduleMetadataCache = new PersistentModuleMetadataCache(
-            timeProvider,
-            cacheAccessCoordinator,
-            artifactCacheMetadata,
-            moduleIdentifierFactory,
-            attributeContainerSerializer,
-            capabilitySelectorSerializer,
-            mavenMetadataFactory,
-            ivyMetadataFactory,
-            stringInterner,
-            moduleSourcesSerializer,
-            checksumService);
-        DefaultModuleArtifactsCache moduleArtifactsCache = new DefaultModuleArtifactsCache(
-            timeProvider,
-            cacheAccessCoordinator
-        );
-        DefaultModuleArtifactCache moduleArtifactCache = new DefaultModuleArtifactCache(
-            "module-artifact",
-            timeProvider,
-            cacheAccessCoordinator,
-            artifactIdentifierFileStore.getFileAccessTracker(),
-            artifactCacheMetadata.getCacheDir().toPath()
-        );
-        return new ModuleRepositoryCaches(
-            moduleVersionsCache,
-            moduleMetadataCache,
-            moduleArtifactsCache,
-            moduleArtifactCache
-        );
-    }
-
-    private static ModuleRepositoryCaches prepareReadOnlyModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
-        ReadOnlyModuleVersionsCache moduleVersionsCache = new ReadOnlyModuleVersionsCache(
-            timeProvider,
-            cacheAccessCoordinator,
-            moduleIdentifierFactory);
-        ReadOnlyModuleMetadataCache moduleMetadataCache = new ReadOnlyModuleMetadataCache(
-            timeProvider,
-            cacheAccessCoordinator,
-            artifactCacheMetadata,
-            moduleIdentifierFactory,
-            attributeContainerSerializer,
-            capabilitySelectorSerializer,
-            mavenMetadataFactory,
-            ivyMetadataFactory,
-            stringInterner,
-            moduleSourcesSerializer,
-            checksumService);
-        ReadOnlyModuleArtifactsCache moduleArtifactsCache = new ReadOnlyModuleArtifactsCache(
-            timeProvider,
-            cacheAccessCoordinator
-        );
-        ReadOnlyModuleArtifactCache moduleArtifactCache = new ReadOnlyModuleArtifactCache(
-            "module-artifact",
-            timeProvider,
-            cacheAccessCoordinator,
-            artifactIdentifierFileStore.getFileAccessTracker(),
-            artifactCacheMetadata.getCacheDir().toPath()
-        );
-        return new ModuleRepositoryCaches(
-            moduleVersionsCache,
-            moduleMetadataCache,
-            moduleArtifactsCache,
-            moduleArtifactCache
-        );
     }
 }

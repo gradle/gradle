@@ -13,13 +13,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<ruleset xmlns="http://codenarc.org/ruleset/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://codenarc.org/ruleset/1.0"
          xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
          xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
     <!--<ruleset-ref path='rulesets/basic.xml'>-->
-        <!--<exclude name='ExplicitHashSetInstantiation'/>-->
-        <!--<exclude name='ExplicitCallToAndMethod'/>-->
-        <!--<exclude name='ExplicitCallToOrMethod'/>-->
+    <!--<exclude name='ExplicitHashSetInstantiation'/>-->
+    <!--<exclude name='ExplicitCallToAndMethod'/>-->
+    <!--<exclude name='ExplicitCallToOrMethod'/>-->
     <!--</ruleset-ref>-->
     <ruleset-ref path='rulesets/braces.xml'/>
     <ruleset-ref path='rulesets/imports.xml'>

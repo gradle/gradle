@@ -131,10 +131,10 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
 
         testComponent.getTestBinary().convention(project.provider(() -> {
             return testComponent.getBinaries().get().stream()
-                    .filter(SwiftXCTestBinary.class::isInstance)
-                    .map(SwiftXCTestBinary.class::cast)
-                    .findFirst()
-                    .orElse(null);
+                .filter(SwiftXCTestBinary.class::isInstance)
+                .map(SwiftXCTestBinary.class::cast)
+                .findFirst()
+                .orElse(null);
         }));
 
         testComponent.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, binary -> {
@@ -156,21 +156,21 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
             final SwiftComponent mainComponent = testComponent.getTestedComponent().getOrNull();
             final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
             Dimensions.unitTestVariants(testComponent.getModule(), testComponent.getTargetMachines(), mainTargetMachines,
-                    objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                    variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            testComponent.getSourceCompatibility().finalizeValue();
-                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), testComponent.getSourceCompatibility().getOrNull()));
+                objectFactory, attributesFactory,
+                providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                variantIdentity -> {
+                    if (tryToBuildOnHost(variantIdentity)) {
+                        testComponent.getSourceCompatibility().finalizeValue();
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), testComponent.getSourceCompatibility().getOrNull()));
 
-                            // Create test suite executable
-                            if (result.getTargetPlatform().getTargetMachine().getOperatingSystemFamily().isMacOs()) {
-                                testComponent.addBundle(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                            } else {
-                                testComponent.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                            }
+                        // Create test suite executable
+                        if (result.getTargetPlatform().getTargetMachine().getOperatingSystemFamily().isMacOs()) {
+                            testComponent.addBundle(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                        } else {
+                            testComponent.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         }
-                    });
+                    }
+                });
 
             testComponent.getBinaries().realizeNow();
         });

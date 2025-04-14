@@ -38,9 +38,7 @@ import javax.inject.Inject;
  * @implNote Changes to this interface may require changes to the
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
- *
  * @see <a href="https://docs.gradle.org/current/userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks">Creating custom dependencies blocks.</a>
- *
  * @since 7.6
  */
 @SuppressWarnings("JavadocReference")
@@ -50,7 +48,6 @@ public interface Dependencies {
      *
      * @return a dependency factory
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-     *
      * @see DependencyFactory
      */
     @Inject
@@ -61,7 +58,6 @@ public interface Dependencies {
      *
      * @return a dependency constraint factory
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-     *
      * @see DependencyConstraintFactory
      */
     @Inject
@@ -71,7 +67,6 @@ public interface Dependencies {
      * The current project. You need to use {@link #project()} or {@link #project(String)} to add a {@link ProjectDependency}.
      *
      * @return current project
-     *
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      * @since 8.0
      */
@@ -85,7 +80,6 @@ public interface Dependencies {
      *
      * @param projectPath an absolute or relative path (from the current project) to a project
      * @return a {@link ProjectDependency} for the given path
-     *
      * @see org.gradle.api.Project#project(String)
      */
     @Restricted

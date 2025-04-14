@@ -25,7 +25,7 @@ class JacocoPluginGoodBehaviourTest extends WellBehavedPluginTest {
     // the jacoco plugin behaves well when used together
     // with the java plugin (a typical scenario).
 
-    def setup(){
+    def setup() {
         buildFile << """
             apply plugin:'java'
         """

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-<%
-    def i = 0
-    def groups = subprojects.collect { "'$it'" }.groupBy { i++ % 100 }
-    groups.each {
-        println "include " + it.value.join(", ")
-    }
-%>
+< %
+def i = 0
+def groups = subprojects.collect { "'$it'" }.groupBy { i++ % 100 }
+groups.each {
+    println "include " + it.value.join(", ")
+}
+    % >
 
 def configureGradleScriptKotlinOn(ProjectDescriptor project) {
     project.buildFileName = 'build.gradle.kts'

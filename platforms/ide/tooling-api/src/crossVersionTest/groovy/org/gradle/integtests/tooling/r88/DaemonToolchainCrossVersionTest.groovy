@@ -77,7 +77,7 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         }
 
         then:
-        def e= thrown(GradleConnectionException)
+        def e = thrown(GradleConnectionException)
         e.cause.message.contains("Cannot find a Java installation on your machine")
     }
 }

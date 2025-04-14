@@ -41,6 +41,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
         for a class it doesn't have, it simply returns null. I've not been able to find any official documentation
         explaining why this is.
     */
+
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "daemon bootstrap classpath is bare bones"() {
         given:
@@ -80,7 +81,9 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
         then:
         def lines = output.readLines()
-        if (lines.find { it == noInfoHeading }) { return }
+        if (lines.find { it == noInfoHeading }) {
+            return
+        }
 
         lines.find { it == heading } // here for nicer output if the output isn't what we expect
         def headingIndex = lines.indexOf(heading)

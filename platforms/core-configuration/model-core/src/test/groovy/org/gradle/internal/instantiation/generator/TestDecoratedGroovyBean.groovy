@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.internal.instantiation.generator
 
 class TestDecoratedGroovyBean {

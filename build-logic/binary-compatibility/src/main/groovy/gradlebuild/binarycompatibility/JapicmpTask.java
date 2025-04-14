@@ -83,6 +83,29 @@ public abstract class JapicmpTask extends DefaultTask {
         additionalJapicmpClasspath = classpath;
     }
 
+    private static RichReport.Configuration reportConfigurationOf(Provider<RichReport> report) {
+        if (report.isPresent()) {
+            return report.get().toConfiguration();
+        }
+        return null;
+    }
+
+    private static File maybeFile(RegularFileProperty property) {
+        if (property.isPresent()) {
+            return property.getAsFile().get();
+        }
+        return null;
+    }
+
+    private static List<JApiCmpWorkerAction.Archive> toArchives(FileCollection fc) {
+        Set<File> files = fc.getFiles();
+        List<JApiCmpWorkerAction.Archive> archives = new ArrayList<>(files.size());
+        for (File file : files) {
+            archives.add(new JApiCmpWorkerAction.Archive(file, "1.0"));
+        }
+        return archives;
+    }
+
     @TaskAction
     public void exec() {
         ConfigurableFileCollection oldArchives = getOldArchives();
@@ -123,59 +146,45 @@ public abstract class JapicmpTask extends DefaultTask {
 
     private JapiCmpWorkerConfiguration calculateWorkerConfiguration(List<JApiCmpWorkerAction.Archive> baseline, List<JApiCmpWorkerAction.Archive> current) {
         return new JapiCmpWorkerConfiguration(
-                getIncludeSynthetic().get(),
-                getIgnoreMissingClasses().get(),
-                getPackageIncludes().getOrElse(Collections.emptyList()),
-                getPackageExcludes().getOrElse(Collections.emptyList()),
-                getClassIncludes().getOrElse(Collections.emptyList()),
-                getClassExcludes().getOrElse(Collections.emptyList()),
-                getMethodIncludes().getOrElse(Collections.emptyList()),
-                getMethodExcludes().getOrElse(Collections.emptyList()),
-                getFieldIncludes().getOrElse(Collections.emptyList()),
-                getFieldExcludes().getOrElse(Collections.emptyList()),
-                getAnnotationIncludes().getOrElse(Collections.emptyList()),
-                getAnnotationExcludes().getOrElse(Collections.emptyList()),
-                getIncludeFilters().getOrElse(Collections.emptyList()),
-                getExcludeFilters().getOrElse(Collections.emptyList()),
-                getCompatibilityChangeExcludes().getOrElse(Collections.emptyList()),
-                toArchives(getOldClasspath()),
-                toArchives(getNewClasspath()),
-                baseline,
-                current,
-                getOnlyModified().get(),
-                getOnlyBinaryIncompatibleModified().get(),
-                getFailOnSourceIncompatibility().get(),
-                getAccessModifier().get(),
-                maybeFile(getXmlOutputFile()),
-                maybeFile(getHtmlOutputFile()),
-                maybeFile(getTxtOutputFile()),
-                getFailOnModification().get(),
-                reportConfigurationOf(getRichReport())
+            getIncludeSynthetic().get(),
+            getIgnoreMissingClasses().get(),
+            getPackageIncludes().getOrElse(Collections.emptyList()),
+            getPackageExcludes().getOrElse(Collections.emptyList()),
+            getClassIncludes().getOrElse(Collections.emptyList()),
+            getClassExcludes().getOrElse(Collections.emptyList()),
+            getMethodIncludes().getOrElse(Collections.emptyList()),
+            getMethodExcludes().getOrElse(Collections.emptyList()),
+            getFieldIncludes().getOrElse(Collections.emptyList()),
+            getFieldExcludes().getOrElse(Collections.emptyList()),
+            getAnnotationIncludes().getOrElse(Collections.emptyList()),
+            getAnnotationExcludes().getOrElse(Collections.emptyList()),
+            getIncludeFilters().getOrElse(Collections.emptyList()),
+            getExcludeFilters().getOrElse(Collections.emptyList()),
+            getCompatibilityChangeExcludes().getOrElse(Collections.emptyList()),
+            toArchives(getOldClasspath()),
+            toArchives(getNewClasspath()),
+            baseline,
+            current,
+            getOnlyModified().get(),
+            getOnlyBinaryIncompatibleModified().get(),
+            getFailOnSourceIncompatibility().get(),
+            getAccessModifier().get(),
+            maybeFile(getXmlOutputFile()),
+            maybeFile(getHtmlOutputFile()),
+            maybeFile(getTxtOutputFile()),
+            getFailOnModification().get(),
+            reportConfigurationOf(getRichReport())
         );
-    }
-
-    private static RichReport.Configuration reportConfigurationOf(Provider<RichReport> report) {
-        if (report.isPresent()) {
-            return report.get().toConfiguration();
-        }
-        return null;
-    }
-
-    private static File maybeFile(RegularFileProperty property) {
-        if (property.isPresent()) {
-            return property.getAsFile().get();
-        }
-        return null;
     }
 
     private Configuration resolveJaxb() {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
         return project.getConfigurations().detachedConfiguration(
-                dependencies.create("javax.xml.bind:jaxb-api:2.3.0"),
-                dependencies.create("com.sun.xml.bind:jaxb-core:2.3.0.1"),
-                dependencies.create("com.sun.xml.bind:jaxb-impl:2.3.0.1"),
-                dependencies.create("javax.activation:activation:1.1.1")
+            dependencies.create("javax.xml.bind:jaxb-api:2.3.0"),
+            dependencies.create("com.sun.xml.bind:jaxb-core:2.3.0.1"),
+            dependencies.create("com.sun.xml.bind:jaxb-impl:2.3.0.1"),
+            dependencies.create("javax.activation:activation:1.1.1")
         );
     }
 
@@ -183,7 +192,7 @@ public abstract class JapicmpTask extends DefaultTask {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
         return project.getConfigurations().detachedConfiguration(
-                dependencies.create("com.google.guava:guava:30.1.1-jre")
+            dependencies.create("com.google.guava:guava:30.1.1-jre")
         );
     }
 
@@ -210,15 +219,6 @@ public abstract class JapicmpTask extends DefaultTask {
         }
 
         return toArchives(fc);
-    }
-
-    private static List<JApiCmpWorkerAction.Archive> toArchives(FileCollection fc) {
-        Set<File> files = fc.getFiles();
-        List<JApiCmpWorkerAction.Archive> archives = new ArrayList<>(files.size());
-        for (File file : files) {
-            archives.add(new JApiCmpWorkerAction.Archive(file, "1.0"));
-        }
-        return archives;
     }
 
     private void collectArchives(final List<JApiCmpWorkerAction.Archive> archives, ResolvedDependency resolvedDependency) {

@@ -61,6 +61,25 @@ public class ManagedObjectFactory {
         return instance;
     }
 
+    private static ManagedPropertyName displayNameFor(ModelObject owner, String propertyName) {
+        if (owner.getModelIdentityDisplayName() instanceof ManagedPropertyName) {
+            ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
+            return new ManagedPropertyName(root.ownerDisplayName, root.propertyName + "." + propertyName);
+        } else {
+            return new ManagedPropertyName(cachedOwnerDisplayNameOf(owner), propertyName);
+        }
+    }
+
+    private static Cached<String> cachedOwnerDisplayNameOf(ModelObject owner) {
+        return Cached.of(() -> {
+            Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
+            if (ownerModelIdentityDisplayName != null) {
+                return ownerModelIdentityDisplayName.getDisplayName();
+            }
+            return null;
+        });
+    }
+
     // Called from generated code
     public void applyRole(Object value, ModelObject owner) {
         roleHandler.applyRoleTo(owner, value);
@@ -115,25 +134,6 @@ public class ManagedObjectFactory {
             return attachOwner(getObjectFactory().mapProperty(keyType, valueType), owner, propertyName);
         }
         throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
-    }
-
-    private static ManagedPropertyName displayNameFor(ModelObject owner, String propertyName) {
-        if (owner.getModelIdentityDisplayName() instanceof ManagedPropertyName) {
-            ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
-            return new ManagedPropertyName(root.ownerDisplayName, root.propertyName + "." + propertyName);
-        } else {
-            return new ManagedPropertyName(cachedOwnerDisplayNameOf(owner), propertyName);
-        }
-    }
-
-    private static Cached<String> cachedOwnerDisplayNameOf(ModelObject owner) {
-        return Cached.of(() -> {
-            Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
-            if (ownerModelIdentityDisplayName != null) {
-                return ownerModelIdentityDisplayName.getDisplayName();
-            }
-            return null;
-        });
     }
 
     private ObjectFactory getObjectFactory() {

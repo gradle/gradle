@@ -69,7 +69,7 @@ public class TestEventProgressListener implements TestListenerInternal {
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         ProgressLogger progressLogger = progressLoggers.remove(testDescriptor.getId());
-        assert progressLogger!=null;
+        assert progressLogger != null;
         progressLogger.completed();
     }
 

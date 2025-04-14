@@ -43,6 +43,74 @@ class SelectorStateResolverResults {
         this.versionComparator = versionComparator;
     }
 
+    static <T extends ComponentResolutionState> boolean isVersionAllowedByPlatform(T componentState) {
+        Set<VirtualPlatformState> platformOwners = componentState.getPlatformOwners();
+        if (!platformOwners.isEmpty()) {
+            for (VirtualPlatformState platformOwner : platformOwners) {
+                if (platformOwner.isGreaterThanForcedVersion(componentState.getVersion())) {
+                    return false;
+                }
+            }
+        } else {
+            VirtualPlatformState platform = componentState.getPlatformState();
+            // the platform itself is greater than the forced version
+            return platform == null || !platform.isGreaterThanForcedVersion(componentState.getVersion());
+        }
+        return true;
+    }
+
+    public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
+        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState(), idResolveResult.getGraphState());
+        if (idResolveResult.isRejected()) {
+            component.reject();
+        }
+        return component;
+    }
+
+    private static boolean emptyVersion(ComponentIdResolveResult existing) {
+        if (existing.getFailure() == null) {
+            return existing.getModuleVersionId().getVersion().isEmpty();
+        }
+        return false;
+    }
+
+    private static boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
+        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
+            return existing.getId().equals(resolveResult.getId());
+        }
+        return false;
+    }
+
+    private static boolean selectorAcceptsCandidate(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
+        if (hasFailure(candidate)) {
+            return false;
+        }
+        ResolvedVersionConstraint versionConstraint = dep.getVersionConstraint();
+        if (versionConstraint == null) {
+            return dep.getSelector().matchesStrictly(candidate.getId());
+        }
+        VersionSelector versionSelector = versionConstraint.getRequiredSelector();
+        if (versionSelector != null &&
+            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+
+            if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
+                // Always assume a candidate from a lock will satisfy the latest version selector
+                return true;
+            }
+
+            String version = candidate.getModuleVersionId().getVersion();
+            if (StringUtils.isEmpty(version)) {
+                return false;
+            }
+            return versionSelector.accept(version);
+        }
+        return false;
+    }
+
+    private static boolean hasFailure(ComponentIdResolveResult candidate) {
+        return candidate.getFailure() != null;
+    }
+
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
@@ -82,22 +150,6 @@ class SelectorStateResolverResults {
         return resolved == null ? Collections.emptyList() : resolved;
     }
 
-    static <T extends ComponentResolutionState> boolean isVersionAllowedByPlatform(T componentState) {
-        Set<VirtualPlatformState> platformOwners = componentState.getPlatformOwners();
-        if (!platformOwners.isEmpty()) {
-            for (VirtualPlatformState platformOwner : platformOwners) {
-                if (platformOwner.isGreaterThanForcedVersion(componentState.getVersion())) {
-                    return false;
-                }
-            }
-        } else {
-            VirtualPlatformState platform = componentState.getPlatformState();
-            // the platform itself is greater than the forced version
-            return platform == null || !platform.isGreaterThanForcedVersion(componentState.getVersion());
-        }
-        return true;
-    }
-
     private boolean hasSoftForce() {
         int size = results.size();
         //noinspection ForLoopReplaceableByForEach
@@ -109,14 +161,6 @@ class SelectorStateResolverResults {
             }
         }
         return false;
-    }
-
-    public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
-        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState(), idResolveResult.getGraphState());
-        if (idResolveResult.isRejected()) {
-            component.reject();
-        }
-        return component;
     }
 
     /**
@@ -135,7 +179,7 @@ class SelectorStateResolverResults {
                 break;
             }
         }
-        if (found!=null) {
+        if (found != null) {
             register(selector, found);
             return true;
         }
@@ -164,20 +208,6 @@ class SelectorStateResolverResults {
         results.add(new Registration(selector, resolveResult));
     }
 
-    private static boolean emptyVersion(ComponentIdResolveResult existing) {
-        if (existing.getFailure() == null) {
-            return existing.getModuleVersionId().getVersion().isEmpty();
-        }
-        return false;
-    }
-
-    private static boolean sameVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
-        if (existing.getFailure() == null && resolveResult.getFailure() == null) {
-            return existing.getId().equals(resolveResult.getId());
-        }
-        return false;
-    }
-
     private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
             Version existingVersion = versionParser.transform(existing.getModuleVersionId().getVersion());
@@ -187,36 +217,6 @@ class SelectorStateResolverResults {
             return comparison < 0;
         }
         return false;
-    }
-
-    private static boolean selectorAcceptsCandidate(ResolvableSelectorState dep, ComponentIdResolveResult candidate, boolean candidateIsFromLock) {
-        if (hasFailure(candidate)) {
-            return false;
-        }
-        ResolvedVersionConstraint versionConstraint = dep.getVersionConstraint();
-        if (versionConstraint == null) {
-            return dep.getSelector().matchesStrictly(candidate.getId());
-        }
-        VersionSelector versionSelector = versionConstraint.getRequiredSelector();
-        if (versionSelector != null &&
-            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
-
-            if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
-                // Always assume a candidate from a lock will satisfy the latest version selector
-                return true;
-            }
-
-            String version = candidate.getModuleVersionId().getVersion();
-            if (StringUtils.isEmpty(version)) {
-                return false;
-            }
-            return versionSelector.accept(version);
-        }
-        return false;
-    }
-
-    private static boolean hasFailure(ComponentIdResolveResult candidate) {
-        return candidate.getFailure() != null;
     }
 
     public boolean isEmpty() {

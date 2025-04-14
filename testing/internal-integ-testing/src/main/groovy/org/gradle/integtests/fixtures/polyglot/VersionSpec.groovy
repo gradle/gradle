@@ -33,7 +33,7 @@ class VersionSpec extends MultiSectionHandler {
     void prefer(String version) {
         sections << new GenericSection({
             "prefer '$version'"
-        },{
+        }, {
             "prefer(\"$version\")"
         })
     }
@@ -41,7 +41,7 @@ class VersionSpec extends MultiSectionHandler {
     void strictly(String version) {
         sections << new GenericSection({
             "strictly '$version'"
-        },{
+        }, {
             "strictly(\"$version\")"
         })
     }
@@ -49,7 +49,7 @@ class VersionSpec extends MultiSectionHandler {
     void require(String version) {
         sections << new GenericSection({
             "require '$version'"
-        },{
+        }, {
             "require(\"$version\")"
         })
     }

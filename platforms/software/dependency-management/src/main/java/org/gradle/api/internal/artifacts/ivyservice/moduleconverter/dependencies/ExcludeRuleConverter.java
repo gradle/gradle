@@ -23,5 +23,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Global.class)
 public interface ExcludeRuleConverter {
     ExcludeMetadata convertExcludeRule(ExcludeRule excludeRule);
+
     ExcludeMetadata createExcludeRule(String group, String module);
 }

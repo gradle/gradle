@@ -108,19 +108,19 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         factory.allOf(right, left) == expected
 
         where:
-        left                               | right                 | expected
-        everything()                       | nothing()             | nothing()
-        everything()                       | everything()          | everything()
-        nothing()                          | nothing()             | nothing()
-        everything()                       | group("foo")          | group("foo")
-        nothing()                          | group("foo")          | nothing()
-        group("foo")                       | group("foo")          | group("foo")
-        group("foo")                       | module("bar")         | moduleId("foo", "bar")
-        groupSet("foo", "foz")             | module("bar")         | moduleIdSet("foo:bar", "foz:bar")
-        groupSet("foo", "foz")             | moduleSet("bar", "baz")         | moduleIdSet("foo:bar", "foz:bar", "foo:baz", "foz:baz")
-        allOf(group("foo"), group("foo2")) | module("bar")         | nothing()
-        allOf(group("foo"), module("bar")) | module("bar")         | moduleId("foo", "bar")
-        moduleSet("m1", "m2", "m3")        | moduleSet("m1", "m3") | moduleSet("m1", "m3")
+        left                               | right                   | expected
+        everything()                       | nothing()               | nothing()
+        everything()                       | everything()            | everything()
+        nothing()                          | nothing()               | nothing()
+        everything()                       | group("foo")            | group("foo")
+        nothing()                          | group("foo")            | nothing()
+        group("foo")                       | group("foo")            | group("foo")
+        group("foo")                       | module("bar")           | moduleId("foo", "bar")
+        groupSet("foo", "foz")             | module("bar")           | moduleIdSet("foo:bar", "foz:bar")
+        groupSet("foo", "foz")             | moduleSet("bar", "baz") | moduleIdSet("foo:bar", "foz:bar", "foo:baz", "foz:baz")
+        allOf(group("foo"), group("foo2")) | module("bar")           | nothing()
+        allOf(group("foo"), module("bar")) | module("bar")           | moduleId("foo", "bar")
+        moduleSet("m1", "m2", "m3")        | moduleSet("m1", "m3")   | moduleSet("m1", "m3")
     }
 
     @Unroll("#one ∩ #two ∩ #three = #expected")

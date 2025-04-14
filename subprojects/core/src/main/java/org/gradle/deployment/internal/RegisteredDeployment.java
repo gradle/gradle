@@ -33,7 +33,7 @@ class RegisteredDeployment implements Stoppable {
     }
 
     static RegisteredDeployment create(String id, DeploymentRegistry.ChangeBehavior changeBehavior, ContinuousExecutionGate continuousExecutionGate, DeploymentHandle deploymentHandle) {
-        switch(changeBehavior) {
+        switch (changeBehavior) {
             case NONE:
                 return new RegisteredDeployment(id, false, deploymentHandle, new OutOfDateTrackingDeployment());
             case RESTART:

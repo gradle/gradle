@@ -60,6 +60,19 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, Isolatable.class));
     }
 
+    private static void assertNoDuplicateNames(Set<Attribute<?>> attributes) {
+        Map<String, Attribute<?>> attributesByName = new HashMap<>();
+        for (Attribute<?> attribute : attributes) {
+            String name = attribute.getName();
+            Attribute<?> existing = attributesByName.put(name, attribute);
+            if (existing != null) {
+                throw new IllegalStateException("Cannot have two attributes with the same name but different types. "
+                    + "This container has an attribute named '" + name + "' of type '" + existing.getType().getName()
+                    + "' and another attribute of type '" + attribute.getType().getName() + "'");
+            }
+        }
+    }
+
     @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
@@ -120,19 +133,6 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         Map<Attribute<?>, Isolatable<?>> realizedState = doRealize(Provider::get);
         assertNoDuplicateNames(realizedState.keySet());
         return realizedState;
-    }
-
-    private static void assertNoDuplicateNames(Set<Attribute<?>> attributes) {
-        Map<String, Attribute<?>> attributesByName = new HashMap<>();
-        for (Attribute<?> attribute : attributes) {
-            String name = attribute.getName();
-            Attribute<?> existing = attributesByName.put(name, attribute);
-            if (existing != null) {
-                throw new IllegalStateException("Cannot have two attributes with the same name but different types. "
-                    + "This container has an attribute named '" + name + "' of type '" + existing.getType().getName()
-                    + "' and another attribute of type '" + attribute.getType().getName() + "'");
-            }
-        }
     }
 
     /**

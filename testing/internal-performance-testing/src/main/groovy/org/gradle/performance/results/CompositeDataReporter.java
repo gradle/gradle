@@ -23,13 +23,13 @@ import java.io.IOException;
 public class CompositeDataReporter<T extends PerformanceTestResult> implements DataReporter<T> {
     private final ImmutableList<DataReporter<? super T>> reporters;
 
+    private CompositeDataReporter(ImmutableList<DataReporter<? super T>> reporters) {
+        this.reporters = reporters;
+    }
+
     @SafeVarargs
     public static <S extends PerformanceTestResult> CompositeDataReporter<S> of(DataReporter<? super S>... reporters) {
         return new CompositeDataReporter<S>(ImmutableList.copyOf(reporters));
-    }
-
-    private CompositeDataReporter(ImmutableList<DataReporter<? super T>> reporters) {
-        this.reporters = reporters;
     }
 
     @Override

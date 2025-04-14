@@ -135,48 +135,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         this.capabilityNotationParser = capabilityNotationParser;
     }
 
-    @Inject
-    protected Problems getProblemsService() {
-        throw new UnsupportedOperationException("not implemented");
-    }
-
-    @Override
-    public void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings) {
-        try {
-            this.classLoaderScope = classLoaderScope;
-            this.models.clear(); // this is used in tests only, shouldn't happen in real context
-            for (VersionCatalogBuilder builder : builders) {
-                DefaultVersionCatalog model = ((VersionCatalogBuilderInternal) builder).build();
-                models.add(model);
-            }
-            if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
-                for (DefaultVersionCatalog model : models) {
-                    if (model.isNotEmpty()) {
-                        writeDependenciesAccessors(model);
-                    }
-                }
-            }
-            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
-                IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
-                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void writeDependenciesAccessors(DefaultVersionCatalog model) {
-        executeWork(new DependencyAccessorUnitOfWork(model));
-    }
-
-    private void writeProjectAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
-        if (!assertCanGenerateAccessors(projectRegistry)) {
-            return;
-        }
-        warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
-        executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
-    }
-
     private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptor project) {
         if (!(project instanceof DefaultProjectDescriptor)) {
             return;
@@ -186,15 +144,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
                 "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
         }
-    }
-
-    private void executeWork(UnitOfWork work) {
-        ExecutionEngine.Result result = engine.createRequest(work).execute();
-        GeneratedAccessors accessors = result.getOutputAs(GeneratedAccessors.class).get();
-        ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
-        sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
-        classes = classes.plus(generatedClasses);
-        classLoaderScope.export(generatedClasses);
     }
 
     private static boolean assertCanGenerateAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
@@ -241,6 +190,57 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             return null;
         }
         return clazz;
+    }
+
+    @Inject
+    protected Problems getProblemsService() {
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings) {
+        try {
+            this.classLoaderScope = classLoaderScope;
+            this.models.clear(); // this is used in tests only, shouldn't happen in real context
+            for (VersionCatalogBuilder builder : builders) {
+                DefaultVersionCatalog model = ((VersionCatalogBuilderInternal) builder).build();
+                models.add(model);
+            }
+            if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
+                for (DefaultVersionCatalog model : models) {
+                    if (model.isNotEmpty()) {
+                        writeDependenciesAccessors(model);
+                    }
+                }
+            }
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+                IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
+                writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void writeDependenciesAccessors(DefaultVersionCatalog model) {
+        executeWork(new DependencyAccessorUnitOfWork(model));
+    }
+
+    private void writeProjectAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
+        if (!assertCanGenerateAccessors(projectRegistry)) {
+            return;
+        }
+        warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
+        executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
+    }
+
+    private void executeWork(UnitOfWork work) {
+        ExecutionEngine.Result result = engine.createRequest(work).execute();
+        GeneratedAccessors accessors = result.getOutputAs(GeneratedAccessors.class).get();
+        ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
+        sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
+        classes = classes.plus(generatedClasses);
+        classLoaderScope.export(generatedClasses);
     }
 
     @Override
@@ -334,6 +334,165 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     @Override
     public ClassPath getClasses() {
         return classes;
+    }
+
+    private static class GeneratedAccessors {
+        private final File sourcesDir;
+        private final File classesDir;
+
+        private GeneratedAccessors(File sourcesDir, File classesDir) {
+            this.sourcesDir = sourcesDir;
+            this.classesDir = classesDir;
+        }
+    }
+
+    private static class DependenciesAccessorClassSource implements ClassSource {
+
+        private final String name;
+        private final DefaultVersionCatalog model;
+        private final Problems problemsService;
+
+        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
+            this.name = name;
+            this.model = model;
+            this.problemsService = problemsService;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            return ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(name);
+        }
+
+        @Override
+        public String getSource() {
+            StringWriter writer = new StringWriter();
+            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
+            return writer.toString();
+        }
+    }
+
+    private static class PluginsBlockDependenciesAccessorClassSource implements ClassSource {
+        private final String name;
+        private final DefaultVersionCatalog model;
+        private final Problems problemsService;
+
+        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
+            this.name = name;
+            this.model = model;
+            this.problemsService = problemsService;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            return ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(name) + IN_PLUGINS_BLOCK_FACTORIES_SUFFIX;
+        }
+
+        @Override
+        public String getSource() {
+            StringWriter writer = new StringWriter();
+            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
+            return writer.toString();
+        }
+    }
+
+    private static class ProjectAccessorClassSource implements ClassSource {
+        private final ProjectDescriptor project;
+        private String className;
+        private String source;
+
+        private ProjectAccessorClassSource(ProjectDescriptor project) {
+            this.project = project;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            ensureInitialized();
+            return className;
+        }
+
+        @Override
+        public String getSource() {
+            ensureInitialized();
+            return source;
+        }
+
+        private void ensureInitialized() {
+            if (className == null) {
+                StringWriter writer = new StringWriter();
+                className = ProjectAccessorsSourceGenerator.generateSource(writer, project, ACCESSORS_PACKAGE);
+                source = writer.toString();
+            }
+        }
+    }
+
+    private static class RootProjectAccessorSource implements ClassSource {
+        private final ProjectDescriptor rootProject;
+
+        private RootProjectAccessorSource(ProjectDescriptor rootProject) {
+            this.rootProject = rootProject;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            return RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
+        }
+
+        @Override
+        public String getSource() {
+            StringWriter writer = new StringWriter();
+            RootProjectAccessorSourceGenerator.generateSource(writer, rootProject, ACCESSORS_PACKAGE);
+            return writer.toString();
+        }
+
+    }
+
+    // public for injection
+    public static class DefaultVersionCatalogsExtension implements VersionCatalogsExtension {
+
+        private final Map<String, VersionCatalog> catalogs;
+
+        @Inject
+        public DefaultVersionCatalogsExtension(Map<String, VersionCatalog> catalogs) {
+            this.catalogs = catalogs;
+        }
+
+        @Override
+        public Optional<VersionCatalog> find(String name) {
+            if (catalogs.containsKey(name)) {
+                return Optional.of(catalogs.get(name));
+            }
+            return Optional.empty();
+        }
+
+        @Override
+        public Set<String> getCatalogNames() {
+            return ImmutableSet.copyOf(catalogs.keySet());
+        }
+
+        @Override
+        public Iterator<VersionCatalog> iterator() {
+            return catalogs.values().iterator();
+        }
     }
 
     private abstract class AbstractAccessorUnitOfWork implements ImmutableUnitOfWork {
@@ -495,164 +654,5 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             return "generation of project accessors";
         }
 
-    }
-
-    private static class GeneratedAccessors {
-        private final File sourcesDir;
-        private final File classesDir;
-
-        private GeneratedAccessors(File sourcesDir, File classesDir) {
-            this.sourcesDir = sourcesDir;
-            this.classesDir = classesDir;
-        }
-    }
-
-    private static class DependenciesAccessorClassSource implements ClassSource {
-
-        private final String name;
-        private final DefaultVersionCatalog model;
-        private final Problems problemsService;
-
-        private DependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
-            this.name = name;
-            this.model = model;
-            this.problemsService = problemsService;
-        }
-
-        @Override
-        public String getPackageName() {
-            return ACCESSORS_PACKAGE;
-        }
-
-        @Override
-        public String getSimpleClassName() {
-            return ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(name);
-        }
-
-        @Override
-        public String getSource() {
-            StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
-            return writer.toString();
-        }
-    }
-
-    private static class PluginsBlockDependenciesAccessorClassSource implements ClassSource {
-        private final String name;
-        private final DefaultVersionCatalog model;
-        private final Problems problemsService;
-
-        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model, Problems problemsService) {
-            this.name = name;
-            this.model = model;
-            this.problemsService = problemsService;
-        }
-
-        @Override
-        public String getPackageName() {
-            return ACCESSORS_PACKAGE;
-        }
-
-        @Override
-        public String getSimpleClassName() {
-            return ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(name) + IN_PLUGINS_BLOCK_FACTORIES_SUFFIX;
-        }
-
-        @Override
-        public String getSource() {
-            StringWriter writer = new StringWriter();
-            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName(), problemsService);
-            return writer.toString();
-        }
-    }
-
-    private static class ProjectAccessorClassSource implements ClassSource {
-        private final ProjectDescriptor project;
-        private String className;
-        private String source;
-
-        private ProjectAccessorClassSource(ProjectDescriptor project) {
-            this.project = project;
-        }
-
-        @Override
-        public String getPackageName() {
-            return ACCESSORS_PACKAGE;
-        }
-
-        @Override
-        public String getSimpleClassName() {
-            ensureInitialized();
-            return className;
-        }
-
-        @Override
-        public String getSource() {
-            ensureInitialized();
-            return source;
-        }
-
-        private void ensureInitialized() {
-            if (className == null) {
-                StringWriter writer = new StringWriter();
-                className = ProjectAccessorsSourceGenerator.generateSource(writer, project, ACCESSORS_PACKAGE);
-                source = writer.toString();
-            }
-        }
-    }
-
-    private static class RootProjectAccessorSource implements ClassSource {
-        private final ProjectDescriptor rootProject;
-
-        private RootProjectAccessorSource(ProjectDescriptor rootProject) {
-            this.rootProject = rootProject;
-        }
-
-        @Override
-        public String getPackageName() {
-            return ACCESSORS_PACKAGE;
-        }
-
-        @Override
-        public String getSimpleClassName() {
-            return RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
-        }
-
-        @Override
-        public String getSource() {
-            StringWriter writer = new StringWriter();
-            RootProjectAccessorSourceGenerator.generateSource(writer, rootProject, ACCESSORS_PACKAGE);
-            return writer.toString();
-        }
-
-    }
-
-    // public for injection
-    public static class DefaultVersionCatalogsExtension implements VersionCatalogsExtension {
-
-        private final Map<String, VersionCatalog> catalogs;
-
-        @Inject
-        public DefaultVersionCatalogsExtension(Map<String, VersionCatalog> catalogs) {
-            this.catalogs = catalogs;
-        }
-
-        @Override
-        public Optional<VersionCatalog> find(String name) {
-            if (catalogs.containsKey(name)) {
-                return Optional.of(catalogs.get(name));
-            }
-            return Optional.empty();
-        }
-
-        @Override
-        public Set<String> getCatalogNames() {
-            return ImmutableSet.copyOf(catalogs.keySet());
-        }
-
-        @Override
-        public Iterator<VersionCatalog> iterator() {
-            return catalogs.values().iterator();
-        }
     }
 }

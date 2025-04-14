@@ -89,10 +89,9 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<ListProperty<Publication>> publications;
     private final RegularFileProperty outputFile;
     private final FileCollection variantFiles;
-    private final Cached<InputState> inputState = Cached.of(this::computeInputState);
     private final SetProperty<String> suppressedValidationErrors;
-
     private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
+    private final Cached<InputState> inputState = Cached.of(this::computeInputState);
 
     public GenerateModuleMetadata() {
         Project project = getProject();
@@ -261,6 +260,26 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         return spec;
     }
 
+    private InputState inputState() {
+        return this.inputState.get();
+    }
+
+    private String publicationName() {
+        return publication().getDisplayName().toString();
+    }
+
+    private SoftwareComponentInternal component() {
+        return publication().getComponent().getOrNull();
+    }
+
+    private PublicationInternal<?> publication() {
+        return Cast.uncheckedNonnullCast(publication.get().get());
+    }
+
+    private List<PublicationInternal<?>> publications() {
+        return Cast.uncheckedCast(publications.get().get());
+    }
+
     static class InputState {
 
         static class Ready extends InputState {
@@ -325,25 +344,5 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
                 }
             }
         }
-    }
-
-    private InputState inputState() {
-        return this.inputState.get();
-    }
-
-    private String publicationName() {
-        return publication().getDisplayName().toString();
-    }
-
-    private SoftwareComponentInternal component() {
-        return publication().getComponent().getOrNull();
-    }
-
-    private PublicationInternal<?> publication() {
-        return Cast.uncheckedNonnullCast(publication.get().get());
-    }
-
-    private List<PublicationInternal<?>> publications() {
-        return Cast.uncheckedCast(publications.get().get());
     }
 }

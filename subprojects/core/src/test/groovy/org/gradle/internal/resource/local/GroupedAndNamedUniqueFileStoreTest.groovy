@@ -28,7 +28,8 @@ import spock.lang.Subject
 
 class GroupedAndNamedUniqueFileStoreTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     TestFile baseDir = tmpDir.createDir("base")
     TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider({ tmpDir.createDir("tmp") })
@@ -38,13 +39,15 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
         String determineGroup(String key) {
             return 'group'
         }
+
         @Override
         int getNumberOfGroupingDirs() {
             return 0
         }
     }
 
-    @Subject GroupedAndNamedUniqueFileStore<String> fileStore = new GroupedAndNamedUniqueFileStore<String>(baseDir, temporaryFileProvider, fileAccessTimeJournal, grouper, { key -> key }, TestUtil.checksumService)
+    @Subject
+    GroupedAndNamedUniqueFileStore<String> fileStore = new GroupedAndNamedUniqueFileStore<String>(baseDir, temporaryFileProvider, fileAccessTimeJournal, grouper, { key -> key }, TestUtil.checksumService)
 
     def "marks files accessed when they are added to store"() {
         when:

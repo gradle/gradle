@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.objectivecpp
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -23,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
 import static org.hamcrest.CoreMatchers.containsString
 
 @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
-class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec{
+class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def helloWorldApp = new ObjectiveCppHelloWorldApp()
 

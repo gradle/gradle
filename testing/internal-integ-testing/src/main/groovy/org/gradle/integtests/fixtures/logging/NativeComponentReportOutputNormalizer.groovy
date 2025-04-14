@@ -28,8 +28,8 @@ class NativeComponentReportOutputNormalizer implements OutputNormalizer {
     @Override
     String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
         return commandOutput
-            .replaceAll("Tool chain '[\\w+\\-]+' \\([\\w\\- ]+\\)","Tool chain 'clang' (Clang)")
-            .replaceAll("platform '[\\w+\\-]+'","platform 'current'")
+            .replaceAll("Tool chain '[\\w+\\-]+' \\([\\w\\- ]+\\)", "Tool chain 'clang' (Clang)")
+            .replaceAll("platform '[\\w+\\-]+'", "platform 'current'")
             .replaceAll("(build/libs/.+/shared/(\\w+))\\.so") { "${it[1]}.dylib" }
             .replaceAll("((build/libs/.+/shared/)(\\w+))\\.dll") { "${it[2]}lib${it[3]}.dylib" }
             .replaceAll("((build/libs/.+/static/)(\\w+))\\.lib") { "${it[2]}lib${it[3]}.a" }

@@ -49,6 +49,11 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         this.format = format;
     }
 
+    static Iterable<ModelRuleDescriptor> uniqueExecutedRulesExcludingCreator(final ModelNode model) {
+        Iterable<ModelRuleDescriptor> filtered = model.getExecutedRules().stream().filter(input -> !input.equals(model.getDescriptor())).collect(Collectors.toList());
+        return ImmutableSet.copyOf(filtered);
+    }
+
     @SuppressWarnings("deprecation")
     private boolean omitDetails() {
         return org.gradle.api.reporting.model.ModelReport.Format.SHORT == format;
@@ -159,13 +164,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         styledTextoutput.println();
     }
 
-
     private String attributeLabel(String label) {
         return Strings.padEnd(label, LABEL_LENGTH, ' ');
-    }
-
-    static Iterable<ModelRuleDescriptor> uniqueExecutedRulesExcludingCreator(final ModelNode model) {
-        Iterable<ModelRuleDescriptor> filtered = model.getExecutedRules().stream().filter(input -> !input.equals(model.getDescriptor())).collect(Collectors.toList());
-        return ImmutableSet.copyOf(filtered);
     }
 }

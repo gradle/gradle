@@ -25,6 +25,9 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class RealizeTaskBuildOperationType implements BuildOperationType<RealizeTaskBuildOperationType.Details, RealizeTaskBuildOperationType.Result> {
 
+    private RealizeTaskBuildOperationType() {
+    }
+
     public interface Details {
         String getBuildPath();
 
@@ -41,9 +44,6 @@ public final class RealizeTaskBuildOperationType implements BuildOperationType<R
     }
 
     public interface Result {
-    }
-
-    private RealizeTaskBuildOperationType() {
     }
 
 }

@@ -57,6 +57,45 @@ public class IdeaModelBuilder implements IdeaModelBuilderInternal {
         this.gradleProjectBuilder = gradleProjectBuilder;
     }
 
+    private static void buildDependencies(DefaultIdeaModule tapiModule, IdeaModule ideaModule, boolean offlineDependencyResolution) {
+        ideaModule.setOffline(offlineDependencyResolution);
+        Set<Dependency> resolved = ideaModule.resolveDependencies();
+        List<DefaultIdeaDependency> dependencies = IdeaModuleBuilderSupport.buildDependencies(resolved);
+        tapiModule.setDependencies(dependencies);
+    }
+
+    private static DefaultIdeaModule createModule(
+        IdeaModule ideaModule,
+        DefaultIdeaProject ideaProject,
+        DefaultGradleProject rootGradleProject,
+        boolean offlineDependencyResolution
+    ) {
+        DefaultIdeaContentRoot contentRoot = IdeaModuleBuilderSupport.buildContentRoot(ideaModule);
+        Project project = ideaModule.getProject();
+
+        DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
+            .setName(ideaModule.getName())
+            .setParent(ideaProject)
+            .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
+            .setContentRoots(Collections.singletonList(contentRoot))
+            .setJdkName(ideaModule.getJdkName())
+            .setCompilerOutput(IdeaModuleBuilderSupport.buildCompilerOutput(ideaModule));
+
+        JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
+        if (javaPluginExtension != null) {
+            final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
+            JavaVersion moduleSourceLanguageLevel = IdeaModuleBuilderSupport.convertToJavaVersion(ideaModuleLanguageLevel);
+            JavaVersion moduleTargetBytecodeVersion = ideaModule.getTargetBytecodeVersion();
+            defaultIdeaModule.setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
+                .setSourceLanguageLevel(moduleSourceLanguageLevel)
+                .setTargetBytecodeVersion(moduleTargetBytecodeVersion));
+        }
+
+        buildDependencies(defaultIdeaModule, ideaModule, offlineDependencyResolution);
+
+        return defaultIdeaModule;
+    }
+
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.idea.IdeaProject");
@@ -118,45 +157,6 @@ public class IdeaModelBuilder implements IdeaModelBuilderInternal {
 
     private IdeaPlugin ideaPluginFor(Project project) {
         return project.getPlugins().getPlugin(IdeaPlugin.class);
-    }
-
-    private static void buildDependencies(DefaultIdeaModule tapiModule, IdeaModule ideaModule, boolean offlineDependencyResolution) {
-        ideaModule.setOffline(offlineDependencyResolution);
-        Set<Dependency> resolved = ideaModule.resolveDependencies();
-        List<DefaultIdeaDependency> dependencies = IdeaModuleBuilderSupport.buildDependencies(resolved);
-        tapiModule.setDependencies(dependencies);
-    }
-
-    private static DefaultIdeaModule createModule(
-        IdeaModule ideaModule,
-        DefaultIdeaProject ideaProject,
-        DefaultGradleProject rootGradleProject,
-        boolean offlineDependencyResolution
-    ) {
-        DefaultIdeaContentRoot contentRoot = IdeaModuleBuilderSupport.buildContentRoot(ideaModule);
-        Project project = ideaModule.getProject();
-
-        DefaultIdeaModule defaultIdeaModule = new DefaultIdeaModule()
-            .setName(ideaModule.getName())
-            .setParent(ideaProject)
-            .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
-            .setContentRoots(Collections.singletonList(contentRoot))
-            .setJdkName(ideaModule.getJdkName())
-            .setCompilerOutput(IdeaModuleBuilderSupport.buildCompilerOutput(ideaModule));
-
-        JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-        if (javaPluginExtension != null) {
-            final IdeaLanguageLevel ideaModuleLanguageLevel = ideaModule.getLanguageLevel();
-            JavaVersion moduleSourceLanguageLevel = IdeaModuleBuilderSupport.convertToJavaVersion(ideaModuleLanguageLevel);
-            JavaVersion moduleTargetBytecodeVersion = ideaModule.getTargetBytecodeVersion();
-            defaultIdeaModule.setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
-                .setSourceLanguageLevel(moduleSourceLanguageLevel)
-                .setTargetBytecodeVersion(moduleTargetBytecodeVersion));
-        }
-
-        buildDependencies(defaultIdeaModule, ideaModule, offlineDependencyResolution);
-
-        return defaultIdeaModule;
     }
 
 }

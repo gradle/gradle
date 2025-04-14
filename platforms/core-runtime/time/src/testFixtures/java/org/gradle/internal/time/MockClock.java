@@ -23,14 +23,32 @@ import com.google.common.base.Preconditions;
  */
 public class MockClock implements Clock {
     public static final long DEFAULT_AUTOINCREMENT_MS = 10L;
-
+    private final long autoIncrement;
     private long current;
     private boolean observed;
-    private final long autoIncrement;
 
     private MockClock(long startTimeMs, long autoIncrement) {
         this.current = startTimeMs;
         this.autoIncrement = autoIncrement;
+    }
+
+    /**
+     * Creates an instance of a mock clock that starts at 0 and is only incremented by {@link #increment(long)}.
+     *
+     * @return the mock clock
+     */
+    public static MockClock create() {
+        return new MockClock(0, 0);
+    }
+
+    /**
+     * Creates an instance of a mock clock that starts at {@code startTime} and is incremented by {@link #DEFAULT_AUTOINCREMENT_MS} upon every {@link #getCurrentTime()} call.
+     *
+     * @param startTime start time in milliseconds since epoch
+     * @return the mock clock
+     */
+    public static MockClock createAutoIncrementingAt(long startTime) {
+        return new MockClock(startTime, DEFAULT_AUTOINCREMENT_MS);
     }
 
     /**
@@ -61,24 +79,5 @@ public class MockClock implements Clock {
         long result = current;
         current += autoIncrement;
         return result;
-    }
-
-    /**
-     * Creates an instance of a mock clock that starts at 0 and is only incremented by {@link #increment(long)}.
-     *
-     * @return the mock clock
-     */
-    public static MockClock create() {
-        return new MockClock(0, 0);
-    }
-
-    /**
-     * Creates an instance of a mock clock that starts at {@code startTime} and is incremented by {@link #DEFAULT_AUTOINCREMENT_MS} upon every {@link #getCurrentTime()} call.
-     *
-     * @param startTime start time in milliseconds since epoch
-     * @return the mock clock
-     */
-    public static MockClock createAutoIncrementingAt(long startTime) {
-        return new MockClock(startTime, DEFAULT_AUTOINCREMENT_MS);
     }
 }

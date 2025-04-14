@@ -134,6 +134,17 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         this.jvmPluginServices = jvmPluginServices;
     }
 
+    private static void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
+        ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
+        outputConventionMapping.map("resourcesDir", () -> {
+            String classesDirName = "resources/" + sourceSet.getName();
+            return project.getLayout().getBuildDirectory().dir(classesDirName).get().getAsFile();
+        });
+
+        sourceSet.getJava().srcDir("src/" + sourceSet.getName() + "/java");
+        sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
+    }
+
     @Inject
     protected abstract JvmLanguageUtilities getJvmLanguageUtils();
 
@@ -252,17 +263,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                 classesTask.dependsOn(sourceSet.getProcessResourcesTaskName());
             })
         );
-    }
-
-    private static void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
-        ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
-        outputConventionMapping.map("resourcesDir", () -> {
-            String classesDirName = "resources/" + sourceSet.getName();
-            return project.getLayout().getBuildDirectory().dir(classesDirName).get().getAsFile();
-        });
-
-        sourceSet.getJava().srcDir("src/" + sourceSet.getName() + "/java");
-        sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
 
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, RoleBasedConfigurationContainerInternal configurations) {

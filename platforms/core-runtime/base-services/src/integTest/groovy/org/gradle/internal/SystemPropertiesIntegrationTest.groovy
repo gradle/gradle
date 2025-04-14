@@ -21,8 +21,10 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class SystemPropertiesIntegrationTest extends ConcurrentSpec {
-    @Rule SetSystemProperties properties = new SetSystemProperties()
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties()
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "sets a system property for the duration of a Factory operation"() {
         final int threadCount = 100
@@ -71,7 +73,7 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         async {
             threadCount.times { i ->
                 start {
-                    SystemProperties.instance.withSystemProperty(id, "bar", {"baz"})
+                    SystemProperties.instance.withSystemProperty(id, "bar", { "baz" })
                 }
                 start {
                     SystemProperties.instance.withSystemProperties {
@@ -95,7 +97,7 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         async {
             threadCount.times { i ->
                 start {
-                    SystemProperties.instance.withSystemProperties((id): "bar", {"baz"})
+                    SystemProperties.instance.withSystemProperties((id): "bar", { "baz" })
                 }
                 start {
                     SystemProperties.instance.withSystemProperties {

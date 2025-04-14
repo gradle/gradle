@@ -49,7 +49,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
             args.daemonOpts ?: [],
             args.applyInstrumentationAgent ?: false,
             args.nativeServicesMode ?: NativeServices.NativeServicesMode.NOT_SET,
-            args.priority?: DaemonPriority.NORMAL)
+            args.priority ?: DaemonPriority.NORMAL)
     }
 
     DaemonRequestContext clientWants(DaemonJvmCriteria jvmCriteria,

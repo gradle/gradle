@@ -31,6 +31,7 @@ public class PropertyListTransformer<T extends NSObject> implements Transformer<
 
     /**
      * Adds an action to be executed when property lists are transformed.
+     *
      * @param action the action to add
      */
     public void addAction(Action<? super T> action) {
@@ -40,6 +41,7 @@ public class PropertyListTransformer<T extends NSObject> implements Transformer<
     /**
      * Transforms a property list object. This will modify the
      * original.
+     *
      * @param original the property list to transform
      * @return the transformed property list
      */
@@ -51,6 +53,7 @@ public class PropertyListTransformer<T extends NSObject> implements Transformer<
     /**
      * Transforms a property list object and write them out to a stream.
      * This will modify the original property list.
+     *
      * @param original the property list to transform
      * @param destination the stream to write the property list to
      */
@@ -65,6 +68,7 @@ public class PropertyListTransformer<T extends NSObject> implements Transformer<
     /**
      * Transforms a property list object.  This will modify the
      * original.
+     *
      * @param original the property list to transform
      * @return the transformed property list
      */

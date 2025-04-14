@@ -47,13 +47,11 @@ import java.util.List;
 
 public class RulesVisitor extends RestrictiveCodeVisitor {
 
-    private static final String AST_NODE_METADATA_KEY = RulesVisitor.class.getName();
-    private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(RulesBlock.class);
-
     // TODO - have to do much better here
     public static final String INVALID_STATEMENT = "illegal rule";
     public static final String INVALID_RULE_SIGNATURE = "Rule must follow the pattern '«name»(«type») {}' for a registration, and '«name» {}' for an action";
-
+    private static final String AST_NODE_METADATA_KEY = RulesVisitor.class.getName();
+    private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(RulesBlock.class);
     private final RuleVisitor ruleVisitor;
 
     public RulesVisitor(SourceUnit sourceUnit, RuleVisitor ruleVisitor) {

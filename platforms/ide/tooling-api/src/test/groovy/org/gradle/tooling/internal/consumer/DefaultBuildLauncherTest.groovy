@@ -56,7 +56,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
+        1 * connection.run(Void, _) >> { args ->
             ConsumerOperationParameters params = args[1]
             assert params.tasks == []
             assert params.standardOutput == null
@@ -95,7 +95,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
+        1 * connection.run(Void, _) >> { args ->
             ConsumerOperationParameters params = args[1]
             assert params.tasks == [':task1', ':task2']
             assert params.standardOutput == stdout
@@ -129,7 +129,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
+        1 * connection.run(Void, _) >> { args ->
             ConsumerOperationParameters params = args[1]
             assert params.tasks == [':a:myTask', ':b:myTask']
             assert params.standardOutput == stdout
@@ -162,7 +162,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
+        1 * connection.run(Void, _) >> { args ->
             ConsumerOperationParameters params = args[1]
             assert params.launchables == [ts]
             assert params.standardOutput == stdout
@@ -202,7 +202,7 @@ class DefaultBuildLauncherTest extends ConcurrentSpec {
             adaptedHandler = args[1]
             adaptedHandler.onComplete(null)
         }
-        1 * connection.run(Void, _) >> {args ->
+        1 * connection.run(Void, _) >> { args ->
             ConsumerOperationParameters params = args[1]
             assert params.tasks == [':firstTask', ':secondTask', ':thirdTask']
             assert params.standardOutput == stdout

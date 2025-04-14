@@ -341,7 +341,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
 
     private FileResolver createFileResolver() {
         def fileResolver = Mock(FileResolver)
-        fileResolver.resolve(_) >> {String path -> new File(path)}
+        fileResolver.resolve(_) >> { String path -> new File(path) }
         fileResolver
     }
 

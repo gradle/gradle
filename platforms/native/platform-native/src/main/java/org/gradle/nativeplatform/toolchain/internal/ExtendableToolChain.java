@@ -26,11 +26,11 @@ import org.gradle.nativeplatform.toolchain.NativePlatformToolChain;
 import java.io.File;
 
 public abstract class ExtendableToolChain<T extends NativePlatformToolChain> implements NativeToolChainInternal {
-    private final String name;
     protected final OperatingSystem operatingSystem;
-    private final PathToFileResolver fileResolver;
     protected final MutableActionSet<T> configureActions = new MutableActionSet<T>();
     protected final BuildOperationExecutor buildOperationExecutor;
+    private final String name;
+    private final PathToFileResolver fileResolver;
 
     protected ExtendableToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, PathToFileResolver fileResolver) {
         this.name = name;

@@ -81,13 +81,13 @@ public abstract class AbstractDependencyImpl<T extends DependencyMetadata<T>> im
         return Cast.uncheckedCast(this);
     }
 
-    public void setAttributes(AttributeContainer attributes) {
-        this.attributes = attributes;
-    }
-
     @Override
     public AttributeContainer getAttributes() {
         return attributes;
+    }
+
+    public void setAttributes(AttributeContainer attributes) {
+        this.attributes = attributes;
     }
 
     @Override

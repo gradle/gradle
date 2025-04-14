@@ -45,11 +45,6 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     @Override
-    public void setClientMetaData(BuildClientMetaData clientMetaData) {
-        this.clientMetaData = clientMetaData;
-    }
-
-    @Override
     public void setOutput(StyledTextOutput textOutput) {
         setWriter(textOutput, false);
     }
@@ -103,6 +98,11 @@ public class TextReportRenderer implements ReportRenderer {
 
     public BuildClientMetaData getClientMetaData() {
         return clientMetaData;
+    }
+
+    @Override
+    public void setClientMetaData(BuildClientMetaData clientMetaData) {
+        this.clientMetaData = clientMetaData;
     }
 
     public StyledTextOutput getTextOutput() {

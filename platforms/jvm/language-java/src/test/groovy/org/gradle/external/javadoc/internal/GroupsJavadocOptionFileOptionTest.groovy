@@ -23,7 +23,7 @@ class GroupsJavadocOptionFileOptionTest extends Specification {
     private JavadocOptionFileWriterContext writerContextMock = Mock()
     private final String optionName = "testOption"
 
-    private GroupsJavadocOptionFileOption groupsFile = new GroupsJavadocOptionFileOption(optionName, Maps.<String, List<String>>newLinkedHashMap())
+    private GroupsJavadocOptionFileOption groupsFile = new GroupsJavadocOptionFileOption(optionName, Maps.<String, List<String>> newLinkedHashMap())
 
 
     def testWriteNullValue() throws IOException {

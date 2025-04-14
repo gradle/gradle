@@ -23,7 +23,7 @@ import spock.lang.Specification
 class DirectedGraphRendererTest extends Specification {
     final DirectedGraph<String, Void> graph = Mock(DirectedGraph)
     final GraphNodeRenderer<String> nodeRenderer = Stub(GraphNodeRenderer) {
-        renderTo(_, _) >> { String node, StyledTextOutput output -> output.text("[$node]")}
+        renderTo(_, _) >> { String node, StyledTextOutput output -> output.text("[$node]") }
     }
     final DirectedGraphRenderer<String> renderer = new DirectedGraphRenderer<String>(nodeRenderer, graph)
     final TestStyledTextOutput output = new TestStyledTextOutput()

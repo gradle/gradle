@@ -161,10 +161,10 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         expectedMessage == null || outputEventListener.toString().contains(expectedMessage)
 
         where:
-        id      | impl      | expectedMessage
-        'x.y.z' | 'a.b.c'   | DECLARED_PLUGIN_MISSING_PREFIX
-        'x.y.z' | 'x.y.z'   | null
-        null    | 'x.y.z'   | null
+        id      | impl    | expectedMessage
+        'x.y.z' | 'a.b.c' | DECLARED_PLUGIN_MISSING_PREFIX
+        'x.y.z' | 'x.y.z' | null
+        null    | 'x.y.z' | null
     }
 
     def "apply adds java-library plugin"() {

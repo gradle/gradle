@@ -52,6 +52,23 @@ class DefaultBuildControllers implements BuildControllers {
         this.monitoringPollTimeUnit = monitoringPollTimeUnit;
     }
 
+    private static Comparator<BuildIdentifier> idComparator() {
+        return (id1, id2) -> {
+            // Root is always last
+            if (id1.equals(DefaultBuildIdentifier.ROOT)) {
+                if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+            if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+                return -1;
+            }
+            return id1.getBuildPath().compareTo(id2.getBuildPath());
+        };
+    }
+
     @Override
     public BuildController getBuildController(BuildState build) {
         BuildController buildController = controllers.get(build.getBuildIdentifier());
@@ -127,22 +144,5 @@ class DefaultBuildControllers implements BuildControllers {
     @Override
     public void close() {
         CompositeStoppable.stoppable(controllers.values()).stop();
-    }
-
-    private static Comparator<BuildIdentifier> idComparator() {
-        return (id1, id2) -> {
-            // Root is always last
-            if (id1.equals(DefaultBuildIdentifier.ROOT)) {
-                if (id2.equals(DefaultBuildIdentifier.ROOT)) {
-                    return 0;
-                } else {
-                    return 1;
-                }
-            }
-            if (id2.equals(DefaultBuildIdentifier.ROOT)) {
-                return -1;
-            }
-            return id1.getBuildPath().compareTo(id2.getBuildPath());
-        };
     }
 }

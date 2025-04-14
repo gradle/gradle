@@ -29,14 +29,14 @@ import java.util.List;
 
 public class CompositeCleanupAction implements CleanupAction {
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
     private final List<CleanupAction> cleanups;
 
     private CompositeCleanupAction(List<CleanupAction> cleanups) {
         this.cleanups = cleanups;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override

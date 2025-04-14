@@ -58,19 +58,6 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
         return ModelType.of(ModelMap.class).isAssignableFrom(modelType);
     }
 
-    protected static class RuleMethodDataCollector {
-        private HashMap<ModelType<?>, ModelType<?>> parameterTypes = new HashMap<ModelType<?>, ModelType<?>>();
-
-        @SuppressWarnings("unchecked")
-        public <S, R extends S> ModelType<R> getParameterType(ModelType<S> baseClass) {
-            return (ModelType<R>) parameterTypes.get(baseClass);
-        }
-
-        public <S> void put(ModelType<S> baseClass, ModelType<? extends S> concreteClass) {
-            parameterTypes.put(baseClass, concreteClass);
-        }
-    }
-
     protected <S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<S> expectedDependency, RuleSourceValidationProblemCollector problems) {
         if (ruleDefinition.getReferences().isEmpty() && problems.hasProblems()) {
             return;
@@ -82,8 +69,8 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
             if (expectedDependency.isAssignableFrom(reference.getType())) {
                 if (dependency != null) {
                     problems.add(ruleDefinition, String.format("A method %s must have one parameter extending %s. Found multiple parameter extending %s.", getDescription(),
-                                                expectedDependency.getDisplayName(),
-                                                expectedDependency.getDisplayName()));
+                        expectedDependency.getDisplayName(),
+                        expectedDependency.getDisplayName()));
                     return;
                 }
                 dependency = reference.getType().asSubtype(expectedDependency);
@@ -92,10 +79,23 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
 
         if (dependency == null) {
             problems.add(ruleDefinition, String.format("A method %s must have one parameter extending %s. Found no parameter extending %s.", getDescription(),
-                    expectedDependency.getDisplayName(),
-                    expectedDependency.getDisplayName()));
+                expectedDependency.getDisplayName(),
+                expectedDependency.getDisplayName()));
             return;
         }
         dataCollector.put(expectedDependency, dependency);
+    }
+
+    protected static class RuleMethodDataCollector {
+        private HashMap<ModelType<?>, ModelType<?>> parameterTypes = new HashMap<ModelType<?>, ModelType<?>>();
+
+        @SuppressWarnings("unchecked")
+        public <S, R extends S> ModelType<R> getParameterType(ModelType<S> baseClass) {
+            return (ModelType<R>) parameterTypes.get(baseClass);
+        }
+
+        public <S> void put(ModelType<S> baseClass, ModelType<? extends S> concreteClass) {
+            parameterTypes.put(baseClass, concreteClass);
+        }
     }
 }

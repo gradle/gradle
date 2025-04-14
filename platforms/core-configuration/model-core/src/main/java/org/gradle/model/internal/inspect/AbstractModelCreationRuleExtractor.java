@@ -60,7 +60,7 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
 
     protected abstract <R, S> ExtractedModelRule buildRule(ModelPath modelPath, MethodRuleDefinition<R, S> ruleDefinition);
 
-    protected static abstract class ExtractedCreationRule<R, S>  extends AbstractExtractedModelRule {
+    protected static abstract class ExtractedCreationRule<R, S> extends AbstractExtractedModelRule {
         protected final ModelPath modelPath;
         private final boolean hidden;
 

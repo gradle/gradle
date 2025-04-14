@@ -34,7 +34,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
     def logHeaderFormatter = Mock(LogHeaderFormatter)
     @Subject
-    listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, false)
+        listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, false)
 
     def setup() {
         logHeaderFormatter.format(_, _, _) >> { d, st, f -> [new StyledTextOutputEvent.Span("Header $d")] }

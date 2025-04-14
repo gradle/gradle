@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 import java.nio.file.Files
 
-class SwiftCompilerTest  extends Specification {
+class SwiftCompilerTest extends Specification {
 
     def "Entry's members are used to write json file"() {
         def map = new SwiftCompiler.OutputFileMap()

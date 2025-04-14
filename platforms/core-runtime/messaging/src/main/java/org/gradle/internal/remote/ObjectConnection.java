@@ -52,6 +52,7 @@ public interface ObjectConnection extends AsyncStoppable, ObjectConnectionBuilde
     /**
      * Add a callback upon unrecoverable errors, e.g. broken connection. Should not throw any exceptions because
      * this is the last line of defense.
+     *
      * @param handler the callback
      */
     void addUnrecoverableErrorHandler(Action<Throwable> handler);

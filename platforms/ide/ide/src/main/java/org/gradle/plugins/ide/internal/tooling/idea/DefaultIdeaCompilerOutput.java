@@ -60,9 +60,9 @@ public class DefaultIdeaCompilerOutput implements IdeaCompilerOutput, Serializab
     @Override
     public String toString() {
         return "IdeaCompilerOutput{"
-                + "inheritOutputDirs=" + inheritOutputDirs
-                + ", outputDir=" + outputDir
-                + ", testOutputDir=" + testOutputDir
-                + '}';
+            + "inheritOutputDirs=" + inheritOutputDirs
+            + ", outputDir=" + outputDir
+            + ", testOutputDir=" + testOutputDir
+            + '}';
     }
 }

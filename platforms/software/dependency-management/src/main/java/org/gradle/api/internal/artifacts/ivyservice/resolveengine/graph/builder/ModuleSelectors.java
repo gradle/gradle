@@ -38,9 +38,9 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     private final VersionParser versionParser;
     private final List<T> selectors = new ArrayList<>();
+    private final Comparator<ResolvableSelectorState> selectorComparator;
     private boolean deferSelection;
     private boolean forced;
-    private final Comparator<ResolvableSelectorState> selectorComparator;
 
     public ModuleSelectors(Comparator<Version> versionComparator, VersionParser versionParser) {
         this.versionParser = versionParser;
@@ -48,41 +48,22 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         this.selectorComparator = new SelectorComparator(versionComparator);
     }
 
-    private class SelectorComparator implements Comparator<ResolvableSelectorState> {
-        private final Comparator<Version> versionComparator;
+    private static boolean isDynamicSelector(ResolvableSelectorState selector) {
+        return selector.getVersionConstraint() != null && selector.getVersionConstraint().isDynamic();
+    }
 
-        private SelectorComparator(Comparator<Version> versionComparator) {
-            this.versionComparator = versionComparator;
-        }
+    private static boolean hasLatestSelector(ResolvableSelectorState selector) {
+        return selector.getVersionConstraint() != null
+            && hasLatestSelector(selector.getVersionConstraint());
+    }
 
-        @Override
-        public int compare(ResolvableSelectorState left, ResolvableSelectorState right) {
-            if (right.isProject() == left.isProject()) {
-                if (right.isFromLock() == left.isFromLock()) {
-                    if (hasLatestSelector(right) == hasLatestSelector(left)) {
-                        if (isDynamicSelector(right) == isDynamicSelector(left)) {
-                            Version o1RequiredVersion = ModuleSelectors.this.requiredVersion(right);
-                            Version o2RequiredVersion = ModuleSelectors.this.requiredVersion(left);
-                            int compareRequiredVersion = versionComparator.compare(o1RequiredVersion, o2RequiredVersion);
-                            if (compareRequiredVersion == 0) {
-                                Version o1Version = ModuleSelectors.this.preferredVersion(right);
-                                Version o2Version = ModuleSelectors.this.preferredVersion(left);
-                                return versionComparator.compare(o1Version, o2Version);
-                            } else {
-                                return compareRequiredVersion;
-                            }
-                        } else {
-                            return Boolean.compare(isDynamicSelector(left), isDynamicSelector(right));
-                        }
-                    } else {
-                        return Boolean.compare(hasLatestSelector(right), hasLatestSelector(left));
-                    }
-                } else {
-                    return Boolean.compare(right.isFromLock(), left.isFromLock());
-                }
-            }
-            return Boolean.compare(right.isProject(), left.isProject());
-        }
+    private static boolean hasLatestSelector(ResolvedVersionConstraint vc) {
+        // Latest is only given priority if it's in a require
+        return hasLatestSelector(vc.getRequiredSelector());
+    }
+
+    private static boolean hasLatestSelector(@Nullable VersionSelector versionSelector) {
+        return versionSelector instanceof LatestVersionSelector;
     }
 
     public boolean checkDeferSelection() {
@@ -147,24 +128,6 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return selectors.remove(selector);
     }
 
-    private static boolean isDynamicSelector(ResolvableSelectorState selector) {
-        return selector.getVersionConstraint() != null && selector.getVersionConstraint().isDynamic();
-    }
-
-    private static boolean hasLatestSelector(ResolvableSelectorState selector) {
-        return selector.getVersionConstraint() != null
-            && hasLatestSelector(selector.getVersionConstraint());
-    }
-
-    private static boolean hasLatestSelector(ResolvedVersionConstraint vc) {
-        // Latest is only given priority if it's in a require
-        return hasLatestSelector(vc.getRequiredSelector());
-    }
-
-    private static boolean hasLatestSelector(@Nullable VersionSelector versionSelector) {
-        return versionSelector instanceof LatestVersionSelector;
-    }
-
     private Version requiredVersion(ResolvableSelectorState selector) {
         ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
         if (versionConstraint == null) {
@@ -202,12 +165,49 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     @Nullable
     public IvyArtifactName getFirstDependencyArtifact() {
-        for (T selector: selectors) {
+        for (T selector : selectors) {
             IvyArtifactName artifact = selector.getFirstDependencyArtifact();
             if (artifact != null) {
                 return artifact;
             }
         }
         return null;
+    }
+
+    private class SelectorComparator implements Comparator<ResolvableSelectorState> {
+        private final Comparator<Version> versionComparator;
+
+        private SelectorComparator(Comparator<Version> versionComparator) {
+            this.versionComparator = versionComparator;
+        }
+
+        @Override
+        public int compare(ResolvableSelectorState left, ResolvableSelectorState right) {
+            if (right.isProject() == left.isProject()) {
+                if (right.isFromLock() == left.isFromLock()) {
+                    if (hasLatestSelector(right) == hasLatestSelector(left)) {
+                        if (isDynamicSelector(right) == isDynamicSelector(left)) {
+                            Version o1RequiredVersion = ModuleSelectors.this.requiredVersion(right);
+                            Version o2RequiredVersion = ModuleSelectors.this.requiredVersion(left);
+                            int compareRequiredVersion = versionComparator.compare(o1RequiredVersion, o2RequiredVersion);
+                            if (compareRequiredVersion == 0) {
+                                Version o1Version = ModuleSelectors.this.preferredVersion(right);
+                                Version o2Version = ModuleSelectors.this.preferredVersion(left);
+                                return versionComparator.compare(o1Version, o2Version);
+                            } else {
+                                return compareRequiredVersion;
+                            }
+                        } else {
+                            return Boolean.compare(isDynamicSelector(left), isDynamicSelector(right));
+                        }
+                    } else {
+                        return Boolean.compare(hasLatestSelector(right), hasLatestSelector(left));
+                    }
+                } else {
+                    return Boolean.compare(right.isFromLock(), left.isFromLock());
+                }
+            }
+            return Boolean.compare(right.isProject(), left.isProject());
+        }
     }
 }

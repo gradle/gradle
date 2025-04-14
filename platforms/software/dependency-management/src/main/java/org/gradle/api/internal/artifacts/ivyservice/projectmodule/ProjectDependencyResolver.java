@@ -48,6 +48,10 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         this.artifactResolver = artifactResolver;
     }
 
+    private static boolean isProjectModule(ComponentIdentifier componentId) {
+        return componentId instanceof ProjectComponentIdentifier;
+    }
+
     @Override
     public ArtifactResolver getArtifactResolver() {
         return this;
@@ -103,9 +107,5 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         if (isProjectModule(artifact.getComponentId())) {
             artifactResolver.resolveArtifact(component, artifact, result);
         }
-    }
-
-    private static boolean isProjectModule(ComponentIdentifier componentId) {
-        return componentId instanceof ProjectComponentIdentifier;
     }
 }

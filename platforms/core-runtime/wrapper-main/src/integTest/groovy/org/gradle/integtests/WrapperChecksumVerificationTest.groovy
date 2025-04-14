@@ -34,7 +34,8 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
 
     private static final String WRAPPER_PROPERTIES_PATH = 'gradle/wrapper/gradle-wrapper.properties'
 
-    @Shared String cachedDistributionHash;
+    @Shared
+    String cachedDistributionHash;
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -79,7 +80,7 @@ Visit https://gradle.org/release-checksums/ to verify the checksums of official 
     }
 
     String getDistributionHash() {
-        if(cachedDistributionHash == null){
+        if (cachedDistributionHash == null) {
             cachedDistributionHash = getDistributionHash(distribution)
         }
         cachedDistributionHash

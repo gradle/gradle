@@ -83,7 +83,7 @@ public class MethodOptionElement {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length != 0) {
             throw new OptionValidationException(String.format("Option '%s' on method that returns %s cannot take parameters in class '%s#%s'.",
-                    optionName, method.getGenericReturnType(), method.getDeclaringClass().getName(), method.getName()));
+                optionName, method.getGenericReturnType(), method.getDeclaringClass().getName(), method.getName()));
         }
     }
 
@@ -91,7 +91,7 @@ public class MethodOptionElement {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 1) {
             throw new OptionValidationException(String.format("Option '%s' on method cannot take multiple parameters in class '%s#%s'.",
-                    optionName, method.getDeclaringClass().getName(), method.getName()));
+                optionName, method.getDeclaringClass().getName(), method.getName()));
         }
     }
 
@@ -184,7 +184,7 @@ public class MethodOptionElement {
         @Override
         public void setValue(Object target, Object value) {
             FileSystemLocationProperty<FileSystemLocation> property = Cast.uncheckedNonnullCast(JavaMethod.of(Object.class, getMethod()).invoke(target));
-            property.set(new File((String)value));
+            property.set(new File((String) value));
         }
     }
 

@@ -1,8 +1,7 @@
-
 // The parameters for a single unit of work
 interface ReverseParameters : WorkParameters {
-    val fileToReverse : RegularFileProperty
-    val destinationDir : DirectoryProperty
+    val fileToReverse: RegularFileProperty
+    val destinationDir: DirectoryProperty
 }
 
 // The implementation of a single unit of work

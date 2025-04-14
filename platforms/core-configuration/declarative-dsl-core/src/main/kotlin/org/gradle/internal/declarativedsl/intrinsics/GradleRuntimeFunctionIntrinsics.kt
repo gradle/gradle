@@ -24,7 +24,7 @@ val gradleRuntimeIntrinsicsKClass = ::self.javaMethod!!.declaringClass.kotlin
  * Intrinsic bridge for invoking [kotlin.collections.listOf], which cannot be invoked via reflection due to its containing class not being public.
  */
 @JvmSynthetic
-@Deprecated("should only be invoked via reflection", level =  DeprecationLevel.HIDDEN)
+@Deprecated("should only be invoked via reflection", level = DeprecationLevel.HIDDEN)
 @IntrinsicTopLevelFunctionBridge("kotlin.collections.listOf")
 fun <T> listOf(vararg elements: T): List<T> = listOf(*elements)
 
@@ -32,7 +32,7 @@ fun <T> listOf(vararg elements: T): List<T> = listOf(*elements)
  * Intrinsic bridge for invoking [kotlin.collections.mapOf], which cannot be invoked via reflection due to its containing class not being public.
  */
 @JvmSynthetic
-@Deprecated("should only be invoked via reflection", level =  DeprecationLevel.HIDDEN)
+@Deprecated("should only be invoked via reflection", level = DeprecationLevel.HIDDEN)
 @IntrinsicTopLevelFunctionBridge("kotlin.collections.mapOf")
 fun <K, V> mapOf(vararg pairs: Pair<K, V>): Map<K, V> = mapOf(*pairs)
 

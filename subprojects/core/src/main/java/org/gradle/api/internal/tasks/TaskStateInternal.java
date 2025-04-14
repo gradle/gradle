@@ -63,6 +63,15 @@ public class TaskStateInternal implements TaskState {
     }
 
     /**
+     * Marks this task as executed with the given failure. This method can be called at most once.
+     */
+    public void setOutcome(RuntimeException failure) {
+        assert this.failure == null;
+        this.outcome = TaskExecutionOutcome.EXECUTED;
+        this.failure = failure;
+    }
+
+    /**
      * The detailed reason why the task was skipped, if provided.
      *
      * @return the reason. returns null if the task was not skipped or if the reason was not provided.
@@ -81,15 +90,6 @@ public class TaskStateInternal implements TaskState {
      */
     public void setSkipReasonMessage(@Nullable String skipReasonMessage) {
         this.skipReasonMessage = skipReasonMessage;
-    }
-
-    /**
-     * Marks this task as executed with the given failure. This method can be called at most once.
-     */
-    public void setOutcome(RuntimeException failure) {
-        assert this.failure == null;
-        this.outcome = TaskExecutionOutcome.EXECUTED;
-        this.failure = failure;
     }
 
     public void addFailure(TaskExecutionException failure) {

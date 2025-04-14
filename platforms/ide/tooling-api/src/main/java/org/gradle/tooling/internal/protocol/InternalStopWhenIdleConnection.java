@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * @since 6.5
  * @see ConnectionVersion4
+ * @since 6.5
  */
 public interface InternalStopWhenIdleConnection extends InternalProtocolInterface {
     void stopWhenIdle(BuildParameters parameters);

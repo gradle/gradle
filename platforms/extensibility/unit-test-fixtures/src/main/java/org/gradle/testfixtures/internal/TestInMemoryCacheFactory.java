@@ -67,8 +67,8 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     private class InMemoryCache implements PersistentCache {
         private final File cacheDir;
         private final String displayName;
-        private boolean closed;
         private final CacheCleanupStrategy cleanup;
+        private boolean closed;
 
         public InMemoryCache(File cacheDir, String displayName, CacheCleanupStrategy cleanup) {
             this.cacheDir = cacheDir;
@@ -84,7 +84,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
         @Override
         public void cleanup() {
-            if (cleanup!=null) {
+            if (cleanup != null) {
                 synchronized (this) {
                     cleanup.clean(this, Instant.now());
                 }

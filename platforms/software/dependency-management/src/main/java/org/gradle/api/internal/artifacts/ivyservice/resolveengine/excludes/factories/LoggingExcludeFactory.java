@@ -51,6 +51,14 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
         return factory;
     }
 
+    private static Collection<?> toList(Object[] operands) {
+        return singleCollection(operands) ? (Collection<?>) operands[0] : Arrays.asList(operands);
+    }
+
+    private static boolean singleCollection(Object[] operands) {
+        return operands.length == 1 && operands[0] instanceof Collection;
+    }
+
     @Override
     public ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two) {
         return log("anyOf", () -> super.anyOf(one, two), one, two);
@@ -95,14 +103,6 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
             LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), spec);
         }
         return spec;
-    }
-
-    private static Collection<?> toList(Object[] operands) {
-        return singleCollection(operands) ? (Collection<?>) operands[0] : Arrays.asList(operands);
-    }
-
-    private static boolean singleCollection(Object[] operands) {
-        return operands.length== 1 && operands[0] instanceof Collection;
     }
 
     private enum Subject {

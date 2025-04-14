@@ -68,9 +68,11 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
             assertThat(
                 output,
-                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin " +
-                    "but version '$oldestSupportedKotlinDslPluginVersion' has been applied to project ':buildSrc'. " +
-                    "Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+                containsString(
+                    "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin " +
+                        "but version '$oldestSupportedKotlinDslPluginVersion' has been applied to project ':buildSrc'. " +
+                        "Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic."
+                )
             )
 
             assertThat(

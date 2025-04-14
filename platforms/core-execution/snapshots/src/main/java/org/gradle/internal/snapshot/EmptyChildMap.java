@@ -21,12 +21,12 @@ import java.util.stream.Stream;
 public class EmptyChildMap<T> implements ChildMap<T> {
     private static final EmptyChildMap<Object> INSTANCE = new EmptyChildMap<>();
 
+    private EmptyChildMap() {
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> EmptyChildMap<T> getInstance() {
         return (EmptyChildMap<T>) INSTANCE;
-    }
-
-    private EmptyChildMap() {
     }
 
     @Override

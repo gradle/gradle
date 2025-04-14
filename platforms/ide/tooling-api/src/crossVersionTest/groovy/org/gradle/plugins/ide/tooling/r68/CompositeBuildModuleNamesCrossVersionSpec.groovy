@@ -35,7 +35,7 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         file('subfolder/module-b').mkdirs()
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['module-main', 'module-b']
@@ -76,8 +76,8 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         file('subfolder2/module-b').mkdirs()
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
-        def includedBuildProjects = allProjects.allIdeaProjects.findAll { it.name == 'module-b'}
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def includedBuildProjects = allProjects.allIdeaProjects.findAll { it.name == 'module-b' }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['module-main', 'module-b', 'module-b']
@@ -121,7 +121,7 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         """
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['module-main', 'module-b-name']
@@ -144,7 +144,7 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         """
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['module-main', 'module-b-name']

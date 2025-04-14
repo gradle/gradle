@@ -30,11 +30,18 @@ import java.util.Collections;
 
 public class BuildOperationCrossProjectConfigurator implements CrossProjectConfigurator {
 
+    private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("allprojects");
+    private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("subprojects");
+    private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails("rootProject");
     private final BuildOperationRunner buildOperationRunner;
     private final MutationGuard lazyGuard = new DefaultMutationGuard();
 
     public BuildOperationCrossProjectConfigurator(BuildOperationRunner buildOperationRunner) {
         this.buildOperationRunner = buildOperationRunner;
+    }
+
+    private static BuildOperationDescriptor.Builder computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
+        return BuildOperationDescriptor.displayName("Execute '" + configurationBlockName + " {}' action").name(configurationBlockName);
     }
 
     @Override
@@ -75,12 +82,18 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
         return lazyGuard;
     }
 
-    private final static BuildOperationDescriptor.Builder ALLPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("allprojects");
-    private final static BuildOperationDescriptor.Builder SUBPROJECTS_DETAILS = computeConfigurationBlockBuildOperationDetails("subprojects");
-    private final static BuildOperationDescriptor.Builder ROOT_PROJECT_DETAILS = computeConfigurationBlockBuildOperationDetails("rootProject");
+    private static abstract class CrossConfigureProjectBuildOperation implements RunnableBuildOperation {
+        private final Project project;
 
-    private static BuildOperationDescriptor.Builder computeConfigurationBlockBuildOperationDetails(String configurationBlockName) {
-        return BuildOperationDescriptor.displayName("Execute '" + configurationBlockName + " {}' action").name(configurationBlockName);
+        private CrossConfigureProjectBuildOperation(Project project) {
+            this.project = project;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath();
+            return BuildOperationDescriptor.displayName(name);
+        }
     }
 
     private class BlockConfigureBuildOperation implements RunnableBuildOperation {
@@ -105,20 +118,6 @@ public class BuildOperationCrossProjectConfigurator implements CrossProjectConfi
             for (ProjectInternal project : projects) {
                 runProjectConfigureAction(project, configureAction);
             }
-        }
-    }
-
-    private static abstract class CrossConfigureProjectBuildOperation implements RunnableBuildOperation {
-        private final Project project;
-
-        private CrossConfigureProjectBuildOperation(Project project) {
-            this.project = project;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            String name = "Cross-configure project " + ((ProjectInternal) project).getIdentityPath();
-            return BuildOperationDescriptor.displayName(name);
         }
     }
 }

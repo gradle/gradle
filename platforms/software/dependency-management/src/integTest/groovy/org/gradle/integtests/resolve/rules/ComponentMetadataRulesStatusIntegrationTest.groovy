@@ -25,7 +25,7 @@ abstract class ComponentMetadataRulesStatusIntegrationTest extends AbstractHttpD
 
     def setup() {
         buildFile <<
-"""
+            """
 $repoDeclaration
 
 configurations { compile }

@@ -28,8 +28,8 @@ public interface ExecuteDeferredWorkProgressDetails {
     /**
      * Type of work being executed.
      *
-     * @since 8.7
      * @see ExecuteWorkBuildOperationType.Details#getWorkType()
+     * @since 8.7
      */
     @Nullable
     String getWorkType();
@@ -39,8 +39,8 @@ public interface ExecuteDeferredWorkProgressDetails {
      * <p>
      * Unique within the current build tree.
      *
-     * @since 8.7
      * @see ExecuteWorkBuildOperationType.Details#getIdentity()
+     * @since 8.7
      */
     String getIdentity();
 

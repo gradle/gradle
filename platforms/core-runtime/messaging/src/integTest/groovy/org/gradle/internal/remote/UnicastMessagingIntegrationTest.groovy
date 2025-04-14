@@ -215,13 +215,14 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
             connection.addIncoming(RemoteService2.class, value)
         }
 
-        void setupOutgoingService1(){
+        void setupOutgoingService1() {
             outgoingService1 = connection.addOutgoing(RemoteService1)
         }
 
-        void setupOutgoingService2(){
+        void setupOutgoingService2() {
             outgoingService2 = connection.addOutgoing(RemoteService2)
         }
+
         abstract void stop()
     }
 

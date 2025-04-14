@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.inputs.process.instrument
 
 class ProcessInstrumentationInStaticGroovyIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
-     def "#title is intercepted in static groovy build script"(VarInitializer varInitializer) {
+    def "#title is intercepted in static groovy build script"(VarInitializer varInitializer) {
         given:
         def cwd = testDirectory.file(expectedPwdSuffix)
         def command = varInitializer.getGroovy(baseScript.getRelativeCommandLine(cwd)).trim()
@@ -115,7 +115,7 @@ class ProcessInstrumentationInStaticGroovyIntegrationTest extends AbstractProces
         title = processCreator.replace("command", varInitializer.description)
     }
 
-     def "calling an unrelated method is allowed in static groovy build script"() {
+    def "calling an unrelated method is allowed in static groovy build script"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
 

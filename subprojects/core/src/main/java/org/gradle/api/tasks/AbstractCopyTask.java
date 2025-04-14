@@ -235,19 +235,19 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        getRootSpec().setDuplicatesStrategy(strategy);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
     @ToBeReplacedByLazyProperty
     public DuplicatesStrategy getDuplicatesStrategy() {
         return getRootSpec().getDuplicatesStrategy();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        getRootSpec().setDuplicatesStrategy(strategy);
     }
 
     /**
@@ -424,6 +424,16 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Internal
+    @Override
+    @ToBeReplacedByLazyProperty
+    public Set<String> getIncludes() {
+        return getMainSpec().getIncludes();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public AbstractCopyTask setIncludes(Iterable<String> includes) {
         getMainSpec().setIncludes(includes);
@@ -436,8 +446,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Internal
     @Override
     @ToBeReplacedByLazyProperty
-    public Set<String> getIncludes() {
-        return getMainSpec().getIncludes();
+    public Set<String> getExcludes() {
+        return getMainSpec().getExcludes();
     }
 
     /**
@@ -447,16 +457,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     public AbstractCopyTask setExcludes(Iterable<String> excludes) {
         getMainSpec().setExcludes(excludes);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Internal
-    @Override
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludes() {
-        return getMainSpec().getExcludes();
     }
 
     /**

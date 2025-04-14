@@ -90,15 +90,15 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
     }
 
     /**
-    file structure:
-    root
-        rootFile1
-        dir1
-           dirFile1
-           dirFile2
-        rootFile2
+     file structure:
+     root
+     rootFile1
+     dir1
+     dirFile1
+     dirFile2
+     rootFile2
 
-        Test that the files are really walked breadth first
+     Test that the files are really walked breadth first
      */
     def "walk breadth first - isReproducible: #visitor.isReproducibleFileOrder"() {
         given:

@@ -26,6 +26,11 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
  */
 @ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public interface FileCollectionSnapshotter {
+    /**
+     * Snapshot the roots of a file collection.
+     */
+    Result snapshot(FileCollection fileCollection);
+
     interface Result {
         FileSystemSnapshot getSnapshot();
 
@@ -34,9 +39,4 @@ public interface FileCollectionSnapshotter {
          */
         boolean containsArchiveTrees();
     }
-
-    /**
-     * Snapshot the roots of a file collection.
-     */
-    Result snapshot(FileCollection fileCollection);
 }

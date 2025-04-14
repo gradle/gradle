@@ -36,10 +36,10 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
 
     public DefaultCompilationStateCacheFactory(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheBuilderFactory
-                .createCacheBuilder("nativeCompile")
-                .withDisplayName("native compile cache")
-                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-                .open();
+            .createCacheBuilder("nativeCompile")
+            .withDisplayName("native compile cache")
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+            .open();
         IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
 

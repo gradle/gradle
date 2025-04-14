@@ -24,20 +24,24 @@ import java.util.Set;
 
 public class Style {
     public static final Style NORMAL = Style.of(Color.DEFAULT);
-    public enum Emphasis {
-        BOLD, REVERSE, ITALIC
-    }
-
-    public enum Color {
-        DEFAULT, YELLOW, RED, GREY, GREEN, BLACK
-    }
-
     public final Set<Emphasis> emphasises;
     public final Color color;
 
     public Style(Set<Emphasis> emphasises, Color color) {
         this.emphasises = emphasises;
         this.color = color;
+    }
+
+    public static Style of(Emphasis emphasis) {
+        return of(emphasis, Color.DEFAULT);
+    }
+
+    public static Style of(Emphasis emphasis, Color color) {
+        return new Style(EnumSet.of(emphasis), color);
+    }
+
+    public static Style of(Color color) {
+        return new Style(Collections.<Emphasis>emptySet(), color);
     }
 
     public Set<Emphasis> getEmphasises() {
@@ -70,15 +74,11 @@ public class Style {
         return Objects.hashCode(getEmphasises(), getColor());
     }
 
-    public static Style of(Emphasis emphasis) {
-        return of(emphasis, Color.DEFAULT);
+    public enum Emphasis {
+        BOLD, REVERSE, ITALIC
     }
 
-    public static Style of(Emphasis emphasis, Color color) {
-        return new Style(EnumSet.of(emphasis), color);
-    }
-
-    public static Style of(Color color) {
-        return new Style(Collections.<Emphasis>emptySet(), color);
+    public enum Color {
+        DEFAULT, YELLOW, RED, GREY, GREEN, BLACK
     }
 }

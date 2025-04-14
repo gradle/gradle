@@ -27,6 +27,7 @@ abstract class CheckResult implements FlowAction<Parameters> {
     interface Parameters extends FlowParameters {
         @Input
         Property<BuildWorkResult> getBuildResult()
+
         @Input
         Property<File> getBuildDirectory()
     }
@@ -34,7 +35,7 @@ abstract class CheckResult implements FlowAction<Parameters> {
     @Override
     void execute(Parameters parameters) throws Exception {
         BuildWorkResult result = parameters.getBuildResult().get()
-        if(result.failure.isPresent()) {
+        if (result.failure.isPresent()) {
             File buildDir = parameters.getBuildDirectory().get()
             buildDir.mkdirs()
             def failure = result.failure.get()
@@ -42,7 +43,7 @@ abstract class CheckResult implements FlowAction<Parameters> {
                 def failureMessage = cause?.cause?.cause?.message
                 !failureMessage?.contains("There were failing tests")
             })
-            if(unexpectedFailure) {
+            if (unexpectedFailure) {
                 StringWriter errors = new StringWriter();
                 failure.printStackTrace(new PrintWriter(errors));
                 new File(buildDir, "error.log").text = errors.toString()

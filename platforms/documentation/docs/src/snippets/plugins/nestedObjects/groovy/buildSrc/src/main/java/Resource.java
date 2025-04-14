@@ -1,4 +1,5 @@
 import org.gradle.api.provider.Property;
+
 import java.net.URI;
 // tag::resource[]
 

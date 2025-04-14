@@ -17,7 +17,7 @@ model {
     components {
         main(NativeExecutableSpec) {
             sources {
-               c.lib library: "hello"
+                c.lib library: "hello"
             }
         }
     }

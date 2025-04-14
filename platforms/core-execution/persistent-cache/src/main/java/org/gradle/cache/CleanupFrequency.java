@@ -68,6 +68,7 @@ public interface CleanupFrequency {
     };
 
     boolean requiresCleanup(@Nullable Instant lastCleanupTime);
+
     default boolean shouldCleanupOnEndOfSession() {
         return false;
     }

@@ -393,22 +393,22 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         given:
 
         ivyRepo.module("org.gradle.dep", "dep_module", "1.134")
-                .dependsOn("org.gradle.one", "mod_one", "1.1")
-                .dependsOn("org.gradle.two", "mod_one", "2.1")
-                .dependsOn("org.gradle.two", "mod_two", "2.2")
-                .publish()
+            .dependsOn("org.gradle.one", "mod_one", "1.1")
+            .dependsOn("org.gradle.two", "mod_one", "2.1")
+            .dependsOn("org.gradle.two", "mod_two", "2.2")
+            .publish()
         ivyRepo.module("org.gradle.one", "mod_one", "1.1").artifact([:]).artifact([type: 'war']).publish()
         ivyRepo.module("org.gradle.two", "mod_one", "2.1").publish()
         ivyRepo.module("org.gradle.two", "mod_two", "2.2").publish()
 
         ivyRepo.module("org.gradle.test", "a", "1.0")
-                .dependsOn("org.gradle.dep", "dep_module", "1.134")
-                .withXml({
-            asNode().dependencies[0].dependency.each { dep ->
-                dep.appendNode("exclude", excludeAttributes)
-            }
-        })
-                .publish()
+            .dependsOn("org.gradle.dep", "dep_module", "1.134")
+            .withXml({
+                asNode().dependencies[0].dependency.each { dep ->
+                    dep.appendNode("exclude", excludeAttributes)
+                }
+            })
+            .publish()
 
         when:
         succeeds "check"
@@ -442,22 +442,22 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         ivyRepo.module("c").dependsOn("d").dependsOn("e").publish()
 
         ivyRepo.module("a")
-                .dependsOn("c")
-                .withXml({
-            asNode().dependencies[0].dependency.each { dep ->
-                dep.appendNode("exclude", [module: "d"])
-            }
-        })
-                .publish()
+            .dependsOn("c")
+            .withXml({
+                asNode().dependencies[0].dependency.each { dep ->
+                    dep.appendNode("exclude", [module: "d"])
+                }
+            })
+            .publish()
         ivyRepo.module("b")
-                .dependsOn("c")
-                .withXml({
-            asNode().dependencies[0].dependency.each { dep ->
-                dep.appendNode("exclude", [module: "d"])
-                dep.appendNode("exclude", [module: "e"])
-            }
-        })
-                .publish()
+            .dependsOn("c")
+            .withXml({
+                asNode().dependencies[0].dependency.each { dep ->
+                    dep.appendNode("exclude", [module: "d"])
+                    dep.appendNode("exclude", [module: "e"])
+                }
+            })
+            .publish()
 
         and:
         buildFile << """

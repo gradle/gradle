@@ -23,7 +23,6 @@ import java.util.Comparator;
  *
  * When two constructors have the same number of parameters, we settle on a stable sort by looking at the names of the
  * types of the parameters.
- *
  */
 public class ConstructorComparator implements Comparator<ClassGenerator.GeneratedConstructor<?>> {
     @Override
@@ -36,7 +35,7 @@ public class ConstructorComparator implements Comparator<ClassGenerator.Generate
             for (Class<?> paramType : o1.getParameterTypes()) {
                 lhs += paramType.getCanonicalName().hashCode();
             }
-            long rhs=0;
+            long rhs = 0;
             for (Class<?> paramType : o2.getParameterTypes()) {
                 rhs += paramType.getCanonicalName().hashCode();
             }

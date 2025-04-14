@@ -33,11 +33,11 @@ public enum ChecksumKind {
         this.algorithm = algorithm;
     }
 
-    public String getAlgorithm() {
-        return algorithm;
-    }
-
     public static List<ChecksumKind> mostSecureFirst() {
         return SORTED_BY_SECURITY;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
     }
 }

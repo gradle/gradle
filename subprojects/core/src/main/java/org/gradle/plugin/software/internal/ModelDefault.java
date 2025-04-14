@@ -20,7 +20,6 @@ package org.gradle.plugin.software.internal;
  * Represents a reusable set of defaults declared for a software type.
  *
  * @param <T> the type of the receiver of the convention
- *
  * @since 8.9
  */
 public interface ModelDefault<T extends ModelDefault.Visitor<?>> {

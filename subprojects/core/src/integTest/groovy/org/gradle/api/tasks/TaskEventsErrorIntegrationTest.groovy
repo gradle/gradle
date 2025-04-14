@@ -33,9 +33,9 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails('test')
         failure.assertHasDescription("Execution failed for task ':test'.")
-                .assertHasCause("beforeTask failure")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("beforeTask failure")
+            .assertHasFileName("Build file '${buildFile}'")
+            .assertHasLineNumber(3)
     }
 
     def "reports task as failed when afterTask closure fails"() {
@@ -49,9 +49,9 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails('test')
         failure.assertHasDescription("Execution failed for task ':test'.")
-                .assertHasCause("afterTask failure")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("afterTask failure")
+            .assertHasFileName("Build file '${buildFile}'")
+            .assertHasLineNumber(3)
     }
 
     def "invokes afterTask action after task action fails"() {
@@ -93,9 +93,9 @@ afterTask action"""
         then:
         fails('test')
         failure.assertHasDescription("Execution failed for task ':test'.")
-                .assertHasCause("afterTask failure")
-                .assertHasCause("task action failure")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(7)
+            .assertHasCause("afterTask failure")
+            .assertHasCause("task action failure")
+            .assertHasFileName("Build file '${buildFile}'")
+            .assertHasLineNumber(7)
     }
 }

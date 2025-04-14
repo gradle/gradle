@@ -34,20 +34,6 @@ public interface CallInterceptionRequestReader<T> {
      */
     Collection<Result> readRequest(T input, ReadRequestContext context);
 
-    class ReadRequestContext {
-        private final Map<String, Object> store = new HashMap<>();
-
-        @SuppressWarnings("unchecked")
-        public <T> T computeIfAbsent(String key, Function<String, T> function) {
-            return (T) store.computeIfAbsent(key, __ -> checkNotNull(function.apply(key)));
-        }
-
-        @SuppressWarnings("unchecked")
-        public <T> Optional<T> get(String key) {
-            return Optional.ofNullable((T) store.get(key));
-        }
-    }
-
     interface Result {
         class Success implements Result {
             private final CallInterceptionRequest request;
@@ -67,6 +53,20 @@ public interface CallInterceptionRequestReader<T> {
             public InvalidRequest(String reason) {
                 this.reason = reason;
             }
+        }
+    }
+
+    class ReadRequestContext {
+        private final Map<String, Object> store = new HashMap<>();
+
+        @SuppressWarnings("unchecked")
+        public <T> T computeIfAbsent(String key, Function<String, T> function) {
+            return (T) store.computeIfAbsent(key, __ -> checkNotNull(function.apply(key)));
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> Optional<T> get(String key) {
+            return Optional.ofNullable((T) store.get(key));
         }
     }
 }

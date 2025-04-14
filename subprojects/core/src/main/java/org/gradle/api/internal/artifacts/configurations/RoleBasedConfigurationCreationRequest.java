@@ -44,6 +44,7 @@ public interface RoleBasedConfigurationCreationRequest {
     }
 
     String getConfigurationName();
+
     ConfigurationRole getRole();
 
     /**

@@ -67,7 +67,6 @@ public interface IvyModuleDescriptorSpec {
      * For details on the structure of the XML to be modified, see <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile.html">the
      * Ivy Module Descriptor reference</a>.
      *
-     *
      * @param action The configuration action.
      * @see IvyPublication
      * @see XmlProvider

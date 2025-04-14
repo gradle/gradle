@@ -38,7 +38,6 @@ public interface InternalProblem extends Problem {
 
     /**
      * Declares a short, but context-dependent message for this problem.
-     *
      */
     @Nullable
     String getContextualLabel();

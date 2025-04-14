@@ -27,10 +27,14 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
     }
 
     public static AdditionalDataBuilder<PropertyTraceData> builder(@Nullable PropertyTraceData from) {
-        if(from == null) {
+        if (from == null) {
             return new DefaultPropertyTraceDataBuilder();
         }
         return new DefaultPropertyTraceDataBuilder(from);
+    }
+
+    public static AdditionalDataBuilder<PropertyTraceData> builder() {
+        return new DefaultPropertyTraceDataBuilder();
     }
 
     @Override
@@ -45,10 +49,6 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
     @Override
     public int hashCode() {
         return Objects.hashCode(trace);
-    }
-
-    public static AdditionalDataBuilder<PropertyTraceData> builder() {
-        return new DefaultPropertyTraceDataBuilder();
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
         }
 
         @Override
-        public PropertyTraceDataSpec trace(String trace){
+        public PropertyTraceDataSpec trace(String trace) {
             this.trace = trace;
             return this;
         }

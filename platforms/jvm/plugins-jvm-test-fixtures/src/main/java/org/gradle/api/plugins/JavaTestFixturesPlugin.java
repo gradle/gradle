@@ -46,13 +46,13 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  * This should really be named `JVMTestFixturesPlugin`, as there is no requirement
  * for the test fixtures to be written in Java, any supported JVM language will work.
  *
- * @since 5.6
  * @see <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Java Test Fixtures reference</a>
+ * @since 5.6
  */
 public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
     @Inject
-    public JavaTestFixturesPlugin() { }
+    public JavaTestFixturesPlugin() {}
 
     @Override
     public void apply(Project project) {

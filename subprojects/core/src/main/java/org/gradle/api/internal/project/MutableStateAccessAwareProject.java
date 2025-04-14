@@ -110,6 +110,15 @@ import java.util.function.Function;
  */
 public abstract class MutableStateAccessAwareProject implements ProjectInternal, DynamicObjectAware {
 
+    protected final ProjectInternal delegate;
+    protected final ProjectInternal referrer;
+    private final DynamicObject dynamicObject;
+    protected MutableStateAccessAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
+        this.delegate = delegate;
+        this.referrer = referrer;
+        this.dynamicObject = new HasPropertyMissingDynamicObject(this, Project.class, this::hasPropertyMissing);
+    }
+
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
         ProjectInternal target,
         ProjectInternal referrer,
@@ -118,16 +127,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return target == referrer
             ? target
             : wrapper.apply(target);
-    }
-
-    protected final ProjectInternal delegate;
-    protected final ProjectInternal referrer;
-    private final DynamicObject dynamicObject;
-
-    protected MutableStateAccessAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
-        this.delegate = delegate;
-        this.referrer = referrer;
-        this.dynamicObject = new HasPropertyMissingDynamicObject(this, Project.class, this::hasPropertyMissing);
     }
 
     protected abstract void onMutableStateAccess(String what);
@@ -946,14 +945,14 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public void setScript(Script script) {
-        onMutableStateAccess("script");
-        delegate.setScript(script);
+    public boolean isScript() {
+        return delegate.isScript();
     }
 
     @Override
-    public boolean isScript() {
-        return delegate.isScript();
+    public void setScript(Script script) {
+        onMutableStateAccess("script");
+        delegate.setScript(script);
     }
 
     @Override
@@ -1184,14 +1183,14 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getConfigurationTargetIdentifier();
     }
 
-    @Override
-    public void setLifecycleActionsState(@Nullable Object state) {
-        delegate.setLifecycleActionsState(state);
-    }
-
     @Nullable
     @Override
     public Object getLifecycleActionsState() {
         return delegate.getLifecycleActionsState();
+    }
+
+    @Override
+    public void setLifecycleActionsState(@Nullable Object state) {
+        delegate.setLifecycleActionsState(state);
     }
 }

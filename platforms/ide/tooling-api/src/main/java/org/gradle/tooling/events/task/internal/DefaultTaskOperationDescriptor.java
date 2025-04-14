@@ -55,22 +55,6 @@ public final class DefaultTaskOperationDescriptor extends DefaultOperationDescri
         this.originPlugin = originPlugin;
     }
 
-    @Override
-    public String getTaskPath() {
-        return taskPath;
-    }
-
-    @Override
-    public Set<? extends OperationDescriptor> getDependencies() {
-        return dependencies.get();
-    }
-
-    @Override
-    @Nullable
-    public PluginIdentifier getOriginPlugin() {
-        return originPlugin.get();
-    }
-
     private static Supplier<PluginIdentifier> unsupportedOriginPlugin() {
         return unsupportedMethodExceptionThrowingSupplier(ORIGIN_PLUGIN_METHOD);
     }
@@ -86,6 +70,22 @@ public final class DefaultTaskOperationDescriptor extends DefaultOperationDescri
                 throw Exceptions.unsupportedMethod(method);
             }
         };
+    }
+
+    @Override
+    public String getTaskPath() {
+        return taskPath;
+    }
+
+    @Override
+    public Set<? extends OperationDescriptor> getDependencies() {
+        return dependencies.get();
+    }
+
+    @Override
+    @Nullable
+    public PluginIdentifier getOriginPlugin() {
+        return originPlugin.get();
     }
 
 }

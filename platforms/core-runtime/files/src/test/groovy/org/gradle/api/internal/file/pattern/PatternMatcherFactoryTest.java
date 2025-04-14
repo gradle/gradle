@@ -32,10 +32,36 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class PatternMatcherFactoryTest {
     private PatternMatcher matcher;
 
-    @Test public void testNoStackOverflowForManyPatterns() {
+    private static PathMatcher pathMatcher(PatternMatcher matcher) {
+        return ((PatternMatcherFactory.DefaultPatternMatcher) matcher).getPathMatcher();
+    }
+
+    private static Matcher<PatternMatcher> matchesFile(String... segments) {
+        return matches(segments, true);
+    }
+
+    private static Matcher<PatternMatcher> matchesDir(String... segments) {
+        return matches(segments, false);
+    }
+
+    private static Matcher<PatternMatcher> matches(final String[] segments, final boolean isFile) {
+        return new BaseMatcher<PatternMatcher>() {
+            public void describeTo(Description description) {
+                description.appendText("matches ").appendValue(Joiner.on("/").join(segments));
+            }
+
+            public boolean matches(Object o) {
+                PatternMatcher matcher = (PatternMatcher) o;
+                return matcher.test(segments, isFile);
+            }
+        };
+    }
+
+    @Test
+    public void testNoStackOverflowForManyPatterns() {
         // The only reason for this unit test is to verify that no StackOverflowException is being thrown when
         // many patterns are passed to getPatternsMatcher. See https://github.com/gradle/gradle/issues/10329
-        Set<String> manyPatterns =  new LinkedHashSet<String>();
+        Set<String> manyPatterns = new LinkedHashSet<String>();
         for (int i = 0; i < 5000; i++) {
             manyPatterns.add("some/package/Some" + i + "ClassName.class");
             manyPatterns.add("some/package/Some" + i + "ClassName.java");
@@ -49,8 +75,9 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesFile("some", "package", "Some123ClassName.java"));
     }
 
-    @Test public void testManyOr() {
-        Set<String> manyPatterns =  new LinkedHashSet<String>();
+    @Test
+    public void testManyOr() {
+        Set<String> manyPatterns = new LinkedHashSet<String>();
         manyPatterns.add("some/package/SomeClassName.class");
         manyPatterns.add("some/package/SomeClassName.java");
         manyPatterns.add("some/package/SomeClassName.h");
@@ -68,14 +95,16 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("a")));
     }
 
-    @Test public void testEmpty() {
+    @Test
+    public void testEmpty() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "");
         assertThat(matcher, matchesFile());
         assertThat(matcher, not(matchesFile("a")));
         assertThat(matcher, not(matchesFile("a", "b")));
     }
 
-    @Test public void testSlashDirection() {
+    @Test
+    public void testSlashDirection() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a/b/c");
         assertThat(matcher, matchesFile("a", "b", "c"));
         assertThat(matcher, not(matchesFile("a")));
@@ -91,7 +120,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("a", "other", "c")));
     }
 
-    @Test public void testCaseSensitive() {
+    @Test
+    public void testCaseSensitive() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a/b/c");
         assertThat(matcher, matchesFile("a", "b", "c"));
         assertThat(matcher, not(matchesFile("a", "b", "C")));
@@ -101,7 +131,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesFile("a", "b", "C"));
     }
 
-    @Test public void testTrailingSlashIsReplacedWithTrailingGreedy() {
+    @Test
+    public void testTrailingSlashIsReplacedWithTrailingGreedy() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a/b/");
         assertThat(matcher, matchesFile("a", "b"));
         assertThat(matcher, matchesFile("a", "b", "c"));
@@ -117,7 +148,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("c", "b")));
     }
 
-    @Test public void testDuplicateSeparatorIsIgnored() {
+    @Test
+    public void testDuplicateSeparatorIsIgnored() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a//b");
         assertThat(matcher, matchesFile("a", "b"));
         assertThat(matcher, not(matchesFile("a", "b", "c")));
@@ -131,7 +163,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("c", "b")));
     }
 
-    @Test public void testGreedyWithTrailingName() {
+    @Test
+    public void testGreedyWithTrailingName() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**/*.jsp");
         assertThat(matcher, matchesFile("fred.jsp"));
         assertThat(matcher, matchesFile("a", "fred.jsp"));
@@ -149,7 +182,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("src", "fred.txt")));
     }
 
-    @Test public void testGreedyWithSingleNameFollowedByGreedy() {
+    @Test
+    public void testGreedyWithSingleNameFollowedByGreedy() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**/*a*/**");
         assertThat(matcher, matchesFile("abc"));
         assertThat(matcher, matchesFile("a", "abc", "a"));
@@ -173,7 +207,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("b", "b")));
     }
 
-    @Test public void testWildcards() {
+    @Test
+    public void testWildcards() {
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "a/*");
         assertThat(matcher, matchesFile("a", "b"));
         assertThat(matcher, not(matchesFile()));
@@ -197,7 +232,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("abc")));
     }
 
-    @Test public void testLiteralsPartialMatchingDirs() {
+    @Test
+    public void testLiteralsPartialMatchingDirs() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "a/b");
         assertThat(matcher, matchesDir());
         assertThat(matcher, matchesDir("a"));
@@ -208,7 +244,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesDir("a", "b", "c")));
     }
 
-    @Test public void testGreedy() {
+    @Test
+    public void testGreedy() {
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "**");
         assertThat(pathMatcher(matcher), instanceOf(AnythingMatcher.class));
         assertThat(matcher, matchesFile());
@@ -228,7 +265,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesFile("a", "b", "c"));
     }
 
-    @Test public void testGreedyPatternsMatchingFiles() {
+    @Test
+    public void testGreedyPatternsMatchingFiles() {
         matcher = PatternMatcherFactory.getPatternMatcher(false, true, "**");
         assertThat(matcher, matchesFile());
         assertThat(matcher, matchesFile("a"));
@@ -315,7 +353,8 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, not(matchesFile("b", "a")));
     }
 
-    @Test public void testGreedyPatternsPartialMatchingDirs() {
+    @Test
+    public void testGreedyPatternsPartialMatchingDirs() {
         matcher = PatternMatcherFactory.getPatternMatcher(true, true, "**");
         assertThat(matcher, matchesDir());
         assertThat(matcher, matchesDir("a"));
@@ -385,30 +424,5 @@ public class PatternMatcherFactoryTest {
         assertThat(matcher, matchesDir("a", "b", "d", "c"));
         assertThat(matcher, not(matchesDir("b")));
         assertThat(matcher, not(matchesDir("b", "a")));
-    }
-
-    private static PathMatcher pathMatcher(PatternMatcher matcher) {
-        return ((PatternMatcherFactory.DefaultPatternMatcher) matcher).getPathMatcher();
-    }
-
-    private static Matcher<PatternMatcher> matchesFile(String... segments) {
-        return matches(segments, true);
-    }
-
-    private static Matcher<PatternMatcher> matchesDir(String... segments) {
-        return matches(segments, false);
-    }
-
-    private static Matcher<PatternMatcher> matches(final String[] segments, final boolean isFile) {
-        return new BaseMatcher<PatternMatcher>() {
-            public void describeTo(Description description) {
-                description.appendText("matches ").appendValue(Joiner.on("/").join(segments));
-            }
-
-            public boolean matches(Object o) {
-                PatternMatcher matcher = (PatternMatcher) o;
-                return matcher.test(segments, isFile);
-            }
-        };
     }
 }

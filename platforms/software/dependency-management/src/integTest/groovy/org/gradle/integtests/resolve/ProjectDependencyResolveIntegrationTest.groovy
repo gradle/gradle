@@ -861,7 +861,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
 
         where:
         declaredDependency   | projectDescription  | expectedCommand
-        "project(':')"       | "root project :"         | ":outgoingVariants"
+        "project(':')"       | "root project :"    | ":outgoingVariants"
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
     }
 

@@ -56,7 +56,6 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      * the {@link #attributes(Action)} method.
      *
      * @return the attributes container for this dependency
-     *
      * @since 4.8
      */
     @Override
@@ -67,7 +66,6 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      * target variant, in particular when a single component provides different variants.
      *
      * @param configureAction the attributes mutation action
-     *
      * @since 4.8
      */
     @Override
@@ -75,6 +73,7 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
 
     /**
      * Returns the version constraint to be used during selection.
+     *
      * @return the version constraint
      */
     VersionConstraint getVersionConstraint();

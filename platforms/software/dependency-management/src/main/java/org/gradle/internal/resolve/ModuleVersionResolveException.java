@@ -91,15 +91,15 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         this(DefaultModuleComponentSelector.newSelector(selector), causes);
     }
 
+    protected static Factory<String> format(String messageFormat, ComponentSelector selector) {
+        return () -> String.format(messageFormat, selector.getDisplayName());
+    }
+
     /**
      * Returns the selector that could not be resolved.
      */
     public ComponentSelector getSelector() {
         return selector;
-    }
-
-    protected static Factory<String> format(String messageFormat, ComponentSelector selector) {
-        return () -> String.format(messageFormat, selector.getDisplayName());
     }
 
     /**

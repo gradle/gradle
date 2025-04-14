@@ -24,9 +24,9 @@ import java.io.File;
 import static org.gradle.internal.hash.Hashing.hashString;
 
 public class CompilerOutputFileNamingScheme {
+    private final RelativeFilePathResolver fileResolver;
     private String objectFileNameSuffix;
     private File outputBaseFolder;
-    private final RelativeFilePathResolver fileResolver;
 
     public CompilerOutputFileNamingScheme(RelativeFilePathResolver fileResolver) {
         this.fileResolver = fileResolver;
@@ -37,7 +37,7 @@ public class CompilerOutputFileNamingScheme {
         return this;
     }
 
-    public CompilerOutputFileNamingScheme withObjectFileNameSuffix(String suffix){
+    public CompilerOutputFileNamingScheme withObjectFileNameSuffix(String suffix) {
         this.objectFileNameSuffix = suffix;
         return this;
     }

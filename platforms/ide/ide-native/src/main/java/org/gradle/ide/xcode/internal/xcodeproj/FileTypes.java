@@ -46,18 +46,14 @@ public enum FileTypes {
     SWIFT_SOURCE_CODE("swift", "sourcecode.swift"),
     XCODE_PROJECT_WRAPPER("xcodeproj", "wrapper.pb-project");
 
-    public final String fileExtension;
-    public final String identifier;
-    FileTypes(String fileExtension, String identifier) {
-        this.fileExtension = fileExtension;
-        this.identifier = identifier;
-    }
-
-
     /**
      * Map of file extension to Apple UTI (Uniform Type Identifier).
      */
     public static final ImmutableMap<String, String> FILE_EXTENSION_TO_UTI;
+    /**
+     * Multimap of Apple UTI (Uniform Type Identifier) to file extension(s).
+     */
+    public static final ImmutableMultimap<String, String> UTI_TO_FILE_EXTENSIONS;
 
     static {
         ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
@@ -68,11 +64,6 @@ public enum FileTypes {
         FILE_EXTENSION_TO_UTI = builder.build();
     }
 
-    /**
-     * Multimap of Apple UTI (Uniform Type Identifier) to file extension(s).
-     */
-    public static final ImmutableMultimap<String, String> UTI_TO_FILE_EXTENSIONS;
-
     static {
         // Invert the map of (file extension -> UTI) pairs to
         // (UTI -> [file extension 1, ...]) pairs.
@@ -81,5 +72,13 @@ public enum FileTypes {
             builder.put(entry.getValue(), entry.getKey());
         }
         UTI_TO_FILE_EXTENSIONS = builder.build();
+    }
+
+    public final String fileExtension;
+    public final String identifier;
+
+    FileTypes(String fileExtension, String identifier) {
+        this.fileExtension = fileExtension;
+        this.identifier = identifier;
     }
 }

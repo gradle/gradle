@@ -23,12 +23,12 @@ public class TypedNotationConverterTest extends Specification {
 
     def parser = NotationParserBuilder.toType(Integer).converter(new DummyConverter()).toComposite()
 
-    def "parses object of source type"(){
+    def "parses object of source type"() {
         expect:
         parser.parseNotation("100") == 100
     }
 
-    def "throws meaningful exception on parse attempt"(){
+    def "throws meaningful exception on parse attempt"() {
         when:
         parser.parseNotation(new Object())
 

@@ -93,7 +93,7 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         def candidate4 = candidate("compatible", "best", "best")
         def candidate5 = candidate("compatible", "compatible", "best")
         def candidate6 = candidate("compatible", "compatible", "compatible")
-        def requested = requested("requested", "requested","requested")
+        def requested = requested("requested", "requested", "requested")
         expect:
         matcher.matchMultipleCandidates([candidate1], requested) == [candidate1]
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested) == [candidate1]
@@ -120,6 +120,7 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
     private static ImmutableAttributes requested(String highestValue, String middleValue, String lowestValue) {
         return candidate(highestValue, middleValue, lowestValue)
     }
+
     private static ImmutableAttributes candidate(String highestValue, String middleValue, String lowestValue) {
         return AttributeTestUtil.attributes([highest: highestValue, middle: middleValue, lowest: lowestValue])
     }

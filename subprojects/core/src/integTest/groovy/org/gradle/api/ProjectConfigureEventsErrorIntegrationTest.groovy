@@ -37,9 +37,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("beforeProject failure")
-                .assertHasFileName("Settings file '${settingsFile.path}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("beforeProject failure")
+            .assertHasFileName("Settings file '${settingsFile.path}'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when Gradle.beforeProject action fails"() {
@@ -56,9 +56,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("beforeProject failure")
-                .assertHasFileName("Settings file '${settingsFile.path}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("beforeProject failure")
+            .assertHasFileName("Settings file '${settingsFile.path}'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when Gradle.afterProject closure fails"() {
@@ -74,9 +74,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("afterProject failure")
-                .assertHasFileName("Settings file '${settingsFile.path}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("afterProject failure")
+            .assertHasFileName("Settings file '${settingsFile.path}'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when Gradle.afterProject action fails"() {
@@ -93,9 +93,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("afterProject failure")
-                .assertHasFileName("Settings file '${settingsFile.path}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("afterProject failure")
+            .assertHasFileName("Settings file '${settingsFile.path}'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when ProjectEvaluationListener.beforeEvaluate fails"() {
@@ -115,9 +115,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("afterProject failure")
-                .assertHasFileName("Settings file '${settingsFile.path}'")
-                .assertHasLineNumber(4)
+            .assertHasCause("afterProject failure")
+            .assertHasFileName("Settings file '${settingsFile.path}'")
+            .assertHasLineNumber(4)
     }
 
     def "produces reasonable error message when ProjectEvaluationListener.afterEvaluate fails"() {
@@ -137,9 +137,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("afterProject failure")
-                .assertHasFileName("Settings file '${settingsFile.path}'")
-                .assertHasLineNumber(5)
+            .assertHasCause("afterProject failure")
+            .assertHasFileName("Settings file '${settingsFile.path}'")
+            .assertHasLineNumber(5)
     }
 
     def "produces reasonable error message when Project.afterEvaluate closure fails"() {
@@ -153,9 +153,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("afterEvaluate failure")
-                .assertHasFileName("Build file '${buildFile.path}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("afterEvaluate failure")
+            .assertHasFileName("Build file '${buildFile.path}'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when Project.afterEvaluate action fails"() {
@@ -170,9 +170,9 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("afterEvaluate failure")
-                .assertHasFileName("Build file '${buildFile.path}'")
-                .assertHasLineNumber(3)
+            .assertHasCause("afterEvaluate failure")
+            .assertHasFileName("Build file '${buildFile.path}'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when both project configuration and Project.afterEvaluate action fails"() {
@@ -188,12 +188,12 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         fails('test')
         failure.assertHasFailures(2)
         failure.assertHasDescription("A problem occurred evaluating root project 'projectConfigure'.")
-                .assertHasCause("configure")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(6)
+            .assertHasCause("configure")
+            .assertHasFileName("Build file '${buildFile}'")
+            .assertHasLineNumber(6)
         failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
-                .assertHasCause("afterEvaluate failure")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(4)
+            .assertHasCause("afterEvaluate failure")
+            .assertHasFileName("Build file '${buildFile}'")
+            .assertHasLineNumber(4)
     }
 }

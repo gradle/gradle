@@ -25,7 +25,7 @@ import java.util.List;
 
 
 @NullMarked
-@ServiceScope({ Scope.Build.class, Scope.Global.class })
+@ServiceScope({Scope.Build.class, Scope.Global.class})
 public interface JavaInstallationRegistry {
     List<JvmToolchainMetadata> toolchains();
 

@@ -53,8 +53,8 @@ public class CachedStoreFactory<T> implements Closeable {
     @Override
     public void close() {
         LOG.debug(displayName + " cache closed. Cache reads: "
-                + stats.readsFromCache + ", disk reads: "
-                + stats.readsFromDisk + " (avg: " + TimeFormatting.formatDurationVerbose(stats.getDiskReadsAvgMs()) + ", total: " + TimeFormatting.formatDurationVerbose(stats.diskReadsTotalMs.get()) + ")");
+            + stats.readsFromCache + ", disk reads: "
+            + stats.readsFromDisk + " (avg: " + TimeFormatting.formatDurationVerbose(stats.getDiskReadsAvgMs()) + ", total: " + TimeFormatting.formatDurationVerbose(stats.diskReadsTotalMs.get()) + ")");
     }
 
     private static class Stats {

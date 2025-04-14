@@ -21,11 +21,15 @@ import org.gradle.tooling.IntermediateResultHandler;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultPhasedBuildAction implements PhasedBuildAction {
-    @Nullable private final BuildActionWrapper<?> projectsLoadedAction;
-    @Nullable private final BuildActionWrapper<?> buildFinishedAction;
+    @Nullable
+    private final BuildActionWrapper<?> projectsLoadedAction;
+    @Nullable
+    private final BuildActionWrapper<?> buildFinishedAction;
 
-    DefaultPhasedBuildAction(@Nullable BuildActionWrapper<?> projectsLoadedAction,
-                             @Nullable BuildActionWrapper<?> buildFinishedAction) {
+    DefaultPhasedBuildAction(
+        @Nullable BuildActionWrapper<?> projectsLoadedAction,
+        @Nullable BuildActionWrapper<?> buildFinishedAction
+    ) {
         this.projectsLoadedAction = projectsLoadedAction;
         this.buildFinishedAction = buildFinishedAction;
     }

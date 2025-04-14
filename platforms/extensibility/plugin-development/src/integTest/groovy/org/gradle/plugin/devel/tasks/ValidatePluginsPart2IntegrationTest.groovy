@@ -90,71 +90,71 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'direct\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
-            solutions == [ 'Use type \'java.net.URI\' instead' ]
+            solutions == ['Use type \'java.net.URI\' instead']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'direct',
+                'typeName': 'MyTask',
+                'propertyName': 'direct',
             ]
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'listPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
-            solutions == [ 'Use type \'java.net.URI\' instead' ]
+            solutions == ['Use type \'java.net.URI\' instead']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'listPropertyInput',
+                'typeName': 'MyTask',
+                'propertyName': 'listPropertyInput',
             ]
         }
         verifyAll(receivedProblem(2)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'mapPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
-            solutions == [ 'Use type \'java.net.URI\' instead' ]
+            solutions == ['Use type \'java.net.URI\' instead']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'mapPropertyInput',
+                'typeName': 'MyTask',
+                'propertyName': 'mapPropertyInput',
             ]
         }
         verifyAll(receivedProblem(3)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'nestedBean.nestedInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
-            solutions == [ 'Use type \'java.net.URI\' instead' ]
+            solutions == ['Use type \'java.net.URI\' instead']
             additionalData.asMap == [
-                'parentPropertyName' : 'nestedBean',
-                'typeName' : 'MyTask',
-                'propertyName' : 'nestedInput',
+                'parentPropertyName': 'nestedBean',
+                'typeName': 'MyTask',
+                'propertyName': 'nestedInput',
             ]
         }
         verifyAll(receivedProblem(4)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'propertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
-            solutions == [ 'Use type \'java.net.URI\' instead' ]
+            solutions == ['Use type \'java.net.URI\' instead']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'propertyInput',
+                'typeName': 'MyTask',
+                'propertyName': 'propertyInput',
             ]
         }
         verifyAll(receivedProblem(5)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'providerInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
-            solutions == [ 'Use type \'java.net.URI\' instead' ]
+            solutions == ['Use type \'java.net.URI\' instead']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'providerInput',
+                'typeName': 'MyTask',
+                'propertyName': 'providerInput',
             ]
         }
         verifyAll(receivedProblem(6)) {
             fqid == 'validation:property-validation:unsupported-value-type-for-input'
             contextualLabel == 'Type \'MyTask\' property \'setPropertyInput\' has @Input annotation used on type \'java.net.URL\' or a property of this type'
             details == 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type'
-            solutions == [ 'Use type \'java.net.URI\' instead' ]
+            solutions == ['Use type \'java.net.URI\' instead']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'setPropertyInput',
+                'typeName': 'MyTask',
+                'propertyName': 'setPropertyInput',
             ]
         }
     }
@@ -243,8 +243,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'file',
+                'typeName': 'MyTask',
+                'propertyName': 'file',
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -257,8 +257,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'fileCollection',
+                'typeName': 'MyTask',
+                'propertyName': 'fileCollection',
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -271,8 +271,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'filePath',
+                'typeName': 'MyTask',
+                'propertyName': 'filePath',
             ]
         }
         verifyAll(receivedProblem(3)) {
@@ -285,38 +285,38 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'If you want to track the path, return File.absolutePath as a String and keep @Input',
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'fileTree',
+                'typeName': 'MyTask',
+                'propertyName': 'fileTree',
             ]
         }
         verifyAll(receivedProblem(4)) {
             fqid == 'validation:property-validation:missing-normalization-annotation'
             contextualLabel == 'Type \'MyTask\' property \'inputDirectory\' is annotated with @InputDirectory but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
-            solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
+            solutions == ['Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'inputDirectory',
+                'typeName': 'MyTask',
+                'propertyName': 'inputDirectory',
             ]
         }
         verifyAll(receivedProblem(5)) {
             fqid == 'validation:property-validation:missing-normalization-annotation'
             contextualLabel == 'Type \'MyTask\' property \'inputFile\' is annotated with @InputFile but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
-            solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
+            solutions == ['Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'inputFile',
+                'typeName': 'MyTask',
+                'propertyName': 'inputFile',
             ]
         }
         verifyAll(receivedProblem(6)) {
             fqid == 'validation:property-validation:missing-normalization-annotation'
             contextualLabel == 'Type \'MyTask\' property \'inputFiles\' is annotated with @InputFiles but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
-            solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
+            solutions == ['Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath']
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'inputFiles',
+                'typeName': 'MyTask',
+                'propertyName': 'inputFiles',
             ]
         }
     }
@@ -445,9 +445,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'doubleIterableOptions.*.*',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'doubleIterableOptions.*.*',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -459,9 +459,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'iterableMappedOptions.*.<key>.*',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'iterableMappedOptions.*.<key>.*',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -473,9 +473,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'iterableOptions.*',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'iterableOptions.*',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
         verifyAll(receivedProblem(3)) {
@@ -487,9 +487,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'mappedOptions.<key>',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'mappedOptions.<key>',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
         verifyAll(receivedProblem(4)) {
@@ -501,9 +501,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'namedIterable.<name>',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'namedIterable.<name>',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
         verifyAll(receivedProblem(5)) {
@@ -515,9 +515,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'options',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'options',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
         verifyAll(receivedProblem(6)) {
@@ -529,9 +529,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'optionsList.*',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'optionsList.*',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
         verifyAll(receivedProblem(7)) {
@@ -543,9 +543,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Mark it as @Internal',
             ]
             additionalData.asMap == [
-                'parentPropertyName' : 'providedOptions',
-                'typeName' : 'MyTask',
-                'propertyName' : 'notAnnotated',
+                'parentPropertyName': 'providedOptions',
+                'typeName': 'MyTask',
+                'propertyName': 'notAnnotated',
             ]
         }
     }
@@ -651,10 +651,10 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             fqid == 'validation:property-validation:nested-map-unsupported-key-type'
             contextualLabel == "Type 'MyTask' property 'mapWithUnsupportedKey' where key of nested map is of type 'java.lang.Boolean'"
             details == "Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'"
-            solutions == [ "Change type of key to an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'" ]
+            solutions == ["Change type of key to an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'"]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'mapWithUnsupportedKey',
+                'typeName': 'MyTask',
+                'propertyName': 'mapWithUnsupportedKey',
             ]
         }
     }
@@ -697,8 +697,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Use a different package that doesn\'t conflict with standard Java or Kotlin types for custom types',
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : "my$typeName",
+                'typeName': 'MyTask',
+                'propertyName': "my$typeName",
             ]
         }
 
@@ -795,8 +795,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'Use a different package that doesn\'t conflict with standard Java or Kotlin types for custom types'
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : "my$typeName"
+                'typeName': 'MyTask',
+                'propertyName': "my$typeName"
             ]
         }
 

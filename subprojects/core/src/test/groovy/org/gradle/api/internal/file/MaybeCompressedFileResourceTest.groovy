@@ -42,7 +42,7 @@ class MaybeCompressedFileResourceTest extends Specification {
         maybeCompressed.resource == resource
 
         where:
-        name << [ "foo", "foo.tgz", "foo.gz" ]
+        name << ["foo", "foo.tgz", "foo.gz"]
     }
 
     def "passes through Bzip2Archiver resources called #name"() {
@@ -54,7 +54,7 @@ class MaybeCompressedFileResourceTest extends Specification {
         maybeCompressed.resource == resource
 
         where:
-        name << [ "foo", "foo.bz2", "foo.tbz2" ]
+        name << ["foo", "foo.bz2", "foo.tbz2"]
     }
 
     def fileResource(String fileName) {

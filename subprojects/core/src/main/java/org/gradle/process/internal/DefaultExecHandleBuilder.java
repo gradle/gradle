@@ -114,6 +114,11 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
+    public List<String> getArgs() {
+        return delegate.getArgs();
+    }
+
+    @Override
     public DefaultExecHandleBuilder setArgs(List<String> arguments) {
         delegate.setArgs(arguments);
         return this;
@@ -123,11 +128,6 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     public DefaultExecHandleBuilder setArgs(Iterable<?> arguments) {
         delegate.setArgs(arguments);
         return this;
-    }
-
-    @Override
-    public List<String> getArgs() {
-        return delegate.getArgs();
     }
 
     @Override

@@ -66,9 +66,9 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
                 if (property != null && method.getParameters().size() == 1 && method.getParameters().get(0).getType().getSignature().equals(Closure.class.getName())) {
                     TypeMetaData type = property.getMetaData().getType();
                     if (type.getName().equals("java.util.List")
-                            || type.getName().equals("java.util.Collection")
-                            || type.getName().equals("java.util.Set")
-                            || type.getName().equals("java.util.Iterable")) {
+                        || type.getName().equals("java.util.Collection")
+                        || type.getName().equals("java.util.Set")
+                        || type.getName().equals("java.util.Iterable")) {
                         type = type.getTypeArgs().get(0);
                         multiValued = true;
                     }
@@ -81,7 +81,7 @@ public class ClassDocMethodsBuilder extends ModelBuilderSupport {
         }
 
         for (ClassDoc supertype : classDoc.getSuperTypes()) {
-            for (MethodDoc method: supertype.getClassMethods()){
+            for (MethodDoc method : supertype.getClassMethods()) {
                 if (signatures.add(method.getMetaData().getOverrideSignature())) {
                     classDoc.addClassMethod(method);
                 }

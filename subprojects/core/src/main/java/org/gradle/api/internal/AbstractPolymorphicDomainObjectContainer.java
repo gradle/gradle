@@ -34,7 +34,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 public abstract class AbstractPolymorphicDomainObjectContainer<T>
-        extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
+    extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
@@ -92,6 +92,21 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         return provider;
     }
 
+    @Override
+    protected DynamicObject getElementsAsDynamicObject() {
+        return elementsDynamicObject;
+    }
+
+    @Override
+    protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
+        return new PolymorphicDomainObjectContainerConfigureDelegate<>(configureClosure, this);
+    }
+
+    @Override
+    public <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
+        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this));
+    }
+
     // Cannot be private due to reflective instantiation
     public class NamedDomainObjectCreatingProvider<I extends T> extends AbstractDomainObjectCreatingProvider<I> {
         public NamedDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
@@ -102,16 +117,6 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         protected I createDomainObject() {
             return doCreate(getName(), getType());
         }
-    }
-
-    @Override
-    protected DynamicObject getElementsAsDynamicObject() {
-        return elementsDynamicObject;
-    }
-
-    @Override
-    protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
-        return new PolymorphicDomainObjectContainerConfigureDelegate<>(configureClosure, this);
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
@@ -158,13 +163,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
             return ((arguments.length == 1 && arguments[0] instanceof Closure)
                 || (arguments.length == 1 && arguments[0] instanceof Class)
                 || (arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure))
-                    && hasProperty(name);
+                && hasProperty(name);
         }
-    }
-
-    @Override
-    public <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
-        return Cast.uncheckedNonnullCast(getInstantiator().newInstance(TypedDomainObjectContainerWrapper.class, type, this));
     }
 
 }

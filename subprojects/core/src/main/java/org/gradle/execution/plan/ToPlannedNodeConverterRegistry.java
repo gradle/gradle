@@ -55,6 +55,25 @@ public class ToPlannedNodeConverterRegistry {
         }
     }
 
+    private static void validateConverters(List<ToPlannedNodeConverter> converters) {
+        int converterCount = converters.size();
+        for (int i = 0; i < converterCount; i++) {
+            ToPlannedNodeConverter converter1 = converters.get(i);
+            for (int j = i + 1; j < converterCount; j++) {
+                ToPlannedNodeConverter converter2 = converters.get(j);
+                checkOverlappingConverters(converter1, converter2);
+            }
+        }
+    }
+
+    private static void checkOverlappingConverters(ToPlannedNodeConverter converter1, ToPlannedNodeConverter converter2) {
+        Class<? extends Node> supportedNodeType1 = converter1.getSupportedNodeType();
+        Class<? extends Node> supportedNodeType2 = converter2.getSupportedNodeType();
+        if (supportedNodeType1.isAssignableFrom(supportedNodeType2) || supportedNodeType2.isAssignableFrom(supportedNodeType1)) {
+            throw new IllegalStateException("Converter " + converter1 + " overlaps by supported node type with converter " + converter2);
+        }
+    }
+
     /**
      * Returns a set of node types that this converter registry can provide.
      */
@@ -83,25 +102,6 @@ public class ToPlannedNodeConverterRegistry {
         }
 
         return MISSING_MARKER;
-    }
-
-    private static void validateConverters(List<ToPlannedNodeConverter> converters) {
-        int converterCount = converters.size();
-        for (int i = 0; i < converterCount; i++) {
-            ToPlannedNodeConverter converter1 = converters.get(i);
-            for (int j = i + 1; j < converterCount; j++) {
-                ToPlannedNodeConverter converter2 = converters.get(j);
-                checkOverlappingConverters(converter1, converter2);
-            }
-        }
-    }
-
-    private static void checkOverlappingConverters(ToPlannedNodeConverter converter1, ToPlannedNodeConverter converter2) {
-        Class<? extends Node> supportedNodeType1 = converter1.getSupportedNodeType();
-        Class<? extends Node> supportedNodeType2 = converter2.getSupportedNodeType();
-        if (supportedNodeType1.isAssignableFrom(supportedNodeType2) || supportedNodeType2.isAssignableFrom(supportedNodeType1)) {
-            throw new IllegalStateException("Converter " + converter1 + " overlaps by supported node type with converter " + converter2);
-        }
     }
 
     private static final class MissingToPlannedNodeConverter implements ToPlannedNodeConverter {

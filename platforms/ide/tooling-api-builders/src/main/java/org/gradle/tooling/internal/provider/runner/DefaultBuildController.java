@@ -69,6 +69,20 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         this.payloadSerializer = payloadSerializer;
     }
 
+    private static BuildTreeModelTarget resolveTarget(@Nullable Object target) {
+        if (target == null) {
+            return BuildTreeModelTarget.ofDefault();
+        } else if (target instanceof GradleProjectIdentity) {
+            GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
+            return BuildTreeModelTarget.ofProject(projectIdentity.getRootDir(), projectIdentity.getProjectPath());
+        } else if (target instanceof GradleBuildIdentity) {
+            GradleBuildIdentity buildIdentity = (GradleBuildIdentity) target;
+            return BuildTreeModelTarget.ofBuild(buildIdentity.getRootDir());
+        } else {
+            throw new IllegalArgumentException("Don't know how to build models for " + target);
+        }
+    }
+
     /**
      * This is used by consumers 1.8-rc-1 to 4.3
      */
@@ -105,20 +119,6 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             return new ProviderBuildResult<>(model);
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
-        }
-    }
-
-    private static BuildTreeModelTarget resolveTarget(@Nullable Object target) {
-        if (target == null) {
-            return BuildTreeModelTarget.ofDefault();
-        } else if (target instanceof GradleProjectIdentity) {
-            GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
-            return BuildTreeModelTarget.ofProject(projectIdentity.getRootDir(), projectIdentity.getProjectPath());
-        } else if (target instanceof GradleBuildIdentity) {
-            GradleBuildIdentity buildIdentity = (GradleBuildIdentity) target;
-            return BuildTreeModelTarget.ofBuild(buildIdentity.getRootDir());
-        } else {
-            throw new IllegalArgumentException("Don't know how to build models for " + target);
         }
     }
 

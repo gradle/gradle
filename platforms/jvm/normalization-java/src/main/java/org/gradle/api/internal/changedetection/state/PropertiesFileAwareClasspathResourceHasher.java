@@ -81,7 +81,7 @@ public class PropertiesFileAwareClasspathResourceHasher extends FallbackHandling
     public Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
         return Optional.ofNullable(matchingFiltersFor(snapshotContext.getRelativePathSegments()))
             .map(resourceEntryFilter -> {
-                try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())){
+                try (FileInputStream propertiesFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
                     return hashProperties(propertiesFileInputStream, resourceEntryFilter);
                 } catch (Exception e) {
                     LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);

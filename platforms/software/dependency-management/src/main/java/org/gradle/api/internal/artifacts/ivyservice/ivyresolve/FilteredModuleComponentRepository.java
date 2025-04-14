@@ -85,65 +85,6 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         return delegate.getComponentMetadataSupplier();
     }
 
-    private class FilteringAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
-        private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
-
-        private FilteringAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
-            ModuleIdentifier identifier = selector.getModuleIdentifier();
-            whenModulePresent(identifier, null,
-                    () -> delegate.listModuleVersions(selector, overrideMetadata, result),
-                    () -> result.listed(Collections.emptyList()));
-        }
-
-        @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
-            whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
-                    () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                result::missing);
-        }
-
-        @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            delegate.resolveArtifactsWithType(component, artifactType, result);
-        }
-
-        @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
-            delegate.resolveArtifact(artifact, moduleSources, result);
-        }
-
-        @Override
-        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
-                    () -> delegate.estimateMetadataFetchingCost(moduleComponentIdentifier),
-                    () -> MetadataFetchingCost.FAST);
-        }
-
-        private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
-            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
-            filterAction.execute(details);
-            if (details.notFound) {
-                absent.run();
-            } else {
-                present.run();
-            }
-        }
-
-        private <T> T whenModulePresent(ModuleIdentifier id, ModuleComponentIdentifier moduleComponentIdentifier, Factory<T> present, Factory<T> absent) {
-            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
-            filterAction.execute(details);
-            if (details.notFound) {
-                return absent.create();
-            }
-            return present.create();
-        }
-    }
-
     private static class DefaultArtifactResolutionDetails implements ArtifactResolutionDetails {
         private final ModuleIdentifier moduleIdentifier;
         private final ModuleComponentIdentifier moduleComponentIdentifier;
@@ -173,6 +114,65 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         @Override
         public void notFound() {
             notFound = true;
+        }
+    }
+
+    private class FilteringAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
+        private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
+
+        private FilteringAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+            ModuleIdentifier identifier = selector.getModuleIdentifier();
+            whenModulePresent(identifier, null,
+                () -> delegate.listModuleVersions(selector, overrideMetadata, result),
+                () -> result.listed(Collections.emptyList()));
+        }
+
+        @Override
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
+            whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
+                () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
+                result::missing);
+        }
+
+        @Override
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+            delegate.resolveArtifactsWithType(component, artifactType, result);
+        }
+
+        @Override
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
+            delegate.resolveArtifact(artifact, moduleSources, result);
+        }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
+                () -> delegate.estimateMetadataFetchingCost(moduleComponentIdentifier),
+                () -> MetadataFetchingCost.FAST);
+        }
+
+        private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
+            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
+            filterAction.execute(details);
+            if (details.notFound) {
+                absent.run();
+            } else {
+                present.run();
+            }
+        }
+
+        private <T> T whenModulePresent(ModuleIdentifier id, ModuleComponentIdentifier moduleComponentIdentifier, Factory<T> present, Factory<T> absent) {
+            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
+            filterAction.execute(details);
+            if (details.notFound) {
+                return absent.create();
+            }
+            return present.create();
         }
     }
 }

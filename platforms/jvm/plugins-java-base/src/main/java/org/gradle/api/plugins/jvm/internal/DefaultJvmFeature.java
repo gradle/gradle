@@ -93,19 +93,15 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private final Configuration implementation;
     private final Configuration runtimeOnly;
     private final Configuration compileOnly;
-
-    // Configurable dependency configurations
-    private Configuration compileOnlyApi;
-    private Configuration api;
-
     // Resolvable configurations
     private final Configuration runtimeClasspath;
     private final Configuration compileClasspath;
-
     // Outgoing variants
     private final Configuration apiElements;
     private final Configuration runtimeElements;
-
+    // Configurable dependency configurations
+    private Configuration compileOnlyApi;
+    private Configuration api;
     // Configurable outgoing variants
     private Configuration javadocElements;
     private Configuration sourcesElements;
@@ -165,6 +161,26 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         JvmPluginsHelper.configureJavaDocTask("'" + name + "' feature", sourceSet, tasks, javaPluginExtension);
     }
 
+    private static void addJarArtifactToConfiguration(Configuration configuration, PublishArtifact jarArtifact) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(jarArtifact);
+        publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
+    }
+
+    private static Configuration maybeCreateElementsConfiguration(
+        String name,
+        RoleBasedConfigurationContainerInternal configurations,
+        boolean useMigrationRoleForElementsConfigurations
+    ) {
+        if (useMigrationRoleForElementsConfigurations) {
+            return configurations.maybeCreateMigratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        } else {
+            return configurations.maybeCreateConsumableUnlocked(name);
+        }
+    }
+
     void doExtendProductionCode() {
         // This method is one of the primary reasons that we want to deprecate the "extending" behavior. It updates
         // the main source set and test source set to "extend" this feature. That means any dependencies declared on
@@ -208,14 +224,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         } else {
             return ((DefaultSourceSet) sourceSet).configurationNameOf(suffix);
         }
-    }
-
-    private static void addJarArtifactToConfiguration(Configuration configuration, PublishArtifact jarArtifact) {
-        ConfigurationPublications publications = configuration.getOutgoing();
-
-        // Configure an implicit variant
-        publications.getArtifacts().add(jarArtifact);
-        publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
     private Configuration createApiElements(
@@ -262,18 +270,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
 
         return runtimeElements;
-    }
-
-    private static Configuration maybeCreateElementsConfiguration(
-        String name,
-        RoleBasedConfigurationContainerInternal configurations,
-        boolean useMigrationRoleForElementsConfigurations
-    ) {
-        if (useMigrationRoleForElementsConfigurations) {
-            return configurations.maybeCreateMigratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
-        } else {
-            return configurations.maybeCreateConsumableUnlocked(name);
-        }
     }
 
     @Override

@@ -44,7 +44,7 @@ class ReservedPortRangeTest extends Specification {
         reserved.sort() == FIRST_PORT..LAST_PORT
     }
 
-    def "cannot allocate more ports than in range" () {
+    def "cannot allocate more ports than in range"() {
         when:
         10.times {
             range.allocate()
@@ -57,7 +57,7 @@ class ReservedPortRangeTest extends Specification {
         range.allocate() == -1
     }
 
-    def "ports are allocated in sequence" () {
+    def "ports are allocated in sequence"() {
         when:
         def port1 = range.allocate()
         def port2 = range.allocate()
@@ -71,7 +71,7 @@ class ReservedPortRangeTest extends Specification {
         3 * portDetector.isAvailable(_) >> { true }
     }
 
-    def "detects when ports are unavailable" () {
+    def "detects when ports are unavailable"() {
         def reserved = []
 
         when:
@@ -80,17 +80,17 @@ class ReservedPortRangeTest extends Specification {
         }
 
         then:
-        _ * portDetector.isAvailable(_) >> { int port -> return ! (port in [103,107]) }
+        _ * portDetector.isAvailable(_) >> { int port -> return !(port in [103, 107]) }
 
         and:
-        ! reserved.contains(103)
-        ! reserved.contains(107)
+        !reserved.contains(103)
+        !reserved.contains(107)
 
         and:
         range.allocate() == -1
     }
 
-    def "can deallocate ports" () {
+    def "can deallocate ports"() {
         def reserved = []
         _ * portDetector.isAvailable(_) >> { true }
 
@@ -111,7 +111,7 @@ class ReservedPortRangeTest extends Specification {
         range.allocated.size() == 0
     }
 
-    def "can reuse deallocated ports" () {
+    def "can reuse deallocated ports"() {
         _ * portDetector.isAvailable(_) >> { true }
 
         when:
@@ -132,6 +132,6 @@ class ReservedPortRangeTest extends Specification {
     }
 
     int next(int port) {
-        return port == LAST_PORT ? FIRST_PORT : port+1
+        return port == LAST_PORT ? FIRST_PORT : port + 1
     }
 }

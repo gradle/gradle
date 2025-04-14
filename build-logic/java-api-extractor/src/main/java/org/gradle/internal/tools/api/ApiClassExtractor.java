@@ -36,38 +36,26 @@ public class ApiClassExtractor {
     private final boolean apiIncludesPackagePrivateMembers;
     private final ApiMemberWriterFactory apiMemberWriterFactory;
 
-    public static class Builder {
-        private final ApiMemberWriterFactory apiMemberWriterFactory;
-        private boolean includePackagePrivateMembers;
-        private Predicate<String> packageNameFilter = name -> true;
-
-        Builder(ApiMemberWriterFactory apiMemberWriterFactory) {
-            this.apiMemberWriterFactory = apiMemberWriterFactory;
-        }
-
-        public Builder includePackagesMatching(Predicate<String> packageNameFilter) {
-            this.packageNameFilter = packageNameFilter;
-            return this;
-        }
-
-        public Builder includePackagePrivateMembers() {
-            this.includePackagePrivateMembers = true;
-            return this;
-        }
-
-        public ApiClassExtractor build() {
-            return new ApiClassExtractor(packageNameFilter, includePackagePrivateMembers, apiMemberWriterFactory);
-        }
+    private ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
+        this.packageNameFilter = packageNameFilter;
+        this.apiIncludesPackagePrivateMembers = includePackagePrivateMembers;
+        this.apiMemberWriterFactory = apiMemberWriterFactory;
     }
 
     public static Builder withWriter(ApiMemberWriterAdapter writerCreator) {
         return new Builder(classWriter -> writerCreator.createWriter(new MethodStubbingApiMemberAdapter(classWriter)));
     }
 
-    private ApiClassExtractor(Predicate<String> packageNameFilter, boolean includePackagePrivateMembers, ApiMemberWriterFactory apiMemberWriterFactory) {
-        this.packageNameFilter = packageNameFilter;
-        this.apiIncludesPackagePrivateMembers = includePackagePrivateMembers;
-        this.apiMemberWriterFactory = apiMemberWriterFactory;
+    private static String packageNameOf(String internalClassName) {
+        int packageSeparatorIndex = internalClassName.lastIndexOf('/');
+        return packageSeparatorIndex > 0
+            ? internalClassName.substring(0, packageSeparatorIndex).replace('/', '.')
+            : "";
+    }
+
+    // See JLS3 "Binary Compatibility" (13.1)
+    private static boolean isLocalClass(String className) {
+        return LOCAL_CLASS_PATTERN.matcher(className).matches();
     }
 
     /**
@@ -119,15 +107,27 @@ public class ApiClassExtractor {
         return packageNameFilter.test(packageNameOf(originalClassName));
     }
 
-    private static String packageNameOf(String internalClassName) {
-        int packageSeparatorIndex = internalClassName.lastIndexOf('/');
-        return packageSeparatorIndex > 0
-            ? internalClassName.substring(0, packageSeparatorIndex).replace('/', '.')
-            : "";
-    }
+    public static class Builder {
+        private final ApiMemberWriterFactory apiMemberWriterFactory;
+        private boolean includePackagePrivateMembers;
+        private Predicate<String> packageNameFilter = name -> true;
 
-    // See JLS3 "Binary Compatibility" (13.1)
-    private static boolean isLocalClass(String className) {
-        return LOCAL_CLASS_PATTERN.matcher(className).matches();
+        Builder(ApiMemberWriterFactory apiMemberWriterFactory) {
+            this.apiMemberWriterFactory = apiMemberWriterFactory;
+        }
+
+        public Builder includePackagesMatching(Predicate<String> packageNameFilter) {
+            this.packageNameFilter = packageNameFilter;
+            return this;
+        }
+
+        public Builder includePackagePrivateMembers() {
+            this.includePackagePrivateMembers = true;
+            return this;
+        }
+
+        public ApiClassExtractor build() {
+            return new ApiClassExtractor(packageNameFilter, includePackagePrivateMembers, apiMemberWriterFactory);
+        }
     }
 }

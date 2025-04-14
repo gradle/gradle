@@ -37,6 +37,16 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
         this.vfsStatistics = getStatistics(vfsRoot);
     }
 
+    private static VirtualFileSystemStatistics getStatistics(SnapshotHierarchy root) {
+        EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
+        root.rootSnapshots()
+            .forEach(snapshot -> snapshot.accept(entrySnapshot -> {
+                retained.add(entrySnapshot.getType());
+                return CONTINUE;
+            }));
+        return new VirtualFileSystemStatistics(retained);
+    }
+
     @Override
     public int getNumberOfReceivedEvents() {
         return fileWatchingStatistics.getNumberOfReceivedEvents();
@@ -60,16 +70,6 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
     @Override
     public int getRetainedMissingFiles() {
         return vfsStatistics.getRetained(FileType.Missing);
-    }
-
-    private static VirtualFileSystemStatistics getStatistics(SnapshotHierarchy root) {
-        EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
-        root.rootSnapshots()
-            .forEach(snapshot -> snapshot.accept(entrySnapshot -> {
-                retained.add(entrySnapshot.getType());
-                return CONTINUE;
-            }));
-        return new VirtualFileSystemStatistics(retained);
     }
 
     private static class VirtualFileSystemStatistics {

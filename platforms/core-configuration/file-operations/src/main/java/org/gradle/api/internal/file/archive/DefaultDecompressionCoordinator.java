@@ -37,9 +37,9 @@ public class DefaultDecompressionCoordinator implements DecompressionCoordinator
 
     public DefaultDecompressionCoordinator(ScopedCacheBuilderFactory cacheBuilderFactory) {
         this.cache = cacheBuilderFactory.createCacheBuilder(EXPANSION_CACHE_KEY)
-                .withDisplayName(EXPANSION_CACHE_NAME)
-                .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-                .open();
+            .withDisplayName(EXPANSION_CACHE_NAME)
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand)
+            .open();
     }
 
     @VisibleForTesting

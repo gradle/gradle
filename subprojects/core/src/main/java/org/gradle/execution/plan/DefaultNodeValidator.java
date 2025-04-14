@@ -47,6 +47,17 @@ public class DefaultNodeValidator implements NodeValidator {
         this.problemsService = problemsService;
     }
 
+    private static Set<String> getUniqueErrors(List<? extends InternalProblem> problems) {
+        return problems.stream()
+            .filter(problem -> !isWarning(problem))
+            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+            .collect(toImmutableSet());
+    }
+
+    private static boolean isWarning(InternalProblem problem) {
+        return problem.getDefinition().getSeverity().equals(Severity.WARNING);
+    }
+
     @Override
     public boolean hasValidationProblems(LocalTaskNode node) {
         WorkValidationContext validationContext = validateNode(node);
@@ -91,16 +102,5 @@ public class DefaultNodeValidator implements NodeValidator {
                 .withSummaryForContext(task.toString(), validationContext)
                 .get();
         }
-    }
-
-    private static Set<String> getUniqueErrors(List<? extends InternalProblem> problems) {
-        return problems.stream()
-            .filter(problem -> !isWarning(problem))
-            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(toImmutableSet());
-    }
-
-    private static boolean isWarning(InternalProblem problem) {
-        return problem.getDefinition().getSeverity().equals(Severity.WARNING);
     }
 }

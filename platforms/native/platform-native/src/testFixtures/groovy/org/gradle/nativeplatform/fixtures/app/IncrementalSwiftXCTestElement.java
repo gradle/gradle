@@ -23,18 +23,6 @@ import org.gradle.test.fixtures.file.TestFile;
 import java.util.List;
 
 public abstract class IncrementalSwiftXCTestElement extends IncrementalSwiftElement implements XCTestElement {
-    @Override
-    public void writeToProject(TestFile projectDir) {
-        super.writeToProject(projectDir);
-        writeLinuxMainToProject(projectDir, getTestSuites());
-    }
-
-    @Override
-    public void applyChangesToProject(TestFile projectDir) {
-        super.applyChangesToProject(projectDir);
-        writeLinuxMainToProject(projectDir, getAlternateTestSuites());
-    }
-
     private static void writeLinuxMainToProject(TestFile projectDir, final List<XCTestSourceFileElement> testSuites) {
         new SourceFileElement() {
             @Override
@@ -49,6 +37,18 @@ public abstract class IncrementalSwiftXCTestElement extends IncrementalSwiftElem
         }.writeToProject(projectDir);
     }
 
+    @Override
+    public void writeToProject(TestFile projectDir) {
+        super.writeToProject(projectDir);
+        writeLinuxMainToProject(projectDir, getTestSuites());
+    }
+
+    @Override
+    public void applyChangesToProject(TestFile projectDir) {
+        super.applyChangesToProject(projectDir);
+        writeLinuxMainToProject(projectDir, getAlternateTestSuites());
+    }
+
     public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
         XCTestSourceElement.assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
     }
@@ -58,6 +58,7 @@ public abstract class IncrementalSwiftXCTestElement extends IncrementalSwiftElem
     }
 
     public abstract List<XCTestSourceFileElement> getTestSuites();
+
     public abstract List<XCTestSourceFileElement> getAlternateTestSuites();
 
     @Override

@@ -29,8 +29,8 @@ class DispatchingFailureIntegrationSpec extends DaemonIntegrationSpec {
         //requesting x failing builds creates enough stress to expose issues with unsynchronized dispatch
         50.times {
             executer.usingProjectDirectory(projectdir)
-                    .withTasks("tasks")
-                    .runWithFailure()
+                .withTasks("tasks")
+                .runWithFailure()
         }
     }
 }

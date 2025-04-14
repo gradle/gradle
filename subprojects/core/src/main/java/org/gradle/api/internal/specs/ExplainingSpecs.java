@@ -25,26 +25,27 @@ public class ExplainingSpecs {
         public boolean isSatisfiedBy(Object element) {
             return true;
         }
+
         @Override
         public String whyUnsatisfied(Object element) {
             return null;
+        }
+    };
+    private static final ExplainingSpec<Object> SATISFIES_NONE = new ExplainingSpec<Object>() {
+        @Override
+        public boolean isSatisfiedBy(Object element) {
+            return false;
+        }
+
+        @Override
+        public String whyUnsatisfied(Object element) {
+            return "Never satisfies any.";
         }
     };
 
     public static <T> ExplainingSpec<T> satisfyAll() {
         return Cast.uncheckedNonnullCast(SATISFIES_ALL);
     }
-
-    private static final ExplainingSpec<Object> SATISFIES_NONE = new ExplainingSpec<Object>() {
-        @Override
-        public boolean isSatisfiedBy(Object element) {
-            return false;
-        }
-        @Override
-        public String whyUnsatisfied(Object element) {
-            return "Never satisfies any.";
-        }
-    };
 
     public static <T> ExplainingSpec<T> satisfyNone() {
         return Cast.uncheckedNonnullCast(SATISFIES_NONE);

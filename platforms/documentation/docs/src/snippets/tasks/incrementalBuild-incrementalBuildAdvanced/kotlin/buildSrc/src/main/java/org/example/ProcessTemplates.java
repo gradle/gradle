@@ -2,6 +2,7 @@ package org.example;
 
 import java.util.HashMap;
 import javax.inject.Inject;
+
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -18,7 +19,7 @@ public abstract class ProcessTemplates extends DefaultTask {
     @Input
     public abstract Property<TemplateEngineType> getTemplateEngine();
 
-// tag::custom-task-class[]
+    // tag::custom-task-class[]
     @SkipWhenEmpty
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
@@ -31,7 +32,7 @@ public abstract class ProcessTemplates extends DefaultTask {
     // ...
 // end::custom-task-class[]
 
-// tag::task-arg-method[]
+    // tag::task-arg-method[]
     // ...
     public void sources(TaskProvider<?> inputTask) {
         getSourceFiles().from(getProject().getLayout().files(inputTask));

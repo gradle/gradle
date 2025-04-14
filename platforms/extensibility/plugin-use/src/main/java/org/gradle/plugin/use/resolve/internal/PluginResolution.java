@@ -33,7 +33,7 @@ public interface PluginResolution {
     /**
      * Accepts a visitor and visits the resolved plugin.
      */
-    default void accept(PluginResolutionVisitor visitor) { }
+    default void accept(PluginResolutionVisitor visitor) {}
 
     /**
      * Apply the plugin to the provided plugin manager.

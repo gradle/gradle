@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.jspecify.annotations.Nullable;
+
 import java.util.Objects;
 
 public final class MainModule implements AppEntryPoint {

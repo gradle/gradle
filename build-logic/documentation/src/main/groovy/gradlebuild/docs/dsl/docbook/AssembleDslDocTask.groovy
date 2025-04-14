@@ -38,6 +38,7 @@ import gradlebuild.docs.model.ClassMetaDataRepository
 import gradlebuild.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+
 /**
  * Generates the docbook source for the DSL reference guide.
  *
@@ -93,7 +94,7 @@ abstract class AssembleDslDocTask extends DefaultTask {
         classRepository.load(classMetaDataFile.get().asFile)
         ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
         //for every method found in class meta, create a javadoc link
-        classRepository.each {name, ClassMetaData metaData ->
+        classRepository.each { name, ClassMetaData metaData ->
             linkRepository.put(name, new ClassLinkMetaData(metaData))
         }
 
@@ -194,7 +195,7 @@ abstract class AssembleDslDocTask extends DefaultTask {
         String blockName = tr.td[0].text().trim()
         gradlebuild.docs.dsl.docbook.model.BlockDoc blockDoc = project.getBlock(blockName)
         tr.children = {
-            td { link(linkend: blockDoc.id) { literal("$blockName { }")} }
+            td { link(linkend: blockDoc.id) { literal("$blockName { }") } }
             td(blockDoc.description)
         }
     }

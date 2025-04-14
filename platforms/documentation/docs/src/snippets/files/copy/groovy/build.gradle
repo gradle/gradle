@@ -96,17 +96,13 @@ tasks.register('copyWithTruncate', Copy) {
     rename { String filename ->
         if (filename.size() > 10) {
             return filename[0..7] + "~" + filename.size()
+        } else {
+            return filename
         }
-        else return filename
     }
     into layout.buildDirectory.dir("toArchive")
 }
 // end::truncate-names-example[]
-
-
-
-
-
 
 
 // tag::copy-task[]

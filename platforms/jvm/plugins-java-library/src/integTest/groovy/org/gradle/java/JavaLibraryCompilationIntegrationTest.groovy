@@ -437,7 +437,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
+    private void subproject(String name, @DelegatesTo(value = FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
         file("settings.gradle") << "include '$name'\n"
         def subprojectDir = file(name)
         subprojectDir.mkdirs()

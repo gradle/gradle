@@ -98,6 +98,13 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         configureDefaults();
     }
 
+    private static String validateFeatureName(String name) {
+        if (!VALID_FEATURE_NAME.matcher(name).matches()) {
+            throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());
+        }
+        return name;
+    }
+
     private void configureDefaults() {
         docsDir.convention(project.getLayout().getBuildDirectory().dir("docs"));
         testResultsDir.convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
@@ -135,10 +142,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         }
     }
 
-    public JavaVersion getRawSourceCompatibility() {
-        return srcCompat;
-    }
-
     @Override
     public void setSourceCompatibility(Object value) {
         setSourceCompatibility(JavaVersion.toVersion(value));
@@ -149,13 +152,13 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         srcCompat = value;
     }
 
+    public JavaVersion getRawSourceCompatibility() {
+        return srcCompat;
+    }
+
     @Override
     public JavaVersion getTargetCompatibility() {
         return targetCompat != null ? targetCompat : getSourceCompatibility();
-    }
-
-    public JavaVersion getRawTargetCompatibility() {
-        return targetCompat;
     }
 
     @Override
@@ -166,6 +169,10 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     @Override
     public void setTargetCompatibility(JavaVersion value) {
         targetCompat = value;
+    }
+
+    public JavaVersion getRawTargetCompatibility() {
+        return targetCompat;
     }
 
     @Override
@@ -261,7 +268,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void withSourcesJar() {
-       project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withSourcesJar);
+        project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withSourcesJar);
     }
 
     @Override
@@ -286,13 +293,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         final ConfigurationContainer configurations = project.getConfigurations();
         final SourceSetContainer sourceSets = getSourceSets();
         action.execute(project.getObjects().newInstance(DefaultJavaPluginExtension.DefaultJavaResolutionConsistency.class, components, sourceSets, configurations));
-    }
-
-    private static String validateFeatureName(String name) {
-        if (!VALID_FEATURE_NAME.matcher(name).matches()) {
-            throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());
-        }
-        return name;
     }
 
     public static class DefaultJavaResolutionConsistency implements JavaResolutionConsistency {

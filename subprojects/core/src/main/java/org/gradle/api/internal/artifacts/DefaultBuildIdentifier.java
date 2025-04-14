@@ -33,6 +33,14 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
         this.buildPath = buildPath;
     }
 
+    protected static void nagAboutDeprecatedIsCurrentBuild() {
+        DeprecationLogger.deprecateMethod(BuildIdentifier.class, "isCurrentBuild()")
+            .withAdvice("Use getBuildPath() to get a unique identifier for the build.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "build_identifier_name_and_current_deprecation")
+            .nagUser();
+    }
+
     @Override
     public String getBuildPath() {
         return buildPath.toString();
@@ -77,13 +85,5 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
     @Override
     public String toString() {
         return "build '" + buildPath + "'";
-    }
-
-    protected static void nagAboutDeprecatedIsCurrentBuild() {
-        DeprecationLogger.deprecateMethod(BuildIdentifier.class, "isCurrentBuild()")
-            .withAdvice("Use getBuildPath() to get a unique identifier for the build.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "build_identifier_name_and_current_deprecation")
-            .nagUser();
     }
 }

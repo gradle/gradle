@@ -21,6 +21,18 @@ import org.gradle.api.Describable;
 import java.io.File;
 
 public class InstallationLocation implements Describable {
+    private final File location;
+    private final String source;
+    private final boolean autoDetected;
+    private final boolean autoProvisioned;
+
+    private InstallationLocation(File location, String source, boolean autoDetected, boolean autoProvisioned) {
+        this.location = location;
+        this.source = source;
+        this.autoDetected = autoDetected;
+        this.autoProvisioned = autoProvisioned;
+    }
+
     public static InstallationLocation userDefined(File location, String source) {
         return new InstallationLocation(location, source, false, false);
     }
@@ -33,28 +45,13 @@ public class InstallationLocation implements Describable {
         return new InstallationLocation(location, source, true, true);
     }
 
-    private final File location;
-
-    private final String source;
-
-    private final boolean autoDetected;
-
-    private final boolean autoProvisioned;
-
-    private InstallationLocation(File location, String source, boolean autoDetected, boolean autoProvisioned) {
-        this.location = location;
-        this.source = source;
-        this.autoDetected = autoDetected;
-        this.autoProvisioned = autoProvisioned;
-    }
-
     public File getLocation() {
         return location;
     }
 
     @Override
     public String getDisplayName() {
-        return "'" + location.getAbsolutePath() + "' (" + source + ")" + (autoDetected? " auto-detected" : "") + (autoProvisioned? " auto-provisioned" : "");
+        return "'" + location.getAbsolutePath() + "' (" + source + ")" + (autoDetected ? " auto-detected" : "") + (autoProvisioned ? " auto-provisioned" : "");
     }
 
     public String getSource() {

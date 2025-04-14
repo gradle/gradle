@@ -7,7 +7,7 @@ version = '1.0'
 jar {
     manifest {
         attributes("Implementation-Title": "Gradle",
-                   "Implementation-Version": archiveVersion)
+            "Implementation-Version": archiveVersion)
     }
 }
 // end::add-to-manifest[]
@@ -15,7 +15,7 @@ jar {
 // tag::custom-manifest[]
 def sharedManifest = java.manifest {
     attributes("Implementation-Title": "Gradle",
-               "Implementation-Version": version)
+        "Implementation-Version": version)
 }
 tasks.register('fooJar', Jar) {
     manifest = java.manifest {

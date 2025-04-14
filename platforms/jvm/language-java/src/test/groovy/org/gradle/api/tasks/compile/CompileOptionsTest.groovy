@@ -27,7 +27,7 @@ class CompileOptionsTest extends Specification {
 
     CompileOptions compileOptions
 
-    def setup()  {
+    def setup() {
         compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
     }
 

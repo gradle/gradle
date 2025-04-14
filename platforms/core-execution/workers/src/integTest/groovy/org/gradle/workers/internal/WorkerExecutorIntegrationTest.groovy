@@ -381,7 +381,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         then:
         def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
         operation.displayName == "org.gradle.test.TestWorkAction"
-        with (operation.details) {
+        with(operation.details) {
             className == "org.gradle.test.TestWorkAction"
             displayName == "org.gradle.test.TestWorkAction"
         }

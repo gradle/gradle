@@ -34,6 +34,7 @@ public abstract class PBXTarget extends PBXProjectItem {
     private String productName;
     @Nullable
     private PBXFileReference productReference;
+
     public PBXTarget(String name, ProductType productType) {
         this.name = Preconditions.checkNotNull(name);
         this.productType = Preconditions.checkNotNull(productType);

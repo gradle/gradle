@@ -110,32 +110,6 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         }
 
         @Nullable
-        @Override
-        public String getSkipMessage() {
-            return execution.map(ExecuteWorkResult::getSkipMessage).getOrMapFailure(f -> null);
-        }
-
-        @Nullable
-        @Override
-        public String getOriginBuildInvocationId() {
-            return originMetadata.map(OriginMetadata::getBuildInvocationId).orElse(null);
-        }
-
-        @Override
-        public byte @Nullable [] getOriginBuildCacheKeyBytes() {
-            return originMetadata
-                .map(OriginMetadata::getBuildCacheKey)
-                .map(HashCode::toByteArray)
-                .orElse(null);
-        }
-
-        @Nullable
-        @Override
-        public Long getOriginExecutionTime() {
-            return originMetadata.map(metadata -> metadata.getExecutionTime().toMillis()).orElse(null);
-        }
-
-        @Nullable
         private static String getSkipMessage(ExecutionEngine.Execution execution) {
             switch (execution.getOutcome()) {
                 case SHORT_CIRCUITED:
@@ -150,29 +124,6 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 default:
                     throw new IllegalArgumentException("Unknown execution outcome: " + execution.getOutcome());
             }
-        }
-
-        @Override
-        public List<String> getExecutionReasons() {
-            return executionReasons;
-        }
-
-        @Nullable
-        @Override
-        public String getCachingDisabledReasonMessage() {
-            return getCachingDisabledReason()
-                .map(CachingDisabledReason::getMessage)
-                .orElse(null);
-        }
-
-        @Nullable
-        @Override
-        public String getCachingDisabledReasonCategory() {
-            return getCachingDisabledReason()
-                .map(CachingDisabledReason::getCategory)
-                .map(ExecuteWorkResult::convertNoCacheReasonCategory)
-                .map(Enum::name)
-                .orElse(null);
         }
 
         private static org.gradle.operations.execution.CachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {
@@ -198,6 +149,55 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                 default:
                     throw new AssertionError();
             }
+        }
+
+        @Nullable
+        @Override
+        public String getSkipMessage() {
+            return execution.map(ExecuteWorkResult::getSkipMessage).getOrMapFailure(f -> null);
+        }
+
+        @Nullable
+        @Override
+        public String getOriginBuildInvocationId() {
+            return originMetadata.map(OriginMetadata::getBuildInvocationId).orElse(null);
+        }
+
+        @Override
+        public byte @Nullable [] getOriginBuildCacheKeyBytes() {
+            return originMetadata
+                .map(OriginMetadata::getBuildCacheKey)
+                .map(HashCode::toByteArray)
+                .orElse(null);
+        }
+
+        @Nullable
+        @Override
+        public Long getOriginExecutionTime() {
+            return originMetadata.map(metadata -> metadata.getExecutionTime().toMillis()).orElse(null);
+        }
+
+        @Override
+        public List<String> getExecutionReasons() {
+            return executionReasons;
+        }
+
+        @Nullable
+        @Override
+        public String getCachingDisabledReasonMessage() {
+            return getCachingDisabledReason()
+                .map(CachingDisabledReason::getMessage)
+                .orElse(null);
+        }
+
+        @Nullable
+        @Override
+        public String getCachingDisabledReasonCategory() {
+            return getCachingDisabledReason()
+                .map(CachingDisabledReason::getCategory)
+                .map(ExecuteWorkResult::convertNoCacheReasonCategory)
+                .map(Enum::name)
+                .orElse(null);
         }
 
         private Optional<CachingDisabledReason> getCachingDisabledReason() {

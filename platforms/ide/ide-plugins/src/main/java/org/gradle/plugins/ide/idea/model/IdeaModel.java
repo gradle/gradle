@@ -89,14 +89,17 @@ public abstract class IdeaModel {
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
      */
-    public void module(@DelegatesTo(IdeaModule.class)
-                       @ClosureParams(value = SimpleType.class, options = "org.gradle.plugins.ide.idea.model.IdeaModule")
-                       @SuppressWarnings("rawtypes") Closure closure) {
+    public void module(
+        @DelegatesTo(IdeaModule.class)
+        @ClosureParams(value = SimpleType.class, options = "org.gradle.plugins.ide.idea.model.IdeaModule")
+        @SuppressWarnings("rawtypes") Closure closure
+    ) {
         configure(closure, getModule());
     }
 
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
+     *
      * @since 3.5
      */
     public void module(Action<? super IdeaModule> action) {
@@ -112,6 +115,7 @@ public abstract class IdeaModel {
 
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
+     *
      * @since 3.5
      */
     public void project(Action<? super IdeaProject> action) {
@@ -127,6 +131,7 @@ public abstract class IdeaModel {
 
     /**
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
+     *
      * @since 3.5
      */
     public void workspace(Action<? super IdeaWorkspace> action) {

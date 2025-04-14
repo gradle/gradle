@@ -18,11 +18,6 @@ package org.gradle.internal.resources;
 
 public interface ResourceLockState {
     /**
-     * Possible results from a resource lock state transform.
-     */
-    enum Disposition { FAILED, FINISHED, RETRY }
-
-    /**
      * Registers a resource lock to be rolled back if the transform associated with this resource lock state
      * fails.
      */
@@ -38,4 +33,9 @@ public interface ResourceLockState {
      * Release any locks that have been acquired during the transform.
      */
     void releaseLocks();
+
+    /**
+     * Possible results from a resource lock state transform.
+     */
+    enum Disposition {FAILED, FINISHED, RETRY}
 }

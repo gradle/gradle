@@ -52,10 +52,10 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
 
     def setup() {
         runner = new CrossVersionPerformanceTestRunner(
-                new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
-                RESULTS_STORE.reportAlso(dataReporter),
-                new ReleasedVersionDistributions(buildContext),
-                buildContext
+            new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
+            RESULTS_STORE.reportAlso(dataReporter),
+            new ReleasedVersionDistributions(buildContext),
+            buildContext
         )
         runner.workingDir = temporaryFolder.testDirectory
         runner.current = new UnderDevelopmentGradleDistribution(buildContext)
@@ -92,6 +92,6 @@ class ApplyDevelocityPluginMutator implements BuildMutator {
     void beforeScenario(ScenarioContext context) {
         def groovySettingsFile = new File(projectDir, "settings.gradle")
         def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
-        ApplyDevelocityPluginFixture.applyDevelocityPlugin(groovySettingsFile.exists() ? groovySettingsFile: kotlinSettingsFile)
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(groovySettingsFile.exists() ? groovySettingsFile : kotlinSettingsFile)
     }
 }

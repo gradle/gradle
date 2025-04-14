@@ -73,6 +73,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.deprecatedThis = new TaskInputsDeprecationSupport();
     }
 
+    private static Object unpackVarargs(Object[] args) {
+        if (args.length == 1) {
+            return args[0];
+        }
+        return args;
+    }
+
     @Override
     public boolean getHasInputs() {
         HasInputsVisitor visitor = new HasInputsVisitor();
@@ -114,13 +121,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             registeredFileProperties.add(registration);
             return registration;
         });
-    }
-
-    private static Object unpackVarargs(Object[] args) {
-        if (args.length == 1) {
-            return args[0];
-        }
-        return args;
     }
 
     @Override

@@ -89,19 +89,16 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
      * @since 6.0
      */
     public static final String DEFAULT_ZINC_VERSION = "1.10.4";
-    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
-
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
-
     /**
      * Configuration for scala compiler plugins.
      *
      * @since 6.4
      */
     public static final String SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME = "scalaCompilerPlugins";
-
+    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.13";
     private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;
     private final DependencyFactory dependencyFactory;
@@ -115,6 +112,103 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
         this.jvmPluginServices = jvmPluginServices;
         this.dependencyFactory = dependencyFactory;
+    }
+
+    private static FileCollection createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+        Configuration classpath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        return classpath.getIncoming().artifactView(viewConfiguration -> {
+            viewConfiguration.withVariantReselection();
+            viewConfiguration.lenient(true);
+            viewConfiguration.componentFilter(spec(element -> element instanceof ProjectComponentIdentifier));
+            viewConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+            viewConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
+        }).getFiles();
+    }
+
+    private static void configureCompileDefaults(
+        Project project,
+        ScalaRuntime scalaRuntime,
+        DefaultJavaPluginExtension javaExtension,
+        ScalaPluginExtension scalaPluginExtension,
+        Provider<ResolvableConfiguration> scalaToolchainRuntimeClasspath
+    ) {
+        project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
+            ConventionMapping conventionMapping = compile.getConventionMapping();
+            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> getScalaToolchainClasspath(
+                scalaPluginExtension,
+                scalaToolchainRuntimeClasspath,
+                scalaRuntime,
+                compile.getClasspath()
+            ));
+            conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
+            conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
+            conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, compile).toString());
+            conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, compile).toString());
+            compile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
+        });
+    }
+
+    private static JavaVersion computeJavaSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
+        JavaVersion rawSourceCompatibility = javaExtension.getRawSourceCompatibility();
+        if (rawSourceCompatibility != null) {
+            return rawSourceCompatibility;
+        }
+        return JavaVersion.toVersion(compileTask.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+    }
+
+    private static JavaVersion computeJavaTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
+        JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
+        if (rawTargetCompatibility != null) {
+            return rawTargetCompatibility;
+        }
+        return JavaVersion.toVersion(compileTask.getSourceCompatibility());
+    }
+
+    private static void configureScaladoc(
+        Project project,
+        ScalaRuntime scalaRuntime,
+        ScalaPluginExtension scalaPluginExtension,
+        Provider<ResolvableConfiguration> scalaToolchainRuntimeClasspath
+    ) {
+        project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
+            scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> getScalaToolchainClasspath(
+                scalaPluginExtension,
+                scalaToolchainRuntimeClasspath,
+                scalaRuntime,
+                scalaDoc.getClasspath()
+            ));
+            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
+            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
+        });
+    }
+
+    private static FileCollection getScalaToolchainClasspath(
+        ScalaPluginExtension scalaPluginExtension,
+        Provider<ResolvableConfiguration> scalaToolchainRuntimeClasspath,
+        ScalaRuntime scalaRuntime,
+        FileCollection taskClasspath
+    ) {
+        if (scalaPluginExtension.getScalaVersion().isPresent()) {
+            return scalaToolchainRuntimeClasspath.get();
+        } else {
+            // TODO: Deprecate this path in 9.x when we de-incubate ScalaPluginExtension#getScalaVersion()
+            return scalaRuntime.inferScalaClasspath(taskClasspath);
+        }
+    }
+
+    private static Provider<JavaLauncher> getJavaLauncher(Project project) {
+        final JavaPluginExtension extension = javaPluginExtension(project);
+        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain());
+    }
+
+    private static JavaPluginExtension javaPluginExtension(Project project) {
+        return extensionOf(project, JavaPluginExtension.class);
+    }
+
+    private static <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
+        return extensionAware.getExtensions().getByType(type);
     }
 
     @Override
@@ -324,17 +418,6 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return scalaSourceSet.getScala();
     }
 
-    private static FileCollection createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
-        Configuration classpath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-        return classpath.getIncoming().artifactView(viewConfiguration -> {
-            viewConfiguration.withVariantReselection();
-            viewConfiguration.lenient(true);
-            viewConfiguration.componentFilter(spec(element -> element instanceof ProjectComponentIdentifier));
-            viewConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
-            viewConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
-        }).getFiles();
-    }
-
     private void createScalaCompileTask(final Project project, final SourceSet sourceSet, ScalaSourceDirectorySet scalaSource, final FileCollection incrementalAnalysis) {
         final TaskProvider<ScalaCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, scalaCompile -> {
             JvmPluginsHelper.compileAgainstJavaOutputs(scalaCompile, sourceSet, objectFactory);
@@ -368,92 +451,6 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());
         }
         scalaCompile.getAnalysisFiles().from(incrementalAnalysis);
-    }
-
-    private static void configureCompileDefaults(
-        Project project,
-        ScalaRuntime scalaRuntime,
-        DefaultJavaPluginExtension javaExtension,
-        ScalaPluginExtension scalaPluginExtension,
-        Provider<ResolvableConfiguration> scalaToolchainRuntimeClasspath
-    ) {
-        project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
-            ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> getScalaToolchainClasspath(
-                scalaPluginExtension,
-                scalaToolchainRuntimeClasspath,
-                scalaRuntime,
-                compile.getClasspath()
-            ));
-            conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
-            conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
-            conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, compile).toString());
-            conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, compile).toString());
-            compile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
-        });
-    }
-
-    private static JavaVersion computeJavaSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
-        JavaVersion rawSourceCompatibility = javaExtension.getRawSourceCompatibility();
-        if (rawSourceCompatibility != null) {
-            return rawSourceCompatibility;
-        }
-        return JavaVersion.toVersion(compileTask.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
-    }
-
-    private static JavaVersion computeJavaTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
-        JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
-        if (rawTargetCompatibility != null) {
-            return rawTargetCompatibility;
-        }
-        return JavaVersion.toVersion(compileTask.getSourceCompatibility());
-    }
-
-    private static void configureScaladoc(
-        Project project,
-        ScalaRuntime scalaRuntime,
-        ScalaPluginExtension scalaPluginExtension,
-        Provider<ResolvableConfiguration> scalaToolchainRuntimeClasspath
-    ) {
-        project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> getScalaToolchainClasspath(
-                scalaPluginExtension,
-                scalaToolchainRuntimeClasspath,
-                scalaRuntime,
-                scalaDoc.getClasspath()
-            ));
-            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
-            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
-            scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
-        });
-    }
-
-    private static FileCollection getScalaToolchainClasspath(
-        ScalaPluginExtension scalaPluginExtension,
-        Provider<ResolvableConfiguration> scalaToolchainRuntimeClasspath,
-        ScalaRuntime scalaRuntime,
-        FileCollection taskClasspath
-    ) {
-        if (scalaPluginExtension.getScalaVersion().isPresent()) {
-            return scalaToolchainRuntimeClasspath.get();
-        } else {
-            // TODO: Deprecate this path in 9.x when we de-incubate ScalaPluginExtension#getScalaVersion()
-            return scalaRuntime.inferScalaClasspath(taskClasspath);
-        }
-    }
-
-    private static Provider<JavaLauncher> getJavaLauncher(Project project) {
-        final JavaPluginExtension extension = javaPluginExtension(project);
-        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
-        return service.launcherFor(extension.getToolchain());
-    }
-
-    private static JavaPluginExtension javaPluginExtension(Project project) {
-        return extensionOf(project, JavaPluginExtension.class);
-    }
-
-    private static <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
-        return extensionAware.getExtensions().getByType(type);
     }
 
     static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {

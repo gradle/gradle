@@ -11,7 +11,8 @@ plugins {
 
 // tag::artifact-transform-unzip[]
 abstract class Unzip implements TransformAction<TransformParameters.None> { // <1>
-    @InputArtifact                                                          // <2>
+    @InputArtifact
+    // <2>
     abstract Provider<FileSystemLocation> getInputArtifact()
 
     @Override

@@ -108,16 +108,16 @@ class PathNormalizationStrategyTest extends Specification {
     def "sensitivity RELATIVE (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
-        fingerprints[jarFile1]                      == jarFile1.name
-        fingerprints[jarFile2]                      == jarFile2.name
-        fingerprints[resources]                     == null
-        fingerprints[resources.file(fileInRoot)]    == fileInRoot
-        fingerprints[resources.file(subDirA)]       == directoryFingerprintFor(subDirA, strategy.directorySensitivity)
+        fingerprints[jarFile1] == jarFile1.name
+        fingerprints[jarFile2] == jarFile2.name
+        fingerprints[resources] == null
+        fingerprints[resources.file(fileInRoot)] == fileInRoot
+        fingerprints[resources.file(subDirA)] == directoryFingerprintFor(subDirA, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirA)] == fileInSubdirA
-        fingerprints[resources.file(subDirB)]       == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
+        fingerprints[resources.file(subDirB)] == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
-        fingerprints[emptyRootDir]                  == null
-        fingerprints[missingFile]                   == null
+        fingerprints[emptyRootDir] == null
+        fingerprints[missingFile] == null
 
         where:
         strategy << [

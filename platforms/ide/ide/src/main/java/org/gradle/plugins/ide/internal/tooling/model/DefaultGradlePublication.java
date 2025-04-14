@@ -41,6 +41,11 @@ public class DefaultGradlePublication implements Serializable, GradleProjectIden
         return projectIdentifier;
     }
 
+    public DefaultGradlePublication setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
+        return this;
+    }
+
     @Override
     public String getProjectPath() {
         return projectIdentifier.getProjectPath();
@@ -51,15 +56,10 @@ public class DefaultGradlePublication implements Serializable, GradleProjectIden
         return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
-    public DefaultGradlePublication setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
-        this.projectIdentifier = projectIdentifier;
-        return this;
-    }
-
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("id", id)
-                .toString();
+            .add("id", id)
+            .toString();
     }
 }

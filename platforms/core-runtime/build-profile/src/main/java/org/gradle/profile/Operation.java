@@ -22,13 +22,6 @@ import java.util.Comparator;
  */
 public abstract class Operation {
     /**
-     * Returns the total elapsed execution time of this operation in millis.
-     */
-    abstract long getElapsedTime();
-
-    abstract String getDescription();
-
-    /**
      * @return comparator that compares operations, slowest first, then alphabetically
      */
     public static Comparator<? super Operation> slowestFirst() {
@@ -45,4 +38,11 @@ public abstract class Operation {
             }
         };
     }
+
+    /**
+     * Returns the total elapsed execution time of this operation in millis.
+     */
+    abstract long getElapsedTime();
+
+    abstract String getDescription();
 }

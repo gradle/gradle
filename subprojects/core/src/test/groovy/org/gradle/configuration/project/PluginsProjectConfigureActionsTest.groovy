@@ -15,6 +15,7 @@
  */
 
 package org.gradle.configuration.project
+
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.service.DefaultServiceLocator
 import spock.lang.Specification

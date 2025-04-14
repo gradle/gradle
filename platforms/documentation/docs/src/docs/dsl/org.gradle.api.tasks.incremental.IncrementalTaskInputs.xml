@@ -7,7 +7,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>incremental</td></tr>
+            <tr>
+                <td>incremental</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -18,8 +20,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>outOfDate</td></tr>
-            <tr><td>removed</td></tr>
+            <tr>
+                <td>outOfDate</td>
+            </tr>
+            <tr>
+                <td>removed</td>
+            </tr>
         </table>
     </section>
 </section>

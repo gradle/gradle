@@ -21,10 +21,10 @@ import java.util.Set;
 
 public class CommandLineOption {
     private final Set<String> options = new HashSet<String>();
+    private final Set<CommandLineOption> groupWith = new HashSet<CommandLineOption>();
     private Class<?> argumentType = Void.TYPE;
     private String description;
     private boolean incubating;
-    private final Set<CommandLineOption> groupWith = new HashSet<CommandLineOption>();
     private boolean deprecated;
 
     public CommandLineOption(Iterable<String> options) {

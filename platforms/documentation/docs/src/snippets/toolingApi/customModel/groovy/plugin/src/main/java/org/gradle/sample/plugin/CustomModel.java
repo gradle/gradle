@@ -1,6 +1,7 @@
 package org.gradle.sample.plugin;
 
 import java.util.List;
+
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.DomainObjectSet;
 

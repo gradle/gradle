@@ -1,4 +1,3 @@
-
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +18,11 @@ public abstract class UrlProcess extends DefaultTask {
     @Option(option = "http", description = "Configures the http protocol to be allowed.")
     public abstract Property<Boolean> getHttp();
 
+    @Input
+    public String getUrl() {
+        return url;
+    }
+
     @Option(option = "url", description = "Configures the URL to send the request to.")
     public void setUrl(String url) {
         if (!getHttp().getOrElse(true) && url.startsWith("http://")) {
@@ -26,16 +30,6 @@ public abstract class UrlProcess extends DefaultTask {
         } else {
             this.url = url;
         }
-    }
-
-    @Input
-    public String getUrl() {
-        return url;
-    }
-
-    @Option(option = "output-type", description = "Configures the output type.")
-    public void setOutputType(OutputType outputType) {
-        this.outputType = outputType;
     }
 
     @OptionValues("output-type")
@@ -46,6 +40,11 @@ public abstract class UrlProcess extends DefaultTask {
     @Input
     public OutputType getOutputType() {
         return outputType;
+    }
+
+    @Option(option = "output-type", description = "Configures the output type.")
+    public void setOutputType(OutputType outputType) {
+        this.outputType = outputType;
     }
 
     @TaskAction

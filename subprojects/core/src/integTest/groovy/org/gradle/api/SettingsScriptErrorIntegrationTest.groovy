@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 public class SettingsScriptErrorIntegrationTest extends AbstractIntegrationSpec {
@@ -33,9 +34,9 @@ throw new RuntimeException('<failure message>')
 
         then:
         failure.assertHasDescription("A problem occurred evaluating settings 'ProjectError'.")
-                .assertHasCause("<failure message>")
-                .assertHasFileName("Settings file '$settingsFile'")
-                .assertHasLineNumber(3)
+            .assertHasCause("<failure message>")
+            .assertHasFileName("Settings file '$settingsFile'")
+            .assertHasLineNumber(3)
 
     }
 }

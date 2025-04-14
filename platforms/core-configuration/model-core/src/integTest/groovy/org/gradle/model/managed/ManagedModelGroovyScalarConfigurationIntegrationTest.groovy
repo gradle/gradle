@@ -245,7 +245,7 @@ The following types/formats are supported:
 The following types/formats are supported:
   - A String or CharSequence""")
 
-                where:
+        where:
         varname     | type
         'bool1'     | boolean
         'thedouble' | double

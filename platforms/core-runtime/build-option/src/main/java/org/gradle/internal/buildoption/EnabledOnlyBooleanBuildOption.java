@@ -29,7 +29,7 @@ import java.util.Map;
 public abstract class EnabledOnlyBooleanBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public EnabledOnlyBooleanBuildOption(String property) {
-        super(property, new CommandLineOptionConfiguration[] {});
+        super(property, new CommandLineOptionConfiguration[]{});
     }
 
     public EnabledOnlyBooleanBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {

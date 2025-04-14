@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.model.internal.type.ModelType;

@@ -321,7 +321,7 @@ class IntegTestPreconditions {
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.getAvailableJvmMetadatas().stream()
                 .filter { metadata -> !AvailableJavaHomes.isCurrentJavaHome(metadata) }
-                .map {metadata -> metadata.vendor.rawVendor }
+                .map { metadata -> metadata.vendor.rawVendor }
                 .distinct()
                 .count() >= 2
         }

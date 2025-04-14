@@ -41,6 +41,16 @@ import static java.util.Arrays.asList;
  */
 public abstract class TypeOf<T> {
 
+    private final ModelType<T> type;
+
+    private TypeOf(ModelType<T> type) {
+        this.type = type;
+    }
+
+    protected TypeOf() {
+        this.type = captureTypeArgument();
+    }
+
     /**
      * Creates an instance of {@literal TypeOf} for the given {@literal Class}.
      *
@@ -86,14 +96,38 @@ public abstract class TypeOf<T> {
         return typeOf(parameterizedModelType.withArguments(modelTypeListFrom(typeArguments)));
     }
 
-    private final ModelType<T> type;
-
-    private TypeOf(ModelType<T> type) {
-        this.type = type;
+    private static <T> T typeWhichCannotBeNull(T type) {
+        if (type == null) {
+            throw new IllegalArgumentException("type cannot be null.");
+        }
+        return type;
     }
 
-    protected TypeOf() {
-        this.type = captureTypeArgument();
+    private static List<ModelType<?>> modelTypeListFrom(TypeOf<?>[] typeOfs) {
+        return map(asList(typeOfs), new Function<TypeOf<?>, ModelType<?>>() {
+            @Override
+            public ModelType<?> apply(TypeOf<?> it) {
+                return it.type;
+            }
+        });
+    }
+
+    private static List<TypeOf<?>> typeOfListFrom(List<ModelType<?>> modelTypes) {
+        return map(modelTypes, new Function<ModelType<?>, TypeOf<?>>() {
+            @Override
+            public TypeOf<?> apply(ModelType<?> it) {
+                return typeOf(it);
+            }
+        });
+    }
+
+    private static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
+        return new TypeOf<U>(componentType) {
+        };
+    }
+
+    private static <T, U> List<U> map(Iterable<T> iterable, Function<T, U> function) {
+        return ImmutableList.copyOf(transform(iterable, function));
     }
 
     /**
@@ -265,9 +299,8 @@ public abstract class TypeOf<T> {
      * For array types like {@code TypeOf<String[]>}, the concrete type will be an array of the component type ({@code String[].class}).
      * </p>
      *
-     * @since 5.0
-     *
      * @return Underlying Java Class of this type.
+     * @since 5.0
      */
     public Class<T> getConcreteClass() {
         return type.getConcreteClass();
@@ -307,36 +340,6 @@ public abstract class TypeOf<T> {
         return type.getRawClass();
     }
 
-    private static <T> T typeWhichCannotBeNull(T type) {
-        if (type == null) {
-            throw new IllegalArgumentException("type cannot be null.");
-        }
-        return type;
-    }
-
-    private static List<ModelType<?>> modelTypeListFrom(TypeOf<?>[] typeOfs) {
-        return map(asList(typeOfs), new Function<TypeOf<?>, ModelType<?>>() {
-            @Override
-            public ModelType<?> apply(TypeOf<?> it) {
-                return it.type;
-            }
-        });
-    }
-
-    private static List<TypeOf<?>> typeOfListFrom(List<ModelType<?>> modelTypes) {
-        return map(modelTypes, new Function<ModelType<?>, TypeOf<?>>() {
-            @Override
-            public TypeOf<?> apply(ModelType<?> it) {
-                return typeOf(it);
-            }
-        });
-    }
-
-    private static <U> TypeOf<U> typeOf(ModelType<U> componentType) {
-        return new TypeOf<U>(componentType) {
-        };
-    }
-
     private TypeOf<?> nullableTypeOf(Class<?> type) {
         return type != null
             ? typeOf(type)
@@ -347,9 +350,5 @@ public abstract class TypeOf<T> {
         return type != null
             ? typeOf(type)
             : null;
-    }
-
-    private static <T, U> List<U> map(Iterable<T> iterable, Function<T, U> function) {
-        return ImmutableList.copyOf(transform(iterable, function));
     }
 }

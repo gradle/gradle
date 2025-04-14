@@ -58,7 +58,8 @@ class DaemonLifecycleEncodingSpec extends AbstractDaemonLifecycleSpec {
         }
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // need to start Gradle process from command line to use GRADLE_OPTS
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    // need to start Gradle process from command line to use GRADLE_OPTS
     def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
         setup:
         buildFile """

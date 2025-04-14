@@ -71,6 +71,25 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         this.capabilitySelectors = capabilitySelectors;
     }
 
+    /**
+     * Resolves all artifact sets for the given graph variant.
+     */
+    private static ImmutableList<ResolvedVariant> resolveVariantArtifactSets(
+        VariantGraphResolveState variant,
+        ComponentArtifactResolveMetadata component,
+        VariantArtifactResolver variantArtifactResolver
+    ) {
+        Set<? extends VariantResolveMetadata> unresolved = variant.prepareForArtifactResolution().getArtifactVariants();
+        ImmutableList.Builder<ResolvedVariant> resolved = ImmutableList.builderWithExpectedSize(unresolved.size());
+
+        for (VariantResolveMetadata artifactSet : unresolved) {
+            ResolvedVariant resolvedArtifactSet = variantArtifactResolver.resolveVariantArtifactSet(component, artifactSet);
+            resolved.add(resolvedArtifactSet);
+        }
+
+        return resolved.build();
+    }
+
     @Override
     public ResolvedArtifactSet select(
         ArtifactSelectionServices consumerServices,
@@ -180,25 +199,6 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
             excluded.add(new ExcludingVariantArtifactSet(artifactSet, moduleId, exclusions));
         }
         return excluded.build();
-    }
-
-    /**
-     * Resolves all artifact sets for the given graph variant.
-     */
-    private static ImmutableList<ResolvedVariant> resolveVariantArtifactSets(
-        VariantGraphResolveState variant,
-        ComponentArtifactResolveMetadata component,
-        VariantArtifactResolver variantArtifactResolver
-    ) {
-        Set<? extends VariantResolveMetadata> unresolved = variant.prepareForArtifactResolution().getArtifactVariants();
-        ImmutableList.Builder<ResolvedVariant> resolved = ImmutableList.builderWithExpectedSize(unresolved.size());
-
-        for (VariantResolveMetadata artifactSet : unresolved) {
-            ResolvedVariant resolvedArtifactSet = variantArtifactResolver.resolveVariantArtifactSet(component, artifactSet);
-            resolved.add(resolvedArtifactSet);
-        }
-
-        return resolved.build();
     }
 
 }

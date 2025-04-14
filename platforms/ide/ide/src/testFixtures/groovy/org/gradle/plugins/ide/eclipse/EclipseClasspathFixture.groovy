@@ -49,7 +49,7 @@ class EclipseClasspathFixture {
     }
 
     List<String> getSources() {
-        return this.classpath.classpathentry.findAll{ it.@kind == 'src' && !it.@path.startsWith('/') }.collect { it.@path }
+        return this.classpath.classpathentry.findAll { it.@kind == 'src' && !it.@path.startsWith('/') }.collect { it.@path }
     }
 
     List<EclipseProjectDependency> getProjects() {
@@ -200,7 +200,7 @@ class EclipseClasspathFixture {
             assert entry.attributes[0].attribute[0].@value == jarUrl(file)
         }
 
-        private String jarUrl(File filePath){
+        private String jarUrl(File filePath) {
             "jar:${filePath.toURI().toURL()}!/"
         }
 

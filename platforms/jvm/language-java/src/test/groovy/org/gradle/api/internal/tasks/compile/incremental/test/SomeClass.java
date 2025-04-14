@@ -21,10 +21,8 @@ import java.util.*;
 public class SomeClass {
 
     List<Integer> field = new LinkedList<Integer>();
-
-    private AccessedFromPrivateField accessedFromPrivateField;
-
     AccessedFromPackagePrivateField someField;
+    private AccessedFromPrivateField accessedFromPrivateField;
 
     private AccessedFromPrivateMethod accessedFromPrivateMethod() {
         return null;

@@ -216,10 +216,12 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec from(Object sourcePath,
-                  @DelegatesTo(CopySpec.class)
-                  @ClosureParams(value = SimpleType.class, options = "org.gradle.api.file.CopySpec")
-                  Closure c);
+    CopySpec from(
+        Object sourcePath,
+        @DelegatesTo(CopySpec.class)
+        @ClosureParams(value = SimpleType.class, options = "org.gradle.api.file.CopySpec")
+        Closure c
+    );
 
     /**
      * {@inheritDoc}

@@ -24,10 +24,6 @@ import org.jspecify.annotations.Nullable;
 
 public abstract class EnvironmentVariableValueSource implements ValueSource<String, EnvironmentVariableValueSource.Parameters>, Describable {
 
-    public interface Parameters extends ValueSourceParameters {
-        Property<String> getVariableName();
-    }
-
     @Nullable
     @Override
     public String obtain() {
@@ -45,5 +41,9 @@ public abstract class EnvironmentVariableValueSource implements ValueSource<Stri
 
     private String variableNameOrNull() {
         return getParameters().getVariableName().getOrNull();
+    }
+
+    public interface Parameters extends ValueSourceParameters {
+        Property<String> getVariableName();
     }
 }

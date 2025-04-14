@@ -20,7 +20,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
-class InetAddressesTest extends Specification{
+class InetAddressesTest extends Specification {
     def addresses = new InetAddresses()
 
     def "always contains at least one loopback address"() {

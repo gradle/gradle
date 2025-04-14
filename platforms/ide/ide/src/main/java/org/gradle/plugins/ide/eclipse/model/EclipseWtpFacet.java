@@ -157,8 +157,8 @@ public abstract class EclipseWtpFacet {
         }
         facets = Lists.newArrayList(Iterables.concat(
             getFacets().stream()
-                       .filter(f -> f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
-                       .collect(Collectors.toList()),
+                .filter(f -> f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
+                .collect(Collectors.toList()),
             newFacets));
     }
 

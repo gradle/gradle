@@ -107,6 +107,7 @@ class JavaModuleDetectorTest extends Specification {
         private TestCollection(Set<File> entries) {
             this.entries = entries
         }
+
         @Override
         String getDisplayName() {
             return "test classpath"

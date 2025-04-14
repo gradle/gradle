@@ -35,10 +35,15 @@ public interface CopySpecResolver {
     boolean isCaseSensitive();
 
     Provider<ConfigurableFilePermissions> getFilePermissions();
+
     Provider<FilePermissions> getImmutableFilePermissions();
+
     Provider<ConfigurableFilePermissions> getDirPermissions();
+
     Provider<FilePermissions> getImmutableDirPermissions();
+
     boolean getIncludeEmptyDirs();
+
     String getFilteringCharset();
 
     RelativePath getDestPath();

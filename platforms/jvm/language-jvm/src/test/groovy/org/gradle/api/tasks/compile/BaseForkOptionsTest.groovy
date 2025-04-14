@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 public class BaseForkOptionsTest extends Specification {
     def 'JVM options are filtered properly even with bad input'() {
-	    def options = new BaseForkOptions()
+        def options = new BaseForkOptions()
 
         options.jvmArgs = ['', '\n', ' ']
 

@@ -111,7 +111,6 @@ public interface ScriptHandler {
      * this handler.
      *
      * @param configureClosure The action used to configure the script configurations.
-     *
      * @since 8.4
      */
     @Incubating
@@ -129,7 +128,6 @@ public interface ScriptHandler {
      * Provides access to configuring dependency locking
      *
      * @return the {@link DependencyLockingHandler}
-     *
      * @since 6.1
      */
     DependencyLockingHandler getDependencyLocking();

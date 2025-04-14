@@ -26,7 +26,8 @@ import org.junit.Rule
 @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class SamplesScalaZincIntegrationTest extends AbstractSampleIntegrationTest {
 
-    @Rule Sample sample = new Sample(temporaryFolder, 'scala/zinc')
+    @Rule
+    Sample sample = new Sample(temporaryFolder, 'scala/zinc')
 
     def "can build jar with #dsl dsl"() {
         given:
@@ -41,9 +42,9 @@ class SamplesScalaZincIntegrationTest extends AbstractSampleIntegrationTest {
         TestFile jarContents = file('jar')
         projectDir.file("build/libs/zinc.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/sample/Named.class',
-                'org/gradle/sample/Person.class'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/sample/Named.class',
+            'org/gradle/sample/Person.class'
         )
 
         where:

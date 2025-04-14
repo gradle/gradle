@@ -4,7 +4,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultHttpCallerIntegrationTest extends Specification {
-    @Subject HttpCaller httpCaller = new DefaultHttpCaller()
+    @Subject
+    HttpCaller httpCaller = new DefaultHttpCaller()
 
     def "can make successful HTTP GET call"() {
         when:

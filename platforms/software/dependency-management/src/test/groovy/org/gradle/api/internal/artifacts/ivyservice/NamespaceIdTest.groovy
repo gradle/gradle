@@ -20,7 +20,7 @@ import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class NamespaceIdTest extends Specification {
-    def "can set namespace and name" () {
+    def "can set namespace and name"() {
         given:
         NamespaceId id = new NamespaceId("some-namespace", "some-name")
 
@@ -29,7 +29,7 @@ class NamespaceIdTest extends Specification {
         id.getName() == "some-name"
     }
 
-    def "hashCode and equals determine equality" () {
+    def "hashCode and equals determine equality"() {
         given:
         NamespaceId id1 = new NamespaceId("some-namespace", "some-name")
         NamespaceId id2 = new NamespaceId("some-namespace", "some-name")
@@ -38,13 +38,13 @@ class NamespaceIdTest extends Specification {
         id1 Matchers.strictlyEqual(id2)
     }
 
-    def "hashCode and equals determine inequality" () {
+    def "hashCode and equals determine inequality"() {
         given:
         NamespaceId id1 = new NamespaceId(namespace1, name1)
         NamespaceId id2 = new NamespaceId(namespace2, name2)
 
         expect:
-        ! id1.equals(id2)
+        !id1.equals(id2)
         id1.hashCode() != id2.hashCode()
 
         where:
@@ -54,7 +54,7 @@ class NamespaceIdTest extends Specification {
         "some-namespace1" | "some-name"  | "some-namespace"  | "some-name2"
     }
 
-    def "toString returns name" () {
+    def "toString returns name"() {
         given:
         NamespaceId id = new NamespaceId("some-namespace", "some-name")
 
@@ -62,7 +62,7 @@ class NamespaceIdTest extends Specification {
         id.toString().equals("some-name")
     }
 
-    def "can decode an encoding" () {
+    def "can decode an encoding"() {
         given:
         NamespaceId id = new NamespaceId("some-namespace", "some-name")
 

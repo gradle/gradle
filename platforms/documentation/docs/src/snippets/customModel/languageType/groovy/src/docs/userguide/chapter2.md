@@ -1,4 +1,4 @@
-# Chapter 2 - Overview 
+# Chapter 2 - Overview
 
 * LanguageType
 * ComponentBinaries

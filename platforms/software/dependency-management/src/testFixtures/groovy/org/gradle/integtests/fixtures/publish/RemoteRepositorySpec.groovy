@@ -32,7 +32,7 @@ class RemoteRepositorySpec {
         groups.clear()
     }
 
-    void group(String group, @DelegatesTo(value=GroupSpec, strategy = Closure.DELEGATE_ONLY) Closure<Void> groupSpec) {
+    void group(String group, @DelegatesTo(value = GroupSpec, strategy = Closure.DELEGATE_ONLY) Closure<Void> groupSpec) {
         groupSpec.delegate = groups[group]
         groupSpec.resolveStrategy = Closure.DELEGATE_ONLY
         groupSpec()
@@ -55,7 +55,7 @@ class RemoteRepositorySpec {
         def last = null
         pathElements.each { String spec ->
             def gav = spec.split(':') as List<String>
-            if (gav.size()==1) {
+            if (gav.size() == 1) {
                 // name only
                 gav = ["org", gav[0], "1.0"]
             } else if (gav.size() == 2) {
@@ -76,7 +76,7 @@ class RemoteRepositorySpec {
         }
     }
 
-    def id(String notation, @DelegatesTo(value=ModuleVersionSpec, strategy = Closure.DELEGATE_ONLY) Closure spec = {}) {
+    def id(String notation, @DelegatesTo(value = ModuleVersionSpec, strategy = Closure.DELEGATE_ONLY) Closure spec = {}) {
         def (gid, aid, v) = notation.split(':') as List
         assert gid && aid && v
         group(gid) {

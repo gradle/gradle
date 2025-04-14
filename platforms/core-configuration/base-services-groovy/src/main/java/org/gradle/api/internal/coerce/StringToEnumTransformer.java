@@ -24,6 +24,10 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
 
     public static final StringToEnumTransformer INSTANCE = new StringToEnumTransformer();
 
+    static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, Object value) {
+        return GUtil.toEnum(enumType, value);
+    }
+
     @Override
     public Object[] transform(CachedClass[] types, Object[] args) {
         boolean needsTransform = false;
@@ -74,9 +78,5 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
         }
 
         return value;
-    }
-
-    static public <T extends Enum<T>> T toEnumValue(Class<T> enumType, Object value) {
-        return GUtil.toEnum(enumType, value);
     }
 }

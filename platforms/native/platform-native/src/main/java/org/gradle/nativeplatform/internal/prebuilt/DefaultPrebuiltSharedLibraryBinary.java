@@ -40,18 +40,13 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
     }
 
     @Override
-    public void setSharedLibraryFile(File sharedLibraryFile) {
-        this.sharedLibraryFile = sharedLibraryFile;
-    }
-
-    @Override
     public File getSharedLibraryFile() {
         return sharedLibraryFile;
     }
 
     @Override
-    public void setSharedLibraryLinkFile(File sharedLibraryLinkFile) {
-        this.sharedLibraryLinkFile = sharedLibraryLinkFile;
+    public void setSharedLibraryFile(File sharedLibraryFile) {
+        this.sharedLibraryFile = sharedLibraryFile;
     }
 
     @Override
@@ -60,6 +55,11 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
             return sharedLibraryLinkFile;
         }
         return sharedLibraryFile;
+    }
+
+    @Override
+    public void setSharedLibraryLinkFile(File sharedLibraryLinkFile) {
+        this.sharedLibraryLinkFile = sharedLibraryLinkFile;
     }
 
     @Override

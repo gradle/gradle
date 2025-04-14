@@ -36,6 +36,13 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
     private final Map<String, PreviousExecutionState> executionHistory = new HashMap<>();
 
+    private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
+        return copyOfSorted(transformValues(
+            fingerprints,
+            value -> value.archive(SerializableFileCollectionFingerprint::new)
+        ));
+    }
+
     @Override
     public Optional<PreviousExecutionState> load(String key) {
         return Optional.ofNullable(executionHistory.get(key));
@@ -58,13 +65,6 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     @Override
     public void remove(String key) {
         executionHistory.remove(key);
-    }
-
-    private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
-        return copyOfSorted(transformValues(
-            fingerprints,
-            value -> value.archive(SerializableFileCollectionFingerprint::new)
-        ));
     }
 
     public Map<String, PreviousExecutionState> getExecutionHistory() {

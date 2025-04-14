@@ -29,23 +29,13 @@ import java.util.List;
 
 public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
 
-    private boolean ignoreExitValue;
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
+    private boolean ignoreExitValue;
 
     @Inject
     public DefaultExecSpec(PathToFileResolver resolver) {
         super(resolver);
-    }
-
-    public void copyTo(ExecSpec targetSpec) {
-        // Fork options
-        super.copyTo(targetSpec);
-        // BaseExecSpec
-        copyBaseExecSpecTo(this, targetSpec);
-        // ExecSpec
-        targetSpec.setArgs(getArgs());
-        targetSpec.getArgumentProviders().addAll(getArgumentProviders());
     }
 
     static void copyBaseExecSpecTo(BaseExecSpec source, BaseExecSpec target) {
@@ -61,21 +51,19 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
         }
     }
 
+    public void copyTo(ExecSpec targetSpec) {
+        // Fork options
+        super.copyTo(targetSpec);
+        // BaseExecSpec
+        copyBaseExecSpecTo(this, targetSpec);
+        // ExecSpec
+        targetSpec.setArgs(getArgs());
+        targetSpec.getArgumentProviders().addAll(getArgumentProviders());
+    }
+
     @Override
     public List<String> getCommandLine() {
         return argumentsSpec.getCommandLine();
-    }
-
-    @Override
-    public ExecSpec commandLine(Object... arguments) {
-        argumentsSpec.commandLine(arguments);
-        return this;
-    }
-
-    @Override
-    public ExecSpec commandLine(Iterable<?> args) {
-        argumentsSpec.commandLine(args);
-        return this;
     }
 
     @Override
@@ -91,6 +79,18 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     @Override
     public void setCommandLine(Iterable<?> args) {
         argumentsSpec.commandLine(args);
+    }
+
+    @Override
+    public ExecSpec commandLine(Object... arguments) {
+        argumentsSpec.commandLine(arguments);
+        return this;
+    }
+
+    @Override
+    public ExecSpec commandLine(Iterable<?> args) {
+        argumentsSpec.commandLine(args);
+        return this;
     }
 
     @Override

@@ -46,6 +46,10 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
         this.configurationHash = hasher.hash();
     }
 
+    private static String failedToNormalize(FileSystemLocationSnapshot snapshot) {
+        return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
+    }
+
     @Override
     public String getIdentifier() {
         return identifier;
@@ -65,10 +69,6 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(failedToNormalize(snapshot), e.getCause());
         }
-    }
-
-    private static String failedToNormalize(FileSystemLocationSnapshot snapshot) {
-        return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
     }
 
     @Override

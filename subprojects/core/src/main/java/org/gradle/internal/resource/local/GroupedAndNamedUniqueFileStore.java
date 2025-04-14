@@ -115,6 +115,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
 
     public interface Grouper<K> {
         String determineGroup(K key);
+
         int getNumberOfGroupingDirs();
     }
 

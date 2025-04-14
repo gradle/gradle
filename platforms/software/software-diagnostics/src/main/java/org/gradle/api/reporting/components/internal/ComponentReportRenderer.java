@@ -70,7 +70,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
         outputCollection(additionalSourceSets, "Additional source sets", sourceSetRenderer, "source sets");
     }
 
-   public void renderBinaries(Collection<BinarySpec> binaries) {
+    public void renderBinaries(Collection<BinarySpec> binaries) {
         Set<BinarySpec> additionalBinaries = collectAdditionalBinaries(binaries);
         outputCollection(additionalBinaries, "Additional binaries", binaryRenderer, "binaries");
     }
@@ -82,11 +82,11 @@ public class ComponentReportRenderer extends TextReportRenderer {
         return result;
     }
 
-   private Set<BinarySpec> collectAdditionalBinaries(Collection<BinarySpec> binaries) {
-       Set<BinarySpec> result = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
-       result.addAll(binaries);
-       result.removeAll(binaryRenderer.getItems());
-       return result;
+    private Set<BinarySpec> collectAdditionalBinaries(Collection<BinarySpec> binaries) {
+        Set<BinarySpec> result = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
+        result.addAll(binaries);
+        result.removeAll(binaryRenderer.getItems());
+        return result;
     }
 
     private <T> void outputCollection(Collection<? extends T> items, String title, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {

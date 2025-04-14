@@ -94,8 +94,8 @@ class TaskOrderSpecsTest extends Specification {
             [':z', ':a', ':b'],
             [':b', ':z', ':s'],
             [':z', ':a', ':x', ':y', ':b', ':d'],
-            [ ':a' ],
-            [ ':c' ],
+            [':a'],
+            [':c'],
             []
         ]
     }

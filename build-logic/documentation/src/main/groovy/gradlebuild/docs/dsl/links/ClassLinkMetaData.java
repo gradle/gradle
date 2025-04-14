@@ -32,8 +32,8 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
     private final String className;
     private final String simpleName;
     private final String packageName;
-    private LinkMetaData.Style style;
     private final Map<String, MethodLinkMetaData> methods = new HashMap<String, MethodLinkMetaData>();
+    private LinkMetaData.Style style;
 
     public ClassLinkMetaData(ClassMetaData classMetaData) {
         this.className = classMetaData.getClassName();
@@ -86,15 +86,15 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
                 message += "\n  " + methodLinkMetaData;
             }
             message += "\nThis problem may happen when some apilink from docbook template xmls refers to unknown method."
-                    + "\nExample: <apilink class=\"org.gradle.api.Project\" method=\"someMethodThatDoesNotExist\"/>";
+                + "\nExample: <apilink class=\"org.gradle.api.Project\" method=\"someMethodThatDoesNotExist\"/>";
             throw new RuntimeException(message);
         }
         if (candidates.size() != 1) {
             String message = String.format("Found multiple methods called '%s' in class '%s'. Candidates: %s",
-                    method, className, CollectionUtils.join(", ", candidates));
+                method, className, CollectionUtils.join(", ", candidates));
             message += "\nThis problem may happen when some apilink from docbook template xmls is incorrect. Example:"
-                    + "\nIncorrect: <apilink class=\"org.gradle.api.Project\" method=\"tarTree\"/>"
-                    + "\nCorrect:   <apilink class=\"org.gradle.api.Project\" method=\"tarTree(Object)\"/>";
+                + "\nIncorrect: <apilink class=\"org.gradle.api.Project\" method=\"tarTree\"/>"
+                + "\nCorrect:   <apilink class=\"org.gradle.api.Project\" method=\"tarTree(Object)\"/>";
             throw new RuntimeException(message);
         }
         return candidates.get(0);

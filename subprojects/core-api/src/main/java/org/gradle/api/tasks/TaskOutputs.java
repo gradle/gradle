@@ -31,16 +31,16 @@ import org.gradle.internal.HasInternalProtocol;
 public interface TaskOutputs {
     /**
      * <p>
-     *     Adds a predicate to determine whether previous outputs of this task can be reused.
-     *     The given closure is executed at task execution time.
-     *     The closure is passed the task as a parameter.
-     *     If the closure returns false, previous outputs of this task cannot be reused and the task will be executed.
-     *     That means the task is out-of-date and no outputs will be loaded from the build cache.
+     * Adds a predicate to determine whether previous outputs of this task can be reused.
+     * The given closure is executed at task execution time.
+     * The closure is passed the task as a parameter.
+     * If the closure returns false, previous outputs of this task cannot be reused and the task will be executed.
+     * That means the task is out-of-date and no outputs will be loaded from the build cache.
      * </p>
      *
      * <p>
-     *     You can add multiple such predicates.
-     *     The task outputs cannot be reused when any predicate returns false.
+     * You can add multiple such predicates.
+     * The task outputs cannot be reused when any predicate returns false.
      * </p>
      *
      * @param upToDateClosure The closure to use to determine whether the task outputs are up-to-date.
@@ -49,15 +49,15 @@ public interface TaskOutputs {
 
     /**
      * <p>
-     *     Adds a predicate to determine whether previous outputs of this task can be reused.
-     *     The given spec is evaluated at task execution time.
-     *     If the spec returns false, previous outputs of this task cannot be reused and the task will be executed.
-     *     That means the task is out-of-date and no outputs will be loaded from the build cache.
+     * Adds a predicate to determine whether previous outputs of this task can be reused.
+     * The given spec is evaluated at task execution time.
+     * If the spec returns false, previous outputs of this task cannot be reused and the task will be executed.
+     * That means the task is out-of-date and no outputs will be loaded from the build cache.
      * </p>
      *
      * <p>
-     *     You can add multiple such predicates.
-     *     The task outputs cannot be reused when any predicate returns false.
+     * You can add multiple such predicates.
+     * The task outputs cannot be reused when any predicate returns false.
      * </p>
      *
      * @param upToDateSpec The spec to use to determine whether the task outputs are up-to-date.
@@ -75,7 +75,6 @@ public interface TaskOutputs {
      * <p>Consider using {@link #cacheIf(String, Spec)} instead for also providing a reason for enabling caching.</p>
      *
      * @param spec specifies if the results of the task should be cached.
-     *
      * @since 3.0
      */
     void cacheIf(Spec<? super Task> spec);
@@ -90,7 +89,6 @@ public interface TaskOutputs {
      *
      * @param cachingEnabledReason the reason why caching would be enabled by the spec.
      * @param spec specifies if the results of the task should be cached.
-     *
      * @since 3.4
      */
     void cacheIf(String cachingEnabledReason, final Spec<? super Task> spec);
@@ -106,7 +104,6 @@ public interface TaskOutputs {
      *
      * @param cachingDisabledReason the reason why caching would be disabled by the spec.
      * @param spec specifies if the results of the task should not be cached.
-     *
      * @since 3.4
      */
     void doNotCacheIf(String cachingDisabledReason, Spec<? super Task> spec);
@@ -139,7 +136,6 @@ public interface TaskOutputs {
      * {@link org.gradle.api.Project#files(Object...)}.</p>
      *
      * @param paths The output files.
-     *
      * @see CacheableTask
      */
     TaskOutputFilePropertyBuilder files(Object... paths);
@@ -157,9 +153,7 @@ public interface TaskOutputs {
      * {@link org.gradle.api.Project#files(Object...)}.</p>
      *
      * @param paths The output files.
-     *
      * @see CacheableTask
-     *
      * @since 3.3
      */
     TaskOutputFilePropertyBuilder dirs(Object... paths);

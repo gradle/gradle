@@ -91,39 +91,33 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final StreamsHandler inputHandler;
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
-    private int timeoutMillis;
-    private boolean daemon;
-
     /**
      * Lock to guard all mutable state
      */
     private final Lock lock;
     private final Condition stateChanged;
-
     private final Executor executor;
-
+    private final ListenerBroadcast<ExecHandleListener> broadcast;
+    private final ExecHandleShutdownHookAction shutdownHookAction;
+    private final BuildCancellationToken buildCancellationToken;
+    private int timeoutMillis;
+    private boolean daemon;
     /**
      * State of this ExecHandle.
      */
     private ExecHandleState state;
-
     /**
      * When not null, the runnable that is waiting
      */
     private ExecHandleRunner execHandleRunner;
-
     private ExecResultImpl execResult;
 
-    private final ListenerBroadcast<ExecHandleListener> broadcast;
-
-    private final ExecHandleShutdownHookAction shutdownHookAction;
-
-    private final BuildCancellationToken buildCancellationToken;
-
-    DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
-                      Executor executor, BuildCancellationToken buildCancellationToken) {
+    DefaultExecHandle(
+        String displayName, File directory, String command, List<String> arguments,
+        Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
+        List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
+        Executor executor, BuildCancellationToken buildCancellationToken
+    ) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -255,7 +249,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     @Override
     public ExecHandle start() {
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {} {}",
-                displayName, directory, command, ARGUMENT_JOINER.join(arguments));
+            displayName, directory, command, ARGUMENT_JOINER.join(arguments));
         lock.lock();
         try {
             if (!stateIn(ExecHandleState.INIT)) {

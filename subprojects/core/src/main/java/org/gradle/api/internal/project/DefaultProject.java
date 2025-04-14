@@ -179,39 +179,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectInternal parent;
 
     private final String name;
-
-    private Object group;
-
-    private Object version;
-
-    private Property<Object> status;
-
-    private List<String> defaultTasks = new ArrayList<>();
-
     private final ProjectStateInternal state;
-
-    private AntBuilderFactory antBuilderFactory;
-
-    private AntBuilder ant;
-
     private final int depth;
-
     private final TaskContainerInternal taskContainer;
-
-    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
-
     private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
-
     private final ExtensibleDynamicObject extensibleDynamicObject;
-
     private final DynamicLookupRoutine dynamicLookupRoutine;
-
-    private String description;
-
-    private boolean preparedForRuleBasedPlugins;
-
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
-
+    private Object group;
+    private Object version;
+    private Property<Object> status;
+    private List<String> defaultTasks = new ArrayList<>();
+    private AntBuilderFactory antBuilderFactory;
+    private AntBuilder ant;
+    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
+    private String description;
+    private boolean preparedForRuleBasedPlugins;
     @Nullable
     private Object beforeProjectActionState;
 
@@ -271,75 +254,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
 
         dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
-    }
-
-    @SuppressWarnings("unused")
-    static class BasicServicesRules extends RuleSource {
-        @Hidden
-        @Model
-        ProjectLayout projectLayoutService(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ProjectLayout.class);
-        }
-
-        @Hidden
-        @Model
-        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ObjectFactory.class);
-        }
-
-        @Hidden
-        @Model
-        NamedEntityInstantiator<Task> taskFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(TaskInstantiator.class);
-        }
-
-        @Hidden
-        @Model
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(CollectionCallbackActionDecorator.class);
-        }
-
-        @Hidden
-        @Model
-        Instantiator instantiator(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class);
-        }
-
-        @Hidden
-        @Model
-        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ModelSchemaStore.class);
-        }
-
-        @Hidden
-        @Model
-        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ManagedProxyFactory.class);
-        }
-
-        @Hidden
-        @Model
-        StructBindingsStore structBindingsStore(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(StructBindingsStore.class);
-        }
-
-        @Hidden
-        @Model
-        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
-            return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
-        }
-
-        @Hidden
-        @Model
-        TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(TypeConverter.class);
-        }
-
-        @Hidden
-        @Model
-        FileOperations fileOperations(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(FileOperations.class);
-        }
     }
 
     private void onMutableStateAccess() {
@@ -408,13 +322,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public File getBuildFile() {
         return buildFile;
-    }
-
-    @Override
-    public void setScript(groovy.lang.Script buildScript) {
-        onMutableStateAccess();
-        extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
-            ExtensibleDynamicObject.Location.BeforeConvention);
     }
 
     @Override
@@ -572,10 +479,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public abstract TaskDependencyFactory getTaskDependencyFactory();
 
-    public void setAnt(AntBuilder ant) {
-        this.ant = ant;
-    }
-
     @Inject
     @Override
     // onMutableStateAccess() triggered by #getServices()
@@ -592,14 +495,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract RoleBasedConfigurationContainerInternal getConfigurations();
 
     @Override
-    public void setLifecycleActionsState(@Nullable Object state) {
-        beforeProjectActionState = state;
-    }
-
-    @Override
     @Nullable
     public Object getLifecycleActionsState() {
         return beforeProjectActionState;
+    }
+
+    @Override
+    public void setLifecycleActionsState(@Nullable Object state) {
+        beforeProjectActionState = state;
     }
 
     @Deprecated
@@ -688,6 +591,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public boolean isScript() {
         return false;
+    }
+
+    @Override
+    public void setScript(groovy.lang.Script buildScript) {
+        onMutableStateAccess();
+        extensibleDynamicObject.addObject(new BeanDynamicObject(buildScript).withNoProperties().withNotImplementsMissing(),
+            ExtensibleDynamicObject.Location.BeforeConvention);
     }
 
     @Override
@@ -794,6 +704,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             ant = createAntBuilder();
         }
         return ant;
+    }
+
+    public void setAnt(AntBuilder ant) {
+        this.ant = ant;
     }
 
     @Override
@@ -1622,6 +1536,75 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         );
 
         return new LocalDetachedResolver(resolver);
+    }
+
+    @SuppressWarnings("unused")
+    static class BasicServicesRules extends RuleSource {
+        @Hidden
+        @Model
+        ProjectLayout projectLayoutService(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ProjectLayout.class);
+        }
+
+        @Hidden
+        @Model
+        ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ObjectFactory.class);
+        }
+
+        @Hidden
+        @Model
+        NamedEntityInstantiator<Task> taskFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TaskInstantiator.class);
+        }
+
+        @Hidden
+        @Model
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(CollectionCallbackActionDecorator.class);
+        }
+
+        @Hidden
+        @Model
+        Instantiator instantiator(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class);
+        }
+
+        @Hidden
+        @Model
+        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ModelSchemaStore.class);
+        }
+
+        @Hidden
+        @Model
+        ManagedProxyFactory proxyFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ManagedProxyFactory.class);
+        }
+
+        @Hidden
+        @Model
+        StructBindingsStore structBindingsStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(StructBindingsStore.class);
+        }
+
+        @Hidden
+        @Model
+        NodeInitializerRegistry nodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
+            return new DefaultNodeInitializerRegistry(schemaStore, structBindingsStore);
+        }
+
+        @Hidden
+        @Model
+        TypeConverter typeConverter(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(TypeConverter.class);
+        }
+
+        @Hidden
+        @Model
+        FileOperations fileOperations(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(FileOperations.class);
+        }
     }
 
     public static class LocalDetachedResolver implements DetachedResolver {

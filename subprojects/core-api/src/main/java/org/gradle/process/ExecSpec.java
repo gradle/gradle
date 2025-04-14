@@ -78,6 +78,12 @@ public interface ExecSpec extends BaseExecSpec {
     ExecSpec args(Iterable<?> args);
 
     /**
+     * Returns the arguments for the command to be executed. Defaults to an empty list.
+     */
+    @ToBeReplacedByLazyProperty
+    List<String> getArgs();
+
+    /**
      * Sets the arguments for the command to be executed.
      *
      * @param args args for the command
@@ -93,12 +99,6 @@ public interface ExecSpec extends BaseExecSpec {
      * @return this
      */
     ExecSpec setArgs(Iterable<?> args);
-
-    /**
-     * Returns the arguments for the command to be executed. Defaults to an empty list.
-     */
-    @ToBeReplacedByLazyProperty
-    List<String> getArgs();
 
     /**
      * Argument providers for the application.

@@ -44,6 +44,18 @@ public class ClassNameCollector implements TaskListener {
         this.elements = elements;
     }
 
+    private static boolean isSourceFile(JavaFileObject sourceFile) {
+        return sourceFile != null && sourceFile.getKind() == JavaFileObject.Kind.SOURCE;
+    }
+
+    private static boolean isPackageInfoFile(TaskEvent e, File asSourceFile) {
+        return e.getKind() == TaskEvent.Kind.ANALYZE && "package-info.java".equals(asSourceFile.getName());
+    }
+
+    private static boolean isClassGenerationPhase(TaskEvent e) {
+        return e.getKind() == TaskEvent.Kind.GENERATE;
+    }
+
     public Map<String, Set<String>> getMapping() {
         return mapping;
     }
@@ -63,10 +75,6 @@ public class ClassNameCollector implements TaskListener {
 
     @Override
     public void finished(TaskEvent e) {
-    }
-
-    private static boolean isSourceFile(JavaFileObject sourceFile) {
-        return sourceFile != null && sourceFile.getKind() == JavaFileObject.Kind.SOURCE;
     }
 
     private void processSourceFile(TaskEvent e, File sourceFile) {
@@ -100,14 +108,6 @@ public class ClassNameCollector implements TaskListener {
             symbol = elements.getBinaryName(typeElement).toString();
         }
         return symbol;
-    }
-
-    private static boolean isPackageInfoFile(TaskEvent e, File asSourceFile) {
-        return e.getKind() == TaskEvent.Kind.ANALYZE && "package-info.java".equals(asSourceFile.getName());
-    }
-
-    private static boolean isClassGenerationPhase(TaskEvent e) {
-        return e.getKind() == TaskEvent.Kind.GENERATE;
     }
 
     public void registerMapping(String key, String symbol) {

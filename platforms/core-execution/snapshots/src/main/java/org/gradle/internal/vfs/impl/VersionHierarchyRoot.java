@@ -30,13 +30,13 @@ public class VersionHierarchyRoot {
     private final CaseSensitivity caseSensitivity;
     private final VersionHierarchy rootNode;
 
-    public static VersionHierarchyRoot empty(long version, CaseSensitivity caseSensitivity) {
-        return new VersionHierarchyRoot(VersionHierarchy.empty(version), caseSensitivity);
-    }
-
     private VersionHierarchyRoot(VersionHierarchy rootNode, CaseSensitivity caseSensitivity) {
         this.caseSensitivity = caseSensitivity;
         this.rootNode = rootNode;
+    }
+
+    public static VersionHierarchyRoot empty(long version, CaseSensitivity caseSensitivity) {
+        return new VersionHierarchyRoot(VersionHierarchy.empty(version), caseSensitivity);
     }
 
     /**

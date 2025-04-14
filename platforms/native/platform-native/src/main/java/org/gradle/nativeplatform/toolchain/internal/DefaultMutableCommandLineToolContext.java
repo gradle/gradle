@@ -27,14 +27,9 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultMutableCommandLineToolContext implements MutableCommandLineToolContext {
-    private Action<List<String>> postArgsAction = Actions.doNothing();
     private final Map<String, String> environment = new HashMap<String, String>();
     private final List<File> path = new ArrayList<File>();
-
-    @Override
-    public void setArgAction(Action<List<String>> argAction) {
-        postArgsAction = argAction;
-    }
+    private Action<List<String>> postArgsAction = Actions.doNothing();
 
     @Override
     public void addPath(File pathEntry) {
@@ -59,6 +54,11 @@ public class DefaultMutableCommandLineToolContext implements MutableCommandLineT
     @Override
     public Action<List<String>> getArgAction() {
         return postArgsAction;
+    }
+
+    @Override
+    public void setArgAction(Action<List<String>> argAction) {
+        postArgsAction = argAction;
     }
 
     @Override

@@ -14,12 +14,16 @@ dependencies {
 tasks.register("check") {
     doLast {
         ant.withGroovyBuilder {
-            "taskdef"("name" to "pmd",
-                      "classname" to "net.sourceforge.pmd.ant.PMDTask",
-                      "classpath" to pmd.asPath)
-            "pmd"("shortFilenames" to true,
-                  "failonruleviolation" to true,
-                  "rulesetfiles" to file("pmd-rules.xml").toURI().toString()) {
+            "taskdef"(
+                "name" to "pmd",
+                "classname" to "net.sourceforge.pmd.ant.PMDTask",
+                "classpath" to pmd.asPath
+            )
+            "pmd"(
+                "shortFilenames" to true,
+                "failonruleviolation" to true,
+                "rulesetfiles" to file("pmd-rules.xml").toURI().toString()
+            ) {
                 "formatter"("type" to "text", "toConsole" to "true")
                 "fileset"("dir" to "src")
             }

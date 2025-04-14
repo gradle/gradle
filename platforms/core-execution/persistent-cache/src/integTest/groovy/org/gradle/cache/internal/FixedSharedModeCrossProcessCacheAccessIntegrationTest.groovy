@@ -27,7 +27,8 @@ import spock.lang.Subject
 
 @Subject(FixedSharedModeCrossProcessCacheAccess)
 class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/2737")
     def "parallel initialization attempt of a shared cache does not timeout one of the processes"() {

@@ -114,22 +114,6 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
     private static class ConvertMethodCache extends ReflectionCache<ConvertMethod> {
 
-        @Override
-        protected ConvertMethod create(Class<?> key, Class<?>[] params) {
-            Method convertMethod = findConvertMethod(key);
-            Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
-            AnnotatedType[] annotatedParameterTypes = convertMethod.getAnnotatedParameterTypes();
-            String[] keyNames = new String[parameterAnnotations.length];
-            boolean[] nullables = new boolean[parameterAnnotations.length];
-            for (int i = 0; i < parameterAnnotations.length; i++) {
-                Annotation[] annotations = parameterAnnotations[i];
-                Annotation[] typeAnnotations = annotatedParameterTypes[i].getAnnotations();
-                keyNames[i] = keyName(annotations);
-                nullables[i] = nullable(annotations) || nullable(typeAnnotations);
-            }
-            return new ConvertMethod(convertMethod, keyNames, nullables);
-        }
-
         private static Method findConvertMethod(Class clazz) {
             for (Method method : clazz.getDeclaredMethods()) {
                 if (method.getName().equals("parseMap")) {
@@ -158,12 +142,27 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             throw new UnsupportedOperationException("No @Key annotation on parameter of parseMap() method");
         }
 
+        @Override
+        protected ConvertMethod create(Class<?> key, Class<?>[] params) {
+            Method convertMethod = findConvertMethod(key);
+            Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
+            AnnotatedType[] annotatedParameterTypes = convertMethod.getAnnotatedParameterTypes();
+            String[] keyNames = new String[parameterAnnotations.length];
+            boolean[] nullables = new boolean[parameterAnnotations.length];
+            for (int i = 0; i < parameterAnnotations.length; i++) {
+                Annotation[] annotations = parameterAnnotations[i];
+                Annotation[] typeAnnotations = annotatedParameterTypes[i].getAnnotations();
+                keyNames[i] = keyName(annotations);
+                nullables[i] = nullable(annotations) || nullable(typeAnnotations);
+            }
+            return new ConvertMethod(convertMethod, keyNames, nullables);
+        }
+
     }
 
     private static class ConvertMethod extends CachedInvokable<Method> {
-        private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
         public static final Class[] EMPTY = new Class[0];
-
+        private final static ConvertMethodCache CONVERT_METHODS = new ConvertMethodCache();
         private final String[] keyNames;
         private final boolean[] nullables;
 

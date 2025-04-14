@@ -50,9 +50,9 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly))
         wrapper.setGradleVersion("1.0")
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
-                TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
+            TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
-                TARGET_WRAPPER_FINAL + "/gradle-wrapper.properties")
+            TARGET_WRAPPER_FINAL + "/gradle-wrapper.properties")
         new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
@@ -230,7 +230,7 @@ class WrapperTest extends AbstractTaskTest {
     def "distributionUrl should not contain small dotless I letter when locale has small dotless I letter"() {
         given:
         Locale originalLocale = Locale.getDefault()
-        Locale.setDefault(new Locale("tr","TR"))
+        Locale.setDefault(new Locale("tr", "TR"))
 
         when:
         execute(wrapper)

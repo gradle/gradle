@@ -36,7 +36,7 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         then:
         jansiLibrary.platform == JansiOperatingSystemSupport.MAC_OS_X.identifier
         jansiLibrary.filename == MAC_OSX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath == "/META-INF/native/" + jansiLibrary.path
     }
 
     @Requires(UnitTestPreconditions.Linux)
@@ -47,7 +47,7 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         then:
         jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.LINUX.identifier)
         jansiLibrary.filename == LINUX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath == "/META-INF/native/" + jansiLibrary.path
     }
 
     @Requires(UnitTestPreconditions.Windows)
@@ -58,6 +58,6 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         then:
         jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.WINDOWS.identifier)
         jansiLibrary.filename == WINDOWS_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath == "/META-INF/native/" + jansiLibrary.path
     }
 }

@@ -76,6 +76,29 @@ public abstract class GroovyRuntime {
         this.project = (ProjectInternal) project;
     }
 
+    private static List<File> collectJarsFromClasspath(Iterable<File> classpath, Set<String> jarNames) {
+        return stream(classpath.spliterator(), false)
+            .filter(file -> jarNames.contains(file.getName()))
+            .collect(toList());
+    }
+
+    private static Set<String> groovyJarNamesFor(VersionNumber groovyVersion) {
+        return DependencyClassPathProvider.GROOVY_MODULES.stream()
+            .map(libName -> libName + "-" + groovyVersion + ".jar")
+            .collect(toSet());
+    }
+
+    @Nullable
+    private static GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
+        for (File file : classpath) {
+            GroovyJarFile groovyJar = GroovyJarFile.parse(file);
+            if (groovyJar != null) {
+                return groovyJar;
+            }
+        }
+        return null;
+    }
+
     /**
      * Searches the specified class path for Groovy Jars ({@code groovy(-indy)}, {@code groovy-all(-indy)}) and returns a corresponding class path for executing Groovy tools such as the Groovy
      * compiler and Groovydoc tool. The tool versions will match those of the Groovy Jars found. If no Groovy Jars are found on the specified class path, a class path with the contents of the {@code
@@ -184,29 +207,6 @@ public abstract class GroovyRuntime {
                 }
             }
         };
-    }
-
-    private static List<File> collectJarsFromClasspath(Iterable<File> classpath, Set<String> jarNames) {
-        return stream(classpath.spliterator(), false)
-            .filter(file -> jarNames.contains(file.getName()))
-            .collect(toList());
-    }
-
-    private static Set<String> groovyJarNamesFor(VersionNumber groovyVersion) {
-        return DependencyClassPathProvider.GROOVY_MODULES.stream()
-            .map(libName -> libName + "-" + groovyVersion + ".jar")
-            .collect(toSet());
-    }
-
-    @Nullable
-    private static GroovyJarFile findGroovyJarFile(Iterable<File> classpath) {
-        for (File file : classpath) {
-            GroovyJarFile groovyJar = GroovyJarFile.parse(file);
-            if (groovyJar != null) {
-                return groovyJar;
-            }
-        }
-        return null;
     }
 
     private JvmPluginServices getJvmPluginServices() {

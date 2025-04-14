@@ -21,7 +21,7 @@ import spock.lang.Specification
 class VisitableURLClassLoaderTest extends Specification {
     def "visits self and parent"() {
         def visitor = Mock(ClassLoaderVisitor)
-        def parent = new ClassLoader(null) { }
+        def parent = new ClassLoader(null) {}
         def classPath = [new File("a").toURI().toURL(), new File("b").toURI().toURL()]
         def cl = new VisitableURLClassLoader("test", parent, classPath)
 
@@ -29,7 +29,7 @@ class VisitableURLClassLoaderTest extends Specification {
         cl.visit(visitor)
 
         then:
-        1 * visitor.visitSpec({it instanceof VisitableURLClassLoader.Spec}) >> { VisitableURLClassLoader.Spec spec ->
+        1 * visitor.visitSpec({ it instanceof VisitableURLClassLoader.Spec }) >> { VisitableURLClassLoader.Spec spec ->
             assert spec.name == "test"
             assert spec.classpath == classPath
         }

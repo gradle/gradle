@@ -27,11 +27,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.ANNOTATION_TYPE})
 public @interface ReplacedAccessor {
 
-    enum AccessorType {
-        GETTER,
-        SETTER
-    }
-
     AccessorType value();
 
     /**
@@ -48,4 +43,9 @@ public @interface ReplacedAccessor {
      * See {@link ReplacesEagerProperty#fluentSetter()}
      */
     boolean fluentSetter() default false;
+
+    enum AccessorType {
+        GETTER,
+        SETTER
+    }
 }

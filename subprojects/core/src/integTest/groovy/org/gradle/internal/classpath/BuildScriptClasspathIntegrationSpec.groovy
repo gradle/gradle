@@ -413,7 +413,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     def "class with #lambdaCount lambdas can be instrumented"() {
         given:
         createDir("buildSrc/src/main/java") {
-            try(def src = file("ManyLambdas.java").newWriter()) {
+            try (def src = file("ManyLambdas.java").newWriter()) {
                 src.append("""
                     import ${List.name};
                     import ${ArrayList.name};
@@ -507,11 +507,13 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             buildJar(currentTimestampJar)
         }
 
-        Closure<String> subprojectSource = {File jarPath -> """
+        Closure<String> subprojectSource = { File jarPath ->
+            """
             buildscript { dependencies { classpath files("${normaliseFileSeparators(jarPath.absolutePath)}") } }
 
             tasks.register("printMessage") { doLast { println (new org.gradle.test.BuildClass().message()) } }
-        """}
+        """
+        }
 
         settingsFile """
             include "reproducible", "current"

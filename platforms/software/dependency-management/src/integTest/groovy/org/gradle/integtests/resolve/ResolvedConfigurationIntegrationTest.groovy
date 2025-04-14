@@ -86,9 +86,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         failure.assertHasCause("Could not resolve org.foo:broken:1.0.")
 
         where:
-        expression                                 | _
-        "firstLevelModuleDependencies"             | _
-        "resolvedArtifacts"                        | _
+        expression                     | _
+        "firstLevelModuleDependencies" | _
+        "resolvedArtifacts"            | _
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -147,9 +147,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         failure.assertHasCause("Could not find unknown-1.0.jar (org.foo:unknown:1.0).")
 
         where:
-        expression                                                                                    | _
-        "resolvedArtifacts.collect { it.file }"                                                       | _
-        "firstLevelModuleDependencies.collect { it.moduleArtifacts }.flatten().collect { it.file } "  | _
+        expression                                                                                   | _
+        "resolvedArtifacts.collect { it.file }"                                                      | _
+        "firstLevelModuleDependencies.collect { it.moduleArtifacts }.flatten().collect { it.file } " | _
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")

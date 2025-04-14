@@ -54,11 +54,11 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         0 * delegate._
 
         where:
-        description               | contents
-        "new lines"               | "this is\na text file\n".bytes
-        "new lines with CR-LF"    | "this is\r\na text file\r\n".bytes
-        "no new lines"            | "No new lines\tin this file".bytes
-        "utf8 content"            | "here's some UTF8 content: €ЇΩ".getBytes(Charset.forName("UTF-8"))
+        description            | contents
+        "new lines"            | "this is\na text file\n".bytes
+        "new lines with CR-LF" | "this is\r\na text file\r\n".bytes
+        "no new lines"         | "No new lines\tin this file".bytes
+        "utf8 content"         | "here's some UTF8 content: €ЇΩ".getBytes(Charset.forName("UTF-8"))
     }
 
     def "calls delegate for binary files with #description"() {
@@ -181,9 +181,9 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         exception == thrownException || e.cause.class == exception
 
         where:
-        exception           | thrownException
-        IOException         | UncheckedIOException
-        RuntimeException    | RuntimeException
+        exception        | thrownException
+        IOException      | UncheckedIOException
+        RuntimeException | RuntimeException
     }
 
     File file(String path) {

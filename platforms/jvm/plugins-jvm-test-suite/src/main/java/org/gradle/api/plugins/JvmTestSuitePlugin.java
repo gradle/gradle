@@ -35,8 +35,8 @@ import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
  *
  * </ul>
  *
- * @since 7.3
  * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">Test Suite plugin reference</a>
+ * @since 7.3
  */
 @Incubating
 public abstract class JvmTestSuitePlugin implements Plugin<Project> {

@@ -35,8 +35,8 @@ public class BuildLogLevelFilterRendererTest extends OutputSpecification {
         renderer.onOutput(event("warn", LogLevel.WARN))
 
         then:
-        1 * listener.onOutput({it instanceof LogLevelChangeEvent})
-        1 * listener.onOutput({it instanceof LogEvent && it.message == "warn"})
+        1 * listener.onOutput({ it instanceof LogLevelChangeEvent })
+        1 * listener.onOutput({ it instanceof LogEvent && it.message == "warn" })
         0 * _
     }
 
@@ -46,7 +46,7 @@ public class BuildLogLevelFilterRendererTest extends OutputSpecification {
         renderer.onOutput(event("debug", LogLevel.DEBUG))
 
         then:
-        1 * listener.onOutput({it.message == "lifecycle"})
+        1 * listener.onOutput({ it.message == "lifecycle" })
         0 * _
     }
 

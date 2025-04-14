@@ -41,11 +41,11 @@ public enum Compression {
         this.supportedExtensions = builder.build();
     }
 
-    public String getDefaultExtension(){
+    public String getDefaultExtension() {
         return defaultExtension;
     }
 
-    public List<String> getSupportedExtensions(){
+    public List<String> getSupportedExtensions() {
         return supportedExtensions;
     }
 }

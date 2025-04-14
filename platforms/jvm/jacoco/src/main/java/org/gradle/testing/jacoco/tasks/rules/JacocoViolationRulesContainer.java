@@ -30,18 +30,18 @@ import java.util.List;
 public interface JacocoViolationRulesContainer {
 
     /**
-     * Indicates whether build should fail in case of rule violation.
-     *
-     * @param ignore Only render violation but do not fail build
-     */
-    void setFailOnViolation(boolean ignore);
-
-    /**
      * Specifies whether build should fail in case of rule violations. Defaults to true.
      */
     @Input
     @ToBeReplacedByLazyProperty
     boolean isFailOnViolation();
+
+    /**
+     * Indicates whether build should fail in case of rule violation.
+     *
+     * @param ignore Only render violation but do not fail build
+     */
+    void setFailOnViolation(boolean ignore);
 
     /**
      * Gets all violation rules. Defaults to an empty list.

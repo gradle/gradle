@@ -26,7 +26,7 @@ class SwiftXCTest extends XCTestSourceElement {
         return [new XCTestSourceFileElement("SwiftTest") {
             @Override
             List<XCTestCaseElement> getTestCases() {
-                return [testCase("testSucceed","XCTAssertTrue(true)")]
+                return [testCase("testSucceed", "XCTAssertTrue(true)")]
             }
         }]
     }

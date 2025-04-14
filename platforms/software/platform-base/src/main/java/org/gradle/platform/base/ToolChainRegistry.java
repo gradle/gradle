@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * A Provider of {@link ToolChain}s.
+ *
  * @param <P> the Platform type
  * @param <T> the ToolChain type
  */

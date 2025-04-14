@@ -39,8 +39,14 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
 
     private Set<String> excludeTags = new LinkedHashSet<String>();
 
+    private static void replace(Set<String> target, Set<String> source) {
+        target.clear();
+        target.addAll(source);
+    }
+
     /**
      * Copies the options from the source options into the current one.
+     *
      * @since 8.0
      */
     public void copyFrom(JUnitPlatformOptions other) {
@@ -48,11 +54,6 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
         replace(this.excludeEngines, other.excludeEngines);
         replace(this.includeTags, other.includeTags);
         replace(this.excludeTags, other.excludeTags);
-    }
-
-    private static void replace(Set<String> target, Set<String> source) {
-        target.clear();
-        target.addAll(source);
     }
 
     /**
@@ -101,14 +102,18 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
         return includeEngines;
     }
 
+    public void setIncludeEngines(Set<String> includeEngines) {
+        this.includeEngines = includeEngines;
+    }
+
     @Input
     @ToBeReplacedByLazyProperty
     public Set<String> getIncludeTags() {
         return includeTags;
     }
 
-    public void setIncludeEngines(Set<String> includeEngines) {
-        this.includeEngines = includeEngines;
+    public void setIncludeTags(Set<String> includeTags) {
+        this.includeTags = includeTags;
     }
 
     @Input
@@ -119,10 +124,6 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
 
     public void setExcludeEngines(Set<String> excludeEngines) {
         this.excludeEngines = excludeEngines;
-    }
-
-    public void setIncludeTags(Set<String> includeTags) {
-        this.includeTags = includeTags;
     }
 
     @Input

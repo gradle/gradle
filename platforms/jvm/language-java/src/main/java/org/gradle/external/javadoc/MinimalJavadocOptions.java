@@ -38,7 +38,9 @@ import java.util.List;
  */
 public interface MinimalJavadocOptions {
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getOverview();
 
     void setOverview(@Nullable String overview);
@@ -46,7 +48,9 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions overview(String overview);
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     JavadocMemberLevel getMemberLevel();
 
     void setMemberLevel(@Nullable JavadocMemberLevel memberLevel);
@@ -62,7 +66,9 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions showAll();
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getDoclet();
 
     void setDoclet(@Nullable String docletClass);
@@ -77,7 +83,9 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions docletpath(File... docletpath);
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     @ToBeReplacedByLazyProperty
     String getSource();
 
@@ -127,7 +135,11 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions bootClasspath(File... bootClasspath);
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @IgnoreEmptyDirectories @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
+    @Nullable
+    @Optional
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
     List<File> getExtDirs();
 
     void setExtDirs(@Nullable List<File> extDirs);
@@ -159,7 +171,9 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions breakIterator();
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getLocale();
 
     void setLocale(@Nullable String locale);
@@ -167,7 +181,9 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions locale(String locale);
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getEncoding();
 
     void setEncoding(@Nullable String encoding);
@@ -175,7 +191,9 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions encoding(String encoding);
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     List<String> getJFlags();
 
     void setJFlags(@Nullable List<String> jFlags);
@@ -183,7 +201,10 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions jFlags(String... jFlags);
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @PathSensitive(PathSensitivity.NONE) @InputFiles
+    @Nullable
+    @Optional
+    @PathSensitive(PathSensitivity.NONE)
+    @InputFiles
     List<File> getOptionFiles();
 
     void setOptionFiles(@Nullable List<File> optionFiles);
@@ -199,7 +220,9 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions destinationDirectory(File directory);
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getWindowTitle();
 
     void setWindowTitle(@Nullable String windowTitle);
@@ -207,7 +230,9 @@ public interface MinimalJavadocOptions {
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getHeader();
 
     void setHeader(@Nullable String header);

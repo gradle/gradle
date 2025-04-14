@@ -32,6 +32,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
 
     private static final String DETECTED_TOOLCHAIN_INDENT = "     ";
     private static final String TOOLCHAIN_METADATA_INDENT = "  ";
+    private static final int INVALID_TOOLCHAIN_ERROR_CAUSE_LIMIT = 5;
 
     public void printDetectedToolchain(JvmToolchainMetadata toolchain) {
         StyledTextOutput output = getTextOutput();
@@ -101,6 +102,4 @@ public class ToolchainReportRenderer extends TextReportRenderer {
             }
         }
     }
-
-    private static final int INVALID_TOOLCHAIN_ERROR_CAUSE_LIMIT = 5;
 }

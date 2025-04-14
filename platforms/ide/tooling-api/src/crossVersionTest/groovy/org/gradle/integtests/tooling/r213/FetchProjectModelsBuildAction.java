@@ -32,7 +32,7 @@ public class FetchProjectModelsBuildAction implements BuildAction<List<Object>> 
 
     public List<Object> execute(BuildController controller) {
         List<Object> models = new ArrayList<Object>();
-        for (BasicGradleProject project: controller.getBuildModel().getProjects()) {
+        for (BasicGradleProject project : controller.getBuildModel().getProjects()) {
             Object model = controller.getModel(project, modelType);
             models.add(model);
         }

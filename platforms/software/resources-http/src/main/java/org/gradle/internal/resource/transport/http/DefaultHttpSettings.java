@@ -36,7 +36,47 @@ import java.util.Collection;
 public class DefaultHttpSettings implements HttpSettings {
     private static final int DEFAULT_MAX_REDIRECTS = 10;
     private static final int DEFAULT_MAX_CONNECTIONS = 20;
+    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier() {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+    private static final SslContextFactory ALL_TRUSTING_SSL_CONTEXT_FACTORY = new SslContextFactory() {
+        private final TrustManager[] allTrustingTrustManager = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
 
+                @Override
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+        };
+        private final Supplier<SSLContext> sslContextSupplier = Suppliers.memoize(new Supplier<SSLContext>() {
+            @Override
+            public SSLContext get() {
+                try {
+                    SSLContext sslcontext = SSLContext.getInstance("TLS");
+                    sslcontext.init(null, allTrustingTrustManager, null);
+                    return sslcontext;
+                } catch (GeneralSecurityException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        });
+
+        @Override
+        public SSLContext createSslContext() {
+            return sslContextSupplier.get();
+        }
+    };
     private final Collection<Authentication> authenticationSettings;
     private final SslContextFactory sslContextFactory;
     private final HostnameVerifier hostnameVerifier;
@@ -45,14 +85,9 @@ public class DefaultHttpSettings implements HttpSettings {
     private final int maxConnTotal;
     private final int maxConnPerRoute;
     private final RedirectMethodHandlingStrategy redirectMethodHandlingStrategy;
-
     private HttpProxySettings proxySettings;
     private HttpProxySettings secureProxySettings;
     private HttpTimeoutSettings timeoutSettings;
-
-    public static Builder builder() {
-        return new Builder();
-    }
 
     private DefaultHttpSettings(
         Collection<Authentication> authenticationSettings,
@@ -81,6 +116,10 @@ public class DefaultHttpSettings implements HttpSettings {
         this.hostnameVerifier = hostnameVerifier;
         this.redirectVerifier = redirectVerifier;
         this.redirectMethodHandlingStrategy = redirectMethodHandlingStrategy;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -206,49 +245,5 @@ public class DefaultHttpSettings implements HttpSettings {
             return new DefaultHttpSettings(authenticationSettings, sslContextFactory, hostnameVerifier, redirectVerifier, redirectMethodHandlingStrategy, maxRedirects, maxConnTotal, maxConnPerRoute);
         }
     }
-
-    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier() {
-        @Override
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
-
-    private static final SslContextFactory ALL_TRUSTING_SSL_CONTEXT_FACTORY = new SslContextFactory() {
-        private final Supplier<SSLContext> sslContextSupplier = Suppliers.memoize(new Supplier<SSLContext>() {
-            @Override
-            public SSLContext get() {
-                try {
-                    SSLContext sslcontext = SSLContext.getInstance("TLS");
-                    sslcontext.init(null, allTrustingTrustManager, null);
-                    return sslcontext;
-                } catch (GeneralSecurityException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        });
-
-        @Override
-        public SSLContext createSslContext() {
-            return sslContextSupplier.get();
-        }
-
-        private final TrustManager[] allTrustingTrustManager = new TrustManager[]{
-            new X509TrustManager() {
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-
-                @Override
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            }
-        };
-    };
 
 }

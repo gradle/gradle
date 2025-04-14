@@ -15,6 +15,7 @@
  */
 
 @file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.plugins.Convention

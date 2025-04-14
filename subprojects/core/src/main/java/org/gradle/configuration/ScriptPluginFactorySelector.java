@@ -43,13 +43,23 @@ import org.gradle.scripts.ScriptingLanguage;
  */
 public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
-    /**
-     * Scripting language ScriptPluginFactory instantiator.
-     *
-     * @since 4.0
-     */
-    public interface ProviderInstantiator {
-        ScriptPluginFactory instantiate(String providerClassName);
+    private final ScriptPluginFactory defaultScriptPluginFactory;
+    private final ProviderInstantiator providerInstantiator;
+    private final BuildOperationRunner buildOperationRunner;
+    private final UserCodeApplicationContext userCodeApplicationContext;
+    private final ScriptSourceListener scriptSourceListener;
+    public ScriptPluginFactorySelector(
+        ScriptPluginFactory defaultScriptPluginFactory,
+        ProviderInstantiator providerInstantiator,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
+        ScriptSourceListener scriptSourceListener
+    ) {
+        this.defaultScriptPluginFactory = defaultScriptPluginFactory;
+        this.providerInstantiator = providerInstantiator;
+        this.buildOperationRunner = buildOperationRunner;
+        this.userCodeApplicationContext = userCodeApplicationContext;
+        this.scriptSourceListener = scriptSourceListener;
     }
 
     /**
@@ -78,26 +88,6 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
         };
     }
 
-    private final ScriptPluginFactory defaultScriptPluginFactory;
-    private final ProviderInstantiator providerInstantiator;
-    private final BuildOperationRunner buildOperationRunner;
-    private final UserCodeApplicationContext userCodeApplicationContext;
-    private final ScriptSourceListener scriptSourceListener;
-
-    public ScriptPluginFactorySelector(
-        ScriptPluginFactory defaultScriptPluginFactory,
-        ProviderInstantiator providerInstantiator,
-        BuildOperationRunner buildOperationRunner,
-        UserCodeApplicationContext userCodeApplicationContext,
-        ScriptSourceListener scriptSourceListener
-    ) {
-        this.defaultScriptPluginFactory = defaultScriptPluginFactory;
-        this.providerInstantiator = providerInstantiator;
-        this.buildOperationRunner = buildOperationRunner;
-        this.userCodeApplicationContext = userCodeApplicationContext;
-        this.scriptSourceListener = scriptSourceListener;
-    }
-
     @Override
     public ScriptPlugin create(
         ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope,
@@ -124,5 +114,14 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
     private ScriptPluginFactory instantiate(String provider) {
         return providerInstantiator.instantiate(provider);
+    }
+
+    /**
+     * Scripting language ScriptPluginFactory instantiator.
+     *
+     * @since 4.0
+     */
+    public interface ProviderInstantiator {
+        ScriptPluginFactory instantiate(String providerClassName);
     }
 }

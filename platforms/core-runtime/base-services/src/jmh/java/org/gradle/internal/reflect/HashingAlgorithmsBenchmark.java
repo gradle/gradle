@@ -47,14 +47,6 @@ import java.util.Random;
 @State(Scope.Benchmark)
 public class HashingAlgorithmsBenchmark {
 
-    private static MessageDigest getDigest(String name) {
-        try {
-            return MessageDigest.getInstance(name);
-        } catch (NoSuchAlgorithmException e) {
-            throw new AssertionError();
-        }
-    }
-
     static final Map<String, HashProcessorFactory> HASHERS = ImmutableMap.<String, HashProcessorFactory>builder()
         .put("md5.java", new MessageDigestHashProcessorFactory(getDigest("MD5")))
         .put("md5.bc", new MessageDigestHashProcessorFactory(new MD5.Digest()))
@@ -63,18 +55,22 @@ public class HashingAlgorithmsBenchmark {
         .put("blake2b.bc", new MessageDigestHashProcessorFactory(new Blake2b.Blake2b160()))
         .put("murmur3.guava", new GuavaProcessorFactory(Hashing.murmur3_128()))
         .build();
-
     Random random = new Random(1234L);
-
     @Param({"16", "1024", "65536"})
     int hashSize;
-
     // @Param({"md5.java", "md5.bc", "sha1.java", "sha1.bc", "blake2b.bc"})
     @Param({"md5.java", "murmur3.guava"})
     String type;
-
     byte[] input;
     HashProcessorFactory processorFactory;
+
+    private static MessageDigest getDigest(String name) {
+        try {
+            return MessageDigest.getInstance(name);
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError();
+        }
+    }
 
     @Setup(Level.Iteration)
     public void setup() throws CloneNotSupportedException {

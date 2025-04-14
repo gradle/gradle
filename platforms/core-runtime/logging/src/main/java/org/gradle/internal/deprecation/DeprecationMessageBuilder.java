@@ -22,26 +22,27 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.GradleVersion;
 
 import javax.annotation.CheckReturnValue;
+
 import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 @SuppressWarnings("SameNameButDifferent")
 @CheckReturnValue
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
+    public static final char DASH = '-';
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
     private static final GradleVersion GRADLE10 = GradleVersion.version("10.0");
-
     @Nullable
     protected String summary;
+    protected String problemIdDisplayName;
+    protected String problemId;
     private DeprecationTimeline deprecationTimeline;
     private String context;
     private String advice;
     private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
-
-    protected String problemIdDisplayName;
-    protected String problemId;
 
     public static WithDocumentation withDocumentation(InternalProblem warning, WithDeprecationTimeline withDeprecationTimeline) {
         DocLink docLink = warning.getDefinition().getDocumentationLink();
@@ -50,6 +51,47 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
                 .withDocumentation(warning.getDefinition().getDocumentationLink());
         }
         return withDeprecationTimeline.undocumented();
+    }
+
+    public static String createDefaultDeprecationId(String... ids) {
+        StringBuilder sb = new StringBuilder();
+        for (String id : ids) {
+            if (id == null) {
+                continue;
+            }
+            CharSequence cleanId = createDashedId(id);
+            if (cleanId.length() > 0) {
+                sb.append(cleanId);
+                sb.append(DASH);
+            }
+        }
+        removeTrailingDashes(sb);
+        return sb.toString();
+    }
+
+    private static void removeTrailingDashes(StringBuilder sb) {
+        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == DASH) {
+            sb.setLength(sb.length() - 1);
+        }
+    }
+
+    private static CharSequence createDashedId(String id) {
+        StringBuilder cleanId = new StringBuilder();
+        boolean previousWasDash = false;
+        for (int i = 0; i < id.length(); i++) {
+            char c = id.charAt(i);
+            if (Character.isLetter(c)) {
+                previousWasDash = false;
+                cleanId.append(Character.toLowerCase(c));
+            } else {
+                if (previousWasDash) {
+                    continue;
+                }
+                cleanId.append(DASH);
+                previousWasDash = true;
+            }
+        }
+        return cleanId;
     }
 
     @Nullable
@@ -306,6 +348,21 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return new WithDeprecationTimeline(this);
         }
 
+        @Override
+        String formatSubject() {
+            return String.format("%s.%s", propertyClass.getSimpleName(), property);
+        }
+
+        @Override
+        String formatSummary(String property) {
+            return String.format("The %s property has been deprecated.", property);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use the %s property instead.", replacement);
+        }
+
         public class WithDeprecationTimeline extends DeprecationMessageBuilder.WithDeprecationTimeline {
             private final DeprecateProperty builder;
 
@@ -322,21 +379,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
                 setDocumentation(Documentation.dslReference(propertyClass, property));
                 return new WithDocumentation(builder);
             }
-        }
-
-        @Override
-        String formatSubject() {
-            return String.format("%s.%s", propertyClass.getSimpleName(), property);
-        }
-
-        @Override
-        String formatSummary(String property) {
-            return String.format("The %s property has been deprecated.", property);
-        }
-
-        @Override
-        String formatAdvice(String replacement) {
-            return String.format("Please use the %s property instead.", replacement);
         }
     }
 
@@ -416,49 +458,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
-    public static final char DASH = '-';
-
-    public static String createDefaultDeprecationId(String... ids) {
-        StringBuilder sb = new StringBuilder();
-        for (String id : ids) {
-            if (id == null) {
-                continue;
-            }
-            CharSequence cleanId = createDashedId(id);
-            if (cleanId.length() > 0) {
-                sb.append(cleanId);
-                sb.append(DASH);
-            }
-        }
-        removeTrailingDashes(sb);
-        return sb.toString();
-    }
-
-    private static void removeTrailingDashes(StringBuilder sb) {
-        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == DASH) {
-            sb.setLength(sb.length() - 1);
-        }
-    }
-
-    private static CharSequence createDashedId(String id) {
-        StringBuilder cleanId = new StringBuilder();
-        boolean previousWasDash = false;
-        for (int i = 0; i < id.length(); i++) {
-            char c = id.charAt(i);
-            if (Character.isLetter(c)) {
-                previousWasDash = false;
-                cleanId.append(Character.toLowerCase(c));
-            } else {
-                if (previousWasDash) {
-                    continue;
-                }
-                cleanId.append(DASH);
-                previousWasDash = true;
-            }
-        }
-        return cleanId;
-    }
-
     public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
         private final Class<?> methodClass;
         private final String methodWithParams;
@@ -467,6 +466,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(methodWithParams);
             this.methodClass = methodClass;
             this.methodWithParams = methodWithParams;
+        }
+
+        private static String pleaseUseThisMethodInstead(String replacement) {
+            return String.format("Please use the %s method instead.", replacement);
         }
 
         @Override
@@ -482,10 +485,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatAdvice(String replacement) {
             return pleaseUseThisMethodInstead(replacement);
-        }
-
-        private static String pleaseUseThisMethodInstead(String replacement) {
-            return String.format("Please use the %s method instead.", replacement);
         }
     }
 

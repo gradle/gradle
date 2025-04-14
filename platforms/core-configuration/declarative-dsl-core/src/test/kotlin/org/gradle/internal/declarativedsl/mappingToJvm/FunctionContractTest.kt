@@ -55,6 +55,7 @@ class FunctionContractTest {
 
         @get:Restricted
         var y: Int = 0
+
         @Configuring
         fun configure(configure: Receiver.() -> Unit) {
             configure(this)

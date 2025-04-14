@@ -33,7 +33,9 @@ public interface ComponentMetadataProcessor {
         @Override
         public int getRulesHash() {
             return 0;
-        };
+        }
+
+        ;
     };
 
     ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata);
@@ -41,6 +43,7 @@ public interface ComponentMetadataProcessor {
     /**
      * Processes "shallow" metadata, only for selecting a version. This metadata is typically
      * provided by a custom metadata processor.
+     *
      * @param metadata the metadata to be processed
      * @return updated metadata, if any component metadata rule applies.
      */

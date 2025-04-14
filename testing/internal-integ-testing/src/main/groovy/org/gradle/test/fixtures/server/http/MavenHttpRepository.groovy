@@ -19,6 +19,7 @@ package org.gradle.test.fixtures.server.http
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
+
 /**
  * A fixture for dealing with remote HTTP Maven repositories.
  */

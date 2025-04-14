@@ -260,6 +260,10 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             this.scriptCompilationHandler = scriptCompilationHandler;
         }
 
+        private static File metadataDir(File workspace) {
+            return new File(workspace, "metadata");
+        }
+
         @Override
         public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
             // Disabled since enabling it introduced negative savings to Groovy script compilation.
@@ -306,10 +310,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
 
         private File classesDir(File workspace) {
             return new File(workspace, "classes/" + operation.getId());
-        }
-
-        private static File metadataDir(File workspace) {
-            return new File(workspace, "metadata");
         }
 
         @Override
@@ -383,17 +383,6 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             this.contentHash = contentHash;
         }
 
-        @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            String owner = remap(name);
-            boolean shouldAddScriptOrigin = shouldAddScriptOrigin(access);
-            cv.visit(version, access, owner, remap(signature), remap(superName), remapAndAddInterfaces(interfaces, shouldAddScriptOrigin));
-            if (shouldAddScriptOrigin) {
-                addOriginalClassName(cv, owner, originalClassName);
-                addContentHash(cv, owner, contentHash);
-            }
-        }
-
         private static boolean shouldAddScriptOrigin(int access) {
             return ((access & ACC_INTERFACE) == 0) && ((access & ACC_ANNOTATION) == 0);
         }
@@ -416,6 +405,17 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             mv.visitInsn(ARETURN);
             mv.visitMaxs(1, 1);
             mv.visitEnd();
+        }
+
+        @Override
+        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+            String owner = remap(name);
+            boolean shouldAddScriptOrigin = shouldAddScriptOrigin(access);
+            cv.visit(version, access, owner, remap(signature), remap(superName), remapAndAddInterfaces(interfaces, shouldAddScriptOrigin));
+            if (shouldAddScriptOrigin) {
+                addOriginalClassName(cv, owner, originalClassName);
+                addContentHash(cv, owner, contentHash);
+            }
         }
 
         @Override

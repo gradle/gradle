@@ -38,6 +38,10 @@ public class TemplateFactory {
         this.templateOperationFactory = templateOperationFactory;
     }
 
+    private static String joinIfNotEmpty(String left, String right) {
+        return left.isEmpty() || right.isEmpty() ? "" : (left + right);
+    }
+
     public TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
         return whenNoSourcesAvailable(initSettings.getSubprojects().get(0), Arrays.asList(operations));
     }
@@ -100,8 +104,16 @@ public class TemplateFactory {
         return operationBuilder.create();
     }
 
-    private static String joinIfNotEmpty(String left, String right) {
-        return left.isEmpty() || right.isEmpty() ? "" : (left + right);
+    protected interface SourceFileTemplate {
+        void sourceSet(String name);
+
+        void language(Language language);
+
+        void className(String name);
+
+        void binding(String name, String value);
+
+        void subproject(String subproject);
     }
 
     private static class TemplateDetails implements SourceFileTemplate {
@@ -149,18 +161,6 @@ public class TemplateFactory {
             }
             return fileName;
         }
-    }
-
-    protected interface SourceFileTemplate {
-        void sourceSet(String name);
-
-        void language(Language language);
-
-        void className(String name);
-
-        void binding(String name, String value);
-
-        void subproject(String subproject);
     }
 }
 

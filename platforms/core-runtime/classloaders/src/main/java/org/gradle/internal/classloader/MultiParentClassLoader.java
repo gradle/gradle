@@ -37,8 +37,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class MultiParentClassLoader extends ClassLoader implements DelegatingClassLoader, ClassLoaderHierarchy {
 
-    private final List<ClassLoader> parents;
-
     static {
         try {
             ClassLoader.registerAsParallelCapable();
@@ -46,6 +44,8 @@ public class MultiParentClassLoader extends ClassLoader implements DelegatingCla
             // Not supported on Java 6
         }
     }
+
+    private final List<ClassLoader> parents;
 
     public MultiParentClassLoader(ClassLoader... parents) {
         this(Arrays.asList(parents));

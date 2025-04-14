@@ -19,7 +19,8 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
-@TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
+
+@TargetCoverage({ DaemonPerformanceMonitoringCoverage.ALL_VERSIONS })
 class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest {
     def setup() {
         // Set JVM args for GC

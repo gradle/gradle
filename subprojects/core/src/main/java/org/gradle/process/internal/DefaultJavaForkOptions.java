@@ -52,6 +52,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         this.options = new JvmOptions(fileCollectionFactory, new JavaDebugOptionsBackedSpec(debugOptions));
     }
 
+    private static boolean hasJvmArgumentProviders(DefaultJavaForkOptions forkOptions) {
+        return !isNullOrEmpty(forkOptions.jvmArgumentProviders);
+    }
+
+    private static <T> boolean isNullOrEmpty(List<T> list) {
+        return list == null || list.isEmpty();
+    }
+
     @Override
     public List<String> getAllJvmArgs() {
         if (hasJvmArgumentProviders(this)) {
@@ -254,20 +262,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public void setExtraJvmArgs(Iterable<?> arguments) {
-        options.setExtraJvmArgs(arguments);
-    }
-
-    @Override
     public Iterable<?> getExtraJvmArgs() {
         return options.getExtraJvmArgs();
     }
 
-    private static boolean hasJvmArgumentProviders(DefaultJavaForkOptions forkOptions) {
-        return !isNullOrEmpty(forkOptions.jvmArgumentProviders);
-    }
-
-    private static <T> boolean isNullOrEmpty(List<T> list) {
-        return list == null || list.isEmpty();
+    @Override
+    public void setExtraJvmArgs(Iterable<?> arguments) {
+        options.setExtraJvmArgs(arguments);
     }
 }

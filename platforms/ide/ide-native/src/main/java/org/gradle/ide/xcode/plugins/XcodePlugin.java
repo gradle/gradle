@@ -94,6 +94,16 @@ public abstract class XcodePlugin extends IdePlugin {
         this.artifactRegistry = artifactRegistry;
     }
 
+    private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, String schemeName, DefaultXcodeProject xcodeProject) {
+        // TODO - capitalise the target name in the task name
+        // TODO - don't create a launch target for a library
+        String name = "xcodeScheme";
+        GenerateSchemeFileTask schemeFileTask = tasks.maybeCreate(name, GenerateSchemeFileTask.class);
+        schemeFileTask.setXcodeProject(xcodeProject);
+        schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" + schemeName + ".xcscheme"));
+        return schemeFileTask;
+    }
+
     @Override
     protected String getLifecycleTaskName() {
         return "xcode";
@@ -363,16 +373,6 @@ public abstract class XcodePlugin extends IdePlugin {
         });
     }
 
-    private static GenerateSchemeFileTask createSchemeTask(TaskContainer tasks, String schemeName, DefaultXcodeProject xcodeProject) {
-        // TODO - capitalise the target name in the task name
-        // TODO - don't create a launch target for a library
-        String name = "xcodeScheme";
-        GenerateSchemeFileTask schemeFileTask = tasks.maybeCreate(name, GenerateSchemeFileTask.class);
-        schemeFileTask.setXcodeProject(xcodeProject);
-        schemeFileTask.setOutputFile(new File(xcodeProject.getLocationDir(), "xcshareddata/xcschemes/" + schemeName + ".xcscheme"));
-        return schemeFileTask;
-    }
-
     private XcodeTarget newTarget(String name, String productName, String gradleCommand, String taskName, FileCollection sources) {
         String id = gidGenerator.generateGid("PBXLegacyTarget", name.hashCode());
         XcodeTarget target = objectFactory.newInstance(XcodeTarget.class, name, id);
@@ -382,6 +382,28 @@ public abstract class XcodePlugin extends IdePlugin {
         target.getSources().setFrom(sources);
 
         return target;
+    }
+
+    private Action<ArtifactView.ViewConfiguration> fromSourceDependency() {
+        return new Action<ArtifactView.ViewConfiguration>() {
+            @Override
+            public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                viewConfiguration.componentFilter(isSourceDependency());
+            }
+        };
+    }
+
+    private Spec<ComponentIdentifier> isSourceDependency() {
+        return new Spec<ComponentIdentifier>() {
+            @Override
+            public boolean isSatisfiedBy(ComponentIdentifier id) {
+                if (id instanceof ProjectComponentIdentifier) {
+                    // Include as binary when the target project is not included in the workspace
+                    return artifactRegistry.getIdeProject(XcodeProjectMetadata.class, (ProjectComponentIdentifier) id) == null;
+                }
+                return false;
+            }
+        };
     }
 
     private static class XcodeBridge implements Action<String> {
@@ -436,8 +458,7 @@ public abstract class XcodePlugin extends IdePlugin {
             // XCTest executable
             // Sync the binary to the BUILT_PRODUCTS_DIR, otherwise Xcode won't find any tests
             final String builtProductsPath = xcodePropertyAdapter.getBuiltProductsDir();
-            @SuppressWarnings("deprecation")
-            final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
+            @SuppressWarnings("deprecation") final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
                 @Override
                 public void execute(Sync task) {
                     task.from(target.getDebugOutputFile());
@@ -446,27 +467,5 @@ public abstract class XcodePlugin extends IdePlugin {
             });
             bridgeTask.dependsOn(syncTask);
         }
-    }
-
-    private Action<ArtifactView.ViewConfiguration> fromSourceDependency() {
-        return new Action<ArtifactView.ViewConfiguration>() {
-            @Override
-            public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
-                viewConfiguration.componentFilter(isSourceDependency());
-            }
-        };
-    }
-
-    private Spec<ComponentIdentifier> isSourceDependency() {
-        return new Spec<ComponentIdentifier>() {
-            @Override
-            public boolean isSatisfiedBy(ComponentIdentifier id) {
-                if (id instanceof ProjectComponentIdentifier) {
-                    // Include as binary when the target project is not included in the workspace
-                    return artifactRegistry.getIdeProject(XcodeProjectMetadata.class, (ProjectComponentIdentifier) id) == null;
-                }
-                return false;
-            }
-        };
     }
 }

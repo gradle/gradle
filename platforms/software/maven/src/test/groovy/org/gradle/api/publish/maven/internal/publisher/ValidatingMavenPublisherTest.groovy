@@ -75,11 +75,11 @@ class ValidatingMavenPublisherTest extends Specification {
         "group"             | ""                     | "version"   | "artifactId cannot be empty"
         "group"             | "artifact"             | ""          | "version cannot be empty"
         "group with spaces" | "artifact"             | "version"   | "groupId (group with spaces) is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
-        "group-₦ガき∆"        | "artifact"            | "version"   | "groupId (group-₦ガき∆) is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
+        "group-₦ガき∆"      | "artifact"             | "version"   | "groupId (group-₦ガき∆) is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
         "group"             | "artifact with spaces" | "version"   | "artifactId (artifact with spaces) is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
-        "group"             | "artifact-₦ガき∆"       | "version"   | "artifactId (artifact-₦ガき∆) is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
+        "group"             | "artifact-₦ガき∆"      | "version"   | "artifactId (artifact-₦ガき∆) is not a valid Maven identifier ([A-Za-z0-9_\\-.]+)"
         "group"             | "artifact"             | "vers/ion"  | "version cannot contain '/'"
-        "group"             | "artifact"             | "vers\\ion"  | "version cannot contain '\\'"
+        "group"             | "artifact"             | "vers\\ion" | "version cannot contain '\\'"
         "group"             | "artifact"             | "version\t" | "version cannot contain ISO control character '\\u0009'"
     }
 
@@ -137,13 +137,13 @@ class ValidatingMavenPublisherTest extends Specification {
         t.message == "Invalid publication 'pub-name': artifact ${message}."
 
         where:
-        extension | classifier     | message
-        null      | "classifier"   | "extension cannot be null"
-        "ext"     | ""             | "classifier cannot be an empty string. Use null instead"
-        "ex\r"    | "classifier"   | "extension cannot contain ISO control character '\\u000d'"
-        "ex/"     | "classifier"   | "extension cannot contain '/'"
+        extension | classifier         | message
+        null      | "classifier"       | "extension cannot be null"
+        "ext"     | ""                 | "classifier cannot be an empty string. Use null instead"
+        "ex\r"    | "classifier"       | "extension cannot contain ISO control character '\\u000d'"
+        "ex/"     | "classifier"       | "extension cannot contain '/'"
         "ext"     | "classi\u0090fier" | "classifier cannot contain ISO control character '\\u0090'"
-        "ext"     | "class\\ifier" | "classifier cannot contain '\\'"
+        "ext"     | "class\\ifier"     | "classifier cannot contain '\\'"
     }
 
     def "cannot publish with file that #message"() {

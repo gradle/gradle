@@ -28,12 +28,12 @@ public class PublicKeyServiceChain implements PublicKeyService {
 
     private final List<PublicKeyService> services;
 
-    public static PublicKeyService of(PublicKeyService... delegates) {
-        return new PublicKeyServiceChain(ImmutableList.copyOf(delegates));
-    }
-
     private PublicKeyServiceChain(List<PublicKeyService> services) {
         this.services = services;
+    }
+
+    public static PublicKeyService of(PublicKeyService... delegates) {
+        return new PublicKeyServiceChain(ImmutableList.copyOf(delegates));
     }
 
     @Override

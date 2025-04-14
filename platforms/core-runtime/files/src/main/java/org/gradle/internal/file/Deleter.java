@@ -34,10 +34,9 @@ public interface Deleter {
      * Does not Follow symlinks.
      *
      * @return {@code true} if anything was removed, {@code false} if no change was
-     *         attempted (because {@code target} didn't exist).
-     *
+     * attempted (because {@code target} didn't exist).
      * @throws IOException when {@code target} cannot be deleted (with detailed error
-     *         message).
+     * message).
      */
     boolean deleteRecursively(File target) throws IOException;
 
@@ -48,10 +47,9 @@ public interface Deleter {
      * Follows symlinks pointing to directories when instructed to.
      *
      * @return {@code true} if anything was removed, {@code false} if no change was
-     *         attempted (because {@code target} didn't exist).
-     *
+     * attempted (because {@code target} didn't exist).
      * @throws IOException when {@code target} cannot be deleted (with detailed error
-     *         message).
+     * message).
      */
     boolean deleteRecursively(File target, boolean followSymlinks) throws IOException;
 
@@ -69,10 +67,9 @@ public interface Deleter {
      * Does not follow symlinks.
      *
      * @return {@code true} if anything was removed, {@code false} if no change was
-     *         attempted (because {@code target} didn't exist).
-     *
+     * attempted (because {@code target} didn't exist).
      * @throws IOException when {@code target} cannot be deleted (with detailed error
-     *         message).
+     * message).
      */
     boolean ensureEmptyDirectory(File target) throws IOException;
 
@@ -94,10 +91,9 @@ public interface Deleter {
      * Follows symlinks pointing to directories when instructed to.
      *
      * @return {@code true} if anything was removed, {@code false} if no change was
-     *         attempted (because {@code target} didn't exist).
-     *
+     * attempted (because {@code target} didn't exist).
      * @throws IOException when {@code target} cannot be deleted (with detailed error
-     *         message).
+     * message).
      */
     boolean ensureEmptyDirectory(File target, boolean followSymlinks) throws IOException;
 
@@ -107,7 +103,6 @@ public interface Deleter {
      * Does not follow symlinks.
      *
      * @return {@code true} if the target existed, {@code false} if it didn't exist.
-     *
      * @throws IOException if the file cannot be deleted.
      */
     boolean delete(File target) throws IOException;

@@ -38,12 +38,12 @@ public class CollectionSchema<T, E> extends AbstractModelSchema<T> implements Ma
         return elementTypeSchema;
     }
 
+    public void setElementTypeSchema(ModelSchema<E> elementTypeSchema) {
+        this.elementTypeSchema = elementTypeSchema;
+    }
+
     @Override
     public String toString() {
         return "collection " + getType();
-    }
-
-    public void setElementTypeSchema(ModelSchema<E> elementTypeSchema) {
-        this.elementTypeSchema = elementTypeSchema;
     }
 }

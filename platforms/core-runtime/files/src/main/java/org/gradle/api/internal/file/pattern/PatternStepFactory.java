@@ -51,7 +51,7 @@ public class PatternStepFactory {
         // Zero or more * characters followed by at least one !*
 
         int endLiteral = endPrefixWildcard;
-        for(; endLiteral < source.length(); endLiteral++) {
+        for (; endLiteral < source.length(); endLiteral++) {
             ch = source.charAt(endLiteral);
             if (ch == '?') {
                 // No matches - fall back to regexp

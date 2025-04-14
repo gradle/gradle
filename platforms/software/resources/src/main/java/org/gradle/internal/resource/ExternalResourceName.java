@@ -61,101 +61,6 @@ public class ExternalResourceName implements Describable {
         this.encodedQuery = encodedQuery;
     }
 
-    @Override
-    public String getDisplayName() {
-        return getDisplayable();
-    }
-
-    public String getShortDisplayName() {
-        int lastSlash = path.lastIndexOf('/');
-        return lastSlash == -1 ? getDisplayable() : path.substring(lastSlash + 1);
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    /**
-     * Returns a URI that represents this resource.
-     */
-    public URI getUri() {
-        try {
-            if (encodedRoot == null) {
-                return new URI(encode(path, false) + encodedQuery);
-            }
-            return new URI(encodedRoot + encode(path, true) + encodedQuery);
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    /**
-     * Returns the 'displayable' name, which is the opaque root + the encoded path of the name.
-     */
-    public String getDisplayable() {
-        if (encodedRoot == null) {
-            return encode(path, false);
-        }
-        return encodedRoot + encode(path, true);
-    }
-
-    /**
-     * Returns the root name for this name.
-     */
-    public ExternalResourceName getRoot() {
-        return new ExternalResourceName(encodedRoot, path.startsWith("/") ? "/" : "");
-    }
-
-    /**
-     * Returns the path for this resource. The '/' character is used to separate the elements of the path.
-     */
-    public String getPath() {
-        return path;
-    }
-
-    /**
-     * Resolves the given path relative to this name. The path can be a relative path or an absolute path. The '/' character is used to separate the elements of the path.
-     */
-    public ExternalResourceName resolve(String path) {
-        List<String> parts = new ArrayList<>();
-        boolean leadingSlash;
-        boolean trailingSlash = path.endsWith("/");
-        if (path.startsWith("/")) {
-            leadingSlash = true;
-        } else {
-            leadingSlash = this.path.startsWith("/");
-            append(this.path, parts);
-        }
-        append(path, parts);
-        String newPath = join(leadingSlash, trailingSlash, parts);
-        return new ExternalResourceName(encodedRoot, newPath);
-    }
-
-    /**
-     * Appends the given text to the end of this path.
-     */
-    public ExternalResourceName append(String path) {
-        return new ExternalResourceName(encodedRoot, this.path + path);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || !obj.getClass().equals(getClass())) {
-            return false;
-        }
-        ExternalResourceName other = (ExternalResourceName) obj;
-        return Objects.equal(encodedRoot, other.encodedRoot) && path.equals(other.path);
-    }
-
-    @Override
-    public int hashCode() {
-        return (encodedRoot == null ? 0 : encodedRoot.hashCode()) ^ path.hashCode();
-    }
-
     private static String combine(URI parent, String path) {
         String parentPath = extractPath(parent);
         String childPath = path.startsWith("/") ? path.substring(1) : path;
@@ -276,6 +181,101 @@ public class ExternalResourceName implements Describable {
         builder.append('%');
         builder.append(Character.toUpperCase(Character.forDigit(ch >> 4 & 0xFF, 16)));
         builder.append(Character.toUpperCase(Character.forDigit(ch & 0xF, 16)));
+    }
+
+    @Override
+    public String getDisplayName() {
+        return getDisplayable();
+    }
+
+    public String getShortDisplayName() {
+        int lastSlash = path.lastIndexOf('/');
+        return lastSlash == -1 ? getDisplayable() : path.substring(lastSlash + 1);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    /**
+     * Returns a URI that represents this resource.
+     */
+    public URI getUri() {
+        try {
+            if (encodedRoot == null) {
+                return new URI(encode(path, false) + encodedQuery);
+            }
+            return new URI(encodedRoot + encode(path, true) + encodedQuery);
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Returns the 'displayable' name, which is the opaque root + the encoded path of the name.
+     */
+    public String getDisplayable() {
+        if (encodedRoot == null) {
+            return encode(path, false);
+        }
+        return encodedRoot + encode(path, true);
+    }
+
+    /**
+     * Returns the root name for this name.
+     */
+    public ExternalResourceName getRoot() {
+        return new ExternalResourceName(encodedRoot, path.startsWith("/") ? "/" : "");
+    }
+
+    /**
+     * Returns the path for this resource. The '/' character is used to separate the elements of the path.
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Resolves the given path relative to this name. The path can be a relative path or an absolute path. The '/' character is used to separate the elements of the path.
+     */
+    public ExternalResourceName resolve(String path) {
+        List<String> parts = new ArrayList<>();
+        boolean leadingSlash;
+        boolean trailingSlash = path.endsWith("/");
+        if (path.startsWith("/")) {
+            leadingSlash = true;
+        } else {
+            leadingSlash = this.path.startsWith("/");
+            append(this.path, parts);
+        }
+        append(path, parts);
+        String newPath = join(leadingSlash, trailingSlash, parts);
+        return new ExternalResourceName(encodedRoot, newPath);
+    }
+
+    /**
+     * Appends the given text to the end of this path.
+     */
+    public ExternalResourceName append(String path) {
+        return new ExternalResourceName(encodedRoot, this.path + path);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || !obj.getClass().equals(getClass())) {
+            return false;
+        }
+        ExternalResourceName other = (ExternalResourceName) obj;
+        return Objects.equal(encodedRoot, other.encodedRoot) && path.equals(other.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return (encodedRoot == null ? 0 : encodedRoot.hashCode()) ^ path.hashCode();
     }
 
     private String join(boolean leadingSlash, boolean trailingSlash, List<String> parts) {

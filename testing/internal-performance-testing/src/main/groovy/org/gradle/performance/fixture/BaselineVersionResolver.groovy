@@ -105,8 +105,8 @@ class BaselineVersionResolver {
 
     private static List<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
         List<String> versions = Splitter.on(COMMA_OR_SEMICOLON)
-                .omitEmptyStrings()
-                .splitToList(overrideBaselinesProperty)
+            .omitEmptyStrings()
+            .splitToList(overrideBaselinesProperty)
 
         versions.collectMany([] as Set) { version -> version == 'defaults' ? targetVersions : [version] } as List<String>
     }

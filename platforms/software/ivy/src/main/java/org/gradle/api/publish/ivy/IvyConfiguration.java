@@ -33,6 +33,7 @@ public interface IvyConfiguration extends Named {
      *     <li>*(public) - all other public configurations</li>
      *     <li>*(private) - all other private configurations</li>
      * </ul>
+     *
      * @param configuration The extended configuration name
      */
     void extend(String configuration);

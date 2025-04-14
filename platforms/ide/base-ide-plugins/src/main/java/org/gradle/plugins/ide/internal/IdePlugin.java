@@ -42,15 +42,9 @@ import java.io.IOException;
 
 public abstract class IdePlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(IdePlugin.class);
-
+    protected Project project;
     private TaskProvider<Task> lifecycleTask;
     private TaskProvider<Delete> cleanTask;
-    protected Project project;
-
-    @Inject
-    protected ExecOperations getExecOperations() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Returns the path to the correct Gradle distribution to use. The wrapper of the generating project will be used only if the execution context of the currently running Gradle is in the Gradle home (typical of a wrapper execution context). If this isn't the case, we try to use the current Gradle home, if available, as the distribution. Finally, if nothing matches, we default to the system-wide Gradle distribution.
@@ -77,6 +71,38 @@ public abstract class IdePlugin implements Plugin<Project> {
         }
 
         return gradleWrapperPath.or("gradle");
+    }
+
+    protected static Action<? super Task> dependsOn(final Task taskDependency) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(taskDependency);
+            }
+        };
+    }
+
+    protected static Action<? super Task> dependsOn(final TaskProvider<? extends Task> taskProvider) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(taskProvider);
+            }
+        };
+    }
+
+    protected static Action<? super Task> withDescription(final String description) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setDescription(description);
+            }
+        };
+    }
+
+    @Inject
+    protected ExecOperations getExecOperations() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -144,33 +170,6 @@ public abstract class IdePlugin implements Plugin<Project> {
                 task.shouldRunAfter(cleanWorker);
             }
         });
-    }
-
-    protected static Action<? super Task> dependsOn(final Task taskDependency) {
-        return new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(taskDependency);
-            }
-        };
-    }
-
-    protected static Action<? super Task> dependsOn(final TaskProvider<? extends Task> taskProvider) {
-        return new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(taskProvider);
-            }
-        };
-    }
-
-    protected static Action<? super Task> withDescription(final String description) {
-        return new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.setDescription(description);
-            }
-        };
     }
 
     protected void onApply(Project target) {

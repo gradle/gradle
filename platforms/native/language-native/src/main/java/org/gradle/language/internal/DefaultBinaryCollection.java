@@ -37,10 +37,6 @@ import java.util.Set;
 // TODO - error messages
 // TODO - display names for this container and the Provider implementations
 public class DefaultBinaryCollection<T extends SoftwareComponent> implements BinaryCollection<T> {
-    private enum State {
-        Collecting, Realizing, Finalized
-    }
-
     private final Class<T> elementType;
     private final Set<T> elements = new LinkedHashSet<>();
     private List<SingleElementProvider<?>> pending = new LinkedList<>();
@@ -48,7 +44,6 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
     private ImmutableActionSet<T> knownActions = ImmutableActionSet.empty();
     private ImmutableActionSet<T> configureActions = ImmutableActionSet.empty();
     private ImmutableActionSet<T> finalizeActions = ImmutableActionSet.empty();
-
     @Inject
     public DefaultBinaryCollection(Class<T> elementType) {
         this.elementType = elementType;
@@ -162,6 +157,27 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         return ImmutableSet.copyOf(elements);
     }
 
+    private enum State {
+        Collecting, Realizing, Finalized
+    }
+
+    private static class TypeFilteringAction<T extends SoftwareComponent, S> implements Action<T> {
+        private final Class<S> type;
+        private final Action<? super S> action;
+
+        TypeFilteringAction(Class<S> type, Action<? super S> action) {
+            this.type = type;
+            this.action = action;
+        }
+
+        @Override
+        public void execute(T t) {
+            if (type.isInstance(t)) {
+                action.execute(type.cast(t));
+            }
+        }
+    }
+
     private class SingleElementProvider<S> extends AbstractMinimalProvider<S> implements BinaryProvider<S> {
         private final Class<S> type;
         private Spec<? super S> spec;
@@ -222,23 +238,6 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
                 throw new IllegalStateException("Found multiple elements");
             }
             return Value.ofNullable(match);
-        }
-    }
-
-    private static class TypeFilteringAction<T extends SoftwareComponent, S> implements Action<T> {
-        private final Class<S> type;
-        private final Action<? super S> action;
-
-        TypeFilteringAction(Class<S> type, Action<? super S> action) {
-            this.type = type;
-            this.action = action;
-        }
-
-        @Override
-        public void execute(T t) {
-            if (type.isInstance(t)) {
-                action.execute(type.cast(t));
-            }
         }
     }
 }

@@ -38,9 +38,9 @@ class CUnitTestResults {
             suites.put(suite.name, suite)
         }
 
-        summaryRecords['Suites'] = new SummaryRecord(resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({it.TYPE.text() == 'Suites'}) as Node)
-        summaryRecords['Test Cases'] = new SummaryRecord(resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({it.TYPE.text() == 'Test Cases'}) as Node)
-        summaryRecords['Assertions'] = new SummaryRecord(resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({it.TYPE.text() == 'Assertions'}) as Node)
+        summaryRecords['Suites'] = new SummaryRecord(resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({ it.TYPE.text() == 'Suites' }) as Node)
+        summaryRecords['Test Cases'] = new SummaryRecord(resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({ it.TYPE.text() == 'Test Cases' }) as Node)
+        summaryRecords['Assertions'] = new SummaryRecord(resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({ it.TYPE.text() == 'Assertions' }) as Node)
     }
 
     List<String> getSuiteNames() {
@@ -56,7 +56,7 @@ class CUnitTestResults {
     }
 
     private def checkSummaryRecord(String name, int total, int succeeded, int failed) {
-        def recordNode = resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({it.TYPE.text().trim() == name}) as Node
+        def recordNode = resultsNode.CUNIT_RUN_SUMMARY.CUNIT_RUN_SUMMARY_RECORD.find({ it.TYPE.text().trim() == name }) as Node
         assert recordNode.RUN.text() as int == total
         assert recordNode.SUCCEEDED.text() as int == succeeded
         assert recordNode.FAILED.text() as int == failed

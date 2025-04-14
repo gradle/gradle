@@ -62,6 +62,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
         check(schema is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable) { "expected a project schema to be built" }
         schema.sequence.steps.single { it.stepIdentifier.key == PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY }
     }
+
     private
     val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
 

@@ -54,6 +54,10 @@ public class ModelReferenceNode extends ModelNodeInternal {
         this.parent = parent;
     }
 
+    public ModelNodeInternal getTarget() {
+        return target;
+    }
+
     @Override
     public void setTarget(ModelNode target) {
         // Once the node has been discovered, changing the target is not allowed, as it changes the promise of the node as well
@@ -66,10 +70,6 @@ public class ModelReferenceNode extends ModelNodeInternal {
                 modelRegistry.getProjectPath(), getPath(), targetPath);
         }
         this.target = (ModelNodeInternal) target;
-    }
-
-    public ModelNodeInternal getTarget() {
-        return target;
     }
 
     @Override

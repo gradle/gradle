@@ -44,6 +44,14 @@ public class TestExecHttpServer {
         Files.write(new File(args[0]).toPath(), String.valueOf(server.getAddress().getPort()).getBytes());
     }
 
+    public static String getClassLocation() {
+        try {
+            return new File(TestExecHttpServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getAbsolutePath();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     static class TestHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
@@ -53,14 +61,6 @@ public class TestExecHttpServer {
             OutputStream os = t.getResponseBody();
             os.write(response.getBytes());
             os.close();
-        }
-    }
-
-    public static String getClassLocation() {
-        try {
-            return new File(TestExecHttpServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getAbsolutePath();
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
         }
     }
 }

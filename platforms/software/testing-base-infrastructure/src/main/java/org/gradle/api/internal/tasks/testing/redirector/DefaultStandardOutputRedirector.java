@@ -23,12 +23,12 @@ import org.jspecify.annotations.Nullable;
 import java.io.PrintStream;
 
 public class DefaultStandardOutputRedirector implements StandardOutputRedirector {
-    private PrintStream originalStdOut;
-    private PrintStream originalStdErr;
     private final WriteAction stdOut = new WriteAction();
     private final WriteAction stdErr = new WriteAction();
     private final PrintStream redirectedStdOut = new LinePerThreadBufferingOutputStream(stdOut);
     private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr);
+    private PrintStream originalStdOut;
+    private PrintStream originalStdErr;
 
     @Override
     public void redirectStandardOutputTo(OutputListener stdOutDestination) {

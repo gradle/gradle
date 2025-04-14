@@ -121,7 +121,7 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         resolve.expectGraph {
             root(":m1", "org.test:m1:0.9") {
                 edge("org.test:m2:1.0", "org.test:m2:1.0") {
-                    edge("org.test:m3:1.0", "org.test:m3:1.0") { }
+                    edge("org.test:m3:1.0", "org.test:m3:1.0") {}
                 }
             }
         }

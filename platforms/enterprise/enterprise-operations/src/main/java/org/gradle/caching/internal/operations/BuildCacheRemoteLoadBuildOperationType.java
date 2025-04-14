@@ -27,6 +27,9 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class BuildCacheRemoteLoadBuildOperationType implements BuildOperationType<BuildCacheRemoteLoadBuildOperationType.Details, BuildCacheRemoteLoadBuildOperationType.Result> {
 
+    private BuildCacheRemoteLoadBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -49,8 +52,5 @@ public final class BuildCacheRemoteLoadBuildOperationType implements BuildOperat
          */
         long getArchiveSize();
 
-    }
-
-    private BuildCacheRemoteLoadBuildOperationType() {
     }
 }

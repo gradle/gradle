@@ -96,7 +96,7 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
     }
 
     def "classes in renamed files are restored on the compile failure and incremental compilation works after a failure"() {
-        def a = source"package a; class A {}"
+        def a = source "package a; class A {}"
         def b = source "package b; class B {}"
         def c = source "package c; class C {}"
         source "class Unrelated {}"
@@ -580,7 +580,7 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
 
         when:
         executer.withStacktraceEnabled()
-        run"compileGroovy", "--info"
+        run "compileGroovy", "--info"
 
         then:
         outputs.recompiledClasses('ABase', 'A', 'WithTrait', 'WithTrait$Trait$FieldHelper', 'WithTrait$AllPluginsValidation', 'WithTrait$Trait$Helper')

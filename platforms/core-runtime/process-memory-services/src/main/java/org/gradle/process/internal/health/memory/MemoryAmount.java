@@ -27,6 +27,14 @@ public class MemoryAmount {
     private static final long MEGA_FACTOR = KILO_FACTOR * 1024;
     private static final long GIGA_FACTOR = MEGA_FACTOR * 1024;
     private static final long TERA_FACTOR = GIGA_FACTOR * 1024;
+    private final long bytes;
+    private final String notation;
+
+    private MemoryAmount(long bytes, String notation) {
+        Preconditions.checkArgument(bytes > 0, "bytes must be positive");
+        this.bytes = bytes;
+        this.notation = notation;
+    }
 
     public static MemoryAmount of(long bytes) {
         return new MemoryAmount(bytes, String.valueOf(bytes));
@@ -91,15 +99,6 @@ public class MemoryAmount {
 
     private static long parseWithFactor(String notation, long factor) {
         return Long.parseLong(notation.substring(0, notation.length() - 1)) * factor;
-    }
-
-    private final long bytes;
-    private final String notation;
-
-    private MemoryAmount(long bytes, String notation) {
-        Preconditions.checkArgument(bytes > 0, "bytes must be positive");
-        this.bytes = bytes;
-        this.notation = notation;
     }
 
     public long getBytes() {

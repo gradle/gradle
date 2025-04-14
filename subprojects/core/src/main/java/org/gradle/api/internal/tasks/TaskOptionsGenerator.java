@@ -45,8 +45,6 @@ import java.util.Map;
  * based on the task options provided by the {@link OptionReader}.
  */
 public class TaskOptionsGenerator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOptionsGenerator.class);
-
     @VisibleForTesting
     static final List<BuiltInOptionElement> BUILT_IN_OPTIONS = Collections.singletonList(
         new BuiltInOptionElement(
@@ -55,6 +53,7 @@ public class TaskOptionsGenerator {
             task -> task.getOutputs().upToDateWhen(Specs.satisfyNone())
         )
     );
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOptionsGenerator.class);
 
     /**
      * Builds a list of implicit built-in options available for every task.
@@ -120,6 +119,7 @@ public class TaskOptionsGenerator {
     public static class TaskOptions {
         private List<OptionDescriptor> allTaskOptions;
         private List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions;
+
         private TaskOptions() {}
 
         public List<OptionDescriptor> getAll() {

@@ -30,6 +30,12 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
         this.children = (ChildMap<FileSystemNode>) children;
     }
 
+    private static boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
+        return children.stream()
+            .map(ChildMap.Entry::getValue)
+            .anyMatch(predicate);
+    }
+
     @Override
     public Optional<FileSystemNode> getNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
         return SnapshotUtil.getChild(children, targetPath, caseSensitivity);
@@ -152,11 +158,5 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     @Override
     public boolean hasDescendants() {
         return anyChildMatches(children, FileSystemNode::hasDescendants);
-    }
-
-    private static boolean anyChildMatches(ChildMap<FileSystemNode> children, Predicate<FileSystemNode> predicate) {
-        return children.stream()
-            .map(ChildMap.Entry::getValue)
-            .anyMatch(predicate);
     }
 }

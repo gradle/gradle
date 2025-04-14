@@ -55,6 +55,7 @@ class GradleCode extends DescribedPredicate<JavaClass> {
     public GradleCode() {
         super("Gradle Code");
     }
+
     @Override
     public boolean test(JavaClass input) {
         return input.getPackageName().startsWith("org.gradle");
@@ -65,6 +66,7 @@ class DeclarativeGradleCode extends DescribedPredicate<JavaClass> {
     public DeclarativeGradleCode() {
         super("Declarative Gradle Code");
     }
+
     @Override
     public boolean test(JavaClass input) {
         return input.getPackageName().matches("org\\.gradle\\..*declarative.*dsl.*");

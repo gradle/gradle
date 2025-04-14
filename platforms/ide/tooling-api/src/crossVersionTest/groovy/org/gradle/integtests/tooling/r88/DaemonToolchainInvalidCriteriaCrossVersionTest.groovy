@@ -49,7 +49,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         }
 
         then:
-        def e= thrown(GradleConnectionException)
+        def e = thrown(GradleConnectionException)
         e.cause.message.contains("Value 'stringVersion' given for toolchainVersion is an invalid Java version")
     }
 
@@ -63,7 +63,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         }
 
         then:
-        def e= thrown(GradleConnectionException)
+        def e = thrown(GradleConnectionException)
         e.cause.message.contains("Value '-1' given for toolchainVersion is an invalid Java version")
     }
 
@@ -78,7 +78,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         }
 
         then:
-        def e= thrown(GradleConnectionException)
+        def e = thrown(GradleConnectionException)
         e.cause.message.contains("Option toolchainVendor doesn't accept value 'unexpectedVendor'. Possible values are " +
             "[ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
     }
@@ -94,7 +94,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         }
 
         then:
-        def e= thrown(GradleConnectionException)
+        def e = thrown(GradleConnectionException)
         e.cause.message.contains("Option toolchainImplementation doesn't accept value 'unknownImplementation'. Possible values are [VENDOR_SPECIFIC, J9]")
     }
 }

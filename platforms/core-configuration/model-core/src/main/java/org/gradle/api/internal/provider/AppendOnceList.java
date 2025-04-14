@@ -96,6 +96,22 @@ class AppendOnceList<E> implements Iterable<E> {
     }
 
     /**
+     * Creates a {@link Collector} to collect a stream into the AppendOnceList. Elements can be appended to the collected list.
+     *
+     * @param <E> the type of elements
+     * @return the collector
+     */
+    public static <E> Collector<E, ?, AppendOnceList<E>> toAppendOnceList() {
+        return Collector.<E, ArrayList<E>, AppendOnceList<E>>of(
+            ArrayList::new,
+            ArrayList::add,
+            (l, r) -> {
+                l.addAll(r);
+                return l;
+            }, AppendOnceList::new);
+    }
+
+    /**
      * Creates a new list with the elements of this list and the given element appended to the end. Can only be called once for a list instance.
      *
      * @param element the element to append
@@ -143,21 +159,5 @@ class AppendOnceList<E> implements Iterable<E> {
      */
     public int size() {
         return size;
-    }
-
-    /**
-     * Creates a {@link Collector} to collect a stream into the AppendOnceList. Elements can be appended to the collected list.
-     *
-     * @param <E> the type of elements
-     * @return the collector
-     */
-    public static <E> Collector<E, ?, AppendOnceList<E>> toAppendOnceList() {
-        return Collector.<E, ArrayList<E>, AppendOnceList<E>>of(
-            ArrayList::new,
-            ArrayList::add,
-            (l, r) -> {
-                l.addAll(r);
-                return l;
-            }, AppendOnceList::new);
     }
 }

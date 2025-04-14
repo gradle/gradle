@@ -398,7 +398,7 @@ class DefaultBinaryCollectionTest extends Specification {
         container.realizeNow()
 
         when:
-        p.configure { }
+        p.configure {}
 
         then:
         def e = thrown(IllegalStateException)
@@ -682,7 +682,7 @@ class DefaultBinaryCollectionTest extends Specification {
         given:
         container.add(Stub(SwiftBinary))
         def p = container.get(spec)
-        container.configureEach { p.configure { } }
+        container.configureEach { p.configure {} }
 
         when:
         container.realizeNow()
@@ -702,7 +702,7 @@ class DefaultBinaryCollectionTest extends Specification {
         container.realizeNow()
 
         when:
-        p.configure { }
+        p.configure {}
 
         then:
         def e = thrown(IllegalStateException)

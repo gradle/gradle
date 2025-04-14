@@ -57,16 +57,11 @@ import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NA
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache")
 public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> implements TransformAction<T> {
 
-    public interface Parameters extends TransformParameters {
-        @Internal
-        Property<CacheInstrumentationDataBuildService> getBuildService();
-        @Internal
-        Property<Long> getContextId();
-        @Input
-        Property<Boolean> getAgentSupported();
-    }
-
     protected final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
+
+    private static String getOutputPath(File input, Function<String, String> instrumentedEntryNameMapper) {
+        return INSTRUMENTED_DIR_NAME + "/" + instrumentedEntryNameMapper.apply(input.getName());
+    }
 
     @Inject
     public abstract ObjectFactory getObjects();
@@ -109,10 +104,6 @@ public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> i
         }
     }
 
-    private static String getOutputPath(File input, Function<String, String> instrumentedEntryNameMapper) {
-        return INSTRUMENTED_DIR_NAME + "/" + instrumentedEntryNameMapper.apply(input.getName());
-    }
-
     protected void doOutputOriginalArtifact(File input, TransformOutputs outputs) {
         createInstrumentationClasspathMarker(outputs);
         // Output original file if it's safe to load from cache loader ELSE copy an entry
@@ -132,6 +123,17 @@ public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> i
     }
 
     protected abstract InstrumentingClassTransformProvider instrumentingClassTransformProvider(TransformOutputs outputs);
+
+    public interface Parameters extends TransformParameters {
+        @Internal
+        Property<CacheInstrumentationDataBuildService> getBuildService();
+
+        @Internal
+        Property<Long> getContextId();
+
+        @Input
+        Property<Boolean> getAgentSupported();
+    }
 
     protected interface InstrumentingClassTransformProvider extends AutoCloseable {
         InstrumentingClassTransform getClassTransform();

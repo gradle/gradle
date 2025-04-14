@@ -19,8 +19,8 @@
           module="lib"
           revision="1.9"
           branch="release"
-          />
+    />
     <publications>
-        <artifact />
+        <artifact/>
     </publications>
 </ivy-module>

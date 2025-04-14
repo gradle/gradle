@@ -370,15 +370,6 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
         return new DefaultWorkInputListeners(listenerManager);
     }
 
-    public interface AnnotationHandlerRegistration {
-        Collection<Class<? extends Annotation>> getAnnotations();
-    }
-
-    @ServiceScope(Scope.Global.class)
-    interface AnnotationHandlerRegistar {
-        void registerAnnotationTypes(ImmutableSet.Builder<Class<? extends Annotation>> builder);
-    }
-
     @Provides
     ImmutableWorkspaceMetadataStore createImmutableWorkspaceMetadataStore() {
         return new DefaultImmutableWorkspaceMetadataStore();
@@ -387,5 +378,14 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @Provides
     FunctionAnnotationHandler createTaskActionHandler() {
         return new TaskActionAnnotationHandler();
+    }
+
+    public interface AnnotationHandlerRegistration {
+        Collection<Class<? extends Annotation>> getAnnotations();
+    }
+
+    @ServiceScope(Scope.Global.class)
+    interface AnnotationHandlerRegistar {
+        void registerAnnotationTypes(ImmutableSet.Builder<Class<? extends Annotation>> builder);
     }
 }

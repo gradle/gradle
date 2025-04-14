@@ -34,6 +34,8 @@ import java.util.Map;
 public interface BuildCacheEntryPacker {
     PackResult pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, OutputStream output, OriginWriter writeOrigin) throws IOException;
 
+    UnpackResult unpack(CacheableEntity entity, InputStream input, OriginReader readOrigin) throws IOException;
+
     class PackResult {
         private final long entries;
 
@@ -45,8 +47,6 @@ public interface BuildCacheEntryPacker {
             return entries;
         }
     }
-
-    UnpackResult unpack(CacheableEntity entity, InputStream input, OriginReader readOrigin) throws IOException;
 
     class UnpackResult {
         private final OriginMetadata originMetadata;

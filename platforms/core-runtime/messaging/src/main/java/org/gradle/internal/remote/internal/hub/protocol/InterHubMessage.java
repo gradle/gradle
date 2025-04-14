@@ -17,6 +17,8 @@
 package org.gradle.internal.remote.internal.hub.protocol;
 
 public abstract class InterHubMessage {
+    public abstract Delivery getDelivery();
+
     /**
      * Specifies the delivery constraints for this message.
      */
@@ -34,6 +36,4 @@ public abstract class InterHubMessage {
          */
         Stateful
     }
-
-    public abstract Delivery getDelivery();
 }

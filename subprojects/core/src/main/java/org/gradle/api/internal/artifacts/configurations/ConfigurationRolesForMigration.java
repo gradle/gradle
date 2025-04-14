@@ -36,34 +36,26 @@ import java.util.Set;
  */
 public final class ConfigurationRolesForMigration {
 
-    private ConfigurationRolesForMigration() {
-        // Private to prevent instantiation.
-    }
-
     /**
      * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
      */
     @Deprecated
     public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
-
     /**
      * A legacy configuration that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
     public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE);
-
     /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
     public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
-
     /**
      * A consumable dependency scope that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
     public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
-
     /**
      * All known migration roles.
      */
@@ -73,6 +65,10 @@ public final class ConfigurationRolesForMigration {
         RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
         CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
     );
+
+    private ConfigurationRolesForMigration() {
+        // Private to prevent instantiation.
+    }
 
     /**
      * Computes the difference between two roles, such that any usage that is allowed in the

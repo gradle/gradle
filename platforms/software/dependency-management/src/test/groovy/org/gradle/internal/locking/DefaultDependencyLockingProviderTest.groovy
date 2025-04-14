@@ -78,7 +78,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
         tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
         startParameter.isWriteDependencyLocks() >> true
         provider = newProvider()
-        def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
+        def modules = [module('org', 'foo', '1.0'), module('org', 'bar', '1.3')] as Set
         provider.loadLockState('conf', owner)
         provider.persistResolvedDependencies('conf', owner, modules, emptySet())
 
@@ -174,7 +174,7 @@ empty=
     def 'can filter lock entries impacted by dependency substitutions (Unique: #unique)'() {
         given:
         dependencySubstitutionRules.rulesMayAddProjectDependency() >> true
-        Action< DependencySubstitution> substitutionAction = Mock()
+        Action<DependencySubstitution> substitutionAction = Mock()
         dependencySubstitutionRules.ruleAction >> substitutionAction
         substitutionAction.execute(_ as DependencySubstitution) >> { DependencySubstitution ds ->
             if (ds.requested.displayName.contains('foo')) {
@@ -227,7 +227,7 @@ empty=
         1 * owner.getCapitalizedDisplayName() >> "Owner"
         ex.message == 'Locking strict mode: Owner is locked but does not have lock state.'
         ex.resolutions == ["To create the lock state, run a task that performs dependency resolution and add '--write-locks' to the command line.",
-                            "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#generating_and_updating_dependency_locks in the Gradle documentation."]
+                           "For more information on generating lock state, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#generating_and_updating_dependency_locks in the Gradle documentation."]
 
         where:
         unique << [true, false]
@@ -248,11 +248,11 @@ empty=
         ex.message == "Ignored dependencies format must be <group>:<artifact> but '$invalid' is invalid."
 
         where:
-        notation        | invalid
-        'invalid'       | 'invalid'
-        ',org:foo'      | ''
-        'org:foo:1.0'   | 'org:foo:1.0'
-        '*:*'           | '*:*'
+        notation      | invalid
+        'invalid'     | 'invalid'
+        ',org:foo'    | ''
+        'org:foo:1.0' | 'org:foo:1.0'
+        '*:*'         | '*:*'
     }
 
     def 'can drop lock state for no longer locked configuration'() {
@@ -281,7 +281,7 @@ empty=
     def writeLockFile(List<String> modules, boolean unique = true, String lockFileId = 'conf') {
         if (unique) {
             tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
-${modules.toSorted().collect {"$it=$lockFileId"}.join('\n')}
+${modules.toSorted().collect { "$it=$lockFileId" }.join('\n')}
 empty=
 """.denormalize()
         } else {

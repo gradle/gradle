@@ -27,10 +27,9 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
 
 public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStrategy {
+    public static final String EXPIRATION_REASON = "after being idle";
     private final Function<?, Long> idleTimeout;
     private final Daemon daemon;
-
-    public static final String EXPIRATION_REASON = "after being idle";
 
     public DaemonIdleTimeoutExpirationStrategy(Daemon daemon, int idleTimeout, TimeUnit timeUnit) {
         this(daemon, Functions.constant(timeUnit.toMillis(idleTimeout)));

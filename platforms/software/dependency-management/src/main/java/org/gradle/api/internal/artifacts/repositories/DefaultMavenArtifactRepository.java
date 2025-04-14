@@ -85,7 +85,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
-    private List<Object> additionalUrls = new ArrayList<>();
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
@@ -97,48 +96,51 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
+    private List<Object> additionalUrls = new ArrayList<>();
 
-    public DefaultMavenArtifactRepository(FileResolver fileResolver,
-                                          RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                          InstantiatorFactory instantiatorFactory,
-                                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                          GradleModuleMetadataParser metadataParser,
-                                          AuthenticationContainer authenticationContainer,
-                                          FileStore<String> resourcesFileStore,
-                                          FileResourceRepository fileResourceRepository,
-                                          MavenMutableModuleMetadataFactory metadataFactory,
-                                          IsolatableFactory isolatableFactory,
-                                          ObjectFactory objectFactory,
-                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                          ChecksumService checksumService,
-                                          ProviderFactory providerFactory,
-                                          VersionParser versionParser
+    public DefaultMavenArtifactRepository(
+        FileResolver fileResolver,
+        RepositoryTransportFactory transportFactory,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        InstantiatorFactory instantiatorFactory,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+        GradleModuleMetadataParser metadataParser,
+        AuthenticationContainer authenticationContainer,
+        FileStore<String> resourcesFileStore,
+        FileResourceRepository fileResourceRepository,
+        MavenMutableModuleMetadataFactory metadataFactory,
+        IsolatableFactory isolatableFactory,
+        ObjectFactory objectFactory,
+        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+        ChecksumService checksumService,
+        ProviderFactory providerFactory,
+        VersionParser versionParser
     ) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer,
             resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
     }
 
-    public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
-                                          FileResolver fileResolver,
-                                          RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                          InstantiatorFactory instantiatorFactory,
-                                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                          GradleModuleMetadataParser metadataParser,
-                                          AuthenticationContainer authenticationContainer,
-                                          FileStore<String> resourcesFileStore,
-                                          FileResourceRepository fileResourceRepository,
-                                          MavenMutableModuleMetadataFactory metadataFactory,
-                                          IsolatableFactory isolatableFactory,
-                                          ObjectFactory objectFactory,
-                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                          ChecksumService checksumService,
-                                          ProviderFactory providerFactory,
-                                          VersionParser versionParser
+    public DefaultMavenArtifactRepository(
+        Transformer<String, MavenArtifactRepository> describer,
+        FileResolver fileResolver,
+        RepositoryTransportFactory transportFactory,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        InstantiatorFactory instantiatorFactory,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+        GradleModuleMetadataParser metadataParser,
+        AuthenticationContainer authenticationContainer,
+        FileStore<String> resourcesFileStore,
+        FileResourceRepository fileResourceRepository,
+        MavenMutableModuleMetadataFactory metadataFactory,
+        IsolatableFactory isolatableFactory,
+        ObjectFactory objectFactory,
+        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+        ChecksumService checksumService,
+        ProviderFactory providerFactory,
+        VersionParser versionParser
     ) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.describer = describer;
@@ -181,14 +183,14 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        invalidateDescriptor();
-        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
+    public boolean isAllowInsecureProtocol() {
+        return urlArtifactRepository.isAllowInsecureProtocol();
     }
 
     @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        invalidateDescriptor();
+        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
     }
 
     @Override
@@ -201,12 +203,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public void artifactUrls(Object... urls) {
-        invalidateDescriptor();
-        additionalUrls.addAll(ImmutableList.copyOf(urls));
-    }
-
-    @Override
     public void setArtifactUrls(Set<URI> urls) {
         invalidateDescriptor();
         setArtifactUrls((Iterable<?>) urls);
@@ -216,6 +212,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     public void setArtifactUrls(Iterable<?> urls) {
         invalidateDescriptor();
         additionalUrls = Lists.newArrayList(urls);
+    }
+
+    @Override
+    public void artifactUrls(Object... urls) {
+        invalidateDescriptor();
+        additionalUrls.addAll(ImmutableList.copyOf(urls));
     }
 
     @Override
@@ -356,6 +358,28 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
     }
 
+    private static class MavenSnapshotDecoratingSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
+        private final MetadataSource<MutableModuleComponentResolveMetadata> delegate;
+
+        private MavenSnapshotDecoratingSource(MetadataSource<MutableModuleComponentResolveMetadata> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
+            MutableModuleComponentResolveMetadata metadata = delegate.create(repositoryName, componentResolvers, moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
+            if (metadata != null) {
+                return MavenResolver.processMetaData((MutableMavenModuleResolveMetadata) metadata);
+            }
+            return null;
+        }
+
+        @Override
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+            delegate.listModuleVersions(selector, overrideMetadata, ivyPatterns, artifactPatterns, versionLister, result);
+        }
+    }
+
     private class MavenMetadataSources implements MetadataSources {
         boolean gradleMetadata;
         boolean mavenPom;
@@ -439,28 +463,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         @Override
         public boolean isIgnoreGradleMetadataRedirectionEnabled() {
             return ignoreGradleMetadataRedirection;
-        }
-    }
-
-    private static class MavenSnapshotDecoratingSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
-        private final MetadataSource<MutableModuleComponentResolveMetadata> delegate;
-
-        private MavenSnapshotDecoratingSource(MetadataSource<MutableModuleComponentResolveMetadata> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
-            MutableModuleComponentResolveMetadata metadata = delegate.create(repositoryName, componentResolvers, moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
-            if (metadata != null) {
-                return MavenResolver.processMetaData((MutableMavenModuleResolveMetadata) metadata);
-            }
-            return null;
-        }
-
-        @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
-            delegate.listModuleVersions(selector, overrideMetadata, ivyPatterns, artifactPatterns, versionLister, result);
         }
     }
 }

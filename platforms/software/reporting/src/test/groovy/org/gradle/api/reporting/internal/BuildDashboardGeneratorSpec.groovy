@@ -84,12 +84,12 @@ class BuildDashboardGeneratorSpec extends Specification {
 
         when:
         generator.render([
-                        mockReport('a', tmpDir.createFile('report.html')),
-                        mockReport('b', tmpDir.createDir('inner').createFile('otherReport.html')),
-                        mockReport('c', tmpDir.file('idonotexist.html')),
-                        mockDirectoryReport('d', htmlFolder),
-                        mockReport('e', tmpDir.createDir('simpleDirectory')),
-                ], outputFile)
+            mockReport('a', tmpDir.createFile('report.html')),
+            mockReport('b', tmpDir.createDir('inner').createFile('otherReport.html')),
+            mockReport('c', tmpDir.file('idonotexist.html')),
+            mockDirectoryReport('d', htmlFolder),
+            mockReport('e', tmpDir.createDir('simpleDirectory')),
+        ], outputFile)
 
         then:
         outputHtml.select('h1').text() == 'Build reports'

@@ -34,8 +34,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> implements Step<C, CachingResult> {
-    private final WorkInputListeners workInputListeners;
     protected final Step<? super C, ? extends CachingResult> delegate;
+    private final WorkInputListeners workInputListeners;
 
     protected AbstractSkipEmptyWorkStep(
         WorkInputListeners workInputListeners,
@@ -44,26 +44,6 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
         this.workInputListeners = workInputListeners;
         this.delegate = delegate;
     }
-
-    @Override
-    public CachingResult execute(UnitOfWork work, C context) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints = context.getInputFileProperties();
-        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = context.getInputProperties();
-        InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
-
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
-        if (sourceFileProperties.isEmpty()) {
-            return executeWithNonEmptySources(work, context);
-        } else {
-            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
-                return skipExecutionWithEmptySources(work, context);
-            } else {
-                return executeWithNonEmptySources(work, recreateContextWithNewInputFiles(context, newInputs.getAllFileFingerprints()));
-            }
-        }
-    }
-
-    protected abstract C recreateContextWithNewInputFiles(C context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles);
 
     private static boolean hasEmptySources(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck, UnitOfWork work) {
         if (propertiesRequiringIsEmptyCheck.isEmpty()) {
@@ -90,6 +70,26 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
         work.visitRegularInputs(visitor);
         return visitor.isAllEmpty();
     }
+
+    @Override
+    public CachingResult execute(UnitOfWork work, C context) {
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints = context.getInputFileProperties();
+        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = context.getInputProperties();
+        InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
+
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
+        if (sourceFileProperties.isEmpty()) {
+            return executeWithNonEmptySources(work, context);
+        } else {
+            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
+                return skipExecutionWithEmptySources(work, context);
+            } else {
+                return executeWithNonEmptySources(work, recreateContextWithNewInputFiles(context, newInputs.getAllFileFingerprints()));
+            }
+        }
+    }
+
+    protected abstract C recreateContextWithNewInputFiles(C context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles);
 
     private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, C context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
         return work.getInputFingerprinter().fingerprintInputProperties(

@@ -36,14 +36,12 @@ import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIR
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
-
+    protected final File propertiesFile;
     private final File dir;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
-
-    protected final File propertiesFile;
     private final File gcFile;
 
     private final DefaultCacheCleanupExecutor cleanupExecutor;
@@ -65,6 +63,10 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.gcFile = new File(dir, "gc.properties");
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cacheCleanupStrategy);
+    }
+
+    static File determineLockTargetFile(File target) {
+        return new File(target, target.getName() + ".lock");
     }
 
     @Override
@@ -111,10 +113,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     @Override
     public Collection<File> getReservedCacheFiles() {
         return Arrays.asList(propertiesFile, gcFile, determineLockTargetFile(getLockTarget()));
-    }
-
-    static File determineLockTargetFile(File target) {
-        return new File(target, target.getName() + ".lock");
     }
 
     @Override

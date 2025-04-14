@@ -44,18 +44,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * TODO - this type could be simplified, as there is no longer any need to send/receive messages to/from multiple connections
  */
 public class MessageHub implements AsyncStoppable {
-    private enum State {Running, Stopping, Stopped}
-
     private static final Discard DISCARD = new Discard();
     private final ManagedExecutor workers;
     private final String displayName;
     private final Action<? super Throwable> errorHandler;
     private final Lock lock = new ReentrantLock();
-    private State state = State.Running;
     private final IncomingQueue incomingQueue = new IncomingQueue(lock);
     private final OutgoingQueue outgoingQueue = new OutgoingQueue(incomingQueue, lock);
     private final ConnectionSet connections = new ConnectionSet(incomingQueue, outgoingQueue);
-
+    private State state = State.Running;
     /**
      * @param errorHandler Notified when some async activity fails. Must be thread-safe.
      */
@@ -233,6 +230,17 @@ public class MessageHub implements AsyncStoppable {
         }
     }
 
+    private void addToIncoming(InterHubMessage message) {
+        lock.lock();
+        try {
+            incomingQueue.queue(message);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private enum State {Running, Stopping, Stopped}
+
     private static class Discard implements BoundedDispatch<Object>, RejectedMessageListener, StreamFailureHandler {
         @Override
         public void dispatch(Object message) {
@@ -288,15 +296,6 @@ public class MessageHub implements AsyncStoppable {
             } catch (Throwable e) {
                 errorHandler.execute(e);
             }
-        }
-    }
-
-    private void addToIncoming(InterHubMessage message) {
-        lock.lock();
-        try {
-            incomingQueue.queue(message);
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -415,7 +414,7 @@ public class MessageHub implements AsyncStoppable {
                             } else if (message instanceof RejectedMessage) {
                                 RejectedMessage rejectedMessage = (RejectedMessage) message;
                                 listener.messageDiscarded(rejectedMessage.getPayload());
-                            } else if (message instanceof StreamFailureMessage){
+                            } else if (message instanceof StreamFailureMessage) {
                                 StreamFailureMessage streamFailureMessage = (StreamFailureMessage) message;
                                 streamFailureHandler.handleStreamFailure(streamFailureMessage.getFailure());
                             } else {

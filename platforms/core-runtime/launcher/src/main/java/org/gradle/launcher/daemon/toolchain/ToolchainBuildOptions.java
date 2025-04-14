@@ -69,6 +69,7 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
             settings.setJavaInstallationsFromEnvironment(Arrays.asList(value.split(",")));
         }
     }
+
     private static class AutoDetectionOption extends BooleanBuildOption<ToolchainConfiguration> {
         private static final String GRADLE_PROPERTY = ToolchainConfiguration.AUTO_DETECT;
 
@@ -81,6 +82,7 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
             settings.setAutoDetectEnabled(value);
         }
     }
+
     private static class AutoDownloadOption extends BooleanBuildOption<ToolchainConfiguration> {
         private static final String GRADLE_PROPERTY = AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
 
@@ -93,6 +95,7 @@ public class ToolchainBuildOptions extends BuildOptionSet<ToolchainConfiguration
             settings.setDownloadEnabled(value);
         }
     }
+
     private static class IntellijJdkBuildOption extends StringBuildOption<ToolchainConfiguration> {
         private static final String GRADLE_PROPERTY = "org.gradle.java.installations.idea-jdks-directory";
 

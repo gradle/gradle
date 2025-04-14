@@ -38,7 +38,7 @@ configurations {
 
 dependencies {
     // Apply the custom attribute to a dependency
-    add("myConfig","com.google.guava:guava:31.1-jre") {
+    add("myConfig", "com.google.guava:guava:31.1-jre") {
         attributes {
             attribute(myAttribute, "special-value")
         }

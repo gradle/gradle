@@ -25,32 +25,12 @@ import org.jspecify.annotations.Nullable;
 
 public class ConfigurationDetails {
 
-    public static ConfigurationDetails of(Configuration configuration) {
-        boolean canBeResolved = canBeResolved(configuration);
-        return new ConfigurationDetails(
-            configuration.getName(),
-            configuration.getDescription(),
-            canBeResolved,
-            canBeResolved ? configuration.getIncoming().getResolutionResult().getRootComponent() : null,
-            canBeResolved ? null : UnresolvableConfigurationResult.of(configuration)
-        );
-    }
-
-    private static boolean canBeResolved(Configuration configuration) {
-        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).isDeprecatedForResolution();
-        return configuration.isCanBeResolved() && !isDeprecatedForResolving;
-    }
-
     private final String name;
-
     @Nullable
     private final String description;
-
     private final boolean canBeResolved;
-
     @Nullable
     private final Provider<ResolvedComponentResult> resolutionResultRoot;
-
     @Nullable
     private final UnresolvableConfigurationResult unresolvableResult;
 
@@ -66,6 +46,22 @@ public class ConfigurationDetails {
         this.canBeResolved = canBeResolved;
         this.resolutionResultRoot = resolutionResultRoot;
         this.unresolvableResult = unresolvableResult;
+    }
+
+    public static ConfigurationDetails of(Configuration configuration) {
+        boolean canBeResolved = canBeResolved(configuration);
+        return new ConfigurationDetails(
+            configuration.getName(),
+            configuration.getDescription(),
+            canBeResolved,
+            canBeResolved ? configuration.getIncoming().getResolutionResult().getRootComponent() : null,
+            canBeResolved ? null : UnresolvableConfigurationResult.of(configuration)
+        );
+    }
+
+    private static boolean canBeResolved(Configuration configuration) {
+        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).isDeprecatedForResolution();
+        return configuration.isCanBeResolved() && !isDeprecatedForResolving;
     }
 
     public String getName() {

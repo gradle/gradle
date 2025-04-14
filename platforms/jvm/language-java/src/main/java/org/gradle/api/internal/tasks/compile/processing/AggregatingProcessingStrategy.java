@@ -34,6 +34,7 @@ import static org.gradle.api.internal.tasks.compile.incremental.processing.Incre
 
 /**
  * The strategy used for aggregating annotation processors.
+ *
  * @see AggregatingProcessor
  */
 class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
@@ -41,6 +42,18 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
     AggregatingProcessingStrategy(AnnotationProcessorResult result) {
         super(result);
         result.setType(AGGREGATING);
+    }
+
+    private static Set<String> namesOfElements(Set<? extends Element> orig) {
+        if (orig == null || orig.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return orig
+            .stream()
+            .map(ElementUtils::getTopLevelType)
+            .map(ElementUtils::getElementName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -66,18 +79,6 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
                 result.getAggregatedTypes().addAll(namesOfElements(roundEnv.getElementsAnnotatedWith(annotation)));
             }
         }
-    }
-
-    private static Set<String> namesOfElements(Set<? extends Element> orig) {
-        if (orig == null || orig.isEmpty()) {
-            return Collections.emptySet();
-        }
-        return orig
-            .stream()
-            .map(ElementUtils::getTopLevelType)
-            .map(ElementUtils::getElementName)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
     }
 
     @Override

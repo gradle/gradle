@@ -32,9 +32,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultIvyContextManager implements IvyContextManager {
     private static final int MAX_CACHED_IVY_INSTANCES = 4;
     private final Lock lock = new ReentrantLock();
-    private boolean messageAdapterAttached;
     private final LinkedList<Ivy> cached = new LinkedList<>();
     private final ThreadLocal<Integer> depth = new ThreadLocal<>();
+    private boolean messageAdapterAttached;
 
     @Override
     public void withIvy(final Action<? super Ivy> action) {

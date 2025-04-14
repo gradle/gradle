@@ -37,7 +37,8 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         def a = ivyArtifact("foo", "jar", "ext", "classifier")
         md.addConfiguration(new Configuration("runtime"))
 
-        when: meta.addArtifact(a, newHashSet("runtime"))
+        when:
+        meta.addArtifact(a, newHashSet("runtime"))
 
         then:
         def artifacts = meta.build().asImmutable().getConfiguration("runtime").artifacts
@@ -60,7 +61,8 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         meta.addArtifact(unattached, new HashSet<String>())
         meta.build()
 
-        then: thrown(IllegalArgumentException)
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def "can be added to metadata that already contains artifacts"() {

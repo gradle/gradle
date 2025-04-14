@@ -48,14 +48,14 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         outputContains(expectedConfiguration)
 
         where:
-        testCase                                           | modelDefault                 | buildConfiguration    | expectedConfiguration
-        "top-level property has default and is set"        | setId("default")             | setId("test")         | """id = test\nbar = bar"""
-        "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | """id = default\nbar = baz"""
-        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | """id = <no id>\nbar = baz"""
-        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | """id = test\nbar = default"""
-        "no defaults, top-level property is set"           | ""                           | setId("test")         | """id = test\nbar = bar"""
-        "everything has default and nothing set"           | setAll("default", "default") | ""                    | """id = default\nbar = default"""
-        "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | """id = test\nbar = baz"""
+        testCase                                        | modelDefault                 | buildConfiguration    | expectedConfiguration
+        "top-level property has default and is set"     | setId("default")             | setId("test")         | """id = test\nbar = bar"""
+        "top-level property has default, nested is set" | setId("default")             | setFooBar("baz")      | """id = default\nbar = baz"""
+        "nested property has default and is set"        | setFooBar("default")         | setFooBar("baz")      | """id = <no id>\nbar = baz"""
+        "nested property has default, top-level is set" | setFooBar("default")         | setId("test")         | """id = test\nbar = default"""
+        "no defaults, top-level property is set"        | ""                           | setId("test")         | """id = test\nbar = bar"""
+        "everything has default and nothing set"        | setAll("default", "default") | ""                    | """id = default\nbar = default"""
+        "everything has default and is set"             | setAll("default", "default") | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin DSL does accept re-assigning values")
@@ -75,9 +75,9 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         result.assertHasErrorOutput("reassigned value in ")
 
         where:
-        testCase                                   | modelDefault
-        "id has default set twice"                 | setId("default") + setId("again")
-        "bar has default set twice"                | setFoo(setBar("default") + setBar("again"))
+        testCase                    | modelDefault
+        "id has default set twice"  | setId("default") + setId("again")
+        "bar has default set twice" | setFoo(setBar("default") + setBar("again"))
         // TODO - doesn't work
         //"bar has default set in multiple blocks" | setFooBar("default") + setFooBar("again")
     }
@@ -467,7 +467,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         return "project '${projectPath}'"
     }
 
-    static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(String configuration="") {
+    static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(String configuration = "") {
         return """
             testSoftwareType {
                 ${configuration}
@@ -475,7 +475,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         """
     }
 
-    static String getDeclarativeSettingsScriptThatSetsDefaults(String configuration="") {
+    static String getDeclarativeSettingsScriptThatSetsDefaults(String configuration = "") {
         return """
             pluginManagement {
                 includeBuild("plugins")
@@ -493,7 +493,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         """
     }
 
-    static String getDeclarativeSettingsScriptThatSetsDefaultsForNdoc(String configuration="") {
+    static String getDeclarativeSettingsScriptThatSetsDefaultsForNdoc(String configuration = "") {
         return getDeclarativeSettingsScriptThatSetsDefaults("" +
             """
             foos {

@@ -100,9 +100,9 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
             @Override
             public CppBinary call() throws Exception {
                 return getDebugSharedHostStream().findFirst().orElseGet(
-                        () -> getDebugStaticHostStream().findFirst().orElseGet(
-                                () -> getDebugSharedStream().findFirst().orElseGet(
-                                        () -> getDebugStaticStream().findFirst().orElse(null))));
+                    () -> getDebugStaticHostStream().findFirst().orElseGet(
+                        () -> getDebugSharedStream().findFirst().orElseGet(
+                            () -> getDebugStaticStream().findFirst().orElse(null))));
             }
 
             private Stream<CppBinary> getDebugStream() {
@@ -133,21 +133,21 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
             Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                    variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+                providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                variantIdentity -> {
+                    if (tryToBuildOnHost(variantIdentity)) {
+                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
 
-                            if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
-                                library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                            } else {
-                                library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                            }
+                        if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
+                            library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         } else {
-                            // Known, but not buildable
-                            library.getMainPublication().addVariant(variantIdentity);
+                            library.addStaticLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         }
-                    });
+                    } else {
+                        // Known, but not buildable
+                        library.getMainPublication().addVariant(variantIdentity);
+                    }
+                });
 
             // TODO - deal with more than one header dir, e.g. generated public headers
             final Configuration apiElements = library.getApiElements();

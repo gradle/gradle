@@ -43,6 +43,6 @@ public abstract class AbstractPublishArtifact implements PublishArtifactInternal
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " " + getName() + ":" + getType() + ":" +getExtension()  + ":" + getClassifier();
+        return getClass().getSimpleName() + " " + getName() + ":" + getType() + ":" + getExtension() + ":" + getClassifier();
     }
 }

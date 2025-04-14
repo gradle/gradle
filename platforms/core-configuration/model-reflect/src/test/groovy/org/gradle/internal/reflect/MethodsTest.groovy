@@ -21,14 +21,16 @@ import spock.lang.Specification
 import static Methods.DESCRIPTOR_EQUIVALENCE
 import static Methods.SIGNATURE_EQUIVALENCE
 
-class MethodsTest extends Specification  {
+class MethodsTest extends Specification {
 
     interface BaseType {
         Object someMethodName(Object o)
     }
 
     interface ChildType extends BaseType {
-        @Override String someMethodName(Object o)
+        @Override
+        String someMethodName(Object o)
+
         int someMethodName(int i)
     }
 

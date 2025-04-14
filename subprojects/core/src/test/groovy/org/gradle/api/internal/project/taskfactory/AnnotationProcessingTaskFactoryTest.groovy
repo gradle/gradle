@@ -238,7 +238,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         then:
         def e = thrown WorkValidationException
         validateException(task, e, staticFunctionMethodShouldNotBeAnnotatedMessage {
-                method('staticAction')
+            method('staticAction')
                 .kind("static method")
                 .annotation('TaskAction')
                 .includeLink()

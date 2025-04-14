@@ -67,6 +67,18 @@ public class XcodeTarget implements Named {
         this.debugOutputFile = Providers.notDefined();
     }
 
+    private static String toFileType(PBXTarget.ProductType productType) {
+        if (PBXTarget.ProductType.TOOL.equals(productType)) {
+            return FileTypes.MACH_O_EXECUTABLE.identifier;
+        } else if (PBXTarget.ProductType.DYNAMIC_LIBRARY.equals(productType)) {
+            return FileTypes.MACH_O_DYNAMIC_LIBRARY.identifier;
+        } else if (PBXTarget.ProductType.STATIC_LIBRARY.equals(productType)) {
+            return FileTypes.ARCHIVE_LIBRARY.identifier;
+        } else {
+            return "compiled";
+        }
+    }
+
     public String getId() {
         return id;
     }
@@ -148,18 +160,6 @@ public class XcodeTarget implements Named {
         return binaries;
     }
 
-    private static String toFileType(PBXTarget.ProductType productType) {
-        if (PBXTarget.ProductType.TOOL.equals(productType)) {
-            return FileTypes.MACH_O_EXECUTABLE.identifier;
-        } else if (PBXTarget.ProductType.DYNAMIC_LIBRARY.equals(productType)) {
-            return FileTypes.MACH_O_DYNAMIC_LIBRARY.identifier;
-        } else if (PBXTarget.ProductType.STATIC_LIBRARY.equals(productType)) {
-            return FileTypes.ARCHIVE_LIBRARY.identifier;
-        } else {
-            return "compiled";
-        }
-    }
-
     public Property<SwiftVersion> getSwiftSourceCompatibility() {
         return swiftSourceCompatibility;
     }
@@ -176,6 +176,6 @@ public class XcodeTarget implements Named {
     }
 
     public boolean isBuildable() {
-         return !binaries.isEmpty();
+        return !binaries.isEmpty();
     }
 }

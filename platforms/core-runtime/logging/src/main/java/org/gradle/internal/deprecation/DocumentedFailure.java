@@ -38,6 +38,12 @@ public class DocumentedFailure {
 
         private Builder() {}
 
+        private static void append(StringBuilder outputBuilder, @Nullable String message) {
+            if (!StringUtils.isEmpty(message)) {
+                outputBuilder.append(" ").append(message);
+            }
+        }
+
         @CheckReturnValue
         public Builder withSummary(String summary) {
             this.summary = summary;
@@ -77,12 +83,6 @@ public class DocumentedFailure {
             return cause == null
                 ? new GradleException(outputBuilder.toString())
                 : new DocumentedExceptionWithCause(outputBuilder.toString(), cause);
-        }
-
-        private static void append(StringBuilder outputBuilder, @Nullable String message) {
-            if (!StringUtils.isEmpty(message)) {
-                outputBuilder.append(" ").append(message);
-            }
         }
     }
 

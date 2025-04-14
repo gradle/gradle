@@ -23,8 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class IncrementalSwiftElement extends IncrementalElement {
-    public abstract String getModuleName();
-
     /**
      * Returns a transform that replace the content of the before element with the content of the after element.
      * Both elements must have the same location.
@@ -80,4 +78,6 @@ public abstract class IncrementalSwiftElement extends IncrementalElement {
             }
         };
     }
+
+    public abstract String getModuleName();
 }

@@ -29,8 +29,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events)
-                        .run()
+                    .addProgressListener(events)
+                    .run()
         }
 
         then:
@@ -41,9 +41,9 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .withArguments("--init-script", file("init.gradle").toString())
-                        .addProgressListener(events)
-                        .run()
+                    .withArguments("--init-script", file("init.gradle").toString())
+                    .addProgressListener(events)
+                    .run()
         }
 
         then:
@@ -59,8 +59,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events)
-                        .run()
+                    .addProgressListener(events)
+                    .run()
         }
 
         then:
@@ -72,8 +72,8 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                        .addProgressListener(events)
-                        .run()
+                    .addProgressListener(events)
+                    .run()
         }
 
         then:

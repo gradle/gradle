@@ -146,6 +146,13 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         builder.endChildren();
     }
 
+    private static String getFormatName(String singleLocation) {
+        boolean isPom = singleLocation.endsWith(".pom");
+        boolean isIvy = singleLocation.contains("ivy-") && singleLocation.endsWith(".xml");
+        boolean isModule = singleLocation.endsWith(".module");
+        return isPom ? "Maven POM" : (isIvy ? "ivy.xml" : (isModule ? "Gradle module" : null));
+    }
+
     /**
      * This method should ideally use more data to figure out if the message should be displayed
      * or not. In particular, the ivy patterns can make it difficult to find out if an Ivy artifact
@@ -160,13 +167,6 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
                 resolutions = ImmutableList.of(String.format("If the artifact you are trying to retrieve can be found in the repository but without metadata in '%s' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.", format));
             }
         }
-    }
-
-    private static String getFormatName(String singleLocation) {
-        boolean isPom = singleLocation.endsWith(".pom");
-        boolean isIvy = singleLocation.contains("ivy-") && singleLocation.endsWith(".xml");
-        boolean isModule = singleLocation.endsWith(".module");
-        return isPom ? "Maven POM" : (isIvy ? "ivy.xml" : (isModule ? "Gradle module" : null));
     }
 
     @Override

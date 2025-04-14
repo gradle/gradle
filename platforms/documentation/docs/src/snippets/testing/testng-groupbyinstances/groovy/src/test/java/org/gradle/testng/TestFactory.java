@@ -8,19 +8,19 @@ import org.testng.annotations.Test;
 
 public class TestFactory {
 
-    @DataProvider(name = "data")
-    public static Object[][] provide() {
-        return new Object[][] {
-            { "data1" },
-            { "data2" }
-        };
-    }
-
     private String data;
 
     @Factory(dataProvider = "data")
     public TestFactory(String data) {
         this.data = data;
+    }
+
+    @DataProvider(name = "data")
+    public static Object[][] provide() {
+        return new Object[][]{
+            {"data1"},
+            {"data2"}
+        };
     }
 
     @BeforeClass

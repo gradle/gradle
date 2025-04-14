@@ -42,6 +42,54 @@ public class OutputFileChanges implements ChangeContainer {
         this.current = current;
     }
 
+    private static boolean visitAllChanges(FileSystemSnapshot root, ChangeVisitor visitor, BiFunction<RelativePathSupplier, FileSystemLocationSnapshot, Change> changeFactory) {
+        return root.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
+            boolean shouldContinue = visitor.visitChange(
+                changeFactory.apply(relativePath, snapshot)
+            );
+            return shouldContinue ? SnapshotVisitResult.CONTINUE : SnapshotVisitResult.TERMINATE;
+        }) == SnapshotVisitResult.CONTINUE;
+    }
+
+    private static boolean visitAllChildChanges(FileSystemSnapshot root, ChangeVisitor visitor, BiFunction<RelativePathSupplier, FileSystemLocationSnapshot, Change> changeFactory) {
+        return root.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
+            if (relativePath.isRoot()) {
+                return SnapshotVisitResult.CONTINUE;
+            }
+            boolean shouldContinue = visitor.visitChange(
+                changeFactory.apply(relativePath, snapshot)
+            );
+            return shouldContinue ? SnapshotVisitResult.CONTINUE : SnapshotVisitResult.TERMINATE;
+        }) == SnapshotVisitResult.CONTINUE;
+    }
+
+    private static Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
+        Map<String, FileSystemLocationFingerprint> result = new LinkedHashMap<>();
+        roots.accept(new RelativePathTracker(),
+            (snapshot, relativePath) -> {
+                result.put(snapshot.getAbsolutePath(), createFingerprint(relativePath, snapshot));
+                return SnapshotVisitResult.CONTINUE;
+            }
+        );
+        return result;
+    }
+
+    private static DefaultFileSystemLocationFingerprint createFingerprint(RelativePathSupplier relativePath, FileSystemLocationSnapshot snapshot) {
+        return createFingerprint(relativePath.toRelativePath(), snapshot);
+    }
+
+    private static DefaultFileSystemLocationFingerprint createRootFingerprint(FileSystemLocationSnapshot snapshot) {
+        return createFingerprint("", snapshot);
+    }
+
+    private static DefaultFileSystemLocationFingerprint createFingerprint(String relativePath, FileSystemLocationSnapshot snapshot) {
+        return new DefaultFileSystemLocationFingerprint(
+            relativePath,
+            snapshot.getType(),
+            snapshot.getHash()
+        );
+    }
+
     @Override
     public boolean accept(ChangeVisitor visitor) {
         return SortedMapDiffUtil.diff(previous, current, new PropertyDiffListener<String, FileSystemSnapshot, FileSystemSnapshot>() {
@@ -120,53 +168,5 @@ public class OutputFileChanges implements ChangeContainer {
             currentFingerprint,
             propertyTitle,
             visitor);
-    }
-
-    private static boolean visitAllChanges(FileSystemSnapshot root, ChangeVisitor visitor, BiFunction<RelativePathSupplier, FileSystemLocationSnapshot, Change> changeFactory) {
-        return root.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
-            boolean shouldContinue = visitor.visitChange(
-                changeFactory.apply(relativePath, snapshot)
-            );
-            return shouldContinue ? SnapshotVisitResult.CONTINUE : SnapshotVisitResult.TERMINATE;
-        }) == SnapshotVisitResult.CONTINUE;
-    }
-
-    private static boolean visitAllChildChanges(FileSystemSnapshot root, ChangeVisitor visitor, BiFunction<RelativePathSupplier, FileSystemLocationSnapshot, Change> changeFactory) {
-        return root.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
-            if (relativePath.isRoot()) {
-                return SnapshotVisitResult.CONTINUE;
-            }
-            boolean shouldContinue = visitor.visitChange(
-                changeFactory.apply(relativePath, snapshot)
-            );
-            return shouldContinue ? SnapshotVisitResult.CONTINUE : SnapshotVisitResult.TERMINATE;
-        }) == SnapshotVisitResult.CONTINUE;
-    }
-
-    private static Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
-        Map<String, FileSystemLocationFingerprint> result = new LinkedHashMap<>();
-        roots.accept(new RelativePathTracker(),
-            (snapshot, relativePath) -> {
-                result.put(snapshot.getAbsolutePath(), createFingerprint(relativePath, snapshot));
-                return SnapshotVisitResult.CONTINUE;
-            }
-        );
-        return result;
-    }
-
-    private static DefaultFileSystemLocationFingerprint createFingerprint(RelativePathSupplier relativePath, FileSystemLocationSnapshot snapshot) {
-        return createFingerprint(relativePath.toRelativePath(), snapshot);
-    }
-
-    private static DefaultFileSystemLocationFingerprint createRootFingerprint(FileSystemLocationSnapshot snapshot) {
-        return createFingerprint("", snapshot);
-    }
-
-    private static DefaultFileSystemLocationFingerprint createFingerprint(String relativePath, FileSystemLocationSnapshot snapshot) {
-        return new DefaultFileSystemLocationFingerprint(
-            relativePath,
-            snapshot.getType(),
-            snapshot.getHash()
-        );
     }
 }

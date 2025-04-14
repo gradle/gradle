@@ -57,6 +57,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         this.resolvers = resolvers;
     }
 
+    public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, CapabilityInternal capability, Collection<NodeState> implicitCapabilityProviders) {
+        return new Candidate(node, capability, implicitCapabilityProviders);
+    }
+
     @Override
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
         CapabilityInternal capability = candidate.getCapability();
@@ -163,10 +167,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public boolean hasSeenNonDefaultCapabilityExplicitly(CapabilityInternal capability) {
         return capabilityWithoutVersionToTracker.containsKey(capability.getCapabilityId());
-    }
-
-    public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, CapabilityInternal capability, Collection<NodeState> implicitCapabilityProviders) {
-        return new Candidate(node, capability, implicitCapabilityProviders);
     }
 
     private static class Candidate implements CapabilitiesConflictHandler.Candidate {
@@ -324,19 +324,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             this.descriptors = builder.build();
         }
 
-        private CapabilityConflict withDifferentNodes(Set<NodeState> selectedNodes) {
-            return new CapabilityConflict(group, name, selectedNodes, nodeToDependentNodes);
-        }
-
-        /**
-         * Validates that the conflict has at least one node that is not rejected.
-         *
-         * @return {@code true} if the conflict is valid
-         */
-        private boolean isValidConflict() {
-            return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.getComponent().isRejected());
-        }
-
         private static Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
             HashMap<NodeState, Set<NodeState>> nodeToDependents = new HashMap<>();
             for (NodeState node : nodes) {
@@ -351,6 +338,19 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 }
             }
             return nodeToDependents;
+        }
+
+        private CapabilityConflict withDifferentNodes(Set<NodeState> selectedNodes) {
+            return new CapabilityConflict(group, name, selectedNodes, nodeToDependentNodes);
+        }
+
+        /**
+         * Validates that the conflict has at least one node that is not rejected.
+         *
+         * @return {@code true} if the conflict is valid
+         */
+        private boolean isValidConflict() {
+            return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.getComponent().isRejected());
         }
     }
 
@@ -441,9 +441,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * If we saw the conflict before, record relationship between nodes
          *
          * @param candidatesForConflict the conflict candidates
-         *
          * @return true if this is the first time this tracker sees this conflict and
-         *         if a conflict on this capability will need to be resolved.
+         * if a conflict on this capability will need to be resolved.
          */
         private boolean createOrUpdateConflict(Set<NodeState> candidatesForConflict) {
             boolean newConflict = pendingConflict == null;

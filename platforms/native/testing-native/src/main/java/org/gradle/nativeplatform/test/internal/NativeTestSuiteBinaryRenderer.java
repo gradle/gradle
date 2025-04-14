@@ -52,7 +52,7 @@ public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<
     protected void renderDetails(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
         NativeTestSuiteSpec testSuite = binary.getTestSuite();
         NativeComponentSpec testedComponent = testSuite.getTestedComponent();
-        if (testedComponent!=null) {
+        if (testedComponent != null) {
             builder.item("component under test", testedComponent.getDisplayName());
         }
         NativeBinarySpec testedBinary = binary.getTestedBinary();

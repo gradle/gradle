@@ -34,13 +34,14 @@ import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
     HashCode hash = TestHashCodes.hashCodeFrom(0)
-    @Subject serializer = new ClassSetAnalysisData.Serializer({ new HierarchicalNameSerializer(new StringInterner())})
+    @Subject
+        serializer = new ClassSetAnalysisData.Serializer({ new HierarchicalNameSerializer(new StringInterner()) })
 
     def "serializes"() {
         def data = new ClassSetAnalysisData(["A": hash, "B": hash, "C": hash, "D": hash],
             ["A": dependentClasses(["B", "C"] as Set, [] as Set), "B": dependentClasses(["C"] as Set, [] as Set), "C": dependentClasses([] as Set, [] as Set), "D": dependencyToAll("reason"),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
-            ,"Because"
+            , "Because"
         )
         def os = new ByteArrayOutputStream()
         def e = new OutputStreamBackedEncoder(os)
@@ -59,7 +60,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
         }
 
         read.dependents["D"].dependencyToAll
-        read.classesToConstants == [C: [1,2] as Set, D: [] as Set]
+        read.classesToConstants == [C: [1, 2] as Set, D: [] as Set]
         read.fullRebuildCause == "Because"
     }
 }

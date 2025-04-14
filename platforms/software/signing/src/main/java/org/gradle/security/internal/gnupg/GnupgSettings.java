@@ -33,15 +33,15 @@ public class GnupgSettings {
     private String passphrase;
     private boolean useLegacyGpg;
 
-    public void setExecutable(String executable) {
-        this.executable = executable;
-    }
-
     public String getExecutable() {
         if (executable == null) {
             return defaultExecutable();
         }
         return executable;
+    }
+
+    public void setExecutable(String executable) {
+        this.executable = executable;
     }
 
     private String defaultExecutable() {
@@ -52,43 +52,43 @@ public class GnupgSettings {
         }
     }
 
-    public void setUseLegacyGpg(boolean useLegacyGpg) {
-        this.useLegacyGpg = useLegacyGpg;
-    }
-
     public boolean getUseLegacyGpg() {
         return useLegacyGpg;
     }
 
-    public void setHomeDir(File homeDir) {
-        this.homeDir = homeDir;
+    public void setUseLegacyGpg(boolean useLegacyGpg) {
+        this.useLegacyGpg = useLegacyGpg;
     }
 
     public File getHomeDir() {
         return homeDir;
     }
 
-    public void setOptionsFile(File optionsFile) {
-        this.optionsFile = optionsFile;
+    public void setHomeDir(File homeDir) {
+        this.homeDir = homeDir;
     }
 
     public File getOptionsFile() {
         return optionsFile;
     }
 
-    public void setKeyName(String keyName) {
-        this.keyName = keyName;
+    public void setOptionsFile(File optionsFile) {
+        this.optionsFile = optionsFile;
     }
 
     public String getKeyName() {
         return keyName;
     }
 
-    public void setPassphrase(String passphrase) {
-        this.passphrase = passphrase;
+    public void setKeyName(String keyName) {
+        this.keyName = keyName;
     }
 
     public String getPassphrase() {
         return passphrase;
+    }
+
+    public void setPassphrase(String passphrase) {
+        this.passphrase = passphrase;
     }
 }

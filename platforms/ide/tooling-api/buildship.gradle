@@ -69,7 +69,7 @@ abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
         def qualifier = new Date().format('yyyyMMddkkmm')
         def packageNames = getPackageNames(jar)
         def packageExports = getPackageExports(packageNames, bundleVersion)
-     """Manifest-Version: 1.0
+        """Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gradle Tooling API
 Bundle-Vendor: Gradle Inc.
@@ -80,7 +80,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: ${packageExports}
 Require-Bundle: org.slf4j.api;bundle-version="1.7.2"
 """
-}
+    }
 
     private String getBundleVersion(String projectVersion) {
         Matcher matcher = projectVersion =~ /(\d+).(\d+)(?:-.*|\.(\d+)(?:-.*)?)?/
@@ -88,7 +88,9 @@ Require-Bundle: org.slf4j.api;bundle-version="1.7.2"
             def major = matcher.group(1)
             def minor = matcher.group(2)
             def service = matcher.group(3)
-            if (service == null) service = "0"
+            if (service == null) {
+                service = "0"
+            }
             return "${major}.${minor}.${service}"
         } else {
             throw new IllegalArgumentException("Invalid project version format: $projectVersion")
@@ -102,7 +104,9 @@ Require-Bundle: org.slf4j.api;bundle-version="1.7.2"
             while (e = zip.nextEntry) {
                 if (!e.directory && e.name.endsWith(".class")) {
                     int index = e.name.lastIndexOf('/')
-                    if (index < 0) index = e.name.length()
+                    if (index < 0) {
+                        index = e.name.length()
+                    }
                     String packageName = e.name.substring(0, index).replace('/', '.')
                     result.add(packageName)
                 }
@@ -114,7 +118,7 @@ Require-Bundle: org.slf4j.api;bundle-version="1.7.2"
     private String getPackageExports(Set<String> packageNames, String bundleVersion) {
         // the Tooling API has more than two packages
         StringBuilder exportedPackages = new StringBuilder("${packageNames[0]};version=\"${bundleVersion}\"")
-        for (i in 1..< packageNames.size()) {
+        for (i in 1..<packageNames.size()) {
             exportedPackages.append ",\n ${packageNames[i]};version=\"${bundleVersion}\""
         }
         exportedPackages.toString()

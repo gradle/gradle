@@ -31,37 +31,11 @@ import java.util.function.Function;
 public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServiceHandle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringRemoteBuildCacheServiceHandle.class);
-
-    protected enum Operation {
-        LOAD("Load", "from"),
-        STORE("Store", "in");
-
-        private final String verb;
-        private final String capitalizedVerb;
-        private final String preposition;
-
-        Operation(String capitalizedVerb, String preposition) {
-            this.capitalizedVerb = capitalizedVerb;
-            this.verb = capitalizedVerb.toLowerCase(Locale.ROOT);
-            this.preposition = preposition;
-        }
-
-        public String describe(BuildCacheKey key, BuildCacheServiceRole role) {
-            return capitalizedVerb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
-        }
-
-        public String describeFailure(BuildCacheKey key, BuildCacheServiceRole role) {
-            return "Could not " + verb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
-        }
-    }
-
     protected final BuildCacheService service;
-
     protected final BuildCacheServiceRole role;
     private final boolean pushEnabled;
     private final boolean logStackTraces;
     private final boolean disableOnError;
-
     private boolean disabled;
 
     public BaseRemoteBuildCacheServiceHandle(
@@ -76,6 +50,13 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         this.pushEnabled = push;
         this.logStackTraces = logStackTraces;
         this.disableOnError = disableOnError;
+    }
+
+    private static Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
+        if (loadTarget.isLoaded()) {
+            return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));
+        }
+        return Optional.empty();
     }
 
     @Nullable
@@ -111,13 +92,6 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
 
     protected void loadInner(BuildCacheKey key, BuildCacheEntryReader entryReader) {
         service.load(key, entryReader);
-    }
-
-    private static Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
-        if (loadTarget.isLoaded()) {
-            return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));
-        }
-        return Optional.empty();
     }
 
     @Override
@@ -178,6 +152,29 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
             } else {
                 LOGGER.warn("Error closing {} build cache: {}", role.getDisplayName(), e.getMessage());
             }
+        }
+    }
+
+    protected enum Operation {
+        LOAD("Load", "from"),
+        STORE("Store", "in");
+
+        private final String verb;
+        private final String capitalizedVerb;
+        private final String preposition;
+
+        Operation(String capitalizedVerb, String preposition) {
+            this.capitalizedVerb = capitalizedVerb;
+            this.verb = capitalizedVerb.toLowerCase(Locale.ROOT);
+            this.preposition = preposition;
+        }
+
+        public String describe(BuildCacheKey key, BuildCacheServiceRole role) {
+            return capitalizedVerb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
+        }
+
+        public String describeFailure(BuildCacheKey key, BuildCacheServiceRole role) {
+            return "Could not " + verb + " entry " + key.getHashCode() + " " + preposition + " " + role.getDisplayName() + " build cache";
         }
     }
 }

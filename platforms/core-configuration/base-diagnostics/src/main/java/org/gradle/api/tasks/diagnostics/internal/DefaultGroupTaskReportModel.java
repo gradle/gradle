@@ -26,6 +26,13 @@ import java.util.Set;
 
 public class DefaultGroupTaskReportModel implements TaskReportModel {
 
+    public static final String OTHER_GROUP = "other";
+    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
+    private final SetMultimap<String, TaskDetails> groups;
+    private DefaultGroupTaskReportModel(SetMultimap<String, TaskDetails> groups) {
+        this.groups = groups;
+    }
+
     public static DefaultGroupTaskReportModel of(TaskReportModel model) {
         Comparator<String> keyComparator = GUtil.last(GUtil.last(STRING_COMPARATOR, OTHER_GROUP), DEFAULT_GROUP);
         //noinspection Convert2Lambda
@@ -62,14 +69,6 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
             groups.putAll(OTHER_GROUP, groups.removeAll(DEFAULT_GROUP));
         }
         return new DefaultGroupTaskReportModel(groups);
-    }
-
-    public static final String OTHER_GROUP = "other";
-    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
-    private final SetMultimap<String, TaskDetails> groups;
-
-    private DefaultGroupTaskReportModel(SetMultimap<String, TaskDetails> groups) {
-        this.groups = groups;
     }
 
     @Nullable

@@ -22,7 +22,7 @@ plugins {
 
 description = "Tools to handle classloaders"
 
-gradlebuildJava{
+gradlebuildJava {
     usedInWorkers()
     usesFutureStdlib = true
 }

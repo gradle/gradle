@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFa
 import org.gradle.api.tasks.testing.TestResult;
 
 import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +28,10 @@ public class TestMethodResult {
     private final long id;
     private final String name;
     private final String displayName;
+    private final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
     private TestResult.ResultType resultType;
     private long duration;
     private long endTime;
-    private final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
-
     private SerializableFailure assumptionFailure = null;
 
     public TestMethodResult(long id, String name) {

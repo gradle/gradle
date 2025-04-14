@@ -26,20 +26,6 @@ import java.util.function.Consumer;
  */
 public interface IncludedBuildTaskResource {
 
-    enum State {
-        NotScheduled(true), Scheduled(false), Success(true), Failed(true);
-
-        private final boolean complete;
-
-        State(boolean complete) {
-            this.complete = complete;
-        }
-
-        public boolean isComplete() {
-            return complete;
-        }
-    }
-
     /**
      * Queues the task for execution, but does not schedule it. Use {@link org.gradle.internal.buildtree.BuildTreeWorkGraph#scheduleWork(Consumer)} to schedule queued tasks.
      */
@@ -55,4 +41,18 @@ public interface IncludedBuildTaskResource {
     State getTaskState();
 
     String healthDiagnostics();
+
+    enum State {
+        NotScheduled(true), Scheduled(false), Success(true), Failed(true);
+
+        private final boolean complete;
+
+        State(boolean complete) {
+            this.complete = complete;
+        }
+
+        public boolean isComplete() {
+            return complete;
+        }
+    }
 }

@@ -78,34 +78,34 @@ class BinaryCompatibilityHelper {
                     projectRootDir: projectRootDirPath
                 ])
                 addRule(BinaryBreakingChangesRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
+                    acceptedApiChanges: acceptedChangesMap,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
+                    projectRootDir: projectRootDirPath
                 ])
                 addRule(NullabilityBreakingChangesRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
+                    acceptedApiChanges: acceptedChangesMap,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
+                    projectRootDir: projectRootDirPath
                 ])
                 addRule(KotlinModifiersBreakingChangeRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
+                    acceptedApiChanges: acceptedChangesMap,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
+                    projectRootDir: projectRootDirPath
                 ])
                 addRule(JApiChangeStatus.NEW, IncubatingMissingRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
+                    acceptedApiChanges: acceptedChangesMap,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
+                    projectRootDir: projectRootDirPath
                 ])
                 addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
+                    acceptedApiChanges: acceptedChangesMap,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
+                    projectRootDir: projectRootDirPath
                 ])
                 addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
+                    acceptedApiChanges: acceptedChangesMap,
+                    mainApiChangesJsonFile: mainApiChangesJsonFilePath,
+                    projectRootDir: projectRootDirPath
                 ])
 
                 addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)

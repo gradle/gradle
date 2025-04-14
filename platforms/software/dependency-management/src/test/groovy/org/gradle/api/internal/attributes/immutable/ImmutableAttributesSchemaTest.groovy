@@ -302,7 +302,7 @@ class ImmutableAttributesSchemaTest extends Specification {
         }
     }
 
-     def "schemas with different ordered attribute precedence order are different"() {
+    def "schemas with different ordered attribute precedence order are different"() {
         def a = Attribute.of("a", String)
         def b = Attribute.of("b", String)
 
@@ -336,14 +336,17 @@ class ImmutableAttributesSchemaTest extends Specification {
         @Override
         void execute(MultipleCandidatesDetails<String> objectMultipleCandidatesDetails) {}
     }
+
     static class SecondDisambiguationRule implements AttributeDisambiguationRule<String> {
         @Override
         void execute(MultipleCandidatesDetails<String> objectMultipleCandidatesDetails) {}
     }
+
     static class FirstCompatibilityRule implements AttributeCompatibilityRule<String> {
         @Override
         void execute(CompatibilityCheckDetails<String> stringCompatibilityCheckDetails) {}
     }
+
     static class SecondCompatibilityRule implements AttributeCompatibilityRule<String> {
         @Override
         void execute(CompatibilityCheckDetails<String> stringCompatibilityCheckDetails) {}

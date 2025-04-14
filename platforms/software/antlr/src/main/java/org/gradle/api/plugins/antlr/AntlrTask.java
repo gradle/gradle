@@ -66,18 +66,16 @@ import java.util.concurrent.Callable;
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {
 
+    private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
     private boolean trace;
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
     private List<String> arguments = new ArrayList<>();
-
     private FileCollection antlrClasspath;
-
     private File outputDirectory;
     private String maxHeapSize;
     private FileCollection sourceSetDirectories;
-    private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -144,13 +142,6 @@ public abstract class AntlrTask extends SourceTask {
         this.maxHeapSize = maxHeapSize;
     }
 
-    public void setArguments(List<String> arguments) {
-        if (arguments != null) {
-            this.arguments = arguments;
-        }
-    }
-
-
     /**
      * List of command-line arguments passed to the antlr process
      *
@@ -160,6 +151,12 @@ public abstract class AntlrTask extends SourceTask {
     @ToBeReplacedByLazyProperty
     public List<String> getArguments() {
         return arguments;
+    }
+
+    public void setArguments(List<String> arguments) {
+        if (arguments != null) {
+            this.arguments = arguments;
+        }
     }
 
     /**
@@ -293,6 +290,16 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal("tracked via stableSources")
+    @ToBeReplacedByLazyProperty
+    public FileTree getSource() {
+        return super.getSource();
+    }
+
+    /**
      * Sets the source for this task. Delegates to {@link #setSource(Object)}.
      *
      * If the source is of type {@link SourceDirectorySet}, then the relative path of each source grammar files
@@ -324,16 +331,6 @@ public abstract class AntlrTask extends SourceTask {
         if (source instanceof SourceDirectorySet) {
             this.sourceSetDirectories = ((SourceDirectorySet) source).getSourceDirectories();
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Internal("tracked via stableSources")
-    @ToBeReplacedByLazyProperty
-    public FileTree getSource() {
-        return super.getSource();
     }
 
     /**

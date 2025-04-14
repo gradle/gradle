@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 /**
  * A rule that selects the best value out of a set of candidates.
  *
- * @since 4.0
  * @param <T> The attribute value type.
+ * @since 4.0
  */
 public interface AttributeDisambiguationRule<T> extends Action<MultipleCandidatesDetails<T>> {
 }

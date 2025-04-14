@@ -83,7 +83,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
 
         ClosureBackedRuleAction<?> that = (ClosureBackedRuleAction<?>) o;
         return closure.equals(that.closure)
-                && subjectType.equals(that.subjectType);
+            && subjectType.equals(that.subjectType);
     }
 
     @Override

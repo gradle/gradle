@@ -67,6 +67,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
 
     /**
      * Unsupported.
+     *
      * @deprecated Use {@link PluginManager#apply(Class)} instead.
      */
     @Override
@@ -75,6 +76,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
 
     /**
      * Unsupported.
+     *
      * @deprecated Use {@link PluginManager#apply(Class)} instead.
      */
     @Deprecated
@@ -83,6 +85,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
 
     /**
      * Unsupported.
+     *
      * @deprecated plugins cannot be removed.
      */
     @Override
@@ -91,6 +94,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
 
     /**
      * Unsupported.
+     *
      * @deprecated plugins cannot be removed.
      */
     @Override
@@ -99,6 +103,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
 
     /**
      * Unsupported.
+     *
      * @deprecated plugins cannot be removed.
      */
     @Override

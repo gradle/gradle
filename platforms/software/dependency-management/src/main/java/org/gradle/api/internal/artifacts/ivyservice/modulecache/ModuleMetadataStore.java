@@ -39,10 +39,12 @@ public class ModuleMetadataStore {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Interner<String> stringInterner;
 
-    public ModuleMetadataStore(PathKeyFileStore metaDataStore,
-                               ModuleMetadataSerializer moduleMetadataSerializer,
-                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                               Interner<String> stringInterner) {
+    public ModuleMetadataStore(
+        PathKeyFileStore metaDataStore,
+        ModuleMetadataSerializer moduleMetadataSerializer,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        Interner<String> stringInterner
+    ) {
         this.metaDataStore = metaDataStore;
         this.moduleMetadataSerializer = moduleMetadataSerializer;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -79,7 +81,7 @@ public class ModuleMetadataStore {
 
     private String[] getFilePath(ModuleComponentAtRepositoryKey componentId) {
         ModuleComponentIdentifier moduleComponentIdentifier = componentId.getComponentId();
-        return new String[] {
+        return new String[]{
             moduleComponentIdentifier.getGroup(),
             moduleComponentIdentifier.getModule(),
             moduleComponentIdentifier.getVersion(),

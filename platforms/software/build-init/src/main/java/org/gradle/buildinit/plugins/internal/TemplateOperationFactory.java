@@ -55,8 +55,8 @@ public class TemplateOperationFactory {
     }
 
     public class TemplateOperationBuilder {
+        final private Map<String, String> bindings = new HashMap<>();
         private File target;
-        final private Map<String, String> bindings =  new HashMap<>();
         private URL templateUrl;
 
         public TemplateOperationBuilder(Map<String, String> defaultBindings) {
@@ -82,7 +82,7 @@ public class TemplateOperationFactory {
         }
 
         public TemplateOperationBuilder withDocumentationBindings(Map<String, String> documentationBindings) {
-            for (Map.Entry<String, String> entry : documentationBindings.entrySet()){
+            for (Map.Entry<String, String> entry : documentationBindings.entrySet()) {
                 bindings.put(entry.getKey(), documentationRegistry.getDocumentationFor(entry.getValue()));
             }
             return this;

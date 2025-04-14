@@ -44,7 +44,7 @@ class CachingFileHasherTest extends Specification {
 
     def setup() {
         file.write("some-content")
-        1 * cacheAccess.createIndexedCache({ it.cacheName == "fileHashes"  }, _, _) >> cache
+        1 * cacheAccess.createIndexedCache({ it.cacheName == "fileHashes" }, _, _) >> cache
         hasher = new CachingFileHasher(target, cacheAccess, new StringInterner(), timeStampInspector, "fileHashes", fileSystem, 1000, statisticsCollector)
     }
 

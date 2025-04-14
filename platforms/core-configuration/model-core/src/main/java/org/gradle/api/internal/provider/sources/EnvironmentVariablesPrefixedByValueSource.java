@@ -20,11 +20,11 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class EnvironmentVariablesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<EnvironmentVariablesPrefixedByValueSource.Parameters> {
-    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
-    }
-
     @Override
     protected Stream<Map.Entry<String, String>> itemsToFilter() {
         return System.getenv().entrySet().stream();
+    }
+
+    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
     }
 }

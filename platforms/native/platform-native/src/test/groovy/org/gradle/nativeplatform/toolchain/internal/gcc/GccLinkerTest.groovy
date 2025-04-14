@@ -39,9 +39,10 @@ import spock.lang.Specification
 @UsesNativeServices
 class GccLinkerTest extends Specification {
     public static final String LOG_LOCATION = "<log location>"
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
-    def operationLogger =  Mock(BuildOperationLogger)
+    def operationLogger = Mock(BuildOperationLogger)
     def executable = new File("executable")
     def invocationContext = Mock(CommandLineToolContext)
     def invocation = Mock(CommandLineToolInvocation)
@@ -58,13 +59,13 @@ class GccLinkerTest extends Specification {
         def outputFile = testDir.file("output/lib")
 
         final expectedArgs = [
-                "-sys1", "-sys2",
-                "-shared",
-                getSoNameProp("installName"),
-                "-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath,
-                testDir.file("two.o").absolutePath,
-                "-arg1", "-arg2"].flatten()
+            "-sys1", "-sys2",
+            "-shared",
+            getSoNameProp("installName"),
+            "-o", outputFile.absolutePath,
+            testDir.file("one.o").absolutePath,
+            testDir.file("two.o").absolutePath,
+            "-arg1", "-arg2"].flatten()
 
         when:
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
@@ -107,10 +108,10 @@ class GccLinkerTest extends Specification {
         def outputFile = testDir.file("output/lib")
 
         final expectedArgs = [
-                "-shared",
-                "-Wl,-install_name,installName",
-                "-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath].flatten()
+            "-shared",
+            "-Wl,-install_name,installName",
+            "-o", outputFile.absolutePath,
+            testDir.file("one.o").absolutePath].flatten()
 
         when:
         NativePlatform platform = Mock(NativePlatform)
@@ -146,9 +147,9 @@ class GccLinkerTest extends Specification {
         def outputFile = testDir.file("output/lib")
 
         final expectedArgs = [
-                "-shared",
-                "-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath].flatten()
+            "-shared",
+            "-o", outputFile.absolutePath,
+            testDir.file("one.o").absolutePath].flatten()
 
         when:
         NativePlatform platform = Mock(NativePlatform)
@@ -184,10 +185,10 @@ class GccLinkerTest extends Specification {
         def outputFile = testDir.file("output/lib")
 
         final expectedArgs = [
-                "-shared",
-                "-Wl,-soname,installName",
-                "-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath].flatten()
+            "-shared",
+            "-Wl,-soname,installName",
+            "-o", outputFile.absolutePath,
+            testDir.file("one.o").absolutePath].flatten()
 
         when:
         NativePlatform platform = Mock(NativePlatform)

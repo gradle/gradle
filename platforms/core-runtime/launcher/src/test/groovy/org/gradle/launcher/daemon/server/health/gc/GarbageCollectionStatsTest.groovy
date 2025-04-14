@@ -48,8 +48,8 @@ class GarbageCollectionStatsTest extends Specification {
 
         where:
         stats << [
-                GarbageCollectionStats.forHeap(withoutMaxMemory(heapEvents)),
-                GarbageCollectionStats.forNonHeap(withoutMaxMemory(nonHeapEvents))
+            GarbageCollectionStats.forHeap(withoutMaxMemory(heapEvents)),
+            GarbageCollectionStats.forNonHeap(withoutMaxMemory(nonHeapEvents))
         ]
     }
 
@@ -61,36 +61,38 @@ class GarbageCollectionStatsTest extends Specification {
         stats.usedPercent == 0
         where:
         stats << [
-                GarbageCollectionStats.forHeap([]),
-                GarbageCollectionStats.forNonHeap([])
+            GarbageCollectionStats.forHeap([]),
+            GarbageCollectionStats.forNonHeap([])
         ]
     }
 
     def getHeapEvents() {
         return [
-                new GarbageCollectionEvent(0000, new MemoryUsage(0, 100, 1000, 1000), 1),
-                new GarbageCollectionEvent(1000, new MemoryUsage(0, 250, 1000, 1000), 2),
-                new GarbageCollectionEvent(2000, new MemoryUsage(0, 500, 1000, 1000), 3),
-                new GarbageCollectionEvent(3000, new MemoryUsage(0, 750, 1000, 1000), 6),
-                new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 13)
+            new GarbageCollectionEvent(0000, new MemoryUsage(0, 100, 1000, 1000), 1),
+            new GarbageCollectionEvent(1000, new MemoryUsage(0, 250, 1000, 1000), 2),
+            new GarbageCollectionEvent(2000, new MemoryUsage(0, 500, 1000, 1000), 3),
+            new GarbageCollectionEvent(3000, new MemoryUsage(0, 750, 1000, 1000), 6),
+            new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 13)
         ]
     }
 
     def getNonHeapEvents() {
         return [
-                new GarbageCollectionEvent(0000, new MemoryUsage(0, 500, 1000, 1000), 0),
-                new GarbageCollectionEvent(1000, new MemoryUsage(0, 600, 1000, 1000), 0),
-                new GarbageCollectionEvent(2000, new MemoryUsage(0, 700, 1000, 1000), 0),
-                new GarbageCollectionEvent(3000, new MemoryUsage(0, 800, 1000, 1000), 0),
-                new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 0)
+            new GarbageCollectionEvent(0000, new MemoryUsage(0, 500, 1000, 1000), 0),
+            new GarbageCollectionEvent(1000, new MemoryUsage(0, 600, 1000, 1000), 0),
+            new GarbageCollectionEvent(2000, new MemoryUsage(0, 700, 1000, 1000), 0),
+            new GarbageCollectionEvent(3000, new MemoryUsage(0, 800, 1000, 1000), 0),
+            new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 0)
         ]
     }
 
     def withoutMaxMemory(List<GarbageCollectionEvent> events) {
-        return events.collect { new GarbageCollectionEvent(
-            it.timestamp,
-            new MemoryUsage(it.usage.init, it.usage.used, it.usage.committed, -1),
-            it.count
-        ) }
+        return events.collect {
+            new GarbageCollectionEvent(
+                it.timestamp,
+                new MemoryUsage(it.usage.init, it.usage.used, it.usage.committed, -1),
+                it.count
+            )
+        }
     }
 }

@@ -36,6 +36,6 @@ public class DefaultBuildDashboardReports extends DelegatingReportContainer<Repo
 
     @Override
     public DirectoryReport getHtml() {
-        return (DirectoryReport)getByName("html");
+        return (DirectoryReport) getByName("html");
     }
 }

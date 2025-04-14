@@ -192,7 +192,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         }
 
         void changesIncorporated() {
-            pendingChanges = Math.max(0, pendingChanges-1);
+            pendingChanges = Math.max(0, pendingChanges - 1);
         }
 
         boolean hasRemainingChanges() {

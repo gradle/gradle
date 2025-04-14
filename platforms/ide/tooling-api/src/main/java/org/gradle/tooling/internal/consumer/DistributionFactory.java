@@ -96,9 +96,9 @@ public class DistributionFactory {
     }
 
     public static class ZippedDistribution implements Distribution {
-        private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
         private final Clock clock;
+        private InstalledDistribution installedDistribution;
 
         private ZippedDistribution(WrapperConfiguration wrapperConfiguration, Clock clock) {
             this.wrapperConfiguration = wrapperConfiguration;

@@ -34,6 +34,31 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
         this.classpathHasher = classpathHasher;
     }
 
+    private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {
+        Hasher hasher = Hashing.newHasher();
+        addToHash(hasher, spec.getClassNames());
+        addToHash(hasher, spec.getPackageNames());
+        addToHash(hasher, spec.getPackagePrefixes());
+        addToHash(hasher, spec.getResourcePrefixes());
+        addToHash(hasher, spec.getResourceNames());
+        addToHash(hasher, spec.getDisallowedClassNames());
+        addToHash(hasher, spec.getDisallowedPackagePrefixes());
+        return hasher.hash();
+    }
+
+    private static void addToHash(Hasher hasher, Set<String> items) {
+        int count = items.size();
+        hasher.putInt(count);
+        if (count == 0) {
+            return;
+        }
+        String[] sortedItems = items.toArray(new String[count]);
+        Arrays.sort(sortedItems);
+        for (String item : sortedItems) {
+            hasher.putString(item);
+        }
+    }
+
     @Override
     protected ClassLoader doCreateClassLoader(String name, ClassLoader parent, ClassPath classPath) {
         ClassLoader classLoader = super.doCreateClassLoader(name, parent, classPath);
@@ -69,30 +94,5 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
 
     private HashCode calculateClassLoaderHash(ClassPath classPath) {
         return classpathHasher.hash(classPath);
-    }
-
-    private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {
-        Hasher hasher = Hashing.newHasher();
-        addToHash(hasher, spec.getClassNames());
-        addToHash(hasher, spec.getPackageNames());
-        addToHash(hasher, spec.getPackagePrefixes());
-        addToHash(hasher, spec.getResourcePrefixes());
-        addToHash(hasher, spec.getResourceNames());
-        addToHash(hasher, spec.getDisallowedClassNames());
-        addToHash(hasher, spec.getDisallowedPackagePrefixes());
-        return hasher.hash();
-    }
-
-    private static void addToHash(Hasher hasher, Set<String> items) {
-        int count = items.size();
-        hasher.putInt(count);
-        if (count == 0) {
-            return;
-        }
-        String[] sortedItems = items.toArray(new String[count]);
-        Arrays.sort(sortedItems);
-        for (String item : sortedItems) {
-            hasher.putString(item);
-        }
     }
 }

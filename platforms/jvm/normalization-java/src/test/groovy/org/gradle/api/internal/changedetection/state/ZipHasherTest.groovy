@@ -176,6 +176,6 @@ class ZipHasherTest extends Specification {
     }
 
     private static RegularFileSnapshotContext snapshotContext(TestFile file) {
-        return new DefaultRegularFileSnapshotContext({ }, new RegularFileSnapshot(file.path, file.name, TestHashCodes.hashCodeFrom(0), DefaultFileMetadata.file(0, 0, AccessType.DIRECT)))
+        return new DefaultRegularFileSnapshotContext({}, new RegularFileSnapshot(file.path, file.name, TestHashCodes.hashCodeFrom(0), DefaultFileMetadata.file(0, 0, AccessType.DIRECT)))
     }
 }

@@ -34,15 +34,15 @@ import javax.inject.Inject;
 @Incubating
 public abstract class JvmToolchainsPlugin implements Plugin<Project> {
 
-    @Override
-    public void apply(Project target) {
-        target.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, javaToolchainQueryService);
-    }
-
     private final JavaToolchainQueryService javaToolchainQueryService;
 
     @Inject
     public JvmToolchainsPlugin(JavaToolchainQueryService javaToolchainQueryService) {
         this.javaToolchainQueryService = javaToolchainQueryService;
+    }
+
+    @Override
+    public void apply(Project target) {
+        target.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, javaToolchainQueryService);
     }
 }

@@ -59,21 +59,6 @@ public class Jvm implements JavaInfo {
     private Optional<File> toolsJar;
     private Boolean jdk;
 
-    public static Jvm current() {
-        Jvm jvm = CURRENT.get();
-        if (jvm == null) {
-            CURRENT.compareAndSet(null, new Jvm(OperatingSystem.current()));
-            jvm = CURRENT.get();
-        }
-        return jvm;
-    }
-
-    private static Jvm create(File javaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
-        Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, implementationJavaVersion, javaVersionMajor);
-        Jvm current = current();
-        return jvm.getJavaHome().equals(current.getJavaHome()) ? current : jvm;
-    }
-
     /**
      * Constructs JVM details by inspecting the current JVM.
      */
@@ -95,6 +80,21 @@ public class Jvm implements JavaInfo {
         this.javaVersionMajor = javaVersionMajor;
         this.userSupplied = userSupplied;
         this.javaHome = findJavaHome(suppliedJavaBase);
+    }
+
+    public static Jvm current() {
+        Jvm jvm = CURRENT.get();
+        if (jvm == null) {
+            CURRENT.compareAndSet(null, new Jvm(OperatingSystem.current()));
+            jvm = CURRENT.get();
+        }
+        return jvm;
+    }
+
+    private static Jvm create(File javaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
+        Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, implementationJavaVersion, javaVersionMajor);
+        Jvm current = current();
+        return jvm.getJavaHome().equals(current.getJavaHome()) ? current : jvm;
     }
 
     /**
@@ -129,6 +129,21 @@ public class Jvm implements JavaInfo {
     @Deprecated
     public static Jvm discovered(File javaHome, String implementationJavaVersion, JavaVersion javaVersion) {
         return create(javaHome, implementationJavaVersion, Integer.parseInt(javaVersion.getMajorVersion()));
+    }
+
+    public static Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
+        Map<String, Object> vars = new HashMap<String, Object>();
+        for (Map.Entry<String, ?> entry : envVars.entrySet()) {
+            // The following are known variables that can change between builds and should not be inherited
+            if (APP_NAME_REGEX.matcher(entry.getKey()).matches()
+                || JAVA_MAIN_CLASS_REGEX.matcher(entry.getKey()).matches()
+                || entry.getKey().equals("TERM_SESSION_ID")
+                || entry.getKey().equals("ITERM_SESSION_ID")) {
+                continue;
+            }
+            vars.put(entry.getKey(), entry.getValue());
+        }
+        return vars;
     }
 
     @Override
@@ -366,21 +381,6 @@ public class Jvm implements JavaInfo {
         }
 
         return Optional.absent();
-    }
-
-    public static Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-        Map<String, Object> vars = new HashMap<String, Object>();
-        for (Map.Entry<String, ?> entry : envVars.entrySet()) {
-            // The following are known variables that can change between builds and should not be inherited
-            if (APP_NAME_REGEX.matcher(entry.getKey()).matches()
-                || JAVA_MAIN_CLASS_REGEX.matcher(entry.getKey()).matches()
-                || entry.getKey().equals("TERM_SESSION_ID")
-                || entry.getKey().equals("ITERM_SESSION_ID")) {
-                continue;
-            }
-            vars.put(entry.getKey(), entry.getValue());
-        }
-        return vars;
     }
 
     public boolean isIbmJvm() {

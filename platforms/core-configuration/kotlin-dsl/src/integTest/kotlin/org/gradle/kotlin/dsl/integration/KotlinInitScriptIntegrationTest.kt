@@ -160,23 +160,30 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     fun `can access gradle extensions`() {
         withDefaultSettingsIn("plugin")
         withKotlinDslPluginIn("plugin")
-        withFile("plugin/src/main/kotlin/MyExtension.kt", """
+        withFile(
+            "plugin/src/main/kotlin/MyExtension.kt", """
             interface MyExtension {
                 fun some(message: String) { println(message) }
             }
-        """)
-        withFile("plugin/src/main/kotlin/gradle-plugin.init.gradle.kts", """
+        """
+        )
+        withFile(
+            "plugin/src/main/kotlin/gradle-plugin.init.gradle.kts", """
             extensions.create<MyExtension>("my")
-        """)
+        """
+        )
         // https://github.com/gradle/gradle/issues/22091
-        withFile("plugin/gradle.properties", """
+        withFile(
+            "plugin/gradle.properties", """
             kotlin.options.suppressFreeCompilerArgsModificationWarning=true
-        """)
+        """
+        )
         build(rootDir = existing("plugin"), "jar")
 
         val pluginJar = existing("plugin/build/libs/plugin.jar")
 
-        val initScript = withFile("my.init.gradle.kts", """
+        val initScript = withFile(
+            "my.init.gradle.kts", """
             initscript {
                 dependencies {
                     classpath(files("${normaliseFileSeparators(pluginJar.absolutePath)}"))
@@ -191,7 +198,8 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             extensions.configure<MyExtension> { some("api.configure") }
             the<MyExtension>().some("kotlin.get")
             configure<MyExtension> { some("kotlin.configure") }
-        """)
+        """
+        )
         withBuildScript("""tasks.register("noop")""")
 
         assertThat(

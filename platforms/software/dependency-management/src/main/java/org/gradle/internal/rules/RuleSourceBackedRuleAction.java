@@ -79,36 +79,8 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         return Arrays.asList(parameterTypes).subList(1, parameterTypes.length);
     }
 
-    @Override
-    public List<Class<?>> getInputTypes() {
-        return inputTypes;
-    }
-
-    @Override
-    public void execute(T subject, List<?> inputs) {
-        Object[] args = new Object[inputs.size() + 1];
-        args[0] = subject;
-        for (int i = 0; i < inputs.size(); i++) {
-            Object input =  inputs.get(i);
-            args[i+1] = input;
-        }
-        ruleMethod.invoke(instance, args);
-    }
-
     private static List<Method> findAllMethods(Class<?> target, Spec<Method> predicate) {
         return findAllMethodsInternal(target, predicate, new MultiMap<>(), new ArrayList<>(), false);
-    }
-
-    private static class MultiMap<K, V> extends HashMap<K, List<V>> {
-        @Override
-        public List<V> get(Object key) {
-            if (!containsKey(key)) {
-                @SuppressWarnings("unchecked") K keyCast = (K) key;
-                put(keyCast, new LinkedList<>());
-            }
-
-            return super.get(key);
-        }
     }
 
     private static List<Method> findAllMethodsInternal(Class<?> target, Spec<Method> predicate, MultiMap<String, Method> seen, List<Method> collector, boolean stopAtFirst) {
@@ -135,5 +107,33 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         }
 
         return collector;
+    }
+
+    @Override
+    public List<Class<?>> getInputTypes() {
+        return inputTypes;
+    }
+
+    @Override
+    public void execute(T subject, List<?> inputs) {
+        Object[] args = new Object[inputs.size() + 1];
+        args[0] = subject;
+        for (int i = 0; i < inputs.size(); i++) {
+            Object input = inputs.get(i);
+            args[i + 1] = input;
+        }
+        ruleMethod.invoke(instance, args);
+    }
+
+    private static class MultiMap<K, V> extends HashMap<K, List<V>> {
+        @Override
+        public List<V> get(Object key) {
+            if (!containsKey(key)) {
+                @SuppressWarnings("unchecked") K keyCast = (K) key;
+                put(keyCast, new LinkedList<>());
+            }
+
+            return super.get(key);
+        }
     }
 }

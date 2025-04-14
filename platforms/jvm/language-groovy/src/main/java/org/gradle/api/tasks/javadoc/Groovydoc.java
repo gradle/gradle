@@ -61,37 +61,22 @@ import java.util.Set;
  */
 @CacheableTask
 public abstract class Groovydoc extends SourceTask {
-    private FileCollection groovyClasspath;
-
-    private FileCollection classpath;
-
-    private File destinationDir;
-
-    private boolean use;
-
-    private boolean noTimestamp = true;
-
-    private boolean noVersionStamp = true;
-
-    private String windowTitle;
-
-    private String docTitle;
-
-    private String header;
-
-    private String footer;
-
-    private TextResource overview;
-
-    private Set<Link> links = new LinkedHashSet<Link>();
-
     private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
-
     private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class);
-
     private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
-
     private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
+    private FileCollection groovyClasspath;
+    private FileCollection classpath;
+    private File destinationDir;
+    private boolean use;
+    private boolean noTimestamp = true;
+    private boolean noVersionStamp = true;
+    private String windowTitle;
+    private String docTitle;
+    private String header;
+    private String footer;
+    private TextResource overview;
+    private Set<Link> links = new LinkedHashSet<Link>();
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
@@ -438,6 +423,11 @@ public abstract class Groovydoc extends SourceTask {
         links.add(new Link(url, packages));
     }
 
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
     /**
      * A Link class represent a link between groovydoc/javadoc output and url.
      */
@@ -510,10 +500,5 @@ public abstract class Groovydoc extends SourceTask {
             result = 31 * result + (url != null ? url.hashCode() : 0);
             return result;
         }
-    }
-
-    @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 }

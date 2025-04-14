@@ -26,10 +26,15 @@ abstract class AbstractCompilerContinuousIntegrationTest extends AbstractContinu
     }
 
     abstract String getCompileTaskName()
+
     abstract String getCompileTaskType()
+
     abstract String getSourceFileName()
+
     abstract String getInitialSourceContent()
+
     abstract String getChangedSourceContent()
+
     abstract String getApplyAndConfigure()
 
     String getVerifyDaemonsTask() {
@@ -42,7 +47,7 @@ abstract class AbstractCompilerContinuousIntegrationTest extends AbstractContinu
 """
     }
 
-    def "reuses compiler daemons across continuous build instances" () {
+    def "reuses compiler daemons across continuous build instances"() {
         def inputFileName = sourceFileName
         def inputFile = file(inputFileName).createFile()
         def compilerDaemonIdentityFileName = "build/compilerId"

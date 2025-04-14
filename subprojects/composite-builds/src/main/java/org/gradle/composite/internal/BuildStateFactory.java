@@ -64,6 +64,15 @@ public class BuildStateFactory {
         this.buildCancellationToken = buildCancellationToken;
     }
 
+    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
+        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
+        buildSrcStartParameter.setCurrentDir(buildSrcDir);
+        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
+        buildSrcStartParameter.doNotSearchUpwards();
+        buildSrcStartParameter.setInitScripts(containingBuildParameters.getInitScripts());
+        return buildSrcStartParameter;
+    }
+
     public RootBuildState createRootBuild(BuildDefinition buildDefinition) {
         return new DefaultRootBuildState(buildDefinition, buildTreeState, listenerManager);
     }
@@ -101,14 +110,5 @@ public class BuildStateFactory {
         File customBuildFile = DeprecationLogger.whileDisabled(buildSrcStartParameter::getBuildFile);
         assert customBuildFile == null;
         return buildDefinition;
-    }
-
-    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
-        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
-        buildSrcStartParameter.setCurrentDir(buildSrcDir);
-        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        buildSrcStartParameter.doNotSearchUpwards();
-        buildSrcStartParameter.setInitScripts(containingBuildParameters.getInitScripts());
-        return buildSrcStartParameter;
     }
 }

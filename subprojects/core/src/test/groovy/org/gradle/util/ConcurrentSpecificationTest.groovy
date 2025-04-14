@@ -174,7 +174,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         }
 
         then:
-        1 * action.run() >> { operation.callbackLater { } }
+        1 * action.run() >> { operation.callbackLater {} }
     }
 
     @FailsWithMessage(type = IllegalStateException, message = 'Expected action to unblock, but it did not.')
@@ -268,7 +268,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
     @FailsWithMessage(type = IllegalStateException, message = 'Action has not been started.')
     def "blocking action fails when callback made before blocking action started"() {
         expect:
-        waitsForAsyncCallback().callbackLater { }
+        waitsForAsyncCallback().callbackLater {}
     }
 
     def "can check that an action blocks until an asynchronous action is finished"() {
@@ -331,7 +331,7 @@ class ConcurrentSpecificationTest extends ConcurrentSpecification {
         def operation = waitsForAsyncActionToComplete()
 
         when:
-        operation.start { }
+        operation.start {}
 
         then:
         1 * action.run() >> { operation.done() }

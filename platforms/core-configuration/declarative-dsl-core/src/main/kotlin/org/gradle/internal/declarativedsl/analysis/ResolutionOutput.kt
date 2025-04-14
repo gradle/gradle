@@ -175,6 +175,7 @@ sealed interface ObjectOrigin {
             get() = receiver.originElement
         override val function: SchemaFunction
             get() = receiver.function
+
         override fun toString(): String = receiver.toString()
 
         override val delegate: ObjectOrigin

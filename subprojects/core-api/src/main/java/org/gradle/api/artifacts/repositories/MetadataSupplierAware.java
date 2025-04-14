@@ -36,7 +36,6 @@ public interface MetadataSupplierAware {
      * descriptor.
      *
      * @param rule the class of the rule. Gradle will instantiate a new rule for each dependency which requires metadata.
-     *
      * @since 4.9
      */
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
@@ -46,7 +45,6 @@ public interface MetadataSupplierAware {
      *
      * @param rule the class of the rule. Gradle will instantiate a new rule for each dependency which requires metadata.
      * @param configureAction the action to use to configure the rule.
-     *
      * @since 4.9
      */
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
@@ -55,7 +53,6 @@ public interface MetadataSupplierAware {
      * Sets a custom component versions lister. A versions lister will be called whenever a dynamic version is requested.
      *
      * @param lister the class of the lister.
-     *
      * @since 4.9
      */
     void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister);
@@ -65,7 +62,6 @@ public interface MetadataSupplierAware {
      *
      * @param lister the class of the lister.
      * @param configureAction the action to use to configure the lister.
-     *
      * @since 4.9
      */
     void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction);

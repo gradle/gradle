@@ -42,6 +42,15 @@ public class DefaultFailure implements Failure {
         this.problems = problems;
     }
 
+    public static DefaultFailure fromThrowable(Throwable t) {
+        StringWriter out = new StringWriter();
+        PrintWriter wrt = new PrintWriter(out);
+        t.printStackTrace(wrt);
+        Throwable cause = t.getCause();
+        DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
+        return new DefaultFailure(t.getMessage(), out.toString(), Collections.singletonList(causeFailure));
+    }
+
     @Override
     public String getMessage() {
         return message;
@@ -60,14 +69,5 @@ public class DefaultFailure implements Failure {
     @Override
     public List<Problem> getProblems() {
         return problems;
-    }
-
-    public static DefaultFailure fromThrowable(Throwable t) {
-        StringWriter out = new StringWriter();
-        PrintWriter wrt = new PrintWriter(out);
-        t.printStackTrace(wrt);
-        Throwable cause = t.getCause();
-        DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
-        return new DefaultFailure(t.getMessage(), out.toString(), Collections.singletonList(causeFailure));
     }
 }

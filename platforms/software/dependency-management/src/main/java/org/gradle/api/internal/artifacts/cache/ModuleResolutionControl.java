@@ -23,8 +23,10 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
  */
 public interface ModuleResolutionControl extends ResolutionControl<ModuleVersionIdentifier, ResolvedModuleVersion> {
     // TODO: This should be part of the cached result?
+
     /**
      * Does the module change content over time?
+     *
      * @return if the module is changing
      */
     boolean isChanging();

@@ -49,9 +49,8 @@ import java.util.Set;
  * Build cache implementation that delegates to a service accessible via HTTP.
  */
 public class HttpBuildCacheService implements BuildCacheService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
     static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v2";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
         HttpStatus.SC_USE_PROXY,
         HttpStatus.SC_BAD_REQUEST,
@@ -73,6 +72,45 @@ public class HttpBuildCacheService implements BuildCacheService {
         this.useExpectContinue = useExpectContinue;
         this.root = withTrailingSlash(url);
         this.httpClientHelper = httpClientHelper;
+    }
+
+    private static BuildCacheException wrap(Throwable e) {
+        if (e instanceof Error) {
+            throw (Error) e;
+        }
+
+        throw new BuildCacheException(e.getMessage(), e);
+    }
+
+    /**
+     * Create a safe URI from the given one by stripping out user info.
+     *
+     * @param uri Original URI
+     * @return a new URI with no user info
+     */
+    private static URI safeUri(URI uri) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Add a trailing slash to the given URI's path if necessary.
+     *
+     * @param uri the original URI
+     * @return a URI guaranteed to have a trailing slash in the path
+     */
+    private static URI withTrailingSlash(URI uri) {
+        if (uri.getPath().endsWith("/")) {
+            return uri;
+        }
+        try {
+            return new URIBuilder(uri).setPath(uri.getPath() + "/").build();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Override
@@ -155,14 +193,6 @@ public class HttpBuildCacheService implements BuildCacheService {
         }
     }
 
-    private static BuildCacheException wrap(Throwable e) {
-        if (e instanceof Error) {
-            throw (Error) e;
-        }
-
-        throw new BuildCacheException(e.getMessage(), e);
-    }
-
     private boolean isHttpSuccess(int statusCode) {
         return statusCode >= 200 && statusCode < 300;
     }
@@ -178,36 +208,5 @@ public class HttpBuildCacheService implements BuildCacheService {
     @Override
     public void close() throws IOException {
         httpClientHelper.close();
-    }
-
-    /**
-     * Create a safe URI from the given one by stripping out user info.
-     *
-     * @param uri Original URI
-     * @return a new URI with no user info
-     */
-    private static URI safeUri(URI uri) {
-        try {
-            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    /**
-     * Add a trailing slash to the given URI's path if necessary.
-     *
-     * @param uri the original URI
-     * @return a URI guaranteed to have a trailing slash in the path
-     */
-    private static URI withTrailingSlash(URI uri) {
-        if (uri.getPath().endsWith("/")) {
-            return uri;
-        }
-        try {
-            return new URIBuilder(uri).setPath(uri.getPath() + "/").build();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 }

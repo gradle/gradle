@@ -21,7 +21,8 @@ import javax.inject.Inject
 
 // tag::inject_software_component_factory[]
 class InstrumentedJarsPlugin @Inject constructor(
-    private val softwareComponentFactory: SoftwareComponentFactory) : Plugin<Project> {
+    private val softwareComponentFactory: SoftwareComponentFactory
+) : Plugin<Project> {
 // end::inject_software_component_factory[]
 
     override fun apply(project: Project) = project.run {

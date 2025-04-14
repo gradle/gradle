@@ -55,6 +55,27 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
         this.binary = (NativeBinarySpecInternal) binary;
     }
 
+    static String projectPrefix(String projectPath) {
+        if (":".equals(projectPath)) {
+            return "";
+        }
+        return projectPath.substring(1).replace(":", "_") + "_";
+    }
+
+    private static String makeName(Iterable<String> components) {
+        StringBuilder builder = new StringBuilder();
+        for (String component : components) {
+            if (component != null && component.length() > 0) {
+                if (builder.length() == 0) {
+                    builder.append(component);
+                } else {
+                    builder.append(StringUtils.capitalize(component));
+                }
+            }
+        }
+        return builder.toString();
+    }
+
     @Override
     public String getProjectPath() {
         return binary.getProjectPath();
@@ -266,27 +287,6 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     @Override
     public int hashCode() {
         return binary.hashCode();
-    }
-
-    static String projectPrefix(String projectPath) {
-        if (":".equals(projectPath)) {
-            return "";
-        }
-        return projectPath.substring(1).replace(":", "_") + "_";
-    }
-
-    private static String makeName(Iterable<String> components) {
-        StringBuilder builder = new StringBuilder();
-        for (String component : components) {
-            if (component != null && component.length() > 0) {
-                if (builder.length() == 0) {
-                    builder.append(component);
-                } else {
-                    builder.append(StringUtils.capitalize(component));
-                }
-            }
-        }
-        return builder.toString();
     }
 
     private static class LanguageSourceSetCollectionAdapter extends CompositeFileCollection {

@@ -90,13 +90,6 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         return resolutions;
     }
 
-    private static class HideStacktrace extends ThreadLocal<Boolean> {
-        @Override
-        protected Boolean initialValue() {
-            return false;
-        }
-    }
-
     @Override
     public List<? extends Throwable> getCauses() {
         return causes;
@@ -190,5 +183,12 @@ public class DefaultMultiCauseException extends GradleException implements Multi
             }
         }
         return false;
+    }
+
+    private static class HideStacktrace extends ThreadLocal<Boolean> {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
     }
 }

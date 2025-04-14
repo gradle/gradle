@@ -150,7 +150,7 @@ public class JavadocOptionFile {
 
     public Map<String, String> stringifyExtraOptionsToMap(Set<String> optionsToExclude) {
         return options.entrySet().stream()
-                .filter(entry -> !optionsToExclude.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.valueOf(entry.getValue().getValue())));
+            .filter(entry -> !optionsToExclude.contains(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.valueOf(entry.getValue().getValue())));
     }
 }

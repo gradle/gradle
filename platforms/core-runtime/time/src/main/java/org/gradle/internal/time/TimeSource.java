@@ -18,10 +18,6 @@ package org.gradle.internal.time;
 
 interface TimeSource {
 
-    long currentTimeMillis();
-
-    long nanoTime();
-
     TimeSource SYSTEM = new TimeSource() {
         @Override
         public long currentTimeMillis() {
@@ -33,5 +29,9 @@ interface TimeSource {
             return System.nanoTime();
         }
     };
+
+    long currentTimeMillis();
+
+    long nanoTime();
 
 }

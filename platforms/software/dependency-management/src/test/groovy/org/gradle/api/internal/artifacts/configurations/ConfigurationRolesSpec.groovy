@@ -28,12 +28,12 @@ class ConfigurationRolesSpec extends Specification {
         result.get() == role
 
         where:
-        consumable  | resolvable    | declarable        || role
-        true        | true          | true              || ConfigurationRoles.ALL
-        true        | false         | false             || ConfigurationRoles.CONSUMABLE
-        false       | true          | false             || ConfigurationRoles.RESOLVABLE
-        false       | true          | true              || ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        false       | false         | true              || ConfigurationRoles.DEPENDENCY_SCOPE
+        consumable | resolvable | declarable || role
+        true       | true       | true       || ConfigurationRoles.ALL
+        true       | false      | false      || ConfigurationRoles.CONSUMABLE
+        false      | true       | false      || ConfigurationRoles.RESOLVABLE
+        false      | true       | true       || ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+        false      | false      | true       || ConfigurationRoles.DEPENDENCY_SCOPE
     }
 
     def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarable=#declarable"() {
@@ -41,9 +41,9 @@ class ConfigurationRolesSpec extends Specification {
         !ConfigurationRoles.byUsage(consumable, resolvable, declarable).isPresent()
 
         where:
-        consumable  | resolvable    | declarable
-        false       | false         | false
-        true        | true          | false
+        consumable | resolvable | declarable
+        false      | false      | false
+        true       | true       | false
     }
 
     def "predefined roles are named"() {
@@ -51,11 +51,11 @@ class ConfigurationRolesSpec extends Specification {
         role.getName() == name
 
         where:
-        role                                            || name
-        ConfigurationRoles.DEPENDENCY_SCOPE             || "Dependency Scope"
-        ConfigurationRoles.CONSUMABLE                   || "Consumable"
-        ConfigurationRoles.RESOLVABLE                   || "Resolvable"
-        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || "Resolvable Dependency Scope"
-        ConfigurationRoles.ALL                          || "Legacy"
+        role                                           || name
+        ConfigurationRoles.DEPENDENCY_SCOPE            || "Dependency Scope"
+        ConfigurationRoles.CONSUMABLE                  || "Consumable"
+        ConfigurationRoles.RESOLVABLE                  || "Resolvable"
+        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE || "Resolvable Dependency Scope"
+        ConfigurationRoles.ALL                         || "Legacy"
     }
 }

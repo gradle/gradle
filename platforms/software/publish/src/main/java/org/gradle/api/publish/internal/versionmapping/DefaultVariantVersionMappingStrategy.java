@@ -45,10 +45,6 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
         fromResolutionOf(configurations.getByName(configurationName));
     }
 
-    public void setDefaultResolutionConfiguration(@Nullable Configuration defaultConfiguration) {
-        this.defaultConfiguration = defaultConfiguration;
-    }
-
     @Override
     public boolean isEnabled() {
         return enabled;
@@ -64,5 +60,9 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
     @Override
     public Configuration getDefaultResolutionConfiguration() {
         return defaultConfiguration;
+    }
+
+    public void setDefaultResolutionConfiguration(@Nullable Configuration defaultConfiguration) {
+        this.defaultConfiguration = defaultConfiguration;
     }
 }

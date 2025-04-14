@@ -50,7 +50,7 @@ class OutputCleaningCompilerTest extends Specification {
         _ * spec.objectFileDir >> outputDir
         _ * delegateCompiler.execute(_) >> { NativeCompileSpec spec ->
             List<File> sourceFiles = spec.getSourceFiles()
-            sourceFiles.each{ inputFile ->
+            sourceFiles.each { inputFile ->
                 createObjDummy(inputFile)
             }
             _ * workResult.getDidWork() >> !sourceFiles.isEmpty();

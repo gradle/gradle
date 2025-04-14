@@ -115,7 +115,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
         final List<ModuleAlignmentSpec> specs = []
         final Set<String> skipsPlatformMetadata = []
 
-        AbstractAlignmentSpec.ModuleAlignmentSpec module(String name, @DelegatesTo(value=AbstractAlignmentSpec.ModuleAlignmentSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> config = null) {
+        AbstractAlignmentSpec.ModuleAlignmentSpec module(String name, @DelegatesTo(value = AbstractAlignmentSpec.ModuleAlignmentSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> config = null) {
             def spec = new AbstractAlignmentSpec.ModuleAlignmentSpec(name: name)
             if (config) {
                 config.delegate = spec
@@ -188,7 +188,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
             dependencies {
                 components.all(InferModuleSetFromGroupAndVersion)
             }
-            
+
             class InferModuleSetFromGroupAndVersion implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -204,7 +204,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
             dependencies {
                 components.all(AlignOrgGroup)
             }
-            
+
             class AlignOrgGroup implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -222,7 +222,7 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
             dependencies {
                 components.all(AlignOrgGroupTo2Platforms)
             }
-            
+
             class AlignOrgGroupTo2Platforms implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -236,12 +236,12 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
         """
     }
 
-    protected void 'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'(boolean groovyVirtual=false, boolean springVirtual = false) {
+    protected void 'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'(boolean groovyVirtual = false, boolean springVirtual = false) {
         buildFile << """
             dependencies {
                 components.all(GroovyRule)
             }
-            
+
             class GroovyRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {

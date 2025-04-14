@@ -37,20 +37,6 @@ public class FetchParameterizedCustomModelForEachProject implements BuildAction<
         this.parameters = parameters;
     }
 
-    @Override
-    public Map<String, List<SomeToolingModel>> execute(BuildController controller) {
-        GradleBuild buildModel = controller.getBuildModel();
-        Map<String, List<SomeToolingModel>> result = new LinkedHashMap<>();
-        for (String parameter : parameters) {
-            Map<String, SomeToolingModel> model = fetchSomeModelForAllProjects(controller, buildModel, parameter);
-            for (Map.Entry<String, SomeToolingModel> entry : model.entrySet()) {
-                result.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
-            }
-        }
-
-        return result;
-    }
-
     private static Map<String, SomeToolingModel> fetchSomeModelForAllProjects(BuildController controller, GradleBuild buildModel, final String parameterValue) {
         Map<String, SomeToolingModel> result = new LinkedHashMap<>();
         for (BasicGradleProject project : buildModel.getProjects()) {
@@ -70,5 +56,19 @@ public class FetchParameterizedCustomModelForEachProject implements BuildAction<
                 customParameter.setMessagePrefix(parameter);
             }
         });
+    }
+
+    @Override
+    public Map<String, List<SomeToolingModel>> execute(BuildController controller) {
+        GradleBuild buildModel = controller.getBuildModel();
+        Map<String, List<SomeToolingModel>> result = new LinkedHashMap<>();
+        for (String parameter : parameters) {
+            Map<String, SomeToolingModel> model = fetchSomeModelForAllProjects(controller, buildModel, parameter);
+            for (Map.Entry<String, SomeToolingModel> entry : model.entrySet()) {
+                result.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
+            }
+        }
+
+        return result;
     }
 }

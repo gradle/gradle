@@ -154,14 +154,14 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     }
 
     void generateScriptPlugins() {
-        if(numberOfScriptPlugins > 0) {
+        if (numberOfScriptPlugins > 0) {
             def nesting = 5
-            def groupedScriptIds = ((1..numberOfScriptPlugins).groupBy { it % (int)(numberOfScriptPlugins / nesting) }.values)
+            def groupedScriptIds = ((1..numberOfScriptPlugins).groupBy { it % (int) (numberOfScriptPlugins / nesting) }.values)
             def gradleFolder = new File(destDir, "gradle")
             gradleFolder.mkdirs()
             (1..numberOfScriptPlugins).forEach { scriptPluginId ->
                 def nestedScriptId = groupedScriptIds.find { it.contains(scriptPluginId) }?.find { it > scriptPluginId }
-                def  maybeApplyNestedScript = (nestedScriptId != null) ? "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" : ""
+                def maybeApplyNestedScript = (nestedScriptId != null) ? "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" : ""
                 new File(gradleFolder, "script-plugin${scriptPluginId}.gradle").text = maybeApplyNestedScript
             }
         }
@@ -256,12 +256,12 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
         files.addAll(additionalProjectFiles)
 
         args += [
-            projectName     : testProject.name,
+            projectName: testProject.name,
             subprojectNumber: testProject.subprojectNumber,
-            propertyCount   : (testProject.linesOfCodePerSourceFile.intdiv(7)),
-            repository      : testProject.repository,
-            dependencies    : testProject.dependencies,
-            testProject     : testProject
+            propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
+            repository: testProject.repository,
+            dependencies: testProject.dependencies,
+            testProject: testProject
         ]
 
         args += templateArgs

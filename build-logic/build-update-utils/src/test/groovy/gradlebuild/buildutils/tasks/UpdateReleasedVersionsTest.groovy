@@ -105,10 +105,10 @@ class UpdateReleasedVersionsTest extends Specification {
         UpdateReleasedVersions.@Companion.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, newRc, [])
 
         where:
-        version | buildTime
-        '4.3-rc-3'   | 0
-        '4.4-rc-1'   | -1
-        '4.3-rc-4'   | 1
+        version    | buildTime
+        '4.3-rc-3' | 0
+        '4.4-rc-1' | -1
+        '4.3-rc-4' | 1
     }
 
     def "older rcs are not stored"() {
@@ -122,10 +122,10 @@ class UpdateReleasedVersionsTest extends Specification {
         UpdateReleasedVersions.@Companion.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, oldRc, [])
 
         where:
-        version | buildTime
-        '4.3-rc-1'   | 1
-        '4.2-rc-3'   | -1
-        '4.2-rc-3'   | 1
+        version    | buildTime
+        '4.3-rc-1' | 1
+        '4.2-rc-3' | -1
+        '4.2-rc-3' | 1
     }
 
     ReleasedVersions releasedVersions(ReleasedVersion snapshot, ReleasedVersion rc, List<ReleasedVersion> versions) {

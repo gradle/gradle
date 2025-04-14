@@ -43,10 +43,13 @@ public abstract class Tar extends AbstractArchiveTask {
     }
 
     private ArchiveOutputStreamFactory getCompressor() {
-        switch(compression) {
-            case BZIP2: return Bzip2Archiver.getCompressor();
-            case GZIP:  return GzipArchiver.getCompressor();
-            default:    return new SimpleCompressor();
+        switch (compression) {
+            case BZIP2:
+                return Bzip2Archiver.getCompressor();
+            case GZIP:
+                return GzipArchiver.getCompressor();
+            default:
+                return new SimpleCompressor();
         }
     }
 

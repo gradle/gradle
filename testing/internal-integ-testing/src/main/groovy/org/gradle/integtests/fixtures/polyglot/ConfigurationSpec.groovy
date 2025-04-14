@@ -51,7 +51,7 @@ class ConfigurationSpec extends MultiSectionHandler {
                 return super.generateSection(dsl)
             case GradleDsl.KOTLIN:
                 def creation = isCreate.get()
-                def prefix =  creation ?"val $name by configurations.creating ":"${name}.run "
+                def prefix = creation ? "val $name by configurations.creating " : "${name}.run "
                 return """$prefix {
     ${innerDsl(dsl)}
 }"""

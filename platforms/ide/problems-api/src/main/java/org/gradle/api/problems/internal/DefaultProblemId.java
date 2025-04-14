@@ -35,6 +35,14 @@ public class DefaultProblemId extends ProblemId implements Serializable {
         this.parent = parent;
     }
 
+    static String groupPath(@Nullable ProblemGroup group) {
+        if (group == null) {
+            return "";
+        }
+        ProblemGroup parent = group.getParent();
+        return groupPath(parent) + group.getName() + ":";
+    }
+
     @Override
     public String getName() {
         return id;
@@ -53,14 +61,6 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     @Override
     public String toString() {
         return groupPath(getGroup()) + getName();
-    }
-
-    static String groupPath(@Nullable ProblemGroup group) {
-        if (group == null) {
-            return "";
-        }
-        ProblemGroup parent = group.getParent();
-        return groupPath(parent) + group.getName() + ":";
     }
 
     @Override

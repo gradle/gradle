@@ -85,6 +85,7 @@ public class JarUtil {
 
     /**
      * Parses Manifest from a byte array.
+     *
      * @param content the bytes of the manifest
      * @return the Manifest
      * @throws IOException if the manifest cannot be parsed
@@ -114,7 +115,6 @@ public class JarUtil {
      *
      * @param entryPath the full path to the entry inside the JAR
      * @return major version of Java platform for which this entry is intended if it is in the versioned directory or empty Optional
-     *
      * @see <a href="https://docs.oracle.com/en/java/javase/20/docs/specs/jar/jar.html#multi-release-jar-files">MR JAR specification</a>
      */
     public static OptionalInt getVersionedDirectoryMajorVersion(String entryPath) {

@@ -39,22 +39,6 @@ public class Jdk7Symlink implements Symlink {
         this.symlinkCreationSupported = symlinkCreationSupported;
     }
 
-    @Override
-    public boolean isSymlinkCreationSupported() {
-        return symlinkCreationSupported;
-    }
-
-    @Override
-    public void symlink(File link, File target) throws Exception {
-        link.getParentFile().mkdirs();
-        Files.createSymbolicLink(link.toPath(), target.toPath());
-    }
-
-    @Override
-    public boolean isSymlink(File suspect) {
-        return Files.isSymbolicLink(suspect.toPath());
-    }
-
     private static boolean doesSystemSupportSymlinks(TemporaryFileProvider temporaryFileProvider) {
         Path sourceFile = null;
         Path linkFile = null;
@@ -89,5 +73,21 @@ public class Jdk7Symlink implements Symlink {
                 // We don't really need to handle this.
             }
         }
+    }
+
+    @Override
+    public boolean isSymlinkCreationSupported() {
+        return symlinkCreationSupported;
+    }
+
+    @Override
+    public void symlink(File link, File target) throws Exception {
+        link.getParentFile().mkdirs();
+        Files.createSymbolicLink(link.toPath(), target.toPath());
+    }
+
+    @Override
+    public boolean isSymlink(File suspect) {
+        return Files.isSymbolicLink(suspect.toPath());
     }
 }

@@ -42,7 +42,7 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
 
     protected abstract ModelActionRole getMutationType();
 
-    private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
+    private static class ExtractedMutationRule<S> extends AbstractExtractedModelRule {
         private final ModelActionRole mutationType;
         private final RuleApplicationScope ruleApplicationScope;
 

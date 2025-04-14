@@ -32,9 +32,9 @@ class CppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelPara
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         def apps = [
-            first : new ExeWithLibraryUsingLibraryHelloWorldApp(),
+            first: new ExeWithLibraryUsingLibraryHelloWorldApp(),
             second: new ExeWithLibraryUsingLibraryHelloWorldApp(),
-            third : new ExeWithLibraryUsingLibraryHelloWorldApp(),
+            third: new ExeWithLibraryUsingLibraryHelloWorldApp(),
         ]
 
         apps.each { name, app ->

@@ -60,10 +60,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     class ProblemProgressListener implements ProgressListener {
 
         List<?> problems = []
+
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof ProblemEvent) {
-                 this.problems.add(event)
+                this.problems.add(event)
             }
         }
     }

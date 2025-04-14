@@ -39,7 +39,7 @@ public class TwoStageModuleArtifactCache implements ModuleArtifactCache {
             // skip writing because the file comes from the RO cache
             return;
         }
-        writableCache.store(key, artifactFile,  moduleDescriptorHash);
+        writableCache.store(key, artifactFile, moduleDescriptorHash);
     }
 
     @Override

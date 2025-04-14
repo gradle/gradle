@@ -22,10 +22,6 @@ package org.gradle.internal.buildoption;
  */
 public interface Option {
     abstract class Value<T> {
-        public abstract boolean isExplicit();
-
-        public abstract T get();
-
         /**
          * Creates the default value for an option.
          */
@@ -59,5 +55,9 @@ public interface Option {
                 }
             };
         }
+
+        public abstract boolean isExplicit();
+
+        public abstract T get();
     }
 }

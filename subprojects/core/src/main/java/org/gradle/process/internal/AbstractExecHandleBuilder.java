@@ -46,19 +46,13 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
-        delegate.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
     public InputStream getStandardInput() {
         return delegate.getStandardInput();
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        delegate.setStandardOutput(outputStream);
+    public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
+        delegate.setStandardInput(inputStream);
         return this;
     }
 
@@ -68,14 +62,20 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
-    public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
-        delegate.setErrorOutput(outputStream);
+    public AbstractExecHandleBuilder setStandardOutput(OutputStream outputStream) {
+        delegate.setStandardOutput(outputStream);
         return this;
     }
 
     @Override
     public OutputStream getErrorOutput() {
         return delegate.getErrorOutput();
+    }
+
+    @Override
+    public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
+        delegate.setErrorOutput(outputStream);
+        return this;
     }
 
     @Override

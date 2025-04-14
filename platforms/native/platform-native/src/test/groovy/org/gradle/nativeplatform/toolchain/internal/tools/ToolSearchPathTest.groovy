@@ -25,7 +25,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ToolSearchPathTest extends Specification {
-    @Rule def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def os = Stub(OperatingSystem)
     def registry = new ToolSearchPath(os)
 

@@ -86,6 +86,7 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
                 dataTypeRef.fqName,
                 dataTypeRef.typeArguments.map { reconstructTypeArgument(it) }
             )
+
             is DataTypeRef.Type -> DataTypeRefInternal.DefaultType(dataTypeRef.dataType)
         }
     }
@@ -120,7 +121,7 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
  * invocation id).  Operations in different generations with the same invocation id have no relationship to each
  * other except by coincidence.
  */
-data class OperationId(val invocationId: Long, val generationId: OperationGenerationId): Comparable<OperationId> {
+data class OperationId(val invocationId: Long, val generationId: OperationGenerationId) : Comparable<OperationId> {
     override fun toString(): String = "${generationId.ordinal}:$invocationId"
 
     override fun compareTo(other: OperationId): Int = comparator.compare(this, other)
@@ -141,12 +142,16 @@ class AnalysisContext(
     // TODO: thread safety?
     private
     val mutableScopes = mutableListOf<AnalysisScope>()
+
     private
     val mutableAssignments = mutableListOf<AssignmentRecord>()
+
     private
     val nextInstant = AtomicLong(1)
+
     private
     val mutableAdditions = mutableListOf<DataAdditionRecord>()
+
     private
     val mutableNestedObjectAccess = mutableListOf<NestedObjectAccessRecord>()
 

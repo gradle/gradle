@@ -34,19 +34,15 @@ import java.util.Set;
  * A {@code DependencyCollector} is used as part of a dependencies block in the DSL. A collector implements
  * a single dependency scope and exposes the declared dependencies on {@link #getDependencies()}.
  *
- * @apiNote
- * Gradle has specific extensions to make explicit calls to {@code add(...)} unnecessary from the DSL.
+ * @apiNote Gradle has specific extensions to make explicit calls to {@code add(...)} unnecessary from the DSL.
  * <ul>
  * <li>For Groovy DSL, we create {@code call(...)} equivalents for all the {@code add(...)} methods.</li>
  * <li>For Kotlin DSL, we create {@code invoke(...)} equivalents for all the {@code add(...)} methods.</li>
  * </ul>
- *
  * @implSpec This interface should not be implemented by end users or plugins.
- * @implNote
- * Changes to this interface may require changes to the
+ * @implNote Changes to this interface may require changes to the
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
- *
  * @since 8.6
  */
 @NonExtensible
@@ -57,7 +53,6 @@ public interface DependencyCollector {
      *
      * @param dependencyNotation dependency to add
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
-     *
      * @since 8.6
      */
     void add(CharSequence dependencyNotation);
@@ -68,7 +63,6 @@ public interface DependencyCollector {
      * @param dependencyNotation dependency to add
      * @param configuration an action to configure the dependency
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
-     *
      * @since 8.6
      */
     void add(CharSequence dependencyNotation, Action<? super ExternalModuleDependency> configuration);
@@ -78,7 +72,6 @@ public interface DependencyCollector {
      *
      * @param files files to add as a dependency
      * @see DependencyFactory#create(FileCollection)
-     *
      * @since 8.6
      */
     void add(FileCollection files);
@@ -89,7 +82,6 @@ public interface DependencyCollector {
      * @param files files to add as a dependency
      * @param configuration an action to configure the dependency
      * @see DependencyFactory#create(FileCollection)
-     *
      * @since 8.6
      */
     void add(FileCollection files, Action<? super FileCollectionDependency> configuration);
@@ -98,7 +90,6 @@ public interface DependencyCollector {
      * Add a dependency.
      *
      * @param externalModule external module to add as a dependency
-     *
      * @since 8.6
      */
     @Incubating
@@ -109,7 +100,6 @@ public interface DependencyCollector {
      *
      * @param externalModule external module to add as a dependency
      * @param configuration an action to configure the dependency
-     *
      * @since 8.6
      */
     @Incubating
@@ -119,7 +109,6 @@ public interface DependencyCollector {
      * Add a dependency.
      *
      * @param dependency dependency to add
-     *
      * @since 8.6
      */
     void add(Dependency dependency);
@@ -129,7 +118,6 @@ public interface DependencyCollector {
      *
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
-     *
      * @since 8.6
      */
     <D extends Dependency> void add(D dependency, Action<? super D> configuration);
@@ -138,7 +126,6 @@ public interface DependencyCollector {
      * Add a dependency.
      *
      * @param dependency dependency to add
-     *
      * @since 8.6
      */
     void add(Provider<? extends Dependency> dependency);
@@ -148,7 +135,6 @@ public interface DependencyCollector {
      *
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
-     *
      * @since 8.6
      */
     <D extends Dependency> void add(Provider<? extends D> dependency, Action<? super D> configuration);
@@ -191,7 +177,6 @@ public interface DependencyCollector {
      * Add a bundle.
      *
      * @param bundle the bundle to add
-     *
      * @since 8.6
      */
     @Incubating
@@ -202,7 +187,6 @@ public interface DependencyCollector {
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
-     *
      * @since 8.6
      */
     @Incubating
@@ -212,7 +196,6 @@ public interface DependencyCollector {
      * Add a bundle.
      *
      * @param bundle the bundle to add
-     *
      * @since 8.6
      */
     @Incubating
@@ -223,7 +206,6 @@ public interface DependencyCollector {
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
-     *
      * @since 8.6
      */
     @Incubating
@@ -233,7 +215,6 @@ public interface DependencyCollector {
      * Add a bundle.
      *
      * @param bundle the bundle to add
-     *
      * @since 8.6
      */
     @Incubating
@@ -244,7 +225,6 @@ public interface DependencyCollector {
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
-     *
      * @since 8.6
      */
     @Incubating

@@ -20,8 +20,8 @@ package org.gradle.workers;
  * Marker interface for parameter objects to {@link WorkAction}s.
  *
  * <p>
- *     Parameter types should be interfaces, only declaring getters for {@link org.gradle.api.provider.Property}-like objects.
- *     Example:
+ * Parameter types should be interfaces, only declaring getters for {@link org.gradle.api.provider.Property}-like objects.
+ * Example:
  * </p>
  * <pre class='autoTested'>
  * public interface MyParameters extends WorkParameters {

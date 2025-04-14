@@ -24,6 +24,32 @@ import org.gradle.internal.serialize.Serializer;
 
 public class ImplementationSnapshotSerializer implements Serializer<ImplementationSnapshot> {
 
+    private static Impl determineSerializer(ImplementationSnapshot implementationSnapshot) {
+        if (implementationSnapshot instanceof ClassImplementationSnapshot) {
+            return Impl.CLASS;
+        }
+        if (implementationSnapshot instanceof LambdaImplementationSnapshot) {
+            return Impl.LAMBDA;
+        }
+        if (implementationSnapshot instanceof UnknownImplementationSnapshot) {
+            return Impl.UNKNOWN;
+        }
+        throw new IllegalArgumentException("Unexpected implementation snapshot type: " + implementationSnapshot.getClass().getName());
+    }
+
+    @Override
+    public ImplementationSnapshot read(Decoder decoder) throws Exception {
+        Impl serializer = Impl.values()[decoder.readSmallInt()];
+        return serializer.read(decoder);
+    }
+
+    @Override
+    public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+        Impl serializer = determineSerializer(implementationSnapshot);
+        encoder.writeSmallInt(serializer.ordinal());
+        serializer.write(encoder, implementationSnapshot);
+    }
+
     private enum Impl implements Serializer<ImplementationSnapshot> {
         CLASS {
             @Override
@@ -82,6 +108,8 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
             }
         };
 
+        protected final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
+
         @Override
         public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
             encoder.writeString(implementationSnapshot.getClassIdentifier());
@@ -94,36 +122,8 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
             return readAdditionalData(classIdentifier, decoder);
         }
 
-        protected final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
-
         protected abstract ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception;
 
         protected abstract void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception;
-    }
-
-    @Override
-    public ImplementationSnapshot read(Decoder decoder) throws Exception {
-        Impl serializer = Impl.values()[decoder.readSmallInt()];
-        return serializer.read(decoder);
-    }
-
-    @Override
-    public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-        Impl serializer = determineSerializer(implementationSnapshot);
-        encoder.writeSmallInt(serializer.ordinal());
-        serializer.write(encoder, implementationSnapshot);
-    }
-
-    private static Impl determineSerializer(ImplementationSnapshot implementationSnapshot) {
-        if (implementationSnapshot instanceof ClassImplementationSnapshot) {
-            return Impl.CLASS;
-        }
-        if (implementationSnapshot instanceof LambdaImplementationSnapshot) {
-            return Impl.LAMBDA;
-        }
-        if (implementationSnapshot instanceof UnknownImplementationSnapshot) {
-            return Impl.UNKNOWN;
-        }
-        throw new IllegalArgumentException("Unexpected implementation snapshot type: " + implementationSnapshot.getClass().getName());
     }
 }

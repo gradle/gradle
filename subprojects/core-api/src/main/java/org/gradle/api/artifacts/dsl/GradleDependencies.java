@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Dependency;
  *
  * @apiNote This interface is intended to be used to mix-in methods that expose Gradle-specific dependencies to the DSL.
  * @implSpec The default implementation of all methods should not be overridden.
- *
  * @since 7.6
  */
 public interface GradleDependencies extends Dependencies {

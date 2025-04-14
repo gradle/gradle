@@ -157,6 +157,7 @@ public class ArtifactSetToFileCollectionFactory {
             }
         };
     }
+
     private static class NameBackedResolutionHost implements ResolutionHost, DisplayName {
         private final InternalProblems problemsService;
         private final String displayName;

@@ -340,13 +340,13 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("integTest")
 
         where: // When testing a custom version, this should be a different version that the default
-        testingFrameworkMethod       | testingFrameworkVersion      | testingFrameworkType       | testingFrameworkDep
-        'useJUnit'                   | '4.12'                       | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter'            | '5.7.1'                      | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock'                   | '2.2-groovy-3.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
-        'useSpock'                   | '2.2-groovy-4.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest'              | '1.5.30'                     | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG'                  | '7.3.0'                      | TestNGTestFramework        | "testng-7.3.0.jar"
+        testingFrameworkMethod | testingFrameworkVersion | testingFrameworkType       | testingFrameworkDep
+        'useJUnit'             | '4.12'                  | JUnitTestFramework         | "junit-4.12.jar"
+        'useJUnitJupiter'      | '5.7.1'                 | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
+        'useSpock'             | '2.2-groovy-3.0'        | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
+        'useSpock'             | '2.2-groovy-4.0'        | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
+        'useKotlinTest'        | '1.5.30'                | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
+        'useTestNG'            | '7.3.0'                 | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
     def "can override previously configured test framework on a test suite"() {
@@ -874,13 +874,13 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
 
         where:
-        format                              | platformType  | expression
-        'single GAV string'                 | 'platform'            | "platform('org.example.gradle:platform')"
-        'module method'                     | 'platform'            | "platform(module('org.example.gradle', 'platform', null))"
-        'referencing project.dependencies'  | 'platform'            | "project.dependencies.platform('org.example.gradle:platform')"
-        'single GAV string'                 | 'enforcedPlatform'    | "enforcedPlatform('org.example.gradle:platform')"
-        'module method'                     | 'enforcedPlatform'    | "enforcedPlatform(module('org.example.gradle', 'platform', null))"
-        'referencing project.dependencies'  | 'enforcedPlatform'    | "project.dependencies.enforcedPlatform('org.example.gradle:platform')"
+        format                             | platformType       | expression
+        'single GAV string'                | 'platform'         | "platform('org.example.gradle:platform')"
+        'module method'                    | 'platform'         | "platform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies' | 'platform'         | "project.dependencies.platform('org.example.gradle:platform')"
+        'single GAV string'                | 'enforcedPlatform' | "enforcedPlatform('org.example.gradle:platform')"
+        'module method'                    | 'enforcedPlatform' | "enforcedPlatform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies' | 'enforcedPlatform' | "project.dependencies.enforcedPlatform('org.example.gradle:platform')"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19065")

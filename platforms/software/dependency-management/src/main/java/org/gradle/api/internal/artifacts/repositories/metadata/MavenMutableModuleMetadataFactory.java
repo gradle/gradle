@@ -42,10 +42,12 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     private final ImmutableAttributesSchema schema;
 
     @Inject
-    public MavenMutableModuleMetadataFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                             AttributesFactory attributesFactory,
-                                             NamedObjectInstantiator objectInstantiator,
-                                             PreferJavaRuntimeVariant schema) {
+    public MavenMutableModuleMetadataFactory(
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        AttributesFactory attributesFactory,
+        NamedObjectInstantiator objectInstantiator,
+        PreferJavaRuntimeVariant schema
+    ) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.schema = schema.getSchema();
         this.attributesFactory = new DefaultMavenAttributesFactory(attributesFactory, objectInstantiator);

@@ -19,9 +19,9 @@ package org.gradle.api.internal.tasks;
 import org.gradle.internal.properties.StaticValue;
 
 public abstract class AbstractTaskFilePropertyRegistration implements TaskPropertyRegistration {
+    private final StaticValue value;
     private String propertyName;
     private boolean optional;
-    private final StaticValue value;
 
     public AbstractTaskFilePropertyRegistration(StaticValue value) {
         this.value = value;
@@ -32,6 +32,13 @@ public abstract class AbstractTaskFilePropertyRegistration implements TaskProper
         return propertyName;
     }
 
+    public void setPropertyName(String propertyName) {
+        if (propertyName.isEmpty()) {
+            throw new IllegalArgumentException("Property name must not be empty string");
+        }
+        this.propertyName = propertyName;
+    }
+
     @Override
     public StaticValue getValue() {
         return value;
@@ -40,13 +47,6 @@ public abstract class AbstractTaskFilePropertyRegistration implements TaskProper
     @Override
     public boolean isOptional() {
         return optional;
-    }
-
-    public void setPropertyName(String propertyName) {
-        if (propertyName.isEmpty()) {
-            throw new IllegalArgumentException("Property name must not be empty string");
-        }
-        this.propertyName = propertyName;
     }
 
     public void setOptional(boolean optional) {

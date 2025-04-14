@@ -22,7 +22,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class FileReferenceFactoryTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final TestFile rootDir = tmpDir.createDir("root")
     final FileReferenceFactory factory = new FileReferenceFactory()
 

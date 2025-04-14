@@ -32,7 +32,7 @@ abstract class AbstractPortAllocatorTest extends Specification {
     }
 
     static boolean isReservedInList(List<ReservedPortRange> reservationList, int startPort, int endPort) {
-        for (int i=0; i<reservationList.size(); i++) {
+        for (int i = 0; i < reservationList.size(); i++) {
             ReservedPortRange range = reservationList.get(i)
             if ((startPort <= range.endPort && startPort >= range.startPort)
                 || (endPort >= range.startPort && endPort <= range.endPort)) {

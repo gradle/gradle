@@ -42,7 +42,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         def providedCompileConfiguration = project.configurations.getByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)
 
         then:
-        providedCompileConfiguration.extendsFrom  == [] as Set
+        providedCompileConfiguration.extendsFrom == [] as Set
         !providedCompileConfiguration.visible
         providedCompileConfiguration.transitive
 

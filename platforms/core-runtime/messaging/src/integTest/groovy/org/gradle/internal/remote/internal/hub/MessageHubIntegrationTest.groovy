@@ -216,7 +216,7 @@ class MessageHubIntegrationTest extends ConcurrentSpec {
                 }
 
                 @Override
-                void flush()  {
+                void flush() {
                     outgoingB.drainTo(incomingA)
                 }
 

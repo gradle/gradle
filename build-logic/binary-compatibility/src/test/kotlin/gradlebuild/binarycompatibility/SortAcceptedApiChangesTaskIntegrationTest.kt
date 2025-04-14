@@ -173,7 +173,8 @@ class SortAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMain
                         }
                     ]
                 }
-            """)
+            """
+        )
         //language=JSON
         val expectedSecondJson = loadChangesJson(
             """
@@ -197,7 +198,8 @@ class SortAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMain
                         }
                     ]
                 }
-            """)
+            """
+        )
         val actualFirstJson = loadChangesJson(firstAcceptedApiChangesFile.readText())
         val actualSecondJson = loadChangesJson(secondAcceptedApiChangesFile.readText())
 

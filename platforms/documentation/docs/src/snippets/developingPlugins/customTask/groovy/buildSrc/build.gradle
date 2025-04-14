@@ -4,7 +4,7 @@ plugins {
 
 gradlePlugin {
     plugins {
-       binaryRepositoryVersionPlugin {
+        binaryRepositoryVersionPlugin {
             id = 'org.myorg.binary-repository-version'
             implementationClass = 'org.myorg.BinaryRepositoryVersionPlugin'
         }

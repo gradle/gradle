@@ -26,10 +26,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class MapWithPrefixedKeysValueSource<P extends MapWithPrefixedKeysValueSource.Parameters> implements ValueSource<Map<String, String>, P> {
-    public interface Parameters extends ValueSourceParameters {
-        Property<String> getPrefix();
-    }
-
     @Nullable
     @Override
     public Map<String, String> obtain() {
@@ -41,4 +37,8 @@ public abstract class MapWithPrefixedKeysValueSource<P extends MapWithPrefixedKe
     }
 
     protected abstract Stream<Map.Entry<String, String>> itemsToFilter();
+
+    public interface Parameters extends ValueSourceParameters {
+        Property<String> getPrefix();
+    }
 }

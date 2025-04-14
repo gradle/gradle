@@ -42,16 +42,6 @@ public class DisconnectableInputStream extends BulkReadInputStream {
         See DisconnectableInputStreamTest
      */
 
-    static class ThreadExecuter implements Action<Runnable> {
-        @Override
-        public void execute(Runnable runnable) {
-            Thread thread = new Thread(runnable);
-            thread.setName("DisconnectableInputStream source reader");
-            thread.setDaemon(true);
-            thread.start();
-        }
-    }
-
     public DisconnectableInputStream(InputStream source) {
         this(source, 1024);
     }
@@ -176,6 +166,16 @@ public class DisconnectableInputStream extends BulkReadInputStream {
             condition.signalAll();
         } finally {
             lock.unlock();
+        }
+    }
+
+    static class ThreadExecuter implements Action<Runnable> {
+        @Override
+        public void execute(Runnable runnable) {
+            Thread thread = new Thread(runnable);
+            thread.setName("DisconnectableInputStream source reader");
+            thread.setDaemon(true);
+            thread.start();
         }
     }
 }

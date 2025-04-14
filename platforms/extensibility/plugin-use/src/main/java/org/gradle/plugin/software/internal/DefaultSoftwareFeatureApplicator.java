@@ -65,6 +65,10 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         this.classLoaderScope = classLoaderScope;
     }
 
+    private static String getPluginObjectDisplayName(Object parameterObject) {
+        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
+    }
+
     @Override
     public <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
@@ -100,10 +104,6 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
                     .collect(toImmutableList())
             );
         }
-    }
-
-    private static String getPluginObjectDisplayName(Object parameterObject) {
-        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
     @NullMarked

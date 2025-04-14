@@ -54,13 +54,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private final ResourceLockCoordinationService lockCoordinator;
-    private Spec<? super Task> filter = Specs.satisfyAll();
-    private int order = 0;
-    private boolean continueOnFailure;
-
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> finalizers = new LinkedHashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
+    private Spec<? super Task> filter = Specs.satisfyAll();
+    private int order = 0;
+    private boolean continueOnFailure;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
 

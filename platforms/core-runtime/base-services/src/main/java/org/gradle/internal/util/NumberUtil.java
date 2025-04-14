@@ -32,8 +32,8 @@ import static java.util.Collections.unmodifiableList;
 public class NumberUtil {
     public static final int BASE_LOG2 = 10;
     public static final int KIB_BASE = 1 << BASE_LOG2;
-    private static final int FRACTIONAL_DIGIT_COUNT = 1;
     private static final MathContext MC = new MathContext(String.valueOf(KIB_BASE).length() + FRACTIONAL_DIGIT_COUNT, FLOOR);
+    private static final int FRACTIONAL_DIGIT_COUNT = 1;
     private static final List<String> UNITS = unmodifiableList(asList(" B", " KiB", " MiB", " GiB", " TiB", " PiB", " EiB"));
     private static final List<String> ORDINAL_SUFFIXES = unmodifiableList(asList("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"));
 

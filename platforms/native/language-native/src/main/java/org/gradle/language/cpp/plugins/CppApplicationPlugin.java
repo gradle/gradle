@@ -80,16 +80,16 @@ public abstract class CppApplicationPlugin implements Plugin<Project> {
             // Use the debug variant as the development binary
             // Prefer the host architecture, if present, else use the first architecture specified
             return application.getBinaries().get().stream()
+                .filter(CppExecutable.class::isInstance)
+                .map(CppExecutable.class::cast)
+                .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
+                .findFirst()
+                .orElseGet(() -> application.getBinaries().get().stream()
                     .filter(CppExecutable.class::isInstance)
                     .map(CppExecutable.class::cast)
-                    .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
+                    .filter(binary -> !binary.isOptimized())
                     .findFirst()
-                    .orElseGet(() -> application.getBinaries().get().stream()
-                            .filter(CppExecutable.class::isInstance)
-                            .map(CppExecutable.class::cast)
-                            .filter(binary -> !binary.isOptimized())
-                            .findFirst()
-                            .orElse(null));
+                    .orElse(null));
         }));
 
         application.getBinaries().whenElementKnown(binary -> {
@@ -99,16 +99,16 @@ public abstract class CppApplicationPlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
             Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                    variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
-                            application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                        } else {
-                            // Known, but not buildable
-                            application.getMainPublication().addVariant(variantIdentity);
-                        }
-                    });
+                providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                variantIdentity -> {
+                    if (tryToBuildOnHost(variantIdentity)) {
+                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+                        application.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    } else {
+                        // Known, but not buildable
+                        application.getMainPublication().addVariant(variantIdentity);
+                    }
+                });
 
             // Configure the binaries
             application.getBinaries().realizeNow();

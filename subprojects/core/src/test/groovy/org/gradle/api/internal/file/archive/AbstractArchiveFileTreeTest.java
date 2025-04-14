@@ -48,13 +48,17 @@ import static org.junit.Assert.assertEquals;
  * functionality.
  */
 public abstract class AbstractArchiveFileTreeTest {
-    @Rule public final TestNameTestDirectoryProvider tempDirProvider = new TestNameTestDirectoryProvider(getClass());
-    @Rule public final Resources resources = new Resources(tempDirProvider);
+    @Rule
+    public final TestNameTestDirectoryProvider tempDirProvider = new TestNameTestDirectoryProvider(getClass());
+    @Rule
+    public final Resources resources = new Resources(tempDirProvider);
     protected final TestFile tmpDir = tempDirProvider.getTestDirectory().file("tmp");
     protected final TestFile rootDir = tempDirProvider.getTestDirectory().file("root");
 
     protected abstract TestFile getArchiveFile();
+
     protected abstract AbstractArchiveFileTree getTree();
+
     protected abstract void archiveFileToRoot(TestFile file);
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
@@ -73,7 +77,7 @@ public abstract class AbstractArchiveFileTreeTest {
             }
 
             @Override
-            public void visitDir(FileVisitDetails dirDetails) { }
+            public void visitDir(FileVisitDetails dirDetails) {}
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
@@ -105,13 +109,13 @@ public abstract class AbstractArchiveFileTreeTest {
 
         // Create callables that will send the visitors to visit the archive
         List<Callable<List<Long>>> callables = visitors.stream().map(v -> {
-                return new Callable<List<Long>>() {
-                    @Override
-                    public List<Long> call() {
-                        getTree().visit(v);
-                        return v.getActualCounts();
-                    }
-                };
+            return new Callable<List<Long>>() {
+                @Override
+                public List<Long> call() {
+                    getTree().visit(v);
+                    return v.getActualCounts();
+                }
+            };
         }).collect(Collectors.toList());
 
         // Concurrently visit the archive

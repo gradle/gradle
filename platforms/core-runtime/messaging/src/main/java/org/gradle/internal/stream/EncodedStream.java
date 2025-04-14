@@ -25,7 +25,7 @@ import java.io.OutputStream;
  * Useful when streams are interpreted a text streams as it happens on IBM java for standard input.
  */
 public abstract class EncodedStream {
-    private final static char[] HEX_DIGIT = new char[] {
+    private final static char[] HEX_DIGIT = new char[]{
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
     };
 
@@ -36,6 +36,16 @@ public abstract class EncodedStream {
 
         public EncodedInput(java.io.InputStream delegate) {
             this.delegate = delegate;
+        }
+
+        public static int hexToByte(int s) throws IOException {
+            if (s >= '0' && s <= '9') {
+                return s - '0';
+            }
+            if (s >= 'a' && s <= 'f') {
+                return s - 'a' + 10;
+            }
+            throw new IOException(String.format("Unexpected value %s received. It seems the stream was not encoded correctly.", s));
         }
 
         @Override
@@ -49,16 +59,6 @@ public abstract class EncodedStream {
                 throw new IOException("Unable to decode, expected 2 bytes but received only 1 byte. It seems the stream was not encoded correctly.");
             }
             return (hexToByte(byte1) << 4) | hexToByte(byte2);
-        }
-
-        public static int hexToByte(int s) throws IOException {
-            if (s >= '0' && s <= '9') {
-                return s - '0';
-            }
-            if (s >= 'a' && s <= 'f') {
-                return s - 'a' + 10;
-            }
-            throw new IOException(String.format("Unexpected value %s received. It seems the stream was not encoded correctly.", s));
         }
     }
 

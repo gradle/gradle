@@ -27,7 +27,7 @@ public class LoggingProcess implements Action<WorkerProcessContext>, Serializabl
 
     private final List<SerializableLogAction> actions;
 
-    public LoggingProcess(SerializableLogAction... actions){
+    public LoggingProcess(SerializableLogAction... actions) {
         this.actions = Arrays.asList(actions);
     }
 

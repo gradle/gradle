@@ -42,7 +42,21 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private final HashCode strategyConfigurationHash;
     private HashCode hash;
 
-    public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy, @Nullable  FileCollectionFingerprint candidate) {
+    private DefaultCurrentFileCollectionFingerprint(
+        Map<String, FileSystemLocationFingerprint> fingerprints,
+        FileSystemSnapshot roots,
+        ImmutableMultimap<String, HashCode> rootHashes,
+        FingerprintingStrategy strategy
+    ) {
+        this.fingerprints = fingerprints;
+        this.identifier = strategy.getIdentifier();
+        this.hashingStrategy = strategy.getHashingStrategy();
+        this.strategyConfigurationHash = strategy.getConfigurationHash();
+        this.roots = roots;
+        this.rootHashes = rootHashes;
+    }
+
+    public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy, @Nullable FileCollectionFingerprint candidate) {
         if (roots == FileSystemSnapshot.EMPTY) {
             return strategy.getEmptyFingerprint();
         }
@@ -66,20 +80,6 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private static boolean equalRootHashes(ImmutableMultimap<String, HashCode> first, ImmutableMultimap<String, HashCode> second) {
         // We cannot use `first.equals(second)`, since the order of the root hashes matters
         return Iterables.elementsEqual(first.entries(), second.entries());
-    }
-
-    private DefaultCurrentFileCollectionFingerprint(
-        Map<String, FileSystemLocationFingerprint> fingerprints,
-        FileSystemSnapshot roots,
-        ImmutableMultimap<String, HashCode> rootHashes,
-        FingerprintingStrategy strategy
-    ) {
-        this.fingerprints = fingerprints;
-        this.identifier = strategy.getIdentifier();
-        this.hashingStrategy = strategy.getHashingStrategy();
-        this.strategyConfigurationHash = strategy.getConfigurationHash();
-        this.roots = roots;
-        this.rootHashes = rootHashes;
     }
 
     @Override

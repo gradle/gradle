@@ -131,6 +131,16 @@ public class DependencyVerificationsXmlReader {
             this.builder = builder;
         }
 
+        private static void assertContext(boolean test, String innerTag, String outerTag) {
+            assertContext(test, "<" + innerTag + "> must be found under the <" + outerTag + "> tag");
+        }
+
+        private static void assertContext(boolean test, String message) {
+            if (!test) {
+                throw new DependencyVerificationException("Invalid dependency verification metadata file: " + message);
+            }
+        }
+
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) {
             switch (qName) {
@@ -277,7 +287,7 @@ public class DependencyVerificationsXmlReader {
             String name = getNullableAttribute(attributes, NAME);
             String version = getNullableAttribute(attributes, VERSION);
             String file = getNullableAttribute(attributes, FILE);
-            if (group != null || name!=null || version != null || file != null) {
+            if (group != null || name != null || version != null || file != null) {
                 builder.addTrustedKey(
                     currentTrustedKey,
                     group,
@@ -318,16 +328,6 @@ public class DependencyVerificationsXmlReader {
 
         private void assertValidComponent() {
             assertContext(currentComponent != null, ARTIFACT, COMPONENT);
-        }
-
-        private static void assertContext(boolean test, String innerTag, String outerTag) {
-            assertContext(test, "<" + innerTag + "> must be found under the <" + outerTag + "> tag");
-        }
-
-        private static void assertContext(boolean test, String message) {
-            if (!test) {
-                throw new DependencyVerificationException("Invalid dependency verification metadata file: " + message);
-            }
         }
 
         @Override

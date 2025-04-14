@@ -91,21 +91,21 @@ class InstrumentedPropertiesResourceGeneratorTest extends InstrumentationCodeGen
             new ReplacedAccessor("setMinErrors", "(I)V", ACCESSORS_REMOVED),
         ]
         def sourceCompatibilityAccessors = [
-                // Order is important
-                new ReplacedAccessor("getSourceCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
-                new ReplacedAccessor("setSourceCompatibility", "(Ljava/lang/String;)V", ACCESSORS_REMOVED)
+            // Order is important
+            new ReplacedAccessor("getSourceCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
+            new ReplacedAccessor("setSourceCompatibility", "(Ljava/lang/String;)V", ACCESSORS_REMOVED)
         ]
         def targetCompatibilityAccessors = [
-                // Order is important
-                new ReplacedAccessor("getTargetCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
-                new ReplacedAccessor("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;", ACCESSORS_REMOVED)
+            // Order is important
+            new ReplacedAccessor("getTargetCompatibility", "()Ljava/lang/String;", ACCESSORS_REMOVED),
+            new ReplacedAccessor("setTargetCompatibility", "(Ljava/lang/String;)Lorg/gradle/test/Task;", ACCESSORS_REMOVED)
         ]
         def properties = [
-                // Order is important
-                new UpgradedProperty("org.gradle.test.Task", "maxErrors", "getMaxErrors", "()Lorg/gradle/api/provider/Property;", maxErrorAccessors),
-                new UpgradedProperty("org.gradle.test.Task", "minErrors", "getMinErrors", "()Lorg/gradle/api/provider/Property;", minErrorAccessors),
-                new UpgradedProperty("org.gradle.test.Task", "sourceCompatibility", "getSourceCompatibility", "()Lorg/gradle/api/provider/Property;", sourceCompatibilityAccessors),
-                new UpgradedProperty("org.gradle.test.Task", "targetCompatibility", "getTargetCompatibility", "()Lorg/gradle/api/provider/Property;", targetCompatibilityAccessors)
+            // Order is important
+            new UpgradedProperty("org.gradle.test.Task", "maxErrors", "getMaxErrors", "()Lorg/gradle/api/provider/Property;", maxErrorAccessors),
+            new UpgradedProperty("org.gradle.test.Task", "minErrors", "getMinErrors", "()Lorg/gradle/api/provider/Property;", minErrorAccessors),
+            new UpgradedProperty("org.gradle.test.Task", "sourceCompatibility", "getSourceCompatibility", "()Lorg/gradle/api/provider/Property;", sourceCompatibilityAccessors),
+            new UpgradedProperty("org.gradle.test.Task", "targetCompatibility", "getTargetCompatibility", "()Lorg/gradle/api/provider/Property;", targetCompatibilityAccessors)
         ]
         assertThat(compilation)
             .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/upgraded-properties.json")

@@ -54,7 +54,7 @@ public class CompilationSourceDirs {
         }
     }
 
-     @VisibleForTesting
+    @VisibleForTesting
     CompilationSourceDirs(List<File> sourceRoots) {
         this.sourceRoots = sourceRoots;
     }
@@ -77,8 +77,8 @@ public class CompilationSourceDirs {
     }
 
     private static class SourceRoots implements FileCollectionStructureVisitor {
-        private boolean canInferSourceRoots = true;
         private final List<File> sourceRoots = new ArrayList<>();
+        private boolean canInferSourceRoots = true;
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {

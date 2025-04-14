@@ -36,7 +36,7 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
     static String applyPlugins(List<String> plugins) {
         """
             plugins {
-                ${plugins.collect { "id '$it'\n"}.join('')}
+                ${plugins.collect { "id '$it'\n" }.join('')}
             }
         """
     }
@@ -66,6 +66,7 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
             }
         """
     }
+
     static String testablePluginProject(List<String> plugins = ['groovy-gradle-plugin']) {
         StringBuilder buildFile = new StringBuilder()
         buildFile << applyPlugins(plugins)

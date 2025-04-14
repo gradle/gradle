@@ -49,6 +49,11 @@ public abstract class Help extends DefaultTask {
         return taskPath;
     }
 
+    @Option(option = "task", description = "The task to show help for.")
+    public void setTaskPath(String taskPath) {
+        this.getTaskPath().set(taskPath);
+    }
+
     @Inject
     protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
@@ -147,11 +152,6 @@ public abstract class Help extends DefaultTask {
         output.text("For troubleshooting, visit ");
         output.withStyle(UserInput).text("https://help.gradle.org");
         output.println();
-    }
-
-    @Option(option = "task", description = "The task to show help for.")
-    public void setTaskPath(String taskPath) {
-        this.getTaskPath().set(taskPath);
     }
 
     private TaskDetailsModel mapFromTaskPath(String taskPath) {

@@ -102,7 +102,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
     def "local build cache configuration includes entry retention timestamp"() {
         given:
-        initScriptFile  << """
+        initScriptFile << """
             beforeSettings { settings ->
                 settings.caches {
                     buildCache.removeUnusedEntriesOlderThan = java.time.ZonedDateTime.of(2024, 11, 10, 9,35, 44, 0, java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()

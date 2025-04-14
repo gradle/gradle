@@ -28,7 +28,7 @@ class TestExecutionRequestActionTest extends Specification {
     BuildEventSubscriptions buildClientSubscriptions = Mock()
     ProviderInternalTestExecutionRequest executionRequest = Mock()
 
-    def "maps testClasses to internalJvmTestRequests if empty"(){
+    def "maps testClasses to internalJvmTestRequests if empty"() {
         given:
         1 * executionRequest.getTestExecutionDescriptors() >> []
         1 * executionRequest.getInternalJvmTestRequests(_) >> []
@@ -41,7 +41,7 @@ class TestExecutionRequestActionTest extends Specification {
         def executionRequestAction = TestExecutionRequestAction.create(buildClientSubscriptions, startParameter, executionRequest);
         then:
         executionRequestAction.getTestClassNames() == ["org.acme.Foo"] as Set
-        executionRequestAction.getInternalJvmTestRequests().collect { [clazz:it.className, method:it.methodName]} == [[clazz:"org.acme.Foo", method:null]]
+        executionRequestAction.getInternalJvmTestRequests().collect { [clazz: it.className, method: it.methodName] } == [[clazz: "org.acme.Foo", method: null]]
 
     }
 }

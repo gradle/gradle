@@ -59,6 +59,7 @@ class TypeAwareBinaryRendererTest extends Specification {
         0 * binRenderer2._
     }
 
-    interface SomeBinary extends BinarySpec { }
-    interface SomeSpecializedBinary extends SomeBinary { }
+    interface SomeBinary extends BinarySpec {}
+
+    interface SomeSpecializedBinary extends SomeBinary {}
 }

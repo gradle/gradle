@@ -31,6 +31,7 @@ import java.io.File;
  * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getLayout()}.
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
+ *
  * @since 4.1
  */
 @ServiceScope(Scope.Project.class)

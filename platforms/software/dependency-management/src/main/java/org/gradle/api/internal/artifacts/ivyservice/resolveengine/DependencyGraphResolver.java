@@ -79,6 +79,22 @@ public class DependencyGraphResolver {
         this.dependencyGraphBuilder = dependencyGraphBuilder;
     }
 
+    private static List<CapabilitiesConflictHandler.Resolver> createCapabilityConflictResolvers(CapabilitiesResolutionInternal capabilitiesResolutionRules) {
+
+        // The order of these resolvers is significant. They run in the declared order.
+        return ImmutableList.of(
+            // Candidates that are no longer selected are filtered out before these resolvers are executed.
+            // If there is only one candidate at the beginning of conflict resolution, select that candidate.
+            new LastCandidateCapabilityResolver(),
+
+            // Otherwise, let the user resolvers reject candidates.
+            new UserConfiguredCapabilityResolver(capabilitiesResolutionRules),
+
+            // If there is one candidate left after the user resolvers are executed, select that candidate.
+            new LastCandidateCapabilityResolver()
+        );
+    }
+
     /**
      * Perform a graph resolution, visiting the resolved graph with the provided visitor.
      *
@@ -142,21 +158,5 @@ public class DependencyGraphResolver {
             return moduleConflictResolver;
         }
         return new ProjectDependencyForcingResolver<>(moduleConflictResolver);
-    }
-
-    private static List<CapabilitiesConflictHandler.Resolver> createCapabilityConflictResolvers(CapabilitiesResolutionInternal capabilitiesResolutionRules) {
-
-        // The order of these resolvers is significant. They run in the declared order.
-        return ImmutableList.of(
-            // Candidates that are no longer selected are filtered out before these resolvers are executed.
-            // If there is only one candidate at the beginning of conflict resolution, select that candidate.
-            new LastCandidateCapabilityResolver(),
-
-            // Otherwise, let the user resolvers reject candidates.
-            new UserConfiguredCapabilityResolver(capabilitiesResolutionRules),
-
-            // If there is one candidate left after the user resolvers are executed, select that candidate.
-            new LastCandidateCapabilityResolver()
-        );
     }
 }

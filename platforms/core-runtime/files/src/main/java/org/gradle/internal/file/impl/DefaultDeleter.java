@@ -36,29 +36,46 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("Since15")
 public class DefaultDeleter implements Deleter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDeleter.class);
-
-    private final LongSupplier timeProvider;
-    private final Predicate<? super File> isSymlink;
-    private final boolean runGcOnFailedDelete;
-
-    private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
-
     @VisibleForTesting
     static final int MAX_REPORTED_PATHS = 16;
-
     @VisibleForTesting
     static final int EMPTY_DIRECTORY_DELETION_ATTEMPTS = 10;
-
     @VisibleForTesting
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
     @VisibleForTesting
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDeleter.class);
+    private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
+    private final LongSupplier timeProvider;
+    private final Predicate<? super File> isSymlink;
+    private final boolean runGcOnFailedDelete;
 
     public DefaultDeleter(LongSupplier timeProvider, Predicate<? super File> isSymlink, boolean runGcOnFailedDelete) {
         this.timeProvider = timeProvider;
         this.isSymlink = isSymlink;
         this.runGcOnFailedDelete = runGcOnFailedDelete;
+    }
+
+    private static Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
+        List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
+        Deque<File> stack = new ArrayDeque<File>();
+        stack.push(directory);
+        while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
+            File current = stack.pop();
+            String absolutePath = current.getAbsolutePath();
+            if (!current.equals(directory) && !failedPaths.contains(absolutePath) && current.lastModified() >= startTime) {
+                paths.add(absolutePath);
+            }
+            if (current.isDirectory()) {
+                File[] children = current.listFiles();
+                if (children != null) {
+                    for (File child : children) {
+                        stack.push(child);
+                    }
+                }
+            }
+        }
+        return paths;
     }
 
     @Override
@@ -209,26 +226,6 @@ public class DefaultDeleter implements Deleter {
         }
     }
 
-    protected static final class FileDeletionResult {
-
-        static FileDeletionResult withoutException(boolean isSuccessful) {
-            return new FileDeletionResult(isSuccessful, null);
-        }
-
-        static FileDeletionResult withException(Exception exception) {
-            return new FileDeletionResult(false, exception);
-        }
-
-        private final boolean isSuccessful;
-        @Nullable
-        private final Exception exception;
-
-        private FileDeletionResult(boolean isSuccessful, @Nullable Exception exception) {
-            this.isSuccessful = isSuccessful;
-            this.exception = exception;
-        }
-    }
-
     private void throwWithHelpMessage(long startTime, File file, Handling handling, Map<String, FileDeletionResult> failedPaths, boolean more) throws IOException {
         IOException ex = new IOException(buildHelpMessageForFailedDelete(startTime, file, handling, failedPaths.keySet(), more));
         for (FileDeletionResult result : failedPaths.values()) {
@@ -277,28 +274,6 @@ public class DefaultDeleter implements Deleter {
             }
         }
         return help.toString();
-    }
-
-    private static Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
-        List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
-        Deque<File> stack = new ArrayDeque<File>();
-        stack.push(directory);
-        while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
-            File current = stack.pop();
-            String absolutePath = current.getAbsolutePath();
-            if (!current.equals(directory) && !failedPaths.contains(absolutePath) && current.lastModified() >= startTime) {
-                paths.add(absolutePath);
-            }
-            if (current.isDirectory()) {
-                File[] children = current.listFiles();
-                if (children != null) {
-                    for (File child : children) {
-                        stack.push(child);
-                    }
-                }
-            }
-        }
-        return paths;
     }
 
     private enum Handling {
@@ -353,5 +328,25 @@ public class DefaultDeleter implements Deleter {
          * How to handle descendants.
          */
         abstract public Handling getDescendantHandling();
+    }
+
+    protected static final class FileDeletionResult {
+
+        private final boolean isSuccessful;
+        @Nullable
+        private final Exception exception;
+
+        private FileDeletionResult(boolean isSuccessful, @Nullable Exception exception) {
+            this.isSuccessful = isSuccessful;
+            this.exception = exception;
+        }
+
+        static FileDeletionResult withoutException(boolean isSuccessful) {
+            return new FileDeletionResult(isSuccessful, null);
+        }
+
+        static FileDeletionResult withException(Exception exception) {
+            return new FileDeletionResult(false, exception);
+        }
     }
 }

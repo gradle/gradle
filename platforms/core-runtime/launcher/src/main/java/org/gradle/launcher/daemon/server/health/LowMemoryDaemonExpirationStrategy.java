@@ -35,16 +35,15 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
  * An expiry strategy which only triggers when system memory falls below a threshold.
  */
 public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy, OsMemoryStatusListener {
-    private ReentrantLock lock = new ReentrantLock();
-    private OsMemoryStatus memoryStatus;
-    private final double minFreeMemoryPercentage;
-    private long physicalMemoryThresholdInBytes;
-    private long virtualMemoryThresholdInBytes;
-    private static final Logger LOGGER = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
-
     // Reasonable default threshold bounds: between 384M and 1G
     public static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024;
     public static final long MAX_THRESHOLD_BYTES = 1024 * 1024 * 1024;
+    private static final Logger LOGGER = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
+    private final double minFreeMemoryPercentage;
+    private ReentrantLock lock = new ReentrantLock();
+    private OsMemoryStatus memoryStatus;
+    private long physicalMemoryThresholdInBytes;
+    private long virtualMemoryThresholdInBytes;
 
     public LowMemoryDaemonExpirationStrategy(double minFreeMemoryPercentage) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");

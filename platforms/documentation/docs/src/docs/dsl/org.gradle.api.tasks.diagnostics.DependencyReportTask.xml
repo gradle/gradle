@@ -5,20 +5,28 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>project-report</literal> plugin</td>
+                    <td>Default with <literal>project-report</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>configurations</td>
-                <td><literal>project.configurations</literal></td>
+                <td>
+                    <literal>project.configurations</literal>
+                </td>
             </tr>
             <tr>
                 <td>outputFile</td>
-                <td><filename><replaceable>${project.projectReportDir}</replaceable>/dependencies.txt</filename></td>
+                <td>
+                    <filename><replaceable>${project.projectReportDir}</replaceable>/dependencies.txt
+                    </filename>
+                </td>
             </tr>
             <tr>
                 <td>projects</td>
-                <td><literal>[project]</literal></td>
+                <td>
+                    <literal>[project]</literal>
+                </td>
             </tr>
         </table>
     </section>

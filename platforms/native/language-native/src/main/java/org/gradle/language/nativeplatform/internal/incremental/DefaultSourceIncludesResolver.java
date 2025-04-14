@@ -276,6 +276,58 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return new PrefixedIncludePath(toDir(sourceDir), includePaths);
     }
 
+    private File normalizeIncludePath(File searchDir, String prefixPath) {
+        boolean onlyDotsSinceLastSeparator = true;
+        for (int i = 0; i < prefixPath.length(); i++) {
+            char currentChar = prefixPath.charAt(i);
+            if (currentChar == '/' || currentChar == '\\') {
+                if (onlyDotsSinceLastSeparator) {
+                    return FileUtils.normalize(new File(searchDir, prefixPath));
+                }
+                onlyDotsSinceLastSeparator = true;
+            } else {
+                if (currentChar != '.') {
+                    onlyDotsSinceLastSeparator = false;
+                }
+            }
+        }
+        return new File(searchDir, prefixPath);
+    }
+
+    private interface ExpressionVisitor {
+        /**
+         * Called when an expression is about to be visited. Called for each intermediate expression as macros are expanded.
+         *
+         * @return true if the visit should continue, false to skip this expression.
+         */
+        boolean startVisit(Expression expression);
+
+        /**
+         * Called when an expression resolves to a quoted path.
+         */
+        void visitQuoted(Expression value);
+
+        /**
+         * Called when an expression resolves to a system path.
+         */
+        void visitSystem(Expression value);
+
+        /**
+         * Called when an expression resolves to a single identifier that could not be macro expanded.
+         */
+        void visitIdentifier(Expression value);
+
+        /**
+         * Called when an expression resolves to zero or more tokens.
+         */
+        void visitTokens(Expression tokens);
+
+        /**
+         * Called when an expression could not be resolved to a value.
+         */
+        void visitUnresolved();
+    }
+
     private static abstract class IncludePath {
         @Nullable
         abstract IncludeFile searchForDependency(String includePath, boolean quotedPath);
@@ -334,43 +386,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         public boolean startsWith(File sourceDir) {
             return directories.size() > 0 && directories.get(0).searchDir.equals(sourceDir);
         }
-    }
-
-    private class DirectoryContents {
-        private final File searchDir;
-        private final Map<String, CachedIncludeFile> contents = new HashMap<String, CachedIncludeFile>();
-
-        DirectoryContents(File searchDir) {
-            this.searchDir = searchDir;
-        }
-
-        CachedIncludeFile get(String includePath) {
-            return contents.computeIfAbsent(includePath,
-                key -> {
-                    File candidate = normalizeIncludePath(searchDir, includePath);
-                    return fileSystemAccess.readRegularFileContentHash(candidate.getAbsolutePath())
-                        .map(contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
-                        .orElse(MISSING_INCLUDE_FILE);
-                });
-        }
-    }
-
-    private File normalizeIncludePath(File searchDir, String prefixPath) {
-        boolean onlyDotsSinceLastSeparator = true;
-        for (int i = 0; i < prefixPath.length(); i++) {
-            char currentChar = prefixPath.charAt(i);
-            if (currentChar == '/' || currentChar == '\\') {
-                if (onlyDotsSinceLastSeparator) {
-                    return FileUtils.normalize(new File(searchDir, prefixPath));
-                }
-                onlyDotsSinceLastSeparator = true;
-            } else {
-                if (currentChar != '.') {
-                    onlyDotsSinceLastSeparator = false;
-                }
-            }
-        }
-        return new File(searchDir, prefixPath);
     }
 
     private static abstract class CachedIncludeFile {
@@ -467,40 +482,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
-    private interface ExpressionVisitor {
-        /**
-         * Called when an expression is about to be visited. Called for each intermediate expression as macros are expanded.
-         *
-         * @return true if the visit should continue, false to skip this expression.
-         */
-        boolean startVisit(Expression expression);
-
-        /**
-         * Called when an expression resolves to a quoted path.
-         */
-        void visitQuoted(Expression value);
-
-        /**
-         * Called when an expression resolves to a system path.
-         */
-        void visitSystem(Expression value);
-
-        /**
-         * Called when an expression resolves to a single identifier that could not be macro expanded.
-         */
-        void visitIdentifier(Expression value);
-
-        /**
-         * Called when an expression resolves to zero or more tokens.
-         */
-        void visitTokens(Expression tokens);
-
-        /**
-         * Called when an expression could not be resolved to a value.
-         */
-        void visitUnresolved();
-    }
-
     private static class BuildableResult implements IncludeResolutionResult {
         private final Set<IncludeFile> files = new LinkedHashSet<IncludeFile>();
         private boolean missing;
@@ -562,6 +543,25 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         @Override
         public void visitUnresolved() {
             tokenLookup.unresolved(expression);
+        }
+    }
+
+    private class DirectoryContents {
+        private final File searchDir;
+        private final Map<String, CachedIncludeFile> contents = new HashMap<String, CachedIncludeFile>();
+
+        DirectoryContents(File searchDir) {
+            this.searchDir = searchDir;
+        }
+
+        CachedIncludeFile get(String includePath) {
+            return contents.computeIfAbsent(includePath,
+                key -> {
+                    File candidate = normalizeIncludePath(searchDir, includePath);
+                    return fileSystemAccess.readRegularFileContentHash(candidate.getAbsolutePath())
+                        .map(contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
+                        .orElse(MISSING_INCLUDE_FILE);
+                });
         }
     }
 

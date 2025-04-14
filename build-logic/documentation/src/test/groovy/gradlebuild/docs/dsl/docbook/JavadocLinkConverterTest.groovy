@@ -37,7 +37,7 @@ class JavadocLinkConverterTest extends XmlSpecification {
         then:
         format(link) == '<someLinkElement/>'
         _ * nameResolver.resolve('someName', classMetaData) >> 'org.gradle.SomeClass'
-        _ * linkRenderer.link({it.name == 'org.gradle.SomeClass'}, listener) >> parse('<someLinkElement/>')
+        _ * linkRenderer.link({ it.name == 'org.gradle.SomeClass' }, listener) >> parse('<someLinkElement/>')
     }
 
     def convertsFullyQualifiedClassNameToLink() {
@@ -47,7 +47,7 @@ class JavadocLinkConverterTest extends XmlSpecification {
         then:
         format(link) == '<someLinkElement/>'
         _ * nameResolver.resolve('org.gradle.SomeClass', classMetaData) >> 'org.gradle.SomeClass'
-        _ * linkRenderer.link({it.name == 'org.gradle.SomeClass'}, listener) >> parse('<someLinkElement/>')
+        _ * linkRenderer.link({ it.name == 'org.gradle.SomeClass' }, listener) >> parse('<someLinkElement/>')
     }
 
     def resolvesUnknownFullyQualifiedClassName() {
@@ -87,8 +87,8 @@ class JavadocLinkConverterTest extends XmlSpecification {
 
     def convertsMethodSignatureToLink() {
         MethodMetaData method = method('someName', signature: 'someName(org.gradle.SomeClass, java.lang.Object)')
-        _ * nameResolver.resolve('SomeClass', classMetaData) >>'org.gradle.SomeClass'
-        _ * nameResolver.resolve('Object', classMetaData) >>'java.lang.Object'
+        _ * nameResolver.resolve('SomeClass', classMetaData) >> 'org.gradle.SomeClass'
+        _ * nameResolver.resolve('Object', classMetaData) >> 'java.lang.Object'
         _ * classMetaData.declaredMethods >> ([method] as Set)
         _ * linkRenderer.link(method, listener) >> parse('<someLinkElement/>')
 
@@ -100,10 +100,10 @@ class JavadocLinkConverterTest extends XmlSpecification {
 
         where:
         input << [
-                '#someName(SomeClass,Object)',
-                '#someName(SomeClass, Object)',
-                '#someName(SomeClass,\tObject)',
-                '#someName  (  \t SomeClass ,\tObject\t ) '
+            '#someName(SomeClass,Object)',
+            '#someName(SomeClass, Object)',
+            '#someName(SomeClass,\tObject)',
+            '#someName  (  \t SomeClass ,\tObject\t ) '
         ]
     }
 
@@ -121,8 +121,8 @@ class JavadocLinkConverterTest extends XmlSpecification {
 
     def convertsMethodSignatureWithArrayTypeToLink() {
         MethodMetaData method = method('someName', signature: 'someName(org.gradle.SomeClass[], java.lang.Object)')
-        _ * nameResolver.resolve('SomeClass', classMetaData) >>'org.gradle.SomeClass'
-        _ * nameResolver.resolve('Object', classMetaData) >>'java.lang.Object'
+        _ * nameResolver.resolve('SomeClass', classMetaData) >> 'org.gradle.SomeClass'
+        _ * nameResolver.resolve('Object', classMetaData) >> 'java.lang.Object'
         _ * classMetaData.declaredMethods >> ([method] as Set)
         _ * linkRenderer.link(method, listener) >> parse('<someLinkElement/>')
 
@@ -135,7 +135,7 @@ class JavadocLinkConverterTest extends XmlSpecification {
 
     def convertsMethodSignatureWithVarargsTypeToLink() {
         MethodMetaData method = method('someName', signature: 'someName(org.gradle.SomeClass[])')
-        _ * nameResolver.resolve('SomeClass', classMetaData) >>'org.gradle.SomeClass'
+        _ * nameResolver.resolve('SomeClass', classMetaData) >> 'org.gradle.SomeClass'
         _ * classMetaData.declaredMethods >> ([method] as Set)
         _ * linkRenderer.link(method, listener) >> parse('<someLinkElement/>')
 
@@ -147,10 +147,10 @@ class JavadocLinkConverterTest extends XmlSpecification {
 
         where:
         input << [
-                '#someName(SomeClass[])',
-                '#someName(SomeClass [] )',
-                '#someName(SomeClass...)',
-                '#someName(SomeClass ... )'
+            '#someName(SomeClass[])',
+            '#someName(SomeClass [] )',
+            '#someName(SomeClass...)',
+            '#someName(SomeClass ... )'
         ]
     }
 
@@ -168,8 +168,8 @@ class JavadocLinkConverterTest extends XmlSpecification {
 
     def convertsMethodSignatureWithLabelToLink() {
         MethodMetaData method = method('someName', signature: 'someName(org.gradle.SomeClass, java.lang.Object)')
-        _ * nameResolver.resolve('SomeClass', classMetaData) >>'org.gradle.SomeClass'
-        _ * nameResolver.resolve('Object', classMetaData) >>'java.lang.Object'
+        _ * nameResolver.resolve('SomeClass', classMetaData) >> 'org.gradle.SomeClass'
+        _ * nameResolver.resolve('Object', classMetaData) >> 'java.lang.Object'
         _ * classMetaData.declaredMethods >> ([method] as Set)
         _ * linkRenderer.link(method, listener) >> parse('<someLinkElement/>')
 

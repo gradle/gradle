@@ -60,7 +60,8 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * resourceAccessor.getResource(metaDataResource, null, _, null) >> resource
-        1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource.withContent(_) >> { Action action ->
+            action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -92,7 +93,8 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * resourceAccessor.getResource(location1, null, _, null) >> resource1
-        1 * resource1.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource1.withContent(_) >> { Action action ->
+            action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -103,7 +105,8 @@ class MavenVersionListerTest extends Specification {
 </metadata>""".bytes))
         }
         1 * resourceAccessor.getResource(location2, null, _, null) >> resource2
-        1 * resource2.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource2.withContent(_) >> { Action action ->
+            action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>
@@ -128,7 +131,8 @@ class MavenVersionListerTest extends Specification {
 
         and:
         1 * resourceAccessor.getResource(metaDataResource, null, _, null) >> resource
-        1 * resource.withContent(_) >> { Action action -> action.execute(new ByteArrayInputStream("""
+        1 * resource.withContent(_) >> { Action action ->
+            action.execute(new ByteArrayInputStream("""
 <metadata>
     <versioning>
         <versions>

@@ -45,6 +45,59 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
         super(ASM_LEVEL, classVisitor);
     }
 
+    private static Object[] fixAsmObjectsForBackwardsCompatibility(Object[] values) {
+        Object[] newValues = new Object[values.length];
+        for (int idx = 0; idx < values.length; idx++) {
+            newValues[idx] = fixAsmObjectForBackwardsCompatibility(values[idx]);
+        }
+        return newValues;
+    }
+
+    private static Object fixAsmObjectForBackwardsCompatibility(Object value) {
+        if (value instanceof Type) {
+            Type type = (Type) value;
+            String newDescriptor = fixDescriptorForBackwardCompatibility(type.getDescriptor());
+            return Type.getType(newDescriptor);
+        } else if (value instanceof Handle) {
+            Handle handle = (Handle) value;
+            return fixHandleForBackwardsCompatibility(handle);
+        } else {
+            return value;
+        }
+    }
+
+    private static Handle fixHandleForBackwardsCompatibility(Handle handle) {
+        String newHandleOwner = fixInternalNameForBackwardCompatibility(handle.getOwner());
+        String newHandleDescriptor = fixDescriptorForBackwardCompatibility(handle.getDesc());
+        return new Handle(handle.getTag(), newHandleOwner, handle.getName(), newHandleDescriptor, handle.isInterface());
+    }
+
+    private static String[] fixInternalNamesForBackwardsCompatibility(String[] internalNames) {
+        String[] newInternalNames = new String[internalNames.length];
+        for (int idx = 0; idx < internalNames.length; idx++) {
+            newInternalNames[idx] = fixInternalNameForBackwardCompatibility(internalNames[idx]);
+        }
+        return newInternalNames;
+    }
+
+    private static String fixInternalNameForBackwardCompatibility(String internalName) {
+        // Fix renamed type references
+        for (Pair<String, String> renamedInterface : RENAMED_TYPE_INTERNAL_NAMES) {
+            if (renamedInterface.left.equals(internalName)) {
+                return renamedInterface.right;
+            }
+        }
+        return internalName;
+    }
+
+    private static String fixDescriptorForBackwardCompatibility(String descriptor) {
+        // Fix method signatures involving renamed types
+        for (Pair<String, String> renamedDescriptor : RENAMED_TYPE_DESCRIPTORS) {
+            descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
+        }
+        return descriptor;
+    }
+
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         String newSuperName = fixInternalNameForBackwardCompatibility(superName);
@@ -118,58 +171,5 @@ class InstrumentingBackwardsCompatibilityVisitor extends ClassVisitor {
             Object[] newBootstrapMethodArguments = fixAsmObjectsForBackwardsCompatibility(bootstrapMethodArguments);
             super.visitInvokeDynamicInsn(name, newDescriptor, newBootstrapMethodHandle, newBootstrapMethodArguments);
         }
-    }
-
-    private static Object[] fixAsmObjectsForBackwardsCompatibility(Object[] values) {
-        Object[] newValues = new Object[values.length];
-        for (int idx = 0; idx < values.length; idx++) {
-            newValues[idx] = fixAsmObjectForBackwardsCompatibility(values[idx]);
-        }
-        return newValues;
-    }
-
-    private static Object fixAsmObjectForBackwardsCompatibility(Object value) {
-        if (value instanceof Type) {
-            Type type = (Type) value;
-            String newDescriptor = fixDescriptorForBackwardCompatibility(type.getDescriptor());
-            return Type.getType(newDescriptor);
-        } else if (value instanceof Handle) {
-            Handle handle = (Handle) value;
-            return fixHandleForBackwardsCompatibility(handle);
-        } else {
-            return value;
-        }
-    }
-
-    private static Handle fixHandleForBackwardsCompatibility(Handle handle) {
-        String newHandleOwner = fixInternalNameForBackwardCompatibility(handle.getOwner());
-        String newHandleDescriptor = fixDescriptorForBackwardCompatibility(handle.getDesc());
-        return new Handle(handle.getTag(), newHandleOwner, handle.getName(), newHandleDescriptor, handle.isInterface());
-    }
-
-    private static String[] fixInternalNamesForBackwardsCompatibility(String[] internalNames) {
-        String[] newInternalNames = new String[internalNames.length];
-        for (int idx = 0; idx < internalNames.length; idx++) {
-            newInternalNames[idx] = fixInternalNameForBackwardCompatibility(internalNames[idx]);
-        }
-        return newInternalNames;
-    }
-
-    private static String fixInternalNameForBackwardCompatibility(String internalName) {
-        // Fix renamed type references
-        for (Pair<String, String> renamedInterface : RENAMED_TYPE_INTERNAL_NAMES) {
-            if (renamedInterface.left.equals(internalName)) {
-                return renamedInterface.right;
-            }
-        }
-        return internalName;
-    }
-
-    private static String fixDescriptorForBackwardCompatibility(String descriptor) {
-        // Fix method signatures involving renamed types
-        for (Pair<String, String> renamedDescriptor : RENAMED_TYPE_DESCRIPTORS) {
-            descriptor = descriptor.replace(renamedDescriptor.left, renamedDescriptor.right);
-        }
-        return descriptor;
     }
 }

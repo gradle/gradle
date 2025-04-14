@@ -18,5 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.metadata;
 
 public interface CompilerType {
     String getIdentifier();
+
     String getDescription();
 }

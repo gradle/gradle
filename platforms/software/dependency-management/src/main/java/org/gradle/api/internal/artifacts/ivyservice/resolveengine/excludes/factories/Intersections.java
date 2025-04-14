@@ -90,102 +90,6 @@ class Intersections {
     }
 
     @NullMarked
-    private final class IntersectAnyWithAny extends AbstractIntersection<ExcludeAnyOf, ExcludeAnyOf> {
-        public IntersectAnyWithAny() {
-            super(ExcludeAnyOf.class, ExcludeAnyOf.class);
-        }
-
-        @Override
-        public ExcludeSpec doIntersect(ExcludeAnyOf left, ExcludeAnyOf right, ExcludeFactory factory) {
-            Set<ExcludeSpec> leftComponents = left.getComponents();
-            Set<ExcludeSpec> rightComponents = right.getComponents();
-            Set<ExcludeSpec> common = Sets.newHashSet(leftComponents);
-            common.retainAll(rightComponents);
-            if (!common.isEmpty()) {
-                ExcludeSpec alpha = factory.fromUnion(common);
-                if (leftComponents.equals(common) || rightComponents.equals(common)) {
-                    return alpha;
-                }
-                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(leftComponents);
-                remainderLeft.removeAll(common);
-                Set<ExcludeSpec> remainderRight = Sets.newHashSet(rightComponents);
-                remainderRight.removeAll(common);
-
-                ExcludeSpec unionLeft = factory.fromUnion(remainderLeft);
-                ExcludeSpec unionRight = factory.fromUnion(remainderRight);
-                ExcludeSpec beta = factory.allOf(unionLeft, unionRight);
-                return factory.anyOf(alpha, beta);
-            } else {
-                // slowest path, full distribution
-                // (A ∪ B) ∩ (C ∪ D) = (A ∩ C) ∪ (A ∩ D) ∪ (B ∩ C) ∪ (B ∩ D)
-                Set<ExcludeSpec> intersections = Sets.newHashSetWithExpectedSize(leftComponents.size() * rightComponents.size());
-                for (ExcludeSpec leftSpec : leftComponents) {
-                    for (ExcludeSpec rightSpec : rightComponents) {
-                        ExcludeSpec merged = tryIntersect(leftSpec, rightSpec);
-                        if (merged == null) {
-                            merged = factory.allOf(leftSpec, rightSpec);
-                        }
-                        if (!(merged instanceof ExcludeNothing)) {
-                            intersections.add(merged);
-                        }
-                    }
-                }
-                return factory.fromUnion(intersections);
-            }
-        }
-    }
-
-    @NullMarked
-    private final class IntersectAnyWithBaseSpec extends AbstractIntersection<ExcludeAnyOf, ExcludeSpec> {
-        private IntersectAnyWithBaseSpec() {
-            super(ExcludeAnyOf.class, ExcludeSpec.class);
-        }
-
-        @Override
-        @Nullable
-        public ExcludeSpec doIntersect(ExcludeAnyOf left, ExcludeSpec right, ExcludeFactory factory) {
-            Set<ExcludeSpec> leftComponents = left.getComponents();
-            // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
-            // least one of the distribution operations (A ∩ B) can be simplified
-            ExcludeSpec[] excludeSpecs = leftComponents.toArray(new ExcludeSpec[0]);
-            ExcludeSpec[] intersections = null;
-            for (int i = 0; i < excludeSpecs.length; i++) {
-                ExcludeSpec excludeSpec = tryIntersect(excludeSpecs[i], right);
-                if (excludeSpec != null) {
-                    if (intersections == null) {
-                        intersections = new ExcludeSpec[excludeSpecs.length];
-                    }
-                    intersections[i] = excludeSpec;
-                }
-            }
-            if (intersections != null) {
-                Set<ExcludeSpec> simplified = Sets.newHashSetWithExpectedSize(excludeSpecs.length);
-                for (int i = 0; i < intersections.length; i++) {
-                    ExcludeSpec intersection = intersections[i];
-                    if (intersection instanceof ExcludeNothing) {
-                        continue;
-                    }
-                    if (intersection != null) {
-                        simplified.add(intersection);
-                    } else {
-                        simplified.add(factory.allOf(excludeSpecs[i], right));
-                    }
-                }
-                return factory.fromUnion(simplified);
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public boolean applies(ExcludeSpec left, ExcludeSpec right) {
-            // We want to use the more specific AnyWithAny intersection if possible
-            return (left instanceof ExcludeAnyOf && !(right instanceof ExcludeAnyOf))
-                || (right instanceof ExcludeAnyOf && !(left instanceof ExcludeAnyOf));
-        }
-    }
-
-    @NullMarked
     private static final class IntersectGroupWithGroup extends AbstractIntersection<GroupExclude, GroupExclude> {
         private IntersectGroupWithGroup() {
             super(GroupExclude.class, GroupExclude.class);
@@ -512,6 +416,102 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(ModuleExclude left, GroupSetExclude right, ExcludeFactory factory) {
             return factory.moduleIdSet(right.getGroups().stream().map(group -> DefaultModuleIdentifier.newId(group, left.getModule())).collect(toSet()));
+        }
+    }
+
+    @NullMarked
+    private final class IntersectAnyWithAny extends AbstractIntersection<ExcludeAnyOf, ExcludeAnyOf> {
+        public IntersectAnyWithAny() {
+            super(ExcludeAnyOf.class, ExcludeAnyOf.class);
+        }
+
+        @Override
+        public ExcludeSpec doIntersect(ExcludeAnyOf left, ExcludeAnyOf right, ExcludeFactory factory) {
+            Set<ExcludeSpec> leftComponents = left.getComponents();
+            Set<ExcludeSpec> rightComponents = right.getComponents();
+            Set<ExcludeSpec> common = Sets.newHashSet(leftComponents);
+            common.retainAll(rightComponents);
+            if (!common.isEmpty()) {
+                ExcludeSpec alpha = factory.fromUnion(common);
+                if (leftComponents.equals(common) || rightComponents.equals(common)) {
+                    return alpha;
+                }
+                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(leftComponents);
+                remainderLeft.removeAll(common);
+                Set<ExcludeSpec> remainderRight = Sets.newHashSet(rightComponents);
+                remainderRight.removeAll(common);
+
+                ExcludeSpec unionLeft = factory.fromUnion(remainderLeft);
+                ExcludeSpec unionRight = factory.fromUnion(remainderRight);
+                ExcludeSpec beta = factory.allOf(unionLeft, unionRight);
+                return factory.anyOf(alpha, beta);
+            } else {
+                // slowest path, full distribution
+                // (A ∪ B) ∩ (C ∪ D) = (A ∩ C) ∪ (A ∩ D) ∪ (B ∩ C) ∪ (B ∩ D)
+                Set<ExcludeSpec> intersections = Sets.newHashSetWithExpectedSize(leftComponents.size() * rightComponents.size());
+                for (ExcludeSpec leftSpec : leftComponents) {
+                    for (ExcludeSpec rightSpec : rightComponents) {
+                        ExcludeSpec merged = tryIntersect(leftSpec, rightSpec);
+                        if (merged == null) {
+                            merged = factory.allOf(leftSpec, rightSpec);
+                        }
+                        if (!(merged instanceof ExcludeNothing)) {
+                            intersections.add(merged);
+                        }
+                    }
+                }
+                return factory.fromUnion(intersections);
+            }
+        }
+    }
+
+    @NullMarked
+    private final class IntersectAnyWithBaseSpec extends AbstractIntersection<ExcludeAnyOf, ExcludeSpec> {
+        private IntersectAnyWithBaseSpec() {
+            super(ExcludeAnyOf.class, ExcludeSpec.class);
+        }
+
+        @Override
+        @Nullable
+        public ExcludeSpec doIntersect(ExcludeAnyOf left, ExcludeSpec right, ExcludeFactory factory) {
+            Set<ExcludeSpec> leftComponents = left.getComponents();
+            // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
+            // least one of the distribution operations (A ∩ B) can be simplified
+            ExcludeSpec[] excludeSpecs = leftComponents.toArray(new ExcludeSpec[0]);
+            ExcludeSpec[] intersections = null;
+            for (int i = 0; i < excludeSpecs.length; i++) {
+                ExcludeSpec excludeSpec = tryIntersect(excludeSpecs[i], right);
+                if (excludeSpec != null) {
+                    if (intersections == null) {
+                        intersections = new ExcludeSpec[excludeSpecs.length];
+                    }
+                    intersections[i] = excludeSpec;
+                }
+            }
+            if (intersections != null) {
+                Set<ExcludeSpec> simplified = Sets.newHashSetWithExpectedSize(excludeSpecs.length);
+                for (int i = 0; i < intersections.length; i++) {
+                    ExcludeSpec intersection = intersections[i];
+                    if (intersection instanceof ExcludeNothing) {
+                        continue;
+                    }
+                    if (intersection != null) {
+                        simplified.add(intersection);
+                    } else {
+                        simplified.add(factory.allOf(excludeSpecs[i], right));
+                    }
+                }
+                return factory.fromUnion(simplified);
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public boolean applies(ExcludeSpec left, ExcludeSpec right) {
+            // We want to use the more specific AnyWithAny intersection if possible
+            return (left instanceof ExcludeAnyOf && !(right instanceof ExcludeAnyOf))
+                || (right instanceof ExcludeAnyOf && !(left instanceof ExcludeAnyOf));
         }
     }
 }

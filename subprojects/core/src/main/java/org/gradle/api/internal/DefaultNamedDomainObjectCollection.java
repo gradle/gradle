@@ -72,10 +72,9 @@ import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
+    protected final Index<T> index;
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
-    protected final Index<T> index;
-
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
     private final List<Rule> rules = new ArrayList<Rule>();
@@ -88,12 +87,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         this.namer = namer;
         this.index = new UnfilteredIndex<T>();
         index();
-    }
-
-    protected void index() {
-        for (T t : getStore()) {
-            index.put(namer.determineName(t), t);
-        }
     }
 
     protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
@@ -116,6 +109,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         Namer<? super T> namer
     ) {
         this(elementFilter.getType(), collection.filteredStore(elementFilter), collection.filteredEvents(elementFilter), collection.filteredIndex(nameFilter, elementFilter), instantiator, namer);
+    }
+
+    private static RuntimeException domainObjectRemovedException(String name, Class<?> type) {
+        return new IllegalStateException(String.format("The domain object '%s' (%s) for this provider is no longer present in its container.", name, type.getSimpleName()));
+    }
+
+    protected void index() {
+        for (T t : getStore()) {
+            index.put(namer.determineName(t), t);
+        }
     }
 
     @Override
@@ -502,25 +505,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         });
     }
 
-    private static abstract class RuleAdapter implements Rule {
-
-        private final String description;
-
-        RuleAdapter(String description) {
-            this.description = description;
-        }
-
-        @Override
-        public String getDescription() {
-            return description;
-        }
-
-        @Override
-        public String toString() {
-            return "Rule: " + description;
-        }
-    }
-
     @Override
     public List<Rule> getRules() {
         return Collections.unmodifiableList(rules);
@@ -535,44 +519,39 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return (T t) -> nameFilter.isSatisfiedBy(namer.determineName(t));
     }
 
-    private class ContainerElementsDynamicObject extends AbstractDynamicObject {
-        @Override
-        public String getDisplayName() {
-            return DefaultNamedDomainObjectCollection.this.getDisplayName();
-        }
-
-        @Override
-        public boolean hasProperty(String name) {
-            return findByName(name) != null;
-        }
-
-        @Override
-        public DynamicInvokeResult tryGetProperty(String name) {
-            T t = findByName(name);
-            return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
-        }
-
-        @Override
-        public Map<String, T> getProperties() {
-            return getAsMap();
-        }
-
-        @Override
-        public boolean hasMethod(String name, @Nullable Object... arguments) {
-            return isConfigureMethod(name, arguments);
-        }
-
-        @Override
-        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
-            if (isConfigureMethod(name, arguments)) {
-                return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
+    @Nullable
+    private NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
+        NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
+        // Run the rules and try to find something again.
+        if (provider == null) {
+            if (applyRules(name)) {
+                return searchForDomainObject(name);
             }
-            return DynamicInvokeResult.notFound();
         }
 
-        private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
-            return arguments.length == 1 && arguments[0] instanceof Closure && hasProperty(name);
+        return provider;
+    }
+
+    @Nullable
+    private NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
+        // Look for a realized object
+        T object = findByNameWithoutRules(name);
+        if (object != null) {
+            return createExistingProvider(name, object);
         }
+
+        // Look for a provider with that name
+        ProviderInternal<? extends T> provider = findByNameLaterWithoutRules(name);
+        if (provider != null) {
+            // TODO: Need to check for proper type/cast
+            return Cast.uncheckedCast(provider);
+        }
+
+        return null;
+    }
+
+    protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
     }
 
     protected interface Index<T> {
@@ -599,6 +578,31 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         void removePending(ProviderInternal<? extends T> provider);
 
         Map<String, ProviderInternal<? extends T>> getPendingAsMap();
+    }
+
+    public interface ElementInfo<T> {
+        String getName();
+
+        Class<?> getType();
+    }
+
+    private static abstract class RuleAdapter implements Rule {
+
+        private final String description;
+
+        RuleAdapter(String description) {
+            this.description = description;
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String toString() {
+            return "Rule: " + description;
+        }
     }
 
     protected static class UnfilteredIndex<T> implements Index<T> {
@@ -782,12 +786,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     }
 
-    public interface ElementInfo<T> {
-        String getName();
-
-        Class<?> getType();
-    }
-
     private static class ObjectBackedElementInfo<T> implements ElementInfo<T> {
         private final String name;
         private final T obj;
@@ -828,39 +826,44 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    @Nullable
-    private NamedDomainObjectProvider<? extends T> findDomainObject(String name) {
-        NamedDomainObjectProvider<? extends T> provider = searchForDomainObject(name);
-        // Run the rules and try to find something again.
-        if (provider == null) {
-            if (applyRules(name)) {
-                return searchForDomainObject(name);
+    private class ContainerElementsDynamicObject extends AbstractDynamicObject {
+        @Override
+        public String getDisplayName() {
+            return DefaultNamedDomainObjectCollection.this.getDisplayName();
+        }
+
+        @Override
+        public boolean hasProperty(String name) {
+            return findByName(name) != null;
+        }
+
+        @Override
+        public DynamicInvokeResult tryGetProperty(String name) {
+            T t = findByName(name);
+            return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
+        }
+
+        @Override
+        public Map<String, T> getProperties() {
+            return getAsMap();
+        }
+
+        @Override
+        public boolean hasMethod(String name, @Nullable Object... arguments) {
+            return isConfigureMethod(name, arguments);
+        }
+
+        @Override
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
+            if (isConfigureMethod(name, arguments)) {
+                return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
+            return DynamicInvokeResult.notFound();
         }
 
-        return provider;
-    }
-
-    @Nullable
-    private NamedDomainObjectProvider<? extends T> searchForDomainObject(String name) {
-        // Look for a realized object
-        T object = findByNameWithoutRules(name);
-        if (object != null) {
-            return createExistingProvider(name, object);
+        private boolean isConfigureMethod(String name, @Nullable Object... arguments) {
+            return arguments.length == 1 && arguments[0] instanceof Closure && hasProperty(name);
         }
-
-        // Look for a provider with that name
-        ProviderInternal<? extends T> provider = findByNameLaterWithoutRules(name);
-        if (provider != null) {
-            // TODO: Need to check for proper type/cast
-            return Cast.uncheckedCast(provider);
-        }
-
-        return null;
-    }
-
-    protected NamedDomainObjectProvider<? extends T> createExistingProvider(String name, T object) {
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
     }
 
     @NonExtensible
@@ -927,9 +930,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
+        protected ImmutableActionSet<I> onCreate;
         private I object;
         private RuntimeException failure;
-        protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
 
         public AbstractDomainObjectCreatingProvider(String name, Class<I> type, @Nullable Action<? super I> configureAction) {
@@ -1041,9 +1044,5 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         protected RuntimeException domainObjectCreationException(Throwable cause) {
             return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
         }
-    }
-
-    private static RuntimeException domainObjectRemovedException(String name, Class<?> type) {
-        return new IllegalStateException(String.format("The domain object '%s' (%s) for this provider is no longer present in its container.", name, type.getSimpleName()));
     }
 }

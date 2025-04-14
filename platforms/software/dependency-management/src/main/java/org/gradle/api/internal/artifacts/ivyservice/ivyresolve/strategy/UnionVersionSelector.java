@@ -28,16 +28,16 @@ import java.util.List;
 public class UnionVersionSelector implements CompositeVersionSelector {
     private final List<VersionSelector> selectors;
 
+    public UnionVersionSelector(List<VersionSelector> selectors) {
+        this.selectors = selectors;
+    }
+
     public static UnionVersionSelector of(List<String> selectors, VersionSelectorScheme scheme) {
         ImmutableList.Builder<VersionSelector> builder = new ImmutableList.Builder<>();
         for (String selector : selectors) {
             builder.add(scheme.parseSelector(selector));
         }
         return new UnionVersionSelector(builder.build());
-    }
-
-    public UnionVersionSelector(List<VersionSelector> selectors) {
-        this.selectors = selectors;
     }
 
     @Override

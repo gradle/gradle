@@ -70,30 +70,6 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
         }
     }
 
-    protected abstract void unpackInto(ImmutableSet.Builder<Action<? super T>> builder);
-
-    /**
-     * Creates a new set that runs the actions of this set plus the given action.
-     */
-    public ImmutableActionSet<T> add(Action<? super T> action) {
-        if (action == Actions.DO_NOTHING || action instanceof EmptySet || action == this) {
-            return this;
-        }
-        if (action instanceof SingletonSet) {
-            SingletonSet<T> singletonSet = Cast.uncheckedNonnullCast(action);
-            return addOne(singletonSet.singleAction);
-        }
-        if (action instanceof SetWithFewActions) {
-            SetWithFewActions<T> compositeSet = Cast.uncheckedNonnullCast(action);
-            return addAll(compositeSet);
-        }
-        if (action instanceof SetWithManyActions) {
-            SetWithManyActions<T> compositeSet = Cast.uncheckedNonnullCast(action);
-            return addAll(compositeSet);
-        }
-        return addOne(action);
-    }
-
     private static <T> ImmutableActionSet<T> plus(ImmutableActionSet<T> one, ImmutableActionSet<T> two) {
         ImmutableSet.Builder<Action<? super T>> builder = ImmutableSet.builder();
         one.unpackInto(builder);
@@ -121,6 +97,30 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
             return new SetWithFewActions<T>(set);
         }
         return new SetWithManyActions<T>(set);
+    }
+
+    protected abstract void unpackInto(ImmutableSet.Builder<Action<? super T>> builder);
+
+    /**
+     * Creates a new set that runs the actions of this set plus the given action.
+     */
+    public ImmutableActionSet<T> add(Action<? super T> action) {
+        if (action == Actions.DO_NOTHING || action instanceof EmptySet || action == this) {
+            return this;
+        }
+        if (action instanceof SingletonSet) {
+            SingletonSet<T> singletonSet = Cast.uncheckedNonnullCast(action);
+            return addOne(singletonSet.singleAction);
+        }
+        if (action instanceof SetWithFewActions) {
+            SetWithFewActions<T> compositeSet = Cast.uncheckedNonnullCast(action);
+            return addAll(compositeSet);
+        }
+        if (action instanceof SetWithManyActions) {
+            SetWithManyActions<T> compositeSet = Cast.uncheckedNonnullCast(action);
+            return addAll(compositeSet);
+        }
+        return addOne(action);
     }
 
     /**

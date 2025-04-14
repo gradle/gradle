@@ -25,6 +25,10 @@ public class DefaultMutationGuard implements MutationGuard {
 
     private final ThreadLocal<Boolean> mutationGuardState = ThreadLocal.withInitial(SerializableLambdas.supplier(() -> true));
 
+    private static <T> IllegalStateException createIllegalStateException(Class<T> targetType, String methodName, T target) {
+        return new IllegalMutationException(String.format("%s#%s on %s cannot be executed in the current context.", targetType.getSimpleName(), methodName, target));
+    }
+
     @Override
     public <T> Action<? super T> wrapLazyAction(Action<? super T> action) {
         return newActionWithMutation(action, false);
@@ -96,10 +100,6 @@ public class DefaultMutationGuard implements MutationGuard {
         if (mutationAllowed) {
             mutationGuardState.remove();
         }
-    }
-
-    private static <T> IllegalStateException createIllegalStateException(Class<T> targetType, String methodName, T target) {
-        return new IllegalMutationException(String.format("%s#%s on %s cannot be executed in the current context.", targetType.getSimpleName(), methodName, target));
     }
 
     @Contextual

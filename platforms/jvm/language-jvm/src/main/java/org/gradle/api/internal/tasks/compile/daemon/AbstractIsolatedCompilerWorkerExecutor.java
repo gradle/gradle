@@ -56,9 +56,9 @@ abstract public class AbstractIsolatedCompilerWorkerExecutor implements Compiler
     }
 
     public static class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
-        private DefaultWorkResult workResult;
         private final CompilerParameters parameters;
         private final Instantiator instantiator;
+        private DefaultWorkResult workResult;
 
         @Inject
         public CompilerWorkAction(CompilerParameters parameters, Instantiator instantiator) {
@@ -78,17 +78,17 @@ abstract public class AbstractIsolatedCompilerWorkerExecutor implements Compiler
             setWorkResult(compiler.execute(Cast.uncheckedCast(getParameters().getCompileSpec())));
         }
 
+        @Override
+        public DefaultWorkResult getWorkResult() {
+            return workResult;
+        }
+
         private void setWorkResult(WorkResult workResult) {
             if (workResult instanceof DefaultWorkResult) {
                 this.workResult = (DefaultWorkResult) workResult;
             } else {
                 this.workResult = new DefaultWorkResult(workResult.getDidWork(), null);
             }
-        }
-
-        @Override
-        public DefaultWorkResult getWorkResult() {
-            return workResult;
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe

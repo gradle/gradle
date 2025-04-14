@@ -54,13 +54,14 @@ import java.util.stream.Collectors;
 
 public abstract class TransformStepNode extends CreationOrderedNode implements SelfExecutingNode {
 
+    private static final ExecutePlannedTransformStepBuildOperationType.Result RESULT = new ExecutePlannedTransformStepBuildOperationType.Result() {
+    };
     protected final TransformStep transformStep;
     protected final ResolvableArtifact artifact;
+    protected final TransformUpstreamDependencies upstreamDependencies;
     private final ComponentVariantIdentifier targetComponentVariant;
     private final AttributeContainer sourceAttributes;
-    protected final TransformUpstreamDependencies upstreamDependencies;
     private final long transformStepNodeId;
-
     private PlannedTransformStepIdentity cachedIdentity;
 
     protected TransformStepNode(
@@ -77,6 +78,30 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
         this.artifact = artifact;
         this.upstreamDependencies = upstreamDependencies;
         this.transformStepNodeId = transformStepNodeId;
+    }
+
+    private static Capability convertCapability(org.gradle.api.capabilities.Capability capability) {
+        return new Capability() {
+            @Override
+            public String getGroup() {
+                return capability.getGroup();
+            }
+
+            @Override
+            public String getName() {
+                return capability.getName();
+            }
+
+            @Override
+            public String getVersion() {
+                return capability.getVersion();
+            }
+
+            @Override
+            public String toString() {
+                return getGroup() + ":" + getName() + (getVersion() == null ? "" : (":" + getVersion()));
+            }
+        };
     }
 
     public long getTransformStepNodeId() {
@@ -120,30 +145,6 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
             upstreamDependencies.getConfigurationIdentity(),
             transformStepNodeId
         );
-    }
-
-    private static Capability convertCapability(org.gradle.api.capabilities.Capability capability) {
-        return new Capability() {
-            @Override
-            public String getGroup() {
-                return capability.getGroup();
-            }
-
-            @Override
-            public String getName() {
-                return capability.getName();
-            }
-
-            @Override
-            public String getVersion() {
-                return capability.getVersion();
-            }
-
-            @Override
-            public String toString() {
-                return getGroup() + ":" + getName() + (getVersion() == null ? "" : (":" + getVersion()));
-            }
-        };
     }
 
     public ResolvableArtifact getInputArtifact() {
@@ -383,8 +384,5 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
         protected abstract TransformStepSubject transform();
     }
-
-    private static final ExecutePlannedTransformStepBuildOperationType.Result RESULT = new ExecutePlannedTransformStepBuildOperationType.Result() {
-    };
 
 }

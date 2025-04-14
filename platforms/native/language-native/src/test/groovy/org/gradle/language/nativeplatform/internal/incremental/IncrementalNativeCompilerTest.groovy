@@ -29,7 +29,8 @@ import spock.lang.Specification
 
 @UsesNativeServices
 class IncrementalNativeCompilerTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def delegateCompiler = Mock(Compiler)
     def outputs = Mock(TaskOutputsInternal)

@@ -105,8 +105,10 @@ class CompositeConfigureLambdas(internal val implementations: List<ConfigureLamb
 fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLambdaHandler = object : ConfigureLambdaHandler {
     private
     val typeParameters = functionalInterface.typeParameters
+
     private
     val starProjectedType = functionalInterface.createType(typeParameters.map { KTypeProjection.STAR })
+
     private
     val staticallyKnownConfiguredType = if (functionalInterface.typeParameters.isEmpty())
         functionalInterface.declaredMemberFunctions.singleOrNull()?.let { fn -> fn.parameters.takeIf { it.size == 2 && it[0] == fn.instanceParameter }?.last()?.type } else null

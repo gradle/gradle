@@ -44,11 +44,11 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
     private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<>();
     private final ObjectFactory objectFactory;
     private final IvyPublicationCoordinates ivyPublicationCoordinates;
-    private String status;
-    private String branch;
     private final IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
     private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
     private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
+    private String status;
+    private String branch;
     private IvyModuleDescriptorDescription description;
 
     @Inject

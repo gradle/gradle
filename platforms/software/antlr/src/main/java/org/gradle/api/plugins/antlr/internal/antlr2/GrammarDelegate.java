@@ -28,19 +28,21 @@ import java.util.List;
  * hiding all the ugly necessary reflection code.
  */
 public class GrammarDelegate {
-    public static List<GrammarDelegate> extractGrammarDelegates(GrammarFile antlrGrammarFile) {
-        List<GrammarDelegate> grammarDelegates = new ArrayList<GrammarDelegate>();
-        Enumeration<?> grammarFileGrammars = antlrGrammarFile.getGrammars().elements();
-        while (grammarFileGrammars.hasMoreElements()) {
-            grammarDelegates.add(new GrammarDelegate(grammarFileGrammars.nextElement()));
-        }
-        return grammarDelegates;
+    public static final Class<?>[] NO_ARG_SIGNATURE = new Class<?>[0];
+    public static final Object[] NO_ARGS = new Object[0];
+    private static final Class<?> ANTLR_GRAMMAR_CLASS;
+    private static final Class<?> ANTLR_OPTION_CLASS;
+
+    static {
+        ANTLR_GRAMMAR_CLASS = loadAntlrClass("antlr.preprocessor.Grammar");
+        ANTLR_OPTION_CLASS = loadAntlrClass("antlr.preprocessor.Option");
     }
 
     private final String className;
     private final String importVocab;
     private final String exportVocab;
     private final GrammarDelegate superGrammarDelegate;
+    private GrammarMetadata associatedGrammarMetadata;
 
     public GrammarDelegate(Object antlrGrammarMetadata) {
         try {
@@ -67,6 +69,23 @@ public class GrammarDelegate {
             this.exportVocab = exportVocabOption == null ? null : vocabName((String) getRHSMethod.invoke(exportVocabOption, NO_ARGS));
         } catch (Throwable t) {
             throw new IllegalStateException("Error accessing  Antlr grammar metadata", t);
+        }
+    }
+
+    public static List<GrammarDelegate> extractGrammarDelegates(GrammarFile antlrGrammarFile) {
+        List<GrammarDelegate> grammarDelegates = new ArrayList<GrammarDelegate>();
+        Enumeration<?> grammarFileGrammars = antlrGrammarFile.getGrammars().elements();
+        while (grammarFileGrammars.hasMoreElements()) {
+            grammarDelegates.add(new GrammarDelegate(grammarFileGrammars.nextElement()));
+        }
+        return grammarDelegates;
+    }
+
+    private static Class<?> loadAntlrClass(String className) {
+        try {
+            return Class.forName(className, true, GrammarDelegate.class.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Unable to locate Antlr class [" + className + "]", e);
         }
     }
 
@@ -106,8 +125,6 @@ public class GrammarDelegate {
         return superGrammarDelegate;
     }
 
-    private GrammarMetadata associatedGrammarMetadata;
-
     public void associateWith(GrammarMetadata associatedGrammarMetadata) {
         this.associatedGrammarMetadata = associatedGrammarMetadata;
     }
@@ -125,24 +142,5 @@ public class GrammarDelegate {
             vocabName = vocabName.substring(0, vocabName.length() - 1);
         }
         return vocabName;
-    }
-
-    private static final Class<?> ANTLR_GRAMMAR_CLASS;
-    private static final Class<?> ANTLR_OPTION_CLASS;
-
-    static {
-        ANTLR_GRAMMAR_CLASS = loadAntlrClass("antlr.preprocessor.Grammar");
-        ANTLR_OPTION_CLASS = loadAntlrClass("antlr.preprocessor.Option");
-    }
-
-    public static final Class<?>[] NO_ARG_SIGNATURE = new Class<?>[0];
-    public static final Object[] NO_ARGS = new Object[0];
-
-    private static Class<?> loadAntlrClass(String className) {
-        try {
-            return Class.forName(className, true, GrammarDelegate.class.getClassLoader());
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Unable to locate Antlr class [" + className + "]", e);
-        }
     }
 }

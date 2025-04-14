@@ -66,7 +66,7 @@ public class AccessRule {
 
     @Override
     public String toString() {
-        return "AccessRule{kind='" + kind + "', pattern='" + pattern +  "'}";
+        return "AccessRule{kind='" + kind + "', pattern='" + pattern + "'}";
     }
 }
 

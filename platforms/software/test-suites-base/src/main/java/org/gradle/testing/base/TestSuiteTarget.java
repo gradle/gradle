@@ -34,7 +34,6 @@ public interface TestSuiteTarget {
      * The directory containing the binary results produced by executing this test suite target.
      *
      * @return the binary results directory
-     *
      * @since 8.13
      */
     Provider<Directory> getBinaryResultsDirectory();

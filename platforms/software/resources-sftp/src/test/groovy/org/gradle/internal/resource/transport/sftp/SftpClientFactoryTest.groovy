@@ -282,7 +282,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         LockableSftpClient client3 = sftpClientFactory.createSftpClient(uri, credentials)
 
         then:
-        3 * sftpClientCreator.createNewClient(new SftpHost(uri, credentials)) >>> [mockSftpClient1,mockSftpClient2,mockSftpClient3]
+        3 * sftpClientCreator.createNewClient(new SftpHost(uri, credentials)) >>> [mockSftpClient1, mockSftpClient2, mockSftpClient3]
         1 * mockSftpClient1.host >> new SftpHost(uri, credentials)
         1 * mockSftpClient2.host >> new SftpHost(uri, credentials)
         1 * mockSftpClient1.connected >> false
@@ -308,7 +308,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         LockableSftpClient client3 = sftpClientFactory.createSftpClient(uri, credentials)
 
         then:
-        2 * sftpClientCreator.createNewClient(new SftpHost(uri, credentials)) >>> [mockSftpClient1,mockSftpClient2]
+        2 * sftpClientCreator.createNewClient(new SftpHost(uri, credentials)) >>> [mockSftpClient1, mockSftpClient2]
         1 * mockSftpClient1.host >> new SftpHost(uri, credentials)
         1 * mockSftpClient2.host >> new SftpHost(uri, credentials)
         1 * mockSftpClient1.connected >> false

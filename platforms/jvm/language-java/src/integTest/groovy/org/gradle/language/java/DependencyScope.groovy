@@ -17,7 +17,7 @@
 package org.gradle.language.java;
 
 enum DependencyScope {
-    COMPONENT {
+    COMPONENT{
         @Override
         public String getBegin() {
             'dependencies {'
@@ -28,7 +28,7 @@ enum DependencyScope {
             '}'
         }
     },
-    API {
+    API{
         @Override
         public String getBegin() {
             'api { dependencies {'
@@ -39,7 +39,7 @@ enum DependencyScope {
             '}}'
         }
     },
-    SOURCES {
+    SOURCES{
         @Override
         public String getBegin() {
             'sources { java { dependencies {'

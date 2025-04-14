@@ -73,13 +73,35 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             .getImmutableMetadataWithDerivationStrategy(componentMetadataContext.getVariantDerivationStrategy());
         return realizeMetadata(metadata);
     };
-
-    private ModuleComponentResolveMetadata maybeForceRealisation(ModuleComponentResolveMetadata metadata) {
-        if (FORCE_REALIZE) {
-            metadata = realizeMetadata(metadata);
-            metadata = forceSerialization(metadata);
-        }
-        return metadata;
+    private final Instantiator instantiator;
+    private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
+    private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
+    private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
+    private final AttributesFactory attributesFactory;
+    private final ComponentMetadataRuleExecutor ruleExecutor;
+    private final MetadataResolutionContext metadataResolutionContext;
+    private final ComponentMetadataRuleContainer metadataRuleContainer;
+    private final PlatformSupport platformSupport;
+    public DefaultComponentMetadataProcessor(
+        ComponentMetadataRuleContainer metadataRuleContainer,
+        Instantiator instantiator,
+        NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
+        NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
+        NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
+        AttributesFactory attributesFactory,
+        ComponentMetadataRuleExecutor ruleExecutor,
+        PlatformSupport platformSupport,
+        MetadataResolutionContext resolutionContext
+    ) {
+        this.metadataRuleContainer = metadataRuleContainer;
+        this.instantiator = instantiator;
+        this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
+        this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
+        this.componentIdentifierNotationParser = componentIdentifierNotationParser;
+        this.attributesFactory = attributesFactory;
+        this.ruleExecutor = ruleExecutor;
+        this.platformSupport = platformSupport;
+        this.metadataResolutionContext = resolutionContext;
     }
 
     private static ModuleComponentResolveMetadata realizeMetadata(ModuleComponentResolveMetadata metadata) {
@@ -89,6 +111,14 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             metadata = RealisedMavenModuleResolveMetadata.transform((DefaultMavenModuleResolveMetadata) metadata);
         } else {
             throw new IllegalStateException("Invalid type received: " + metadata.getClass());
+        }
+        return metadata;
+    }
+
+    private ModuleComponentResolveMetadata maybeForceRealisation(ModuleComponentResolveMetadata metadata) {
+        if (FORCE_REALIZE) {
+            metadata = realizeMetadata(metadata);
+            metadata = forceSerialization(metadata);
         }
         return metadata;
     }
@@ -118,36 +148,6 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             throw new RuntimeException(e);
         }
         return metadata;
-    }
-
-    private final Instantiator instantiator;
-    private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
-    private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
-    private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
-    private final AttributesFactory attributesFactory;
-    private final ComponentMetadataRuleExecutor ruleExecutor;
-    private final MetadataResolutionContext metadataResolutionContext;
-    private final ComponentMetadataRuleContainer metadataRuleContainer;
-    private final PlatformSupport platformSupport;
-
-    public DefaultComponentMetadataProcessor(ComponentMetadataRuleContainer metadataRuleContainer,
-                                             Instantiator instantiator,
-                                             NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
-                                             NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
-                                             NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
-                                             AttributesFactory attributesFactory,
-                                             ComponentMetadataRuleExecutor ruleExecutor,
-                                             PlatformSupport platformSupport,
-                                             MetadataResolutionContext resolutionContext) {
-        this.metadataRuleContainer = metadataRuleContainer;
-        this.instantiator = instantiator;
-        this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
-        this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
-        this.componentIdentifierNotationParser = componentIdentifierNotationParser;
-        this.attributesFactory = attributesFactory;
-        this.ruleExecutor = ruleExecutor;
-        this.platformSupport = platformSupport;
-        this.metadataResolutionContext = resolutionContext;
     }
 
     @Override
@@ -316,30 +316,15 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     static class ShallowComponentMetadataAdapter implements ComponentMetadataDetails {
         private final ModuleVersionIdentifier id;
+        private final AttributeContainerInternal attributes;
         private boolean changing;
         private List<String> statusScheme;
-        private final AttributeContainerInternal attributes;
 
         public ShallowComponentMetadataAdapter(ComponentMetadata source, AttributesFactory attributesFactory) {
             id = source.getId();
             changing = source.isChanging();
             statusScheme = source.getStatusScheme();
             attributes = attributesFactory.mutable((AttributeContainerInternal) source.getAttributes());
-        }
-
-        @Override
-        public void setChanging(boolean changing) {
-            this.changing = changing;
-        }
-
-        @Override
-        public void setStatus(String status) {
-            this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
-        }
-
-        @Override
-        public void setStatusScheme(List<String> statusScheme) {
-            this.statusScheme = statusScheme;
         }
 
         @Override
@@ -388,13 +373,28 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         }
 
         @Override
+        public void setChanging(boolean changing) {
+            this.changing = changing;
+        }
+
+        @Override
         public String getStatus() {
             return attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
         }
 
         @Override
+        public void setStatus(String status) {
+            this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
+        }
+
+        @Override
         public List<String> getStatusScheme() {
             return statusScheme;
+        }
+
+        @Override
+        public void setStatusScheme(List<String> statusScheme) {
+            this.statusScheme = statusScheme;
         }
 
         @Override

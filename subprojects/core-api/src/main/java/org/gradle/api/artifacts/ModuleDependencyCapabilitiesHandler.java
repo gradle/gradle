@@ -53,7 +53,6 @@ public interface ModuleDependencyCapabilitiesHandler {
      * a feature named 'test-fixtures' would have a capability 'group:name-test-fixtures:version'.
      *
      * @param featureName The name of the feature to require
-     *
      * @since 8.11
      */
     @Incubating
@@ -63,9 +62,7 @@ public interface ModuleDependencyCapabilitiesHandler {
      * Lazily require a capability of a component based on the name of the feature provided by the component.
      *
      * @param featureName The name of the feature to require
-     *
      * @see #requireFeature(String)
-     *
      * @since 8.11
      */
     @Incubating

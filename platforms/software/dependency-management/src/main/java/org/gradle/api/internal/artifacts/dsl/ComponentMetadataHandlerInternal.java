@@ -29,8 +29,11 @@ import java.util.function.Consumer;
 @ServiceScope(Scope.Project.class)
 public interface ComponentMetadataHandlerInternal {
     ComponentMetadataProcessor createComponentMetadataProcessor(MetadataResolutionContext resolutionContext);
-    void setVariantDerivationStrategy(VariantDerivationStrategy strategy);
+
     VariantDerivationStrategy getVariantDerivationStrategy();
+
+    void setVariantDerivationStrategy(VariantDerivationStrategy strategy);
+
     void onAddRule(Consumer<DisplayName> consumer);
 
     ComponentMetadataProcessorFactory createFactory(DependencyResolutionManagementInternal dependencyResolutionManagement);

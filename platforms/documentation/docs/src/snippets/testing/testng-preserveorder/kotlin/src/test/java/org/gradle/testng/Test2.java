@@ -8,10 +8,6 @@ import org.testng.annotations.Test;
 
 public class Test2 {
 
-    public static class C implements Serializable {
-        private static final long serialVersionUID = 1L;
-    }
-
     @BeforeClass
     public void beforeClass() {
         System.out.println("Test2.beforeClass()");
@@ -30,5 +26,9 @@ public class Test2 {
     @AfterClass
     public void afterClass() {
         System.out.println("Test2.afterClass()");
+    }
+
+    public static class C implements Serializable {
+        private static final long serialVersionUID = 1L;
     }
 }

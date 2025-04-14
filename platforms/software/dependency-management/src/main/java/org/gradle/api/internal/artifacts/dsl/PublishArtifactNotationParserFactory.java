@@ -60,14 +60,31 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     public NotationParser<Object, ConfigurablePublishArtifact> create() {
         FileNotationConverter fileConverter = new FileNotationConverter();
         return NotationParserBuilder
-                .toType(ConfigurablePublishArtifact.class)
-                .converter(new DecoratingConverter())
-                .converter(new ArchiveTaskNotationConverter())
-                .converter(new FileProviderNotationConverter())
-                .converter(new FileSystemLocationNotationConverter())
-                .converter(fileConverter)
-                .converter(new FileMapNotationConverter(fileConverter))
-                .toComposite();
+            .toType(ConfigurablePublishArtifact.class)
+            .converter(new DecoratingConverter())
+            .converter(new ArchiveTaskNotationConverter())
+            .converter(new FileProviderNotationConverter())
+            .converter(new FileSystemLocationNotationConverter())
+            .converter(fileConverter)
+            .converter(new FileMapNotationConverter(fileConverter))
+            .toComposite();
+    }
+
+    private static class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
+        private final FileNotationConverter fileConverter;
+
+        private FileMapNotationConverter(FileNotationConverter fileConverter) {
+            this.fileConverter = fileConverter;
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Maps with 'file' key");
+        }
+
+        protected PublishArtifact parseMap(@MapKey("file") File file) {
+            return fileConverter.parseType(file);
+        }
     }
 
     private class DecoratingConverter extends TypedNotationConverter<PublishArtifact, ConfigurablePublishArtifact> {
@@ -94,23 +111,6 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(AbstractArchiveTask notation) {
             return instantiator.newInstance(ArchivePublishArtifact.class, taskDependencyFactory, notation);
-        }
-    }
-
-    private static class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
-        private final FileNotationConverter fileConverter;
-
-        private FileMapNotationConverter(FileNotationConverter fileConverter) {
-            this.fileConverter = fileConverter;
-        }
-
-        @Override
-        public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Maps with 'file' key");
-        }
-
-        protected PublishArtifact parseMap(@MapKey("file") File file) {
-            return fileConverter.parseType(file);
         }
     }
 

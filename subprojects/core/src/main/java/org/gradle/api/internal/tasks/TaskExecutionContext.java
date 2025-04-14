@@ -31,11 +31,11 @@ public interface TaskExecutionContext {
 
     TaskExecutionMode getTaskExecutionMode();
 
+    void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
+
     WorkValidationContext getValidationContext();
 
     ValidationAction getValidationAction();
-
-    void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 
     TaskProperties getTaskProperties();
 

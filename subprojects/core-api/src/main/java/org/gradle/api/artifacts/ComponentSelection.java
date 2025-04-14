@@ -54,9 +54,7 @@ public interface ComponentSelection {
      *
      * @param descriptorClass the descriptor class
      * @param <T> the descriptor type
-     *
      * @return a descriptor fo the requested type, or {@code null} if there was none of the requested type.
-     *
      * @see org.gradle.api.artifacts.ivy.IvyModuleDescriptor
      * @since 5.0
      */

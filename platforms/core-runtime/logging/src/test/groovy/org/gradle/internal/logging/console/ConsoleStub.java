@@ -72,10 +72,10 @@ public class ConsoleStub implements Console {
     }
 
     protected class TestableBuildProgressTextArea extends TestStyledTextOutput implements BuildProgressArea {
-        boolean visible;
-        int buildProgressLabelCount;
         private final List<TestableRedrawableLabel> testableLabels = new ArrayList<TestableRedrawableLabel>();
         private final List<StyledLabel> buildProgressLabels = new ArrayList<StyledLabel>();
+        boolean visible;
+        int buildProgressLabelCount;
 
         @Override
         public StyledLabel getProgressBar() {
@@ -87,13 +87,13 @@ public class ConsoleStub implements Console {
             return buildProgressLabels;
         }
 
+        public boolean getVisible() {
+            return visible;
+        }
+
         @Override
         public void setVisible(boolean isVisible) {
             visible = isVisible;
-        }
-
-        public boolean getVisible() {
-            return visible;
         }
 
         @Override

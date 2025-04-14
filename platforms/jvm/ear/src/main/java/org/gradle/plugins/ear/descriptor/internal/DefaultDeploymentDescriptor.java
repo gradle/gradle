@@ -75,6 +75,35 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         this.objectFactory = objectFactory;
     }
 
+    private static XmlParser createParser() {
+        try {
+            XmlParser parser = new XmlParser(false, true, true);
+            try {
+                // If not set for >= JAXP 1.5 / Java8 won't allow referencing DTDs, e.g.
+                // using http URLs, because Groovy's XmlParser requests FEATURE_SECURE_PROCESSING
+                parser.setProperty(ACCESS_EXTERNAL_DTD, ALLOW_ANY_EXTERNAL_DTD);
+            } catch (SAXNotRecognizedException ignore) {
+                // property requires >= JAXP 1.5 / Java8
+            }
+            return parser;
+        } catch (Exception ex) {
+            throw UncheckedException.throwAsUncheckedException(ex);
+        }
+    }
+
+    private static String childNodeText(Node root, String name) {
+        for (Node child : Cast.<List<Node>>uncheckedCast(root.children())) {
+            if (localNameOf(child).equals(name)) {
+                return child.text();
+            }
+        }
+        return null;
+    }
+
+    private static String localNameOf(Node node) {
+        return node.name() instanceof QName ? ((QName) node.name()).getLocalPart() : String.valueOf(node.name());
+    }
+
     @Override
     public String getFileName() {
         return fileName;
@@ -245,22 +274,6 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         }
     }
 
-    private static XmlParser createParser() {
-        try {
-            XmlParser parser = new XmlParser(false, true, true);
-            try {
-                // If not set for >= JAXP 1.5 / Java8 won't allow referencing DTDs, e.g.
-                // using http URLs, because Groovy's XmlParser requests FEATURE_SECURE_PROCESSING
-                parser.setProperty(ACCESS_EXTERNAL_DTD, ALLOW_ANY_EXTERNAL_DTD);
-            } catch (SAXNotRecognizedException ignore) {
-                // property requires >= JAXP 1.5 / Java8
-            }
-            return parser;
-        } catch (Exception ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
-        }
-    }
-
     @Override
     public DeploymentDescriptor readFrom(Reader reader) {
         try {
@@ -341,19 +354,6 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             IoActions.closeQuietly(reader);
         }
         return this;
-    }
-
-    private static String childNodeText(Node root, String name) {
-        for (Node child : Cast.<List<Node>>uncheckedCast(root.children())) {
-            if (localNameOf(child).equals(name)) {
-                return child.text();
-            }
-        }
-        return null;
-    }
-
-    private static String localNameOf(Node node) {
-        return node.name() instanceof QName ? ((QName) node.name()).getLocalPart() : String.valueOf(node.name());
     }
 
     @Override

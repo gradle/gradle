@@ -27,7 +27,7 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
         setup:
         settingsFile << 'rootProject.name = "root"'
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            ${mavenCentralRepository()}
            dependencies { ${implementationConfiguration} 'com.google.guava:guava:18.0' }
@@ -50,7 +50,7 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
         setup:
         settingsFile << 'rootProject.name = "root"'
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {

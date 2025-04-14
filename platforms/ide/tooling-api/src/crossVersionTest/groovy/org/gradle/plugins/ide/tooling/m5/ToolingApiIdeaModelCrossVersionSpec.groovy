@@ -29,7 +29,7 @@ import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
-    def shouldCheckForDeprecationWarnings(){
+    def shouldCheckForDeprecationWarnings() {
         false
     }
 
@@ -210,7 +210,7 @@ project(':impl') {
 
         then:
         def libs = module.dependencies
-        IdeaSingleEntryLibraryDependency lib = libs.find {it instanceof IdeaSingleEntryLibraryDependency}
+        IdeaSingleEntryLibraryDependency lib = libs.find { it instanceof IdeaSingleEntryLibraryDependency }
 
         lib.file.exists()
         lib.file.path.endsWith('coolLib-1.0.jar')
@@ -223,7 +223,7 @@ project(':impl') {
 
         lib.scope.scope == 'TEST'
 
-        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
+        IdeaModuleDependency mod = libs.find { it instanceof IdeaModuleDependency }
         mod.targetModuleName == 'api'
         if (targetVersion >= GradleVersion.version("3.4")) {
             mod.scope.scope == 'PROVIDED'
@@ -254,13 +254,13 @@ project(':impl') {
         IdeaProject project = loadToolingModel(IdeaProject)
 
         then:
-        def impl = project.modules.find { it.name == 'impl'}
-        def root = project.modules.find { it.name == 'root'}
+        def impl = project.modules.find { it.name == 'impl' }
+        def root = project.modules.find { it.name == 'root' }
 
         root.gradleProject.tasks.find { it.name == 'rootTask' && it.path == ':rootTask' && it.project == root.gradleProject }
         !root.gradleProject.tasks.find { it.name == 'implTask' }
 
-        impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject}
+        impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject }
         !impl.gradleProject.tasks.find { it.name == 'rootTask' }
     }
 

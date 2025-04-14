@@ -44,10 +44,9 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @NullMarked
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private final ConfigurationDetailsAction configurationDetailsAction = new ConfigurationDetailsAction();
+    DependencyGraphsRenderer dependencyGraphRenderer;
     private boolean hasConfigs;
     private GraphRenderer renderer;
-
-    DependencyGraphsRenderer dependencyGraphRenderer;
 
     @Override
     public void startProject(ProjectDetails project) {

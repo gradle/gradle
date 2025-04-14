@@ -32,6 +32,10 @@ public class IsolatedArray extends AbstractArraySnapshot<Isolatable<?>> implemen
         this.arrayType = arrayType;
     }
 
+    public static IsolatedArray empty(Class<?> arrayType) {
+        return new IsolatedArray(ImmutableList.of(), arrayType);
+    }
+
     @Override
     public ValueSnapshot asSnapshot() {
         if (elements.isEmpty()) {
@@ -76,9 +80,5 @@ public class IsolatedArray extends AbstractArraySnapshot<Isolatable<?>> implemen
 
     public Class<?> getArrayType() {
         return arrayType;
-    }
-
-    public static IsolatedArray empty(Class<?> arrayType) {
-        return new IsolatedArray(ImmutableList.of(), arrayType);
     }
 }

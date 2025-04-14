@@ -20,12 +20,6 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
 
-    /**
-     * A key corresponding to the spec that is an immutable snapshot of the spec properties
-     * suitable for usage in collections.
-     */
-    interface Key {}
-
     Key toKey();
 
     /**
@@ -50,9 +44,15 @@ public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
     /**
      * Finalizes values of all spec properties, disallowing any further changes.
      */
-   default void finalizeProperties() {
+    default void finalizeProperties() {
         getLanguageVersion().finalizeValue();
         getVendor().finalizeValue();
         getImplementation().finalizeValue();
     }
+
+    /**
+     * A key corresponding to the spec that is an immutable snapshot of the spec properties
+     * suitable for usage in collections.
+     */
+    interface Key {}
 }

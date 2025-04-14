@@ -21,6 +21,12 @@ import org.gradle.util.GradleVersion;
 import java.io.Serializable;
 
 public abstract class VersionDetails implements Serializable {
+    private final String providerVersion;
+
+    protected VersionDetails(String version) {
+        providerVersion = version;
+    }
+
     public static VersionDetails from(String version) {
         return from(GradleVersion.version(version));
     }
@@ -42,12 +48,6 @@ public abstract class VersionDetails implements Serializable {
             return new R28VersionDetails(version.getVersion());
         }
         return new R26VersionDetails(version.getVersion());
-    }
-
-    private final String providerVersion;
-
-    protected VersionDetails(String version) {
-        providerVersion = version;
     }
 
     public String getVersion() {

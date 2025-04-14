@@ -117,13 +117,13 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
         return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
+    public DefaultProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
+    }
+
     public LaunchableGradleTask setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
         this.projectIdentifier = projectIdentifier;
         return this;
-    }
-
-    public DefaultProjectIdentifier getProjectIdentifier() {
-        return projectIdentifier;
     }
 
     @Override

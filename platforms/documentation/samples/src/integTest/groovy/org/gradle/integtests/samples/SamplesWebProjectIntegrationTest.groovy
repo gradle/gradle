@@ -23,8 +23,10 @@ import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 
 class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/customized/groovy')
-    @Rule ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
+    @Rule
+    public final Sample sample = new Sample(temporaryFolder, 'webApplication/customized/groovy')
+    @Rule
+    ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def setup() {
         executer.withRepositoryMirrors()
@@ -39,12 +41,12 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
         TestFile tmpDir = file('unjar')
         sample.dir.file("build/libs/customized-1.0.war").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
-                'root.txt',
-                'META-INF/MANIFEST.MF',
-                'WEB-INF/classes/org/gradle/HelloServlet.class',
-                'WEB-INF/additional.xml',
-                'WEB-INF/webapp.xml',
-                'WEB-INF/web.xml',
-                'webapp.html')
+            'root.txt',
+            'META-INF/MANIFEST.MF',
+            'WEB-INF/classes/org/gradle/HelloServlet.class',
+            'WEB-INF/additional.xml',
+            'WEB-INF/webapp.xml',
+            'WEB-INF/web.xml',
+            'webapp.html')
     }
 }

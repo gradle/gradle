@@ -76,25 +76,25 @@ import java.util.TreeSet;
 
 @NullMarked
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
-    private static final Object[] NO_ARGS = new Object[0];
     public final static String EAGERLY_CREATE_LAZY_TASKS_PROPERTY = "org.gradle.internal.tasks.eager";
-
+    private static final Object[] NO_ARGS = new Object[0];
     private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_ACTION, Task.TASK_DEPENDS_ON, Task.TASK_DESCRIPTION, Task.TASK_GROUP, Task.TASK_NAME, Task.TASK_OVERWRITE, Task.TASK_TYPE, Task.TASK_CONSTRUCTOR_ARGS
     );
     private static final Set<String> MANDATORY_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_NAME, Task.TASK_TYPE
     );
-
+    private static final RegisterTaskBuildOperationType.Result REGISTER_RESULT = new RegisterTaskBuildOperationType.Result() {
+    };
+    private static final RealizeTaskBuildOperationType.Result REALIZE_RESULT = new RealizeTaskBuildOperationType.Result() {
+    };
     private final TaskIdentityFactory taskIdentityFactory;
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
-
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
-
     private MutableModelNode modelNode;
 
     public DefaultTaskContainer(
@@ -116,6 +116,59 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationRunner = buildOperationRunner;
         this.projectRegistry = projectRegistry;
+    }
+
+    private static Object[] getConstructorArgs(Map<String, ?> args) {
+        Object constructorArgs = args.get(Task.TASK_CONSTRUCTOR_ARGS);
+        if (constructorArgs instanceof List) {
+            List<?> asList = (List<?>) constructorArgs;
+            return asList.toArray();
+        }
+        if (constructorArgs instanceof Object[]) {
+            return (Object[]) constructorArgs;
+        }
+        if (constructorArgs != null) {
+            throw new IllegalArgumentException(String.format("%s must be a List or Object[].  Received %s", Task.TASK_CONSTRUCTOR_ARGS, constructorArgs.getClass()));
+        }
+        return NO_ARGS;
+    }
+
+    private static Map<String, ?> checkTaskArgsAndCreateDefaultValues(Map<String, ?> args) {
+        validateArgs(args);
+        if (!args.keySet().containsAll(MANDATORY_TASK_ARGUMENTS)) {
+            Map<String, Object> argsWithDefaults = new HashMap<>(args);
+            argsWithDefaults.putIfAbsent(Task.TASK_NAME, "");
+            argsWithDefaults.putIfAbsent(Task.TASK_TYPE, DefaultTask.class);
+            return argsWithDefaults;
+        }
+        return args;
+    }
+
+    private static void validateArgs(Map<String, ?> args) {
+        if (!VALID_TASK_ARGUMENTS.containsAll(args.keySet())) {
+            Map<String, Object> unknownArguments = new HashMap<>(args);
+            unknownArguments.keySet().removeAll(VALID_TASK_ARGUMENTS);
+            throw new InvalidUserDataException(String.format("Could not create task '%s': Unknown argument(s) in task definition: %s",
+                args.get(Task.TASK_NAME), unknownArguments.keySet()));
+        }
+    }
+
+    private static void failOnDuplicateTask(String task) {
+        throw new DuplicateTaskException(String.format("Cannot add task '%s' as a task with that name already exists.", task));
+    }
+
+    private static RuntimeException unsupportedTaskRemovalException() {
+        return new UnsupportedOperationException("Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead.");
+    }
+
+    private static BuildOperationDescriptor.Builder realizeDescriptor(TaskIdentity<?> identity, boolean replacement, boolean eager) {
+        return BuildOperationDescriptor.displayName("Realize task " + identity.identityPath)
+            .details(new RealizeDetails(identity, replacement, eager));
+    }
+
+    private static BuildOperationDescriptor.Builder registerDescriptor(TaskIdentity<?> identity) {
+        return BuildOperationDescriptor.displayName("Register task " + identity.identityPath)
+            .details(new RegisterDetails(identity));
     }
 
     @Deprecated
@@ -191,41 +244,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         });
     }
 
-    private static Object[] getConstructorArgs(Map<String, ?> args) {
-        Object constructorArgs = args.get(Task.TASK_CONSTRUCTOR_ARGS);
-        if (constructorArgs instanceof List) {
-            List<?> asList = (List<?>) constructorArgs;
-            return asList.toArray();
-        }
-        if (constructorArgs instanceof Object[]) {
-            return (Object[]) constructorArgs;
-        }
-        if (constructorArgs != null) {
-            throw new IllegalArgumentException(String.format("%s must be a List or Object[].  Received %s", Task.TASK_CONSTRUCTOR_ARGS, constructorArgs.getClass()));
-        }
-        return NO_ARGS;
-    }
-
-    private static Map<String, ?> checkTaskArgsAndCreateDefaultValues(Map<String, ?> args) {
-        validateArgs(args);
-        if (!args.keySet().containsAll(MANDATORY_TASK_ARGUMENTS)) {
-            Map<String, Object> argsWithDefaults = new HashMap<>(args);
-            argsWithDefaults.putIfAbsent(Task.TASK_NAME, "");
-            argsWithDefaults.putIfAbsent(Task.TASK_TYPE, DefaultTask.class);
-            return argsWithDefaults;
-        }
-        return args;
-    }
-
-    private static void validateArgs(Map<String, ?> args) {
-        if (!VALID_TASK_ARGUMENTS.containsAll(args.keySet())) {
-            Map<String, Object> unknownArguments = new HashMap<>(args);
-            unknownArguments.keySet().removeAll(VALID_TASK_ARGUMENTS);
-            throw new InvalidUserDataException(String.format("Could not create task '%s': Unknown argument(s) in task definition: %s",
-                args.get(Task.TASK_NAME), unknownArguments.keySet()));
-        }
-    }
-
     private <T extends Task> void addTask(T task, boolean replaceExisting) {
         String name = task.getName();
 
@@ -256,10 +274,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         addInternal(task);
-    }
-
-    private static void failOnDuplicateTask(String task) {
-        throw new DuplicateTaskException(String.format("Cannot add task '%s' as a task with that name already exists.", task));
     }
 
     @Override
@@ -650,10 +664,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         };
     }
 
-    private static RuntimeException unsupportedTaskRemovalException() {
-        return new UnsupportedOperationException("Removing tasks from the task container is not supported.  Disable the tasks or use replace() instead.");
-    }
-
     @Override
     public Action<? super Task> whenObjectRemoved(Action<? super Task> action) {
         throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
@@ -664,79 +674,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
-    // Cannot be private due to reflective instantiation
-    public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
-        private final TaskIdentity<I> identity;
-        private Object[] constructorArgs;
-
-        public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
-            super(identity.name, identity.type, configureAction);
-            this.identity = identity;
-            this.constructorArgs = constructorArgs;
-            statistics.lazyTask();
-        }
-
-        public ImmutableActionSet<I> getOnCreateActions() {
-            return onCreate;
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return ValueProducer.taskState(get());
-        }
-
-        @Override
-        protected void tryCreate() {
-            buildOperationRunner.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    try {
-                        TaskCreatingProvider.super.tryCreate();
-                        // TODO removing this stuff from the store should be handled through some sort of decoration
-                        context.setResult(REALIZE_RESULT);
-                    } finally {
-                        constructorArgs = null;
-                    }
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return realizeDescriptor(identity, false, false);
-                }
-            });
-        }
-
-        @Override
-        protected I createDomainObject() {
-            return createTask(identity, constructorArgs);
-        }
-
-        @Override
-        protected void onLazyDomainObjectRealized() {
-            statistics.lazyTaskRealized(getType());
-        }
-
-        @Override
-        protected RuntimeException domainObjectCreationException(Throwable cause) {
-            return taskCreationException(getName(), cause);
-        }
-    }
-
     private RuntimeException taskCreationException(String name, Throwable cause) {
         if (cause instanceof DuplicateTaskException) {
             return (RuntimeException) cause;
         }
         return new TaskCreationException(String.format("Could not create task '%s'.", project.identityPath(name)), cause);
-    }
-
-    private static BuildOperationDescriptor.Builder realizeDescriptor(TaskIdentity<?> identity, boolean replacement, boolean eager) {
-        return BuildOperationDescriptor.displayName("Realize task " + identity.identityPath)
-            .details(new RealizeDetails(identity, replacement, eager));
-    }
-
-    private static BuildOperationDescriptor.Builder registerDescriptor(TaskIdentity<?> identity) {
-        return BuildOperationDescriptor.displayName("Register task " + identity.identityPath)
-            .details(new RegisterDetails(identity));
     }
 
     @Deprecated
@@ -774,11 +716,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private void addLaterInternal(Provider<? extends Task> provider) {
         super.addLater(provider);
     }
-
-    private static final RegisterTaskBuildOperationType.Result REGISTER_RESULT = new RegisterTaskBuildOperationType.Result() {
-    };
-    private static final RealizeTaskBuildOperationType.Result REALIZE_RESULT = new RealizeTaskBuildOperationType.Result() {
-    };
 
     @Contextual
     private static class TaskCreationException extends GradleException {
@@ -860,6 +797,64 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             return false;
         }
 
+    }
+
+    // Cannot be private due to reflective instantiation
+    public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
+        private final TaskIdentity<I> identity;
+        private Object[] constructorArgs;
+
+        public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
+            super(identity.name, identity.type, configureAction);
+            this.identity = identity;
+            this.constructorArgs = constructorArgs;
+            statistics.lazyTask();
+        }
+
+        public ImmutableActionSet<I> getOnCreateActions() {
+            return onCreate;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.taskState(get());
+        }
+
+        @Override
+        protected void tryCreate() {
+            buildOperationRunner.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    try {
+                        TaskCreatingProvider.super.tryCreate();
+                        // TODO removing this stuff from the store should be handled through some sort of decoration
+                        context.setResult(REALIZE_RESULT);
+                    } finally {
+                        constructorArgs = null;
+                    }
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return realizeDescriptor(identity, false, false);
+                }
+            });
+        }
+
+        @Override
+        protected I createDomainObject() {
+            return createTask(identity, constructorArgs);
+        }
+
+        @Override
+        protected void onLazyDomainObjectRealized() {
+            statistics.lazyTaskRealized(getType());
+        }
+
+        @Override
+        protected RuntimeException domainObjectCreationException(Throwable cause) {
+            return taskCreationException(getName(), cause);
+        }
     }
 
 }

@@ -30,7 +30,8 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALI
 
 class AbstractCachedIndexTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     static final CACHE_NAME = "my-cache"
     def cacheAccessCoordinator = new ArtifactCacheLockingAccessCoordinatorStub()
@@ -51,7 +52,8 @@ class AbstractCachedIndexTest extends Specification {
         }
     }
 
-    @Subject AbstractCachedIndex<String, CachedItem> cachedIndex = new AbstractCachedIndex(CACHE_NAME, STRING_SERIALIZER, valueSerializer, cacheAccessCoordinator, fileAccessTracker) {}
+    @Subject
+    AbstractCachedIndex<String, CachedItem> cachedIndex = new AbstractCachedIndex(CACHE_NAME, STRING_SERIALIZER, valueSerializer, cacheAccessCoordinator, fileAccessTracker) {}
 
     def "tracks access to looked up files"() {
         given:
@@ -103,7 +105,7 @@ class AbstractCachedIndexTest extends Specification {
         0 * fileAccessTracker.markAccessed(_)
     }
 
-    private CachedItem cachedItem(file, missing=false) {
+    private CachedItem cachedItem(file, missing = false) {
         new CachedItem() {
             @Override
             boolean isMissing() {

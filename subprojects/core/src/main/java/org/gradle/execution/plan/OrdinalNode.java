@@ -30,11 +30,8 @@ import java.util.Locale;
  * ordinality even if the destroyers are delayed waiting on dependencies (and vice versa).
  */
 public class OrdinalNode extends Node implements SelfExecutingNode {
-    public enum Type {DESTROYER, PRODUCER}
-
     private final Type type;
     private final OrdinalGroup ordinal;
-
     public OrdinalNode(Type type, OrdinalGroup ordinal) {
         this.type = type;
         this.ordinal = ordinal;
@@ -76,4 +73,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
             addDependencySuccessor(prepareNode);
         }
     }
+
+    public enum Type {DESTROYER, PRODUCER}
 }

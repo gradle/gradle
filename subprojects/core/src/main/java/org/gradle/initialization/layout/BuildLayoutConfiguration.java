@@ -35,14 +35,14 @@ public class BuildLayoutConfiguration {
 
     public BuildLayoutConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
-        searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards();
+        searchUpwards = ((StartParameterInternal) startParameter).isSearchUpwards();
         @SuppressWarnings("deprecation")
         File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
         this.settingsFile = customSettingsFile;
         @SuppressWarnings("deprecation")
         File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
         this.buildFile = customBuildFile;
-        useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettings();
+        useEmptySettings = ((StartParameterInternal) startParameter).isUseEmptySettings();
     }
 
     public BuildLayoutConfiguration(BuildLayoutParameters parameters) {

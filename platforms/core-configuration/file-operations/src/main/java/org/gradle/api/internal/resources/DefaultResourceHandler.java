@@ -55,11 +55,11 @@ public class DefaultResourceHandler implements ResourceHandler {
 
     @ServiceScope({Scope.Build.class, Scope.Project.class})
     public interface Factory {
-        ResourceHandler create(FileOperations fileOperations);
-
         static Factory from(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
             return new FactoryImpl(fileResolver, taskDependencyFactory, fileSystem, tempFileProvider, textResourceAdapterFactory);
         }
+
+        ResourceHandler create(FileOperations fileOperations);
 
         class FactoryImpl implements Factory {
             private final FileResolver fileResolver;

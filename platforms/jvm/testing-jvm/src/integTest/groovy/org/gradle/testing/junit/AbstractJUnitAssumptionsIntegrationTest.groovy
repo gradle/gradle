@@ -56,9 +56,9 @@ abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractTestingMu
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.TestWithAssumptions')
         result.testClass('org.gradle.TestWithAssumptions')
-                .assertTestCount(2, 0, 0)
-                .assertTestsExecuted('assumptionSucceeded')
-                .assertTestPassed('assumptionSucceeded')
-                .assertTestsSkipped('assumptionFailed')
+            .assertTestCount(2, 0, 0)
+            .assertTestsExecuted('assumptionSucceeded')
+            .assertTestPassed('assumptionSucceeded')
+            .assertTestsSkipped('assumptionFailed')
     }
 }

@@ -29,6 +29,11 @@ public class IgnoredPathFileSystemLocationFingerprint implements FileSystemLocat
     private final FileType type;
     private final HashCode normalizedContentHash;
 
+    private IgnoredPathFileSystemLocationFingerprint(FileType type, HashCode normalizedContentHash) {
+        this.type = type;
+        this.normalizedContentHash = normalizedContentHash;
+    }
+
     public static IgnoredPathFileSystemLocationFingerprint create(FileType type, HashCode contentHash) {
         switch (type) {
             case Directory:
@@ -40,11 +45,6 @@ public class IgnoredPathFileSystemLocationFingerprint implements FileSystemLocat
             default:
                 throw new IllegalStateException();
         }
-    }
-
-    private IgnoredPathFileSystemLocationFingerprint(FileType type, HashCode normalizedContentHash) {
-        this.type = type;
-        this.normalizedContentHash = normalizedContentHash;
     }
 
     @Override

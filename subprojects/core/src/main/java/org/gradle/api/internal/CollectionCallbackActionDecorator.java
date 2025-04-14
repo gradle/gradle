@@ -24,10 +24,6 @@ import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.CrossBuildSession.class)
 public interface CollectionCallbackActionDecorator {
-    <T> Action<T> decorate(@Nullable Action<T> action);
-
-    <T> Spec<T> decorateSpec(Spec<T> spec);
-
     CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {
         @Override
         public <T> Action<T> decorate(@Nullable Action<T> action) {
@@ -39,4 +35,8 @@ public interface CollectionCallbackActionDecorator {
             return spec;
         }
     };
+
+    <T> Action<T> decorate(@Nullable Action<T> action);
+
+    <T> Spec<T> decorateSpec(Spec<T> spec);
 }

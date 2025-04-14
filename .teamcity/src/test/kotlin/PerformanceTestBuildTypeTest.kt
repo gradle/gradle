@@ -113,7 +113,7 @@ class PerformanceTestBuildTypeTest {
                     ":performance:smallTestProjectPerformanceTest",
                     "extraParameters",
                 ) + expectedRunnerParams
-            ).joinToString(" "),
+                ).joinToString(" "),
             performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim(),
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)
@@ -187,7 +187,7 @@ class PerformanceTestBuildTypeTest {
                     ":performance:smallTestProjectPerformanceTest",
                     "extraParameters",
                 ) + expectedRunnerParams
-            ).joinToString(" "),
+                ).joinToString(" "),
             performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim(),
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)

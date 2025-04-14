@@ -26,27 +26,39 @@
             </thead>
             <tr>
                 <td>properties</td>
-                <td><literal>[:]</literal></td>
+                <td>
+                    <literal>[:]</literal>
+                </td>
             </tr>
             <tr>
                 <td>lineSeparator</td>
-                <td><literal>'\n'</literal></td>
+                <td>
+                    <literal>'\n'</literal>
+                </td>
             </tr>
             <tr>
                 <td>outputFile</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>destinationFile</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>comment</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>encoding</td>
-                <td><literal>ISO-8859-1</literal></td>
+                <td>
+                    <literal>ISO-8859-1</literal>
+                </td>
             </tr>
         </table>
     </section>

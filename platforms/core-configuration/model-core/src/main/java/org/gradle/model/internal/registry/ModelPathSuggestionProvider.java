@@ -43,27 +43,6 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
         this.availablePaths = availablePaths;
     }
 
-    @ThreadSafe
-    private static class Suggestion implements Comparable<Suggestion> {
-        private final int distance;
-        private final ModelPath path;
-
-        private Suggestion(int distance, ModelPath path) {
-            this.distance = distance;
-            this.path = path;
-        }
-
-        @Override
-        public int compareTo(Suggestion o) {
-            int distanceDifference = distance - o.distance;
-            if (distanceDifference == 0) {
-                return path.toString().compareTo(o.path.toString());
-            } else {
-                return distanceDifference;
-            }
-        }
-    }
-
     @Override
     public List<ModelPath> transform(final ModelPath unavailable) {
         Iterable<Suggestion> suggestions = Iterables.transform(availablePaths, new Function<ModelPath, Suggestion>() {
@@ -83,5 +62,26 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
         suggestions = Iterables.filter(suggestions, REMOVE_NULLS);
         List<Suggestion> sortedSuggestions = CollectionUtils.sort(suggestions);
         return CollectionUtils.collect(sortedSuggestions, s -> s.path);
+    }
+
+    @ThreadSafe
+    private static class Suggestion implements Comparable<Suggestion> {
+        private final int distance;
+        private final ModelPath path;
+
+        private Suggestion(int distance, ModelPath path) {
+            this.distance = distance;
+            this.path = path;
+        }
+
+        @Override
+        public int compareTo(Suggestion o) {
+            int distanceDifference = distance - o.distance;
+            if (distanceDifference == 0) {
+                return path.toString().compareTo(o.path.toString());
+            } else {
+                return distanceDifference;
+            }
+        }
     }
 }

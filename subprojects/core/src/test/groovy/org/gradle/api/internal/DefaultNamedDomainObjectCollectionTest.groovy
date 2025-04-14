@@ -270,7 +270,7 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
     protected void assertSchemaIs(Map<String, String> expectedSchema) {
         def actualSchema = container.collectionSchema
         Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
-            [ schema.name, schema.publicType.simpleName ]
+            [schema.name, schema.publicType.simpleName]
         }.sort()
         def expectedSchemaMap = expectedSchema.sort()
         assert expectedSchemaMap == actualSchemaMap

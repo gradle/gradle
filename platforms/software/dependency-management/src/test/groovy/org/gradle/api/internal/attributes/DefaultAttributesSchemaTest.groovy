@@ -96,15 +96,15 @@ class DefaultAttributesSchemaTest extends Specification {
         when:
         schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor), Attribute.of("b", String), Attribute.of("c", ConcreteNamed))
         then:
-        schema.attributeDisambiguationPrecedence*.name == [ "a", "b", "c" ]
+        schema.attributeDisambiguationPrecedence*.name == ["a", "b", "c"]
         when:
         schema.attributeDisambiguationPrecedence = [Attribute.of("c", ConcreteNamed)]
         then:
-        schema.attributeDisambiguationPrecedence*.name == [ "c" ]
+        schema.attributeDisambiguationPrecedence*.name == ["c"]
         when:
         schema.attributeDisambiguationPrecedence(Attribute.of("a", Flavor))
         then:
-        schema.attributeDisambiguationPrecedence*.name == [ "c", "a" ]
+        schema.attributeDisambiguationPrecedence*.name == ["c", "a"]
     }
 
     def "precedence order cannot be changed for the same attribute"() {

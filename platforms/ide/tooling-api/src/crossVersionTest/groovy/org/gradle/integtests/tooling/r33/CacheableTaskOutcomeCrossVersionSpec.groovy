@@ -71,7 +71,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
 
     private TaskSuccessResult cacheableTaskResult(ProgressEvents events) {
         events.operations.size() == 1
-        (TaskSuccessResult)events.operations[0].result
+        (TaskSuccessResult) events.operations[0].result
     }
 
     private void runCacheableBuild(listener) {

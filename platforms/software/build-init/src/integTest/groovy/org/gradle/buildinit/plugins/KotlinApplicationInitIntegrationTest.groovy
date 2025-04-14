@@ -38,7 +38,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
 
     def "defaults to kotlin build scripts"() {
         when:
-        run ('init', '--type', 'kotlin-application')
+        run('init', '--type', 'kotlin-application')
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()

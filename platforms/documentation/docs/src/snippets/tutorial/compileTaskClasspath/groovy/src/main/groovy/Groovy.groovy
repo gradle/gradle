@@ -1,1 +1,1 @@
-class Groovy { }
+class Groovy {}

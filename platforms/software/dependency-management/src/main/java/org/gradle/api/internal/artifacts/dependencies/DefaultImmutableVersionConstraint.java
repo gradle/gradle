@@ -38,11 +38,13 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
 
     private final int hashCode;
 
-    public DefaultImmutableVersionConstraint(String preferredVersion,
-                                             String requiredVersion,
-                                             String strictVersion,
-                                             List<String> rejectedVersions,
-                                             @Nullable String requiredBranch) {
+    public DefaultImmutableVersionConstraint(
+        String preferredVersion,
+        String requiredVersion,
+        String strictVersion,
+        List<String> rejectedVersions,
+        @Nullable String requiredBranch
+    ) {
         if (preferredVersion == null) {
             throw new IllegalArgumentException("Preferred version must not be null");
         }
@@ -80,6 +82,32 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.hashCode = super.hashCode();
     }
 
+    public static ImmutableVersionConstraint of(VersionConstraint versionConstraint) {
+        if (versionConstraint instanceof ImmutableVersionConstraint) {
+            return (ImmutableVersionConstraint) versionConstraint;
+        }
+        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
+    }
+
+    public static ImmutableVersionConstraint of(@Nullable String version) {
+        if (version == null) {
+            return of();
+        }
+        return new DefaultImmutableVersionConstraint(version);
+    }
+
+    public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects, null);
+    }
+
+    public static ImmutableVersionConstraint of() {
+        return EMPTY;
+    }
+
+    public static ImmutableVersionConstraint strictly(String version) {
+        return new DefaultImmutableVersionConstraint("", version, version, ImmutableList.of(), null);
+    }
+
     @Override
     public int hashCode() {
         return hashCode;
@@ -109,31 +137,5 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     @Override
     public List<String> getRejectedVersions() {
         return rejectedVersions;
-    }
-
-    public static ImmutableVersionConstraint of(VersionConstraint versionConstraint) {
-        if (versionConstraint instanceof ImmutableVersionConstraint) {
-            return (ImmutableVersionConstraint) versionConstraint;
-        }
-        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
-    }
-
-    public static ImmutableVersionConstraint of(@Nullable String version) {
-        if (version == null) {
-            return of();
-        }
-        return new DefaultImmutableVersionConstraint(version);
-    }
-
-    public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
-        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects, null);
-    }
-
-    public static ImmutableVersionConstraint of() {
-        return EMPTY;
-    }
-
-    public static ImmutableVersionConstraint strictly(String version) {
-        return new DefaultImmutableVersionConstraint("", version, version, ImmutableList.of(), null);
     }
 }

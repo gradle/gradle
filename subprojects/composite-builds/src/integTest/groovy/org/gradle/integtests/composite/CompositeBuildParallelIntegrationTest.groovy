@@ -24,10 +24,11 @@ import org.junit.Rule
 
 @Requires(IntegTestPreconditions.NotParallelExecutor)
 class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "works when number of included builds exceeds max-workers --max-workers=#maxWorkers"() {
-        def totalIncludedBuilds = 5*maxWorkers
+        def totalIncludedBuilds = 5 * maxWorkers
         buildA.buildFile << """
             task delegate {
                 dependsOn gradle.includedBuilds*.task(":someTask")
@@ -49,7 +50,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         operations.assertConcurrentOperationsDoNotExceed(ExecuteTaskBuildOperationType, maxWorkers, maxWorkers != 1)
 
         where:
-        maxWorkers << [ 1, 2, 4 ]
+        maxWorkers << [1, 2, 4]
     }
 
     def "can build transitive dependency chain with --max-workers == 1"() {

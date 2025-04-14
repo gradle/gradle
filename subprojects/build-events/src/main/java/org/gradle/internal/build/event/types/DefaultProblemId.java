@@ -31,9 +31,9 @@ public class DefaultProblemId implements InternalProblemId, Serializable {
     private final InternalProblemGroup group;
 
     public DefaultProblemId(String name, String displayName, InternalProblemGroup group) {
-          this.name = name;
-          this.displayName = displayName;
-          this.group = group;
+        this.name = name;
+        this.displayName = displayName;
+        this.group = group;
     }
 
     @Override

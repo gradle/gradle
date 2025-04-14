@@ -22,5 +22,5 @@ import org.gradle.testing.AbstractTestOutputListenerIntegrationTest
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
 
 @TargetCoverage({ JUNIT_4 })
-class JUnit4TestOutputListenerTest extends AbstractTestOutputListenerIntegrationTest implements JUnit4MultiVersionTest{
+class JUnit4TestOutputListenerTest extends AbstractTestOutputListenerIntegrationTest implements JUnit4MultiVersionTest {
 }

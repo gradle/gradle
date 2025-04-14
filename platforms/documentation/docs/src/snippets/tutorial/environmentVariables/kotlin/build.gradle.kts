@@ -8,8 +8,12 @@ println(providers.environmentVariable("ENVIRONMENTAL").get())
 // end::configuration[]
 
 abstract class PrintValue : DefaultTask() {
-    @get:Input abstract val inputValue: Property<String>
-    @TaskAction fun action() { println(inputValue.get()) }
+    @get:Input
+    abstract val inputValue: Property<String>
+    @TaskAction
+    fun action() {
+        println(inputValue.get())
+    }
 }
 
 // tag::execution[]

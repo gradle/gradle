@@ -72,6 +72,7 @@ class MutationApplicabilityChecker(
                     node.elementValues.forEach { visitValue(it, node) }
                     node.content.forEach(::visitDocumentNode)
                 }
+
                 is PropertyNode -> visitValue(node.value, node)
                 is ErrorNode -> Unit
             }
@@ -89,6 +90,7 @@ class MutationApplicabilityChecker(
                 is DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation -> when (mutation) {
                     is AddChildrenToEndOfBlock,
                     is AddChildrenToStartOfBlock -> MutationApplicability.ScopeWithoutAffectedNodes(mutation.targetNode)
+
                     is ElementNodeCallMutation -> AffectedNode(mutation.targetNode)
                 }
 

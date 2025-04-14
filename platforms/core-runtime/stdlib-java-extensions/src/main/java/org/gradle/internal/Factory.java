@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 public interface Factory<T> {
     /**
      * Creates a new instance of type T.
+     *
      * @return The instance.
      */
     @Nullable

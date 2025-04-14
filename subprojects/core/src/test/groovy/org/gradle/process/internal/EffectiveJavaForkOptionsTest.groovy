@@ -162,7 +162,7 @@ class EffectiveJavaForkOptionsTest extends Specification {
 
     def "is compatible with same workingDir"() {
         def options = new EffectiveJavaForkOptions("", new File("foo"), [:], new JvmOptions(fileCollectionFactory))
-        def other = new EffectiveJavaForkOptions("",  new File("foo"), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File("foo"), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         options.isCompatibleWith(other)
@@ -170,7 +170,7 @@ class EffectiveJavaForkOptionsTest extends Specification {
 
     def "is not compatible with different workingDir"() {
         def options = new EffectiveJavaForkOptions("", new File("foo"), [:], new JvmOptions(fileCollectionFactory))
-        def other = new EffectiveJavaForkOptions("",  new File("bar"), [:], new JvmOptions(fileCollectionFactory))
+        def other = new EffectiveJavaForkOptions("", new File("bar"), [:], new JvmOptions(fileCollectionFactory))
 
         expect:
         !options.isCompatibleWith(other)
@@ -306,10 +306,10 @@ class EffectiveJavaForkOptionsTest extends Specification {
 
     def "is compatible with same bootstrapClasspath"() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        def options = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+        def options = new EffectiveJavaForkOptions("", new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
             bootstrapClasspath(files)
         })
-        def other = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+        def other = new EffectiveJavaForkOptions("", new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
             bootstrapClasspath(files)
         })
 
@@ -320,10 +320,10 @@ class EffectiveJavaForkOptionsTest extends Specification {
     def "is not compatible with different bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file2.jar', 'file3.jar'].collect { new File(it).canonicalFile }
-        def options = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+        def options = new EffectiveJavaForkOptions("", new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
             bootstrapClasspath(files1)
         })
-        def other = new EffectiveJavaForkOptions("",  new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
+        def other = new EffectiveJavaForkOptions("", new File(systemSpecificAbsolutePath("foo")), [:], new JvmOptions(fileCollectionFactory).tap {
             bootstrapClasspath(files2)
         })
 

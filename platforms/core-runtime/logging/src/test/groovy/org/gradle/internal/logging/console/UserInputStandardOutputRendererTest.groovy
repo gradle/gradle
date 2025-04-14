@@ -24,10 +24,11 @@ import org.gradle.internal.logging.events.UserInputResumeEvent
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UserInputStandardOutputRendererTest  extends Specification {
+class UserInputStandardOutputRendererTest extends Specification {
     def listener = Mock(OutputEventListener)
     def userInput = Mock(GlobalUserInputReceiver)
-    @Subject def renderer = new UserInputStandardOutputRenderer(listener, userInput)
+    @Subject
+    def renderer = new UserInputStandardOutputRenderer(listener, userInput)
 
     def "can handle user input request and resume events"() {
         given:

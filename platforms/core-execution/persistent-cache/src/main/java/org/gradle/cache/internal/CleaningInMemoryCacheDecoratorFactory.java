@@ -30,7 +30,7 @@ public class CleaningInMemoryCacheDecoratorFactory extends DefaultInMemoryCacheD
 
     public void clearCaches(Predicate<InMemoryCacheController> predicate) {
         synchronized (inMemoryCaches) {
-            for (Iterator<WeakReference<InMemoryCacheController>> iterator = inMemoryCaches.iterator(); iterator.hasNext();) {
+            for (Iterator<WeakReference<InMemoryCacheController>> iterator = inMemoryCaches.iterator(); iterator.hasNext(); ) {
                 WeakReference<InMemoryCacheController> ref = iterator.next();
                 InMemoryCacheController cache = ref.get();
                 if (cache == null) {

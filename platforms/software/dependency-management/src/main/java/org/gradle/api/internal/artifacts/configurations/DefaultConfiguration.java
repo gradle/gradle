@@ -156,82 +156,70 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ProjectStateRegistry projectStateRegistry;
+    private final DefaultPublishArtifactSet artifacts;
+    private final DefaultDomainObjectSet<PublishArtifact> ownArtifacts;
+    private final ConfigurationResolvableDependencies resolvableDependencies;
+    private final BuildOperationRunner buildOperationRunner;
+    private final Instantiator instantiator;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final ResolveExceptionMapper exceptionMapper;
+    private final AttributeDesugaring attributeDesugaring;
+    private final Set<MutationValidator> childMutationValidators = new HashSet<>();
+    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
+    private final ConfigurationsProvider configurationsProvider;
+    private final Path identityPath;
+    private final Path projectPath;
+    // These fields are not covered by mutation lock
+    private final String name;
+    private final DefaultConfigurationPublications outgoing;
+    private final Set<Object> excludeRules = new LinkedHashSet<>();
+    private final Object observationLock = new Object();
+    private final boolean consumptionDeprecated;
+    private final boolean resolutionDeprecated;
+    private final boolean declarationDeprecated;
+    private final ConfigurationRole roleAtCreation;
+    private final FreezableAttributeContainer configurationAttributes;
+    private final DomainObjectContext domainObjectContext;
+    private final AttributesFactory attributesFactory;
+    private final ResolutionAccess resolutionAccess;
+    private final DisplayName displayName;
+    private final UserCodeApplicationContext userCodeApplicationContext;
+    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+    private final AtomicInteger copyCount = new AtomicInteger();
+    private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
+    private final DefaultConfigurationFactory defaultConfigurationFactory;
+    private final InternalProblems problemsService;
+    private final DocumentationRegistry documentationRegistry;
     private CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
     private DefaultDependencySet allDependencies;
     private DefaultDependencyConstraintSet allDependencyConstraints;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
-    private final DefaultPublishArtifactSet artifacts;
-    private final DefaultDomainObjectSet<PublishArtifact> ownArtifacts;
     private CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
     private DefaultPublishArtifactSet allArtifacts;
-    private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final BuildOperationRunner buildOperationRunner;
-    private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final ResolveExceptionMapper exceptionMapper;
-    private final AttributeDesugaring attributeDesugaring;
-
-    private final Set<MutationValidator> childMutationValidators = new HashSet<>();
-    private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
-    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private final ConfigurationsProvider configurationsProvider;
-
-    private final Path identityPath;
-    private final Path projectPath;
-
-    // These fields are not covered by mutation lock
-    private final String name;
-    private final DefaultConfigurationPublications outgoing;
-
     private boolean visible = true;
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<>();
     private String description;
-    private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
-
-    private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
     private boolean insideBeforeResolve;
-
     private boolean canBeConsumed;
     private boolean canBeResolved;
     private boolean canBeDeclaredAgainst;
-    private final boolean consumptionDeprecated;
-    private final boolean resolutionDeprecated;
-    private final boolean declarationDeprecated;
     private boolean usageCanBeMutated = true;
-    private final ConfigurationRole roleAtCreation;
-
     private Supplier<String> observationReason = null;
-    private final FreezableAttributeContainer configurationAttributes;
-    private final DomainObjectContext domainObjectContext;
-    private final AttributesFactory attributesFactory;
-    private final ResolutionAccess resolutionAccess;
+    private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
     private FileCollectionInternal intrinsicFiles;
-
-    private final DisplayName displayName;
-    private final UserCodeApplicationContext userCodeApplicationContext;
-    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-
-    private final AtomicInteger copyCount = new AtomicInteger();
-
     private List<String> declarationAlternatives = ImmutableList.of();
     private List<String> resolutionAlternatives = ImmutableList.of();
-
-    private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
-
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
-    private final DefaultConfigurationFactory defaultConfigurationFactory;
-    private final InternalProblems problemsService;
-    private final DocumentationRegistry documentationRegistry;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -323,6 +311,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private static Action<String> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
         return arg -> mutationValidator.validateMutation(type);
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static Boolean isFullyResolved(Optional<ResolverResults> currentState) {
+        return currentState.map(ResolverResults::isFullyResolved).orElse(false);
     }
 
     @Override
@@ -580,69 +573,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public ResolvedConfiguration getResolvedConfiguration() {
         warnOnDeprecatedUsage("getResolvedConfiguration()", ProperMethodUsage.RESOLVABLE);
         return resolutionAccess.getResults().getValue().getLegacyResults().getResolvedConfiguration();
-    }
-
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static Boolean isFullyResolved(Optional<ResolverResults> currentState) {
-        return currentState.map(ResolverResults::isFullyResolved).orElse(false);
-    }
-
-    private class ConfigurationResolutionAccess implements ResolutionAccess {
-
-        @Override
-        public ResolutionHost getHost() {
-            return new DefaultResolutionHost(identityPath, displayName, problemsService, exceptionMapper);
-        }
-
-        @Override
-        public ImmutableAttributes getAttributes() {
-            configurationAttributes.freeze();
-            return configurationAttributes.asImmutable();
-        }
-
-        @Override
-        public ResolutionStrategy.SortOrder getDefaultSortOrder() {
-            return getResolutionStrategy().getSortOrder();
-        }
-
-        @Override
-        public ResolutionResultProvider<ResolverResults> getResults() {
-            return new ResolverResultsResolutionResultProvider();
-        }
-
-        @Override
-        public ResolutionOutputsInternal getPublicView() {
-            return new DefaultResolutionOutputs(
-                this,
-                taskDependencyFactory,
-                calculatedValueContainerFactory,
-                attributesFactory,
-                attributeDesugaring,
-                instantiator
-            );
-        }
-    }
-
-    /**
-     * A provider that lazily resolves this configuration.
-     */
-    private class ResolverResultsResolutionResultProvider implements ResolutionResultProvider<ResolverResults> {
-
-        @Override
-        public ResolverResults getTaskDependencyValue() {
-            if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
-                // Force graph resolution as this is required to calculate build dependencies
-                return getValue();
-            } else {
-                return resolveGraphForBuildDependenciesIfRequired();
-            }
-        }
-
-        @Override
-        public ResolverResults getValue() {
-            return resolveGraphIfRequired();
-        }
-
     }
 
     private ResolverResults resolveGraphIfRequired() {
@@ -1384,57 +1314,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private static class ConfigurationDescription implements Describable {
-        private final Path identityPath;
-
-        ConfigurationDescription(Path identityPath) {
-            this.identityPath = identityPath;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "configuration '" + identityPath + "'";
-        }
-    }
-
-    private static class DefaultConfigurationIdentity implements ConfigurationIdentity {
-        private final String buildPath;
-        private final String projectPath;
-        private final String name;
-
-        public DefaultConfigurationIdentity(String buildPath, @Nullable String projectPath, String name) {
-            this.buildPath = buildPath;
-            this.projectPath = projectPath;
-            this.name = name;
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath;
-        }
-
-        @Nullable
-        @Override
-        public String getProjectPath() {
-            return projectPath;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public String toString() {
-            Path path = Path.path(buildPath);
-            if (projectPath != null) {
-                path = path.append(Path.path(projectPath));
-            }
-            path = path.child(name);
-            return "Configuration '" + path.toString() + "'";
-        }
-    }
-
     private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
@@ -1717,6 +1596,241 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
+    @Override
+    public ResolutionHost getResolutionHost() {
+        return resolutionAccess.getHost();
+    }
+
+    private enum ProperMethodUsage {
+        CONSUMABLE {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeConsumed();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForConsumption();
+            }
+        },
+        RESOLVABLE {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeResolved();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForResolution();
+            }
+        },
+        DECLARABLE_AGAINST {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeDeclared();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForDeclarationAgainst();
+            }
+        };
+
+        public static String buildProperName(ProperMethodUsage usage) {
+            return WordUtils.capitalizeFully(usage.name().replace('_', ' '));
+        }
+
+        public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
+            return Arrays.stream(properUsages)
+                .map(ProperMethodUsage::buildProperName)
+                .collect(Collectors.joining(", "));
+        }
+
+        abstract boolean isAllowed(ConfigurationInternal configuration);
+
+        abstract boolean isDeprecated(ConfigurationInternal configuration);
+
+        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
+            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
+        }
+    }
+
+    private static class ConfigurationDescription implements Describable {
+        private final Path identityPath;
+
+        ConfigurationDescription(Path identityPath) {
+            this.identityPath = identityPath;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "configuration '" + identityPath + "'";
+        }
+    }
+
+    private static class DefaultConfigurationIdentity implements ConfigurationIdentity {
+        private final String buildPath;
+        private final String projectPath;
+        private final String name;
+
+        public DefaultConfigurationIdentity(String buildPath, @Nullable String projectPath, String name) {
+            this.buildPath = buildPath;
+            this.projectPath = projectPath;
+            this.name = name;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            return projectPath;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            Path path = Path.path(buildPath);
+            if (projectPath != null) {
+                path = path.append(Path.path(projectPath));
+            }
+            path = path.child(name);
+            return "Configuration '" + path.toString() + "'";
+        }
+    }
+
+    private static class DefaultResolutionHost implements ResolutionHost {
+
+        private final Path buildTreePath;
+        private final DisplayName displayName;
+        private final InternalProblems problems;
+        private final ResolveExceptionMapper exceptionMapper;
+
+        public DefaultResolutionHost(
+            Path buildTreePath,
+            DisplayName displayName,
+            InternalProblems problems,
+            ResolveExceptionMapper exceptionMapper
+        ) {
+            this.buildTreePath = buildTreePath;
+            this.displayName = displayName;
+            this.problems = problems;
+            this.exceptionMapper = exceptionMapper;
+        }
+
+        @Override
+        public InternalProblems getProblems() {
+            return problems;
+        }
+
+        @Override
+        public DisplayName displayName() {
+            return displayName;
+        }
+
+        @Override
+        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
+            return Optional.ofNullable(exceptionMapper.mapFailures(failures, resolutionType, displayName));
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DefaultResolutionHost that = (DefaultResolutionHost) o;
+            return buildTreePath.equals(that.buildTreePath);
+        }
+
+        @Override
+        public int hashCode() {
+            return buildTreePath.hashCode();
+        }
+    }
+
+    private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
+        private final String resolution;
+
+        public IllegalResolutionException(String message, DocumentationRegistry documentationRegistry) {
+            super(message);
+            resolution = "For more information, please refer to " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies.html", "sub:resolving-unsafe-configuration-resolution-errors") + " in the Gradle documentation.";
+        }
+
+        @Override
+        public List<String> getResolutions() {
+            return Collections.singletonList(resolution);
+        }
+    }
+
+    private class ConfigurationResolutionAccess implements ResolutionAccess {
+
+        @Override
+        public ResolutionHost getHost() {
+            return new DefaultResolutionHost(identityPath, displayName, problemsService, exceptionMapper);
+        }
+
+        @Override
+        public ImmutableAttributes getAttributes() {
+            configurationAttributes.freeze();
+            return configurationAttributes.asImmutable();
+        }
+
+        @Override
+        public ResolutionStrategy.SortOrder getDefaultSortOrder() {
+            return getResolutionStrategy().getSortOrder();
+        }
+
+        @Override
+        public ResolutionResultProvider<ResolverResults> getResults() {
+            return new ResolverResultsResolutionResultProvider();
+        }
+
+        @Override
+        public ResolutionOutputsInternal getPublicView() {
+            return new DefaultResolutionOutputs(
+                this,
+                taskDependencyFactory,
+                calculatedValueContainerFactory,
+                attributesFactory,
+                attributeDesugaring,
+                instantiator
+            );
+        }
+    }
+
+    /**
+     * A provider that lazily resolves this configuration.
+     */
+    private class ResolverResultsResolutionResultProvider implements ResolutionResultProvider<ResolverResults> {
+
+        @Override
+        public ResolverResults getTaskDependencyValue() {
+            if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+                // Force graph resolution as this is required to calculate build dependencies
+                return getValue();
+            } else {
+                return resolveGraphForBuildDependenciesIfRequired();
+            }
+        }
+
+        @Override
+        public ResolverResults getValue() {
+            return resolveGraphIfRequired();
+        }
+
+    }
+
     public class ConfigurationResolvableDependencies implements ResolvableDependencies {
 
         @Override
@@ -1797,132 +1911,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public PublishArtifactSet getPublishArtifactSet() {
             return getAllArtifacts();
-        }
-    }
-
-    @Override
-    public ResolutionHost getResolutionHost() {
-        return resolutionAccess.getHost();
-    }
-
-    private static class DefaultResolutionHost implements ResolutionHost {
-
-        private final Path buildTreePath;
-        private final DisplayName displayName;
-        private final InternalProblems problems;
-        private final ResolveExceptionMapper exceptionMapper;
-
-        public DefaultResolutionHost(
-            Path buildTreePath,
-            DisplayName displayName,
-            InternalProblems problems,
-            ResolveExceptionMapper exceptionMapper
-        ) {
-            this.buildTreePath = buildTreePath;
-            this.displayName = displayName;
-            this.problems = problems;
-            this.exceptionMapper = exceptionMapper;
-        }
-
-        @Override
-        public InternalProblems getProblems() {
-            return problems;
-        }
-
-        @Override
-        public DisplayName displayName() {
-            return displayName;
-        }
-
-        @Override
-        public Optional<TypedResolveException> consolidateFailures(String resolutionType, Collection<Throwable> failures) {
-            return Optional.ofNullable(exceptionMapper.mapFailures(failures, resolutionType, displayName));
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            DefaultResolutionHost that = (DefaultResolutionHost) o;
-            return buildTreePath.equals(that.buildTreePath);
-        }
-
-        @Override
-        public int hashCode() {
-            return buildTreePath.hashCode();
-        }
-    }
-
-    private enum ProperMethodUsage {
-        CONSUMABLE {
-            @Override
-            boolean isAllowed(ConfigurationInternal configuration) {
-                return configuration.isCanBeConsumed();
-            }
-
-            @Override
-            boolean isDeprecated(ConfigurationInternal configuration) {
-                return configuration.isDeprecatedForConsumption();
-            }
-        },
-        RESOLVABLE {
-            @Override
-            boolean isAllowed(ConfigurationInternal configuration) {
-                return configuration.isCanBeResolved();
-            }
-
-            @Override
-            boolean isDeprecated(ConfigurationInternal configuration) {
-                return configuration.isDeprecatedForResolution();
-            }
-        },
-        DECLARABLE_AGAINST {
-            @Override
-            boolean isAllowed(ConfigurationInternal configuration) {
-                return configuration.isCanBeDeclared();
-            }
-
-            @Override
-            boolean isDeprecated(ConfigurationInternal configuration) {
-                return configuration.isDeprecatedForDeclarationAgainst();
-            }
-        };
-
-        abstract boolean isAllowed(ConfigurationInternal configuration);
-
-        abstract boolean isDeprecated(ConfigurationInternal configuration);
-
-        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
-            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
-        }
-
-        public static String buildProperName(ProperMethodUsage usage) {
-            return WordUtils.capitalizeFully(usage.name().replace('_', ' '));
-        }
-
-        public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
-            return Arrays.stream(properUsages)
-                .map(ProperMethodUsage::buildProperName)
-                .collect(Collectors.joining(", "));
-        }
-    }
-
-    private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
-        private final String resolution;
-
-        public IllegalResolutionException(String message, DocumentationRegistry documentationRegistry) {
-            super(message);
-            resolution = "For more information, please refer to " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies.html", "sub:resolving-unsafe-configuration-resolution-errors") + " in the Gradle documentation.";
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.singletonList(resolution);
         }
     }
 }

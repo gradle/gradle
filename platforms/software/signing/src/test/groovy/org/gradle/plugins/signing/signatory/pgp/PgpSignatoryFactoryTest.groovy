@@ -85,6 +85,6 @@ class PgpSignatoryFactoryTest extends AbstractProjectBuilderSpec {
         declaredProperties                                | missingPropertyName
         ['signing.password', 'signing.secretKeyRingFile'] | 'signing.keyId'
         ['signing.keyId', 'signing.secretKeyRingFile']    | 'signing.password'
-        ['signing.keyId','signing.password']              | 'signing.secretKeyRingFile'
+        ['signing.keyId', 'signing.password']             | 'signing.secretKeyRingFile'
     }
 }

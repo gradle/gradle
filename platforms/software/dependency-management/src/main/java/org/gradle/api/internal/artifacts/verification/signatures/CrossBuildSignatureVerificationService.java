@@ -51,14 +51,16 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
     private final boolean useKeyServers;
     private final HashCode keyringFileHash;
 
-    public CrossBuildSignatureVerificationService(SignatureVerificationService delegate,
-                                                  FileHasher fileHasher,
-                                                  BuildScopedCacheBuilderFactory cacheBuilderFactory,
-                                                  InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-                                                  BuildCommencedTimeProvider timeProvider,
-                                                  boolean refreshKeys,
-                                                  boolean useKeyServers,
-                                                  HashCode keyringFileHash) {
+    public CrossBuildSignatureVerificationService(
+        SignatureVerificationService delegate,
+        FileHasher fileHasher,
+        BuildScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        BuildCommencedTimeProvider timeProvider,
+        boolean refreshKeys,
+        boolean useKeyServers,
+        HashCode keyringFileHash
+    ) {
         this.delegate = delegate;
         this.fileHasher = fileHasher;
         this.timeProvider = timeProvider;

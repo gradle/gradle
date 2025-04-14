@@ -105,8 +105,8 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         plugin.assertAutoApplied(output, false)
 
         where:
-        groupId                                 | artifactId
-        'com.gradle'                            | 'develocity-gradle-plugin'
+        groupId                           | artifactId
+        'com.gradle'                      | 'develocity-gradle-plugin'
         AutoAppliedDevelocityPlugin.ID.id | "${AutoAppliedDevelocityPlugin.ID.id}.gradle.plugin"
     }
 

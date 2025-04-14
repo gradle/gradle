@@ -38,10 +38,6 @@ public class UnsupportedNotationException extends TypeConversionException {
         this.candidates = candidateTypes;
     }
 
-    public Collection<String> getCandidates() {
-        return candidates;
-    }
-
     private static String format(String failure, String resolution, Collection<String> formats) {
         Formatter message = new Formatter();
         message.format("%s%n", failure);
@@ -53,6 +49,10 @@ public class UnsupportedNotationException extends TypeConversionException {
             message.format("%n%n%s", resolution);
         }
         return message.toString();
+    }
+
+    public Collection<String> getCandidates() {
+        return candidates;
     }
 
     public Object getNotation() {

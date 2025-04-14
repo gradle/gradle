@@ -468,6 +468,22 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
             this.capabilitySelectors = capabilitySelectors;
         }
 
+        public static ModuleDependencyDetails from(ModuleDependency dependency, AttributeDesugaring attributeDesugaring) {
+            ImmutableAttributes attributes = ((AttributeContainerInternal) dependency.getAttributes()).asImmutable();
+            return new ModuleDependencyDetails(
+                attributeDesugaring.desugar(attributes),
+                dependency.getCapabilitySelectors()
+            );
+        }
+
+        // Do not desugar here since resolution results already expose desugared attributes.
+        public static ModuleDependencyDetails from(ComponentSelector componentSelector) {
+            return new ModuleDependencyDetails(
+                componentSelector.getAttributes(),
+                componentSelector.getCapabilitySelectors()
+            );
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -483,22 +499,6 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         @Override
         public int hashCode() {
             return Objects.hash(requestAttributes, capabilitySelectors);
-        }
-
-        public static ModuleDependencyDetails from(ModuleDependency dependency, AttributeDesugaring attributeDesugaring) {
-            ImmutableAttributes attributes = ((AttributeContainerInternal) dependency.getAttributes()).asImmutable();
-            return new ModuleDependencyDetails(
-                attributeDesugaring.desugar(attributes),
-                dependency.getCapabilitySelectors()
-            );
-        }
-
-        // Do not desugar here since resolution results already expose desugared attributes.
-        public static ModuleDependencyDetails from(ComponentSelector componentSelector) {
-            return new ModuleDependencyDetails(
-                componentSelector.getAttributes(),
-                componentSelector.getCapabilitySelectors()
-            );
         }
     }
 }

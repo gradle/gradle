@@ -326,7 +326,8 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @InstanceMethod
-    public static DirectoryStream<Path> intercept_newDirectoryStream(@Receiver FileSystemProvider self,
+    public static DirectoryStream<Path> intercept_newDirectoryStream(
+        @Receiver FileSystemProvider self,
         Path path,
         DirectoryStream.Filter<?> filter,
         @CallerClassName String consumer

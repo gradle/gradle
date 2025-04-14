@@ -94,10 +94,10 @@ class DefaultCopySpecTest extends Specification {
         spec.buildRootResolver().destPath == relativeDirectory(*destPath)
 
         where:
-        destDir              | destPath
-        'spec'               | ['spec']
-        '/'                  | [];
-        { -> 'spec' }        | ['spec'];
+        destDir | destPath
+        'spec'  | ['spec']
+        '/'     | [];
+        { -> 'spec' } | ['spec'];
         { -> return 'spec' } | ['spec']
     }
 
@@ -182,7 +182,7 @@ class DefaultCopySpecTest extends Specification {
 
     def 'expand with action'() {
         when:
-        spec.expand(version: '1.2', skip: 2) {details ->
+        spec.expand(version: '1.2', skip: 2) { details ->
             details.escapeBackslash = true
         }
 
@@ -406,12 +406,12 @@ class DefaultCopySpecTest extends Specification {
         spec.filteringCharset == 'UTF8'
 
         where:
-        method             | setter
-        "property"              | { DefaultCopySpec spec ->
+        method                | setter
+        "property"            | { DefaultCopySpec spec ->
             spec.filePermissions.value(new DefaultConfigurableFilePermissions(0444))
             spec.dirPermissions.value(new DefaultConfigurableFilePermissions(0655))
         }
-        "configuration block"   | { DefaultCopySpec spec ->
+        "configuration block" | { DefaultCopySpec spec ->
             spec.filePermissions {
                 it.user.write = false
             }
@@ -506,7 +506,7 @@ class DefaultCopySpecTest extends Specification {
         def user = toPermissionString(permissions.user)
         def group = toPermissionString(permissions.group)
         def other = toPermissionString(permissions.other)
-        return user + group  + other
+        return user + group + other
     }
 
     static String toPermissionString(UserClassFilePermissions permission) {

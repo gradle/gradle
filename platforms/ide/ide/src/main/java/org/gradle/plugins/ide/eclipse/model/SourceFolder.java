@@ -31,6 +31,7 @@ import java.util.Map;
  * SourceFolder.path contains only project relative path.
  */
 public class SourceFolder extends AbstractClasspathEntry {
+    private static final Joiner JOINER = Joiner.on("|");
     private String output;
     private List<String> includes;
     private List<String> excludes;
@@ -45,20 +46,20 @@ public class SourceFolder extends AbstractClasspathEntry {
         this.excludes = parseNodeListAttribute(node, "excluding");
     }
 
-    private List<String> parseNodeListAttribute(Node node, String attributeName) {
-        Object attribute = node.attribute(attributeName);
-        if (attribute == null) {
-            return ImmutableList.of();
-        } else {
-            return Arrays.asList(((String)attribute).split("\\|"));
-        }
-    }
-
     public SourceFolder(String projectRelativePath, String output) {
         super(projectRelativePath);
         this.output = normalizePath(output);
         this.includes = ImmutableList.of();
         this.excludes = ImmutableList.of();
+    }
+
+    private List<String> parseNodeListAttribute(Node node, String attributeName) {
+        Object attribute = node.attribute(attributeName);
+        if (attribute == null) {
+            return ImmutableList.of();
+        } else {
+            return Arrays.asList(((String) attribute).split("\\|"));
+        }
     }
 
     public String getOutput() {
@@ -115,13 +116,11 @@ public class SourceFolder extends AbstractClasspathEntry {
     }
 
     public void trim(String prefix) {
-        if(prefix != null) {
+        if (prefix != null) {
             name = prefix + "-" + name;
         }
         path = name;
     }
-
-    private static final Joiner JOINER = Joiner.on("|");
 
     @Override
     public void appendNode(Node node) {

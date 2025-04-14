@@ -21,15 +21,6 @@ import org.gradle.api.file.UserClassFilePermissions;
 
 public abstract class AbstractUserClassFilePermissions implements UserClassFilePermissions {
 
-    /**
-     * Converts the user permission to a numeric Unix permission.
-     * See {@link ConfigurableFilePermissions#unix(String)} for details,
-     * returned value is equivalent to one of the three octal digits.
-     */
-    protected int toUnixNumeric() {
-        return (getRead() ? 4 : 0) + (getWrite() ? 2 : 0) + (getExecute() ? 1 : 0);
-    }
-
     protected static boolean isRead(int unixNumeric) {
         return (unixNumeric & 4) >> 2 == 1;
     }
@@ -73,6 +64,15 @@ public abstract class AbstractUserClassFilePermissions implements UserClassFileP
         } else {
             throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
         }
+    }
+
+    /**
+     * Converts the user permission to a numeric Unix permission.
+     * See {@link ConfigurableFilePermissions#unix(String)} for details,
+     * returned value is equivalent to one of the three octal digits.
+     */
+    protected int toUnixNumeric() {
+        return (getRead() ? 4 : 0) + (getWrite() ? 2 : 0) + (getExecute() ? 1 : 0);
     }
 
 }

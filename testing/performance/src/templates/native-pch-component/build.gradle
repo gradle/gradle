@@ -18,23 +18,25 @@ apply plugin: 'c'
 
 model {
     components {
-        <% moduleCount.times { %>
-        lib${it+1}(NativeLibrarySpec) {
-            sources {
-                c {
-                    if (project.hasProperty("usePCH")) {
-                        preCompiledHeader "pch.h"
+        < % moduleCount.times {
+            % >
+            lib$ { it + 1 }(NativeLibrarySpec) {
+                sources {
+                    c {
+                        if (project.hasProperty("usePCH")) {
+                            preCompiledHeader "pch.h"
+                        }
                     }
-                }
-                binaries.all {
-                    if (toolChain.name == "visualCpp") {
-                        cCompiler.args("/showIncludes")
-                    } else {
-                        cCompiler.args("-H")
+                    binaries.all {
+                        if (toolChain.name == "visualCpp") {
+                            cCompiler.args("/showIncludes")
+                        } else {
+                            cCompiler.args("-H")
+                        }
                     }
                 }
             }
-        }
-        <% } %>
+                < %
+        } % >
     }
 }

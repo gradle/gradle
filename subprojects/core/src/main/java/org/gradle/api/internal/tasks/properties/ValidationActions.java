@@ -127,6 +127,16 @@ public enum ValidationActions implements ValidationAction {
     };
 
     public static final String PROPERTY_IS_NOT_WRITABLE = "Property is not writable";
+    private static final String INPUT_FILE_DOES_NOT_EXIST = "INPUT_FILE_DOES_NOT_EXIST";
+    private static final String UNEXPECTED_INPUT_FILE_TYPE = "UNEXPECTED_INPUT_FILE_TYPE";
+    private static final String CANNOT_WRITE_OUTPUT = "CANNOT_WRITE_OUTPUT";
+    private static final String CANNOT_WRITE_TO_RESERVED_LOCATION = "CANNOT_WRITE_TO_RESERVED_LOCATION";
+    private static final String UNSUPPORTED_NOTATION = "UNSUPPORTED_NOTATION";
+    private final String targetType;
+
+    ValidationActions(String targetType) {
+        this.targetType = targetType;
+    }
 
     public static ValidationAction inputValidationActionFor(InputFilePropertyType type) {
         switch (type) {
@@ -155,8 +165,6 @@ public enum ValidationActions implements ValidationAction {
         }
     }
 
-    private static final String INPUT_FILE_DOES_NOT_EXIST = "INPUT_FILE_DOES_NOT_EXIST";
-
     private static void reportMissingInput(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase(Locale.ROOT);
@@ -172,8 +180,6 @@ public enum ValidationActions implements ValidationAction {
         });
     }
 
-    private static final String UNEXPECTED_INPUT_FILE_TYPE = "UNEXPECTED_INPUT_FILE_TYPE";
-
     private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase(Locale.ROOT);
@@ -188,8 +194,6 @@ public enum ValidationActions implements ValidationAction {
                 .solution("Declare the input as a " + actualKindOf(input) + " instead");
         });
     }
-
-    private static final String CANNOT_WRITE_OUTPUT = "CANNOT_WRITE_OUTPUT";
 
     private static void reportCannotWriteToDirectory(String propertyName, PropertyValidationContext context, File directory, String cause) {
         context.visitPropertyProblem(problem ->
@@ -254,8 +258,6 @@ public enum ValidationActions implements ValidationAction {
         return "unexpected file type";
     }
 
-    private static final String CANNOT_WRITE_TO_RESERVED_LOCATION = "CANNOT_WRITE_TO_RESERVED_LOCATION";
-
     private static void validateNotInReservedFileSystemLocation(String propertyName, PropertyValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
             context.visitPropertyProblem(problem ->
@@ -270,25 +272,6 @@ public enum ValidationActions implements ValidationAction {
             );
         }
     }
-
-    private final String targetType;
-
-    ValidationActions(String targetType) {
-        this.targetType = targetType;
-    }
-
-    protected abstract void doValidate(String propertyName, Object value, PropertyValidationContext context);
-
-    @Override
-    public void validate(String propertyName, Supplier<Object> value, PropertyValidationContext context) {
-        try {
-            doValidate(propertyName, value.get(), context);
-        } catch (UnsupportedNotationException unsupportedNotationException) {
-            reportUnsupportedValue(propertyName, context, targetType, value.get(), unsupportedNotationException.getCandidates());
-        }
-    }
-
-    private static final String UNSUPPORTED_NOTATION = "UNSUPPORTED_NOTATION";
 
     private static void reportUnsupportedValue(String propertyName, PropertyValidationContext context, String targetType, Object value, Collection<String> candidates) {
         context.visitPropertyProblem(problem -> {
@@ -335,5 +318,16 @@ public enum ValidationActions implements ValidationAction {
 
     private static File toFile(PropertyValidationContext context, Object value) {
         return context.getFileResolver().resolve(value);
+    }
+
+    protected abstract void doValidate(String propertyName, Object value, PropertyValidationContext context);
+
+    @Override
+    public void validate(String propertyName, Supplier<Object> value, PropertyValidationContext context) {
+        try {
+            doValidate(propertyName, value.get(), context);
+        } catch (UnsupportedNotationException unsupportedNotationException) {
+            reportUnsupportedValue(propertyName, context, targetType, value.get(), unsupportedNotationException.getCandidates());
+        }
     }
 }

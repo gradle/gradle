@@ -207,7 +207,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        return ((VersionAwareCompiler)createCompiler()).getVersion();
+        return ((VersionAwareCompiler) createCompiler()).getVersion();
     }
 
     @Inject

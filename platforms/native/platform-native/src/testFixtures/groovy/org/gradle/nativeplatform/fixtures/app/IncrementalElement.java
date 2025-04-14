@@ -28,36 +28,6 @@ public abstract class IncrementalElement {
     public final OriginalElement original = new OriginalElement();
     public final AlternateElement alternate = new AlternateElement();
 
-    protected abstract List<Transform> getIncrementalChanges();
-
-    /**
-     * Transforms the app element into the alternate app element in the given project.
-     */
-    public void applyChangesToProject(TestFile projectDir) {
-        for (Transform transform : getIncrementalChanges()) {
-            transform.applyChangesToProject(projectDir);
-        }
-    }
-
-    /**
-     * Writes the source files of the app element to the given project.
-     */
-    public void writeToProject(TestFile projectDir) {
-        original.writeToProject(projectDir);
-    }
-
-    public String getSourceSetName() {
-        return "main";
-    }
-
-    public interface Transform {
-        void applyChangesToProject(TestFile projectDir);
-
-        List<SourceFile> getBeforeFiles();
-
-        List<SourceFile> getAfterFiles();
-    }
-
     /**
      * Returns a transform that keep the before element intact.
      */
@@ -104,7 +74,7 @@ public abstract class IncrementalElement {
         };
     }
 
-    private static boolean hasSameFiles(Collection<SourceFile> beforeFiles, Collection<SourceFile> afterFiles)  {
+    private static boolean hasSameFiles(Collection<SourceFile> beforeFiles, Collection<SourceFile> afterFiles) {
         if (beforeFiles.size() != afterFiles.size()) {
             return false;
         }
@@ -176,6 +146,36 @@ public abstract class IncrementalElement {
                 return afterElement.getFiles();
             }
         };
+    }
+
+    protected abstract List<Transform> getIncrementalChanges();
+
+    /**
+     * Transforms the app element into the alternate app element in the given project.
+     */
+    public void applyChangesToProject(TestFile projectDir) {
+        for (Transform transform : getIncrementalChanges()) {
+            transform.applyChangesToProject(projectDir);
+        }
+    }
+
+    /**
+     * Writes the source files of the app element to the given project.
+     */
+    public void writeToProject(TestFile projectDir) {
+        original.writeToProject(projectDir);
+    }
+
+    public String getSourceSetName() {
+        return "main";
+    }
+
+    public interface Transform {
+        void applyChangesToProject(TestFile projectDir);
+
+        List<SourceFile> getBeforeFiles();
+
+        List<SourceFile> getAfterFiles();
     }
 
     /**

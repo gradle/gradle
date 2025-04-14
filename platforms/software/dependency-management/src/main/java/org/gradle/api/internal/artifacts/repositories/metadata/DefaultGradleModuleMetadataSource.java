@@ -64,6 +64,13 @@ public class DefaultGradleModuleMetadataSource implements MetadataSource<Mutable
         this.checksumService = checksumService;
     }
 
+    private static void validateGradleMetadata(MutableModuleComponentResolveMetadata metaDataFromResource) {
+        List<? extends MutableComponentVariant> mutableVariants = metaDataFromResource.getMutableVariants();
+        if (mutableVariants == null || mutableVariants.isEmpty()) {
+            throw new InvalidUserDataException("Gradle Module Metadata for module " + metaDataFromResource.getModuleVersionId() + " is invalid because it doesn't declare any variant");
+        }
+    }
+
     @Override
     public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         DefaultIvyArtifactName moduleMetadataArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module");
@@ -93,13 +100,6 @@ public class DefaultGradleModuleMetadataSource implements MetadataSource<Mutable
             sha1 = checksumService.sha1(artifact);
         }
         return sha1;
-    }
-
-    private static void validateGradleMetadata(MutableModuleComponentResolveMetadata metaDataFromResource) {
-        List<? extends MutableComponentVariant> mutableVariants = metaDataFromResource.getMutableVariants();
-        if (mutableVariants == null || mutableVariants.isEmpty()) {
-            throw new InvalidUserDataException("Gradle Module Metadata for module " + metaDataFromResource.getModuleVersionId() + " is invalid because it doesn't declare any variant");
-        }
     }
 
     @Override

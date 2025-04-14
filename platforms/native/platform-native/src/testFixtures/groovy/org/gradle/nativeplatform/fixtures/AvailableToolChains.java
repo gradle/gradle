@@ -296,6 +296,33 @@ public class AvailableToolChains {
         return toolChains;
     }
 
+    static List<InstalledXcode> findXcodes() {
+        List<InstalledXcode> xcodes = new ArrayList<>();
+
+        // On macOS, we assume co-located Xcode is installed into /opt/xcode
+        File rootXcodeInstall = new File("/opt/xcode");
+        List<File> xcodeCandidates = Lists.newArrayList(Arrays.asList(GUtil.getOrDefault(rootXcodeInstall.listFiles(File::isDirectory), () -> new File[0])));
+        xcodeCandidates.add(new File("/Applications/Xcode.app")); // Default Xcode installation
+        xcodeCandidates.stream().filter(File::exists).forEach(xcodeInstall -> {
+            TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
+
+            try {
+                String output = xcodebuild.execute(Collections.singletonList("-version"), Collections.singletonList("DEVELOPER_DIR=" + xcodeInstall.getAbsolutePath())).getOut();
+                Pattern versionRegex = Pattern.compile("Xcode (\\d+\\.\\d+(\\.\\d+)?)");
+                Matcher matcher = versionRegex.matcher(output);
+                if (matcher.find()) {
+                    VersionNumber version = VersionNumber.parse(matcher.group(1));
+                    xcodes.add(new InstalledXcode(xcodeInstall, version));
+                }
+            } catch (RuntimeException re) {
+                String msg = String.format("Unable to invoke xcodebuild -version for %s%nCause: %s", xcodeInstall.getAbsolutePath(), re.getCause());
+                System.out.println(msg);
+            }
+        });
+
+        return xcodes;
+    }
+
     public enum ToolFamily {
         GCC("gcc"),
         CLANG("clang"),
@@ -335,9 +362,9 @@ public class AvailableToolChains {
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
+        protected final String pathVarName;
         private final ToolFamily family;
         private final VersionNumber version;
-        protected final String pathVarName;
         private final String objectFileNameSuffix;
 
         private String originalPath;
@@ -735,33 +762,6 @@ public class AvailableToolChains {
                     return false;
             }
         }
-    }
-
-    static List<InstalledXcode> findXcodes() {
-        List<InstalledXcode> xcodes = new ArrayList<>();
-
-        // On macOS, we assume co-located Xcode is installed into /opt/xcode
-        File rootXcodeInstall = new File("/opt/xcode");
-        List<File> xcodeCandidates = Lists.newArrayList(Arrays.asList(GUtil.getOrDefault(rootXcodeInstall.listFiles(File::isDirectory), () -> new File[0])));
-        xcodeCandidates.add(new File("/Applications/Xcode.app")); // Default Xcode installation
-        xcodeCandidates.stream().filter(File::exists).forEach(xcodeInstall -> {
-            TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
-
-            try {
-                String output = xcodebuild.execute(Collections.singletonList("-version"), Collections.singletonList("DEVELOPER_DIR=" + xcodeInstall.getAbsolutePath())).getOut();
-                Pattern versionRegex = Pattern.compile("Xcode (\\d+\\.\\d+(\\.\\d+)?)");
-                Matcher matcher = versionRegex.matcher(output);
-                if (matcher.find()) {
-                    VersionNumber version = VersionNumber.parse(matcher.group(1));
-                    xcodes.add(new InstalledXcode(xcodeInstall, version));
-                }
-            } catch (RuntimeException re) {
-                String msg = String.format("Unable to invoke xcodebuild -version for %s%nCause: %s", xcodeInstall.getAbsolutePath(), re.getCause());
-                System.out.println(msg);
-            }
-        });
-
-        return xcodes;
     }
 
     public static class InstalledXcode {

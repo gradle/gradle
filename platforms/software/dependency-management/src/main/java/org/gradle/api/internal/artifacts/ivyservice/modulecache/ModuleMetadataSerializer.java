@@ -406,12 +406,14 @@ public class ModuleMetadataSerializer {
         private ModuleComponentIdentifier id;
         private ImmutableAttributes attributes;
 
-        private Reader(Decoder decoder,
-                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                       AttributeContainerSerializer attributeContainerSerializer,
-                       ModuleComponentSelectorSerializer componentSelectorSerializer, MavenMutableModuleMetadataFactory mavenMutableModuleMetadataFactory,
-                       IvyMutableModuleMetadataFactory ivyMetadataFactory,
-                       ModuleSourcesSerializer moduleSourcesSerializer) {
+        private Reader(
+            Decoder decoder,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            AttributeContainerSerializer attributeContainerSerializer,
+            ModuleComponentSelectorSerializer componentSelectorSerializer, MavenMutableModuleMetadataFactory mavenMutableModuleMetadataFactory,
+            IvyMutableModuleMetadataFactory ivyMetadataFactory,
+            ModuleSourcesSerializer moduleSourcesSerializer
+        ) {
             this.decoder = decoder;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
             this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
@@ -615,7 +617,7 @@ public class ModuleMetadataSerializer {
             boolean changing = readBoolean();
             boolean transitive = readBoolean();
             boolean optional = readBoolean();
-            return new IvyDependencyDescriptor(requested, dynamicConstraintVersion, changing, transitive,  optional, configMappings, artifacts, excludes);
+            return new IvyDependencyDescriptor(requested, dynamicConstraintVersion, changing, transitive, optional, configMappings, artifacts, excludes);
         }
 
         private SetMultimap<String, String> readDependencyConfigurationMapping() throws IOException {

@@ -33,11 +33,6 @@ public class Bzip2Archiver extends AbstractArchiver {
         super(resource);
     }
 
-    @Override
-    protected String getSchemePrefix() {
-        return "bzip2:";
-    }
-
     public static ArchiveOutputStreamFactory getCompressor() {
         // this is not very beautiful but at some point we will
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
@@ -53,6 +48,11 @@ public class Bzip2Archiver extends AbstractArchiver {
                 throw new RuntimeException(message, e);
             }
         };
+    }
+
+    @Override
+    protected String getSchemePrefix() {
+        return "bzip2:";
     }
 
     @Override

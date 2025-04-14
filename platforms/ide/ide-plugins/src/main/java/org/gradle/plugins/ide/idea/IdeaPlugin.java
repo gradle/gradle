@@ -89,12 +89,6 @@ import java.util.concurrent.Callable;
  * @see <a href="https://docs.gradle.org/current/userguide/idea_plugin.html">IDEA plugin reference</a>
  */
 public abstract class IdeaPlugin extends IdePlugin {
-    private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
-        @Override
-        public boolean apply(Project project) {
-            return project.getPlugins().hasPlugin(IdeaPlugin.class) && project.getPlugins().hasPlugin(JavaBasePlugin.class);
-        }
-    };
     public static final Function<Project, JavaVersion> SOURCE_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
         public JavaVersion apply(Project p) {
@@ -107,17 +101,22 @@ public abstract class IdeaPlugin extends IdePlugin {
             return p.getExtensions().getByType(JavaPluginExtension.class).getTargetCompatibility();
         }
     };
-
+    private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
+        @Override
+        public boolean apply(Project project) {
+            return project.getPlugins().hasPlugin(IdeaPlugin.class) && project.getPlugins().hasPlugin(JavaBasePlugin.class);
+        }
+    };
     private static final String IDEA_MODULE_TASK_NAME = "ideaModule";
     private static final String IDEA_PROJECT_TASK_NAME = "ideaProject";
     private static final String IDEA_WORKSPACE_TASK_NAME = "ideaWorkspace";
 
     private final Instantiator instantiator;
-    private IdeaModel ideaModel;
-    private List<Project> allJavaProjects;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
     private final ProjectStateRegistry projectPathRegistry;
+    private IdeaModel ideaModel;
+    private List<Project> allJavaProjects;
 
     @Inject
     public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
@@ -125,6 +124,32 @@ public abstract class IdeaPlugin extends IdePlugin {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
         this.projectPathRegistry = projectPathRegistry;
+    }
+
+    private static IdeaModel ideaModelFor(Project project) {
+        return project.getExtensions().getByType(IdeaModel.class);
+    }
+
+    private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
+        if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
+            return true;
+        }
+
+        IdeaProject ideaProject = ideaModelFor(rootProject).getProject();
+        return !moduleTargetBytecodeLevel.equals(ideaProject.getTargetBytecodeVersion());
+    }
+
+    private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
+        if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
+            return true;
+        }
+
+        IdeaProject ideaProject = ideaModelFor(rootProject).getProject();
+        return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
+    }
+
+    private static void failOnIncompatibleWithIsolatedProjects() {
+        throw new GradleException("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
     }
 
     public IdeaModel getModel() {
@@ -240,10 +265,6 @@ public abstract class IdeaPlugin extends IdePlugin {
 
             addWorkspace(ideaProject);
         }
-    }
-
-    private static IdeaModel ideaModelFor(Project project) {
-        return project.getExtensions().getByType(IdeaModel.class);
     }
 
     private JavaVersion getMaxJavaModuleCompatibilityVersionFor(Function<Project, JavaVersion> toJavaVersion) {
@@ -483,24 +504,6 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
-    private static boolean includeModuleBytecodeLevelOverride(Project rootProject, JavaVersion moduleTargetBytecodeLevel) {
-        if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
-            return true;
-        }
-
-        IdeaProject ideaProject = ideaModelFor(rootProject).getProject();
-        return !moduleTargetBytecodeLevel.equals(ideaProject.getTargetBytecodeVersion());
-    }
-
-    private static boolean includeModuleLanguageLevelOverride(Project rootProject, IdeaLanguageLevel moduleLanguageLevel) {
-        if (!rootProject.getPlugins().hasPlugin(IdeaPlugin.class)) {
-            return true;
-        }
-
-        IdeaProject ideaProject = ideaModelFor(rootProject).getProject();
-        return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
-    }
-
     private void configureForScalaPlugin() {
         boolean isolatedProjects = getBuildFeatures().getIsolatedProjects().getActive().get();
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
@@ -525,10 +528,6 @@ public abstract class IdeaPlugin extends IdePlugin {
 
         // see IdeaScalaConfigurer which requires the ipr to be generated first
         project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
-    }
-
-    private static void failOnIncompatibleWithIsolatedProjects() {
-        throw new GradleException("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {

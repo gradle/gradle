@@ -60,6 +60,15 @@ public interface SourceSet extends ExtensionAware {
     String TEST_SOURCE_SET_NAME = "test";
 
     /**
+     * Determines if this source set is the main source set
+     *
+     * @since 6.7
+     */
+    static boolean isMain(SourceSet sourceSet) {
+        return MAIN_SOURCE_SET_NAME.equals(sourceSet.getName());
+    }
+
+    /**
      * Returns the name of this source set.
      *
      * @return The name. Never returns null.
@@ -237,7 +246,6 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the Javadoc task for this source set.
      *
      * @return The task name. Never returns null.
-     *
      * @since 6.0
      */
     String getJavadocTaskName();
@@ -253,7 +261,6 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the Javadoc Jar task for this source set.
      *
      * @return The task name. Never returns null.
-     *
      * @since 6.0
      */
     String getJavadocJarTaskName();
@@ -262,7 +269,6 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the Source Jar task for this source set.
      *
      * @return The task name. Never returns null.
-     *
      * @since 6.0
      */
     String getSourcesJarTaskName();
@@ -280,7 +286,6 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the compile only configuration for this source set.
      *
      * @return The compile only configuration name
-     *
      * @since 2.12
      */
     String getCompileOnlyConfigurationName();
@@ -289,7 +294,6 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the 'compile only api' configuration for this source set.
      *
      * @return The 'compile only api' configuration name
-     *
      * @since 6.7
      */
     String getCompileOnlyApiConfigurationName();
@@ -298,7 +302,6 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the compile classpath configuration for this source set.
      *
      * @return The compile classpath configuration
-     *
      * @since 2.12
      */
     String getCompileClasspathConfigurationName();
@@ -319,7 +322,6 @@ public interface SourceSet extends ExtensionAware {
      * dependencies that are required when compiling against this component.
      *
      * @return The API configuration name
-     *
      * @since 3.3
      */
     String getApiConfigurationName();
@@ -340,7 +342,6 @@ public interface SourceSet extends ExtensionAware {
      * they need to compile against it.
      *
      * @return The API compile configuration name
-     *
      * @since 3.3
      */
     String getApiElementsConfigurationName();
@@ -391,13 +392,4 @@ public interface SourceSet extends ExtensionAware {
      * @since 6.0
      */
     String getSourcesElementsConfigurationName();
-
-    /**
-     * Determines if this source set is the main source set
-     *
-     * @since 6.7
-     */
-    static boolean isMain(SourceSet sourceSet) {
-        return MAIN_SOURCE_SET_NAME.equals(sourceSet.getName());
-    }
 }

@@ -36,11 +36,11 @@ class StageProject(
     previousPerformanceTestPasses: List<PerformanceTestsPass>,
     previousCrossVersionTests: List<BaseGradleBuildType>,
 ) : Project({
-        this.id("${model.projectId}_Stage_${stage.stageName.id}")
-        this.uuid = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stage.stageName.uuid}"
-        this.name = stage.stageName.stageName
-        this.description = stage.stageName.description
-    }) {
+    this.id("${model.projectId}_Stage_${stage.stageName.id}")
+    this.uuid = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stage.stageName.uuid}"
+    this.name = stage.stageName.stageName
+    this.description = stage.stageName.description
+}) {
     val specificBuildTypes: List<OsAwareBaseGradleBuildType>
 
     val performanceTests: List<PerformanceTestsPass>
@@ -74,7 +74,7 @@ class StageProject(
 
         performanceTests =
             stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) } +
-            stage.flameGraphs.map { createFlameGraphs(model, stage, it) }
+                stage.flameGraphs.map { createFlameGraphs(model, stage, it) }
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.SOAK }
         val topLevelFunctionalTests =
@@ -103,7 +103,7 @@ class StageProject(
         functionalTests = topLevelFunctionalTests + functionalTestsPass
         crossVersionTests =
             topLevelFunctionalTests.filter { it.testCoverage.isCrossVersionTest } +
-            functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
+                functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
         if (stage.stageName !in listOf(StageName.QUICK_FEEDBACK_LINUX_ONLY, StageName.QUICK_FEEDBACK)) {
             if (topLevelFunctionalTests.size + functionalTestProjects.size > 1) {
                 buildType(

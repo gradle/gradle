@@ -37,10 +37,6 @@ public class PotentialMatch {
     private final int matchBeginsActualIdx;
     private final List<Boolean> expectedMatches;
 
-    public static boolean isPossibleMatchIndex(List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
-        return matchBeginsActualIdx >= 0 && matchBeginsActualIdx + expectedLines.size() - 1 < actualLines.size();
-    }
-
     public PotentialMatch(List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
         Preconditions.checkArgument(isPossibleMatchIndex(expectedLines, actualLines, matchBeginsActualIdx), "match would extend beyond actual lines");
 
@@ -48,6 +44,17 @@ public class PotentialMatch {
         this.actualLines = actualLines;
         this.matchBeginsActualIdx = matchBeginsActualIdx;
         this.expectedMatches = calcExpectedMatches(expectedLines, actualLines, matchBeginsActualIdx);
+    }
+
+    public static boolean isPossibleMatchIndex(List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
+        return matchBeginsActualIdx >= 0 && matchBeginsActualIdx + expectedLines.size() - 1 < actualLines.size();
+    }
+
+    @VisibleForTesting
+    static String buildComparison(String expectedLine, String actualLine, int padding) {
+        int comparisonPadding = BEGIN_MATCH_INDICATOR.length() + MISMATCHED_LINE_INDICATOR.length() + END_MATCH_INDICATOR.length() + 4 + padding;
+
+        return StringUtils.leftPad(new ComparisonFailure("", expectedLine, actualLine).getMessage(), comparisonPadding, ' ');
     }
 
     private List<Boolean> calcExpectedMatches(List<String> expectedLines, List<String> actualLines, int matchBeginsActualIdx) {
@@ -76,13 +83,13 @@ public class PotentialMatch {
 
             String prefix = buildPrefix(expectedIdx, actualIdx, padding);
             context.append(prefix)
-                    .append(actualLines.get(actualIdx))
-                    .append('\n');
+                .append(actualLines.get(actualIdx))
+                .append('\n');
 
             if (isMismatch(expectedIdx)) {
                 String comparison = buildComparison(expectedLines.get(expectedIdx), actualLines.get(actualIdx), padding);
                 context.append(comparison)
-                        .append('\n');
+                    .append('\n');
             }
         }
         return context.toString();
@@ -116,13 +123,6 @@ public class PotentialMatch {
 
     private boolean isMismatch(int expectedIdx) {
         return expectedIdx >= 0 && expectedIdx < expectedMatches.size() && !expectedMatches.get(expectedIdx);
-    }
-
-    @VisibleForTesting
-    static String buildComparison(String expectedLine, String actualLine, int padding) {
-        int comparisonPadding = BEGIN_MATCH_INDICATOR.length() + MISMATCHED_LINE_INDICATOR.length() + END_MATCH_INDICATOR.length() + 4 + padding;
-
-        return StringUtils.leftPad(new ComparisonFailure("", expectedLine, actualLine).getMessage(), comparisonPadding, ' ');
     }
 
     private int calcLineNumberPadding(int startLineNum, int endLineNum) {

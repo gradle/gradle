@@ -34,7 +34,7 @@ public class ConstantDependentsConsumer {
      *
      * Example of accessible dependent:
      * class A {
-     *     public static final int CALCULATE_ACCESSIBLE_CONSTANT = CONSTANT;
+     * public static final int CALCULATE_ACCESSIBLE_CONSTANT = CONSTANT;
      * }
      */
     public void consumeAccessibleDependent(String constantOrigin, String constantDependent) {
@@ -46,9 +46,9 @@ public class ConstantDependentsConsumer {
      *
      * Example of private constant dependent:
      * class A {
-     *     public static int method() {
-     *         return CONSTANT;
-     *     }
+     * public static int method() {
+     * return CONSTANT;
+     * }
      * }
      */
     public void consumePrivateDependent(String constantOrigin, String constantDependent) {

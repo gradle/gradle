@@ -34,12 +34,14 @@ import org.jspecify.annotations.Nullable;
 public interface InstrumentedGroovyCallsTracker {
     /**
      * Registers the current call in the instrumented calls stack.
+     *
      * @return an entry point call site token that must later be passed to {@link InstrumentedGroovyCallsTracker#leaveCall}
      */
     EntryPointCallSite enterCall(String callerClassName, String callableName, CallKind callKind);
 
     /**
      * Unregisters the instrumented call site. The entry point must be the instance returned from the {@link InstrumentedGroovyCallsTracker#enterCall}
+     *
      * @throws IllegalStateException if the passed entry point token does not match the current innermost instrumented call tracked for the thread.
      */
     void leaveCall(EntryPointCallSite entryPoint);
@@ -63,11 +65,11 @@ public interface InstrumentedGroovyCallsTracker {
     void markCurrentCallAsIntercepted(String callableName, CallKind kind);
 
     @NullMarked
-    interface EntryPointCallSite {
+    enum CallKind {
+        GET_PROPERTY, SET_PROPERTY, INVOKE_METHOD
     }
 
     @NullMarked
-    enum CallKind {
-        GET_PROPERTY, SET_PROPERTY, INVOKE_METHOD
+    interface EntryPointCallSite {
     }
 }

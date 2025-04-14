@@ -55,6 +55,7 @@ public class IvyModuleDescriptorConverter {
 
     private static final String CLASSIFIER = "classifier";
     private static final Field DEPENDENCY_CONFIG_FIELD;
+
     static {
         try {
             DEPENDENCY_CONFIG_FIELD = DefaultDependencyDescriptor.class.getDeclaredField("confs");
@@ -68,6 +69,33 @@ public class IvyModuleDescriptorConverter {
 
     public IvyModuleDescriptorConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+    }
+
+    private static void addConfiguration(List<Configuration> result, org.apache.ivy.core.module.descriptor.Configuration configuration) {
+        String name = configuration.getName();
+        boolean transitive = configuration.isTransitive();
+        boolean visible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
+        List<String> extendsFrom = ImmutableList.copyOf(configuration.getExtends());
+        result.add(new Configuration(name, transitive, visible, extendsFrom));
+    }
+
+    // TODO We should get rid of this reflection (will need to reimplement the parser to act on the metadata directly)
+    @SuppressWarnings("unchecked")
+    private static Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
+        if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
+            try {
+                return (Map<String, List<String>>) DEPENDENCY_CONFIG_FIELD.get(dependencyDescriptor);
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        String[] modConfs = dependencyDescriptor.getModuleConfigurations();
+        Map<String, List<String>> results = new LinkedHashMap<>();
+        for (String modConf : modConfs) {
+            results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
+        }
+        return results;
     }
 
     @SuppressWarnings("deprecation")
@@ -99,14 +127,6 @@ public class IvyModuleDescriptorConverter {
             addConfiguration(result, ivyConfiguration);
         }
         return result;
-    }
-
-    private static void addConfiguration(List<Configuration> result, org.apache.ivy.core.module.descriptor.Configuration configuration) {
-        String name = configuration.getName();
-        boolean transitive = configuration.isTransitive();
-        boolean visible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
-        List<String> extendsFrom = ImmutableList.copyOf(configuration.getExtends());
-        result.add(new Configuration(name, transitive, visible, extendsFrom));
     }
 
     private void addDependency(List<IvyDependencyDescriptor> result, DependencyDescriptor dependencyDescriptor) {
@@ -154,25 +174,6 @@ public class IvyModuleDescriptorConverter {
             return null;
         }
         return new DefaultIvyArtifactName(id.getName(), id.getType(), id.getExt());
-    }
-
-    // TODO We should get rid of this reflection (will need to reimplement the parser to act on the metadata directly)
-    @SuppressWarnings("unchecked")
-    private static Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
-        if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
-            try {
-                return (Map<String, List<String>>) DEPENDENCY_CONFIG_FIELD.get(dependencyDescriptor);
-            } catch (IllegalAccessException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        String[] modConfs = dependencyDescriptor.getModuleConfigurations();
-        Map<String, List<String>> results = new LinkedHashMap<>();
-        for (String modConf : modConfs) {
-            results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
-        }
-        return results;
     }
 
 }

@@ -32,7 +32,7 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "defaults to Kotlin build scripts"() {
         when:
-        run ('init', '--type', 'java-gradle-plugin')
+        run('init', '--type', 'java-gradle-plugin')
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()

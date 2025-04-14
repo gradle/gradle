@@ -26,11 +26,15 @@ import org.jspecify.annotations.Nullable;
  * Adapts individual result handlers of actions in a {@link PhasedBuildAction} to a unified listener to be provided to the connection.
  */
 public class DefaultPhasedActionResultListener implements PhasedActionResultListener {
-    @Nullable private final IntermediateResultHandler<?> projectsLoadedHandler;
-    @Nullable private final IntermediateResultHandler<?> buildFinishedHandler;
+    @Nullable
+    private final IntermediateResultHandler<?> projectsLoadedHandler;
+    @Nullable
+    private final IntermediateResultHandler<?> buildFinishedHandler;
 
-    public DefaultPhasedActionResultListener(@Nullable IntermediateResultHandler<?> projectsLoadedHandler,
-                                             @Nullable IntermediateResultHandler<?> buildFinishedHandler) {
+    public DefaultPhasedActionResultListener(
+        @Nullable IntermediateResultHandler<?> projectsLoadedHandler,
+        @Nullable IntermediateResultHandler<?> buildFinishedHandler
+    ) {
         this.projectsLoadedHandler = projectsLoadedHandler;
         this.buildFinishedHandler = buildFinishedHandler;
     }

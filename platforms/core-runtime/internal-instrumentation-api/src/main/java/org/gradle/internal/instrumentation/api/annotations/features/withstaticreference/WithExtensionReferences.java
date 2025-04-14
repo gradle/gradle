@@ -27,5 +27,6 @@ package org.gradle.internal.instrumentation.api.annotations.features.withstaticr
  */
 public @interface WithExtensionReferences {
     Class<?> toClass();
+
     String methodName() default "";
 }

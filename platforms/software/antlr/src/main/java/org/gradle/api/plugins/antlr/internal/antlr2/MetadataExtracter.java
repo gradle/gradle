@@ -61,7 +61,7 @@ public class MetadataExtracter {
             antlr.preprocessor.GrammarFile antlrGrammarFile = hierarchy.getFile(grammarFilePath);
 
             GrammarFileMetadata grammarFileMetadata = new GrammarFileMetadata(grammarFileFile, antlrGrammarFile,
-                    grammarPackageName);
+                grammarPackageName);
 
             xref.addGrammarFile(grammarFileMetadata);
         }
@@ -86,11 +86,11 @@ public class MetadataExtracter {
             while ((line = in.readLine()) != null) {
                 line = line.trim();
                 if (line.startsWith("package") && line.endsWith(";")) {
-                    grammarPackageName =  line.substring(8, line.length() - 1);
-                }else if(line.startsWith("header")){
+                    grammarPackageName = line.substring(8, line.length() - 1);
+                } else if (line.startsWith("header")) {
                     Pattern p = Pattern.compile("header \\{\\s*package\\s+(.+);\\s+\\}");
                     Matcher m = p.matcher(line);
-                    if(m.matches()){
+                    if (m.matches()) {
                         grammarPackageName = m.group(1);
                     }
                 }

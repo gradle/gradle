@@ -47,9 +47,9 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         }
     }
 
+    private final WeaklyTypeReferencingMethod<T, R> method;
     private List<ModelReference<?>> references;
     private List<List<Annotation>> parameterAnnotations;
-    private final WeaklyTypeReferencingMethod<T, R> method;
 
     private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
         this.method = WeaklyTypeReferencingMethod.of(instanceType, returnType, method);

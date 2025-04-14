@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.r44;
 
 public interface CustomParameter {
 
-    void setValue(String str);
-
     String getValue();
+
+    void setValue(String str);
 }

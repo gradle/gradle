@@ -67,8 +67,8 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         ['non-transitive', 'artifact-only'].each {
             def exclusions = pom.scopes.compile.dependencies["org.test:${it}:1.0"].exclusions
             assert exclusions.size() == 1
-            assert exclusions[0].groupId=='*'
-            assert exclusions[0].artifactId=='*'
+            assert exclusions[0].groupId == '*'
+            assert exclusions[0].artifactId == '*'
         }
     }
 

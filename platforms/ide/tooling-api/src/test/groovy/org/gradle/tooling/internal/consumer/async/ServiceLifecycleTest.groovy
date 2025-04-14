@@ -73,7 +73,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
     def "throws exception when attempting to use service after it has stopped"() {
         when:
         lifecycle.stop()
-        lifecycle.use { }
+        lifecycle.use {}
 
         then:
         IllegalStateException e = thrown()
@@ -83,7 +83,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
     def "throws exception when attempting to use service after stop has been requested"() {
         when:
         lifecycle.requestStop()
-        lifecycle.use { }
+        lifecycle.use {}
 
         then:
         IllegalStateException e = thrown()

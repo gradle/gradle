@@ -6,8 +6,8 @@ plugins {
     // Remember that unlike regular Gradle projects, convention plugins in buildSrc do not automatically resolve
     // external plugins. We must declare them as dependencies in buildSrc/build.gradle.kts.
     id("org.barfuin.gradle.jacocolog") // Apply the plugin manually as a workaround with the external plugin
-                                       // version from the version catalog specified in implementation dependency
-                                       // artifact in build file
+    // version from the version catalog specified in implementation dependency
+    // artifact in build file
 }
 
 repositories {

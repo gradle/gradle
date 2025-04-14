@@ -42,7 +42,7 @@ class BuildControllerWithoutParameterSupportTest extends Specification {
         def result = controller.getModel(null, modelType, null, null)
 
         then:
-        1 * delegate.getModel(null, {it.name == Object.name}) >> buildResult
+        1 * delegate.getModel(null, { it.name == Object.name }) >> buildResult
         0 * delegate._
 
         and:

@@ -71,27 +71,6 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     private BinaryNamingScheme namingScheme;
     private boolean disabled;
 
-    /**
-     * Creates a {@link BaseBinarySpec}.
-     *
-     * @since 5.6
-     */
-    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
-                                                      ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
-                                                      Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator,
-                                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator, collectionCallbackActionDecorator, domainObjectCollectionFactory));
-        try {
-            try {
-                return instantiator.newInstance(implementationType);
-            } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create binary of type %s", publicType.getSimpleName()), e.getCause());
-            }
-        } finally {
-            NEXT_BINARY_INFO.set(null);
-        }
-    }
-
     public BaseBinarySpec() {
         this(NEXT_BINARY_INFO.get());
     }
@@ -123,11 +102,48 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
             .withBinaryType(getTypeName());
     }
 
+    /**
+     * Creates a {@link BaseBinarySpec}.
+     *
+     * @since 5.6
+     */
+    public static <T extends BaseBinarySpec> T create(
+        Class<? extends BinarySpec> publicType, Class<T> implementationType,
+        ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
+        Instantiator instantiator, NamedEntityInstantiator<Task> taskInstantiator,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory
+    ) {
+        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskInstantiator, instantiator, collectionCallbackActionDecorator, domainObjectCollectionFactory));
+        try {
+            try {
+                return instantiator.newInstance(implementationType);
+            } catch (ObjectInstantiationException e) {
+                throw new ModelInstantiationException(String.format("Could not create binary of type %s", publicType.getSimpleName()), e.getCause());
+            }
+        } finally {
+            NEXT_BINARY_INFO.set(null);
+        }
+    }
+
     private static BinaryInfo validate(BinaryInfo info) {
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a @ComponentType rule instead.");
         }
         return info;
+    }
+
+    public static void replaceSingleDirectory(Set<File> dirs, File dir) {
+        switch (dirs.size()) {
+            case 0:
+                dirs.add(dir);
+                break;
+            case 1:
+                dirs.clear();
+                dirs.add(dir);
+                break;
+            default:
+                throw new IllegalStateException("Can't replace multiple directories.");
+        }
     }
 
     @Nullable
@@ -171,13 +187,13 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     }
 
     @Override
-    public void setBuildable(boolean buildable) {
-        this.disabled = !buildable;
+    public final boolean isBuildable() {
+        return getBuildAbility().isBuildable();
     }
 
     @Override
-    public final boolean isBuildable() {
-        return getBuildAbility().isBuildable();
+    public void setBuildable(boolean buildable) {
+        this.disabled = !buildable;
     }
 
     @Override
@@ -215,6 +231,20 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         return false;
     }
 
+    @Override
+    public final BinaryBuildAbility getBuildAbility() {
+        if (disabled) {
+            return new FixedBuildAbility(false);
+        }
+        return getBinaryBuildAbility();
+    }
+
+    protected BinaryBuildAbility getBinaryBuildAbility() {
+        // Default behavior is to always be buildable.  Binary implementations should define what
+        // criteria make them buildable or not.
+        return new FixedBuildAbility(true);
+    }
+
     private static class BinaryInfo {
         private final Class<? extends BinarySpec> publicType;
         private final MutableModelNode modelNode;
@@ -234,34 +264,6 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
             this.instantiator = instantiator;
             this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
             this.domainObjectCollectionFactory = domainObjectCollectionFactory;
-        }
-    }
-
-    @Override
-    public final BinaryBuildAbility getBuildAbility() {
-        if (disabled) {
-            return new FixedBuildAbility(false);
-        }
-        return getBinaryBuildAbility();
-    }
-
-    protected BinaryBuildAbility getBinaryBuildAbility() {
-        // Default behavior is to always be buildable.  Binary implementations should define what
-        // criteria make them buildable or not.
-        return new FixedBuildAbility(true);
-    }
-
-    public static void replaceSingleDirectory(Set<File> dirs, File dir) {
-        switch (dirs.size()) {
-            case 0:
-                dirs.add(dir);
-                break;
-            case 1:
-                dirs.clear();
-                dirs.add(dir);
-                break;
-            default:
-                throw new IllegalStateException("Can't replace multiple directories.");
         }
     }
 

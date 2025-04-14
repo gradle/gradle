@@ -28,7 +28,7 @@ public class ResolutionResultPrinter {
         if (!visited.add(dep.getSelected())) {
             return
         }
-        String reason = dep.selected.selectionReason.conflictResolution? "(C)" : "";
+        String reason = dep.selected.selectionReason.conflictResolution ? "(C)" : "";
         sb.append(indent + dep + reason + " [" + dep.selected.dependents*.from.id.module.join(",") + "]\n");
         for (DependencyResult d : dep.getSelected().getDependencies()) {
             printNode(d, sb, visited, "  " + indent);

@@ -41,8 +41,8 @@ import javax.inject.Inject;
 /**
  * Installs a {@link org.gradle.api.publish.PublishingExtension} with name {@value org.gradle.api.publish.PublishingExtension#NAME}.
  *
- * @since 1.3
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview">Publishing reference</a>
+ * @since 1.3
  */
 public abstract class PublishingPlugin implements Plugin<Project> {
 
@@ -56,10 +56,12 @@ public abstract class PublishingPlugin implements Plugin<Project> {
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices,
-                            Instantiator instantiator,
-                            ProjectPublicationRegistry projectPublicationRegistry,
-                            CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public PublishingPlugin(
+        ArtifactPublicationServices publicationServices,
+        Instantiator instantiator,
+        ProjectPublicationRegistry projectPublicationRegistry,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+    ) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
         this.projectPublicationRegistry = projectPublicationRegistry;

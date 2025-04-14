@@ -15,11 +15,6 @@
  */
 
 
-
-
-
-
-
 package org.gradle.integtests.fixtures
 
 import org.apache.commons.lang.StringUtils
@@ -60,7 +55,7 @@ class TestDependency {
             throw new IllegalArgumentException("Unable to create test dependency for input '$notation'")
         }
 
-        this.pointsTo = (n.length > 1)? new TestDependency(n[1]) : null
+        this.pointsTo = (n.length > 1) ? new TestDependency(n[1]) : null
     }
 
     String getNotation() {
@@ -71,11 +66,13 @@ class TestDependency {
         "$name-${version}.jar"
     }
 
-    @Nullable TestDependency getPointsTo() {
+    @Nullable
+    TestDependency getPointsTo() {
         this.pointsTo
     }
 
-    @Nullable TestDependency getDependsOn() {
+    @Nullable
+    TestDependency getDependsOn() {
         this.pointsTo
     }
 }

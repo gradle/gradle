@@ -35,7 +35,7 @@ import org.gradle.api.Incubating;
  *     Java compilation
  *         Foo.java#L10: unused variable a
  *         Foo.java#L20: unused variable b
-
+ *
  * </pre>
  *
  * @since 8.9
@@ -49,6 +49,7 @@ public interface ProblemId {
      * the group hierarchy.
      * <p>
      * The convention for problem names is to use kebab-case (ie lower case with hyphens).
+     *
      * @since 8.9
      */
     String getName();

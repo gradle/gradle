@@ -25,6 +25,21 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
         this.versionParser = versionParser;
     }
 
+    private static boolean isSingleVersionRange(VersionRangeSelector rangeSelector) {
+        String lowerBound = rangeSelector.getLowerBound();
+        return lowerBound != null &&
+            lowerBound.equals(rangeSelector.getUpperBound()) &&
+            rangeSelector.isLowerInclusive() && rangeSelector.isUpperInclusive();
+    }
+
+    public static boolean isSubVersion(String selectorString) {
+        return selectorString.endsWith("+");
+    }
+
+    public static boolean isLatestVersion(String selectorString) {
+        return selectorString.startsWith("latest.");
+    }
+
     @Override
     public VersionSelector parseSelector(String selectorString) {
         if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
@@ -51,13 +66,6 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
         return rangeSelector;
     }
 
-    private static boolean isSingleVersionRange(VersionRangeSelector rangeSelector) {
-        String lowerBound = rangeSelector.getLowerBound();
-        return lowerBound != null &&
-            lowerBound.equals(rangeSelector.getUpperBound()) &&
-            rangeSelector.isLowerInclusive() && rangeSelector.isUpperInclusive();
-    }
-
     @Override
     public String renderSelector(VersionSelector selector) {
         return selector.getSelector();
@@ -66,13 +74,5 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     @Override
     public VersionSelector complementForRejection(VersionSelector selector) {
         return new InverseVersionSelector(selector);
-    }
-
-    public static boolean isSubVersion(String selectorString) {
-        return selectorString.endsWith("+");
-    }
-
-    public static boolean isLatestVersion(String selectorString) {
-        return selectorString.startsWith("latest.");
     }
 }

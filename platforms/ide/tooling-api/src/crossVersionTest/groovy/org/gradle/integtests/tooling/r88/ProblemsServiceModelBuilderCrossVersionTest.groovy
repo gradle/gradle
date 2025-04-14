@@ -34,7 +34,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
 
     org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener listener
 
-    def setup(){
+    def setup() {
         listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
     }
 

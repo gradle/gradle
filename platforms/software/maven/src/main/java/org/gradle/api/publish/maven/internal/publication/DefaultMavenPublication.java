@@ -157,6 +157,33 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         coordinates.getVersion().convention(providerFactory.provider(module::getVersion));
     }
 
+    @Nullable
+    private static MavenArtifact normalizedArtifactFor(@Nullable MavenArtifact artifact, Map<MavenArtifact, MavenArtifact> normalizedArtifacts) {
+        if (artifact == null) {
+            return null;
+        }
+        MavenArtifact normalized = normalizedArtifacts.get(artifact);
+        if (normalized != null) {
+            return normalized;
+        }
+        return normalizedArtifactFor(artifact);
+    }
+
+    private static MavenArtifact normalizedArtifactFor(MavenArtifact artifact) {
+        // TODO: introduce something like a NormalizedMavenArtifact to capture the required MavenArtifact
+        //  information and only that instead of having MavenArtifact references in
+        //  MavenNormalizedPublication
+        return new SerializableMavenArtifact(artifact);
+    }
+
+    private static boolean hasNoClassifier(MavenArtifact element) {
+        return element.getClassifier() == null || element.getClassifier().length() == 0;
+    }
+
+    private static boolean hasExtension(MavenArtifact element) {
+        return element.getExtension() != null && element.getExtension().length() > 0;
+    }
+
     @Override
     public abstract Property<SoftwareComponentInternal> getComponent();
 
@@ -225,7 +252,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         metadataArtifacts.add(moduleMetadataArtifact);
         moduleDescriptorGenerator = null;
     }
-
 
     @Override
     public void pom(Action<? super MavenPom> configure) {
@@ -390,18 +416,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         );
     }
 
-    @Nullable
-    private static MavenArtifact normalizedArtifactFor(@Nullable MavenArtifact artifact, Map<MavenArtifact, MavenArtifact> normalizedArtifacts) {
-        if (artifact == null) {
-            return null;
-        }
-        MavenArtifact normalized = normalizedArtifacts.get(artifact);
-        if (normalized != null) {
-            return normalized;
-        }
-        return normalizedArtifactFor(artifact);
-    }
-
     private Map<MavenArtifact, MavenArtifact> normalizedMavenArtifacts() {
         return artifactsToBePublished()
             .stream()
@@ -409,13 +423,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
                 Function.identity(),
                 DefaultMavenPublication::normalizedArtifactFor
             ));
-    }
-
-    private static MavenArtifact normalizedArtifactFor(MavenArtifact artifact) {
-        // TODO: introduce something like a NormalizedMavenArtifact to capture the required MavenArtifact
-        //  information and only that instead of having MavenArtifact references in
-        //  MavenNormalizedPublication
-        return new SerializableMavenArtifact(artifact);
     }
 
     private DomainObjectSet<MavenArtifact> artifactsToBePublished() {
@@ -475,14 +482,6 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
         populateFromComponent();
         return CollectionUtils.filter(mainArtifacts, mavenArtifact -> hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact));
-    }
-
-    private static boolean hasNoClassifier(MavenArtifact element) {
-        return element.getClassifier() == null || element.getClassifier().length() == 0;
-    }
-
-    private static boolean hasExtension(MavenArtifact element) {
-        return element.getExtension() != null && element.getExtension().length() > 0;
     }
 
     @Override

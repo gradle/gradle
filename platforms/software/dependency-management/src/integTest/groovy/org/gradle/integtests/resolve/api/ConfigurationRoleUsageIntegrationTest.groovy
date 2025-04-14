@@ -285,10 +285,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds('checkConfUsage')
 
         where:
-        role                    | customRoleBasedConf               || consumable  | resolvable    | declarable | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        'consumable'            | "consumable('custom')"            || true        | false         | false             | false                 | false                 | false
-        'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
-        'dependencyScope'       | "dependencyScope('custom')"       || false       | false         | true              | false                 | false                 | false
+        role              | customRoleBasedConf         || consumable | resolvable | declarable | consumptionDeprecated | resolutionDeprecated | declarationAgainstDeprecated
+        'consumable'      | "consumable('custom')"      || true       | false      | false      | false                 | false                | false
+        'resolvable'      | "resolvable('custom')"      || false      | true       | false      | false                 | false                | false
+        'dependencyScope' | "dependencyScope('custom')" || false      | false      | true       | false                 | false                | false
     }
 
     def "can prevent usage mutation of role-based configuration #configuration added by java plugin meant for consumption"() {
@@ -335,10 +335,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         assertUsageLockedFailure('custom', displayName)
 
         where:
-        role                    | customRoleBasedConf               | displayName
-        'consumable'            | "consumable('custom')"            | 'Consumable'
-        'resolvable'            | "resolvable('custom')"            | 'Resolvable'
-        'dependencyScope'       | "dependencyScope('custom')"       | 'Dependency Scope'
+        role              | customRoleBasedConf         | displayName
+        'consumable'      | "consumable('custom')"      | 'Consumable'
+        'resolvable'      | "resolvable('custom')"      | 'Resolvable'
+        'dependencyScope' | "dependencyScope('custom')" | 'Dependency Scope'
     }
 
     def "exhaustively try all new role-based creation syntax"() {
@@ -407,13 +407,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         assertUsageLockedFailure('conf', type)
 
         where:
-        createCode                     | type
-        "consumable('conf')"           | 'Consumable'
-        "consumable('conf') { }"       | 'Consumable'
-        "resolvable('conf')"           | 'Resolvable'
-        "resolvable('conf') { }"       | 'Resolvable'
-        "dependencyScope('conf')"      | 'Dependency Scope'
-        "dependencyScope('conf') { }"  | 'Dependency Scope'
+        createCode                    | type
+        "consumable('conf')"          | 'Consumable'
+        "consumable('conf') { }"      | 'Consumable'
+        "resolvable('conf')"          | 'Resolvable'
+        "resolvable('conf') { }"      | 'Resolvable'
+        "dependencyScope('conf')"     | 'Dependency Scope'
+        "dependencyScope('conf') { }" | 'Dependency Scope'
 
     }
     // endregion Role-Based Configurations
@@ -609,22 +609,22 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         }
 
         where:
-        confCreationCode | createdRole | canMutate | description
+        confCreationCode                                                             | createdRole                   | canMutate | description
         """
             configurations {
                 additionalRuntimeClasspath
             }
-        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with implicit allowed usage"
+        """                                                               | ConfigurationRoles.ALL        | true      | "legacy configuration with implicit allowed usage"
         """
             configurations {
                 additionalRuntimeClasspath {
                     canBeConsumed = true
                 }
             }
-        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with explicit set consumed = true"
-        "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | false | "role-based configuration"
-        "configurations.consumableUnlocked('additionalRuntimeClasspath')"               | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration"
-        "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration, if it doesn't already exist"
+        """                                                               | ConfigurationRoles.ALL        | true      | "legacy configuration with explicit set consumed = true"
+        "configurations.consumable('additionalRuntimeClasspath')"                    | ConfigurationRoles.CONSUMABLE | false     | "role-based configuration"
+        "configurations.consumableUnlocked('additionalRuntimeClasspath')"            | ConfigurationRoles.CONSUMABLE | true      | "internal unlocked role-based configuration"
+        "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')" | ConfigurationRoles.CONSUMABLE | true      | "internal unlocked role-based configuration, if it doesn't already exist"
     }
 
     def "changing usage on detached configurations does not warn"() {

@@ -115,7 +115,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         skipped(":${language.compileTaskName}")
 
         when:
-        source( """package some.dir;
+        source("""package some.dir;
         public class B {
             public static class NewInner { }
         }""") // in B.java/B.groovy

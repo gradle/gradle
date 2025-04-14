@@ -43,20 +43,13 @@ import java.util.Locale;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class ModelReport extends DefaultTask {
 
-    /**
-     * The report format.
-     * <ul>
-     *     <li><i>full</i> (default value) will show details about types, rules and creators</li>
-     *     <li><i>short</i> will only show nodes and their values</li>
-     * </ul>
-     */
-    public enum Format {
-        FULL,
-        SHORT
-    }
-
     private boolean showHidden;
     private Format format = Format.FULL;
+
+    @Console
+    public boolean isShowHidden() {
+        return showHidden;
+    }
 
     @Option(option = "showHidden", description = "Show hidden model elements.")
     public void setShowHidden(boolean showHidden) {
@@ -64,18 +57,13 @@ public abstract class ModelReport extends DefaultTask {
     }
 
     @Console
-    public boolean isShowHidden() {
-        return showHidden;
+    public Format getFormat() {
+        return format;
     }
 
     @Option(option = "format", description = "Output format (full, short)")
     public void setFormat(String format) {
         this.format = Format.valueOf(format.toUpperCase(Locale.ROOT));
-    }
-
-    @Console
-    public Format getFormat() {
-        return format;
     }
 
     @Inject
@@ -114,5 +102,17 @@ public abstract class ModelReport extends DefaultTask {
 
         textModelReportRenderer.completeProject(projectDetails);
         textModelReportRenderer.complete();
+    }
+
+    /**
+     * The report format.
+     * <ul>
+     *     <li><i>full</i> (default value) will show details about types, rules and creators</li>
+     *     <li><i>short</i> will only show nodes and their values</li>
+     * </ul>
+     */
+    public enum Format {
+        FULL,
+        SHORT
     }
 }

@@ -23,12 +23,6 @@ public class JavaCompileMultiTestInterceptor extends AbstractMultiTestIntercepto
 
     public static Compiler compiler;
 
-    enum Compiler {
-        IN_PROCESS_JDK_COMPILER,
-        WORKER_JDK_COMPILER,
-        WORKER_COMMAND_LINE_COMPILER
-    }
-
     JavaCompileMultiTestInterceptor(Class<?> target) {
         super(target);
     }
@@ -38,6 +32,12 @@ public class JavaCompileMultiTestInterceptor extends AbstractMultiTestIntercepto
         add(new JavaCompilerExecution(Compiler.IN_PROCESS_JDK_COMPILER));
         add(new JavaCompilerExecution(Compiler.WORKER_JDK_COMPILER));
         add(new JavaCompilerExecution(Compiler.WORKER_COMMAND_LINE_COMPILER));
+    }
+
+    enum Compiler {
+        IN_PROCESS_JDK_COMPILER,
+        WORKER_JDK_COMPILER,
+        WORKER_COMMAND_LINE_COMPILER
     }
 
     private static class JavaCompilerExecution extends AbstractMultiTestInterceptor.Execution {

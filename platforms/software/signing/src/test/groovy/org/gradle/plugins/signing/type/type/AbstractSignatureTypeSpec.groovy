@@ -22,7 +22,9 @@ import spock.lang.Specification
 class AbstractSignatureTypeSpec extends Specification {
 
     static extension = "abc"
-    def type = new AbstractSignatureType() { String getExtension() { AbstractSignatureTypeSpec.extension } }
+    def type = new AbstractSignatureType() {
+        String getExtension() { AbstractSignatureTypeSpec.extension }
+    }
 
     def "fileFor"() {
         when:

@@ -105,6 +105,24 @@ public class DefaultBuildCacheController implements BuildCacheController {
         );
     }
 
+    private static RemoteBuildCacheServiceHandle toRemoteHandle(String buildPath, @Nullable BuildCacheService service, boolean push, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, boolean logStackTraces, boolean disableOnError) {
+        return service == null
+            ? NullRemoteBuildCacheServiceHandle.INSTANCE
+            : new OpFiringRemoteBuildCacheServiceHandle(buildPath, service, push, BuildCacheServiceRole.REMOTE, buildOperationRunner, buildOperationProgressEventEmitter, logStackTraces, disableOnError);
+    }
+
+    private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush, BuildOperationRunner buildOperationRunner) {
+        return local == null
+            ? NullLocalBuildCacheServiceHandle.INSTANCE
+            : new OpFiringLocalBuildCacheServiceHandle(local, localPush, buildOperationRunner);
+    }
+
+    private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, TemporaryFileFactory temporaryFileFactory) {
+        return local != null
+            ? local
+            : new DefaultBuildCacheTempFileStore(temporaryFileFactory);
+    }
+
     @Override
     public boolean isEnabled() {
         return true;
@@ -215,10 +233,12 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 public long getArtifactEntryCount() {
                     return unpackResult.getEntries();
                 }
+
                 @Override
                 public OriginMetadata getOriginMetadata() {
                     return unpackResult.getOriginMetadata();
                 }
+
                 @Override
                 public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
                     return resultingSnapshots;
@@ -267,23 +287,5 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 }
             });
         }
-    }
-
-    private static RemoteBuildCacheServiceHandle toRemoteHandle(String buildPath, @Nullable BuildCacheService service, boolean push, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, boolean logStackTraces, boolean disableOnError) {
-        return service == null
-            ? NullRemoteBuildCacheServiceHandle.INSTANCE
-            : new OpFiringRemoteBuildCacheServiceHandle(buildPath, service, push, BuildCacheServiceRole.REMOTE, buildOperationRunner, buildOperationProgressEventEmitter, logStackTraces, disableOnError);
-    }
-
-    private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush, BuildOperationRunner buildOperationRunner) {
-        return local == null
-            ? NullLocalBuildCacheServiceHandle.INSTANCE
-            : new OpFiringLocalBuildCacheServiceHandle(local, localPush, buildOperationRunner);
-    }
-
-    private static BuildCacheTempFileStore toTempFileStore(@Nullable LocalBuildCacheService local, TemporaryFileFactory temporaryFileFactory) {
-        return local != null
-            ? local
-            : new DefaultBuildCacheTempFileStore(temporaryFileFactory);
     }
 }

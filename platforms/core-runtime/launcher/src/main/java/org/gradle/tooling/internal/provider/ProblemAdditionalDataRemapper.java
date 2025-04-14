@@ -49,6 +49,18 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
         this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
+    @NonNull
+    private static List<URL> getClassPath(Class<?> type) {
+        List<URL> classPath = new ArrayList<>();
+        ((VisitableURLClassLoader) type.getClassLoader()).visit(new ClassLoaderVisitor() {
+            @Override
+            public void visitClassPath(URL[] urls) {
+                Collections.addAll(classPath, urls);
+            }
+        });
+        return classPath;
+    }
+
     @Override
     public void dispatch(Object message) {
         remapAdditionalData(message);
@@ -86,17 +98,5 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
             return isolatable.isolate();
         });
         ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(o, serializedType));
-    }
-
-    @NonNull
-    private static List<URL> getClassPath(Class<?> type) {
-        List<URL> classPath = new ArrayList<>();
-        ((VisitableURLClassLoader) type.getClassLoader()).visit(new ClassLoaderVisitor() {
-            @Override
-            public void visitClassPath(URL[] urls) {
-                Collections.addAll(classPath, urls);
-            }
-        });
-        return classPath;
     }
 }

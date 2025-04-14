@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 
 import org.jspecify.annotations.Nullable;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -37,30 +38,6 @@ public class DefaultTestFailure extends TestFailure {
         this.rawFailure = rawFailure;
         this.details = details;
         this.causes = causes;
-    }
-
-    @Override
-    public Throwable getRawFailure() {
-        return rawFailure;
-    }
-
-    @Override
-    public TestFailureDetails getDetails() {
-        return details;
-    }
-
-    @Override
-    public List<TestFailure> getCauses() {
-        return causes;
-    }
-
-    @Override
-    public String toString() {
-        return "test failure {" +
-            "rawFailure=" + rawFailure.getClass().getCanonicalName() +
-            ", causes=" + causes.size() +
-            ", details=" + details +
-            '}';
     }
 
     public static TestFailure fromTestAssumptionFailure(Throwable failure) {
@@ -110,6 +87,30 @@ public class DefaultTestFailure extends TestFailure {
         } catch (Exception t) {
             return stacktraceOf(t);
         }
+    }
+
+    @Override
+    public Throwable getRawFailure() {
+        return rawFailure;
+    }
+
+    @Override
+    public TestFailureDetails getDetails() {
+        return details;
+    }
+
+    @Override
+    public List<TestFailure> getCauses() {
+        return causes;
+    }
+
+    @Override
+    public String toString() {
+        return "test failure {" +
+            "rawFailure=" + rawFailure.getClass().getCanonicalName() +
+            ", causes=" + causes.size() +
+            ", details=" + details +
+            '}';
     }
 
 }

@@ -34,7 +34,8 @@ import org.gradle.tooling.model.GradleProject
  * API client JVM is different than the daemon JVM. Subclasses implement the various ways of
  * specifying the daemon JDK version.
  */
-@TargetGradleVersion("current") // Supporting multiple Gradle versions is more work.
+@TargetGradleVersion("current")
+// Supporting multiple Gradle versions is more work.
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
@@ -46,12 +47,12 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
     /**
      * Configure this build to use the given JVM.
      */
-    void configureBuild(String majorVersion, File javaHome) { }
+    void configureBuild(String majorVersion, File javaHome) {}
 
     /**
      * Configure the tooling API launcher to use the given JVM.
      */
-    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) { }
+    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) {}
 
     // region Unsupported JVM
 
@@ -152,10 +153,10 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
         configureBuild(jdk.majorVersion, jdk.javaHome)
         expectDocumentedDeprecationWarning(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
-         when:
+        when:
         succeeds { connection ->
             def launcher = connection.newBuild()
-             configureLauncher(launcher, jdk.javaHome)
+            configureLauncher(launcher, jdk.javaHome)
             launcher.run()
         }
 

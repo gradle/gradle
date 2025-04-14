@@ -37,7 +37,7 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
 
     public JvmInstallationMetadataMatcher(JavaLanguageVersion languageVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation, Set<JavaInstallationCapability> requiredCapabilities) {
         this.languageVersion = languageVersion;
-        this.vendorSpec = (DefaultJvmVendorSpec)vendorSpec;
+        this.vendorSpec = (DefaultJvmVendorSpec) vendorSpec;
         this.jvmImplementation = jvmImplementation;
         this.requiredCapabilities = ImmutableSet.copyOf(requiredCapabilities);
     }

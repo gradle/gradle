@@ -27,7 +27,7 @@ model {
         projects.all { project ->
             projectFile.withXml {
                 asNode().appendNode('PropertyGroup', [Label: 'Custom'])
-                        .appendNode('ProjectDetails', "Project is named ${project.name}")
+                    .appendNode('ProjectDetails', "Project is named ${project.name}")
             }
         }
     }

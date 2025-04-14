@@ -35,6 +35,15 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     // Do not use this to load any classes which are part of the build; it will not release them when the build is complete.
     private final CachingServiceLocator systemClassLoaderServiceLocator = CachingServiceLocator.of(new DefaultServiceLocator(getSystemClassLoader()));
 
+    private static void makeServiceVisible(ServiceLocator locator, FilteringClassLoader.Spec classLoaderSpec, Class<?> serviceType) {
+        classLoaderSpec.allowClass(locator.getFactory(serviceType).getImplementationClass());
+        classLoaderSpec.allowResource("META-INF/services/" + serviceType.getName());
+    }
+
+    private static boolean needJaxpImpl() {
+        return ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
+    }
+
     @Override
     public ClassLoader getIsolatedSystemClassLoader() {
         return getSystemClassLoader().getParent();
@@ -89,15 +98,6 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
 
     protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
         return new FilteringClassLoader(parent, spec);
-    }
-
-    private static void makeServiceVisible(ServiceLocator locator, FilteringClassLoader.Spec classLoaderSpec, Class<?> serviceType) {
-        classLoaderSpec.allowClass(locator.getFactory(serviceType).getImplementationClass());
-        classLoaderSpec.allowResource("META-INF/services/" + serviceType.getName());
-    }
-
-    private static boolean needJaxpImpl() {
-        return ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
     }
 
 }

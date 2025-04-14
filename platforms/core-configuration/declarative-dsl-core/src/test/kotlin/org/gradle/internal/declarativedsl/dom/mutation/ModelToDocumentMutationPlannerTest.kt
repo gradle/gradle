@@ -301,6 +301,7 @@ class ModelToDocumentMutationPlannerTest {
             expected.targetNode == actual.targetNode &&
             expected.nodes().nodes == actual.nodes().nodes &&
             expected.nodes().representationFlags == actual.nodes().representationFlags
+
         is ReplaceValue -> actual is ReplaceValue && expected.targetValue == actual.targetValue && expected.replaceWithValue() == actual.replaceWithValue()
         is RemoveNode -> expected == actual
         is ReplaceNode -> actual is ReplaceNode && expected.targetNode == actual.targetNode && run {
@@ -308,6 +309,7 @@ class ModelToDocumentMutationPlannerTest {
             val actualReplacement = actual.replaceWithNodes()
             expectedReplacement.nodes == actualReplacement.nodes && expectedReplacement.representationFlags == actualReplacement.representationFlags
         }
+
         else -> throw UnsupportedOperationException("cannot check for the expected mutation $expected")
     }
 

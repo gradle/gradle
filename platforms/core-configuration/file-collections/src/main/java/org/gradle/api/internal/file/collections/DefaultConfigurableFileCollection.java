@@ -68,14 +68,14 @@ import java.util.function.Supplier;
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
     private final PathSet filesWrapper;
-    private DisplayName displayName;
     private final PathToFileResolver resolver;
     private final TaskDependencyFactory dependencyFactory;
     private final PropertyHost host;
     private final DefaultTaskDependency buildDependency;
+    private final ValueCollector defaultValue = new EmptyCollector();
+    private DisplayName displayName;
     private ValueCollector value;
     private ValueState<ValueCollector> valueState;
-    private final ValueCollector defaultValue = new EmptyCollector();
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, PatternSetFactory patternSetFactory, PropertyHost host) {
         super(dependencyFactory, patternSetFactory);
@@ -201,6 +201,20 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    public void setFrom(Iterable<?> path) {
+        assertMutable();
+        setExplicitCollector(newExplicitValue(path));
+    }
+
+    @Override
+    public void setFrom(Object... paths) {
+        assertMutable();
+        setExplicitCollector(paths.length > 0
+            ? newExplicitValue(paths)
+            : EMPTY_COLLECTOR);
+    }
+
+    @Override
     public void setFromAnyValue(Object object) {
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
@@ -258,12 +272,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void setFrom(Iterable<?> path) {
-        assertMutable();
-        setExplicitCollector(newExplicitValue(path));
-    }
-
-    @Override
     public ConfigurableFileCollection convention(Iterable<?> paths) {
         assertMutable();
         setConventionCollector(newConventionValue(paths));
@@ -306,10 +314,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         value = valueState.applyConvention(value, convention);
     }
 
-    private void setExplicitCollector(ValueCollector valueCollector) {
-        value = valueState.explicitValue(valueCollector);
-    }
-
     @Override
     public ConfigurableFileCollection unsetConvention() {
         assertMutable();
@@ -322,14 +326,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         assertMutable();
         value = valueState.implicitValue();
         return this;
-    }
-
-    @Override
-    public void setFrom(Object... paths) {
-        assertMutable();
-        setExplicitCollector(paths.length > 0
-            ? newExplicitValue(paths)
-            : EMPTY_COLLECTOR);
     }
 
     private ValueCollector newConventionValue(Iterable<?> paths) {
@@ -459,6 +455,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
      */
     private ValueCollector getExplicitCollector() {
         return valueState.explicitValue(value, defaultValue);
+    }
+
+    private void setExplicitCollector(ValueCollector valueCollector) {
+        value = valueState.explicitValue(valueCollector);
     }
 
     private Configurer getConfigurer() {

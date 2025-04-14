@@ -40,11 +40,11 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
             subdir1 {
-                file ('file1.txt').text = 'original text 1'
+                file('file1.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
         settingsFile << """include 'project1', 'project2'"""
@@ -99,11 +99,11 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
             subdir1 {
-                file ('file1.txt').text = 'original text 1'
+                file('file1.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
         settingsFile << """include 'project1', 'project2'"""
@@ -159,11 +159,11 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
             subdir1 {
-                file ('file1.txt').text = 'original text 1'
+                file('file1.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
         settingsFile << """include ':lib', ':utils:lib'"""
@@ -380,7 +380,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given:
         server.start()
         createTar('test.tar') {
-            file ('file.txt').text = 'original text 1'
+            file('file.txt').text = 'original text 1'
         }
         buildFile << """
             task extract(type: Extract) {
@@ -484,20 +484,20 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given: "2 archive files"
         createTar('test1.tar') {
             subdir1 {
-                file ('file.txt').text = 'original text 1'
+                file('file.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
         createTar('test2.tar') {
             subdir1 {
-                file ('file.txt').text = 'original text 1' // Same name in same dir
+                file('file.txt').text = 'original text 1' // Same name in same dir
             }
             subdir3 {
                 file('file3.txt').text = 'original text 3' // Same name in same different nested dir
-                file ('file4.txt').text =  'original text 4'
+                file('file4.txt').text = 'original text 4'
             }
         }
 
@@ -543,20 +543,20 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given: "2 archive files"
         createZip('test1.zip') {
             subdir1 {
-                file ('file.txt').text = 'original text 1'
+                file('file.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
         createZip('test2.zip') {
             subdir1 {
-                file ('file.txt').text = 'original text 1' // Same name in same dir
+                file('file.txt').text = 'original text 1' // Same name in same dir
             }
             subdir3 {
                 file('file3.txt').text = 'original text 3' // Same name in same different nested dir
-                file ('file4.txt').text =  'original text 4'
+                file('file4.txt').text = 'original text 4'
             }
         }
 
@@ -654,11 +654,11 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given:
         createZip('test.zip') {
             subdir1 {
-                file ('file.txt').text = 'original text 1'
+                file('file.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
 
@@ -702,11 +702,11 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         given:
         createTar('test.tar') {
             subdir1 {
-                file ('file.txt').text = 'original text 1'
+                file('file.txt').text = 'original text 1'
             }
             subdir2 {
                 file('file2.txt').text = 'original text 2'
-                file ('file3.txt').text =  'original text 3'
+                file('file3.txt').text = 'original text 3'
             }
         }
 

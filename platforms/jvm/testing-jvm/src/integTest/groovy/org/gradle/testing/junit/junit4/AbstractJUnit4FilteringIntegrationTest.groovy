@@ -16,6 +16,7 @@
 
 
 package org.gradle.testing.junit.junit4
+
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue

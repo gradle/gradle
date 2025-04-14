@@ -226,7 +226,7 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         for (int i = 0; i < size; i++) {
             ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.gradle.test", "module$i"), "1.0")
             ModuleDependencyMetadata dep = newDependency(requested)
-            adapter.add ( DirectInstantiator.INSTANCE.newInstance(DirectDependencyMetadataAdapter, AttributeTestUtil.attributesFactory(), dep))
+            adapter.add(DirectInstantiator.INSTANCE.newInstance(DirectDependencyMetadataAdapter, AttributeTestUtil.attributesFactory(), dep))
         }
     }
 

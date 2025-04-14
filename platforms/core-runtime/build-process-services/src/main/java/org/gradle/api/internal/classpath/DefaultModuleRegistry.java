@@ -47,7 +47,7 @@ import java.util.zip.ZipFile;
  */
 public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsProvider {
     private static final Spec<File> SATISFY_ALL = element -> true;
-
+    private static final String[] NO_PROJECTS = new String[0];
     @Nullable
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<>();
@@ -72,6 +72,12 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
                 classpathJars.put(classpathFile.getName(), classpathFile);
             }
         }
+    }
+
+    private static String projectDirNameFrom(String moduleName) {
+        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(moduleName);
+        matcher.matches();
+        return matcher.group(1);
     }
 
     @Override
@@ -217,12 +223,6 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
                 }
             }
         }
-    }
-
-    private static String projectDirNameFrom(String moduleName) {
-        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(moduleName);
-        matcher.matches();
-        return matcher.group(1);
     }
 
     /**
@@ -410,6 +410,4 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
             }
         }
     }
-
-    private static final String[] NO_PROJECTS = new String[0];
 }

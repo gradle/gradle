@@ -52,8 +52,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     private final Set<InternalJvmTestRequest> internalJvmTestRequests = new LinkedHashSet<InternalJvmTestRequest>();
     private final DefaultDebugOptions debugOptions = new DefaultDebugOptions();
     private final Map<String, List<InternalJvmTestRequest>> tasksAndTests = new HashMap<String, List<InternalJvmTestRequest>>();
-    private boolean isRunDefaultTasks = false;
     private final List<InternalTaskSpec> taskSpecs = new ArrayList<InternalTaskSpec>();
+    private boolean isRunDefaultTasks = false;
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -207,6 +207,14 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
         }, new ResultHandlerAdapter(handler));
     }
 
+    @Override
+    public TestLauncher withTestsFor(Action<TestSpecs> testSpec) {
+        DefaultTestSpecs testSpecs = new DefaultTestSpecs();
+        testSpec.execute(testSpecs);
+        taskSpecs.addAll(testSpecs.getTestSpecs());
+        return this;
+    }
+
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
             super(handler, DefaultTestLauncher.this.createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
@@ -216,13 +224,5 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
                 }
             }));
         }
-    }
-
-    @Override
-    public TestLauncher withTestsFor(Action<TestSpecs> testSpec) {
-        DefaultTestSpecs testSpecs = new DefaultTestSpecs();
-        testSpec.execute(testSpecs);
-        taskSpecs.addAll(testSpecs.getTestSpecs());
-        return this;
     }
 }

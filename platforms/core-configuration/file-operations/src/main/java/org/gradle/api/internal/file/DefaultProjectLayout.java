@@ -84,6 +84,13 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         return buildDir;
     }
 
+    // TODO: this "unused" method should be removed
+    // However, currently, expressions like 'layout.buildDirectory = file(...)' resolve to this method,
+    // and removing it makes those expressions fail the build
+    public void setBuildDirectory(Object value) {
+        buildDir.set(fileResolver.resolve(value));
+    }
+
     @Override
     public ConfigurableFileCollection newInputFileCollection(Task consumer) {
         return new CachingTaskInputFileCollection(fileResolver, patternSetFactory, taskDependencyFactory, propertyHost);
@@ -117,12 +124,5 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     @Override
     public FileCollection files(Object... paths) {
         return fileCollectionFactory.resolving(paths);
-    }
-
-    // TODO: this "unused" method should be removed
-    // However, currently, expressions like 'layout.buildDirectory = file(...)' resolve to this method,
-    // and removing it makes those expressions fail the build
-    public void setBuildDirectory(Object value) {
-        buildDir.set(fileResolver.resolve(value));
     }
 }

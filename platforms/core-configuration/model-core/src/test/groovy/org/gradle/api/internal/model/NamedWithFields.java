@@ -19,8 +19,8 @@ package org.gradle.api.internal.model;
 import org.gradle.api.Named;
 
 public class NamedWithFields implements Named {
-    String name;
     private final String other = "other";
+    String name;
 
     @Override
     public String getName() {

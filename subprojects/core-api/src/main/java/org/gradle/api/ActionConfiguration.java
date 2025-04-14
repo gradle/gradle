@@ -48,16 +48,16 @@ public interface ActionConfiguration {
     void params(Object... params);
 
     /**
-     * Sets any initialization parameters to use when constructing an instance of the implementation class.
-     *
-     * @param params - the parameters to use during construction
-     */
-    void setParams(Object... params);
-
-    /**
      * Gets the initialization parameters that will be used when constructing an instance of the implementation class.
      *
      * @return the parameters to use during construction
      */
     Object[] getParams();
+
+    /**
+     * Sets any initialization parameters to use when constructing an instance of the implementation class.
+     *
+     * @param params - the parameters to use during construction
+     */
+    void setParams(Object... params);
 }

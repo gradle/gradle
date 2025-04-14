@@ -63,13 +63,13 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
         return parent;
     }
 
-    public DefaultIdeaProject getProject() {
-        return parent;
-    }
-
     public DefaultIdeaModule setParent(DefaultIdeaProject parent) {
         this.parent = parent;
         return this;
+    }
+
+    public DefaultIdeaProject getProject() {
+        return parent;
     }
 
     public Collection<DefaultIdeaDependency> getDependencies() {
@@ -142,11 +142,11 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     @Override
     public String toString() {
         return "IdeaModule{"
-                + "name='" + name + '\''
-                + ", gradleProject='" + gradleProject + '\''
-                + ", contentRoots=" + contentRoots
-                + ", compilerOutput=" + compilerOutput
-                + ", dependencies count=" + dependencies.size()
-                + '}';
+            + "name='" + name + '\''
+            + ", gradleProject='" + gradleProject + '\''
+            + ", contentRoots=" + contentRoots
+            + ", compilerOutput=" + compilerOutput
+            + ", dependencies count=" + dependencies.size()
+            + '}';
     }
 }

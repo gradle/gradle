@@ -41,34 +41,6 @@ class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
     private final URLClassLoader commonParent;
     private final GuavaBackedClassLoaderCache<Set<TimestampedFile>> cache;
 
-    static class TimestampedFile {
-        private final File file;
-        private final long timestamp;
-
-        public TimestampedFile(File file) {
-            this.file = file;
-            this.timestamp = IO.getModifiedTimeOrZero(file);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            TimestampedFile that = (TimestampedFile) o;
-            return timestamp == that.timestamp &&
-                Objects.equals(file, that.file);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(file, timestamp);
-        }
-    }
-
     public TimeCheckingClassLoaderCache(int maxSize) {
         commonParent = new URLClassLoader(new URL[0]);
         cache = new GuavaBackedClassLoaderCache<>(maxSize);
@@ -112,5 +84,33 @@ class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
     public void close() throws IOException {
         cache.clear();
         commonParent.close();
+    }
+
+    static class TimestampedFile {
+        private final File file;
+        private final long timestamp;
+
+        public TimestampedFile(File file) {
+            this.file = file;
+            this.timestamp = IO.getModifiedTimeOrZero(file);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TimestampedFile that = (TimestampedFile) o;
+            return timestamp == that.timestamp &&
+                Objects.equals(file, that.file);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(file, timestamp);
+        }
     }
 }

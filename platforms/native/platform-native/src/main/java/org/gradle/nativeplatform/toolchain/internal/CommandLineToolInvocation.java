@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public interface CommandLineToolInvocation extends BuildOperation  {
+public interface CommandLineToolInvocation extends BuildOperation {
 
     List<File> getPath();
 

@@ -46,6 +46,11 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         addGradleLibsRepository();
     }
 
+    private static String gradleLibsRepoUrl() {
+        String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
+        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
+    }
+
     @Override
     public File resolveLocalGroovySources(String jarName) {
         Matcher matcher = FILE_NAME_PATTERN.matcher(jarName);
@@ -78,10 +83,5 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
             a.setName("Gradle Libs");
             a.setUrl(gradleLibsRepoUrl());
         });
-    }
-
-    private static String gradleLibsRepoUrl() {
-        String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
-        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
     }
 }

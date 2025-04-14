@@ -68,6 +68,217 @@ public class GraphVariantSelector {
         this.failureHandler = failureHandler;
     }
 
+    private static List<VariantGraphResolveState> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveState> matches, String classifier) {
+        List<VariantGraphResolveState> sameClassifier = Collections.emptyList();
+        // let's see if we can find a single variant which has exactly the requested artifacts
+        for (VariantGraphResolveState match : matches) {
+            if (variantProvidesClassifier(match, classifier)) {
+                if (sameClassifier == Collections.EMPTY_LIST) {
+                    sameClassifier = Collections.singletonList(match);
+                } else {
+                    sameClassifier = Lists.newArrayList(sameClassifier);
+                    sameClassifier.add(match);
+                }
+            }
+        }
+        return sameClassifier;
+    }
+
+    private static boolean variantProvidesClassifier(VariantGraphResolveState variant, String classifier) {
+        Set<? extends VariantResolveMetadata> artifactSets = variant.prepareForArtifactResolution().getArtifactVariants();
+        for (VariantResolveMetadata artifactSet : artifactSets) {
+            if (artifactSetStrictlyProvidesClassifier(artifactSet, classifier)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean artifactSetStrictlyProvidesClassifier(VariantResolveMetadata artifactSet, String classifier) {
+        List<? extends ComponentArtifactMetadata> artifacts = artifactSet.getArtifacts();
+        if (artifacts.size() != 1) {
+            return false;
+        }
+
+        ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
+        if (!(componentArtifactMetadata instanceof ModuleComponentArtifactMetadata)) {
+            return false;
+        }
+
+        return classifier.equals(componentArtifactMetadata.getName().getClassifier());
+    }
+
+    @Nullable
+    private static VariantGraphResolveState zeroOrSingleVariant(List<VariantGraphResolveState> matches) {
+        if (matches.isEmpty()) {
+            return null;
+        }
+
+        assert matches.size() == 1;
+        VariantGraphResolveState match = matches.get(0);
+        maybeEmitConsumptionDeprecation(match);
+        return match;
+    }
+
+    private static void maybeEmitConsumptionDeprecation(VariantGraphResolveState targetVariant) {
+        if (targetVariant.getMetadata().isDeprecated()) {
+            DeprecationLogger.deprecateConfiguration(targetVariant.getName())
+                .forConsumption()
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                .nagUser();
+        }
+    }
+
+    private static ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(
+        ComponentGraphResolveState targetComponent,
+        Set<CapabilitySelector> capabilitySelectors,
+        Collection<? extends VariantGraphResolveState> consumableVariants,
+        boolean lenient
+    ) {
+        ImmutableCapability defaultCapability = targetComponent.getDefaultCapability();
+        boolean explicitlyRequested = !capabilitySelectors.isEmpty();
+        ImmutableList.Builder<VariantGraphResolveState> builder = ImmutableList.builderWithExpectedSize(consumableVariants.size());
+
+        for (VariantGraphResolveState variant : consumableVariants) {
+            ImmutableCapabilities capabilities = variant.getCapabilities();
+            if (explicitlyRequested) {
+                // Capabilities were explicitly requested.
+                // Require the variants capabilities match all requested selectors.
+                if (matchesCapabilitySelectors(capabilitySelectors, capabilities, defaultCapability, lenient)) {
+                    builder.add(variant);
+                }
+            } else {
+                // No capabilities were explicitly requested.
+                // Default to requiring the implicit capability as specified by the component.
+                if (containsImplicitCapability(capabilities, defaultCapability, lenient)) {
+                    builder.add(variant);
+                }
+            }
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Determines if the provided capabilities contains the implicit capability of the component.
+     *
+     * @param capabilities The capabilities to check
+     * @param implicitCapability The implicit capability of the component
+     * @param lenient If false, the method will return fail if the component has more capabilities than the implicit capability.
+     * @return true if the capabilities contain the implicit capability
+     */
+    private static boolean containsImplicitCapability(
+        ImmutableCapabilities capabilities,
+        ImmutableCapability implicitCapability,
+        boolean lenient
+    ) {
+        // If the variant declares no capabilities, it inherits the implicit capability of the component.
+        if (capabilities.isEmpty()) {
+            return true;
+        }
+
+        // If the variant contains only the shadowed capability, it's an implicit capability.
+        // TODO: Why do we not check the content of the shadowed capability?
+        ImmutableSet<ImmutableCapability> capabilitiesSet = capabilities.asSet();
+        if (capabilitiesSet.size() == 1 && capabilitiesSet.iterator().next() instanceof ShadowedCapability) {
+            return true;
+        }
+
+        // Otherwise, check the declared capabilities.
+        for (Capability capability : capabilities) {
+            if (capability instanceof ShadowedCapability) {
+                capability = ((ShadowedCapability) capability).getShadowedCapability();
+            }
+            if (implicitCapability.getGroup().equals(capability.getGroup()) && implicitCapability.getName().equals(capability.getName())) {
+                return lenient || capabilities.asSet().size() == 1;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines if the provided capabilities matches all the provided selectors.
+     *
+     * @param capabilitySelectors The selectors to check against
+     * @param capabilities The capabilities to check
+     * @param implicitCapability The implicit capability of the component
+     * @param lenient If false, the method will return fail if there are extra capabilities not explicitly requested.
+     * @return true if the capabilities match the selectors
+     */
+    private static boolean matchesCapabilitySelectors(
+        Set<CapabilitySelector> capabilitySelectors,
+        ImmutableCapabilities capabilities,
+        ImmutableCapability implicitCapability,
+        boolean lenient
+    ) {
+        if (capabilities.isEmpty()) {
+            // The variant does not declare any capabilities.
+            // Use the component's implicit capability by default.
+            capabilities = ImmutableCapabilities.of(implicitCapability);
+        }
+
+        // Check that every selector matches at least one capability
+        for (CapabilitySelector selector : capabilitySelectors) {
+            if (noMatchingCapability(selector, capabilities, implicitCapability)) {
+                return false;
+            }
+        }
+
+        // If lenient, we allow extra capabilities not explicitly requested
+        if (lenient) {
+            return true;
+        }
+
+        // Check that every capability matches at least one selector
+        for (CapabilityInternal capability : capabilities) {
+            if (noMatchingSelector(capability, capabilitySelectors, implicitCapability)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean noMatchingCapability(
+        CapabilitySelector selector,
+        ImmutableCapabilities capabilities,
+        ImmutableCapability implicitCapability
+    ) {
+        for (CapabilityInternal capability : capabilities) {
+            if (matches(selector, capability, implicitCapability)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean noMatchingSelector(
+        CapabilityInternal capability,
+        Set<CapabilitySelector> selectors,
+        ImmutableCapability implicitCapability
+    ) {
+        for (CapabilitySelector selector : selectors) {
+            if (matches(selector, capability, implicitCapability)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean matches(
+        CapabilitySelector selector,
+        CapabilityInternal capability,
+        ImmutableCapability implicitCapability
+    ) {
+        CapabilitySelectorInternal internalSelector = (CapabilitySelectorInternal) selector;
+        return internalSelector.matches(capability.getGroup(), capability.getName(), implicitCapability);
+    }
+
     /**
      * Returns the failure processor which must be used to report failures during variant selection.
      *
@@ -222,219 +433,6 @@ public class GraphVariantSelector {
                 throw failureHandler.configurationNotCompatibleFailure(attributeMatcher, targetComponentState, conf, consumerAttributes, conf.getCapabilities());
             }
         }
-    }
-
-    private static List<VariantGraphResolveState> findVariantsProvidingExactlySameClassifier(List<VariantGraphResolveState> matches, String classifier) {
-        List<VariantGraphResolveState> sameClassifier = Collections.emptyList();
-        // let's see if we can find a single variant which has exactly the requested artifacts
-        for (VariantGraphResolveState match : matches) {
-            if (variantProvidesClassifier(match, classifier)) {
-                if (sameClassifier == Collections.EMPTY_LIST) {
-                    sameClassifier = Collections.singletonList(match);
-                } else {
-                    sameClassifier = Lists.newArrayList(sameClassifier);
-                    sameClassifier.add(match);
-                }
-            }
-        }
-        return sameClassifier;
-    }
-
-    private static boolean variantProvidesClassifier(VariantGraphResolveState variant, String classifier) {
-        Set<? extends VariantResolveMetadata> artifactSets = variant.prepareForArtifactResolution().getArtifactVariants();
-        for (VariantResolveMetadata artifactSet : artifactSets) {
-            if (artifactSetStrictlyProvidesClassifier(artifactSet, classifier)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static boolean artifactSetStrictlyProvidesClassifier(VariantResolveMetadata artifactSet, String classifier) {
-        List<? extends ComponentArtifactMetadata> artifacts = artifactSet.getArtifacts();
-        if (artifacts.size() != 1) {
-            return false;
-        }
-
-        ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
-        if (!(componentArtifactMetadata instanceof ModuleComponentArtifactMetadata)) {
-            return false;
-        }
-
-        return classifier.equals(componentArtifactMetadata.getName().getClassifier());
-    }
-
-    @Nullable
-    private static VariantGraphResolveState zeroOrSingleVariant(List<VariantGraphResolveState> matches) {
-        if (matches.isEmpty()) {
-            return null;
-        }
-
-        assert matches.size() == 1;
-        VariantGraphResolveState match = matches.get(0);
-        maybeEmitConsumptionDeprecation(match);
-        return match;
-    }
-
-    private static void maybeEmitConsumptionDeprecation(VariantGraphResolveState targetVariant) {
-        if (targetVariant.getMetadata().isDeprecated()) {
-            DeprecationLogger.deprecateConfiguration(targetVariant.getName())
-                .forConsumption()
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-                .nagUser();
-        }
-    }
-
-    private static ImmutableList<VariantGraphResolveState> filterVariantsByRequestedCapabilities(
-        ComponentGraphResolveState targetComponent,
-        Set<CapabilitySelector> capabilitySelectors,
-        Collection<? extends VariantGraphResolveState> consumableVariants,
-        boolean lenient
-    ) {
-        ImmutableCapability defaultCapability = targetComponent.getDefaultCapability();
-        boolean explicitlyRequested = !capabilitySelectors.isEmpty();
-        ImmutableList.Builder<VariantGraphResolveState> builder = ImmutableList.builderWithExpectedSize(consumableVariants.size());
-
-        for (VariantGraphResolveState variant : consumableVariants) {
-            ImmutableCapabilities capabilities = variant.getCapabilities();
-            if (explicitlyRequested) {
-                // Capabilities were explicitly requested.
-                // Require the variants capabilities match all requested selectors.
-                if (matchesCapabilitySelectors(capabilitySelectors, capabilities, defaultCapability, lenient)) {
-                    builder.add(variant);
-                }
-            } else {
-                // No capabilities were explicitly requested.
-                // Default to requiring the implicit capability as specified by the component.
-                if (containsImplicitCapability(capabilities, defaultCapability, lenient)) {
-                    builder.add(variant);
-                }
-            }
-        }
-
-        return builder.build();
-    }
-
-    /**
-     * Determines if the provided capabilities contains the implicit capability of the component.
-     *
-     * @param capabilities The capabilities to check
-     * @param implicitCapability The implicit capability of the component
-     * @param lenient If false, the method will return fail if the component has more capabilities than the implicit capability.
-     *
-     * @return true if the capabilities contain the implicit capability
-     */
-    private static boolean containsImplicitCapability(
-        ImmutableCapabilities capabilities,
-        ImmutableCapability implicitCapability,
-        boolean lenient
-    ) {
-        // If the variant declares no capabilities, it inherits the implicit capability of the component.
-        if (capabilities.isEmpty()) {
-            return true;
-        }
-
-        // If the variant contains only the shadowed capability, it's an implicit capability.
-        // TODO: Why do we not check the content of the shadowed capability?
-        ImmutableSet<ImmutableCapability> capabilitiesSet = capabilities.asSet();
-        if (capabilitiesSet.size() == 1 && capabilitiesSet.iterator().next() instanceof ShadowedCapability) {
-            return true;
-        }
-
-        // Otherwise, check the declared capabilities.
-        for (Capability capability : capabilities) {
-            if (capability instanceof ShadowedCapability) {
-                capability = ((ShadowedCapability) capability).getShadowedCapability();
-            }
-            if (implicitCapability.getGroup().equals(capability.getGroup()) && implicitCapability.getName().equals(capability.getName())) {
-                return lenient || capabilities.asSet().size() == 1;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Determines if the provided capabilities matches all the provided selectors.
-     *
-     * @param capabilitySelectors The selectors to check against
-     * @param capabilities The capabilities to check
-     * @param implicitCapability The implicit capability of the component
-     * @param lenient If false, the method will return fail if there are extra capabilities not explicitly requested.
-     *
-     * @return true if the capabilities match the selectors
-     */
-    private static boolean matchesCapabilitySelectors(
-        Set<CapabilitySelector> capabilitySelectors,
-        ImmutableCapabilities capabilities,
-        ImmutableCapability implicitCapability,
-        boolean lenient
-    ) {
-        if (capabilities.isEmpty()) {
-            // The variant does not declare any capabilities.
-            // Use the component's implicit capability by default.
-            capabilities = ImmutableCapabilities.of(implicitCapability);
-        }
-
-        // Check that every selector matches at least one capability
-        for (CapabilitySelector selector : capabilitySelectors) {
-            if (noMatchingCapability(selector, capabilities, implicitCapability)) {
-                return false;
-            }
-        }
-
-        // If lenient, we allow extra capabilities not explicitly requested
-        if (lenient) {
-            return true;
-        }
-
-        // Check that every capability matches at least one selector
-        for (CapabilityInternal capability : capabilities) {
-            if (noMatchingSelector(capability, capabilitySelectors, implicitCapability)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean noMatchingCapability(
-        CapabilitySelector selector,
-        ImmutableCapabilities capabilities,
-        ImmutableCapability implicitCapability
-    ) {
-        for (CapabilityInternal capability : capabilities) {
-            if (matches(selector, capability, implicitCapability)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean noMatchingSelector(
-        CapabilityInternal capability,
-        Set<CapabilitySelector> selectors,
-        ImmutableCapability implicitCapability
-    ) {
-        for (CapabilitySelector selector : selectors) {
-            if (matches(selector, capability, implicitCapability)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean matches(
-        CapabilitySelector selector,
-        CapabilityInternal capability,
-        ImmutableCapability implicitCapability
-    ) {
-        CapabilitySelectorInternal internalSelector = (CapabilitySelectorInternal) selector;
-        return internalSelector.matches(capability.getGroup(), capability.getName(), implicitCapability);
     }
 
 }

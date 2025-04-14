@@ -62,6 +62,28 @@ public class ApiMemberSelector extends ClassVisitor {
         this.apiIncludesPackagePrivateMembers = apiIncludesPackagePrivateMembers;
     }
 
+    public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
+        return isPublicMember(access)
+            || isProtectedMember(access)
+            || (apiIncludesPackagePrivateMembers && isPackagePrivateMember(access));
+    }
+
+    private static boolean isPublicMember(int access) {
+        return (access & ACC_PUBLIC) == ACC_PUBLIC;
+    }
+
+    private static boolean isProtectedMember(int access) {
+        return (access & ACC_PROTECTED) == ACC_PROTECTED;
+    }
+
+    private static boolean isPackagePrivateMember(int access) {
+        return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
+    }
+
+    private static String nameOrValue(String name) {
+        return name == null ? "value" : name;
+    }
+
     public boolean isPrivateInnerClass() {
         return thisClassIsPrivateInnerClass;
     }
@@ -166,28 +188,6 @@ public class ApiMemberSelector extends ClassVisitor {
     public void visitPermittedSubclass(String permittedSubclass) {
         classMember.getPermittedSubclasses().add(permittedSubclass);
         super.visitPermittedSubclass(permittedSubclass);
-    }
-
-    public static boolean isCandidateApiMember(int access, boolean apiIncludesPackagePrivateMembers) {
-        return isPublicMember(access)
-            || isProtectedMember(access)
-            || (apiIncludesPackagePrivateMembers && isPackagePrivateMember(access));
-    }
-
-    private static boolean isPublicMember(int access) {
-        return (access & ACC_PUBLIC) == ACC_PUBLIC;
-    }
-
-    private static boolean isProtectedMember(int access) {
-        return (access & ACC_PROTECTED) == ACC_PROTECTED;
-    }
-
-    private static boolean isPackagePrivateMember(int access) {
-        return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
-    }
-
-    private static String nameOrValue(String name) {
-        return name == null ? "value" : name;
     }
 
     private static class AnnotationDefaultVisitor extends AnnotationVisitor {

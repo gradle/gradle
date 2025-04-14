@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ActionNode extends Node implements SelfExecutingNode {
-    private WorkNodeAction action;
-    private List<Node> postExecutionNodes;
     private final ProjectInternal owningProject;
     private final ProjectInternal projectToLock;
+    private WorkNodeAction action;
+    private List<Node> postExecutionNodes;
     private boolean hasVisitedPreExecutionNode;
 
     public ActionNode(WorkNodeAction action) {

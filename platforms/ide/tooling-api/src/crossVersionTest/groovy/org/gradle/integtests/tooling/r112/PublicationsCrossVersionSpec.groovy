@@ -47,7 +47,7 @@ class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     def "Ivy repository based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
-"""
+            """
 apply plugin: "base"
 
 version = 1.0
@@ -77,7 +77,7 @@ uploadArchives {
     def "publishing.publications based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
-                """
+            """
 apply plugin: "ivy-publish"
 apply plugin: "maven-publish"
 apply plugin: "java"

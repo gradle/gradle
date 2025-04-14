@@ -240,7 +240,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
             def name = entry.name.substring(entry.name.lastIndexOf('/') + 1)
             forbiddenLibraries.any { name.startsWith(it) }
         }
-        assert forbiddenLibs.isEmpty() : """
+        assert forbiddenLibs.isEmpty(): """
             Found forbidden libraries in the distribution:
             ${forbiddenLibs.collect { it.name }}
         """
@@ -318,7 +318,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
             missingCoreLibs == []
         }
 
-        assert (prefixedCoreLibNames.clone().sort() == prefixedCoreLibNames) : "coreLibsFileNames has be sorted"
+        assert (prefixedCoreLibNames.clone().sort() == prefixedCoreLibNames): "coreLibsFileNames has be sorted"
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")

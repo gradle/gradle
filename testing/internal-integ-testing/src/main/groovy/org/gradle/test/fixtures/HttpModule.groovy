@@ -19,5 +19,6 @@ import org.gradle.test.fixtures.server.http.HttpArtifact
 
 interface HttpModule extends Module {
     HttpModule allowAll()
+
     HttpArtifact getArtifact(Map<String, ?> notation)
 }

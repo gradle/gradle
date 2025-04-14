@@ -118,7 +118,7 @@ class DefaultActorFactorySpec extends ConcurrentSpec {
     }
 
     def blockingActorDispatchesMethodInvocationFromOneThreadAtATime() {
-        def target = {param ->
+        def target = { param ->
             if (param == 'param') {
                 instant.param1Start
                 thread.block()

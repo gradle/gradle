@@ -40,7 +40,7 @@ class DefaultSourceControlTest extends Specification {
         repo != null
 
         then:
-        1 * action.execute({it != null})
+        1 * action.execute({ it != null })
     }
 
     def "can register a Git repository multiple times"() {

@@ -37,9 +37,8 @@ public interface BuildCacheKey {
     /**
      * Returns the same as {@link #getHashCode()}.
      *
-     * @deprecated Use {@link #getHashCode()} instead.
-     *
      * @since 8.7
+     * @deprecated Use {@link #getHashCode()} instead.
      */
     @Deprecated
     String getDisplayName();

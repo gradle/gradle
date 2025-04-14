@@ -97,9 +97,9 @@ public abstract class GradleRunner {
      *
      * @param versionNumber the version number (e.g. "2.9")
      * @return this
-     * @since 2.9
      * @see #withGradleInstallation(File)
      * @see #withGradleDistribution(URI)
+     * @since 2.9
      */
     public abstract GradleRunner withGradleVersion(String versionNumber);
 
@@ -112,9 +112,9 @@ public abstract class GradleRunner {
      *
      * @param installation a valid Gradle installation
      * @return this
-     * @since 2.9
      * @see #withGradleVersion(String)
      * @see #withGradleDistribution(URI)
+     * @since 2.9
      */
     public abstract GradleRunner withGradleInstallation(File installation);
 
@@ -137,9 +137,9 @@ public abstract class GradleRunner {
      *
      * @param distribution a URI pointing at a valid Gradle distribution zip file
      * @return this
-     * @since 2.9
      * @see #withGradleVersion(String)
      * @see #withGradleInstallation(File)
+     * @since 2.9
      */
     public abstract GradleRunner withGradleDistribution(URI distribution);
 
@@ -306,9 +306,9 @@ public abstract class GradleRunner {
     /**
      * Sets whether debugging support is enabled.
      *
-     * @see #isDebug()
      * @param flag the debug flag
      * @return this
+     * @see #isDebug()
      * @since 2.9
      */
     public abstract GradleRunner withDebug(boolean flag);
@@ -352,9 +352,9 @@ public abstract class GradleRunner {
      *
      * @param writer the writer that build standard output should be forwarded to
      * @return this
-     * @since 2.9
      * @see #forwardOutput()
      * @see #forwardStdError(Writer)
+     * @since 2.9
      */
     public abstract GradleRunner forwardStdOutput(Writer writer);
 
@@ -370,9 +370,9 @@ public abstract class GradleRunner {
      *
      * @param writer the writer that build standard error output should be forwarded to
      * @return this
-     * @since 2.9
      * @see #forwardOutput()
      * @see #forwardStdOutput(Writer)
+     * @since 2.9
      */
     public abstract GradleRunner forwardStdError(Writer writer);
 
@@ -389,27 +389,27 @@ public abstract class GradleRunner {
      * Calling this method will negate the effect of previously calling {@link #forwardStdOutput(Writer)} and/or {@link #forwardStdError(Writer)}.
      *
      * @return this
-     * @since 2.9
      * @see #forwardStdOutput(Writer)
      * @see #forwardStdError(Writer)
+     * @since 2.9
      */
     public abstract GradleRunner forwardOutput();
 
     /**
      * Executes a build, expecting it to complete without failure.
      *
+     * @return the build result
      * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @throws UnexpectedBuildFailure if the build does not succeed
-     * @return the build result
      */
     public abstract BuildResult build() throws InvalidRunnerConfigurationException, UnexpectedBuildFailure;
 
     /**
      * Executes a build, expecting it to complete with failure.
      *
+     * @return the build result
      * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @throws UnexpectedBuildSuccess if the build succeeds
-     * @return the build result
      */
     public abstract BuildResult buildAndFail() throws InvalidRunnerConfigurationException, UnexpectedBuildSuccess;
 
@@ -417,8 +417,8 @@ public abstract class GradleRunner {
      * Executes a build, without expecting a particular outcome.
      * The outcome should then be tested by inspecting the returned {@link BuildResult}.
      *
-     * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @return the build result
+     * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @since 8.0
      */
     @Incubating

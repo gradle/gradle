@@ -53,7 +53,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
     def "Custom output location defined in dsl"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -73,7 +73,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
     def "Custom output location defined in whenMerged"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -97,7 +97,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
     def "If output location removed during configuration, then the default path is returned"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -121,7 +121,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
     def "If multiple output folder is configured, then the last one is used"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {

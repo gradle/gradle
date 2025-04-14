@@ -50,18 +50,38 @@ import java.util.TreeMap;
  */
 class HtmlDependencyVerificationReportRenderer implements DependencyVerificationReportRenderer {
     private final Map<String, Section> sections = new TreeMap<>();
-    private Section currentSection;
     private final StringBuilder contents = new StringBuilder();
     private final DocumentationRegistry documentationRegistry;
     private final File verificationFile;
     private final List<String> writeFlags;
     private final File htmlReportOutputDirectory;
+    private Section currentSection;
 
     HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory) {
         this.documentationRegistry = documentationRegistry;
         this.verificationFile = verificationFile;
         this.writeFlags = writeFlags;
         this.htmlReportOutputDirectory = htmlReportOutputDirectory;
+    }
+
+    private static String expected(String text) {
+        return emphasize(text, "blue");
+    }
+
+    private static String actual(String text) {
+        return emphasize(text, "#ee442f");
+    }
+
+    private static String warning(String text) {
+        return emphasize(text, "#c59434");
+    }
+
+    private static String grey(String text) {
+        return emphasize(text, "#cccccc");
+    }
+
+    private static String emphasize(String text, String color) {
+        return "<span style=\"font-weight:bold; color: " + color + "\">" + text + "</span>";
     }
 
     @Override
@@ -338,26 +358,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             String reason = "All public keys have been ignored";
             reportItem(reason, "missing-checksums", "info");
         }
-    }
-
-    private static String expected(String text) {
-        return emphasize(text, "blue");
-    }
-
-    private static String actual(String text) {
-        return emphasize(text, "#ee442f");
-    }
-
-    private static String warning(String text) {
-        return emphasize(text, "#c59434");
-    }
-
-    private static String grey(String text) {
-        return emphasize(text, "#cccccc");
-    }
-
-    private static String emphasize(String text, String color) {
-        return "<span style=\"font-weight:bold; color: " + color + "\">" + text + "</span>";
     }
 
     private void reportSignatureProblems(VerificationFailure vf) {

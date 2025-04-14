@@ -116,12 +116,11 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class DependencyInsightReportTask extends DefaultTask {
 
+    private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
+    private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
-    private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
     private transient Configuration configuration;
-    private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
-
     // this field is named with a starting `z` to be serialized after `rootComponentProperty`
     // because the serialization of `rootComponentProperty` can still trigger callback that can affect
     // a value of `configuration.getAttributes()`.
@@ -147,7 +146,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 if (!configurationInternal.isCanBeMutated()) {
                     throw new IllegalStateException(
                         "The configuration '" + configuration.getName() + "' is not mutable. " +
-                        "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
+                            "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
                     );
                 }
                 configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
@@ -550,15 +549,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             );
         }
 
-        private static final class AttributeBuckets {
-            @SuppressWarnings("checkstyle:constantname")
-            private static final Comparator<Attribute<?>> sortedByAttributeName = Comparator.comparing(Attribute::getName);
-
-            Set<Attribute<?>> providedAttributes = new TreeSet<>(sortedByAttributeName);
-            Map<Attribute<?>, AttributeMatchDetails> bothAttributes = new TreeMap<>(sortedByAttributeName);
-            Set<Attribute<?>> requestedAttributes = new TreeSet<>(sortedByAttributeName);
-        }
-
         @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
         private StyledTable createAttributeTable(
             AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
@@ -655,6 +645,15 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 text.add("Compatible");
             }
             return new StyledTable.Row(text.build(), Info);
+        }
+
+        private static final class AttributeBuckets {
+            @SuppressWarnings("checkstyle:constantname")
+            private static final Comparator<Attribute<?>> sortedByAttributeName = Comparator.comparing(Attribute::getName);
+
+            Set<Attribute<?>> providedAttributes = new TreeSet<>(sortedByAttributeName);
+            Map<Attribute<?>, AttributeMatchDetails> bothAttributes = new TreeMap<>(sortedByAttributeName);
+            Set<Attribute<?>> requestedAttributes = new TreeSet<>(sortedByAttributeName);
         }
     }
 

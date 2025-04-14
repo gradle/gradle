@@ -23,9 +23,9 @@ import org.jspecify.annotations.Nullable;
  *
  * Describes a test failure, that can either be a test assertion failure or a test framework failure.
  *
- * @since 7.6
  * @see InternalTestAssertionFailure
  * @see InternalTestFrameworkFailure
+ * @since 7.6
  */
 public interface InternalTestFailure extends InternalFailure {
 

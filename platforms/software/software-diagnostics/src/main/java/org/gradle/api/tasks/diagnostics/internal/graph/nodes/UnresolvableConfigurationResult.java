@@ -30,6 +30,20 @@ import java.util.stream.Stream;
 
 public class UnresolvableConfigurationResult extends AbstractRenderableDependency {
 
+    private final Object id;
+    private final String name;
+    private final Set<? extends RenderableDependency> children;
+
+    private UnresolvableConfigurationResult(
+        Object id,
+        String name,
+        Set<? extends RenderableDependency> children
+    ) {
+        this.id = id;
+        this.name = name;
+        this.children = children;
+    }
+
     public static UnresolvableConfigurationResult of(Configuration configuration) {
         return new UnresolvableConfigurationResult(
             configuration.getClass().getName() + configuration.hashCode(),
@@ -67,20 +81,6 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
         );
-    }
-
-    private final Object id;
-    private final String name;
-    private final Set<? extends RenderableDependency> children;
-
-    private UnresolvableConfigurationResult(
-        Object id,
-        String name,
-        Set<? extends RenderableDependency> children
-    ) {
-        this.id = id;
-        this.name = name;
-        this.children = children;
     }
 
     @Override

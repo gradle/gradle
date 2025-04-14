@@ -62,9 +62,11 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final MavenMutableModuleMetadataFactory metadataFactory;
 
-    public GradlePomModuleDescriptorParser(VersionSelectorScheme gradleVersionSelectorScheme,
-                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                           FileResourceRepository fileResourceRepository, MavenMutableModuleMetadataFactory metadataFactory) {
+    public GradlePomModuleDescriptorParser(
+        VersionSelectorScheme gradleVersionSelectorScheme,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        FileResourceRepository fileResourceRepository, MavenMutableModuleMetadataFactory metadataFactory
+    ) {
         super(fileResourceRepository);
         this.gradleVersionSelectorScheme = gradleVersionSelectorScheme;
         mavenVersionSelectorScheme = new MavenVersionSelectorScheme(gradleVersionSelectorScheme);

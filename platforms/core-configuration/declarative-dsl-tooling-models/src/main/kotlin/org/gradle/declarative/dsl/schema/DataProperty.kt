@@ -31,11 +31,13 @@ interface DataProperty : Serializable {
     val isHiddenInDsl: Boolean
     val isDirectAccessOnly: Boolean
 
-    @ToolingModelContract(subTypes = [
-        ReadWrite::class,
-        ReadOnly::class,
-        WriteOnly::class
-    ])
+    @ToolingModelContract(
+        subTypes = [
+            ReadWrite::class,
+            ReadOnly::class,
+            WriteOnly::class
+        ]
+    )
     sealed interface PropertyMode : Serializable {
         interface ReadWrite : PropertyMode
         interface ReadOnly : PropertyMode

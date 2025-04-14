@@ -34,6 +34,11 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
     private final ManagedExecutor executorService = createExecutor();
     private final DevelocityPluginUnsafeConfigurationService unsafeConfigurationService;
 
+    @Inject
+    public DefaultGradleEnterprisePluginBackgroundJobExecutors(DevelocityPluginUnsafeConfigurationService unsafeConfigurationService) {
+        this.unsafeConfigurationService = unsafeConfigurationService;
+    }
+
     private static ManagedExecutor createExecutor() {
         ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
             4, 4,
@@ -44,11 +49,6 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
         poolExecutor.allowCoreThreadTimeOut(true);
 
         return new ManagedExecutorImpl(poolExecutor, new ExecutorPolicy.CatchAndRecordFailures());
-    }
-
-    @Inject
-    public DefaultGradleEnterprisePluginBackgroundJobExecutors(DevelocityPluginUnsafeConfigurationService unsafeConfigurationService) {
-        this.unsafeConfigurationService = unsafeConfigurationService;
     }
 
     @Override

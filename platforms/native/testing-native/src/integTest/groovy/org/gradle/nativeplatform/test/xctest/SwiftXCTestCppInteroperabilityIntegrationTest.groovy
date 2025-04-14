@@ -82,7 +82,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
 
         then:
         result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
-                tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
+            tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
 
         where:

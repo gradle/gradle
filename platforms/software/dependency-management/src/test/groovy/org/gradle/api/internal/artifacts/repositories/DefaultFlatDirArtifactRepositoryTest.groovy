@@ -63,10 +63,10 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         and:
         repo instanceof IvyResolver
         def expectedPatterns = [
-                "${dir1.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
-                "${dir1.toURI()}/[artifact](-[classifier]).[ext]",
-                "${dir2.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
-                "${dir2.toURI()}/[artifact](-[classifier]).[ext]"
+            "${dir1.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
+            "${dir1.toURI()}/[artifact](-[classifier]).[ext]",
+            "${dir2.toURI()}/[artifact]-[revision](-[classifier]).[ext]",
+            "${dir2.toURI()}/[artifact](-[classifier]).[ext]"
         ]
         repo.ivyPatterns == []
         repo.artifactPatterns == expectedPatterns

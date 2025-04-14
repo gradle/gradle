@@ -52,6 +52,7 @@ abstract class DaemonExpirationStrategyTest extends Specification {
     private static Address createAddress(int i) {
         new Address() {
             int getNum() { i }
+
             String getDisplayName() { getNum() }
         }
     }

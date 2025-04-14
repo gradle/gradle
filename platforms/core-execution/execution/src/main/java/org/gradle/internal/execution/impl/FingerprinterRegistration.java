@@ -32,19 +32,19 @@ public class FingerprinterRegistration {
         this.fingerprinter = fingerprinter;
     }
 
+    public static FingerprinterRegistration registration(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileCollectionFingerprinter fingerprinter) {
+        return new FingerprinterRegistration(
+            DefaultFileNormalizationSpec.from(fingerprinter.getNormalizer(), directorySensitivity, lineEndingSensitivity),
+            fingerprinter
+        );
+    }
+
     public FileNormalizationSpec getSpec() {
         return spec;
     }
 
     public FileCollectionFingerprinter getFingerprinter() {
         return fingerprinter;
-    }
-
-    public static FingerprinterRegistration registration(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileCollectionFingerprinter fingerprinter) {
-        return new FingerprinterRegistration(
-            DefaultFileNormalizationSpec.from(fingerprinter.getNormalizer(), directorySensitivity, lineEndingSensitivity),
-            fingerprinter
-        );
     }
 
     @Override

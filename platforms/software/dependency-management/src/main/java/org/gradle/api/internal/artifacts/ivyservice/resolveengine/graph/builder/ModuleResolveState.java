@@ -59,7 +59,7 @@ import java.util.Set;
 public class ModuleResolveState implements CandidateModule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleResolveState.class);
     private static final int MAX_SELECTION_CHANGE = 1000;
-
+    final ResolveOptimizations resolveOptimizations;
     private final ComponentMetaDataResolver metaDataResolver;
     private final ComponentIdGenerator idGenerator;
     private final ModuleIdentifier id;
@@ -70,10 +70,9 @@ public class ModuleResolveState implements CandidateModule {
     private final AttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
-    final ResolveOptimizations resolveOptimizations;
     private final boolean rootModule;
-    private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
+    private SelectorStateResolver<ComponentState> selectorStateResolver;
     private ComponentState selected;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
 
@@ -109,6 +108,17 @@ public class ModuleResolveState implements CandidateModule {
         this.selectorStateResolver = selectorStateResolver;
         this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
         this.conflictResolution = conflictResolution;
+    }
+
+    private static boolean areAllCandidatesForSelection(Collection<ComponentState> values) {
+        boolean allCandidates = true;
+        for (ComponentState value : values) {
+            if (!value.isCandidateForConflictResolution()) {
+                allCandidates = false;
+                break;
+            }
+        }
+        return allCandidates;
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
@@ -161,17 +171,6 @@ public class ModuleResolveState implements CandidateModule {
      */
     public Collection<ComponentState> getAllVersions() {
         return this.versions.values();
-    }
-
-    private static boolean areAllCandidatesForSelection(Collection<ComponentState> values) {
-        boolean allCandidates = true;
-        for (ComponentState value : values) {
-            if (!value.isCandidateForConflictResolution()) {
-                allCandidates = false;
-                break;
-            }
-        }
-        return allCandidates;
     }
 
     @Nullable

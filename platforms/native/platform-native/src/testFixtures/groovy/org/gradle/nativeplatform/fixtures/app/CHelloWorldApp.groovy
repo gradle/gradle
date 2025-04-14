@@ -93,7 +93,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 fflush(stdout);
             }
         """),
-        new SourceFile("c", "sum.c","""
+        new SourceFile("c", "sum.c", """
             #include "common.h"
 
             int DLL_FUNC sum(int a, int b) {
@@ -131,7 +131,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                     return 1000;
                 }
             """),
-        new SourceFile("c", "sum.c","""
+        new SourceFile("c", "sum.c", """
                 #include "common.h"
 
                 int DLL_FUNC sum(int a, int b) {
@@ -145,7 +145,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
     TestNativeComponent getCunitTests() {
         return new TestNativeComponent() {
             List<SourceFile> sourceFiles = [
-                    sourceFile("c", "test.c", """
+                sourceFile("c", "test.c", """
 #include <CUnit/Basic.h>
 #include "hello.h"
 #include "gradle_cunit_register.h"

@@ -15,7 +15,7 @@ tasks.register<DependencyGraphWalk>("walkDependencyGraph") {
     dependencies = configurations["scm"].incoming
 }
 
-abstract class DependencyGraphWalk: DefaultTask() {
+abstract class DependencyGraphWalk : DefaultTask() {
 
     @get:Input
     abstract val dependencies: Property<ResolvableDependencies>

@@ -123,7 +123,7 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
 
         then:
         def libs = listFilesInBuildLibsDir(dslDir)
-        libs.findAll { it.name == 'gson-2.8.2.jar' || it.name == 'dom4j-1.6.1.jar' || it.name == 'xml-apis-1.4.01.jar'}.size() == 3
+        libs.findAll { it.name == 'gson-2.8.2.jar' || it.name == 'dom4j-1.6.1.jar' || it.name == 'xml-apis-1.4.01.jar' }.size() == 3
 
         where:
         dsl << ['groovy', 'kotlin']

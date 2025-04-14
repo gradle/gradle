@@ -39,15 +39,13 @@ import java.io.FilenameFilter;
 
 public class Binary2JUnitXmlReportGenerator {
 
+    private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
-
-    @VisibleForTesting
-    JUnitXmlResultWriter xmlWriter;
-
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
+    @VisibleForTesting
+    JUnitXmlResultWriter xmlWriter;
 
     public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options, BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, String hostName) {
         this.testResultsDir = testResultsDir;

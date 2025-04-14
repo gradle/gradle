@@ -40,6 +40,30 @@ import java.util.Set;
 public class InPlaceClasspathBuilder implements ClasspathBuilder {
     private static final int BUFFER_SIZE = 8192;
 
+    private static void buildJar(File jarFile, Action action) throws IOException {
+        Files.createDirectories(jarFile.getParentFile().toPath());
+        try (ZipArchiveOutputStream outputStream = new ZipArchiveOutputStream(new BufferedOutputStream(Files.newOutputStream(jarFile.toPath()), BUFFER_SIZE))) {
+            outputStream.setLevel(0);
+            action.execute(new ZipEntryBuilder(outputStream));
+        }
+    }
+
+    private static void buildDirectory(File destinationDir, Action action) throws IOException {
+        clearDirectory(destinationDir);
+        Files.createDirectories(destinationDir.toPath());
+        action.execute(new DirectoryEntryBuilder(destinationDir));
+    }
+
+    private static void clearDirectory(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
+        Preconditions.checkArgument(dir.isDirectory(), "Cannot clear contents of %s because it is not a directory", dir.getAbsolutePath());
+        for (File file : Objects.requireNonNull(dir.listFiles())) {
+            GFileUtils.forceDelete(file);
+        }
+    }
+
     @Override
     public void jar(File jarFile, Action action) {
         try {
@@ -49,11 +73,12 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
         }
     }
 
-    private static void buildJar(File jarFile, Action action) throws IOException {
-        Files.createDirectories(jarFile.getParentFile().toPath());
-        try (ZipArchiveOutputStream outputStream = new ZipArchiveOutputStream(new BufferedOutputStream(Files.newOutputStream(jarFile.toPath()), BUFFER_SIZE))) {
-            outputStream.setLevel(0);
-            action.execute(new ZipEntryBuilder(outputStream));
+    @Override
+    public void directory(File destinationDir, Action action) {
+        try {
+            buildDirectory(destinationDir, action);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Failed to create class directory %s.", destinationDir), e);
         }
     }
 
@@ -64,6 +89,18 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
 
         public ZipEntryBuilder(ZipArchiveOutputStream outputStream) {
             this.outputStream = outputStream;
+        }
+
+        private static boolean shouldCompress(CompressionMethod compressionMethod) {
+            // Stored files may be used for memory mapping, so it is important to store them uncompressed.
+            // All other files are fine being compressed to reduce on-disk size.
+            // It isn't clear if storing them uncompressed too would bring a performance benefit,
+            // as reading less from the disk may save more time than spent unpacking.
+            return compressionMethod != CompressionMethod.STORED;
+        }
+
+        private static long computeCrc32Of(byte[] contents) {
+            return Hashing.crc32().hashBytes(contents).padToLong();
         }
 
         @Override
@@ -118,33 +155,6 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
                 entry.setCrc(computeCrc32Of(contents));
             }
         }
-
-        private static boolean shouldCompress(CompressionMethod compressionMethod) {
-            // Stored files may be used for memory mapping, so it is important to store them uncompressed.
-            // All other files are fine being compressed to reduce on-disk size.
-            // It isn't clear if storing them uncompressed too would bring a performance benefit,
-            // as reading less from the disk may save more time than spent unpacking.
-            return compressionMethod != CompressionMethod.STORED;
-        }
-
-        private static long computeCrc32Of(byte[] contents) {
-            return Hashing.crc32().hashBytes(contents).padToLong();
-        }
-    }
-
-    @Override
-    public void directory(File destinationDir, Action action) {
-        try {
-            buildDirectory(destinationDir, action);
-        } catch (Exception e) {
-            throw new GradleException(String.format("Failed to create class directory %s.", destinationDir), e);
-        }
-    }
-
-    private static void buildDirectory(File destinationDir, Action action) throws IOException {
-        clearDirectory(destinationDir);
-        Files.createDirectories(destinationDir.toPath());
-        action.execute(new DirectoryEntryBuilder(destinationDir));
     }
 
     @NullMarked
@@ -163,16 +173,6 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
             }
             Files.createDirectories(target.getParentFile().toPath());
             Files.write(target.toPath(), content, StandardOpenOption.CREATE_NEW);
-        }
-    }
-
-    private static void clearDirectory(File dir) {
-        if (!dir.exists()) {
-            return;
-        }
-        Preconditions.checkArgument(dir.isDirectory(), "Cannot clear contents of %s because it is not a directory", dir.getAbsolutePath());
-        for (File file : Objects.requireNonNull(dir.listFiles())) {
-            GFileUtils.forceDelete(file);
         }
     }
 }

@@ -19,9 +19,10 @@ package org.gradle.language.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
-class DuplicateObjectiveCBaseNamesTestApp extends TestNativeComponent{
+class DuplicateObjectiveCBaseNamesTestApp extends TestNativeComponent {
 
     def plugins = ["objective-c"]
+
     @Override
     List<SourceFile> getSourceFiles() {
         [sourceFile("objc", "main.m", """
@@ -35,8 +36,8 @@ class DuplicateObjectiveCBaseNamesTestApp extends TestNativeComponent{
                 return 0;
             }
         """),
-          fooSource(1),
-          fooSource(2)]
+         fooSource(1),
+         fooSource(2)]
     }
 
     public String getExtraConfiguration() {

@@ -52,7 +52,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
-    @TargetGradleVersion(">=8.6 <8.9") //  8.5 sends problem events via InternalProblemDetails but we ignore it in BuildProgressListenerAdapter
+    @TargetGradleVersion(">=8.6 <8.9")
+    //  8.5 sends problem events via InternalProblemDetails but we ignore it in BuildProgressListenerAdapter
     def "Failing executions produce problems"() {
         setup:
         buildFile """
@@ -99,7 +100,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         when:
 
-        def problems = runTask().collect{ it.descriptor }
+        def problems = runTask().collect { it.descriptor }
 
         then:
         problems.size() == 0

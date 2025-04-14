@@ -45,18 +45,6 @@ import java.util.SortedSet;
 public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<T>, Configurable<ReportContainer<T>> {
 
     /**
-     * The exception thrown when any of this container's mutation methods are called.
-     * <p>
-     * This applies to the standard {@link java.util.Collection} methods such as {@code add()}, {@code remove()}
-     * and {@code clear()}.
-     */
-    class ImmutableViolationException extends GradleException {
-        public ImmutableViolationException() {
-            super("ReportContainer objects are immutable");
-        }
-    }
-
-    /**
      * Returns an immutable collection of all the enabled {@link Report} objects in this container.
      * <p>
      * The returned collection is live. That is, as reports are enabled/disabled the returned collection always
@@ -94,4 +82,16 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
      */
     @Nested
     Map<String, T> getEnabledReports();
+
+    /**
+     * The exception thrown when any of this container's mutation methods are called.
+     * <p>
+     * This applies to the standard {@link java.util.Collection} methods such as {@code add()}, {@code remove()}
+     * and {@code clear()}.
+     */
+    class ImmutableViolationException extends GradleException {
+        public ImmutableViolationException() {
+            super("ReportContainer objects are immutable");
+        }
+    }
 }

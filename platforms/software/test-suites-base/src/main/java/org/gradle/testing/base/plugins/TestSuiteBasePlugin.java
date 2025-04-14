@@ -39,6 +39,24 @@ import org.gradle.testing.base.internal.DefaultTestingExtension;
 @Incubating
 public abstract class TestSuiteBasePlugin implements Plugin<Project> {
 
+    private static NamedDomainObjectProvider<ConsumableConfiguration> addTestResultsVariant(Project project, TestSuite suite) {
+        String variantName = String.format("testResultsElementsFor%s", StringUtils.capitalize(suite.getName()));
+
+        return project.getConfigurations().consumable(variantName, conf -> {
+            conf.setDescription("Binary results obtained from running all targets in the '" + suite.getName() + "' Test Suite.");
+
+            ObjectFactory objects = project.getObjects();
+            conf.attributes(attributes -> {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+
+                // TODO: Allow targets to define attributes uniquely identifying themselves.
+                // Then, create a test results variant for each target instead of each suite.
+                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
+            });
+        });
+    }
+
     @Override
     public void apply(Project project) {
         TestingExtension testing = project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);
@@ -58,24 +76,6 @@ public abstract class TestSuiteBasePlugin implements Plugin<Project> {
                         artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
                     );
                 });
-            });
-        });
-    }
-
-    private static NamedDomainObjectProvider<ConsumableConfiguration> addTestResultsVariant(Project project, TestSuite suite) {
-        String variantName = String.format("testResultsElementsFor%s", StringUtils.capitalize(suite.getName()));
-
-        return project.getConfigurations().consumable(variantName, conf -> {
-            conf.setDescription("Binary results obtained from running all targets in the '" + suite.getName() + "' Test Suite.");
-
-            ObjectFactory objects = project.getObjects();
-            conf.attributes(attributes -> {
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
-
-                // TODO: Allow targets to define attributes uniquely identifying themselves.
-                // Then, create a test results variant for each target instead of each suite.
-                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
             });
         });
     }

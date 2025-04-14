@@ -59,8 +59,8 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
         expect:
         reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("ruleWithUnboundSubjectReference")
-                        .mutableInput(UnboundRuleInput.type(String).path("path.subject"))
+            UnboundRule.descriptor("ruleWithUnboundSubjectReference")
+                .mutableInput(UnboundRuleInput.type(String).path("path.subject"))
         )
     }
 
@@ -76,10 +76,10 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
         expect:
         reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("firstRule")
-                        .mutableInput(UnboundRuleInput.type(String).path("path.subject.first")),
-                UnboundRule.descriptor("secondRule")
-                        .mutableInput(UnboundRuleInput.type(Number).path("path.subject.second"))
+            UnboundRule.descriptor("firstRule")
+                .mutableInput(UnboundRuleInput.type(String).path("path.subject.first")),
+            UnboundRule.descriptor("secondRule")
+                .mutableInput(UnboundRuleInput.type(Number).path("path.subject.second"))
         )
     }
 
@@ -94,10 +94,10 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
         expect:
         reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("ruleWithUnboundInputReferences")
-                        .mutableInput(UnboundRuleInput.type(Boolean).path("subject").bound())
-                        .immutableInput(UnboundRuleInput.type(String).path("reference.first"))
-                        .immutableInput(UnboundRuleInput.type(Number).path("reference.second"))
+            UnboundRule.descriptor("ruleWithUnboundInputReferences")
+                .mutableInput(UnboundRuleInput.type(Boolean).path("subject").bound())
+                .immutableInput(UnboundRuleInput.type(String).path("reference.first"))
+                .immutableInput(UnboundRuleInput.type(Number).path("reference.second"))
         )
     }
 
@@ -110,9 +110,9 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
         expect:
         reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("ruleWithUnboundPathlessReferences")
-                        .mutableInput(UnboundRuleInput.type(Number))
-                        .immutableInput(UnboundRuleInput.type(String))
+            UnboundRule.descriptor("ruleWithUnboundPathlessReferences")
+                .mutableInput(UnboundRuleInput.type(Number))
+                .immutableInput(UnboundRuleInput.type(String))
         )
     }
 
@@ -130,11 +130,11 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
         expect:
         reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("partiallyBoundRule")
-                        .mutableInput(UnboundRuleInput.type(Number).path("subject").bound())
-                        .immutableInput(UnboundRuleInput.type(Number).path("reference.first").bound())
-                        .immutableInput(UnboundRuleInput.type(String).path("reference.second").bound())
-                        .immutableInput(UnboundRuleInput.type(Boolean).path("reference.third"))
+            UnboundRule.descriptor("partiallyBoundRule")
+                .mutableInput(UnboundRuleInput.type(Number).path("subject").bound())
+                .immutableInput(UnboundRuleInput.type(Number).path("reference.first").bound())
+                .immutableInput(UnboundRuleInput.type(String).path("reference.second").bound())
+                .immutableInput(UnboundRuleInput.type(Boolean).path("reference.third"))
         )
     }
 
@@ -153,11 +153,11 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
         expect:
         reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("ruleWithSuggestions")
-                        .mutableInput(UnboundRuleInput.type(Number).path("subject").suggestions("subject"))
-                        .immutableInput(UnboundRuleInput.type(String))
-                        .immutableInput(UnboundRuleInput.type(Boolean).path("input.second").suggestions("input.second"))
-                        .immutableInput(UnboundRuleInput.type(Long).path("input.third").bound())
+            UnboundRule.descriptor("ruleWithSuggestions")
+                .mutableInput(UnboundRuleInput.type(Number).path("subject").suggestions("subject"))
+                .immutableInput(UnboundRuleInput.type(String))
+                .immutableInput(UnboundRuleInput.type(Boolean).path("input.second").suggestions("input.second"))
+                .immutableInput(UnboundRuleInput.type(Long).path("input.third").bound())
         )
     }
 
@@ -171,10 +171,10 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
         expect:
         reportForProcessedBinders == reportFor(
-                UnboundRule.descriptor("ruleWithUnboundSubjectReference")
-                        .mutableInput(UnboundRuleInput.type(String).scope("some.scope"))
-                        .immutableInput(UnboundRuleInput.type(String))
-                        .immutableInput(UnboundRuleInput.type(Boolean).scope("other.scope"))
+            UnboundRule.descriptor("ruleWithUnboundSubjectReference")
+                .mutableInput(UnboundRuleInput.type(String).scope("some.scope"))
+                .immutableInput(UnboundRuleInput.type(String))
+                .immutableInput(UnboundRuleInput.type(Boolean).scope("other.scope"))
         )
     }
 

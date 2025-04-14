@@ -522,18 +522,22 @@ class DefaultAttributeMatcherTest extends Specification {
         result == [candidate1]
 
         where:
-        type                | value1        | value2
-        String              | "embedded"    | "embedded"
-        EnumTestAttribute   | "NAME1"       | "NAME2"
-        NamedTestAttribute  | "foo"         | "bar"
+        type               | value1     | value2
+        String             | "embedded" | "embedded"
+        EnumTestAttribute  | "NAME1"    | "NAME2"
+        NamedTestAttribute | "foo"      | "bar"
     }
 
     private AttributeContainerInternal attributes() {
         factory.mutable()
     }
 
-    interface NamedTestAttribute extends Named { }
-    enum EnumTestAttribute { NAME1, NAME2 }
+    interface NamedTestAttribute extends Named {}
+
+    enum EnumTestAttribute {
+        NAME1, NAME2
+    }
+
     static class NotSerializableInGradleMetadataAttribute implements Serializable {
         String name
 

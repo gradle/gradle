@@ -57,6 +57,33 @@ public class PluginUseScriptBlockMetadataCompiler {
         this.pluginsBlockPermits = pluginsBlockPermits;
     }
 
+    /**
+     * Checks if this method has a single argument that is either:
+     * a) A constant String expression
+     * b) A GString expression containing only variable expressions
+     */
+    private static boolean hasSimpleInterpolatedStringType(MethodCallExpression call) {
+        if (hasSingleConstantStringArg(call) != null) {
+            return true;
+        }
+
+        ArgumentListExpression argumentList = (ArgumentListExpression) call.getArguments();
+        if (argumentList.getExpressions().size() == 1) {
+            Expression argumentExpression = argumentList.getExpressions().get(0);
+            if (argumentExpression instanceof GStringExpression) {
+                GStringExpression gStringExpression = (GStringExpression) argumentExpression;
+                for (Expression value : gStringExpression.getValues()) {
+                    if (!(value instanceof VariableExpression)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void compile(SourceUnit sourceUnit, ScriptBlock scriptBlock) {
         ClosureExpression closureArg = scriptBlock.getClosureExpression();
 
@@ -163,33 +190,6 @@ public class PluginUseScriptBlockMetadataCompiler {
                 statement.getExpression().visit(this);
             }
         });
-    }
-
-    /**
-     * Checks if this method has a single argument that is either:
-     * a) A constant String expression
-     * b) A GString expression containing only variable expressions
-     */
-    private static boolean hasSimpleInterpolatedStringType(MethodCallExpression call) {
-        if (hasSingleConstantStringArg(call) != null) {
-            return true;
-        }
-
-        ArgumentListExpression argumentList = (ArgumentListExpression) call.getArguments();
-        if (argumentList.getExpressions().size() == 1) {
-            Expression argumentExpression = argumentList.getExpressions().get(0);
-            if (argumentExpression instanceof GStringExpression) {
-                GStringExpression gStringExpression = (GStringExpression) argumentExpression;
-                for (Expression value : gStringExpression.getValues()) {
-                    if (!(value instanceof VariableExpression)) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
-        return false;
     }
 
     public String formatErrorMessage(String message) {

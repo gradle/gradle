@@ -36,20 +36,22 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultLoggingManager implements LoggingManagerInternal, Closeable {
-    private boolean started;
     private final StartableLoggingSystem slf4jLoggingSystem;
     private final StartableLoggingSystem stdOutLoggingSystem;
     private final StartableLoggingSystem stdErrLoggingSystem;
     private final StartableLoggingSystem javaUtilLoggingSystem;
     private final StartableLoggingRouter loggingRouter;
-    private boolean enableStdOutListeners;
     private final LoggingOutputInternal loggingOutput;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
+    private boolean started;
+    private boolean enableStdOutListeners;
 
-    public DefaultLoggingManager(LoggingSourceSystem slf4jLoggingSystem, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem,
-                                 LoggingSourceSystem stdErrLoggingSystem, LoggingRouter loggingRouter) {
+    public DefaultLoggingManager(
+        LoggingSourceSystem slf4jLoggingSystem, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem,
+        LoggingSourceSystem stdErrLoggingSystem, LoggingRouter loggingRouter
+    ) {
         this.loggingOutput = loggingRouter;
         this.loggingRouter = new StartableLoggingRouter(loggingRouter);
         this.slf4jLoggingSystem = new StartableLoggingSystem(slf4jLoggingSystem, null);

@@ -52,8 +52,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJointCompileSpec> {
-    private final Class<? extends Compiler<GroovyJavaJointCompileSpec>> compilerClass;
     private final static Iterable<String> SHARED_PACKAGES = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
+    private final Class<? extends Compiler<GroovyJavaJointCompileSpec>> compilerClass;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final JavaForkOptionsFactory forkOptionsFactory;
@@ -79,6 +79,42 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         this.daemonWorkingDir = daemonWorkingDir;
         this.jvmVersionDetector = jvmVersionDetector;
         this.problemReporter = problemReporter;
+    }
+
+    private static FilteringClassLoader.Spec getMinimalGradleFilter() {
+        // Allow only certain things from the underlying classloader
+        FilteringClassLoader.Spec gradleFilterSpec = new FilteringClassLoader.Spec();
+
+        // Logging
+        gradleFilterSpec.allowPackage("org.slf4j");
+
+        // Native Services
+        gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
+
+        // Inject
+        gradleFilterSpec.allowPackage("javax.inject");
+
+        // Gradle stuff
+        gradleFilterSpec.allowPackage("org.gradle");
+
+        // Guava
+        gradleFilterSpec.allowPackage("com.google");
+
+        // This should come from the compiler classpath only
+        gradleFilterSpec.disallowPackage("org.gradle.api.internal.tasks.compile");
+
+        /*
+         * This shouldn't be necessary, but currently is because the worker API handles return types differently
+         * depending on whether you use process isolation or classpath isolation. In the former case, the return
+         * value is serialized and deserialized, so the correct class is returned. In the latter case, the result
+         * is returned directly, which means it is not an instance of the expected class unless we allow that class
+         * to leak through here. Should be fixed in the worker API, so that it always serializes/deserializes results.
+         */
+        gradleFilterSpec.allowClass(ApiCompilerResult.class);
+        gradleFilterSpec.allowClass(AnnotationProcessingResult.class);
+        gradleFilterSpec.allowClass(ConstantsAnalysisResult.class);
+
+        return gradleFilterSpec;
     }
 
     @Override
@@ -141,42 +177,6 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             .keepAliveMode(KeepAliveMode.SESSION)
             .withClassLoaderStructure(classLoaderStructure)
             .build();
-    }
-
-    private static FilteringClassLoader.Spec getMinimalGradleFilter() {
-        // Allow only certain things from the underlying classloader
-        FilteringClassLoader.Spec gradleFilterSpec = new FilteringClassLoader.Spec();
-
-        // Logging
-        gradleFilterSpec.allowPackage("org.slf4j");
-
-        // Native Services
-        gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
-
-        // Inject
-        gradleFilterSpec.allowPackage("javax.inject");
-
-        // Gradle stuff
-        gradleFilterSpec.allowPackage("org.gradle");
-
-        // Guava
-        gradleFilterSpec.allowPackage("com.google");
-
-        // This should come from the compiler classpath only
-        gradleFilterSpec.disallowPackage("org.gradle.api.internal.tasks.compile");
-
-        /*
-         * This shouldn't be necessary, but currently is because the worker API handles return types differently
-         * depending on whether you use process isolation or classpath isolation. In the former case, the return
-         * value is serialized and deserialized, so the correct class is returned. In the latter case, the result
-         * is returned directly, which means it is not an instance of the expected class unless we allow that class
-         * to leak through here. Should be fixed in the worker API, so that it always serializes/deserializes results.
-         */
-        gradleFilterSpec.allowClass(ApiCompilerResult.class);
-        gradleFilterSpec.allowClass(AnnotationProcessingResult.class);
-        gradleFilterSpec.allowClass(ConstantsAnalysisResult.class);
-
-        return gradleFilterSpec;
     }
 
     public static class GroovyCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {

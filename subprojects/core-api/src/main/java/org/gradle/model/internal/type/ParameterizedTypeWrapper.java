@@ -36,6 +36,39 @@ class ParameterizedTypeWrapper implements TypeWrapper {
         this.hashCode = hashCode(actualTypeArguments, rawType, ownerType);
     }
 
+    public static boolean contains(TypeWrapper type1, TypeWrapper type2) {
+        if (type1 instanceof WildcardWrapper) {
+            WildcardWrapper wildcardType1 = (WildcardWrapper) type1;
+            TypeWrapper bound1 = wildcardType1.getLowerBound();
+            if (bound1 != null) {
+                // type1 = ? super T
+                TypeWrapper bound2;
+                if (type2 instanceof WildcardWrapper) {
+                    bound2 = ((WildcardWrapper) type2).getLowerBound();
+                    if (bound2 == null) {
+                        // type2 = ? extends S, never contained
+                        return false;
+                    }
+                } else {
+                    bound2 = type2;
+                }
+                return bound2.isAssignableFrom(bound1);
+            } else {
+                // type 1 = ? extends T
+                bound1 = wildcardType1.getUpperBound();
+                TypeWrapper bound2;
+                if (type2 instanceof WildcardWrapper) {
+                    bound2 = ((WildcardWrapper) type2).getUpperBound();
+                } else {
+                    bound2 = type2;
+                }
+                return bound1.isAssignableFrom(bound2);
+            }
+        }
+
+        return type1.equals(type2);
+    }
+
     private int hashCode(TypeWrapper[] actualTypeArguments, ClassTypeWrapper rawType, TypeWrapper ownerType) {
         int hashCode = rawType.hashCode();
         for (TypeWrapper actualTypeArgument : actualTypeArguments) {
@@ -89,39 +122,6 @@ class ParameterizedTypeWrapper implements TypeWrapper {
         return false;
     }
 
-    public static boolean contains(TypeWrapper type1, TypeWrapper type2) {
-        if (type1 instanceof WildcardWrapper) {
-            WildcardWrapper wildcardType1 = (WildcardWrapper) type1;
-            TypeWrapper bound1 = wildcardType1.getLowerBound();
-            if (bound1 != null) {
-                // type1 = ? super T
-                TypeWrapper bound2;
-                if (type2 instanceof WildcardWrapper) {
-                    bound2 = ((WildcardWrapper) type2).getLowerBound();
-                    if (bound2 == null) {
-                        // type2 = ? extends S, never contained
-                        return false;
-                    }
-                } else {
-                    bound2 = type2;
-                }
-                return bound2.isAssignableFrom(bound1);
-            } else {
-                // type 1 = ? extends T
-                bound1 = wildcardType1.getUpperBound();
-                TypeWrapper bound2;
-                if (type2 instanceof WildcardWrapper) {
-                    bound2 = ((WildcardWrapper) type2).getUpperBound();
-                } else {
-                    bound2 = type2;
-                }
-                return bound1.isAssignableFrom(bound2);
-            }
-        }
-
-        return type1.equals(type2);
-    }
-
     @Override
     public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
         rawType.collectClasses(builder);
@@ -138,8 +138,8 @@ class ParameterizedTypeWrapper implements TypeWrapper {
                 return true;
             } else {
                 return (ownerType == null ? that.ownerType == null : ownerType.equals(that.ownerType))
-                        && (rawType == null ? that.rawType == null : rawType.equals(that.rawType))
-                        && Arrays.equals(actualTypeArguments, that.actualTypeArguments);
+                    && (rawType == null ? that.rawType == null : rawType.equals(that.rawType))
+                    && Arrays.equals(actualTypeArguments, that.actualTypeArguments);
             }
         } else {
             return false;

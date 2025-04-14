@@ -45,6 +45,14 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
         caches = cacheFactory.newCache();
     }
 
+    private static Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
+        LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize, LOG);
+        final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
+        Cache<Object, Object> inMemoryCache = cacheBuilder.build();
+        evictionListener.setCache(inMemoryCache);
+        return inMemoryCache;
+    }
+
     @Override
     public CacheDecorator decorator(final int maxEntriesToKeepInMemory, final boolean cacheInMemoryForShortLivedProcesses) {
         return new InMemoryCacheDecorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
@@ -74,12 +82,16 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
         return cacheDetails;
     }
 
-    private static Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
-        LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize, LOG);
-        final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
-        Cache<Object, Object> inMemoryCache = cacheBuilder.build();
-        evictionListener.setCache(inMemoryCache);
-        return inMemoryCache;
+    private static class CacheDetails {
+        private final int maxEntries;
+        private final Cache<Object, Object> entries;
+        private final AtomicReference<FileLock.State> lockState;
+
+        CacheDetails(int maxEntries, Cache<Object, Object> entries, AtomicReference<FileLock.State> lockState) {
+            this.maxEntries = maxEntries;
+            this.entries = entries;
+            this.lockState = lockState;
+        }
     }
 
     private class InMemoryCacheDecorator implements CacheDecorator {
@@ -113,18 +125,6 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
             MultiProcessSafeAsyncPersistentIndexedCache<K, V> asyncCache = new AsyncCacheAccessDecoratedCache<>(asyncCacheAccess, indexedCache);
             MultiProcessSafeAsyncPersistentIndexedCache<K, V> memCache = applyInMemoryCaching(cacheId, asyncCache, maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses);
             return new CrossProcessSynchronizingIndexedCache<>(memCache, crossProcessCacheAccess);
-        }
-    }
-
-    private static class CacheDetails {
-        private final int maxEntries;
-        private final Cache<Object, Object> entries;
-        private final AtomicReference<FileLock.State> lockState;
-
-        CacheDetails(int maxEntries, Cache<Object, Object> entries, AtomicReference<FileLock.State> lockState) {
-            this.maxEntries = maxEntries;
-            this.entries = entries;
-            this.lockState = lockState;
         }
     }
 }

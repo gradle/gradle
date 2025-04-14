@@ -118,9 +118,9 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         expect:
         succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64)
         result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86),
-                getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86_64),
-                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
-                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
+            getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86_64),
+            getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
+            getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [

@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public interface Cache<K, V>  {
+public interface Cache<K, V> {
     /**
      * Locates the given entry, using the supplied factory when the entry is not present or has been discarded, to recreate the entry in the cache.
      *

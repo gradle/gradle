@@ -23,7 +23,8 @@ import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 
 abstract class AbstractSftpDependencyResolutionTest extends AbstractDependencyResolutionTest {
-    @Rule final SFTPServer server = new SFTPServer(temporaryFolder)
+    @Rule
+    final SFTPServer server = new SFTPServer(temporaryFolder)
 
     def setup() {
         // SFTP test fixture does not handle parallel resolution requests

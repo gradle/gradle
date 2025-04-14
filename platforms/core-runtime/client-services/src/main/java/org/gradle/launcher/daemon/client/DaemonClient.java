@@ -124,6 +124,15 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         this.processEnvironment = processEnvironment;
     }
 
+    private static Optional<File> findCrashLogFile(String crashLogFileName) {
+        // This use case for the JavaIOTmpDir is allowed since we are looking for the crash log file.
+        @SuppressWarnings("deprecation") String javaTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+        if (javaTmpDir != null && !javaTmpDir.isEmpty()) {
+            return Optional.of(new File(javaTmpDir, crashLogFileName));
+        }
+        return Optional.empty();
+    }
+
     protected IdGenerator<UUID> getIdGenerator() {
         return idGenerator;
     }
@@ -296,15 +305,6 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         return candidates.stream()
             .filter(File::isFile)
             .findFirst();
-    }
-
-    private static Optional<File> findCrashLogFile(String crashLogFileName) {
-        // This use case for the JavaIOTmpDir is allowed since we are looking for the crash log file.
-        @SuppressWarnings("deprecation") String javaTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
-        if (javaTmpDir != null && !javaTmpDir.isEmpty()) {
-            return Optional.of(new File(javaTmpDir, crashLogFileName));
-        }
-        return Optional.empty();
     }
 
     private IllegalStateException invalidResponse(Object response, Build command, DaemonDiagnostics diagnostics) {

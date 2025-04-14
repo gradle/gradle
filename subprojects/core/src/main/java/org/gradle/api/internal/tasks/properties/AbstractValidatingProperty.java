@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class AbstractValidatingProperty implements ValidatingProperty {
+    private static final String VALUE_NOT_SET = "VALUE_NOT_SET";
     private final String propertyName;
     private final PropertyValue value;
     private final boolean optional;
@@ -45,8 +46,6 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         this.optional = optional;
         this.validationAction = validationAction;
     }
-
-    private static final String VALUE_NOT_SET = "VALUE_NOT_SET";
 
     public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyProblem(problem -> {
@@ -65,21 +64,6 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         });
     }
 
-    @Override
-    public void validate(PropertyValidationContext context) {
-        // unnest callables without resolving deferred values (providers, factories)
-        Object unnested = DeferredUtil.unpackNestableDeferred(value.call());
-        if (isPresent(unnested)) {
-            // only resolve deferred values if actually required by some action
-            Supplier<Object> valueSupplier = Suppliers.memoize(() -> DeferredUtil.unpack(unnested));
-            validationAction.validate(propertyName, valueSupplier, context);
-        } else {
-            if (!optional) {
-                reportValueNotSet(propertyName, context, hasConfigurableValue(unnested));
-            }
-        }
-    }
-
     private static boolean isPresent(@Nullable Object value) {
         if (value instanceof Provider) {
             // carefully check for presence without necessarily resolving
@@ -94,6 +78,21 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         //   the getter returns `null`. The property type is not currently available in this
         //   context, though.
         return value == null || HasConfigurableValue.class.isAssignableFrom(value.getClass());
+    }
+
+    @Override
+    public void validate(PropertyValidationContext context) {
+        // unnest callables without resolving deferred values (providers, factories)
+        Object unnested = DeferredUtil.unpackNestableDeferred(value.call());
+        if (isPresent(unnested)) {
+            // only resolve deferred values if actually required by some action
+            Supplier<Object> valueSupplier = Suppliers.memoize(() -> DeferredUtil.unpack(unnested));
+            validationAction.validate(propertyName, valueSupplier, context);
+        } else {
+            if (!optional) {
+                reportValueNotSet(propertyName, context, hasConfigurableValue(unnested));
+            }
+        }
     }
 
     @Override

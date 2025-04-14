@@ -55,6 +55,12 @@ import static java.util.stream.Collectors.toList;
 @CacheableTask
 public abstract class GradleKotlinDslRuntimeGeneratedSources extends DefaultTask {
 
+    public GradleKotlinDslRuntimeGeneratedSources() {
+        getInputClasspath().from(
+            ClasspathUtil.getClasspath(getInputClassLoaderScope().getExportClassLoader()).getAsFiles()
+        );
+    }
+
     @Classpath
     public abstract ConfigurableFileCollection getInputClasspath();
 
@@ -75,12 +81,6 @@ public abstract class GradleKotlinDslRuntimeGeneratedSources extends DefaultTask
 
     @Inject
     protected abstract FileSystemOperations getFs();
-
-    public GradleKotlinDslRuntimeGeneratedSources() {
-        getInputClasspath().from(
-            ClasspathUtil.getClasspath(getInputClassLoaderScope().getExportClassLoader()).getAsFiles()
-        );
-    }
 
     private ClassLoaderScope getInputClassLoaderScope() {
         return getClassLoaderScopeRegistry().getCoreAndPluginsScope();

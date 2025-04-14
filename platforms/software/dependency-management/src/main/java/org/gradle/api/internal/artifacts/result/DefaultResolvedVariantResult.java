@@ -37,11 +37,13 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     private final ResolvedVariantResult externalVariant;
     private final int hashCode;
 
-    public DefaultResolvedVariantResult(ComponentIdentifier owner,
-                                        DisplayName displayName,
-                                        AttributeContainer attributes,
-                                        ImmutableCapabilities capabilities,
-                                        @Nullable ResolvedVariantResult externalVariant) {
+    public DefaultResolvedVariantResult(
+        ComponentIdentifier owner,
+        DisplayName displayName,
+        AttributeContainer attributes,
+        ImmutableCapabilities capabilities,
+        @Nullable ResolvedVariantResult externalVariant
+    ) {
         this.owner = owner;
         this.displayName = displayName;
         this.attributes = attributes;

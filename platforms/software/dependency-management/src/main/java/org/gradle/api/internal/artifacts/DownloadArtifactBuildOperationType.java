@@ -26,6 +26,12 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class DownloadArtifactBuildOperationType implements BuildOperationType<DownloadArtifactBuildOperationType.Details, DownloadArtifactBuildOperationType.Result> {
 
+    public final static Result RESULT = new Result() {
+    };
+
+    private DownloadArtifactBuildOperationType() {
+    }
+
     @UsedByScanPlugin
     public interface Details {
 
@@ -50,12 +56,6 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
             return artifactIdentifier;
         }
 
-    }
-
-    public final static Result RESULT = new Result() {
-    };
-
-    private DownloadArtifactBuildOperationType() {
     }
 
 }

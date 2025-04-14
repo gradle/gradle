@@ -37,14 +37,14 @@ class MarkdownHtmlCompile extends SourceTask {
         File indexFile = new File(destinationDir, "index.html")
         indexFile.withWriter { writer ->
             def markup = new groovy.xml.MarkupBuilder(writer)  // the builder
-            markup.html{
-                h1"Sample Userguide"
-                h2"Content"
+            markup.html {
+                h1 "Sample Userguide"
+                h2 "Content"
                 ol {
                     getSource().each { sourceFile ->
                         def chapterTitle = sourceFile.name - ".md"
                         li {
-                            a(href:chapterTitle + ".html", chapterTitle)
+                            a(href: chapterTitle + ".html", chapterTitle)
                         }
                     }
                 }

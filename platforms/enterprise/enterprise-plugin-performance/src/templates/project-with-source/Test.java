@@ -14,42 +14,61 @@
  * limitations under the License.
  */
 
-package ${packageName};
+package $
+
+{packageName};
 
 import static org.junit.Assert.*;
 
-public class ${testClassName} {
+private final $ {productionClassName} {
 
-    private final ${productionClassName} production = new ${productionClassName}("value");
+$ {productionClassName}
 
+production =new
+
+contains('1_')("value");
+
+hasVariable("failedTests")
+
+    <%if(packageName.
+
+hasVariable("testMethodCount") &&binding.
+
+times {
+    index -> % >
     @org.junit.Test
-    public void testOne() throws Exception {
-        if(Boolean.getBoolean("slowTasks")) {
-            Thread.sleep(10);
-        }
-        for (int i = 0; i < 500; i++) {
-            System.out.println("Some test output from ${testClassName}.testOne - " + i);
-            System.err.println("Some test error  from ${testClassName}.testOne - " + i);
-        }
+    public void test$ {
+        index
+    } () {
         assertEquals(production.getProperty(), "value");
     }
+    <%}){%>
 
-    <% if(packageName.contains('1_') && binding.hasVariable("failedTests"))   {  %>
-
-    @org.junit.Test
-    public void testFailure() throws Exception {
-        for (int i = 0; i < 500; i++) {
-            System.out.println("Some test output from ${testClassName}.testFailure - " + i);
-            System.err.println("Some test error  from ${testClassName}.testFailure - " + i);
-        }
-        assertEquals(production.getProperty(), "foo");
+@org.junit.Test
+public void testOne() throws Exception {
+    if (Boolean.getBoolean("slowTasks")) {
+        Thread.sleep(10);
     }
-    <% } %>
-
-    <% (binding.hasVariable("testMethodCount") ? testMethodCount : 20).times { index ->  %>
-    @org.junit.Test
-    public void test${index}() {
-        assertEquals(production.getProperty(), "value");
-        }
-    <% } %>
+    for (int i = 0; i < 500; i++) {
+        System.out.println("Some test output from ${testClassName}.testOne - " + i);
+        System.err.println("Some test error  from ${testClassName}.testOne - " + i);
+    }
+    assertEquals(production.getProperty(), "value");
 }
+    <%}%>
+
+    <%(binding.
+
+@org.junit.Test
+public void testFailure() throws Exception {
+    for (int i = 0; i < 500; i++) {
+        System.out.println("Some test output from ${testClassName}.testFailure - " + i);
+        System.err.println("Some test error  from ${testClassName}.testFailure - " + i);
+    }
+    assertEquals(production.getProperty(), "foo");
+} ?testMethodCount :20).
+
+public class $ {
+    testClassName
+} %>
+    }

@@ -97,10 +97,10 @@ class NotationParserBuilderSpec extends Specification {
     def "can opt in to allow null as input"() {
         def converter = Mock(NotationConverter)
         def parser = NotationParserBuilder
-                .toType(String.class)
-                .allowNullInput()
-                .converter(converter)
-                .toComposite()
+            .toType(String.class)
+            .allowNullInput()
+            .converter(converter)
+            .toComposite()
 
 
         given:

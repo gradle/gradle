@@ -19,4 +19,4 @@ package org.gradle.api.internal.capabilities;
 /**
  * A marker interface that indicates this type is deeply immutable.
  */
-public interface ImmutableCapability extends CapabilityInternal { /* empty */ }
+public interface ImmutableCapability extends CapabilityInternal { /* empty */}

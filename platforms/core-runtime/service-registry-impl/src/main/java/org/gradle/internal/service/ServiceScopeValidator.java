@@ -51,6 +51,59 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         this.strict = strict;
     }
 
+    // TODO: use the implementation from `org.gradle.internal.reflect.Types`, when its available for `:base-services`
+    private static Set<Class<?>> findAnnotatedSupertypes(Class<?> serviceType) {
+        Set<Class<?>> annotatedSuperTypes = new LinkedHashSet<Class<?>>();
+
+        Set<Class<?>> seen = new HashSet<Class<?>>();
+        seen.add(Object.class);
+
+        Queue<Class<?>> queue = new ArrayDeque<Class<?>>();
+        queue.add(serviceType);
+
+        while (!queue.isEmpty()) {
+            Class<?> type = queue.remove();
+            if (scopeOf(type) != null) {
+                annotatedSuperTypes.add(type);
+                continue;
+            }
+
+            if (type.getSuperclass() != null) {
+                queue.add(type.getSuperclass());
+            }
+            for (Class<?> superInterface : type.getInterfaces()) {
+                if (seen.add(superInterface)) {
+                    queue.add(superInterface);
+                }
+            }
+        }
+
+        return annotatedSuperTypes;
+    }
+
+    private static String displayServiceTypes(Class<?> serviceType) {
+        return String.format("'%s' service type", serviceType.getSimpleName());
+    }
+
+    private static String displayScopes(Class<? extends Scope>[] scopes) {
+        if (scopes.length == 1) {
+            return "service scope '" + scopes[0].getSimpleName() + "'";
+        }
+
+        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
+            @Override
+            public String transform(Class<? extends Scope> aClass) {
+                return "'" + aClass.getSimpleName() + "'";
+            }
+        });
+    }
+
+    @Nullable
+    private static Class<? extends Scope>[] scopeOf(Class<?> serviceType) {
+        ServiceScope scopeAnnotation = serviceType.getAnnotation(ServiceScope.class);
+        return scopeAnnotation != null ? scopeAnnotation.value() : null;
+    }
+
     @Override
     public List<Class<? extends Annotation>> getAnnotations() {
         return SCOPE_ANNOTATIONS;
@@ -106,36 +159,6 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         throw new IllegalArgumentException(implementationWithMissingScopeMessage(inferredServiceType, serviceType));
     }
 
-    // TODO: use the implementation from `org.gradle.internal.reflect.Types`, when its available for `:base-services`
-    private static Set<Class<?>> findAnnotatedSupertypes(Class<?> serviceType) {
-        Set<Class<?>> annotatedSuperTypes = new LinkedHashSet<Class<?>>();
-
-        Set<Class<?>> seen = new HashSet<Class<?>>();
-        seen.add(Object.class);
-
-        Queue<Class<?>> queue = new ArrayDeque<Class<?>>();
-        queue.add(serviceType);
-
-        while (!queue.isEmpty()) {
-            Class<?> type = queue.remove();
-            if (scopeOf(type) != null) {
-                annotatedSuperTypes.add(type);
-                continue;
-            }
-
-            if (type.getSuperclass() != null) {
-                queue.add(type.getSuperclass());
-            }
-            for (Class<?> superInterface : type.getInterfaces()) {
-                if (seen.add(superInterface)) {
-                    queue.add(superInterface);
-                }
-            }
-        }
-
-        return annotatedSuperTypes;
-    }
-
     private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope>[] actualScopes) {
         return String.format(
             "The service '%s' declares %s but is registered in the '%s' scope. " +
@@ -167,28 +190,5 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
                 "- Alternatively, add the '@ServiceScope()' to the implementation type",
             implementationType.getName(), scope.getSimpleName(), displayServiceTypes(serviceType)
         );
-    }
-
-    private static String displayServiceTypes(Class<?> serviceType) {
-        return String.format("'%s' service type", serviceType.getSimpleName());
-    }
-
-    private static String displayScopes(Class<? extends Scope>[] scopes) {
-        if (scopes.length == 1) {
-            return "service scope '" + scopes[0].getSimpleName() + "'";
-        }
-
-        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
-            @Override
-            public String transform(Class<? extends Scope> aClass) {
-                return "'" + aClass.getSimpleName() + "'";
-            }
-        });
-    }
-
-    @Nullable
-    private static Class<? extends Scope>[] scopeOf(Class<?> serviceType) {
-        ServiceScope scopeAnnotation = serviceType.getAnnotation(ServiceScope.class);
-        return scopeAnnotation != null ? scopeAnnotation.value() : null;
     }
 }

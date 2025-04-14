@@ -72,7 +72,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         Map<String, List<GradleDependencyMetadata>> variantToDependencies = readVariantDependencies(decoder);
         ImmutableList<? extends ComponentVariant> variants = resolveMetadata.getVariants();
         ImmutableList.Builder<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> builder = ImmutableList.builder();
-        for (ComponentVariant variant: variants) {
+        for (ComponentVariant variant : variants) {
             builder.add(new AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl(resolveMetadata.getId(), variant.getName(), variant.getAttributes().asImmutable(), variant.getDependencies(), variant.getDependencyConstraints(),
                 variant.getFiles(), variant.getCapabilities(), variantToDependencies.get(variant.getName()), variant.isExternalVariant()));
         }
@@ -84,7 +84,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
     protected void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
         encoder.writeSmallInt(dependencies.size());
-        for (DependencyMetadata dependency: dependencies) {
+        for (DependencyMetadata dependency : dependencies) {
             if (dependency instanceof GradleDependencyMetadata) {
                 encoder.writeByte(GRADLE_DEPENDENCY_METADATA);
                 writeDependencyMetadata(encoder, (GradleDependencyMetadata) dependency);
@@ -160,14 +160,14 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
                 excludes,
                 attributes,
                 capabilities,
-                    false,
+                false,
                 isExternalVariant);
 
             ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
             int dependenciesCount = decoder.readSmallInt();
             for (int j = 0; j < dependenciesCount; j++) {
                 byte dependencyType = decoder.readByte();
-                switch(dependencyType) {
+                switch (dependencyType) {
                     case GRADLE_DEPENDENCY_METADATA:
                         builder.add(readDependencyMetadata(decoder));
                         break;
@@ -199,7 +199,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         boolean changing = decoder.readBoolean();
         boolean transitive = decoder.readBoolean();
         boolean optional = decoder.readBoolean();
-        return new IvyDependencyDescriptor(requested, dynamicConstraintVersion, changing, transitive,  optional, configMappings, artifacts, excludes);
+        return new IvyDependencyDescriptor(requested, dynamicConstraintVersion, changing, transitive, optional, configMappings, artifacts, excludes);
     }
 
     private void writeIvyDependency(Encoder encoder, IvyDependencyDescriptor ivyDependency, String configurationName, boolean configurationAddedByRule) throws IOException {

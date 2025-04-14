@@ -83,7 +83,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
-        '' | null | '' | null
+        ''                         | null            | ''                                          | null
     }
 
 

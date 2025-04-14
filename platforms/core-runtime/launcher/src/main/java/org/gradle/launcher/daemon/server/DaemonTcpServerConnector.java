@@ -40,18 +40,17 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonTcpServerConnector implements DaemonServerConnector {
     final private IncomingConnector incomingConnector;
     private final Serializer<Message> serializer;
-
+    private final Lock lifecycleLock = new ReentrantLock();
     private boolean started;
     private boolean stopped;
-    private final Lock lifecycleLock = new ReentrantLock();
     private ConnectionAcceptor acceptor;
 
     public DaemonTcpServerConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory, Serializer<Message> serializer) {
         this.serializer = serializer;
         this.incomingConnector = new TcpIncomingConnector(
-                executorFactory,
-                inetAddressFactory,
-                new UUIDGenerator()
+            executorFactory,
+            inetAddressFactory,
+            new UUIDGenerator()
         );
     }
 

@@ -24,10 +24,6 @@ import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractPropertyValueSource<P extends AbstractPropertyValueSource.Parameters> implements ValueSource<String, P>, Describable {
 
-    public interface Parameters extends ValueSourceParameters {
-        Property<String> getPropertyName();
-    }
-
     @Nullable
     @Override
     public abstract String obtain();
@@ -38,5 +34,9 @@ public abstract class AbstractPropertyValueSource<P extends AbstractPropertyValu
     @Nullable
     protected String propertyNameOrNull() {
         return getParameters().getPropertyName().getOrNull();
+    }
+
+    public interface Parameters extends ValueSourceParameters {
+        Property<String> getPropertyName();
     }
 }

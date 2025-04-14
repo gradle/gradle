@@ -38,6 +38,20 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         this.featureName = featureName;
     }
 
+    private static String computeCapabilityName(Project project, @Nullable String featureName) {
+        if (featureName == null) {
+            return project.getName();
+        }
+        return project.getName() + "-" + TextUtil.camelToKebabCase(featureName);
+    }
+
+    private static String notNull(String id, Object o) {
+        if (o == null) {
+            throw new InvalidUserDataException(id + " must not be null");
+        }
+        return o.toString();
+    }
+
     @Override
     public String getGroup() {
         return notNull("group", project.getGroup());
@@ -51,13 +65,6 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         return capabilityName;
     }
 
-    private static String computeCapabilityName(Project project, @Nullable String featureName) {
-        if (featureName == null) {
-            return project.getName();
-        }
-        return project.getName() + "-" + TextUtil.camelToKebabCase(featureName);
-    }
-
     @Override
     public String getVersion() {
         return notNull("version", project.getVersion());
@@ -69,7 +76,7 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         int hash = getVersion().hashCode();
         hash = 31 * hash + getName().hashCode();
         hash = 31 * hash + getGroup().hashCode();
-        return  hash;
+        return hash;
     }
 
     @Override
@@ -86,13 +93,6 @@ public class ProjectDerivedCapability implements CapabilityInternal {
             && Objects.equal(getName(), that.getName())
             && Objects.equal(getVersion(), that.getVersion());
 
-    }
-
-    private static String notNull(String id, Object o) {
-        if (o == null) {
-            throw new InvalidUserDataException(id + " must not be null");
-        }
-        return o.toString();
     }
 
     @Override

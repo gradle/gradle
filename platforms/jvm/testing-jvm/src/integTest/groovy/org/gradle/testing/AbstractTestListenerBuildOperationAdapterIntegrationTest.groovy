@@ -25,6 +25,7 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     abstract boolean isEmitsTestClassOperations()
+
     abstract void writeTestSources()
 
     def "emits build operations for junit tests"() {

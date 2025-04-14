@@ -44,8 +44,8 @@ class ConflictContainer<K, T> {
 
     /**
      * Adds new element and returns a conflict instance if given element is conflicted. Element is conflicted when:
-     *  - has more than 1 candidate
-     *  - is in conflict with an existing element (via replacedBy relationship)
+     * - has more than 1 candidate
+     * - is in conflict with an existing element (via replacedBy relationship)
      *
      * @param target an element of some sort
      * @param candidates candidates for given element

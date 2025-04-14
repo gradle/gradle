@@ -39,7 +39,8 @@ public interface TaskExecutionRequest {
      *
      * @return project path or {@code null} to use the default project path.
      */
-    @Nullable String getProjectPath();
+    @Nullable
+    String getProjectPath();
 
     /**
      * The root folder of the build that this task was defined in.

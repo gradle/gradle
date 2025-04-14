@@ -54,11 +54,11 @@ public class BuildSrcBuildListenerFactory {
      * On build completion, makes the runtime classpath of the main `buildSrc` component available.
      */
     public static class Listener extends InternalBuildAdapter implements EntryTaskSelector {
+        private final Action<ProjectInternal> rootProjectConfiguration;
+        private final ScriptClassPathResolver resolver;
         private Configuration classpathConfiguration;
         private ProjectState rootProjectState;
         private ScriptClassPathResolutionContext resolutionContext;
-        private final Action<ProjectInternal> rootProjectConfiguration;
-        private final ScriptClassPathResolver resolver;
 
         private Listener(Action<ProjectInternal> rootProjectConfiguration, ScriptClassPathResolver resolver) {
             this.rootProjectConfiguration = rootProjectConfiguration;

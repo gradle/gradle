@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
- *
  * <p>A {@code TestLauncher} allows you to execute tests in a Gradle build.</p>
  *
  * <p>If the target Gradle version is &gt;=6.8 then you can use {@code TestLauncher} to execute tests from included builds. Test operation descriptors from included builds work out-of-the-box. You can
@@ -115,6 +114,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * Adds tests to be executed declared by the container task, class and method name.
      *
      * <p>Note: These tests are ignored for target Gradle version earlier than 6.1</p>
+     *
      * @param task The path of the target task.
      * @param testClass The name of the class containing the methods to execute.
      * @param methods The names of the test methods to be executed.
@@ -137,7 +137,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      *
      * @param port the target port where the test JVM expects the debugger
      * @return this
-     *
      * @since 5.6
      */
     TestLauncher debugTestsOn(int port);
@@ -160,8 +159,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @throws TestExecutionException when one or more tests fail, or no tests for execution declared or no matching tests can be found.
      * @throws UnsupportedVersionException When the target Gradle version does not support test execution.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
-     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
-     *          When the target Gradle version does not support some requested configuration option.
+     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException When the target Gradle version does not support some requested configuration option.
      * @throws BuildException On some failure while executing the tests in the Gradle build.
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
      * @throws GradleConnectionException On some other failure using the connection.

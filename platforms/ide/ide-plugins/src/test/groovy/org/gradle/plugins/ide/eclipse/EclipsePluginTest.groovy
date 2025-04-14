@@ -72,7 +72,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('org.scala-ide.sdt.core.scalabuilder')],
-                ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
+            ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([], scalaIdeContainer)
 
         when:
@@ -92,7 +92,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.groovy.core.groovyNature',
-                'org.eclipse.jdt.core.javanature'])
+                                                                                         'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([])
 
         when:

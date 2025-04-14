@@ -27,6 +27,7 @@ public class ConsoleLayoutCalculator {
     public ConsoleLayoutCalculator(ConsoleMetaData consoleMetaData) {
         this.consoleMetaData = consoleMetaData;
     }
+
     /**
      * Calculate number of Console lines to use for work-in-progress display.
      *

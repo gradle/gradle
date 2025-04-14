@@ -60,8 +60,9 @@ public class ClassLoaderObjectInputStream extends ObjectInputStream {
      * the class which is unsupported. The base class only includes the class version in the error message
      * and does not provide programmatic access.
      */
-    public static class UnsupportedClassVersionErrorWithJavaVersion extends UnsupportedClassVersionError  {
+    public static class UnsupportedClassVersionErrorWithJavaVersion extends UnsupportedClassVersionError {
         private final JavaVersion version;
+
         public UnsupportedClassVersionErrorWithJavaVersion(UnsupportedClassVersionError cause, JavaVersion version) {
             super(cause.getMessage());
             initCause(cause);

@@ -42,7 +42,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     def ruleSource = new Object()
 
     def "add closure rule that applies to all components"() {
-        def input = { ComponentSelection cs ->  }
+        def input = { ComponentSelection cs -> }
 
         when:
         rules.all input
@@ -57,7 +57,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     }
 
     def "add closure rule that applies to module"() {
-        def input = { ComponentSelection cs ->  }
+        def input = { ComponentSelection cs -> }
         String notation = "${GROUP}:${MODULE}"
 
         when:
@@ -131,9 +131,9 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
-    def "propagates error creating rule for closure" () {
+    def "propagates error creating rule for closure"() {
         when:
-        rules.all { }
+        rules.all {}
 
         then:
         def e = thrown(InvalidUserCodeException)
@@ -143,7 +143,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromClosure(ComponentSelection, _) >> { throw new InvalidUserCodeException("bad closure") }
 
         when:
-        rules.withModule("group:module") { }
+        rules.withModule("group:module") {}
 
         then:
         e = thrown(InvalidUserCodeException)
@@ -153,7 +153,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromClosure(ComponentSelection, _) >> { throw new InvalidUserCodeException("bad targeted closure") }
     }
 
-    def "propagates error creating rule for rule source" () {
+    def "propagates error creating rule for rule source"() {
         when:
         rules.all ruleSource
 
@@ -175,7 +175,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> { throw new InvalidUserCodeException("bad targeted rule source") }
     }
 
-    def "propagates error creating rule for action" () {
+    def "propagates error creating rule for action"() {
         def action = Mock(Action)
 
         when:
@@ -199,7 +199,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         1 * adapter.createFromAction(action) >> { throw new InvalidUserCodeException("bad targeted action") }
     }
 
-    def "propagates error parsing module identifier for closure" () {
+    def "propagates error parsing module identifier for closure"() {
         def notation = "group:module:1.0"
         def input = { ComponentSelection cs -> throw new UnsupportedNotationException(notation) }
 
@@ -215,7 +215,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
     }
 
-    def "propagates error parsing module identifier for action" () {
+    def "propagates error parsing module identifier for action"() {
         def notation = "group:module:1.0"
         def input = Mock(Action) {
             execute() >> { throw new UnsupportedNotationException(notation) }
@@ -232,7 +232,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
         cause.notation == notation
     }
 
-    def "ComponentSelectionSpec matches on group and name" () {
+    def "ComponentSelectionSpec matches on group and name"() {
         def spec = new DefaultComponentSelectionRules.ComponentSelectionMatchingSpec(DefaultModuleIdentifier.newId(group, name))
         def candidate = Mock(ModuleComponentIdentifier) {
             1 * getGroup() >> "org.gradle"
@@ -256,23 +256,35 @@ class DefaultComponentSelectionRulesTest extends Specification {
         def checker = Mock(MutationValidator)
         rules.setMutationValidator(checker)
 
-        when: rules.all(Actions.doNothing())
-        then: 1 * checker.validateMutation(STRATEGY)
+        when:
+        rules.all(Actions.doNothing())
+        then:
+        1 * checker.validateMutation(STRATEGY)
 
-        when: rules.all(Closure.IDENTITY)
-        then: 1 * checker.validateMutation(STRATEGY)
+        when:
+        rules.all(Closure.IDENTITY)
+        then:
+        1 * checker.validateMutation(STRATEGY)
 
-        when: rules.all(ruleSource)
-        then: 1 * checker.validateMutation(STRATEGY)
+        when:
+        rules.all(ruleSource)
+        then:
+        1 * checker.validateMutation(STRATEGY)
 
-        when: rules.withModule("something:else", Actions.doNothing())
-        then: 1 * checker.validateMutation(STRATEGY)
+        when:
+        rules.withModule("something:else", Actions.doNothing())
+        then:
+        1 * checker.validateMutation(STRATEGY)
 
-        when: rules.withModule("something:else", Closure.IDENTITY)
-        then: 1 * checker.validateMutation(STRATEGY)
+        when:
+        rules.withModule("something:else", Closure.IDENTITY)
+        then:
+        1 * checker.validateMutation(STRATEGY)
 
-        when: rules.withModule("something:else", ruleSource)
-        then: 1 * checker.validateMutation(STRATEGY)
+        when:
+        rules.withModule("something:else", ruleSource)
+        then:
+        1 * checker.validateMutation(STRATEGY)
     }
 
 }

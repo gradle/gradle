@@ -19,6 +19,7 @@ abstract class ClassRelocator : TransformAction<ClassRelocator.Parameters> {
     interface Parameters : TransformParameters {                             // <2>
         @get:CompileClasspath                                                // <3>
         val externalClasspath: ConfigurableFileCollection
+
         @get:Input
         val excludedPackage: Property<String>
     }

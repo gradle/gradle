@@ -21,9 +21,9 @@ import org.gradle.tooling.UnsupportedVersionException;
 /**
  * Thrown when a build cannot be executed due to the runner being in an invalid state.
  *
- * @since 2.6
  * @see GradleRunner#build()
  * @see GradleRunner#buildAndFail()
+ * @since 2.6
  */
 public class InvalidRunnerConfigurationException extends IllegalStateException {
     public InvalidRunnerConfigurationException(String s) {

@@ -21,9 +21,9 @@ package org.gradle.integtests.fixtures.executer;
  */
 public class GradleVersions {
 
-    private GradleVersions() {
-    }
-
     // We moved the API back into internal, so this isn't really correct.
     public static final String SUPPORTS_DEPLOYMENT_REGISTRY = ">=4.2";
+
+    private GradleVersions() {
+    }
 }

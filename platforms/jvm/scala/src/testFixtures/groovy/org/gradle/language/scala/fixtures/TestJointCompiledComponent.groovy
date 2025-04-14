@@ -24,13 +24,13 @@ class TestJointCompiledComponent extends TestJvmComponent {
     String languageName = "scala"
 
     List<JvmSourceFile> sources = [
-            new JvmSourceFile("compile/test", "Person.scala", '''
+        new JvmSourceFile("compile/test", "Person.scala", '''
 package compile.test;
 
 class Person(name: String, age: Integer) {
     override def toString(): String = name + ", " + age;
 }'''),
-            new JvmSourceFile("compile/test", "Person2.java", '''
+        new JvmSourceFile("compile/test", "Person2.java", '''
 package compile.test;
 
 class Person2 {

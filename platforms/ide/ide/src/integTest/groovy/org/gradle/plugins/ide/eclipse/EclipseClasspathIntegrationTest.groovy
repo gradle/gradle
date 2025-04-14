@@ -1224,6 +1224,7 @@ project(':b') {
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+
     @Test
     @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
@@ -1272,6 +1273,7 @@ project(':b') {
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+
     @Test
     @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
@@ -1320,6 +1322,7 @@ project(':b') {
      * put duplicate dependencies on the classpath. The order will always be arbitrary and break one
      * use case or another.
      */
+
     @Test
     @ToBeFixedForConfigurationCache
     void "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {

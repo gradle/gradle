@@ -86,11 +86,15 @@ class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
     }
 
     def "does not allow asking for tasks using empty name"() {
-        when: project.getTasksByName('', true)
-        then: thrown(InvalidUserDataException)
+        when:
+        project.getTasksByName('', true)
+        then:
+        thrown(InvalidUserDataException)
 
-        when: project.getTasksByName(null, true)
-        then: thrown(InvalidUserDataException)
+        when:
+        project.getTasksByName(null, true)
+        then:
+        thrown(InvalidUserDataException)
     }
 
     def "allows asking for unknown tasks"() {

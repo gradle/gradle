@@ -1190,10 +1190,10 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     def "virtual platform constraints shouldn't be transitive"() {
         repository {
             "org:member1:1.1" {
-                dependsOn(group: "other", artifact:"transitive", version:"1.0")
+                dependsOn(group: "other", artifact: "transitive", version: "1.0")
             }
             "org:member2:1.1" {
-                dependsOn(group:'org', artifact:'member1', version:'1.1', exclusions: [[module: 'transitive']])
+                dependsOn(group: 'org', artifact: 'member1', version: '1.1', exclusions: [[module: 'transitive']])
             }
             "other:transitive:1.0"()
         }

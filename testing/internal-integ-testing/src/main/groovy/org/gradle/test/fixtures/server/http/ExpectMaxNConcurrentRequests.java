@@ -44,11 +44,11 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
     private final int testId;
     private final long timeoutMs;
     private final Clock clock = Time.clock();
-    private int waitingFor;
     private final WaitPrecondition previous;
+    private final ExpectationState state = new ExpectationState();
+    private int waitingFor;
     private long mostRecentEvent;
     private boolean cancelled;
-    private final ExpectationState state = new ExpectationState();
 
     ExpectMaxNConcurrentRequests(Lock lock, int testId, Duration timeout, int maxConcurrent, WaitPrecondition previous, Collection<? extends ResourceExpectation> expectedRequests) {
         if (expectedRequests.size() < maxConcurrent) {
@@ -64,6 +64,29 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
             ResourceHandlerWrapper handler = new ResourceHandlerWrapper(lock, expectation, getWaitPrecondition(), isAutoRelease());
             notReceived.add(handler);
         }
+    }
+
+    private static String format(List<? extends ResourceHandlerWrapper> handlers) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for (ResourceHandlerWrapper handler : handlers) {
+            if (builder.length() > 1) {
+                builder.append(", ");
+            }
+            builder.append(handler.getDisplayName());
+        }
+        builder.append("]");
+        return builder.toString();
+    }
+
+    @Nullable
+    private static <T extends ResourceHandler> T selectPending(List<T> handlers, String path) {
+        for (T handler : handlers) {
+            if (handler.getPath().equals(path)) {
+                return handler;
+            }
+        }
+        return null;
     }
 
     protected boolean isAutoRelease() {
@@ -309,7 +332,6 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
         condition.signalAll();
     }
 
-
     @Override
     public void waitForAllPendingCalls() {
         waitForAllPendingCalls(BlockingHttpServer.FailureTracker.NO_FAILURE_TRACKER);
@@ -355,28 +377,5 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
     private void timeoutWaitingForRequests() {
         state.timeout("waiting for expected requests", describeCurrentState());
         condition.signalAll();
-    }
-
-    private static String format(List<? extends ResourceHandlerWrapper> handlers) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        for (ResourceHandlerWrapper handler : handlers) {
-            if (builder.length() > 1) {
-                builder.append(", ");
-            }
-            builder.append(handler.getDisplayName());
-        }
-        builder.append("]");
-        return builder.toString();
-    }
-
-    @Nullable
-    private static <T extends ResourceHandler> T selectPending(List<T> handlers, String path) {
-        for (T handler : handlers) {
-            if (handler.getPath().equals(path)) {
-                return handler;
-            }
-        }
-        return null;
     }
 }

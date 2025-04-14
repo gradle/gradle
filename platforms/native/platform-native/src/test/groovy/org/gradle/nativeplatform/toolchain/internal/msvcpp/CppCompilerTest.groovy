@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec
 
-class CppCompilerTest  extends VisualCppNativeCompilerTest {
+class CppCompilerTest extends VisualCppNativeCompilerTest {
 
     @Override
     protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
@@ -35,6 +35,6 @@ class CppCompilerTest  extends VisualCppNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        [ '/TP' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        ['/TP'] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

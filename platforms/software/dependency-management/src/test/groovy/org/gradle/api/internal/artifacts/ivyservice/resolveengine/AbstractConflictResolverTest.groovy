@@ -106,7 +106,7 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         TestComponent release() {
-            metadata = ['getStatus': {'release'}] as ComponentGraphResolveMetadata
+            metadata = ['getStatus': { 'release' }] as ComponentGraphResolveMetadata
             this
         }
 

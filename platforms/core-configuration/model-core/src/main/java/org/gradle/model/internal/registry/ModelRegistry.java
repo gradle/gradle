@@ -43,7 +43,9 @@ public interface ModelRegistry {
      * @return the node as the given type
      */
     <T> T realize(ModelPath path, ModelType<T> type);
+
     <T> T realize(String path, ModelType<T> type);
+
     <T> T realize(String path, Class<T> type);
 
     /**
@@ -68,8 +70,10 @@ public interface ModelRegistry {
      */
     @Nullable
     <T> T find(ModelPath path, ModelType<T> type);
+
     @Nullable
     <T> T find(String path, ModelType<T> type);
+
     @Nullable
     <T> T find(String path, Class<T> type);
 
@@ -86,6 +90,7 @@ public interface ModelRegistry {
      * @return the node at the desired state
      */
     ModelNode atStateOrLater(ModelPath path, ModelNode.State state);
+
     <T> T atStateOrLater(ModelPath path, ModelType<T> type, ModelNode.State state);
 
     ModelNode.State state(ModelPath path);

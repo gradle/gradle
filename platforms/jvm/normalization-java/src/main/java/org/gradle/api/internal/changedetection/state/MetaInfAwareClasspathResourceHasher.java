@@ -50,6 +50,10 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
         this.attributeResourceFilter = attributeResourceFilter;
     }
 
+    private static boolean isManifestFile(final String name) {
+        return name.equals("META-INF/MANIFEST.MF");
+    }
+
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         super.appendConfigurationToHasher(hasher);
@@ -91,10 +95,6 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
                     return null;
                 }
             });
-    }
-
-    private static boolean isManifestFile(final String name) {
-        return name.equals("META-INF/MANIFEST.MF");
     }
 
     private HashCode hashManifest(InputStream inputStream) throws IOException {

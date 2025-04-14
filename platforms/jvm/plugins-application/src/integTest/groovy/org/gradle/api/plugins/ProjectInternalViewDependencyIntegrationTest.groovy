@@ -93,7 +93,7 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
     }
 
     def writeNonApiAccessibilityTest() {
-        file ("src/main/java/com/example/MyClass.java") << """
+        file("src/main/java/com/example/MyClass.java") << """
             package com.example;
             public class MyClass {
                 public int getSpecialValue() {

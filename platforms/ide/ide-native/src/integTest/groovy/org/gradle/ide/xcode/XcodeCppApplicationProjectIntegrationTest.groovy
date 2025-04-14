@@ -78,11 +78,11 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
 
         then:
         executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcode",
-                ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
-                ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme", ":greeter:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
-                .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"))
@@ -90,18 +90,18 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
 
         when:
         def resultApp = xcodebuild
-                .withWorkspace(rootXcodeWorkspace)
-                .withScheme('App')
-                .fails()
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App')
+            .fails()
 
         then:
         resultApp.error.contains('The workspace named "app" does not contain a scheme named "App".')
 
         when:
         def resultLib = xcodebuild
-                .withWorkspace(rootXcodeWorkspace)
-                .withScheme('Greeter')
-                .succeeds()
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Greeter')
+            .succeeds()
 
         then:
         resultLib.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
@@ -142,20 +142,20 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
 
         then:
         executedAndNotSkipped(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme", ":app:xcode",
-                ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcode",
-                ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+            ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcode",
+            ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
 
         rootXcodeWorkspace.contentFile
-                .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
+            .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
 
         when:
         def resultApp = xcodebuild
-                .withWorkspace(rootXcodeWorkspace)
-                .withScheme('App')
-                .fails()
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('App')
+            .fails()
 
         then:
         resultApp.assertHasCause("Could not resolve all dependencies for configuration ':app:nativeRuntimeDebug'.")
@@ -164,9 +164,9 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
 
         when:
         def resultLib = xcodebuild
-                .withWorkspace(rootXcodeWorkspace)
-                .withScheme('Greeter')
-                .fails()
+            .withWorkspace(rootXcodeWorkspace)
+            .withScheme('Greeter')
+            .fails()
 
         then:
         resultLib.error.contains('The workspace named "app" does not contain a scheme named "Greeter".')

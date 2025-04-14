@@ -23,10 +23,10 @@ import model.StageName
 class PublishNightlyDocumentation(
     branch: VersionedSettingsBranch,
 ) : PublishGradleDistributionFullBuild(
-        promotedBranch = branch.branchName,
-        promoteTask = "publishBranchDocs",
-        triggerName = StageName.PULL_REQUEST_FEEDBACK.uuid,
-    ) {
+    promotedBranch = branch.branchName,
+    promoteTask = "publishBranchDocs",
+    triggerName = StageName.PULL_REQUEST_FEEDBACK.uuid,
+) {
     init {
         id("Promotion_NightlyDocumentation")
         name = "Nightly Documentation"

@@ -441,6 +441,24 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExec setArgs(List<String> applicationArgs) {
+        javaExecSpec.setArgs(applicationArgs);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExec setArgs(Iterable<?> applicationArgs) {
+        javaExecSpec.setArgs(applicationArgs);
+        return this;
+    }
+
+    /**
      * Parses an argument list from {@code args} and passes it to {@link #setArgs(List)}.
      *
      * <p>
@@ -460,24 +478,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Option(option = "args", description = "Command line arguments passed to the main class.")
     public JavaExec setArgsString(String args) {
         return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public JavaExec setArgs(List<String> applicationArgs) {
-        javaExecSpec.setArgs(applicationArgs);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public JavaExec setArgs(Iterable<?> applicationArgs) {
-        javaExecSpec.setArgs(applicationArgs);
-        return this;
     }
 
     /**
@@ -511,15 +511,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec setClasspath(FileCollection classpath) {
-        javaExecSpec.setClasspath(classpath);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public JavaExec classpath(Object... paths) {
         javaExecSpec.classpath(paths);
         return this;
@@ -532,6 +523,15 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return javaExecSpec.getClasspath();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExec setClasspath(FileCollection classpath) {
+        javaExecSpec.setClasspath(classpath);
+        return this;
     }
 
     /**
@@ -682,15 +682,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec setStandardInput(InputStream inputStream) {
-        javaExecSpec.setStandardInput(inputStream);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @Internal
     @ToBeReplacedByLazyProperty
     public InputStream getStandardInput() {
@@ -701,8 +692,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec setStandardOutput(OutputStream outputStream) {
-        javaExecSpec.setStandardOutput(outputStream);
+    public JavaExec setStandardInput(InputStream inputStream) {
+        javaExecSpec.setStandardInput(inputStream);
         return this;
     }
 
@@ -720,8 +711,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec setErrorOutput(OutputStream outputStream) {
-        javaExecSpec.setErrorOutput(outputStream);
+    public JavaExec setStandardOutput(OutputStream outputStream) {
+        javaExecSpec.setStandardOutput(outputStream);
         return this;
     }
 
@@ -733,6 +724,15 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @ToBeReplacedByLazyProperty
     public OutputStream getErrorOutput() {
         return javaExecSpec.getErrorOutput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExec setErrorOutput(OutputStream outputStream) {
+        javaExecSpec.setErrorOutput(outputStream);
+        return this;
     }
 
     /**

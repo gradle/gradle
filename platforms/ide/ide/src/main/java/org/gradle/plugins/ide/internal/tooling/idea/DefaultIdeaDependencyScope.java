@@ -37,8 +37,8 @@ public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializ
     @Override
     public String toString() {
         return "IdeaDependencyScope{"
-                + "scope='" + scope + '\''
-                + '}';
+            + "scope='" + scope + '\''
+            + '}';
     }
 
     @Override

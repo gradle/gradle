@@ -69,22 +69,6 @@ public final class SerializedMetadata {
             this.valueType = valueType;
         }
 
-        public String getKey() {
-            return key;
-        }
-
-        public byte[] getSerializedValue() {
-            return value;
-        }
-
-        public Object getValue() {
-            return fromBytes(value);
-        }
-
-        public String getValueType() {
-            return valueType;
-        }
-
         // TODO: Use some other, better serialization strategy here informed by Problems API work
         // TODO: Or just use the KryoBackedEncoder/Decoder - the exact serialization strategy isn't too important
         private static byte[] toBytes(Object obj) {
@@ -113,6 +97,22 @@ public final class SerializedMetadata {
             } else {
                 throw new IllegalArgumentException("Object must be Serializable");
             }
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public byte[] getSerializedValue() {
+            return value;
+        }
+
+        public Object getValue() {
+            return fromBytes(value);
+        }
+
+        public String getValueType() {
+            return valueType;
         }
 
         private Object fromBytes(byte[] bytes) {

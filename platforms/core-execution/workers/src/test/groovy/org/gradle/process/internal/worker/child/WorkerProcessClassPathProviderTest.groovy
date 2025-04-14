@@ -27,7 +27,8 @@ import spock.lang.Specification
 import java.util.function.Consumer
 
 class WorkerProcessClassPathProviderTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final GlobalScopedCacheBuilderFactory cacheBuilderFactory = Mock()
     final ModuleRegistry moduleRegistry = Mock()
     final WorkerProcessClassPathProvider provider = new WorkerProcessClassPathProvider(cacheBuilderFactory, moduleRegistry)

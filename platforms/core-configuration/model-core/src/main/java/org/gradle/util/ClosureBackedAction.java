@@ -28,8 +28,8 @@ import org.gradle.internal.deprecation.DeprecationLogger;
  * <p>
  * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
- * @deprecated Will be removed in Gradle 9.0.
  * @param <T> The action type.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class ClosureBackedAction<T> implements Action<T> {
@@ -45,10 +45,6 @@ public class ClosureBackedAction<T> implements Action<T> {
     private final int resolveStrategy;
     private final boolean configurableAware;
 
-    public static <T> ClosureBackedAction<T> of(Closure<?> closure) {
-        return new ClosureBackedAction<T>(closure);
-    }
-
     public ClosureBackedAction(Closure closure) {
         this(closure, Closure.DELEGATE_FIRST, true);
     }
@@ -61,6 +57,10 @@ public class ClosureBackedAction<T> implements Action<T> {
         this.closure = closure;
         this.resolveStrategy = resolveStrategy;
         this.configurableAware = configurableAware;
+    }
+
+    public static <T> ClosureBackedAction<T> of(Closure<?> closure) {
+        return new ClosureBackedAction<T>(closure);
     }
 
     public static <T> void execute(T delegate, Closure<?> closure) {

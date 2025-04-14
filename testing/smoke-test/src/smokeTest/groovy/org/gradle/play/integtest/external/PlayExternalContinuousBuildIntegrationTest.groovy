@@ -24,7 +24,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
 
     @ToBeFixedForConfigurationCache(because = "`compilePlayRoutes` task of the plugin uses `Task.project` at execution time")
-    def "build does not block when running play app with continuous build" () {
+    def "build does not block when running play app with continuous build"() {
         when: "the build runs until it enters continuous build"
         succeeds("runPlay")
 
@@ -33,7 +33,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
     }
 
     @ToBeFixedForConfigurationCache(because = "`compilePlayRoutes` task of the plugin uses `Task.project` at execution time")
-    def "can run play app multiple times with continuous build" () {
+    def "can run play app multiple times with continuous build"() {
         when:
         succeeds("runPlay")
 
@@ -59,7 +59,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         buildTriggeredAndSucceeded()
     }
 
-    def "build failure prior to launch does not prevent launch on subsequent build" () {
+    def "build failure prior to launch does not prevent launch on subsequent build"() {
         executer.withStackTraceChecksDisabled()
         def original = file("app/controllers/Application.scala").text
 
@@ -80,7 +80,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
     }
 
     @ToBeFixedForConfigurationCache(because = "`compilePlayRoutes` task of the plugin uses `Task.project` at execution time")
-    def "play application is stopped when build is cancelled" () {
+    def "play application is stopped when build is cancelled"() {
         when:
         succeeds("runPlay")
 

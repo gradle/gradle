@@ -25,8 +25,10 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 class OperatingSystemTest extends Specification {
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         OperatingSystem.resetCurrent()
@@ -329,11 +331,11 @@ class OperatingSystemTest extends Specification {
             OperatingSystem.getDeclaredFields()
                 .findAll { Modifier.isStatic(it.modifiers) && Modifier.isFinal(it.modifiers) }
                 .each { Field field ->
-                if (OperatingSystem.isAssignableFrom(field.getType())) {
-                    makeFinalFieldAccessibleForTesting(field)
-                    field.set(null, JavaReflectionUtil.newInstance(field.getType()))
+                    if (OperatingSystem.isAssignableFrom(field.getType())) {
+                        makeFinalFieldAccessibleForTesting(field)
+                        field.set(null, JavaReflectionUtil.newInstance(field.getType()))
+                    }
                 }
-            }
             return true
         } catch (Exception e) {
             System.err.println "Unable to make fields accessible on this JVM, error was:\n${e.message}"

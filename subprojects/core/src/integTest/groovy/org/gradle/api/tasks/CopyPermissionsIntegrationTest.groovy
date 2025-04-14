@@ -476,13 +476,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         assertDestinationFilePermissions("r-xr-xrw-")
 
         where:
-        description         | setting
-        "permissions"       | """
+        description        | setting
+        "permissions"      | """
                                 eachFile {
                                     permissions = p
                                 }
                               """
-        "file permissions"  | "filePermissions.set(p)"
+        "file permissions" | "filePermissions.set(p)"
     }
 
     private def withSourceFiles(String permissions) {

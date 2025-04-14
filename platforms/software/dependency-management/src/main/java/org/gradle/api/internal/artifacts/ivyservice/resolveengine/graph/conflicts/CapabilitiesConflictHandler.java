@@ -33,22 +33,31 @@ public interface CapabilitiesConflictHandler extends ConflictHandler<Capabilitie
 
     interface Candidate {
         NodeState getNode();
+
         CapabilityInternal getCapability();
+
         Collection<NodeState> getImplicitCapabilityProviders();
     }
 
     interface ResolutionDetails extends ConflictResolutionResult {
         Collection<? extends Capability> getCapabilityVersions();
+
         Collection<? extends CandidateDetails> getCandidates(Capability capability);
+
         boolean hasResult();
     }
 
     interface CandidateDetails {
         ComponentIdentifier getId();
+
         String getVariantName();
+
         void evict();
+
         void select();
+
         void reject();
+
         void byReason(Describable description);
     }
 

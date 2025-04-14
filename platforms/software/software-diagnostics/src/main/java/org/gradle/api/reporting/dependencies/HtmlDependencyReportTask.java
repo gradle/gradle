@@ -78,6 +78,13 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
         reports.getHtml().getRequired().set(true);
     }
 
+    private static Stream<? extends ConfigurationDetails> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
+        return project.getConfigurations().stream()
+            .map(ConfigurationInternal.class::cast)
+            .filter(c -> c.isDeclarableByExtension())
+            .map(ConfigurationDetails::of);
+    }
+
     @Nested
     @Override
     public DependencyReportContainer getReports() {
@@ -112,7 +119,7 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
     }
 
     @Inject
-    protected  VersionParser getVersionParser() {
+    protected VersionParser getVersionParser() {
         throw new UnsupportedOperationException();
     }
 
@@ -145,12 +152,5 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
             ProjectDetails::withNameAndPath,
             HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
         );
-    }
-
-    private static Stream<? extends ConfigurationDetails> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
-        return project.getConfigurations().stream()
-            .map(ConfigurationInternal.class::cast)
-            .filter(c -> c.isDeclarableByExtension())
-            .map(ConfigurationDetails::of);
     }
 }

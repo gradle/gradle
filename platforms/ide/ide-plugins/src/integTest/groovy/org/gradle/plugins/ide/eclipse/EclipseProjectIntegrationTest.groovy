@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
 
-    def setup(){
+    def setup() {
         settingsFile.text = "rootProject.name = 'root'"
     }
 
@@ -67,8 +67,8 @@ eclipse {
         project.assertHasReferencedProjects('some referenced project', 'some cool project')
 
         project.assertHasNatures('test.groovy.nature', 'test.java.nature')
-        project.assertHasBuilders('org.eclipse.jdt.core.javabuilder','buildThisLovelyProject','buildWithTheArguments')
-        project.assertHasBuilder('buildWithTheArguments', [argumentFoo:'a foo argument'])
+        project.assertHasBuilders('org.eclipse.jdt.core.javabuilder', 'buildThisLovelyProject', 'buildWithTheArguments')
+        project.assertHasBuilder('buildWithTheArguments', [argumentFoo: 'a foo argument'])
         project.assertHasLinkedResource('linkToFolderFoo', 'aFolderFoo', '/test/folders/foo')
         project.assertHasLinkedResource('linkToUriFoo', 'aFooUri', 'http://test/uri/foo')
 
@@ -682,7 +682,7 @@ eclipseJdt.doLast() {
     }
 
     @ToBeFixedForConfigurationCache
-    void "setting project name within #hook is disallowed"(){
+    void "setting project name within #hook is disallowed"() {
         given:
 
         buildFile """

@@ -149,9 +149,9 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
             executor = executorFactory.create("Dispatch " + targetObject);
             failureHandler = new ExceptionTrackingFailureHandler(LoggerFactory.getLogger(NonBlockingActor.class));
             dispatch = new AsyncDispatch<MethodInvocation>(executor,
-                    new FailureHandlingDispatch<MethodInvocation>(
-                            new ReflectionDispatch(targetObject),
-                            failureHandler), Integer.MAX_VALUE);
+                new FailureHandlingDispatch<MethodInvocation>(
+                    new ReflectionDispatch(targetObject),
+                    failureHandler), Integer.MAX_VALUE);
         }
 
         @Override

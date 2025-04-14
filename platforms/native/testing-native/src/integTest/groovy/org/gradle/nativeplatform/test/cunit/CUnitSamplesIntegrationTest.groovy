@@ -33,7 +33,8 @@ import static org.junit.Assume.assumeTrue
 @Requires(UnitTestPreconditions.CanInstallExecutable)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule public final Sample cunit = sample(temporaryFolder, 'cunit')
+    @Rule
+    public final Sample cunit = sample(temporaryFolder, 'cunit')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
@@ -63,9 +64,9 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         then:
         executedAndNotSkipped ":operatorsTestCUnitLauncher",
-                              ":compileOperatorsTestPassingCUnitExeOperatorsTestC", ":compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher",
-                              ":linkOperatorsTestPassingCUnitExe", ":operatorsTestPassingCUnitExe",
-                              ":installOperatorsTestPassingCUnitExe", ":runOperatorsTestPassingCUnitExe"
+            ":compileOperatorsTestPassingCUnitExeOperatorsTestC", ":compileOperatorsTestPassingCUnitExeOperatorsTestCunitLauncher",
+            ":linkOperatorsTestPassingCUnitExe", ":operatorsTestPassingCUnitExe",
+            ":installOperatorsTestPassingCUnitExe", ":runOperatorsTestPassingCUnitExe"
 
         and:
         def passingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTest/passing/CUnitAutomated-Results.xml"))
@@ -82,8 +83,8 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         then:
         skipped ":operatorsTestCUnitLauncher"
         executedAndNotSkipped ":compileOperatorsTestFailingCUnitExeOperatorsTestC", ":compileOperatorsTestFailingCUnitExeOperatorsTestCunitLauncher",
-                              ":linkOperatorsTestFailingCUnitExe", ":operatorsTestFailingCUnitExe",
-                              ":installOperatorsTestFailingCUnitExe", ":runOperatorsTestFailingCUnitExe"
+            ":linkOperatorsTestFailingCUnitExe", ":operatorsTestFailingCUnitExe",
+            ":installOperatorsTestFailingCUnitExe", ":runOperatorsTestFailingCUnitExe"
 
         and:
         def failingResults = new CUnitTestResults(cunit.dir.file("build/test-results/operatorsTest/failing/CUnitAutomated-Results.xml"))

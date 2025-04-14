@@ -42,7 +42,7 @@ class DependencySpec {
         version = v
         this.preferredVersion = preferredVersion
         this.strictVersion = strictVersion
-        this.rejects = rejects?:Collections.<String>emptyList()
+        this.rejects = rejects ?: Collections.<String> emptyList()
         if (excludes) {
             exclusions = excludes.collect { Map exclusion ->
                 String group = exclusion.get('group')?.toString()

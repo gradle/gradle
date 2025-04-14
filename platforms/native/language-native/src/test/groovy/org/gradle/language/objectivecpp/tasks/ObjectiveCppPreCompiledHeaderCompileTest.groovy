@@ -57,9 +57,9 @@ class ObjectiveCppPreCompiledHeaderCompileTest extends AbstractProjectBuilderSpe
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
-        1 * platformToolChain.newCompiler({ObjectiveCppPCHCompileSpec.class.isAssignableFrom(it)}) >> objCppPCHCompiler
+        1 * platformToolChain.newCompiler({ ObjectiveCppPCHCompileSpec.class.isAssignableFrom(it) }) >> objCppPCHCompiler
         1 * objCppPCHCompiler.execute({ ObjectiveCppPCHCompileSpec spec ->
-            assert spec.sourceFiles*.name== ["sourceFile"]
+            assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']

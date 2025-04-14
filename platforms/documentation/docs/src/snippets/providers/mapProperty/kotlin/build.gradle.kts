@@ -1,4 +1,4 @@
-abstract class Generator: DefaultTask() {
+abstract class Generator : DefaultTask() {
     @get:Input
     abstract val properties: MapProperty<String, Int>
 

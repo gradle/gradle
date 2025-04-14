@@ -44,6 +44,13 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         this.exceptionAnalyser = exceptionAnalyser;
     }
 
+    private static void logFileDeprecationWarning(DeprecationMessageBuilder<?> specifyingCustomFileLocation) {
+        specifyingCustomFileLocation
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "configuring_custom_build_layout")
+            .nagUser();
+    }
+
     @Override
     public BuildLifecycleController newInstance(BuildDefinition buildDefinition, ServiceRegistry buildScopeServices) {
         StartParameter startParameter = buildDefinition.getStartParameter();
@@ -75,12 +82,5 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             buildToolingModelControllerFactory,
             stateTransitionControllerFactory
         );
-    }
-
-    private static void logFileDeprecationWarning(DeprecationMessageBuilder<?> specifyingCustomFileLocation) {
-        specifyingCustomFileLocation
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "configuring_custom_build_layout")
-            .nagUser();
     }
 }

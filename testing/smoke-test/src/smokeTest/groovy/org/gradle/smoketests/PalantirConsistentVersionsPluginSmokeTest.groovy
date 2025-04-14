@@ -49,8 +49,8 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
         when:
         runner('--write-locks')
-            // They are doing some weird stuff in an afterEvaluate
-            // See: https://github.com/palantir/gradle-consistent-versions/blob/28a604723c936f5c93c6591e144c4a1731d570ad/src/main/java/com/palantir/gradle/versions/VersionsLockPlugin.java#L277
+        // They are doing some weird stuff in an afterEvaluate
+        // See: https://github.com/palantir/gradle-consistent-versions/blob/28a604723c936f5c93c6591e144c4a1731d570ad/src/main/java/com/palantir/gradle/versions/VersionsLockPlugin.java#L277
             .expectLegacyDeprecationWarning("Adding a configuration directly to the configuration container. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use a factory method instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#adding_to_configuration_container")
             .expectLegacyDeprecationWarning("The compileClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
             .expectLegacyDeprecationWarning("The runtimeClasspathCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")

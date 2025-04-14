@@ -37,6 +37,18 @@ import java.time.Duration;
 public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleComponentResolveMetadata, ComponentMetadataContext, ModuleComponentResolveMetadata> {
 
     private static final String CACHE_ID = "md-rule";
+    private final Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer;
+
+    public ComponentMetadataRuleExecutor(
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+        ValueSnapshotter snapshotter,
+        BuildCommencedTimeProvider timeProvider,
+        Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer
+    ) {
+        super(CACHE_ID, cacheBuilderFactory, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), getKeyToSnapshotableTransformer(), componentMetadataContextSerializer);
+        this.componentMetadataContextSerializer = componentMetadataContextSerializer;
+    }
 
     public static boolean isMetadataRuleExecutorCache(InMemoryCacheController controller) {
         return CACHE_ID.equals(controller.getCacheId());
@@ -49,28 +61,16 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
         });
     }
 
-    private final Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer;
-
-    public ComponentMetadataRuleExecutor(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-            ValueSnapshotter snapshotter,
-            BuildCommencedTimeProvider timeProvider,
-            Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer) {
-        super(CACHE_ID, cacheBuilderFactory, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), getKeyToSnapshotableTransformer(), componentMetadataContextSerializer);
-        this.componentMetadataContextSerializer = componentMetadataContextSerializer;
-    }
-
-    public Serializer<ModuleComponentResolveMetadata> getComponentMetadataContextSerializer() {
-        return componentMetadataContextSerializer;
-    }
-
     private static EntryValidator<ModuleComponentResolveMetadata> createValidator(final BuildCommencedTimeProvider timeProvider) {
         return (policy, entry) -> {
             Duration age = Duration.ofMillis(timeProvider.getCurrentTime() - entry.getTimestamp());
             final ModuleComponentResolveMetadata result = entry.getResult();
             return !policy.moduleExpiry(new SimpleResolvedModuleVersion(result.getModuleVersionId()), age, result.isChanging()).isMustCheck();
         };
+    }
+
+    public Serializer<ModuleComponentResolveMetadata> getComponentMetadataContextSerializer() {
+        return componentMetadataContextSerializer;
     }
 
     private static class SimpleResolvedModuleVersion implements ResolvedModuleVersion {

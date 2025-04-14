@@ -22,7 +22,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
 class GccOptionsFileArgsWriterTest extends OptionsFileArgsWriterTest {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     OptionsFileArgsWriter getArgsWriter() {
         new GccOptionsFileArgsWriter(tmpDirProvider.getTestDirectory())

@@ -216,7 +216,7 @@ BUILD SUCCESSFUL"""
         succeeds "checkModel"
     }
 
-    def "Can define and create multiple component types in the same plugin"(){
+    def "Can define and create multiple component types in the same plugin"() {
         when:
         buildFile << '''
             interface SampleLibrary extends LibrarySpec {}
@@ -295,7 +295,7 @@ BUILD SUCCESSFUL"""
 - Method register(org.gradle.platform.base.TypeBuilder<SampleComponent>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
     }
 
-    def "cannot register same unmanaged component type implementation multiple times"(){
+    def "cannot register same unmanaged component type implementation multiple times"() {
         given:
         buildWithCustomComponentPlugin()
 

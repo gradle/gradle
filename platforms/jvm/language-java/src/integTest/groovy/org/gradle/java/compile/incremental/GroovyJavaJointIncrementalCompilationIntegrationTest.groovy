@@ -156,7 +156,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         outputs.noneRecompiled()
 
         when: 'second build'
-        outputs.snapshot { applyMixFileSet(secondChange)  }
+        outputs.snapshot { applyMixFileSet(secondChange) }
         run "compileGroovy", "--info"
 
         then:

@@ -48,6 +48,26 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         this.fileLocationResolver = fileLocationResolver;
     }
 
+    /**
+     * Replicates the behaviour of {@link Node#plus(groovy.lang.Closure)}.
+     */
+    @SuppressWarnings("unchecked")
+    private static Node appendDirectSibling(Node node, String siblingName, LinkedHashMap<String, String> siblingAttributes) {
+        if (node.parent() == null) {
+            throw new UnsupportedOperationException("Adding sibling nodes to the root node is not supported");
+        }
+        // Grab tail
+        List<?> parentChildren = node.parent().children();
+        int afterIndex = parentChildren.indexOf(node);
+        List<?> tail = new ArrayList<>(parentChildren.subList(afterIndex + 1, parentChildren.size()));
+        parentChildren.subList(afterIndex + 1, parentChildren.size()).clear();
+        // Add sibling
+        Node sibling = node.parent().appendNode(siblingName, siblingAttributes);
+        // Restore tail
+        node.parent().children().addAll(tail);
+        return sibling;
+    }
+
     @Override
     protected String getDefaultResourceName() {
         return "default.vcxproj";
@@ -180,26 +200,6 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
 
     private String toPath(File file) {
         return fileLocationResolver.transform(file);
-    }
-
-    /**
-     * Replicates the behaviour of {@link Node#plus(groovy.lang.Closure)}.
-     */
-    @SuppressWarnings("unchecked")
-    private static Node appendDirectSibling(Node node, String siblingName, LinkedHashMap<String, String> siblingAttributes) {
-        if (node.parent() == null) {
-            throw new UnsupportedOperationException("Adding sibling nodes to the root node is not supported");
-        }
-        // Grab tail
-        List<?> parentChildren = node.parent().children();
-        int afterIndex = parentChildren.indexOf(node);
-        List<?> tail = new ArrayList<>(parentChildren.subList(afterIndex + 1, parentChildren.size()));
-        parentChildren.subList(afterIndex + 1, parentChildren.size()).clear();
-        // Add sibling
-        Node sibling = node.parent().appendNode(siblingName, siblingAttributes);
-        // Restore tail
-        node.parent().children().addAll(tail);
-        return sibling;
     }
 
     public static class ConfigurationSpec {

@@ -59,6 +59,35 @@ public class Install {
         this.pathAssembler = pathAssembler;
     }
 
+    static String calculateSha256Sum(File file) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        InputStream fis = new FileInputStream(file);
+        try {
+            int n = 0;
+            byte[] buffer = new byte[4096];
+            while (n != -1) {
+                n = fis.read(buffer);
+                if (n > 0) {
+                    md.update(buffer, 0, n);
+                }
+            }
+        } finally {
+            fis.close();
+        }
+
+        byte[] byteData = md.digest();
+        StringBuilder hexString = new StringBuilder();
+        for (int i = 0; i < byteData.length; i++) {
+            String hex = Integer.toHexString(0xff & byteData[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
+    }
+
     public File createDist(final WrapperConfiguration configuration) throws Exception {
         final URI distributionUrl = configuration.getDistribution();
 
@@ -118,13 +147,12 @@ public class Install {
                 }
                 failed = true;
                 retries--;
-                if(retries <= 0){
+                if (retries <= 0) {
                     throw new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
                 }
             }
         } while (failed);
     }
-
 
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
         URI distribution = configuration.getDistribution();
@@ -171,39 +199,10 @@ public class Install {
 
         logger.log("Downloading " + safeUri(distributionUrl));
         download.download(distributionUrl, tempDownloadFile);
-        if(localTargetFile.exists()) {
+        if (localTargetFile.exists()) {
             localTargetFile.delete();
         }
         tempDownloadFile.renameTo(localTargetFile);
-    }
-
-    static String calculateSha256Sum(File file) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        InputStream fis = new FileInputStream(file);
-        try {
-            int n = 0;
-            byte[] buffer = new byte[4096];
-            while (n != -1) {
-                n = fis.read(buffer);
-                if (n > 0) {
-                    md.update(buffer, 0, n);
-                }
-            }
-        } finally {
-            fis.close();
-        }
-
-        byte[] byteData = md.digest();
-        StringBuilder hexString = new StringBuilder();
-        for (int i = 0; i < byteData.length; i++) {
-            String hex = Integer.toHexString(0xff & byteData[i]);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-
-        return hexString.toString();
     }
 
     private InstallCheck verifyDistributionRoot(File distDir, String distributionDescription) {
@@ -359,17 +358,17 @@ public class Install {
         private final File gradleHome;
         private final String failureMessage;
 
+        private InstallCheck(File gradleHome, String failureMessage) {
+            this.gradleHome = gradleHome;
+            this.failureMessage = failureMessage;
+        }
+
         private static InstallCheck failure(String message) {
             return new InstallCheck(null, message);
         }
 
         private static InstallCheck success(File gradleHome) {
             return new InstallCheck(gradleHome, null);
-        }
-
-        private InstallCheck(File gradleHome, String failureMessage) {
-            this.gradleHome = gradleHome;
-            this.failureMessage = failureMessage;
         }
 
         private boolean isVerified() {

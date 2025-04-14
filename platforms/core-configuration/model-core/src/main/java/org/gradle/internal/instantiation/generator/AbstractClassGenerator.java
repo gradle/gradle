@@ -175,14 +175,74 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         this.roleHandler = roleHandler;
     }
 
-    PropertyRoleAnnotationHandler getRoleHandler() {
-        return roleHandler;
-    }
-
     private static <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
         return new TypeToken<Provider<T>>() {
         }.where(new TypeParameter<T>() {
         }, providerType);
+    }
+
+    private static boolean isManagedProperty(PropertyMetadata property) {
+        // Property is readable and without a setter of property type and the type can be created
+        return property.isReadableWithoutSetterOfPropertyType() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || hasNestedAnnotation(property));
+    }
+
+    private static boolean hasNestedAnnotation(PropertyMetadata property) {
+        return NESTED_ANNOTATION_TYPES.stream().anyMatch(property::hasAnnotation);
+    }
+
+    private static boolean isEagerAttachProperty(PropertyMetadata property) {
+        // Property is readable and without a setter of property type and getter is final, so attach owner eagerly in constructor
+        // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
+        return property.isReadableWithoutSetterOfPropertyType() && !property.getMainGetter().shouldOverride() && hasPropertyType(property);
+    }
+
+    private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
+        // Provider API types and convention-supporting types in general should have conventions set through convention() instead of
+        // using convention mapping.
+        return Provider.class.isAssignableFrom(property.getType()) || SupportsConvention.class.isAssignableFrom(property.getType());
+    }
+
+    private static boolean isLazyAttachProperty(PropertyMetadata property) {
+        // Property is readable and without a setter of property type and getter is not final, so attach owner lazily when queried
+        // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
+        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty()
+            && (Provider.class.isAssignableFrom(property.getType()) || isConfigurableFileCollectionType(property.getType()) || hasNestedAnnotation(property));
+    }
+
+    private static boolean isReattachProperty(PropertyMetadata property) {
+        // Properties that should have reattached property owners upon reading from the cache
+        return hasPropertyType(property) || isConfigurableFileCollectionType(property.getType());
+    }
+
+    private static boolean isNameProperty(PropertyMetadata property) {
+        // Property is read only, called "name", has type String and getter is abstract
+        return property.isReadOnly() && "name".equals(property.getName()) && property.getType() == String.class && property.getMainGetter().isAbstract();
+    }
+
+    private static boolean hasPropertyType(PropertyMetadata property) {
+        return isPropertyType(property.getType());
+    }
+
+    private static boolean isPropertyType(Class<?> type) {
+        return Property.class.isAssignableFrom(type) ||
+            HasMultipleValues.class.isAssignableFrom(type) ||
+            MapProperty.class.isAssignableFrom(type);
+    }
+
+    private static boolean isConfigurableFileCollectionType(Class<?> type) {
+        return ConfigurableFileCollection.class.isAssignableFrom(type);
+    }
+
+    private static boolean isAttachableType(MethodMetadata method) {
+        return Provider.class.isAssignableFrom(method.getReturnType()) || isConfigurableFileCollectionType(method.getReturnType()) || hasNestedAnnotation(method);
+    }
+
+    private static boolean hasNestedAnnotation(MethodMetadata method) {
+        return NESTED_ANNOTATION_TYPES.stream().anyMatch(annotation -> method.method.getAnnotation(annotation) != null);
+    }
+
+    PropertyRoleAnnotationHandler getRoleHandler() {
+        return roleHandler;
     }
 
     @Override
@@ -406,66 +466,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
     }
 
-    private static boolean isManagedProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || hasNestedAnnotation(property));
-    }
-
-    private static boolean hasNestedAnnotation(PropertyMetadata property) {
-        return NESTED_ANNOTATION_TYPES.stream().anyMatch(property::hasAnnotation);
-    }
-
-    private static boolean isEagerAttachProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and getter is final, so attach owner eagerly in constructor
-        // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getMainGetter().shouldOverride() && hasPropertyType(property);
-    }
-
-    private static boolean isIneligibleForConventionMapping(PropertyMetadata property) {
-        // Provider API types and convention-supporting types in general should have conventions set through convention() instead of
-        // using convention mapping.
-        return Provider.class.isAssignableFrom(property.getType()) || SupportsConvention.class.isAssignableFrom(property.getType());
-    }
-
-    private static boolean isLazyAttachProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and getter is not final, so attach owner lazily when queried
-        // This should apply to all 'managed' types however only the ConfigurableFileCollection and Provider types and @Nested value current implement OwnerAware
-        return property.isReadableWithoutSetterOfPropertyType() && !property.getOverridableGetters().isEmpty()
-            && (Provider.class.isAssignableFrom(property.getType()) || isConfigurableFileCollectionType(property.getType()) || hasNestedAnnotation(property));
-    }
-
-    private static boolean isReattachProperty(PropertyMetadata property) {
-        // Properties that should have reattached property owners upon reading from the cache
-        return hasPropertyType(property) || isConfigurableFileCollectionType(property.getType());
-    }
-
-    private static boolean isNameProperty(PropertyMetadata property) {
-        // Property is read only, called "name", has type String and getter is abstract
-        return property.isReadOnly() && "name".equals(property.getName()) && property.getType() == String.class && property.getMainGetter().isAbstract();
-    }
-
-    private static boolean hasPropertyType(PropertyMetadata property) {
-        return isPropertyType(property.getType());
-    }
-
-    private static boolean isPropertyType(Class<?> type) {
-        return Property.class.isAssignableFrom(type) ||
-            HasMultipleValues.class.isAssignableFrom(type) ||
-            MapProperty.class.isAssignableFrom(type);
-    }
-
-    private static boolean isConfigurableFileCollectionType(Class<?> type) {
-        return ConfigurableFileCollection.class.isAssignableFrom(type);
-    }
-
-    private static boolean isAttachableType(MethodMetadata method) {
-        return Provider.class.isAssignableFrom(method.getReturnType()) || isConfigurableFileCollectionType(method.getReturnType()) || hasNestedAnnotation(method);
-    }
-
-    private static boolean hasNestedAnnotation(MethodMetadata method) {
-        return NESTED_ANNOTATION_TYPES.stream().anyMatch(annotation -> method.method.getAnnotation(annotation) != null);
-    }
-
     private boolean isRoleType(PropertyMetadata property) {
         for (Class<? extends Annotation> roleAnnotation : roleHandler.getAnnotationTypes()) {
             if (property.hasAnnotation(roleAnnotation)) {
@@ -475,118 +475,128 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return false;
     }
 
-    protected class GeneratedClassImpl implements GeneratedClass<Object> {
-        private final Class<?> generatedClass;
-        private final Class<?> outerType;
-        private final List<Class<?>> injectedServices;
-        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
-        private final List<GeneratedConstructor<Object>> constructors;
+    private interface ClassValidator {
+        /**
+         * Validates the method is declared properly.
+         *
+         * Implementations might check things like the annotations declared on the method.
+         *
+         * @param method the method to check
+         * @param accessorType the type of property this method would represent
+         */
+        default void validateMethod(Method method, PropertyAccessorType accessorType) {
 
-        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
-            this.generatedClass = generatedClass;
-            this.outerType = outerType;
-            this.injectedServices = injectedServices;
-            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
-
-            ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
-            for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
-                if (!constructor.isSynthetic()) {
-                    constructor.setAccessible(true);
-                    builder.add(new GeneratedConstructorImpl(constructor));
-                }
-            }
-            this.constructors = Ordering.from(new ConstructorComparator()).sortedCopy(builder.build());
         }
 
-        @Override
-        public Class<Object> getGeneratedClass() {
-            return Cast.uncheckedNonnullCast(generatedClass);
+        /**
+         * Validate the property is declared properly.
+         *
+         * Implementations might check things like the name or type of property.
+         *
+         * @param property the property to check
+         */
+        default void validateProperty(PropertyDetails property) {
+
+        }
+    }
+
+    private interface UnclaimedPropertyHandler {
+        /**
+         * Called when no handler has claimed the property.
+         */
+        void unclaimed(PropertyMetadata property);
+    }
+
+    protected interface ClassInspectionVisitor {
+        void mixInExtensible();
+
+        void mixInConventionAware();
+
+        void providesOwnDynamicObjectImplementation();
+
+        void providesOwnServicesImplementation();
+
+        void providesOwnToString();
+
+        void mixInFullyManagedState();
+
+        void mixInServiceInjection();
+
+        void instantiatesNestedObjects();
+
+        void attachDuringConstruction(PropertyMetadata property, boolean applyRole);
+
+        void attachOnDemand(PropertyMetadata property, boolean applyRole);
+
+        void markPropertyAsIneligibleForConventionMapping(PropertyMetadata property);
+
+        ClassGenerationVisitor builder();
+    }
+
+    protected interface InstantiationStrategy {
+        Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+    }
+
+    protected interface ClassGenerationVisitor {
+        void addConstructor(Constructor<?> constructor, boolean addNameParameter);
+
+        default void addConstructor(Constructor<?> constructor) {
+            addConstructor(constructor, false);
         }
 
-        @Nullable
-        @Override
-        public Class<?> getOuterType() {
-            return outerType;
-        }
+        void addDefaultConstructor();
 
-        @Override
-        public List<GeneratedConstructor<Object>> getConstructors() {
-            return constructors;
-        }
+        void addNameConstructor();
 
-        @Override
-        public SerializationConstructor<Object> getSerializationConstructor(Class<? super Object> baseClass) {
-            return new SerializationConstructorImpl(baseClass);
-        }
+        void mixInDynamicAware();
 
-        private class SerializationConstructorImpl implements SerializationConstructor<Object> {
-            private final InstantiationStrategy strategy;
+        void addNoDeprecationConventionPrivateGetter();
 
-            public SerializationConstructorImpl(Class<?> baseClass) {
-                this.strategy = createForSerialization(generatedClass, baseClass);
-            }
+        void mixInConventionAware();
 
-            @Override
-            public Object newInstance(ServiceLookup services, InstanceGenerator nested) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-                return strategy.newInstance(services, nested, null, NO_PARAMS);
-            }
-        }
+        void mixInGroovyObject();
 
-        private class GeneratedConstructorImpl implements GeneratedConstructor<Object> {
-            private final Constructor<?> constructor;
-            private final InstantiationStrategy strategy;
+        void addDynamicMethods();
 
-            public GeneratedConstructorImpl(Constructor<?> constructor) {
-                this.constructor = constructor;
-                this.strategy = createUsingConstructor(constructor);
-            }
+        void addExtensionsProperty();
 
-            @Override
-            public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-                return strategy.newInstance(services, nested, displayName, params);
-            }
+        void applyServiceInjectionToProperty(PropertyMetadata property);
 
-            @Override
-            public boolean requiresService(Class<?> serviceType) {
-                for (Class<?> parameterType : constructor.getParameterTypes()) {
-                    if (parameterType.isAssignableFrom(serviceType)) {
-                        return true;
-                    }
-                }
-                for (Class<?> injectedService : injectedServices) {
-                    if (injectedService.isAssignableFrom(serviceType)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
+        void applyServiceInjectionToGetter(PropertyMetadata property, MethodMetadata getter);
 
-            @Override
-            public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
-                return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
-            }
+        void applyServiceInjectionToSetter(PropertyMetadata property, Method setter);
 
-            @Override
-            public Class<?>[] getParameterTypes() {
-                return constructor.getParameterTypes();
-            }
+        void applyServiceInjectionToGetter(PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter);
 
-            @Override
-            public Type[] getGenericParameterTypes() {
-                return constructor.getGenericParameterTypes();
-            }
+        void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
 
-            @Nullable
-            @Override
-            public <S extends Annotation> S getAnnotation(Class<S> annotation) {
-                return constructor.getAnnotation(annotation);
-            }
+        void applyManagedStateToProperty(PropertyMetadata property);
 
-            @Override
-            public int getModifiers() {
-                return constructor.getModifiers();
-            }
-        }
+        void applyManagedStateToGetter(PropertyMetadata property, Method getter);
+
+        void applyManagedStateToSetter(PropertyMetadata property, Method setter);
+
+        void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
+
+        void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties);
+
+        void applyConventionMappingToProperty(PropertyMetadata property);
+
+        void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner, boolean applyRole);
+
+        void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
+
+        void applyConventionMappingToSetMethod(PropertyMetadata property, Method setter);
+
+        void addSetMethod(PropertyMetadata propertyMetaData, Method setter);
+
+        void addActionMethod(Method method);
+
+        void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter);
+
+        void addNameProperty();
+
+        Class<?> generate() throws Exception;
     }
 
     private static class ClassMetadata {
@@ -775,31 +785,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private interface ClassValidator {
-        /**
-         * Validates the method is declared properly.
-         *
-         * Implementations might check things like the annotations declared on the method.
-         *
-         * @param method the method to check
-         * @param accessorType the type of property this method would represent
-         */
-        default void validateMethod(Method method, PropertyAccessorType accessorType) {
-
-        }
-
-        /**
-         * Validate the property is declared properly.
-         *
-         * Implementations might check things like the name or type of property.
-         *
-         * @param property the property to check
-         */
-        default void validateProperty(PropertyDetails property) {
-
-        }
-    }
-
     private static class ClassGenerationHandler {
         // used in subclasses
         void startType(Class<?> type) {
@@ -846,22 +831,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private interface UnclaimedPropertyHandler {
-        /**
-         * Called when no handler has claimed the property.
-         */
-        void unclaimed(PropertyMetadata property);
-    }
-
     private static class DslMixInPropertyType extends ClassGenerationHandler {
         private final AbstractClassGenerator.ExtensibleTypePropertyHandler extensibleTypeHandler;
+        private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
+        private final MethodSet actionMethods = new MethodSet();
+        private final SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
         private boolean providesOwnDynamicObject;
         private boolean needDynamicAware;
         private boolean needGroovyObject;
         private boolean providesOwnToString;
-        private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
-        private final MethodSet actionMethods = new MethodSet();
-        private final SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
 
         public DslMixInPropertyType(ExtensibleTypePropertyHandler extensibleTypeHandler) {
             this.extensibleTypeHandler = extensibleTypeHandler;
@@ -981,204 +959,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
             return null;
-        }
-    }
-
-    private class ExtensibleTypePropertyHandler extends ClassGenerationHandler implements UnclaimedPropertyHandler {
-        private Class<?> type;
-        private Class<?> noMappingClass;
-        private boolean conventionAware;
-        private boolean extensible;
-        private boolean hasExtensionAwareImplementation;
-        private final List<PropertyMetadata> conventionProperties = new ArrayList<>();
-
-        @Override
-        void startType(Class<?> type) {
-            this.type = type;
-            extensible = !JavaReflectionUtil.hasAnnotation(type, NonExtensible.class);
-
-            noMappingClass = Object.class;
-            for (Class<?> c = type; c != null && noMappingClass == Object.class; c = c.getSuperclass()) {
-                if (c.getAnnotation(NoConventionMapping.class) != null) {
-                    noMappingClass = c;
-                }
-            }
-
-            conventionAware = extensible && noMappingClass != type;
-        }
-
-        @Override
-        boolean claimPropertyImplementation(PropertyMetadata property) {
-            if (extensible) {
-                if (property.getName().equals("extensions")) {
-                    for (MethodMetadata getter : property.getOverridableGetters()) {
-                        if (getter.isAbstract()) {
-                            return true;
-                        }
-                    }
-                    hasExtensionAwareImplementation = true;
-                    return true;
-                }
-                return property.getName().equals("conventionMapping")
-                    || property.getName().equals("convention");
-            }
-
-            return false;
-        }
-
-        @Override
-        public void unclaimed(PropertyMetadata property) {
-            for (MethodMetadata getter : property.getOverridableGetters()) {
-                if (!getter.method.getDeclaringClass().isAssignableFrom(noMappingClass)) {
-                    conventionProperties.add(property);
-                    break;
-                }
-            }
-        }
-
-        @Override
-        void applyTo(ClassInspectionVisitor visitor) {
-            if (extensible) {
-                visitor.mixInExtensible();
-            }
-            if (conventionAware) {
-                visitor.mixInConventionAware();
-            }
-            for (PropertyMetadata property : conventionProperties) {
-                boolean applyRole = isLazyAttachProperty(property) && isRoleType(property);
-                if (applyRole) {
-                    visitor.instantiatesNestedObjects();
-                }
-            }
-        }
-
-        @Override
-        void applyTo(ClassGenerationVisitor visitor) {
-            boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
-            boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
-            if (addExtensionProperty || mixInConventionAware) {
-                visitor.addNoDeprecationConventionPrivateGetter();
-            }
-            if (addExtensionProperty) {
-                visitor.addExtensionsProperty();
-            }
-            if (mixInConventionAware) {
-                visitor.mixInConventionAware();
-            }
-            for (PropertyMetadata property : conventionProperties) {
-                visitor.applyConventionMappingToProperty(property);
-                boolean attachProperty = isLazyAttachProperty(property);
-                boolean applyRole = attachProperty && isRoleType(property);
-                for (MethodMetadata getter : property.getOverridableGetters()) {
-                    boolean attachOwner = attachProperty && isAttachableType(getter);
-                    visitor.applyConventionMappingToGetter(property, getter, attachOwner, applyRole);
-                }
-                for (Method setter : property.getOverridableSetters()) {
-                    visitor.applyConventionMappingToSetter(property, setter);
-                }
-            }
-        }
-    }
-
-    private class ManagedPropertiesHandler extends ClassGenerationHandler {
-        private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
-        private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
-        private final List<PropertyMetadata> eagerAttachProperties = new ArrayList<>();
-        private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
-
-        private boolean hasFields;
-
-        @Override
-        public void hasFields() {
-            hasFields = true;
-        }
-
-        @Override
-        void visitProperty(PropertyMetadata property) {
-            if (isEagerAttachProperty(property)) {
-                // Property is read-only and main getter is final, so attach eagerly in constructor
-                // If the getter is not final, then attach lazily in the getter
-                eagerAttachProperties.add(property);
-            }
-
-            if (isIneligibleForConventionMapping(property)) {
-                ineligibleProperties.add(property);
-            }
-        }
-
-        @Override
-        boolean claimPropertyImplementation(PropertyMetadata property) {
-            // Skip properties with non-abstract getter or setter implementations
-            for (MethodMetadata getter : property.getters) {
-                if (getter.shouldImplement() && !getter.isAbstract()) {
-                    return false;
-                }
-            }
-            for (Method setter : property.setters) {
-                if (!Modifier.isAbstract(setter.getModifiers())) {
-                    return false;
-                }
-            }
-
-            // Property is readable and all getters and setters are abstract
-            if (isManagedProperty(property)) {
-                // Abstract read-only property with managed type
-                readOnlyProperties.add(property);
-                return true;
-            } else if (property.isReadable() && property.isWritable()) {
-                // Mutable property
-                mutableProperties.add(property);
-                return true;
-            } else {
-                // Read only but unrecognized type
-                return false;
-            }
-        }
-
-        @Override
-        void applyTo(ClassInspectionVisitor visitor) {
-            if (!hasFields) {
-                visitor.mixInFullyManagedState();
-            }
-            if (!readOnlyProperties.isEmpty()) {
-                visitor.instantiatesNestedObjects();
-            }
-            for (PropertyMetadata property : eagerAttachProperties) {
-                boolean applyRole = isRoleType(property);
-                visitor.attachDuringConstruction(property, applyRole);
-            }
-            for (PropertyMetadata property : ineligibleProperties) {
-                visitor.markPropertyAsIneligibleForConventionMapping(property);
-            }
-            for (PropertyMetadata property : readOnlyProperties) {
-                if (isReattachProperty(property)) {
-                    boolean applyRole = isRoleType(property);
-                    visitor.attachOnDemand(property, applyRole);
-                }
-            }
-        }
-
-        @Override
-        void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetadata property : mutableProperties) {
-                visitor.applyManagedStateToProperty(property);
-                for (MethodMetadata getter : property.getters) {
-                    visitor.applyManagedStateToGetter(property, getter.method);
-                }
-                for (Method setter : property.setters) {
-                    visitor.applyManagedStateToSetter(property, setter);
-                }
-            }
-            for (PropertyMetadata property : readOnlyProperties) {
-                visitor.applyManagedStateToProperty(property);
-                boolean applyRole = isRoleType(property);
-                for (MethodMetadata getter : property.getters) {
-                    visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
-                }
-            }
-            if (!hasFields) {
-                visitor.addManagedMethods(mutableProperties, readOnlyProperties);
-            }
         }
     }
 
@@ -1472,98 +1252,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    protected interface ClassInspectionVisitor {
-        void mixInExtensible();
-
-        void mixInConventionAware();
-
-        void providesOwnDynamicObjectImplementation();
-
-        void providesOwnServicesImplementation();
-
-        void providesOwnToString();
-
-        void mixInFullyManagedState();
-
-        void mixInServiceInjection();
-
-        void instantiatesNestedObjects();
-
-        void attachDuringConstruction(PropertyMetadata property, boolean applyRole);
-
-        void attachOnDemand(PropertyMetadata property, boolean applyRole);
-
-        void markPropertyAsIneligibleForConventionMapping(PropertyMetadata property);
-
-        ClassGenerationVisitor builder();
-    }
-
-    protected interface InstantiationStrategy {
-        Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
-    }
-
-    protected interface ClassGenerationVisitor {
-        void addConstructor(Constructor<?> constructor, boolean addNameParameter);
-
-        default void addConstructor(Constructor<?> constructor) {
-            addConstructor(constructor, false);
-        }
-
-        void addDefaultConstructor();
-
-        void addNameConstructor();
-
-        void mixInDynamicAware();
-
-        void addNoDeprecationConventionPrivateGetter();
-
-        void mixInConventionAware();
-
-        void mixInGroovyObject();
-
-        void addDynamicMethods();
-
-        void addExtensionsProperty();
-
-        void applyServiceInjectionToProperty(PropertyMetadata property);
-
-        void applyServiceInjectionToGetter(PropertyMetadata property, MethodMetadata getter);
-
-        void applyServiceInjectionToSetter(PropertyMetadata property, Method setter);
-
-        void applyServiceInjectionToGetter(PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter);
-
-        void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
-
-        void applyManagedStateToProperty(PropertyMetadata property);
-
-        void applyManagedStateToGetter(PropertyMetadata property, Method getter);
-
-        void applyManagedStateToSetter(PropertyMetadata property, Method setter);
-
-        void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
-
-        void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties);
-
-        void applyConventionMappingToProperty(PropertyMetadata property);
-
-        void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner, boolean applyRole);
-
-        void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
-
-        void applyConventionMappingToSetMethod(PropertyMetadata property, Method setter);
-
-        void addSetMethod(PropertyMetadata propertyMetaData, Method setter);
-
-        void addActionMethod(Method method);
-
-        void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter);
-
-        void addNameProperty();
-
-        Class<?> generate() throws Exception;
-    }
-
     /**
      * Groovy 4 no longer considers {@code Boolean isFoo()} a property {@code foo} of type {@code Boolean}.
      * <p>
@@ -1606,6 +1294,318 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                         .withUpgradeGuideSection(8, "groovy_boolean_properties")
                         .nagUser();
                 }
+            }
+        }
+    }
+
+    protected class GeneratedClassImpl implements GeneratedClass<Object> {
+        private final Class<?> generatedClass;
+        private final Class<?> outerType;
+        private final List<Class<?>> injectedServices;
+        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
+        private final List<GeneratedConstructor<Object>> constructors;
+
+        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
+            this.generatedClass = generatedClass;
+            this.outerType = outerType;
+            this.injectedServices = injectedServices;
+            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
+
+            ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
+            for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
+                if (!constructor.isSynthetic()) {
+                    constructor.setAccessible(true);
+                    builder.add(new GeneratedConstructorImpl(constructor));
+                }
+            }
+            this.constructors = Ordering.from(new ConstructorComparator()).sortedCopy(builder.build());
+        }
+
+        @Override
+        public Class<Object> getGeneratedClass() {
+            return Cast.uncheckedNonnullCast(generatedClass);
+        }
+
+        @Nullable
+        @Override
+        public Class<?> getOuterType() {
+            return outerType;
+        }
+
+        @Override
+        public List<GeneratedConstructor<Object>> getConstructors() {
+            return constructors;
+        }
+
+        @Override
+        public SerializationConstructor<Object> getSerializationConstructor(Class<? super Object> baseClass) {
+            return new SerializationConstructorImpl(baseClass);
+        }
+
+        private class SerializationConstructorImpl implements SerializationConstructor<Object> {
+            private final InstantiationStrategy strategy;
+
+            public SerializationConstructorImpl(Class<?> baseClass) {
+                this.strategy = createForSerialization(generatedClass, baseClass);
+            }
+
+            @Override
+            public Object newInstance(ServiceLookup services, InstanceGenerator nested) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+                return strategy.newInstance(services, nested, null, NO_PARAMS);
+            }
+        }
+
+        private class GeneratedConstructorImpl implements GeneratedConstructor<Object> {
+            private final Constructor<?> constructor;
+            private final InstantiationStrategy strategy;
+
+            public GeneratedConstructorImpl(Constructor<?> constructor) {
+                this.constructor = constructor;
+                this.strategy = createUsingConstructor(constructor);
+            }
+
+            @Override
+            public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+                return strategy.newInstance(services, nested, displayName, params);
+            }
+
+            @Override
+            public boolean requiresService(Class<?> serviceType) {
+                for (Class<?> parameterType : constructor.getParameterTypes()) {
+                    if (parameterType.isAssignableFrom(serviceType)) {
+                        return true;
+                    }
+                }
+                for (Class<?> injectedService : injectedServices) {
+                    if (injectedService.isAssignableFrom(serviceType)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
+                return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
+            }
+
+            @Override
+            public Class<?>[] getParameterTypes() {
+                return constructor.getParameterTypes();
+            }
+
+            @Override
+            public Type[] getGenericParameterTypes() {
+                return constructor.getGenericParameterTypes();
+            }
+
+            @Nullable
+            @Override
+            public <S extends Annotation> S getAnnotation(Class<S> annotation) {
+                return constructor.getAnnotation(annotation);
+            }
+
+            @Override
+            public int getModifiers() {
+                return constructor.getModifiers();
+            }
+        }
+    }
+
+    private class ExtensibleTypePropertyHandler extends ClassGenerationHandler implements UnclaimedPropertyHandler {
+        private final List<PropertyMetadata> conventionProperties = new ArrayList<>();
+        private Class<?> type;
+        private Class<?> noMappingClass;
+        private boolean conventionAware;
+        private boolean extensible;
+        private boolean hasExtensionAwareImplementation;
+
+        @Override
+        void startType(Class<?> type) {
+            this.type = type;
+            extensible = !JavaReflectionUtil.hasAnnotation(type, NonExtensible.class);
+
+            noMappingClass = Object.class;
+            for (Class<?> c = type; c != null && noMappingClass == Object.class; c = c.getSuperclass()) {
+                if (c.getAnnotation(NoConventionMapping.class) != null) {
+                    noMappingClass = c;
+                }
+            }
+
+            conventionAware = extensible && noMappingClass != type;
+        }
+
+        @Override
+        boolean claimPropertyImplementation(PropertyMetadata property) {
+            if (extensible) {
+                if (property.getName().equals("extensions")) {
+                    for (MethodMetadata getter : property.getOverridableGetters()) {
+                        if (getter.isAbstract()) {
+                            return true;
+                        }
+                    }
+                    hasExtensionAwareImplementation = true;
+                    return true;
+                }
+                return property.getName().equals("conventionMapping")
+                    || property.getName().equals("convention");
+            }
+
+            return false;
+        }
+
+        @Override
+        public void unclaimed(PropertyMetadata property) {
+            for (MethodMetadata getter : property.getOverridableGetters()) {
+                if (!getter.method.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+                    conventionProperties.add(property);
+                    break;
+                }
+            }
+        }
+
+        @Override
+        void applyTo(ClassInspectionVisitor visitor) {
+            if (extensible) {
+                visitor.mixInExtensible();
+            }
+            if (conventionAware) {
+                visitor.mixInConventionAware();
+            }
+            for (PropertyMetadata property : conventionProperties) {
+                boolean applyRole = isLazyAttachProperty(property) && isRoleType(property);
+                if (applyRole) {
+                    visitor.instantiatesNestedObjects();
+                }
+            }
+        }
+
+        @Override
+        void applyTo(ClassGenerationVisitor visitor) {
+            boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
+            boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
+            if (addExtensionProperty || mixInConventionAware) {
+                visitor.addNoDeprecationConventionPrivateGetter();
+            }
+            if (addExtensionProperty) {
+                visitor.addExtensionsProperty();
+            }
+            if (mixInConventionAware) {
+                visitor.mixInConventionAware();
+            }
+            for (PropertyMetadata property : conventionProperties) {
+                visitor.applyConventionMappingToProperty(property);
+                boolean attachProperty = isLazyAttachProperty(property);
+                boolean applyRole = attachProperty && isRoleType(property);
+                for (MethodMetadata getter : property.getOverridableGetters()) {
+                    boolean attachOwner = attachProperty && isAttachableType(getter);
+                    visitor.applyConventionMappingToGetter(property, getter, attachOwner, applyRole);
+                }
+                for (Method setter : property.getOverridableSetters()) {
+                    visitor.applyConventionMappingToSetter(property, setter);
+                }
+            }
+        }
+    }
+
+    private class ManagedPropertiesHandler extends ClassGenerationHandler {
+        private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
+        private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
+        private final List<PropertyMetadata> eagerAttachProperties = new ArrayList<>();
+        private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
+
+        private boolean hasFields;
+
+        @Override
+        public void hasFields() {
+            hasFields = true;
+        }
+
+        @Override
+        void visitProperty(PropertyMetadata property) {
+            if (isEagerAttachProperty(property)) {
+                // Property is read-only and main getter is final, so attach eagerly in constructor
+                // If the getter is not final, then attach lazily in the getter
+                eagerAttachProperties.add(property);
+            }
+
+            if (isIneligibleForConventionMapping(property)) {
+                ineligibleProperties.add(property);
+            }
+        }
+
+        @Override
+        boolean claimPropertyImplementation(PropertyMetadata property) {
+            // Skip properties with non-abstract getter or setter implementations
+            for (MethodMetadata getter : property.getters) {
+                if (getter.shouldImplement() && !getter.isAbstract()) {
+                    return false;
+                }
+            }
+            for (Method setter : property.setters) {
+                if (!Modifier.isAbstract(setter.getModifiers())) {
+                    return false;
+                }
+            }
+
+            // Property is readable and all getters and setters are abstract
+            if (isManagedProperty(property)) {
+                // Abstract read-only property with managed type
+                readOnlyProperties.add(property);
+                return true;
+            } else if (property.isReadable() && property.isWritable()) {
+                // Mutable property
+                mutableProperties.add(property);
+                return true;
+            } else {
+                // Read only but unrecognized type
+                return false;
+            }
+        }
+
+        @Override
+        void applyTo(ClassInspectionVisitor visitor) {
+            if (!hasFields) {
+                visitor.mixInFullyManagedState();
+            }
+            if (!readOnlyProperties.isEmpty()) {
+                visitor.instantiatesNestedObjects();
+            }
+            for (PropertyMetadata property : eagerAttachProperties) {
+                boolean applyRole = isRoleType(property);
+                visitor.attachDuringConstruction(property, applyRole);
+            }
+            for (PropertyMetadata property : ineligibleProperties) {
+                visitor.markPropertyAsIneligibleForConventionMapping(property);
+            }
+            for (PropertyMetadata property : readOnlyProperties) {
+                if (isReattachProperty(property)) {
+                    boolean applyRole = isRoleType(property);
+                    visitor.attachOnDemand(property, applyRole);
+                }
+            }
+        }
+
+        @Override
+        void applyTo(ClassGenerationVisitor visitor) {
+            for (PropertyMetadata property : mutableProperties) {
+                visitor.applyManagedStateToProperty(property);
+                for (MethodMetadata getter : property.getters) {
+                    visitor.applyManagedStateToGetter(property, getter.method);
+                }
+                for (Method setter : property.setters) {
+                    visitor.applyManagedStateToSetter(property, setter);
+                }
+            }
+            for (PropertyMetadata property : readOnlyProperties) {
+                visitor.applyManagedStateToProperty(property);
+                boolean applyRole = isRoleType(property);
+                for (MethodMetadata getter : property.getters) {
+                    visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
+                }
+            }
+            if (!hasFields) {
+                visitor.addManagedMethods(mutableProperties, readOnlyProperties);
             }
         }
     }

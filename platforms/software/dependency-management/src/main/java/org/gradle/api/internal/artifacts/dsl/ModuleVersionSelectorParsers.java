@@ -82,14 +82,14 @@ public class ModuleVersionSelectorParsers {
                 parsed = new ParsedModuleStringNotation(notation, null);
             } catch (IllegalDependencyNotation e) {
                 throw new InvalidUserDataException(
-                        "Invalid format: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
-                                + "e.g: 'org.gradle:gradle-core:1.0'");
+                    "Invalid format: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
+                        + "e.g: 'org.gradle:gradle-core:1.0'");
             }
 
             if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
                 throw new InvalidUserDataException(
-                        "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
-                                + "'org.gradle:gradle-core:1.0'");
+                    "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
+                        + "'org.gradle:gradle-core:1.0'");
             }
             result.converted(newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), parsed.getVersion()));
         }

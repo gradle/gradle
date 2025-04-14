@@ -77,60 +77,11 @@ public class ConsumerProvidedVariantFinder {
      *
      * @param sources The set of producer variants.
      * @param requested The requested attributes.
-     *
      * @return A collection of variant chains which, if applied to the corresponding source variant, will produce a
-     *      variant compatible with the requested attributes.
+     * variant compatible with the requested attributes.
      */
     public List<TransformedVariant> findCandidateTransformationChains(List<ResolvedVariant> sources, ImmutableAttributes requested) {
         return transformCache.query(sources, requested);
-    }
-
-    /**
-     * A node in a chain of artifact transforms.
-     */
-    private static class ChainNode {
-        final ChainNode next;
-        final TransformRegistration transform;
-        public ChainNode(@Nullable ChainNode next, TransformRegistration transform) {
-            this.next = next;
-            this.transform = transform;
-        }
-    }
-
-    /**
-     * Represents the intermediate state of a potential transform solution. Many instances of this state may simultaneously exist
-     * for different potential solutions.
-     */
-    private static class ChainState {
-        final ChainNode chain;
-        final ImmutableAttributes requested;
-        final ImmutableFilteredList<TransformRegistration> transforms;
-
-        /**
-         * @param chain The candidate transform chain.
-         * @param requested The attribute set which must be produced by any previous variant in order to achieve the
-         *      original user-requested attribute set after {@code chain} is applied to that previous variant.
-         * @param transforms The remaining transforms which may be prepended to {@code chain} to produce a solution.
-         */
-        public ChainState(@Nullable ChainNode chain, ImmutableAttributes requested, ImmutableFilteredList<TransformRegistration> transforms) {
-            this.chain = chain;
-            this.requested = requested;
-            this.transforms = transforms;
-        }
-    }
-
-    /**
-     * A cached result of the transform chain detection algorithm. References an index within the source variant
-     * list instead of an actual variant itself, so that this result can be cached and used for distinct variant sets
-     * that otherwise share the same attributes.
-     */
-    private static class CachedVariant {
-        private final int sourceIndex;
-        private final VariantDefinition chain;
-        public CachedVariant(int sourceIndex, VariantDefinition chain) {
-            this.sourceIndex = sourceIndex;
-            this.chain = chain;
-        }
     }
 
     /**
@@ -200,7 +151,6 @@ public class ConsumerProvidedVariantFinder {
      *
      * @param stateChain The transform chain from the search state to apply to the root transformed variant.
      * @param root The root variant to apply the chain to.
-     *
      * @return A variant chain representing the final transformed variant.
      */
     private VariantDefinition createVariantChain(final ChainNode stateChain, DefaultVariantDefinition root) {
@@ -215,6 +165,56 @@ public class ConsumerProvidedVariantFinder {
             node = node.next;
         }
         return last;
+    }
+
+    /**
+     * A node in a chain of artifact transforms.
+     */
+    private static class ChainNode {
+        final ChainNode next;
+        final TransformRegistration transform;
+
+        public ChainNode(@Nullable ChainNode next, TransformRegistration transform) {
+            this.next = next;
+            this.transform = transform;
+        }
+    }
+
+    /**
+     * Represents the intermediate state of a potential transform solution. Many instances of this state may simultaneously exist
+     * for different potential solutions.
+     */
+    private static class ChainState {
+        final ChainNode chain;
+        final ImmutableAttributes requested;
+        final ImmutableFilteredList<TransformRegistration> transforms;
+
+        /**
+         * @param chain The candidate transform chain.
+         * @param requested The attribute set which must be produced by any previous variant in order to achieve the
+         * original user-requested attribute set after {@code chain} is applied to that previous variant.
+         * @param transforms The remaining transforms which may be prepended to {@code chain} to produce a solution.
+         */
+        public ChainState(@Nullable ChainNode chain, ImmutableAttributes requested, ImmutableFilteredList<TransformRegistration> transforms) {
+            this.chain = chain;
+            this.requested = requested;
+            this.transforms = transforms;
+        }
+    }
+
+    /**
+     * A cached result of the transform chain detection algorithm. References an index within the source variant
+     * list instead of an actual variant itself, so that this result can be cached and used for distinct variant sets
+     * that otherwise share the same attributes.
+     */
+    private static class CachedVariant {
+        private final int sourceIndex;
+        private final VariantDefinition chain;
+
+        public CachedVariant(int sourceIndex, VariantDefinition chain) {
+            this.sourceIndex = sourceIndex;
+            this.chain = chain;
+        }
     }
 
     /**

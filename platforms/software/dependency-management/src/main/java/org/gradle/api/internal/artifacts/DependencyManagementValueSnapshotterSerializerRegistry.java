@@ -115,6 +115,15 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         });
     }
 
+    private static Class<?> baseTypeOf(Class<?> type) {
+        for (Class<?> supportedType : SUPPORTED_TYPES) {
+            if (supportedType.isAssignableFrom(type)) {
+                return supportedType;
+            }
+        }
+        return type;
+    }
+
     @Override
     public boolean canSerialize(Class<?> baseType) {
         return super.canSerialize(baseTypeOf(baseType));
@@ -123,15 +132,6 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
     @Override
     public <T> Serializer<T> build(Class<T> baseType) {
         return super.build(Cast.uncheckedCast(baseTypeOf(baseType)));
-    }
-
-    private static Class<?> baseTypeOf(Class<?> type) {
-        for (Class<?> supportedType : SUPPORTED_TYPES) {
-            if (supportedType.isAssignableFrom(type)) {
-                return supportedType;
-            }
-        }
-        return type;
     }
 
     /**

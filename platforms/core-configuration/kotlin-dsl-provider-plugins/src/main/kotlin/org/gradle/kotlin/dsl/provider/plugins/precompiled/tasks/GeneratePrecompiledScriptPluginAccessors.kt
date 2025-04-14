@@ -445,10 +445,12 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     componentIdentifier,
                     fileCollectionFactory.fixed(it.file)
                 )
+
                 is ProjectComponentIdentifier -> DefaultFileCollectionDependency(
                     OpaqueComponentIdentifier(ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY),
                     fileCollectionFactory.fixed(componentIdentifier.displayName, it.file)
                 )
+
                 else -> {
                     dependencyHandler.create(fileCollectionFactory.fixed(it.file))
                 }
@@ -481,10 +483,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String): String =
         buildString {
-            append(plugins.joinToString(
-                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
-                separator = "\n",
-            ) { " - " + projectRelativePathOf(it) })
+            append(
+                plugins.joinToString(
+                    prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+                    separator = "\n",
+                ) { " - " + projectRelativePathOf(it) })
             appendStdoutStderr(stdout, stderr)
         }
 

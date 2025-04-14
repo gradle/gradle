@@ -33,20 +33,15 @@ import java.util.Set;
 import java.util.TreeMap;
 
 class ModelGraph {
-    private enum PendingState {
-        ADD, NOTIFY
-    }
-
     private final ModelNodeInternal root;
     private final Map<ModelPath, ModelNodeInternal> flattened = new TreeMap<>();
     private final SetMultimap<ModelPath, ModelListener> pathListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelListener> parentListeners = LinkedHashMultimap.create();
     private final SetMultimap<ModelPath, ModelListener> ancestorListeners = LinkedHashMultimap.create();
     private final Set<ModelListener> listeners = new LinkedHashSet<ModelListener>();
-    private boolean notifying;
     private final Deque<ModelListener> pendingListeners = new ArrayDeque<>();
     private final Map<ModelNodeInternal, PendingState> pendingNodes = new LinkedHashMap<>();
-
+    private boolean notifying;
     public ModelGraph(ModelNodeInternal rootNode) {
         this.root = rootNode;
         flattened.put(root.getPath(), root);
@@ -239,5 +234,9 @@ class ModelGraph {
         }
 
         return flattened.remove(node.getPath());
+    }
+
+    private enum PendingState {
+        ADD, NOTIFY
     }
 }

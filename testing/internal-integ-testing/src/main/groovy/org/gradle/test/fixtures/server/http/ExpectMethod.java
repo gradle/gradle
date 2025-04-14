@@ -34,14 +34,13 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
     private final String path;
     private final Duration timeout;
     private final Lock lock;
-
+    private ResponseProducer responseBody = new SendFixedContent(200, "hi");
     private ResponseProducer producer = new ResponseProducer() {
         @Override
         public void writeTo(int requestId, HttpExchange exchange) throws IOException {
             responseBody.writeTo(requestId, exchange);
         }
     };
-    private ResponseProducer responseBody = new SendFixedContent(200, "hi");
     private BlockingRequest blockingRequest;
     private WaitPrecondition precondition;
 

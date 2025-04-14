@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.gradle.launcher.daemon.server.api.DaemonState;
+
 import static org.gradle.launcher.daemon.server.api.DaemonState.Canceled;
 import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
 

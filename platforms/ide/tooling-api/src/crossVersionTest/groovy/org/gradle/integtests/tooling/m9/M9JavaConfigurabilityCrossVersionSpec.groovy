@@ -85,8 +85,8 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         def env = withConnection {
             it.newBuild().setJavaHome(javaHome).run() //the assert
             it.model(BuildEnvironment.class)
-                    .setJavaHome(javaHome)
-                    .get()
+                .setJavaHome(javaHome)
+                .get()
         }
 
         then:

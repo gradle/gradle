@@ -21,10 +21,6 @@ import static org.gradle.test.fixtures.server.http.AbstractFailure.withLeadingSl
 
 class ExpectationState {
 
-    private enum FailureType {
-        None, UnexpectedRequest, Timeout
-    }
-
     private FailureType failure = FailureType.None;
     private String unexpectedMethod;
     private String unexpectedPath;
@@ -108,5 +104,9 @@ class ExpectationState {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    private enum FailureType {
+        None, UnexpectedRequest, Timeout
     }
 }

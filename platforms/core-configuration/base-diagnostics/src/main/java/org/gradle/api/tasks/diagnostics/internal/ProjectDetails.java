@@ -26,11 +26,6 @@ import java.util.Objects;
  */
 public interface ProjectDetails {
 
-    String getDisplayName();
-
-    @Nullable
-    String getDescription();
-
     static ProjectDetails of(Project project) {
         return withDisplayNameAndDescription(project);
     }
@@ -42,6 +37,11 @@ public interface ProjectDetails {
     static ProjectDisplayNameAndDescription withDisplayNameAndDescription(Project project) {
         return new ProjectDisplayNameAndDescription(project);
     }
+
+    String getDisplayName();
+
+    @Nullable
+    String getDescription();
 
     class ProjectDisplayNameAndDescription implements ProjectDetails {
         private final String displayName;
@@ -81,6 +81,7 @@ public interface ProjectDetails {
             return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description);
         }
     }
+
     class ProjectNameAndPath extends ProjectDisplayNameAndDescription {
         private final String name;
         private final String path;

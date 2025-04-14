@@ -73,6 +73,32 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
     int minFileSize = 273;
     int maxFileSize = 273 * 1024;
 
+    private static ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize, DataAccessor accessor) throws IOException {
+        Random random = new Random(1234L);
+        ImmutableList.Builder<DataSource> inputs = ImmutableList.builder();
+        for (int idx = 0; idx < fileCount; idx++) {
+            String name = "input-" + idx + ".bin";
+            int fileSize = minFileSize + random.nextInt(maxFileSize - minFileSize);
+            byte[] buffer = new byte[fileSize];
+            random.nextBytes(buffer);
+            DataSource input = accessor.createSource(name, buffer, Level.Trial);
+            inputs.add(input);
+        }
+        return inputs.build();
+    }
+
+    private static DataSource packSample(String name, List<DataSource> inputs, Packer packer, DataAccessor accessor) throws IOException {
+        long sumLength = 0;
+        for (DataSource input : inputs) {
+            sumLength += input.getLength();
+        }
+        DataTarget target = accessor.createTarget(name, Level.Trial);
+        packer.pack(inputs, target);
+        DataSource source = target.toSource();
+        System.out.printf(">>> %s is %d bytes long (uncompressed length: %d, compression ratio: %,.2f%%)%n", name, source.getLength(), sumLength, (double) source.getLength() / sumLength);
+        return source;
+    }
+
     protected abstract String getPackerName();
 
     protected abstract String getAccessorName();
@@ -102,32 +128,6 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
     @TearDown(Level.Iteration)
     public void tearDownIteration() throws IOException {
         DIRECTORY_PROVIDER.tearDownIteration();
-    }
-
-    private static ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize, DataAccessor accessor) throws IOException {
-        Random random = new Random(1234L);
-        ImmutableList.Builder<DataSource> inputs = ImmutableList.builder();
-        for (int idx = 0; idx < fileCount; idx++) {
-            String name = "input-" + idx + ".bin";
-            int fileSize = minFileSize + random.nextInt(maxFileSize - minFileSize);
-            byte[] buffer = new byte[fileSize];
-            random.nextBytes(buffer);
-            DataSource input = accessor.createSource(name, buffer, Level.Trial);
-            inputs.add(input);
-        }
-        return inputs.build();
-    }
-
-    private static DataSource packSample(String name, List<DataSource> inputs, Packer packer, DataAccessor accessor) throws IOException {
-        long sumLength = 0;
-        for (DataSource input : inputs) {
-            sumLength += input.getLength();
-        }
-        DataTarget target = accessor.createTarget(name, Level.Trial);
-        packer.pack(inputs, target);
-        DataSource source = target.toSource();
-        System.out.printf(">>> %s is %d bytes long (uncompressed length: %d, compression ratio: %,.2f%%)%n", name, source.getLength(), sumLength, (double) source.getLength() / sumLength);
-        return source;
     }
 
     @Benchmark

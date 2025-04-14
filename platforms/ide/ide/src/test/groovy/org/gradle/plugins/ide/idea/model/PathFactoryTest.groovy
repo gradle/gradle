@@ -21,7 +21,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class PathFactoryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final PathFactory factory = new PathFactory()
 
     def createsPathForAFileUnderARootDir() {
@@ -217,7 +218,7 @@ class PathFactoryTest extends Specification {
     }
 
     def findFileSystemRoots() {
-        File.listRoots().inject([]) {List result, File root ->
+        File.listRoots().inject([]) { List result, File root ->
             try {
                 new File(root, 'file').canonicalFile
                 result << root

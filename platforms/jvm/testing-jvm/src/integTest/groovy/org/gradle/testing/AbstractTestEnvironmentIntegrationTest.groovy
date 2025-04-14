@@ -26,6 +26,7 @@ import org.junit.Assume
 
 abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getModuleName()
+
     abstract boolean isFrameworkSupportsModularJava()
 
     def setup() {
@@ -240,8 +241,8 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
 
     def "can run tests with custom security manager"() {
         executer
-                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
-                .withToolchainDetectionEnabled()
+            .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+            .withToolchainDetectionEnabled()
 
         given:
         file('src/test/java/org/gradle/JUnitTest.java') << """

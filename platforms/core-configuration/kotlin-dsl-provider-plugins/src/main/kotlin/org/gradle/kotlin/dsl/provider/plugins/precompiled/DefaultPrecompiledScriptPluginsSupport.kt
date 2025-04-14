@@ -402,10 +402,11 @@ fun Task.validateKotlinCompilerArguments() {
 
 private
 fun configureKotlinCompilerArgumentsEagerly() {
-    throw PrecompiledScriptException("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. " +
-        "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
-        "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
-        "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
+    throw PrecompiledScriptException(
+        "Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. " +
+            "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
+            "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
+            "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
     )
 }
 

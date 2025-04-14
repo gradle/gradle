@@ -40,7 +40,8 @@ public class RunBuildAction implements Runnable {
 
     public RunBuildAction(
         BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor, StartParameterInternal startParameter, GradleLauncherMetaData clientMetaData, long startTime,
-        BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
+        BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable
+    ) {
         this.executor = executor;
         this.startParameter = startParameter;
         this.clientMetaData = clientMetaData;

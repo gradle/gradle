@@ -489,7 +489,7 @@ model - Displays the configuration model of root project 'test-project'. [deprec
     def "can run multiple task reports in parallel"() {
         given:
         buildFile << multiProjectBuild()
-        def projects = (1..100).collect {"project$it"}
+        def projects = (1..100).collect { "project$it" }
         createDirs(projects as String[])
         settingsFile << "include '${projects.join("', '")}'"
 

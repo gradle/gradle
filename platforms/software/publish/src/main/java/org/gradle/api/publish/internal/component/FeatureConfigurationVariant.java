@@ -37,7 +37,7 @@ public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentV
         boolean optional,
         ConfigurationVariantMapping.@Nullable DefaultDependencyMappingDetails dependencyMapping
     ) {
-        super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts(), configuration);
+        super(name, ((AttributeContainerInternal) variant.getAttributes()).asImmutable(), variant.getArtifacts(), configuration);
         this.scopeMapping = ScopeMapping.of(mavenScope, optional);
         this.optional = optional;
         this.dependencyMapping = dependencyMapping;

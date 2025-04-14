@@ -98,7 +98,8 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
             }
         """
 
-        when: succeeds "test"
+        when:
+        succeeds "test"
 
         then:
         outputContains("""

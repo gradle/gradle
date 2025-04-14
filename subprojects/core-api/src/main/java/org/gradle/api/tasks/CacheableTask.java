@@ -34,7 +34,6 @@ import java.lang.annotation.Target;
  * Using these APIs takes precedence over the presence (or absence) of {@code @CacheableTask}.</p>
  *
  * @see DisableCachingByDefault
- *
  * @since 3.0
  */
 @Documented

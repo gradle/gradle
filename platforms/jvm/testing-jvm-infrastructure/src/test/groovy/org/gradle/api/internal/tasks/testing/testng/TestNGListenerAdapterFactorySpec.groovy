@@ -90,4 +90,5 @@ class TestNGListenerAdapterFactorySpec extends Specification {
 }
 
 interface MyListener extends ITestListener, IConfigurationListener {}
+
 interface MyListener2 extends ITestListener, IConfigurationListener {}

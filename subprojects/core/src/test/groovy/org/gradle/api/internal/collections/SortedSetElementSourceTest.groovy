@@ -92,7 +92,7 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
         source.add("bazz")
         source.add("bizz")
         iterator = source.iteratorNoFlush()
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             iterator.next()
             iterator.remove()
         }
@@ -161,7 +161,7 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
 
         when:
         iterator = source.iterator()
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             iterator.next()
             iterator.remove()
         }
@@ -232,7 +232,9 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
     }
 
     class BaseType {}
+
     class SomeType extends BaseType {}
+
     class SomeOtherType extends BaseType {}
 
     @Override

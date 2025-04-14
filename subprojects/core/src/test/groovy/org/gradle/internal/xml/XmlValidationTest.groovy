@@ -34,7 +34,7 @@ class XmlValidationTest extends Specification {
         'foo>'      | _
         'foo='      | _
         'foo;'      | _
-        'foo⿰'     | _
+        'foo⿰'      | _
         'foo÷'      | _
         'foo`'      | _
         'foo\u2000' | _
@@ -125,4 +125,5 @@ class XmlValidationTest extends Specification {
         0xe000    | _
         0x10000   | _
         0x10ffff  | _
-    }}
+    }
+}

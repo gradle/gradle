@@ -14,29 +14,39 @@
  * limitations under the License.
  */
 
-package ${packageName};
+package $
+
+{packageName};
 
 import org.testng.annotations.*;
+
 import static org.testng.Assert.*;
 
-public class ${testClassName} {
-    private final ${productionClassName} production = new ${productionClassName}("value");
+private final $ {productionClassName} {
 
-    @Test
-    public void testOne() {
-        for (int i = 0; i < 1000; i++) {
-            System.out.println("Some test output from ${testClassName}.testOne - " + i);
-            System.err.println("Some test error  from ${testClassName}.testOne - " + i);
-        }
-        assertEquals(production.getProperty(), "value");
-    }
+$ {productionClassName}
 
-    @Test
-    public void testTwo() {
-        for (int i = 0; i < 1000; i++) {
-            System.out.println("Some test output from ${testClassName}.testTwo - " + i);
-            System.err.println("Some test error  from ${testClassName}.testTwo - " + i);
-        }
-        assertEquals(production.getProperty(), "value");
+production =new
+
+@Test
+public void testOne() {
+    for (int i = 0; i < 1000; i++) {
+        System.out.println("Some test output from ${testClassName}.testOne - " + i);
+        System.err.println("Some test error  from ${testClassName}.testOne - " + i);
     }
+    assertEquals(production.getProperty(), "value");
+}("value");
+
+@Test
+public void testTwo() {
+    for (int i = 0; i < 1000; i++) {
+        System.out.println("Some test output from ${testClassName}.testTwo - " + i);
+        System.err.println("Some test error  from ${testClassName}.testTwo - " + i);
+    }
+    assertEquals(production.getProperty(), "value");
+}
+
+public class $ {
+    testClassName
+}
 }

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.protocol;
 
 /**
  * Cancellation token passed from consumer to provider to propagate cancellation events.
+ *
  * @since 2.1-rc-1
  */
 public interface InternalCancellationToken {

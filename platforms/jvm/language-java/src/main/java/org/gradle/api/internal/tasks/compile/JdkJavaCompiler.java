@@ -66,6 +66,41 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         this.diagnosticToProblemListener = new DiagnosticToProblemListener(problemsService.getInternalReporter(), context);
     }
 
+    private static boolean emptySourcepathIn(List<String> options) {
+        Iterator<String> optionsIter = options.iterator();
+        while (optionsIter.hasNext()) {
+            String current = optionsIter.next();
+            if (current.equals("-sourcepath") || current.equals("--source-path")) {
+                return optionsIter.next().isEmpty();
+            }
+        }
+        return false;
+    }
+
+    private static void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
+        spec.severity(Severity.ERROR);
+        spec.contextualLabel(ex.getLocalizedMessage());
+        spec.withException(ex);
+    }
+
+    public static boolean canBeUsed() {
+        try {
+            // Our goal is to check if the class is instantiable
+            // Class loading alone doesn't generate an exception
+            new Context();
+        } catch (IllegalAccessError e) {
+            LOGGER.debug("Expected failure when checking class presence: {}", e.getMessage());
+            return false;
+        } catch (Throwable throwable) {
+            // We don't expect any other exception
+            // Regardless, to make this as robust as possible, we handle it
+            LOGGER.debug("Unexpected failure when checking class presence: {}", throwable.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         LOGGER.info("Compiling with JDK Java compiler API.");
@@ -124,41 +159,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
-    }
-
-    private static boolean emptySourcepathIn(List<String> options) {
-        Iterator<String> optionsIter = options.iterator();
-        while (optionsIter.hasNext()) {
-            String current = optionsIter.next();
-            if (current.equals("-sourcepath") || current.equals("--source-path")) {
-                return optionsIter.next().isEmpty();
-            }
-        }
-        return false;
-    }
-
-    private static void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
-        spec.severity(Severity.ERROR);
-        spec.contextualLabel(ex.getLocalizedMessage());
-        spec.withException(ex);
-    }
-
-    public static boolean canBeUsed() {
-        try {
-            // Our goal is to check if the class is instantiable
-            // Class loading alone doesn't generate an exception
-            new Context();
-        } catch (IllegalAccessError e) {
-            LOGGER.debug("Expected failure when checking class presence: {}", e.getMessage());
-            return false;
-        } catch (Throwable throwable) {
-            // We don't expect any other exception
-            // Regardless, to make this as robust as possible, we handle it
-            LOGGER.debug("Unexpected failure when checking class presence: {}", throwable.getMessage());
-            return false;
-        }
-
-        return true;
     }
 
 }

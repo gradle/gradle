@@ -29,11 +29,11 @@ import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
 
 class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     private final static ComponentSelectionDescriptorInternal[] REASONS_FOR_TEST = [
-            ComponentSelectionReasons.SELECTED_BY_RULE,
-            ComponentSelectionReasons.CONFLICT_RESOLUTION,
-            ComponentSelectionReasons.CONSTRAINT,
-            ComponentSelectionReasons.REJECTION,
-            ComponentSelectionReasons.FORCED
+        ComponentSelectionReasons.SELECTED_BY_RULE,
+        ComponentSelectionReasons.CONFLICT_RESOLUTION,
+        ComponentSelectionReasons.CONSTRAINT,
+        ComponentSelectionReasons.REJECTION,
+        ComponentSelectionReasons.FORCED
     ] as ComponentSelectionDescriptorInternal[]
 
 
@@ -77,7 +77,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
 
         then:
         single.length < withDuplicate.length
-        withDuplicate.length < 2*single.length
+        withDuplicate.length < 2 * single.length
         withoutDuplicate.length > withDuplicate.length
     }
 
@@ -99,7 +99,7 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
     }
 
     private static ComponentSelectionDescriptorInternal reason(int idx) {
-        REASONS_FOR_TEST[idx%REASONS_FOR_TEST.length]
+        REASONS_FOR_TEST[idx % REASONS_FOR_TEST.length]
     }
 
     @Override

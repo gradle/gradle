@@ -45,13 +45,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class TextResourceScriptSourceTest {
-    private TestFile testDir;
-    private File scriptFile;
-    private URI scriptFileUri;
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private final FileResolver resolver = TestFiles.resolver(tmpDir.getTestDirectory());
     private final DefaultTextFileResourceLoader resourceLoader = new DefaultTextFileResourceLoader(resolver);
+    private TestFile testDir;
+    private File scriptFile;
+    private URI scriptFileUri;
 
     @Before
     public void setUp() throws URISyntaxException {

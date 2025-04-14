@@ -20,13 +20,13 @@ import javax.xml.namespace.QName
 import spock.lang.Specification
 
 class DefaultIvyExtraInfoSpecTest extends Specification {
-    def "can add extra info elements" () {
+    def "can add extra info elements"() {
         def DefaultIvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec()
 
         when:
         extraInfo.add("http://my.extra.info", "foo", "fooValue")
 
         then:
-        extraInfo.asMap() == [ (new QName("http://my.extra.info", "foo")): "fooValue" ]
+        extraInfo.asMap() == [(new QName("http://my.extra.info", "foo")): "fooValue"]
     }
 }

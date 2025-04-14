@@ -42,17 +42,17 @@ class DaemonStopClientTest extends ConcurrentSpecification {
         then:
         1 * connector.maybeConnect(daemon1) >>> connection
         _ * connection.daemon >> daemon1
-        1 * connection.dispatch({it instanceof StopWhenIdle})
+        1 * connection.dispatch({ it instanceof StopWhenIdle })
         1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
 
         and:
         1 * connector.maybeConnect(daemon2) >>> connection
         _ * connection.daemon >> daemon2
-        1 * connection.dispatch({it instanceof StopWhenIdle})
+        1 * connection.dispatch({ it instanceof StopWhenIdle })
         1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
         0 * _
     }
@@ -64,9 +64,9 @@ class DaemonStopClientTest extends ConcurrentSpecification {
         then:
         _ * connection.daemon >> daemon('1')
         2 * connector.maybeConnect(_) >>> [connection, null]
-        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.dispatch({ it instanceof Stop })
         1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
         0 * _
     }
@@ -90,13 +90,13 @@ class DaemonStopClientTest extends ConcurrentSpecification {
         _ * connection.daemon >> daemon('1')
         _ * connection2.daemon >> daemon('2')
         3 * connector.maybeConnect(_) >>> [connection, connection2, null]
-        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.dispatch({ it instanceof Stop })
         1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
-        1 * connection2.dispatch({it instanceof Stop})
+        1 * connection2.dispatch({ it instanceof Stop })
         1 * connection2.receive() >> new Success(null)
-        1 * connection2.dispatch({it instanceof Finished})
+        1 * connection2.dispatch({ it instanceof Finished })
         1 * connection2.stop()
         0 * _
     }
@@ -118,9 +118,9 @@ class DaemonStopClientTest extends ConcurrentSpecification {
             assert spec.isSatisfiedBy(d2)
             connection
         }
-        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.dispatch({ it instanceof Stop })
         1 * connection.receive() >> new Success(null)
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
 
         1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->
@@ -128,9 +128,9 @@ class DaemonStopClientTest extends ConcurrentSpecification {
             assert spec.isSatisfiedBy(d2)
             connection2
         }
-        1 * connection2.dispatch({it instanceof Stop})
+        1 * connection2.dispatch({ it instanceof Stop })
         1 * connection2.receive() >> new Success(null)
-        1 * connection2.dispatch({it instanceof Finished})
+        1 * connection2.dispatch({ it instanceof Finished })
         1 * connection2.stop()
 
         1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->
@@ -154,9 +154,9 @@ class DaemonStopClientTest extends ConcurrentSpecification {
             assert spec.isSatisfiedBy(d1)
             connection
         }
-        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.dispatch({ it instanceof Stop })
         1 * connection.receive() >> new Failure(new RuntimeException())
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
 
         1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->

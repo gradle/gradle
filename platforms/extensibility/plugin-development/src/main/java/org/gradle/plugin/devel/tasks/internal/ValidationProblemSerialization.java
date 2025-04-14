@@ -129,6 +129,14 @@ public class ValidationProblemSerialization {
             this.typeToken = typeToken;
         }
 
+        private static boolean shouldWriteCause(Throwable throwable) {
+            Throwable cause = throwable.getCause();
+            if (cause == null || cause.getMessage() == null || cause == throwable) {
+                return false;
+            }
+            return throwable.getMessage() == null || !throwable.getMessage().contains(cause.getMessage());
+        }
+
         @SuppressWarnings("unchecked")
         @Nullable
         @Override
@@ -210,54 +218,9 @@ public class ValidationProblemSerialization {
             }
         }
 
-        private static boolean shouldWriteCause(Throwable throwable) {
-            Throwable cause = throwable.getCause();
-            if (cause == null || cause.getMessage() == null || cause == throwable) {
-                return false;
-            }
-            return throwable.getMessage() == null || !throwable.getMessage().contains(cause.getMessage());
-        }
-
     }
 
     public static class FileLocationAdapter extends TypeAdapter<FileLocation> {
-
-        @Override
-        public void write(JsonWriter out, @Nullable FileLocation value) throws IOException {
-            if (value == null) {
-                out.nullValue();
-                return;
-            }
-
-            out.beginObject();
-            out.name("type").value("file");
-            out.name("path").value(value.getPath());
-            if (value instanceof LineInFileLocation) {
-                out.name("subtype").value("lineInFile");
-                LineInFileLocation l = (LineInFileLocation) value;
-                out.name("line").value(l.getLine());
-                out.name("column").value(l.getColumn());
-                out.name("length").value(l.getLength());
-            } else if (value instanceof OffsetInFileLocation) {
-                out.name("subtype").value("offsetInFile");
-                OffsetInFileLocation l = (OffsetInFileLocation) value;
-                out.name("offset").value(l.getOffset());
-                out.name("length").value(l.getLength());
-            } else {
-                out.name("subtype").value("file");
-            }
-            out.endObject();
-        }
-
-        @Override
-        public FileLocation read(JsonReader in) throws IOException {
-            in.beginObject();
-            FileLocation fileLocation = readObject(in);
-            in.endObject();
-
-            Objects.requireNonNull(fileLocation, "path must not be null");
-            return fileLocation;
-        }
 
         @NonNull
         private static FileLocation readObject(JsonReader in) throws IOException {
@@ -307,9 +270,59 @@ public class ValidationProblemSerialization {
                 return DefaultFileLocation.from(path);
             }
         }
+
+        @Override
+        public void write(JsonWriter out, @Nullable FileLocation value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+
+            out.beginObject();
+            out.name("type").value("file");
+            out.name("path").value(value.getPath());
+            if (value instanceof LineInFileLocation) {
+                out.name("subtype").value("lineInFile");
+                LineInFileLocation l = (LineInFileLocation) value;
+                out.name("line").value(l.getLine());
+                out.name("column").value(l.getColumn());
+                out.name("length").value(l.getLength());
+            } else if (value instanceof OffsetInFileLocation) {
+                out.name("subtype").value("offsetInFile");
+                OffsetInFileLocation l = (OffsetInFileLocation) value;
+                out.name("offset").value(l.getOffset());
+                out.name("length").value(l.getLength());
+            } else {
+                out.name("subtype").value("file");
+            }
+            out.endObject();
+        }
+
+        @Override
+        public FileLocation read(JsonReader in) throws IOException {
+            in.beginObject();
+            FileLocation fileLocation = readObject(in);
+            in.endObject();
+
+            Objects.requireNonNull(fileLocation, "path must not be null");
+            return fileLocation;
+        }
     }
 
     public static class PluginIdLocationAdapter extends TypeAdapter<DefaultPluginIdLocation> {
+
+        private static DefaultPluginIdLocation readObject(JsonReader in) throws IOException {
+            String pluginId = null;
+            while (in.hasNext()) {
+                String name = in.nextName();
+                if (name.equals("pluginId")) {
+                    pluginId = in.nextString();
+                } else {
+                    in.skipValue();
+                }
+            }
+            return new DefaultPluginIdLocation(pluginId);
+        }
 
         @Override
         public void write(JsonWriter out, @Nullable DefaultPluginIdLocation value) throws IOException {
@@ -333,22 +346,23 @@ public class ValidationProblemSerialization {
             Objects.requireNonNull(problemLocation, "pluginId must not be null");
             return problemLocation;
         }
+    }
 
-        private static DefaultPluginIdLocation readObject(JsonReader in) throws IOException {
-            String pluginId = null;
+    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskLocation> {
+
+        @NonNull
+        private static DefaultTaskLocation readObject(JsonReader in) throws IOException {
+            String buildTreePath = null;
             while (in.hasNext()) {
                 String name = in.nextName();
-                if (name.equals("pluginId")) {
-                    pluginId = in.nextString();
+                if (name.equals("buildTreePath")) {
+                    buildTreePath = in.nextString();
                 } else {
                     in.skipValue();
                 }
             }
-            return new DefaultPluginIdLocation(pluginId);
+            return new DefaultTaskLocation(buildTreePath);
         }
-    }
-
-    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskLocation> {
 
         @Override
         public void write(JsonWriter out, @Nullable DefaultTaskLocation value) throws IOException {
@@ -371,20 +385,6 @@ public class ValidationProblemSerialization {
 
             Objects.requireNonNull(buildTreePath, "buildTreePath must not be null");
             return buildTreePath;
-        }
-
-        @NonNull
-        private static DefaultTaskLocation readObject(JsonReader in) throws IOException {
-            String buildTreePath = null;
-            while (in.hasNext()) {
-                String name = in.nextName();
-                if (name.equals("buildTreePath")) {
-                    buildTreePath = in.nextString();
-                } else {
-                    in.skipValue();
-                }
-            }
-            return new DefaultTaskLocation(buildTreePath);
         }
     }
 
@@ -496,15 +496,6 @@ public class ValidationProblemSerialization {
 
     private static class ProblemIdInstanceCreator implements JsonDeserializer<ProblemId>, JsonSerializer<ProblemId> {
 
-        @Override
-        public ProblemId deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            JsonObject problemObject = jsonElement.getAsJsonObject();
-            String name = problemObject.get("name").getAsString();
-            String displayName = problemObject.get("displayName").getAsString();
-            ProblemGroup group = deserializeGroup(problemObject.get("group"));
-            return ProblemId.create(name, displayName, group);
-        }
-
         private static ProblemGroup deserializeGroup(JsonElement groupObject) {
             JsonObject group = groupObject.getAsJsonObject();
             String name = group.get("name").getAsString();
@@ -516,16 +507,6 @@ public class ValidationProblemSerialization {
             return ProblemGroup.create(name, displayName, deserializeGroup(parent));
         }
 
-        @Override
-        public JsonElement serialize(ProblemId problemId, Type type, JsonSerializationContext jsonSerializationContext) {
-            JsonObject result = new JsonObject();
-            result.addProperty("name", problemId.getName());
-            result.addProperty("displayName", problemId.getDisplayName());
-            result.add("group", serializeGroup(problemId.getGroup()));
-            return result;
-        }
-
-
         private static JsonObject serializeGroup(ProblemGroup group) {
             JsonObject groupObject = new JsonObject();
             groupObject.addProperty("name", group.getName());
@@ -535,6 +516,24 @@ public class ValidationProblemSerialization {
                 groupObject.add("parent", serializeGroup(parent));
             }
             return groupObject;
+        }
+
+        @Override
+        public ProblemId deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            JsonObject problemObject = jsonElement.getAsJsonObject();
+            String name = problemObject.get("name").getAsString();
+            String displayName = problemObject.get("displayName").getAsString();
+            ProblemGroup group = deserializeGroup(problemObject.get("group"));
+            return ProblemId.create(name, displayName, group);
+        }
+
+        @Override
+        public JsonElement serialize(ProblemId problemId, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject result = new JsonObject();
+            result.addProperty("name", problemId.getName());
+            result.addProperty("displayName", problemId.getDisplayName());
+            result.add("group", serializeGroup(problemId.getGroup()));
+            return result;
         }
     }
 
@@ -552,6 +551,27 @@ public class ValidationProblemSerialization {
         public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
         public static final String TYPE_NAME = "typeName";
         public static final String GENERAL_DATA_DATA = "data";
+
+        private static @NonNull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+            switch (type) {
+                case DEPRECATION_DATA:
+                    return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
+                case TYPE_VALIDATION_DATA:
+                    return new DefaultTypeValidationData(
+                        pluginId,
+                        propertyName,
+                        methodName,
+                        parentPropertyName,
+                        typeName
+                    );
+                case GENERAL_DATA:
+                    return new DefaultGeneralData(generalData);
+                case PROPERTY_TRACE_DATA:
+                    return new DefaultPropertyTraceData(propertyTrace);
+                default:
+                    throw new JsonParseException("Unknown type: " + type);
+            }
+        }
 
         @Override
         public void write(JsonWriter out, AdditionalData value) throws IOException {
@@ -664,27 +684,6 @@ public class ValidationProblemSerialization {
                 return createAdditionalData(type, featureUsage, pluginId, propertyName, functionName, parentPropertyName, typeName, generalData, propertyTrace);
             } finally {
                 in.endObject();
-            }
-        }
-
-        private static @NonNull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
-            switch (type) {
-                case DEPRECATION_DATA:
-                    return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
-                case TYPE_VALIDATION_DATA:
-                    return new DefaultTypeValidationData(
-                        pluginId,
-                        propertyName,
-                        methodName,
-                        parentPropertyName,
-                        typeName
-                    );
-                case GENERAL_DATA:
-                    return new DefaultGeneralData(generalData);
-                case PROPERTY_TRACE_DATA:
-                    return new DefaultPropertyTraceData(propertyTrace);
-                default:
-                    throw new JsonParseException("Unknown type: " + type);
             }
         }
     }

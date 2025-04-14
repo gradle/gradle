@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 
 public class RegExpNameMapper implements Transformer<String, String> {
     private final Pattern pattern;
-    private transient Matcher matcher;
     private final String replacement;
+    private transient Matcher matcher;
 
     public RegExpNameMapper(String sourceRegEx, String replaceWith) {
         this(Pattern.compile(sourceRegEx), replaceWith);

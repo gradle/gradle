@@ -163,7 +163,7 @@ tasks.named("updateDaemonJvm") {
 
         // Captures current, but maybe not desired behavior
         expect:
-        succeeds( "updateDaemonJvm", "--jvm-version=10000")
+        succeeds("updateDaemonJvm", "--jvm-version=10000")
     }
 
     def "When execute updateDaemonJvm for valid vendor option Then daemon jvm properties are populated with expected values"() {
@@ -395,7 +395,7 @@ tasks.named("updateDaemonJvm") {
 
         then:
         assertJvmCriteria(Jvm.current().javaVersion)
-        assertToolchainDownloadUrlsProperties([["MAC_OS", "AARCH64"] : "https://server?platform=MAC_OS.AARCH64", ["WINDOWS", "AARCH64"] : "https://server?platform=WINDOWS.AARCH64"])
+        assertToolchainDownloadUrlsProperties([["MAC_OS", "AARCH64"]: "https://server?platform=MAC_OS.AARCH64", ["WINDOWS", "AARCH64"]: "https://server?platform=WINDOWS.AARCH64"])
     }
 
     def "can limit platforms for which to generate URLs"() {
@@ -412,7 +412,7 @@ tasks.named("updateDaemonJvm") {
         run "updateDaemonJvm"
 
         then:
-        assertToolchainDownloadUrlsProperties([["MAC_OS", "AARCH64"] : "https://example.xyz/content", ["WINDOWS", "AARCH64"] : "https://example.xyz/content"])
+        assertToolchainDownloadUrlsProperties([["MAC_OS", "AARCH64"]: "https://example.xyz/content", ["WINDOWS", "AARCH64"]: "https://example.xyz/content"])
     }
 
     Map<List<String>, String> fromConstantUrl() {

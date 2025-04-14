@@ -41,7 +41,9 @@ class RuleSourceSchemaExtractionStrategyTest extends Specification {
 
     static abstract class SomeRules extends RuleSource {
         abstract String getReadOnlyString()
+
         abstract List<String> getStrings()
+
         abstract void setStrings(List<String> strings)
     }
 

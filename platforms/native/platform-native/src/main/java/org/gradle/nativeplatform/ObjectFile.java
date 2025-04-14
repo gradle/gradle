@@ -21,7 +21,7 @@ import org.gradle.platform.base.TransformationFileType;
 
 /**
  * LanguageOutputType marking object file output type.
- * */
+ */
 @Incubating
 public class ObjectFile implements TransformationFileType {
 }

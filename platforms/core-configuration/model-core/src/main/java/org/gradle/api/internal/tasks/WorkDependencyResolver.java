@@ -24,13 +24,6 @@ import java.util.Set;
 
 public interface WorkDependencyResolver<T> {
     /**
-     * Resolves dependencies to a specific type.
-     *
-     * @return {@code true} if this resolver could resolve the given node, {@code false} otherwise.
-     */
-    boolean resolve(Task task, Object node, Action<? super T> resolveAction);
-
-    /**
      * Resolves dependencies to {@link Task} objects.
      */
     WorkDependencyResolver<Task> TASK_AS_TASK = new WorkDependencyResolver<Task>() {
@@ -52,4 +45,11 @@ public interface WorkDependencyResolver<T> {
             return false;
         }
     };
+
+    /**
+     * Resolves dependencies to a specific type.
+     *
+     * @return {@code true} if this resolver could resolve the given node, {@code false} otherwise.
+     */
+    boolean resolve(Task task, Object node, Action<? super T> resolveAction);
 }

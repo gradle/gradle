@@ -11,10 +11,12 @@ abstract class Minify implements TransformAction<Parameters> { // <1>
     interface Parameters extends TransformParameters {         // <2>
         @Input
         Map<String, Set<String>> getKeepClassesByArtifact()
+
         void setKeepClassesByArtifact(Map<String, Set<String>> keepClasses)
 // end::artifact-transform-minify[]
         @Input
         Long getTimestamp()
+
         void setTimestamp(Long timestamp)
 // tag::artifact-transform-minify[]
     }
@@ -41,14 +43,14 @@ abstract class Minify implements TransformAction<Parameters> { // <1>
         println "Minifying ${artifact.name}"
         // Implementation ...
 // end::artifact-transform-minify[]
-        new JarOutputStream (new BufferedOutputStream (new FileOutputStream (jarFile))).withCloseable { jarOutputStream ->
-            new ZipFile (artifact).withCloseable { zip ->
+        new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile))).withCloseable { jarOutputStream ->
+            new ZipFile(artifact).withCloseable { zip ->
                 for (entry in zip.entries()) {
                     if (entry.directory) {
-                        jarOutputStream.putNextEntry(new ZipEntry (entry.name))
+                        jarOutputStream.putNextEntry(new ZipEntry(entry.name))
                         jarOutputStream.closeEntry()
                     } else if (entry.name.endsWith(".class")) {
-                        def className = entry . name . replace ("/", ".").substring(0, entry.name.length()-6)
+                        def className = entry.name.replace("/", ".").substring(0, entry.name.length() - 6)
                         if (keepClasses.contains(className)) {
                             addEntry(jarOutputStream, entry, zip)
                         }
@@ -61,7 +63,7 @@ abstract class Minify implements TransformAction<Parameters> { // <1>
     }
 
     protected void addEntry(JarOutputStream jarOutputStream, ZipEntry entry, ZipFile zip) {
-        jarOutputStream.putNextEntry(new ZipEntry (entry.name))
+        jarOutputStream.putNextEntry(new ZipEntry(entry.name))
         zip.getInputStream(entry).withCloseable { jarOutputStream << it }
         jarOutputStream.closeEntry()
 // tag::artifact-transform-minify[]

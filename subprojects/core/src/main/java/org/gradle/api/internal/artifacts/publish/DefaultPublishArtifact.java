@@ -34,7 +34,8 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     public DefaultPublishArtifact(
         TaskDependencyFactory taskDependencyFactory,
         String name, String extension, String type,
-        String classifier, Date date, File file, Object... tasks) {
+        String classifier, Date date, File file, Object... tasks
+    ) {
         super(taskDependencyFactory, tasks);
         this.name = name;
         this.extension = extension;
@@ -44,8 +45,10 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
         this.file = file;
     }
 
-    public DefaultPublishArtifact(String name, String extension, String type,
-                                  String classifier, Date date, File file, Object... tasks) {
+    public DefaultPublishArtifact(
+        String name, String extension, String type,
+        String classifier, Date date, File file, Object... tasks
+    ) {
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         this.name = name;
         this.extension = extension;
@@ -67,33 +70,13 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     }
 
     @Override
-    public String getExtension() {
-        return extension;
-    }
-
-    @Override
-    public String getType() {
-        return type;
-    }
-
-    @Override
-    public String getClassifier() {
-        return classifier;
-    }
-
-    @Override
-    public File getFile() {
-        return file;
-    }
-
-    @Override
-    public Date getDate() {
-        return date;
-    }
-
-    @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String getExtension() {
+        return extension;
     }
 
     @Override
@@ -102,8 +85,18 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     }
 
     @Override
+    public String getType() {
+        return type;
+    }
+
+    @Override
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Override
+    public String getClassifier() {
+        return classifier;
     }
 
     @Override
@@ -111,12 +104,22 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
         this.classifier = classifier;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    @Override
+    public File getFile() {
+        return file;
     }
 
     public void setFile(File file) {
         this.file = file;
+    }
+
+    @Override
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 
     @Override

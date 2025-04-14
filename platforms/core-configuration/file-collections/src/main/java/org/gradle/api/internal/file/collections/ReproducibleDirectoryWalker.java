@@ -34,20 +34,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 public class ReproducibleDirectoryWalker implements DirectoryWalker {
+    private final static Comparator<Path> FILES_FIRST = Comparator.<Path, Boolean>comparing(x -> x.toFile().isDirectory()).thenComparing(Path::toString);
     private final FileSystem fileSystem;
 
     public ReproducibleDirectoryWalker(FileSystem fileSystem) {
         this.fileSystem = fileSystem;
-    }
-
-    @Override
-    public void walkDir(Path rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
-        try {
-            PathVisitor pathVisitor = new PathVisitor(spec, postfix, visitor, stopFlag, rootPath, fileSystem);
-            visit(rootDir, pathVisitor);
-        } catch (IOException e) {
-            throw new GradleException(String.format("Could not list contents of directory '%s'.", rootDir), e);
-        }
     }
 
     private static FileVisitResult visit(Path path, PathVisitor pathVisitor) throws IOException {
@@ -85,5 +76,13 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
         }
     }
 
-    private final static Comparator<Path> FILES_FIRST = Comparator.<Path, Boolean>comparing(x -> x.toFile().isDirectory()).thenComparing(Path::toString);
+    @Override
+    public void walkDir(Path rootDir, RelativePath rootPath, FileVisitor visitor, Spec<? super FileTreeElement> spec, AtomicBoolean stopFlag, boolean postfix) {
+        try {
+            PathVisitor pathVisitor = new PathVisitor(spec, postfix, visitor, stopFlag, rootPath, fileSystem);
+            visit(rootDir, pathVisitor);
+        } catch (IOException e) {
+            throw new GradleException(String.format("Could not list contents of directory '%s'.", rootDir), e);
+        }
+    }
 }

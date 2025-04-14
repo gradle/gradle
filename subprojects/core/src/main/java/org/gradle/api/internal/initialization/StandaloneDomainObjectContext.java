@@ -32,8 +32,6 @@ import java.util.function.Function;
  * Domain object context implementation intended for identifying contexts that wrap no mutable state.
  */
 public abstract class StandaloneDomainObjectContext implements DomainObjectContext, ModelContainer<Object> {
-    private static final Object MODEL = new Object();
-
     /**
      * A domain object context not tied to any mutable state.
      *
@@ -45,7 +43,6 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
             return "unknown";
         }
     };
-
     /**
      * Domain object context for resolving plugins outside a project's buildscript.
      */
@@ -60,6 +57,10 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
             return "plugin resolution";
         }
     };
+    private static final Object MODEL = new Object();
+
+    private StandaloneDomainObjectContext() {
+    }
 
     /**
      * A domain object context for resolution within some script.
@@ -120,9 +121,6 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
                 return true;
             }
         };
-    }
-
-    private StandaloneDomainObjectContext() {
     }
 
     @Override

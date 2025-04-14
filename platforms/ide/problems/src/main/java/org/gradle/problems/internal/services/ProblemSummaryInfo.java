@@ -20,9 +20,8 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 class ProblemSummaryInfo {
-    private int count = 0;
-
     private final IntSet hashes = new IntOpenHashSet();
+    private int count = 0;
 
     void increaseCount() {
         count++;

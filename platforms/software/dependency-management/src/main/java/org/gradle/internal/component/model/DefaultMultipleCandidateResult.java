@@ -36,7 +36,7 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
             throw new IllegalArgumentException("Insufficient number of candidate values: " + candidateValues.size());
         }
         for (T candidateValue : candidateValues) {
-            if (candidateValue == null)  {
+            if (candidateValue == null) {
                 throw new IllegalArgumentException("candidateValues cannot contain null elements");
             }
         }
@@ -47,7 +47,7 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
 
     @Override
     public boolean hasResult() {
-        return singleMatch != null || multipleMatches!=null;
+        return singleMatch != null || multipleMatches != null;
     }
 
     @Override

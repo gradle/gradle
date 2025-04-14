@@ -64,72 +64,72 @@ class StageTrigger(
     dependencies: List<BaseGradleBuildType>,
     generateTriggers: Boolean = true,
 ) : BaseGradleBuildType(init = {
-        id(stageTriggerId(model, stage, os))
-        uuid = stageTriggerUuid(model, stage, os)
-        name = stage.stageName.stageName + " (Trigger)" + (os?.asName()?.toCapitalized()?.let { "($it)" } ?: "")
-        type = Type.COMPOSITE
+    id(stageTriggerId(model, stage, os))
+    uuid = stageTriggerUuid(model, stage, os)
+    name = stage.stageName.stageName + " (Trigger)" + (os?.asName()?.toCapitalized()?.let { "($it)" } ?: "")
+    type = Type.COMPOSITE
 
-        applyDefaultSettings()
+    applyDefaultSettings()
 
-        features {
-            publishBuildStatusToGithub(model)
-        }
+    features {
+        publishBuildStatusToGithub(model)
+    }
 
-        if (generateTriggers) {
-            val enableTriggers = model.branch.enableVcsTriggers
-            if (stage.trigger == Trigger.EACH_COMMIT) {
-                val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
+    if (generateTriggers) {
+        val enableTriggers = model.branch.enableVcsTriggers
+        if (stage.trigger == Trigger.EACH_COMMIT) {
+            val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
 
-                if (model.branch.isMaster) {
-                    effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
-                    effectiveTriggerBranches.add(BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
-                }
-
-                triggers.vcs {
-                    quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-                    quietPeriod = 90
-                    triggerRules = triggerExcludes
-                    branchFilter = determineBranchFilter(effectiveTriggerBranches)
-                    enabled = enableTriggers
-                }
-            } else if (stage.trigger != Trigger.NEVER) {
-                val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
-
-                if (model.branch.isMaster) {
-                    effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
-                }
-
-                triggers.schedule {
-                    if (stage.trigger == Trigger.WEEKLY) {
-                        schedulingPolicy =
-                            weekly {
-                                dayOfWeek = ScheduleTrigger.DAY.Saturday
-                                hour = 1
-                            }
-                    } else {
-                        schedulingPolicy =
-                            daily {
-                                hour = 0
-                                minute = 30
-                            }
-                    }
-                    triggerBuild = always()
-                    withPendingChangesOnly = true
-                    param("revisionRule", "lastFinished")
-                    branchFilter = determineBranchFilter(effectiveTriggerBranches)
-                    enabled = enableTriggers
-                }
-            }
-        }
-
-        dependencies {
-            if (!stage.runsIndependent && prevStage != null) {
-                dependOnPreviousStageTrigger(model, prevStage, os)
+            if (model.branch.isMaster) {
+                effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
+                effectiveTriggerBranches.add(BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
             }
 
-            snapshotDependencies(dependencies)
+            triggers.vcs {
+                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+                quietPeriod = 90
+                triggerRules = triggerExcludes
+                branchFilter = determineBranchFilter(effectiveTriggerBranches)
+                enabled = enableTriggers
+            }
+        } else if (stage.trigger != Trigger.NEVER) {
+            val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
+
+            if (model.branch.isMaster) {
+                effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
+            }
+
+            triggers.schedule {
+                if (stage.trigger == Trigger.WEEKLY) {
+                    schedulingPolicy =
+                        weekly {
+                            dayOfWeek = ScheduleTrigger.DAY.Saturday
+                            hour = 1
+                        }
+                } else {
+                    schedulingPolicy =
+                        daily {
+                            hour = 0
+                            minute = 30
+                        }
+                }
+                triggerBuild = always()
+                withPendingChangesOnly = true
+                param("revisionRule", "lastFinished")
+                branchFilter = determineBranchFilter(effectiveTriggerBranches)
+                enabled = enableTriggers
+            }
         }
-    })
+    }
+
+    dependencies {
+        if (!stage.runsIndependent && prevStage != null) {
+            dependOnPreviousStageTrigger(model, prevStage, os)
+        }
+
+        snapshotDependencies(dependencies)
+    }
+})
 
 fun Dependencies.dependOnPreviousStageTrigger(
     model: CIBuildModel,

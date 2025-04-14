@@ -289,8 +289,8 @@ class DefaultCopySpecResolutionTest extends Specification {
         parentSpec.with(childOne)
 
         DefaultCopySpec childTwo = copySpec()
-         childTwo.into("child_two")
-        parentSpec.with( childTwo)
+        childTwo.into("child_two")
+        parentSpec.with(childTwo)
 
         DefaultCopySpec grandchild = copySpec()
         grandchild.into("grandchild")

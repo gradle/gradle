@@ -43,7 +43,7 @@
     }
 
     function renderGraph(data, xaxis, label, unit, chartId, background, executionLabels) {
-        if(!data) {
+        if (!data) {
             return
         }
         const options = {
@@ -67,15 +67,16 @@
         };
         const chart = $.plot('#' + chartId, data, options);
         plots[chartId] = chart;
+
         function zoomFunction(plot, reset) {
             reset = reset || false;
             return function (event, ranges) {
-                $.each(plot.getXAxes(), function(_, axis) {
+                $.each(plot.getXAxes(), function (_, axis) {
                     const opts = axis.options;
                     opts.min = reset ? null : ranges.xaxis.from;
                     opts.max = reset ? null : ranges.xaxis.to;
                 });
-                $.each(plot.getYAxes(), function(_, axis) {
+                $.each(plot.getYAxes(), function (_, axis) {
                     const opts = axis.options;
                     opts.min = reset ? 0 : ranges.yaxis.from;
                     opts.max = reset ? null : ranges.yaxis.to;
@@ -155,9 +156,9 @@
     }
 })($, window);
 
-$(document).ready(function() {
+$(document).ready(function () {
     const resultRowId = window.location.hash;
     if (resultRowId) {
-        $(resultRowId).css("background-color","orange");
+        $(resultRowId).css("background-color", "orange");
     }
 });

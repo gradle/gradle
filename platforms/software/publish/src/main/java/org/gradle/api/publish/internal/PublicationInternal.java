@@ -80,6 +80,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     interface DerivedArtifact {
         boolean shouldBePublished();
+
         File create();
     }
 }

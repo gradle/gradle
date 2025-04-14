@@ -392,10 +392,10 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
             Stub(Supplier)) {
-                @Override
-                protected InternalProblems getProblemsService() {
-                    problems
-                }
+            @Override
+            protected InternalProblems getProblemsService() {
+                problems
+            }
         }
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST

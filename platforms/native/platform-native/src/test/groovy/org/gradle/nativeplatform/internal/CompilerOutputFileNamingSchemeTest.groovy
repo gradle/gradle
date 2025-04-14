@@ -22,7 +22,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class CompilerOutputFileNamingSchemeTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     def resolver = Mock(RelativeFilePathResolver)
     def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(resolver).create()

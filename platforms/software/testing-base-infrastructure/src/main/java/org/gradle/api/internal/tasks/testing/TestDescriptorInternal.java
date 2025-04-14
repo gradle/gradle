@@ -32,6 +32,7 @@ public interface TestDescriptorInternal extends TestDescriptor {
 
     /**
      * The class name for display. It may be the same as or different from {@link #getClassName()}
+     *
      * @return the class name for display.
      */
     @Nullable

@@ -41,6 +41,17 @@ public class VariantArtifactSetCache {
 
     private final Map<Long, ArtifactSet> cache = new ConcurrentHashMap<>();
 
+    private static VariantResolvingArtifactSet createImplicitVariant(ComponentGraphResolveState component, VariantGraphResolveState variant) {
+        return new VariantResolvingArtifactSet(
+            component,
+            variant,
+            ImmutableAttributes.EMPTY,
+            Collections.emptyList(),
+            EXCLUDE_NOTHING,
+            Collections.emptySet()
+        );
+    }
+
     /**
      * Caches the implicit artifact set for the given node of the given component.
      * <p>
@@ -52,7 +63,6 @@ public class VariantArtifactSetCache {
      *
      * @param component The component
      * @param variant The variant
-     *
      * @return The resolved artifact set
      */
     public ArtifactSet getImplicitVariant(ComponentGraphResolveState component, VariantGraphResolveState variant) {
@@ -78,17 +88,6 @@ public class VariantArtifactSetCache {
         }
 
         return cache.computeIfAbsent(key, id -> createImplicitVariant(component, variant));
-    }
-
-    private static VariantResolvingArtifactSet createImplicitVariant(ComponentGraphResolveState component, VariantGraphResolveState variant) {
-        return new VariantResolvingArtifactSet(
-            component,
-            variant,
-            ImmutableAttributes.EMPTY,
-            Collections.emptyList(),
-            EXCLUDE_NOTHING,
-            Collections.emptySet()
-        );
     }
 
 }

@@ -47,6 +47,10 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
         this(new AndSpec<>(new SelfDescribingSpec<>(spec, description)));
     }
 
+    public static <T> DescribingAndSpec<T> empty() {
+        return Cast.uncheckedNonnullCast(EMPTY);
+    }
+
     @Override
     public boolean isSatisfiedBy(T element) {
         return specHolder.isSatisfiedBy(element);
@@ -64,9 +68,5 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
     @SuppressWarnings("rawtypes")
     public DescribingAndSpec<T> and(Closure closure, String description) {
         return and(new ClosureSpec<>(closure), description);
-    }
-
-    public static <T> DescribingAndSpec<T> empty() {
-        return Cast.uncheckedNonnullCast(EMPTY);
     }
 }

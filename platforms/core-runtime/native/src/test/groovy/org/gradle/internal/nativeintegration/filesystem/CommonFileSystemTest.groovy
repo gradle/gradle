@@ -32,7 +32,8 @@ import java.nio.file.LinkOption
 import java.nio.file.attribute.BasicFileAttributeView
 
 class CommonFileSystemTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def fs = NativeServicesTestFixture.instance.get(FileSystem)
 

@@ -200,7 +200,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.capabilities {
-            it.requireCapability((Object)'org:foo:1.0')
+            it.requireCapability((Object) 'org:foo:1.0')
         }
 
         when:
@@ -222,7 +222,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.capabilities {
-            it.requireCapability((Object)'org:foo:1.0')
+            it.requireCapability((Object) 'org:foo:1.0')
         }
 
         when:

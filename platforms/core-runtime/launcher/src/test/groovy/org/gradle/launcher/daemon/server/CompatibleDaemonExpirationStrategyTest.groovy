@@ -39,7 +39,7 @@ class CompatibleDaemonExpirationStrategyTest extends DaemonExpirationStrategyTes
         DaemonInfo d2 = registerDaemon(Idle)
 
         when:
-        compatible = [ d1, d2 ]
+        compatible = [d1, d2]
 
         then:
         wouldExpire(d1)
@@ -66,7 +66,7 @@ class CompatibleDaemonExpirationStrategyTest extends DaemonExpirationStrategyTes
         DaemonInfo d1 = registerDaemon(Idle)
 
         when:
-        compatible = [ d1 ]
+        compatible = [d1]
 
         then:
         !wouldExpire(d1)
@@ -78,7 +78,7 @@ class CompatibleDaemonExpirationStrategyTest extends DaemonExpirationStrategyTes
             _ * getDaemonContext() >> { info.getContext() }
             _ * getStateCoordinator() >> Stub(DaemonStateCoordinator) {
                 getState() >> info.state
-                getIdleMillis(_) >> { long now -> return IDLE_COMPATIBLE_TIMEOUT + (timeoutReached ?  1 : -1) }
+                getIdleMillis(_) >> { long now -> return IDLE_COMPATIBLE_TIMEOUT + (timeoutReached ? 1 : -1) }
             }
         }
 

@@ -78,8 +78,8 @@ class AggregatingFilerTest extends IncrementalFilerTest {
 
     def "resources with same path but different location are distinct"() {
         when:
-        filer.createResource(StandardLocation.SOURCE_OUTPUT,        "com.enterprise.software", "foo.txt", type("A"))
-        filer.createResource(StandardLocation.CLASS_OUTPUT,         "com.enterprise.software", "foo.txt", type("A"))
+        filer.createResource(StandardLocation.SOURCE_OUTPUT, "com.enterprise.software", "foo.txt", type("A"))
+        filer.createResource(StandardLocation.CLASS_OUTPUT, "com.enterprise.software", "foo.txt", type("A"))
         filer.createResource(StandardLocation.NATIVE_HEADER_OUTPUT, "com.enterprise.software", "foo.txt", type("A"))
 
         then:

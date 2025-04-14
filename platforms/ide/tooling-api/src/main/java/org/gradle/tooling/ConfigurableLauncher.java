@@ -29,10 +29,11 @@ import java.util.Set;
  *
  * @param <T> the ConfigurableLauncher implementation to return as part of the fluent API.
  * @since 2.6
- * */
+ */
 public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends LongRunningOperation {
     /**
      * {@inheritDoc}
+     *
      * @since 1.0
      */
     @Override
@@ -40,6 +41,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.6
      */
     @Override
@@ -47,6 +49,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 5.0
      */
     @Override
@@ -54,6 +57,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 5.0
      */
     @Override
@@ -61,6 +65,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 1.0-milestone-3
      */
     @Override
@@ -68,6 +73,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 1.0-milestone-3
      */
     @Override
@@ -75,6 +81,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     @Override
@@ -82,6 +89,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 1.0-milestone-7
      */
     @Override
@@ -89,6 +97,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 1.0-milestone-8
      */
     @Override
@@ -96,6 +105,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 1.0-milestone-9
      */
     @Override
@@ -103,6 +113,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.6
      */
     @Override
@@ -110,6 +121,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 5.0
      */
     @Override
@@ -117,6 +129,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 7.6
      */
     @Override
@@ -124,6 +137,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 5.0
      */
     @Override
@@ -131,6 +145,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 3.5
      */
     @Override
@@ -138,6 +153,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 1.0-milestone-3
      */
     @Override
@@ -145,6 +161,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.5
      */
     @Override
@@ -152,6 +169,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.5
      */
     @Override
@@ -159,6 +177,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.6
      */
     @Override
@@ -166,6 +185,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 2.3
      */
     @Override
@@ -173,6 +193,7 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     *
      * @since 8.12
      */
     @Override

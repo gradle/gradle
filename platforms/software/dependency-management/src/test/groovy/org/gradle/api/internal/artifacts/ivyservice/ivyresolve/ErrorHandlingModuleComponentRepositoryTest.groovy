@@ -270,9 +270,9 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         0 * delegate._
 
         where:
-        desc | exception
+        desc                 | exception
         "unauthorized (401)" | unauthorized
-        "forbidden (403)" | forbidden
+        "forbidden (403)"    | forbidden
     }
 
     List<List<?>> retryCombinations() {

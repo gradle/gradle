@@ -45,7 +45,8 @@ public class ComponentIdentifierParserFactory implements Factory<NotationParser<
         protected ModuleComponentIdentifier parseMap(
             @MapKey("group") String group,
             @MapKey("name") String name,
-            @MapKey("version") String version) {
+            @MapKey("version") String version
+        ) {
 
             return DefaultModuleComponentIdentifier.newId(
                 DefaultModuleIdentifier.newId(validate(group.trim()), validate(name.trim())),

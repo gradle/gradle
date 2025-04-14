@@ -46,7 +46,7 @@ public class SourceCompileTaskConfig extends CompileTaskConfig {
 
         // If this task uses a pre-compiled header
         if (sourceSet instanceof DependentSourceSetInternal && ((DependentSourceSetInternal) sourceSet).getPreCompiledHeader() != null) {
-            final DependentSourceSetInternal dependentSourceSet = (DependentSourceSetInternal)sourceSet;
+            final DependentSourceSetInternal dependentSourceSet = (DependentSourceSetInternal) sourceSet;
             PreCompiledHeader pch = binary.getPrefixFileToPCH().get(dependentSourceSet.getPrefixHeaderFile());
             pch.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
             pch.setIncludeString(dependentSourceSet.getPreCompiledHeader());

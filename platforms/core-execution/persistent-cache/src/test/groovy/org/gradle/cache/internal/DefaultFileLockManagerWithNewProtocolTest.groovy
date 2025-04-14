@@ -154,7 +154,7 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         def beforeUpdate = lock.state
 
         when:
-        lock.writeFile { }
+        lock.writeFile {}
 
         then:
         lock.state.hasBeenUpdatedSince(beforeUpdate)

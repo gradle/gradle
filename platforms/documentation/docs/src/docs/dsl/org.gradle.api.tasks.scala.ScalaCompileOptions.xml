@@ -26,47 +26,69 @@
             </thead>
             <tr>
                 <td>failOnError</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>deprecation</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>unchecked</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>debugLevel</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>optimize</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>encoding</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>force</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>additionalParameters</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>listFiles</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>loggingLevel</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>loggingPhases</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
         </table>
     </section>

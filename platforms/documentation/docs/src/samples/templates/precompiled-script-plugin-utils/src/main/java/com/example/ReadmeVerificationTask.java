@@ -27,7 +27,7 @@ public abstract class ReadmeVerificationTask extends DefaultTask {
 
     @TaskAction
     void verifyServiceReadme() throws IOException {
-        String readmeContents = new String (Files.readAllBytes(getReadme().getAsFile().get().toPath()));
+        String readmeContents = new String(Files.readAllBytes(getReadme().getAsFile().get().toPath()));
         for (String requiredSection : getReadmePatterns().get()) {
             Pattern pattern = Pattern.compile(requiredSection, Pattern.MULTILINE);
             if (!pattern.matcher(readmeContents).find()) {

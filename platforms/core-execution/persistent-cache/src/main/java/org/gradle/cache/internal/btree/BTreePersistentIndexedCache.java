@@ -61,8 +61,10 @@ public class BTreePersistentIndexedCache<K, V> {
         this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
     }
 
-    public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
-                                       short maxChildIndexEntries, int maxFreeListEntries) {
+    public BTreePersistentIndexedCache(
+        File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
+        short maxChildIndexEntries, int maxFreeListEntries
+    ) {
         this.cacheFile = cacheFile;
         this.keyHasher = new KeyHasher<K>(keySerializer);
         this.serializer = valueSerializer;
@@ -223,7 +225,7 @@ public class BTreePersistentIndexedCache<K, V> {
             doVerify();
         } catch (Exception e) {
             throw new UncheckedIOException(String.format("Some problems were found when checking the integrity of %s.",
-                    this), e);
+                this), e);
         }
     }
 
@@ -250,8 +252,10 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
-    private void verifyTree(IndexBlock current, String prefix, Collection<BlockPayload> blocks, long maxValue,
-                            boolean loadData) throws Exception {
+    private void verifyTree(
+        IndexBlock current, String prefix, Collection<BlockPayload> blocks, long maxValue,
+        boolean loadData
+    ) throws Exception {
         blocks.add(current);
 
         if (!prefix.equals("") && current.entries.size() < maxChildIndexEntries / 2) {
@@ -297,6 +301,57 @@ public class BTreePersistentIndexedCache<K, V> {
             doOpen();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private static class IndexEntry implements Comparable<IndexEntry> {
+        long hashCode;
+        BlockPointer dataBlock;
+        BlockPointer childIndexBlock;
+
+        private IndexEntry() {
+        }
+
+        private IndexEntry(long hashCode) {
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public int compareTo(IndexEntry indexEntry) {
+            if (hashCode > indexEntry.hashCode) {
+                return 1;
+            }
+            if (hashCode < indexEntry.hashCode) {
+                return -1;
+            }
+            return 0;
+        }
+    }
+
+    private static class DataBlockUpdateResult {
+        private static final DataBlockUpdateResult SUCCESS = new DataBlockUpdateResult(true, null);
+        private final boolean success;
+        private final StreamByteBuffer serializedValue;
+
+        private DataBlockUpdateResult(boolean success, StreamByteBuffer serializedValue) {
+            this.success = success;
+            this.serializedValue = serializedValue;
+        }
+
+        static DataBlockUpdateResult success() {
+            return SUCCESS;
+        }
+
+        static DataBlockUpdateResult failed(StreamByteBuffer serializedValue) {
+            return new DataBlockUpdateResult(false, serializedValue);
+        }
+
+        public boolean isFailed() {
+            return !success;
+        }
+
+        public StreamByteBuffer getSerializedValue() {
+            return serializedValue;
         }
     }
 
@@ -620,30 +675,6 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
-    private static class IndexEntry implements Comparable<IndexEntry> {
-        long hashCode;
-        BlockPointer dataBlock;
-        BlockPointer childIndexBlock;
-
-        private IndexEntry() {
-        }
-
-        private IndexEntry(long hashCode) {
-            this.hashCode = hashCode;
-        }
-
-        @Override
-        public int compareTo(IndexEntry indexEntry) {
-            if (hashCode > indexEntry.hashCode) {
-                return 1;
-            }
-            if (hashCode < indexEntry.hashCode) {
-                return -1;
-            }
-            return 0;
-        }
-    }
-
     private class Lookup {
         final IndexBlock indexBlock;
         final IndexEntry entry;
@@ -674,19 +705,19 @@ public class BTreePersistentIndexedCache<K, V> {
             size = buffer.totalBytesUnread();
         }
 
-        public void setValue(V value) throws Exception {
-            buffer = StreamByteBuffer.createWithChunkSizeInDefaultRange(size);
-            KryoBackedEncoder encoder = new KryoBackedEncoder(buffer.getOutputStream());
-            serializer.write(encoder, value);
-            encoder.flush();
-        }
-
         public V getValue() throws Exception {
             if (value == null) {
                 value = serializer.read(new KryoBackedDecoder(buffer.getInputStream()));
                 buffer = null;
             }
             return value;
+        }
+
+        public void setValue(V value) throws Exception {
+            buffer = StreamByteBuffer.createWithChunkSizeInDefaultRange(size);
+            KryoBackedEncoder encoder = new KryoBackedEncoder(buffer.getOutputStream());
+            serializer.write(encoder, value);
+            encoder.flush();
         }
 
         @Override
@@ -724,33 +755,6 @@ public class BTreePersistentIndexedCache<K, V> {
             } else {
                 return DataBlockUpdateResult.failed(buffer);
             }
-        }
-    }
-
-    private static class DataBlockUpdateResult {
-        private static final DataBlockUpdateResult SUCCESS = new DataBlockUpdateResult(true, null);
-        private final boolean success;
-        private final StreamByteBuffer serializedValue;
-
-        private DataBlockUpdateResult(boolean success, StreamByteBuffer serializedValue) {
-            this.success = success;
-            this.serializedValue = serializedValue;
-        }
-
-        static DataBlockUpdateResult success() {
-            return SUCCESS;
-        }
-
-        static DataBlockUpdateResult failed(StreamByteBuffer serializedValue) {
-            return new DataBlockUpdateResult(false, serializedValue);
-        }
-
-        public boolean isFailed() {
-            return !success;
-        }
-
-        public StreamByteBuffer getSerializedValue() {
-            return serializedValue;
         }
     }
 }

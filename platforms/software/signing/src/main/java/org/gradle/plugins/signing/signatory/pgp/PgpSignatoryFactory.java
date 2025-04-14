@@ -80,7 +80,7 @@ public class PgpSignatoryFactory {
     protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required) {
         ArrayList<Object> values = new ArrayList<>();
         for (String property : PROPERTIES) {
-            String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
+            String qualifiedProperty = (String) getQualifiedPropertyName(prefix, property);
             Object prop = getPropertySafely(project, qualifiedProperty, required);
             if (prop != null) {
                 values.add(prop);

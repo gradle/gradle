@@ -177,7 +177,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         where:
         failEvent | attemptsBeforeFailure
         "load"    | ["load": 1]
-        "store"   | ["load": 1 , "store": 1]
+        "store"   | ["load": 1, "store": 1]
     }
 
     boolean stackTraceContains(Class<?> type) {

@@ -58,7 +58,7 @@ abstract class AbstractClassGeneratorSpec extends Specification {
         return doCreate(generator, clazz, defaultServices(), null, args)
     }
 
-    protected <T> T create(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Object ... args) {
+    protected <T> T create(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Object... args) {
         return doCreate(generator, clazz, services, null, args)
     }
 
@@ -85,17 +85,29 @@ abstract class AbstractClassGeneratorSpec extends Specification {
     static class ManyConstructors {
         // the exact order of these constructors as they are returned by the JDK is undefined
         ManyConstructors(int p0, int p1, int p2, int p3, int p4) {}
+
         ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9) {}
+
         ManyConstructors(int p0, int p1, int p2) {}
+
         ManyConstructors() {}
+
         ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, boolean p7) {}
+
         ManyConstructors(int p0, int p1) {}
+
         ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6) {}
+
         ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5) {}
+
         ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8) {}
+
         ManyConstructors(int p0, int p1, boolean p2) {}
+
         ManyConstructors(int p0, int p1, int p2, int p3, int p4, int p5, int p6, int p7) {}
+
         ManyConstructors(int p0, int p1, int p2, int p3) {}
+
         ManyConstructors(int p0) {}
     }
 

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
-class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest  {
+class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     String getDefaultStatus() {
         GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }

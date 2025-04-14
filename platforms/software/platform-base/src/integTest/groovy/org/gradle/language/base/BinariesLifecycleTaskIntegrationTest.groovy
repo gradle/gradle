@@ -61,7 +61,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "produces sensible error when there are component binaries and all are not buildable" () {
+    def "produces sensible error when there are component binaries and all are not buildable"() {
         withLibBinaries("notBuildableBinary1", "notBuildableBinary2")
         withStandaloneBinaries("ignoreMe")
 
@@ -77,7 +77,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
       - Binary notBuildableBinary2 has 'notBuildable' in the name""")
     }
 
-    def "builds those component binaries that are buildable and skips those that are not" () {
+    def "builds those component binaries that are buildable and skips those that are not"() {
         withLibBinaries("buildableBinary1", "notBuildableBinary", "buildableBinary2")
 
         when:
@@ -93,7 +93,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":libBuildableBinary1", ":libBuildableBinary2", ":assemble", ":check", ":build")
     }
 
-    def "does not produce error when assemble task has other dependencies" () {
+    def "does not produce error when assemble task has other dependencies"() {
         withLibBinaries("notBuildableBinary")
         buildFile << """
             task someOtherTask
@@ -107,7 +107,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecutedInOrder(":someOtherTask", ":assemble")
     }
 
-    def "does not do anything when the project is empty" () {
+    def "does not do anything when the project is empty"() {
         when:
         run "assemble"
 
@@ -116,7 +116,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":assemble")
     }
 
-    def "does not do anything when there are no component binaries" () {
+    def "does not do anything when there are no component binaries"() {
         withStandaloneBinaries("ignoreMe")
 
         when:
@@ -127,7 +127,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":assemble")
     }
 
-    def "builds only those binaries that belong to a component" () {
+    def "builds only those binaries that belong to a component"() {
         withLibBinaries("buildableBinary", "notBuildableBinary")
         withStandaloneBinaries("ignoreMe1", "ignoreMe2")
 
@@ -138,7 +138,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":libBuildableBinary", ":assemble")
     }
 
-    def "check task does not build binaries" () {
+    def "check task does not build binaries"() {
         withLibBinaries("buildableBinary1", "notBuildableBinary", "buildableBinary2")
         withStandaloneBinaries("binary1", "binary2")
 

@@ -20,7 +20,7 @@ class CacheOperationStack {
     private int operationCount;
 
     public boolean isInCacheAction() {
-        return operationCount>0;
+        return operationCount > 0;
     }
 
     public CacheOperationStack pushCacheAction() {
@@ -35,12 +35,12 @@ class CacheOperationStack {
 
 
     private void checkNotEmpty() {
-        if (operationCount==0) {
+        if (operationCount == 0) {
             throw new IllegalStateException("Operation stack is empty.");
         }
     }
 
     public boolean isEmpty() {
-        return operationCount==0;
+        return operationCount == 0;
     }
 }

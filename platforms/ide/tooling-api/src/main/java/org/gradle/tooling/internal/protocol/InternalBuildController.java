@@ -59,5 +59,5 @@ public interface InternalBuildController {
      */
     @Deprecated
     BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier) throws BuildExceptionVersion1,
-            InternalUnsupportedModelException;
+        InternalUnsupportedModelException;
 }

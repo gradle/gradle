@@ -94,7 +94,8 @@ class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
         if (receiverClass.isSubclassOf(Project::class) && name == "projects") {
             RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver ->
                 val value = (receiver as Project).extensions.getByName("projects")
-                InstanceAndPublicType.of(value, value::class) }
+                InstanceAndPublicType.of(value, value::class)
+            }
         } else RuntimePropertyResolver.ReadResolution.UnresolvedRead
 
     override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String) = RuntimePropertyResolver.WriteResolution.UnresolvedWrite
@@ -121,7 +122,8 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
             }
         }
         visit(kClass)
-    } }
+    }
+}
 
 
 private

@@ -38,13 +38,13 @@ import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionRes
  * TODO: This class could probably use a better name, maybe something like GradleDeprecationVerifier
  */
 public class ResultAssertion implements Action<ExecutionResult> {
-    private int expectedGenericDeprecationWarnings;
+    private static final Pattern DAEMON_LOG_HEADER_PATTERN = Pattern.compile("----- Last (\\d+) lines from daemon log file - .* -----");
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings;
     private final boolean expectStackTraces;
     private final boolean checkDeprecations;
     private final boolean checkJdkWarnings;
-
+    private int expectedGenericDeprecationWarnings;
     /**
      * The last deprecation warning that was matched. This is used to advance lines in the output being scanned
      * by the length of lines in the match.  It will <strong>not</strong> be set back to {@code null} after the
@@ -69,6 +69,43 @@ public class ResultAssertion implements Action<ExecutionResult> {
         this.expectStackTraces = expectStackTraces;
         this.checkDeprecations = checkDeprecations;
         this.checkJdkWarnings = checkJdkWarnings;
+    }
+
+    private static int getNumLinesFromDaemonLogOutput(String line) {
+        Matcher m = DAEMON_LOG_HEADER_PATTERN.matcher(line);
+        if (m.matches()) {
+            return Integer.parseInt(m.group(1)) + 1;
+        }
+        return -1;
+    }
+
+    private static boolean isInsideVariantDescriptionBlock(boolean insideVariantDescriptionBlock, String line) {
+        if (insideVariantDescriptionBlock && line.contains("]")) {
+            return false;
+        }
+        if (!insideVariantDescriptionBlock && line.contains("variant \"")) {
+            return true;
+        }
+        return insideVariantDescriptionBlock;
+    }
+
+    private static List<String> getLines(String output) {
+        try {
+            return CharSource.wrap(output).readLines();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static int skipStackTrace(List<String> lines, int i) {
+        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+            i++;
+        }
+        return i;
+    }
+
+    private static boolean isDeprecationMessageInHelpDescription(String s) {
+        return s.matches(".*\\[deprecated.*]");
     }
 
     @Override
@@ -199,33 +236,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
         }
     }
 
-    private static final Pattern DAEMON_LOG_HEADER_PATTERN = Pattern.compile("----- Last (\\d+) lines from daemon log file - .* -----");
-    private static int getNumLinesFromDaemonLogOutput(String line) {
-        Matcher m = DAEMON_LOG_HEADER_PATTERN.matcher(line);
-        if (m.matches()) {
-            return Integer.parseInt(m.group(1)) + 1;
-        }
-        return -1;
-    }
-
-    private static boolean isInsideVariantDescriptionBlock(boolean insideVariantDescriptionBlock, String line) {
-        if (insideVariantDescriptionBlock && line.contains("]")) {
-            return false;
-        }
-        if (!insideVariantDescriptionBlock && line.contains("variant \"")) {
-            return true;
-        }
-        return insideVariantDescriptionBlock;
-    }
-
-    private static List<String> getLines(String output) {
-        try {
-            return CharSource.wrap(output).readLines();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     /**
      * Removes the first matching expected deprecation warning from the list of expected deprecations stored
      * in {@link #expectedDeprecationWarnings} as a side-effect; conditional on a matching deprecation warning
@@ -252,16 +262,5 @@ public class ResultAssertion implements Action<ExecutionResult> {
             expectedDeprecationWarnings.remove(lastMatchedDeprecationWarning);
         }
         return matchedWarning.isPresent();
-    }
-
-    private static int skipStackTrace(List<String> lines, int i) {
-        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-            i++;
-        }
-        return i;
-    }
-
-    private static boolean isDeprecationMessageInHelpDescription(String s) {
-        return s.matches(".*\\[deprecated.*]");
     }
 }

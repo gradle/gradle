@@ -27,7 +27,7 @@ class JUnitTestClassDetector extends TestClassVisitor {
     }
 
     @Override
-    protected boolean ignoreNonStaticInnerClass(){
+    protected boolean ignoreNonStaticInnerClass() {
         return true;
     }
 

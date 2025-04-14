@@ -30,9 +30,11 @@ public class CachingClassSetAnalyzer implements ClassSetAnalyzer {
     private final FileSystemAccess fileSystemAccess;
     private final Cache<HashCode, ClassSetAnalysisData> cache;
 
-    public CachingClassSetAnalyzer(ClassSetAnalyzer delegate,
-                                   FileSystemAccess fileSystemAccess,
-                                   Cache<HashCode, ClassSetAnalysisData> cache) {
+    public CachingClassSetAnalyzer(
+        ClassSetAnalyzer delegate,
+        FileSystemAccess fileSystemAccess,
+        Cache<HashCode, ClassSetAnalysisData> cache
+    ) {
         this.delegate = delegate;
         this.fileSystemAccess = fileSystemAccess;
         this.cache = cache;

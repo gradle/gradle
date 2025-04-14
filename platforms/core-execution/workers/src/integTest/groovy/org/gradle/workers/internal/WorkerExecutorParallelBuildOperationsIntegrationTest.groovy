@@ -49,7 +49,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         """
 
         parallelParameterType = fixture.workParameterClass("ParallelParameter", "org.gradle.test").withFields([
-                "itemName": "String"
+            "itemName": "String"
         ])
 
         parallelWorkAction = fixture.workActionClass("ParallelWorkAction", "org.gradle.test", parallelParameterType)

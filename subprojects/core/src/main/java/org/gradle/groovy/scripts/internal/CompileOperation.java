@@ -41,7 +41,7 @@ public interface CompileOperation<T> {
     /**
      * The stage of this compile operation.
      * This is exposed by {@link org.gradle.internal.scripts.CompileScriptBuildOperationType.Details#getStage()}.
-     * */
+     */
     String getStage();
 
     Transformer getTransformer();

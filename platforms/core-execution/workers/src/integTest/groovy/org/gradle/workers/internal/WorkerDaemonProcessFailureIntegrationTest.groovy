@@ -122,7 +122,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
                 }
             }
         """
-        file ('other/build.gradle') << """
+        file('other/build.gradle') << """
             plugins {
                 id 'java'
             }

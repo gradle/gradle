@@ -47,21 +47,6 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
         this.params = params;
     }
 
-    @Override
-    public void execute(ViolationCheckContext context) {
-        List<UpgradedProperty> currentUpgradedProperties = UpgradedProperties.parse(params.get(CURRENT_UPGRADED_PROPERTIES_KEY));
-        List<UpgradedProperty> baselineUpgradedProperties = UpgradedProperties.parse(params.get(BASELINE_UPGRADED_PROPERTIES_KEY));
-        context.putUserData(CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES, diff(
-            currentAccessorsOfUpgradedProperties(currentUpgradedProperties),
-            currentAccessorsOfUpgradedProperties(baselineUpgradedProperties)
-        ));
-        context.putUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES, diff(
-            oldRemovedAccessorsOfUpgradedProperties(currentUpgradedProperties),
-            oldRemovedAccessorsOfUpgradedProperties(baselineUpgradedProperties)
-        ));
-        context.putUserData(SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES, new HashSet<>());
-    }
-
     private static Map<AccessorKey, UpgradedProperty> currentAccessorsOfUpgradedProperties(List<UpgradedProperty> upgradedProperties) {
         return upgradedProperties.stream().collect(Collectors.toMap(AccessorKey::ofUpgradedProperty, Function.identity()));
     }
@@ -85,5 +70,20 @@ public class UpgradePropertiesRuleSetup implements SetupRule {
         return first.entrySet().stream()
             .filter(e -> !second.containsKey(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    @Override
+    public void execute(ViolationCheckContext context) {
+        List<UpgradedProperty> currentUpgradedProperties = UpgradedProperties.parse(params.get(CURRENT_UPGRADED_PROPERTIES_KEY));
+        List<UpgradedProperty> baselineUpgradedProperties = UpgradedProperties.parse(params.get(BASELINE_UPGRADED_PROPERTIES_KEY));
+        context.putUserData(CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES, diff(
+            currentAccessorsOfUpgradedProperties(currentUpgradedProperties),
+            currentAccessorsOfUpgradedProperties(baselineUpgradedProperties)
+        ));
+        context.putUserData(OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES, diff(
+            oldRemovedAccessorsOfUpgradedProperties(currentUpgradedProperties),
+            oldRemovedAccessorsOfUpgradedProperties(baselineUpgradedProperties)
+        ));
+        context.putUserData(SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES, new HashSet<>());
     }
 }

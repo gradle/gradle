@@ -44,9 +44,9 @@ public interface SignatureType {
     /**
      * Combines the extension of the given file with the expected signature extension.
      *
-     * @see #getExtension()
      * @param toSign The file to be signed
      * @return The combined file extension (without the leading dot)
+     * @see #getExtension()
      */
     String combinedExtension(File toSign);
 

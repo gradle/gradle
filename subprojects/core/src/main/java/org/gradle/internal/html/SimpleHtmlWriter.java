@@ -31,27 +31,6 @@ import java.util.Set;
  */
 public class SimpleHtmlWriter extends SimpleMarkupWriter {
 
-    public SimpleHtmlWriter(Writer writer) throws IOException {
-        this(writer, null);
-    }
-
-    public SimpleHtmlWriter(Writer writer, String indent) throws IOException {
-        super(writer, indent);
-        writeHtmlHeader();
-    }
-
-    private void writeHtmlHeader() throws IOException {
-        writeRaw("<!DOCTYPE html>");
-    }
-
-    @Override
-    public SimpleMarkupWriter startElement(String name) throws IOException {
-        if (!isValidHtmlTag(name)) {
-            throw new IllegalArgumentException(String.format("Invalid HTML tag: '%s'", name));
-        }
-        return super.startElement(name);
-    }
-
     // All valid tags should be in lowercase
     // Add more tags as necessary
     private final static Set<String> VALID_HTML_TAGS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -67,7 +46,28 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
         "label", "input"
     )));
 
+    public SimpleHtmlWriter(Writer writer) throws IOException {
+        this(writer, null);
+    }
+
+    public SimpleHtmlWriter(Writer writer, String indent) throws IOException {
+        super(writer, indent);
+        writeHtmlHeader();
+    }
+
     private static boolean isValidHtmlTag(String name) {
         return VALID_HTML_TAGS.contains(name.toLowerCase(Locale.ROOT));
+    }
+
+    private void writeHtmlHeader() throws IOException {
+        writeRaw("<!DOCTYPE html>");
+    }
+
+    @Override
+    public SimpleMarkupWriter startElement(String name) throws IOException {
+        if (!isValidHtmlTag(name)) {
+            throw new IllegalArgumentException(String.format("Invalid HTML tag: '%s'", name));
+        }
+        return super.startElement(name);
     }
 }

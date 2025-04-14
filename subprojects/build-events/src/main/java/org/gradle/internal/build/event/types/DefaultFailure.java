@@ -51,26 +51,6 @@ public class DefaultFailure implements Serializable, InternalFailure {
         this.problems = problems;
     }
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<? extends InternalFailure> getCauses() {
-        return causes;
-    }
-
-    @Override
-    public List<InternalBasicProblemDetailsVersion3> getProblems() {
-        return problems;
-    }
-
     public static InternalFailure fromThrowable(Throwable throwable) {
         return fromThrowable(throwable, t -> ImmutableList.of(), p -> null);
     }
@@ -105,5 +85,25 @@ public class DefaultFailure implements Serializable, InternalFailure {
         } else {
             return Collections.singletonList(fromThrowable(cause, problemLocator, mapper));
         }
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public List<? extends InternalFailure> getCauses() {
+        return causes;
+    }
+
+    @Override
+    public List<InternalBasicProblemDetailsVersion3> getProblems() {
+        return problems;
     }
 }

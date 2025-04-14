@@ -64,7 +64,7 @@ public class TestState {
     public void completed(TestCompleteEvent event) {
         this.completeEvent = event;
         resultType = isFailed() ? TestResult.ResultType.FAILURE
-                : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
+            : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
 
         if (!test.isComposite()) {
             testCount = 1;

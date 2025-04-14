@@ -82,7 +82,7 @@ class CheckBadMerge {
         println(" p1Branches: $p1Branches")
         println(" p2Branches: $p2Branches")
         if (p1Branches.contains("origin/master") && !p2Branches.contains("origin/master") && p2Branches.any { it.startsWith("origin/release") }) {
-            List<String> badFiles = filesFromMerge(commit).findAll {gitFile -> MONITORED_PATHS.any { forbiddenPath -> gitFile.startsWith(forbiddenPath)} }
+            List<String> badFiles = filesFromMerge(commit).findAll { gitFile -> MONITORED_PATHS.any { forbiddenPath -> gitFile.startsWith(forbiddenPath) } }
             if (!badFiles.empty) {
                 System.err.println("Found bad files in merge commit $commit, run the listed commands:")
                 badFiles.each {

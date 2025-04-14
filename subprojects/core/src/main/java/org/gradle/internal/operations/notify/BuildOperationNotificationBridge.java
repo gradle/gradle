@@ -49,28 +49,20 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final ListenerManager listenerManager;
-
-    private class State {
-        private final ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
-        private final BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
-        private BuildOperationNotificationListener notificationListener;
-
-        private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
-            if (this.notificationListener != null) {
-                throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
-            }
-            this.notificationListener = notificationListener;
-        }
-
-        private void stop() {
-            buildOperationListenerManager.removeListener(state.buildOperationListener);
-            listenerManager.removeListener(buildListener);
-        }
-    }
-
     private State state;
 
-    private final BuildOperationNotificationValve valve = new BuildOperationNotificationValve() {
+    public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
+        this.buildOperationListenerManager = buildOperationListenerManager;
+        this.listenerManager = listenerManager;
+        listenerManager.addListener(buildListener);
+    }
+
+    @Override
+    public void register(BuildOperationNotificationListener listener) {
+        State state = requireState();
+        state.assignSingleListener(listener);
+        state.replayAndAttachListener.attach(listener);
+    }    private final BuildOperationNotificationValve valve = new BuildOperationNotificationValve() {
         @Override
         public void start() {
             if (state != null) {
@@ -91,7 +83,14 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         }
     };
 
-    // Notification listeners are expected to register before projectsLoaded.
+    private State requireState() {
+        State s = state;
+        if (s == null) {
+            throw new IllegalStateException("state is null");
+        }
+
+        return s;
+    }    // Notification listeners are expected to register before projectsLoaded.
     // This avoids buffering until the end of the build when no listener comes.
     private final BuildListener buildListener = new InternalBuildAdapter() {
         @Override
@@ -106,28 +105,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             }
         }
     };
-
-    public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
-        this.buildOperationListenerManager = buildOperationListenerManager;
-        this.listenerManager = listenerManager;
-        listenerManager.addListener(buildListener);
-    }
-
-    @Override
-    public void register(BuildOperationNotificationListener listener) {
-        State state = requireState();
-        state.assignSingleListener(listener);
-        state.replayAndAttachListener.attach(listener);
-    }
-
-    private State requireState() {
-        State s = state;
-        if (s == null) {
-            throw new IllegalStateException("state is null");
-        }
-
-        return s;
-    }
 
     public BuildOperationNotificationValve getValve() {
         return valve;
@@ -255,12 +232,10 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
 
     private static class ReplayAndAttachListener implements BuildOperationNotificationListener {
 
-        private RecordingListener recordingListener = new RecordingListener();
-
-        private volatile BuildOperationNotificationListener listener = recordingListener;
-
-        private boolean needLock = true;
         private final Lock lock = new ReentrantLock();
+        private RecordingListener recordingListener = new RecordingListener();
+        private volatile BuildOperationNotificationListener listener = recordingListener;
+        private boolean needLock = true;
 
         private void attach(BuildOperationNotificationListener realListener) {
             lock.lock();
@@ -470,5 +445,27 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 + '}';
         }
     }
+
+    private class State {
+        private final ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
+        private final BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
+        private BuildOperationNotificationListener notificationListener;
+
+        private void assignSingleListener(BuildOperationNotificationListener notificationListener) {
+            if (this.notificationListener != null) {
+                throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
+            }
+            this.notificationListener = notificationListener;
+        }
+
+        private void stop() {
+            buildOperationListenerManager.removeListener(state.buildOperationListener);
+            listenerManager.removeListener(buildListener);
+        }
+    }
+
+
+
+
 
 }

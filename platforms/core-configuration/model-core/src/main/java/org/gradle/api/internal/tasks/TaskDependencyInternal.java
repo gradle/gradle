@@ -24,6 +24,22 @@ import java.util.Collections;
 import java.util.Set;
 
 public interface TaskDependencyInternal extends TaskDependency {
+    TaskDependencyInternal EMPTY = new TaskDependencyContainerInternal() {
+        @Override
+        public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<? extends Task> getDependencies(@Nullable Task task) {
+            return getDependenciesForInternalUse(task);
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+        }
+    };
+
     /**
      * {@inheritDoc}
      *
@@ -44,21 +60,5 @@ public interface TaskDependencyInternal extends TaskDependency {
      * {@link TaskDependencyInternal#getDependencies(Task)}.
      */
     Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task);
-
-    TaskDependencyInternal EMPTY = new TaskDependencyContainerInternal() {
-        @Override
-        public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<? extends Task> getDependencies(@Nullable Task task) {
-            return getDependenciesForInternalUse(task);
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
-    };
 }
 

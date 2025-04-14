@@ -48,7 +48,8 @@ public class DefaultProblem implements Problem {
         List<Location> contextualLocations,
         List<Solution> solutions,
         AdditionalData additionalData,
-        @Nullable Failure failure) {
+        @Nullable Failure failure
+    ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.details = details;

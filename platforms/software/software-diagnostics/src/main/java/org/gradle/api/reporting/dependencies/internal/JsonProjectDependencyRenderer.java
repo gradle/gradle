@@ -108,6 +108,10 @@ import java.util.Set;
  * </pre>
  */
 class JsonProjectDependencyRenderer {
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final VersionComparator versionComparator;
+    private final VersionParser versionParser;
+
     public JsonProjectDependencyRenderer(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
@@ -282,8 +286,4 @@ class JsonProjectDependencyRenderer {
     private String replaceArrow(String name) {
         return name.replace(" -> ", " \u27A1 ");
     }
-
-    private final VersionSelectorScheme versionSelectorScheme;
-    private final VersionComparator versionComparator;
-    private final VersionParser versionParser;
 }

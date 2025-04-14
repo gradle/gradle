@@ -37,10 +37,10 @@ public interface MetaDataParser<T extends MutableModuleComponentResolveMetadata>
      */
     String GRADLE_6_METADATA_MARKER = "do_not_remove: published-with-gradle-metadata";
     String[] GRADLE_METADATA_MARKER_COMMENT_LINES = {
-            "This module was also published with a richer model, Gradle metadata, ",
-            "which should be used instead. Do not delete the following line which ",
-            "is to indicate to Gradle or any Gradle module metadata file consumer ",
-            "that they should prefer consuming it instead."};
+        "This module was also published with a richer model, Gradle metadata, ",
+        "which should be used instead. Do not delete the following line which ",
+        "is to indicate to Gradle or any Gradle module metadata file consumer ",
+        "that they should prefer consuming it instead."};
 
     ParseResult<T> parseMetaData(DescriptorParseContext context, LocallyAvailableExternalResource resource) throws MetaDataParseException;
 
@@ -49,12 +49,13 @@ public interface MetaDataParser<T extends MutableModuleComponentResolveMetadata>
     ParseResult<T> parseMetaData(DescriptorParseContext context, File descriptorFile, boolean validate) throws MetaDataParseException;
 
     interface ParseResult<T> {
-        boolean hasGradleMetadataRedirectionMarker();
-        T getResult();
-
         static <T> ParseResult<T> of(T parsed, boolean hasGradleMetadataRedirect) {
             return new DefaultParseResult<>(parsed, hasGradleMetadataRedirect);
         }
+
+        boolean hasGradleMetadataRedirectionMarker();
+
+        T getResult();
 
     }
 

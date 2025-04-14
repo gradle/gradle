@@ -56,14 +56,6 @@ public class Download implements IDownload {
         this(logger, null, appName, appVersion, convertSystemProperties(System.getProperties()), networkTimeout);
     }
 
-    private static Map<String, String> convertSystemProperties(Properties properties) {
-        Map<String, String> result = new HashMap<String, String>();
-        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-            result.put(entry.getKey().toString(), entry.getValue() == null ? null : entry.getValue().toString());
-        }
-        return result;
-    }
-
     public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
         this(logger, progressListener, appName, appVersion, systemProperties, DEFAULT_NETWORK_TIMEOUT_MILLISECONDS);
     }
@@ -78,6 +70,28 @@ public class Download implements IDownload {
         configureProxyAuthentication();
     }
 
+    private static Map<String, String> convertSystemProperties(Properties properties) {
+        Map<String, String> result = new HashMap<String, String>();
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            result.put(entry.getKey().toString(), entry.getValue() == null ? null : entry.getValue().toString());
+        }
+        return result;
+    }
+
+    /**
+     * Create a safe URI from the given one by stripping out user info.
+     *
+     * @param uri Original URI
+     * @return a new URI with no user info
+     */
+    static URI safeUri(URI uri) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to parse URI", e);
+        }
+    }
+
     private void configureProxyAuthentication() {
         if (systemProperties.get("http.proxyUser") != null || systemProperties.get("https.proxyUser") != null) {
             // Only an authenticator for proxies needs to be set. Basic authentication is supported by directly setting the request header field.
@@ -89,7 +103,7 @@ public class Download implements IDownload {
         URL safeUrl = safeUri(uri).toURL();
         int responseCode = -1;
         try {
-            HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) safeUrl.openConnection();
             conn.setRequestMethod("HEAD");
             addBasicAuthentication(uri, conn);
             conn.setRequestProperty("User-Agent", calculateUserAgent());
@@ -158,20 +172,6 @@ public class Download implements IDownload {
             if (out != null) {
                 out.close();
             }
-        }
-    }
-
-    /**
-     * Create a safe URI from the given one by stripping out user info.
-     *
-     * @param uri Original URI
-     * @return a new URI with no user info
-     */
-    static URI safeUri(URI uri) {
-        try {
-            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Failed to parse URI", e);
         }
     }
 

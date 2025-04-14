@@ -1,1 +1,3 @@
-public class Java { Groovy groovy = new Groovy(); }
+public class Java {
+    Groovy groovy = new Groovy();
+}

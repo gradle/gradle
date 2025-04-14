@@ -24,7 +24,7 @@ abstract class IvyVariantDerivationRule @Inject internal constructor(objectFacto
 
     override fun execute(context: ComponentMetadataContext) {
         // This filters out any non Ivy module
-        if(context.getDescriptor(IvyModuleDescriptor::class) == null) {
+        if (context.getDescriptor(IvyModuleDescriptor::class) == null) {
             return
         }
 

@@ -96,10 +96,12 @@ abstract class TestFilesCleanupService @Inject constructor(
                         addFailedTaskPath(taskPath)
                     }
                 }
+
                 is TaskFailureResult -> {
                     addExecutedTaskPath(taskPath)
                     addFailedTaskPath(taskPath)
                 }
+
                 else -> {
                 }
             }

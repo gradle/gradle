@@ -17,12 +17,12 @@
 package org.gradle.model.internal.registry;
 
 public interface BoringProjectState {
-    void withMutableState(Runnable run);
-
     BoringProjectState IDENTITY = new BoringProjectState() {
         @Override
         public void withMutableState(Runnable run) {
             run.run();
         }
     };
+
+    void withMutableState(Runnable run);
 }

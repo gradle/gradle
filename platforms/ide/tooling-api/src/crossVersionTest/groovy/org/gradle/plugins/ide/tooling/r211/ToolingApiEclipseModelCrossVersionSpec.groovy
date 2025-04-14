@@ -36,7 +36,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.javaSourceSettings.targetBytecodeVersion== JavaVersion.current()
+        rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.current()
     }
 
     def "Java project has jdk"() {

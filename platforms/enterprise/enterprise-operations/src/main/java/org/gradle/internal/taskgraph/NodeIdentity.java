@@ -26,11 +26,11 @@ package org.gradle.internal.taskgraph;
  */
 public interface NodeIdentity {
 
+    NodeType getNodeType();
+
     enum NodeType {
         TASK,
         TRANSFORM_STEP
     }
-
-    NodeType getNodeType();
 
 }

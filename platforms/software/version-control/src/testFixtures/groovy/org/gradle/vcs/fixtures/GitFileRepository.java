@@ -51,6 +51,17 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
     }
 
     /**
+     * Factory method for creating a GitRepository without using a JUnit @Rule.
+     *
+     * Creates a repository in the given repoDir.
+     */
+    public static GitFileRepository init(File repoDir) throws GitAPIException {
+        GitFileRepository repo = new GitFileRepository(repoDir);
+        repo.createGitRepo(repoDir);
+        return repo;
+    }
+
+    /**
      * Returns the underlying Git object from JGit.
      *
      * Please consider adding more convenience methods to this fixture over using "raw" Git APIs.
@@ -62,17 +73,6 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
     @Override
     public String getName() {
         return repoName;
-    }
-
-    /**
-     * Factory method for creating a GitRepository without using a JUnit @Rule.
-     *
-     * Creates a repository in the given repoDir.
-     */
-    public static GitFileRepository init(File repoDir) throws GitAPIException {
-        GitFileRepository repo = new GitFileRepository(repoDir);
-        repo.createGitRepo(repoDir);
-        return repo;
     }
 
     @Override

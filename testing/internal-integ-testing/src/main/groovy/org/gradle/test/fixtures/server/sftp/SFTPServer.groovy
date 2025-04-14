@@ -361,6 +361,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         boolean matches(Buffer buffer, int type, int id)
 
         boolean isFailing()
+
         boolean isMissing()
     }
 

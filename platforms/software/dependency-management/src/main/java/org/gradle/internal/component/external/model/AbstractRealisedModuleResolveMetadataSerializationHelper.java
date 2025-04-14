@@ -70,6 +70,38 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    protected static ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {
+        int capabilitiesCount = decoder.readSmallInt();
+        ImmutableSet.Builder<ImmutableCapability> rawCapabilities = ImmutableSet.builderWithExpectedSize(capabilitiesCount);
+        for (int j = 0; j < capabilitiesCount; j++) {
+            String appendix = decoder.readNullableString();
+            ImmutableCapability capability = new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
+            if (appendix != null) {
+                capability = new ShadowedImmutableCapability(capability, appendix);
+            }
+            rawCapabilities.add(capability);
+        }
+        return new ImmutableCapabilities(rawCapabilities.build());
+    }
+
+    private static void writeCapabilities(Encoder encoder, ImmutableCapabilities capabilities) throws IOException {
+        ImmutableSet<ImmutableCapability> capabilitiesSet = capabilities.asSet();
+        encoder.writeSmallInt(capabilitiesSet.size());
+        for (Capability capability : capabilitiesSet) {
+            boolean shadowed = capability instanceof ShadowedCapability;
+            if (shadowed) {
+                ShadowedCapability shadowedCapability = (ShadowedCapability) capability;
+                encoder.writeNullableString(shadowedCapability.getAppendix());
+                capability = shadowedCapability.getShadowedCapability();
+            } else {
+                encoder.writeNullableString(null);
+            }
+            encoder.writeString(capability.getGroup());
+            encoder.writeString(capability.getName());
+            encoder.writeString(capability.getVersion());
+        }
+    }
+
     protected AttributeContainerSerializer getAttributeContainerSerializer() {
         return attributeContainerSerializer;
     }
@@ -80,12 +112,12 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
 
     public void writeRealisedVariantsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed) throws IOException {
         encoder.writeSmallInt(transformed.getVariants().size());
-        for (ComponentVariant variant: transformed.getVariants()) {
+        for (ComponentVariant variant : transformed.getVariants()) {
             if (variant instanceof AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl) {
                 AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl realisedVariant = (AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl) variant;
                 encoder.writeString(realisedVariant.getName());
                 encoder.writeSmallInt(realisedVariant.getDependencyMetadata().size());
-                for (ModuleDependencyMetadata dependencyMetadata: realisedVariant.getDependencyMetadata()) {
+                for (ModuleDependencyMetadata dependencyMetadata : realisedVariant.getDependencyMetadata()) {
                     if (dependencyMetadata instanceof GradleDependencyMetadata) {
                         writeDependencyMetadata(encoder, (GradleDependencyMetadata) dependencyMetadata);
                     }
@@ -98,7 +130,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
 
     public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         encoder.writeSmallInt(transformed.getConfigurationNames().size());
-        for (String configurationName: transformed.getConfigurationNames()) {
+        for (String configurationName : transformed.getConfigurationNames()) {
             ConfigurationMetadata configuration = transformed.getConfiguration(configurationName);
             writeConfiguration(encoder, configuration);
             writeFiles(encoder, configuration.getArtifacts());
@@ -166,7 +198,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
             } else {
                 if (alternativeArtifact) {
                     artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, artifactName,
-                            new DefaultModuleComponentArtifactMetadata(cid, alternative)));
+                        new DefaultModuleComponentArtifactMetadata(cid, alternative)));
                 } else {
                     artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, artifactName));
                 }
@@ -190,20 +222,6 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
             excludes.add(excludeRuleConverter.createExcludeRule(group, name));
         }
         return excludes;
-    }
-
-    protected static ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {
-        int capabilitiesCount = decoder.readSmallInt();
-        ImmutableSet.Builder<ImmutableCapability> rawCapabilities = ImmutableSet.builderWithExpectedSize(capabilitiesCount);
-        for (int j = 0; j < capabilitiesCount; j++) {
-            String appendix = decoder.readNullableString();
-            ImmutableCapability capability = new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
-            if (appendix != null) {
-                capability = new ShadowedImmutableCapability(capability, appendix);
-            }
-            rawCapabilities.add(capability);
-        }
-        return new ImmutableCapabilities(rawCapabilities.build());
     }
 
     protected void writeFiles(Encoder encoder, ImmutableList<? extends ComponentArtifactMetadata> artifacts) throws IOException {
@@ -238,24 +256,6 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
     }
 
     protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException;
-
-    private static void writeCapabilities(Encoder encoder, ImmutableCapabilities capabilities) throws IOException {
-        ImmutableSet<ImmutableCapability> capabilitiesSet = capabilities.asSet();
-        encoder.writeSmallInt(capabilitiesSet.size());
-        for (Capability capability : capabilitiesSet) {
-            boolean shadowed = capability instanceof ShadowedCapability;
-            if (shadowed) {
-                ShadowedCapability shadowedCapability = (ShadowedCapability) capability;
-                encoder.writeNullableString(shadowedCapability.getAppendix());
-                capability = shadowedCapability.getShadowedCapability();
-            } else {
-                encoder.writeNullableString(null);
-            }
-            encoder.writeString(capability.getGroup());
-            encoder.writeString(capability.getName());
-            encoder.writeString(capability.getVersion());
-        }
-    }
 
     protected void writeDependencyMetadata(Encoder encoder, GradleDependencyMetadata dependencyMetadata) throws IOException {
         componentSelectorSerializer.write(encoder, dependencyMetadata.getSelector());

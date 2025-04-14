@@ -455,7 +455,7 @@ model {
         final projectFile = projectFile("mainExe.vcxproj")
         projectFile.assertHasComponentSources(testApp, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['win32Debug']) {
+        with(projectFile.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers")
         }
 
@@ -497,7 +497,7 @@ model {
         assert projectFile.resourceFiles == resources*.withPath("src/main").sort()
 
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['win32Debug']) {
+        with(projectFile.projectConfigurations['win32Debug']) {
             macros == "TEST;foo=bar"
             includePath == filePath("src/main/headers")
         }
@@ -524,7 +524,7 @@ model {
         projectFile.sourceFiles == ['build.gradle']
         projectFile.headerFiles == []
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['win32Debug']) {
+        with(projectFile.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers")
         }
 
@@ -557,8 +557,8 @@ model {
 
         and:
         final projectFile = projectFile("mainExe.vcxproj")
-        assert projectFile.sourceFiles == ['build.gradle'] + app.sourceFiles.collect({"src/main/cpp/${it.name}"}).sort()
-        assert projectFile.headerFiles == app.headerFiles.collect({"src/main/cpp/${it.name}"}).sort()
+        assert projectFile.sourceFiles == ['build.gradle'] + app.sourceFiles.collect({ "src/main/cpp/${it.name}" }).sort()
+        assert projectFile.headerFiles == app.headerFiles.collect({ "src/main/cpp/${it.name}" }).sort()
     }
 
     def "visual studio solution with header-only library"() {
@@ -598,31 +598,31 @@ model {
 
         and:
         final mainExeProject = projectFile("mainExe.vcxproj")
-        with (mainExeProject.projectConfigurations['win32Debug']) {
+        with(mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "src/helloApi/headers", "src/hello/headers")
         }
 
         and:
         final helloDllProject = projectFile("helloDll.vcxproj")
-        with (helloDllProject.projectConfigurations['win32Debug']) {
+        with(helloDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/hello/headers", "src/helloApi/headers")
         }
 
         and:
         final helloLibProject = projectFile("helloLib.vcxproj")
-        with (helloLibProject.projectConfigurations['win32Debug']) {
+        with(helloLibProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/hello/headers", "src/helloApi/headers")
         }
 
         and:
         final helloApiDllProject = projectFile("helloApiDll.vcxproj")
-        with (helloApiDllProject.projectConfigurations['win32Debug']) {
+        with(helloApiDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/helloApi/headers")
         }
 
         and:
         final helloApiLibProject = projectFile("helloApiLib.vcxproj")
-        with (helloApiLibProject.projectConfigurations['win32Debug']) {
+        with(helloApiLibProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/helloApi/headers")
         }
     }
@@ -698,7 +698,7 @@ model {
 
         and:
         final mainExeProject = projectFile("mainExe.vcxproj")
-        with (mainExeProject.projectConfigurations['win32Debug']) {
+        with(mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "libs/test/include")
         }
     }
@@ -792,31 +792,31 @@ model {
 
         and:
         final mainExeProject = projectFile("mainExe.vcxproj")
-        with (mainExeProject.projectConfigurations['win32Debug']) {
+        with(mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "src/hello/headers")
         }
 
         and:
         final helloDllProject = projectFile("helloDll.vcxproj")
-        with (helloDllProject.projectConfigurations['win32Debug']) {
-            includePath == filePath( "src/hello/headers", "src/greetings/headers")
+        with(helloDllProject.projectConfigurations['win32Debug']) {
+            includePath == filePath("src/hello/headers", "src/greetings/headers")
         }
 
         and:
         final helloLibProject = projectFile("helloLib.vcxproj")
-        with (helloLibProject.projectConfigurations['win32Debug']) {
-            includePath == filePath( "src/hello/headers", "src/greetings/headers")
+        with(helloLibProject.projectConfigurations['win32Debug']) {
+            includePath == filePath("src/hello/headers", "src/greetings/headers")
         }
 
         and:
         final greetingsDllProject = projectFile("greetingsDll.vcxproj")
-        with (greetingsDllProject.projectConfigurations['win32Debug']) {
+        with(greetingsDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/greetings/headers", "src/hello/headers")
         }
 
         and:
         final greetingsLibProject = projectFile("greetingsLib.vcxproj")
-        with (greetingsLibProject.projectConfigurations['win32Debug']) {
+        with(greetingsLibProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/greetings/headers", "src/hello/headers")
         }
     }
@@ -862,9 +862,9 @@ model {
         and:
         final mainSolution = solutionFile("app.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll", "helloLib")
-        mainSolution.assertReferencesProject(exeProject, ['win32':'win32', 'x64':'x64', 'win32Debug':'x64', 'win32Release':'x64', 'x64Debug':'x64', 'x64Release':'x64'])
-        mainSolution.assertReferencesProject(dllProject, ['win32Debug':'win32Debug', 'win32Release':'win32Release', 'x64Debug':'x64Debug', 'x64Release':'x64Release', 'win32':'x64Release', 'x64':'x64Release'])
-        mainSolution.assertReferencesProject(libProject, ['win32Debug':'win32Debug', 'win32Release':'win32Release', 'x64Debug':'x64Debug', 'x64Release':'x64Release', 'win32':'x64Release', 'x64':'x64Release'])
+        mainSolution.assertReferencesProject(exeProject, ['win32': 'win32', 'x64': 'x64', 'win32Debug': 'x64', 'win32Release': 'x64', 'x64Debug': 'x64', 'x64Release': 'x64'])
+        mainSolution.assertReferencesProject(dllProject, ['win32Debug': 'win32Debug', 'win32Release': 'win32Release', 'x64Debug': 'x64Debug', 'x64Release': 'x64Release', 'win32': 'x64Release', 'x64': 'x64Release'])
+        mainSolution.assertReferencesProject(libProject, ['win32Debug': 'win32Debug', 'win32Release': 'win32Release', 'x64Debug': 'x64Debug', 'x64Release': 'x64Release', 'win32': 'x64Release', 'x64': 'x64Release'])
     }
 
     def "only create visual studio projects for buildable binaries"() {

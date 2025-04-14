@@ -25,89 +25,6 @@ import java.util.zip.ZipEntry;
  */
 abstract public class ExtraModuleInfoTransform implements TransformAction<ExtraModuleInfoTransform.Parameter> {
 
-    public static class Parameter implements TransformParameters, Serializable {
-        private Map<String, ModuleInfo> moduleInfo = Collections.emptyMap();
-        private Map<String, String> automaticModules = Collections.emptyMap();
-
-        @Input
-        public Map<String, ModuleInfo> getModuleInfo() {
-            return moduleInfo;
-        }
-
-        @Input
-        public Map<String, String> getAutomaticModules() {
-            return automaticModules;
-        }
-
-        public void setModuleInfo(Map<String, ModuleInfo> moduleInfo) {
-            this.moduleInfo = moduleInfo;
-        }
-
-        public void setAutomaticModules(Map<String, String> automaticModules) {
-            this.automaticModules = automaticModules;
-        }
-    }
-
-    @InputArtifact
-    protected abstract Provider<FileSystemLocation> getInputArtifact();
-
-    @Override
-    public void transform(TransformOutputs outputs) {
-        Map<String, ModuleInfo> moduleInfo = getParameters().moduleInfo;
-        Map<String, String> automaticModules = getParameters().automaticModules;
-        File originalJar = getInputArtifact().get().getAsFile();
-        String originalJarName = originalJar.getName();
-
-        if (isModule(originalJar)) {
-            outputs.file(originalJar);
-        } else if (moduleInfo.containsKey(originalJarName)) {
-            addModuleDescriptor(originalJar, getModuleJar(outputs, originalJar), moduleInfo.get(originalJarName));
-        } else if (isAutoModule(originalJar)) {
-            outputs.file(originalJar);
-        } else if (automaticModules.containsKey(originalJarName)) {
-            addAutomaticModuleName(originalJar,  getModuleJar(outputs, originalJar), automaticModules.get(originalJarName));
-        } else {
-            throw new RuntimeException("Not a module and no mapping defined: " + originalJarName);
-        }
-    }
-
-    private boolean isModule(File jar) {
-        Pattern moduleInfoClassMrjarPath = Pattern.compile("META-INF/versions/\\d+/module-info.class");
-        try (JarInputStream inputStream =  new JarInputStream(new FileInputStream(jar))) {
-            boolean isMultiReleaseJar = containsMultiReleaseJarEntry(inputStream);
-            ZipEntry next = inputStream.getNextEntry();
-            while (next != null) {
-                if ("module-info.class".equals(next.getName())) {
-                    return true;
-                }
-                if (isMultiReleaseJar && moduleInfoClassMrjarPath.matcher(next.getName()).matches()) {
-                    return true;
-                }
-                next = inputStream.getNextEntry();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return false;
-    }
-
-    private boolean containsMultiReleaseJarEntry(JarInputStream jarStream) {
-        Manifest manifest = jarStream.getManifest();
-        return manifest != null && Boolean.parseBoolean(manifest.getMainAttributes().getValue("Multi-Release"));
-    }
-
-    private boolean isAutoModule(File jar) {
-        try (JarInputStream inputStream = new JarInputStream(new FileInputStream(jar))) {
-            return inputStream.getManifest().getMainAttributes().getValue("Automatic-Module-Name") != null;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private File getModuleJar(TransformOutputs outputs, File originalJar) {
-        return outputs.file(originalJar.getName().substring(0, originalJar.getName().lastIndexOf('.')) + "-module.jar");
-    }
-
     private static void addAutomaticModuleName(File originalJar, File moduleJar, String moduleName) {
         try (JarInputStream inputStream = new JarInputStream(new FileInputStream(originalJar))) {
             Manifest manifest = inputStream.getManifest();
@@ -160,5 +77,88 @@ abstract public class ExtraModuleInfoTransform implements TransformAction<ExtraM
         moduleVisitor.visitEnd();
         classWriter.visitEnd();
         return classWriter.toByteArray();
+    }
+
+    @InputArtifact
+    protected abstract Provider<FileSystemLocation> getInputArtifact();
+
+    @Override
+    public void transform(TransformOutputs outputs) {
+        Map<String, ModuleInfo> moduleInfo = getParameters().moduleInfo;
+        Map<String, String> automaticModules = getParameters().automaticModules;
+        File originalJar = getInputArtifact().get().getAsFile();
+        String originalJarName = originalJar.getName();
+
+        if (isModule(originalJar)) {
+            outputs.file(originalJar);
+        } else if (moduleInfo.containsKey(originalJarName)) {
+            addModuleDescriptor(originalJar, getModuleJar(outputs, originalJar), moduleInfo.get(originalJarName));
+        } else if (isAutoModule(originalJar)) {
+            outputs.file(originalJar);
+        } else if (automaticModules.containsKey(originalJarName)) {
+            addAutomaticModuleName(originalJar, getModuleJar(outputs, originalJar), automaticModules.get(originalJarName));
+        } else {
+            throw new RuntimeException("Not a module and no mapping defined: " + originalJarName);
+        }
+    }
+
+    private boolean isModule(File jar) {
+        Pattern moduleInfoClassMrjarPath = Pattern.compile("META-INF/versions/\\d+/module-info.class");
+        try (JarInputStream inputStream = new JarInputStream(new FileInputStream(jar))) {
+            boolean isMultiReleaseJar = containsMultiReleaseJarEntry(inputStream);
+            ZipEntry next = inputStream.getNextEntry();
+            while (next != null) {
+                if ("module-info.class".equals(next.getName())) {
+                    return true;
+                }
+                if (isMultiReleaseJar && moduleInfoClassMrjarPath.matcher(next.getName()).matches()) {
+                    return true;
+                }
+                next = inputStream.getNextEntry();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+    private boolean containsMultiReleaseJarEntry(JarInputStream jarStream) {
+        Manifest manifest = jarStream.getManifest();
+        return manifest != null && Boolean.parseBoolean(manifest.getMainAttributes().getValue("Multi-Release"));
+    }
+
+    private boolean isAutoModule(File jar) {
+        try (JarInputStream inputStream = new JarInputStream(new FileInputStream(jar))) {
+            return inputStream.getManifest().getMainAttributes().getValue("Automatic-Module-Name") != null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private File getModuleJar(TransformOutputs outputs, File originalJar) {
+        return outputs.file(originalJar.getName().substring(0, originalJar.getName().lastIndexOf('.')) + "-module.jar");
+    }
+
+    public static class Parameter implements TransformParameters, Serializable {
+        private Map<String, ModuleInfo> moduleInfo = Collections.emptyMap();
+        private Map<String, String> automaticModules = Collections.emptyMap();
+
+        @Input
+        public Map<String, ModuleInfo> getModuleInfo() {
+            return moduleInfo;
+        }
+
+        public void setModuleInfo(Map<String, ModuleInfo> moduleInfo) {
+            this.moduleInfo = moduleInfo;
+        }
+
+        @Input
+        public Map<String, String> getAutomaticModules() {
+            return automaticModules;
+        }
+
+        public void setAutomaticModules(Map<String, String> automaticModules) {
+            this.automaticModules = automaticModules;
+        }
     }
 }

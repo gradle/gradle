@@ -38,9 +38,9 @@ class DaemonJvmPropertiesModifierTest extends Specification {
         def propertiesModifier = new DaemonJvmPropertiesModifier()
         when:
         propertiesModifier.updateJvmCriteria(daemonJvmPropertiesFile, JavaLanguageVersion.of(11), "IBM", true,
-                [(createBuildPlatform(Architecture.AARCH64, OperatingSystem.LINUX)): new URI("https://server/whatever1"),
-                 (createBuildPlatform(Architecture.X86_64, OperatingSystem.MAC_OS)): new URI("https://server/whatever2"),
-                 (createBuildPlatform(Architecture.X86_64, OperatingSystem.WINDOWS)): new URI("https://server/whatever3")])
+            [(createBuildPlatform(Architecture.AARCH64, OperatingSystem.LINUX)): new URI("https://server/whatever1"),
+             (createBuildPlatform(Architecture.X86_64, OperatingSystem.MAC_OS)): new URI("https://server/whatever2"),
+             (createBuildPlatform(Architecture.X86_64, OperatingSystem.WINDOWS)): new URI("https://server/whatever3")])
         then:
         def props = daemonJvmPropertiesFile.properties
         props[DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY] == "11"

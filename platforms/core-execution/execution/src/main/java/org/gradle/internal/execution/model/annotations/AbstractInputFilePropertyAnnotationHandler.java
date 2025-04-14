@@ -55,6 +55,20 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
         this.filePropertyType = filePropertyType;
     }
 
+    private static InputBehavior determineBehavior(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class)
+            ? InputBehavior.PRIMARY
+            : propertyMetadata.isAnnotationPresent(Incremental.class)
+            ? InputBehavior.INCREMENTAL
+            : InputBehavior.NON_INCREMENTAL;
+    }
+
+    private static LineEndingSensitivity determineLineEndingSensitivity(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class)
+            ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
+            : LineEndingSensitivity.DEFAULT;
+    }
+
     @Override
     public boolean isPropertyRelevant() {
         return true;
@@ -86,20 +100,6 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
             value,
             filePropertyType
         );
-    }
-
-    private static InputBehavior determineBehavior(PropertyMetadata propertyMetadata) {
-        return propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class)
-            ? InputBehavior.PRIMARY
-            : propertyMetadata.isAnnotationPresent(Incremental.class)
-            ? InputBehavior.INCREMENTAL
-            : InputBehavior.NON_INCREMENTAL;
-    }
-
-    private static LineEndingSensitivity determineLineEndingSensitivity(PropertyMetadata propertyMetadata) {
-        return propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class)
-            ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
-            : LineEndingSensitivity.DEFAULT;
     }
 
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {

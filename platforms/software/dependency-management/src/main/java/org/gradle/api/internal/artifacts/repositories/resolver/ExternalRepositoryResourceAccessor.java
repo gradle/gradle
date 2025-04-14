@@ -43,6 +43,11 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
         this.resourceResolver = new DefaultExternalResourceAccessor(fileStore, cacheAwareExternalResourceAccessor);
     }
 
+    @Nullable
+    private static Long hashFor(@Nullable LocallyAvailableExternalResource resource) {
+        return resource == null ? null : resource.getMetaData().getLastModified().getTime();
+    }
+
     @Override
     public void withResource(String relativePath, Action<? super InputStream> action) {
         ExternalResourceName location = new ExternalResourceName(rootUri, relativePath);
@@ -62,11 +67,6 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
                 resource.withContent(action);
             }
         };
-    }
-
-    @Nullable
-    private static Long hashFor(@Nullable LocallyAvailableExternalResource resource) {
-        return resource == null ? null : resource.getMetaData().getLastModified().getTime();
     }
 
     @Override

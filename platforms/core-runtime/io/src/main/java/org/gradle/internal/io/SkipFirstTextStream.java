@@ -20,8 +20,8 @@ import org.jspecify.annotations.Nullable;
 
 public class SkipFirstTextStream implements TextStream {
 
-    private boolean open;
     private final TextStream delegate;
+    private boolean open;
 
     public SkipFirstTextStream(TextStream delegate) {
         this.delegate = delegate;

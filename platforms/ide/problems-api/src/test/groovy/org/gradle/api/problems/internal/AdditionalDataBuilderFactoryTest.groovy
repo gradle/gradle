@@ -69,6 +69,7 @@ class AdditionalDataBuilderFactoryTest extends Specification {
         private String value
 
         CustomAdditionalDataBuilder() {}
+
         CustomAdditionalDataBuilder(CustomAdditionalData from) {
             this.value = from.value
         }

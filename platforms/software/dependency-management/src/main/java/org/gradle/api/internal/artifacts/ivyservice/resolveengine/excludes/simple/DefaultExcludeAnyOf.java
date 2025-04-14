@@ -22,20 +22,20 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.internal.component.model.IvyArtifactName;
 
 final class DefaultExcludeAnyOf extends DefaultCompositeExclude implements ExcludeAnyOf {
-    public static ExcludeSpec of(ImmutableSet<ExcludeSpec> components) {
-        return new DefaultExcludeAnyOf(components);
-    }
+    private Boolean mayExcludeArtifacts;
 
     private DefaultExcludeAnyOf(ImmutableSet<ExcludeSpec> components) {
         super(components);
+    }
+
+    public static ExcludeSpec of(ImmutableSet<ExcludeSpec> components) {
+        return new DefaultExcludeAnyOf(components);
     }
 
     @Override
     int mask() {
         return 1731217984;
     }
-
-    private Boolean mayExcludeArtifacts;
 
     @Override
     protected String getDisplayName() {

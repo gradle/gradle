@@ -27,12 +27,13 @@ public interface ArtifactResolutionResult {
      * <p>Return a set of {@link ComponentResult} instances representing all requested components.
      *
      * <p>Each element in the returned set is declared as an opaque {@link ComponentResult}.
-     *    However each element in the result will also implement one of the following interfaces:</p>
+     * However each element in the result will also implement one of the following interfaces:</p>
      *
      * <ul>
      *     <li>{@link ComponentArtifactsResult} for any component that could be resolved in the set of repositories.</li>
      *     <li>{@link UnresolvedComponentResult} for any component that could not be resolved from the set of repositories.</li>
      * </ul>
+     *
      * @return the set of results for all requested components
      */
     Set<ComponentResult> getComponents();

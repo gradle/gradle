@@ -83,6 +83,7 @@ import static org.gradle.internal.reflect.PropertyAccessorType.takesSingleParame
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
+    private final ModelSchemaStore schemaStore;
     private final LoadingCache<CacheKey, StructBindings<?>> bindings = CacheBuilder.newBuilder()
         .weakValues()
         .build(new CacheLoader<CacheKey, StructBindings<?>>() {
@@ -92,61 +93,8 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
             }
         });
 
-    private final ModelSchemaStore schemaStore;
-
     public DefaultStructBindingsStore(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
-    }
-
-    @Override
-    public <T> StructBindings<T> getBindings(ModelType<T> publicType) {
-        return getBindings(publicType, Collections.<ModelType<?>>emptySet(), null);
-    }
-
-    @Override
-    public <T> StructBindings<T> getBindings(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType) {
-        try {
-            return Cast.uncheckedCast(bindings.get(new CacheKey(publicType, internalViewTypes, delegateType)));
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
-    }
-
-    <T, D> StructBindings<T> extract(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<D> delegateType) {
-        if (delegateType != null && Modifier.isAbstract(delegateType.getConcreteClass().getModifiers())) {
-            throw new InvalidManagedTypeException(String.format("Type '%s' is not a valid managed type: delegate type must be null or a non-abstract type instead of '%s'.",
-                publicType.getDisplayName(), delegateType.getDisplayName()));
-        }
-
-        Set<ModelType<?>> implementedViews = collectImplementedViews(publicType, internalViewTypes, delegateType);
-        StructSchema<T> publicSchema = getStructSchema(publicType);
-        Iterable<StructSchema<?>> declaredViewSchemas = getStructSchemas(Iterables.concat(Collections.singleton(publicType), internalViewTypes));
-        Iterable<StructSchema<?>> implementedSchemas = getStructSchemas(implementedViews);
-        StructSchema<D> delegateSchema = delegateType == null ? null : getStructSchema(delegateType);
-
-        StructBindingExtractionContext<T> extractionContext = new StructBindingExtractionContext<T>(publicSchema, implementedSchemas, delegateSchema);
-
-        if (!(publicSchema instanceof RuleSourceSchema)) {
-            validateTypeHierarchy(extractionContext, publicType);
-            for (ModelType<?> internalViewType : internalViewTypes) {
-                validateTypeHierarchy(extractionContext, internalViewType);
-            }
-        }
-
-        Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings = new TreeMap<>();
-        Set<StructMethodBinding> methodBindings = collectMethodBindings(extractionContext, propertyBindings);
-        ImmutableSortedMap<String, ManagedProperty<?>> managedProperties = collectManagedProperties(extractionContext, propertyBindings);
-
-        if (extractionContext.problems.hasProblems()) {
-            throw new InvalidManagedTypeException(extractionContext.problems.format());
-        }
-
-        return new DefaultStructBindings<T>(
-            publicSchema, declaredViewSchemas, implementedSchemas, delegateSchema,
-            managedProperties, methodBindings
-        );
     }
 
     private static <T> void validateTypeHierarchy(final StructBindingValidationProblemCollector problems, ModelType<T> type) {
@@ -237,26 +185,6 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     private static boolean isDefaultInterfaceMethod(Method method) {
         // Default methods are public non-abstract instance methods declared in an interface.
         return (method.getModifiers() & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC;
-    }
-
-    private <T> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructBindingExtractionContext<T> extractionContext, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {
-        ImmutableSortedMap.Builder<String, ManagedProperty<?>> managedPropertiesBuilder = ImmutableSortedMap.naturalOrder();
-        for (Map.Entry<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyEntry : propertyBindings.entrySet()) {
-            String propertyName = propertyEntry.getKey();
-            Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings = propertyEntry.getValue();
-
-            if (isManagedProperty(extractionContext, propertyName, accessorBindings)) {
-                if (hasSetter(accessorBindings.keySet()) && !hasGetter(accessorBindings.keySet())) {
-                    extractionContext.add(propertyName, "it must both have an abstract getter and a setter");
-                    continue;
-                }
-
-                ModelType<?> propertyType = determineManagedPropertyType(extractionContext, propertyName, accessorBindings);
-                ModelSchema<?> propertySchema = schemaStore.getSchema(propertyType);
-                managedPropertiesBuilder.put(propertyName, createManagedProperty(extractionContext, propertyName, propertySchema, accessorBindings));
-            }
-        }
-        return managedPropertiesBuilder.build();
     }
 
     private static boolean isManagedProperty(StructBindingExtractionContext<?> extractionContext, String propertyName, Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings) {
@@ -483,7 +411,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
         if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
             extractionContext.add(propertyName, String.format("it is marked as @Unmanaged, but is of @Managed type '%s'; please remove the @Managed annotation",
-                    propertyType.getDisplayName()
+                propertyType.getDisplayName()
             ));
         }
 
@@ -510,11 +438,114 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         return false;
     }
 
+    /**
+     * Finds the types in the given collection that cannot be assigned from any other type in the collection.
+     */
+    static Collection<ModelType<?>> findConvergingTypes(Collection<ModelType<?>> allTypes) {
+        if (allTypes.size() == 0) {
+            throw new IllegalArgumentException("No types given");
+        }
+        if (allTypes.size() == 1) {
+            return allTypes;
+        }
+
+        Set<ModelType<?>> typesToCheck = Sets.newLinkedHashSet(allTypes);
+        Set<ModelType<?>> convergingTypes = Sets.newLinkedHashSet(allTypes);
+
+        while (!typesToCheck.isEmpty()) {
+            Iterator<ModelType<?>> iTypeToCheck = typesToCheck.iterator();
+            ModelType<?> typeToCheck = iTypeToCheck.next();
+            iTypeToCheck.remove();
+
+            Iterator<ModelType<?>> iRemainingType = convergingTypes.iterator();
+            while (iRemainingType.hasNext()) {
+                ModelType<?> remainingType = iRemainingType.next();
+                if (!remainingType.equals(typeToCheck) && remainingType.isAssignableFrom(typeToCheck)) {
+                    iRemainingType.remove();
+                    typesToCheck.remove(remainingType);
+                }
+            }
+        }
+
+        return convergingTypes;
+    }
+
+    @Override
+    public <T> StructBindings<T> getBindings(ModelType<T> publicType) {
+        return getBindings(publicType, Collections.<ModelType<?>>emptySet(), null);
+    }
+
+    @Override
+    public <T> StructBindings<T> getBindings(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<?> delegateType) {
+        try {
+            return Cast.uncheckedCast(bindings.get(new CacheKey(publicType, internalViewTypes, delegateType)));
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
+    }
+
+    <T, D> StructBindings<T> extract(ModelType<T> publicType, Iterable<? extends ModelType<?>> internalViewTypes, ModelType<D> delegateType) {
+        if (delegateType != null && Modifier.isAbstract(delegateType.getConcreteClass().getModifiers())) {
+            throw new InvalidManagedTypeException(String.format("Type '%s' is not a valid managed type: delegate type must be null or a non-abstract type instead of '%s'.",
+                publicType.getDisplayName(), delegateType.getDisplayName()));
+        }
+
+        Set<ModelType<?>> implementedViews = collectImplementedViews(publicType, internalViewTypes, delegateType);
+        StructSchema<T> publicSchema = getStructSchema(publicType);
+        Iterable<StructSchema<?>> declaredViewSchemas = getStructSchemas(Iterables.concat(Collections.singleton(publicType), internalViewTypes));
+        Iterable<StructSchema<?>> implementedSchemas = getStructSchemas(implementedViews);
+        StructSchema<D> delegateSchema = delegateType == null ? null : getStructSchema(delegateType);
+
+        StructBindingExtractionContext<T> extractionContext = new StructBindingExtractionContext<T>(publicSchema, implementedSchemas, delegateSchema);
+
+        if (!(publicSchema instanceof RuleSourceSchema)) {
+            validateTypeHierarchy(extractionContext, publicType);
+            for (ModelType<?> internalViewType : internalViewTypes) {
+                validateTypeHierarchy(extractionContext, internalViewType);
+            }
+        }
+
+        Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings = new TreeMap<>();
+        Set<StructMethodBinding> methodBindings = collectMethodBindings(extractionContext, propertyBindings);
+        ImmutableSortedMap<String, ManagedProperty<?>> managedProperties = collectManagedProperties(extractionContext, propertyBindings);
+
+        if (extractionContext.problems.hasProblems()) {
+            throw new InvalidManagedTypeException(extractionContext.problems.format());
+        }
+
+        return new DefaultStructBindings<T>(
+            publicSchema, declaredViewSchemas, implementedSchemas, delegateSchema,
+            managedProperties, methodBindings
+        );
+    }
+
+    private <T> ImmutableSortedMap<String, ManagedProperty<?>> collectManagedProperties(StructBindingExtractionContext<T> extractionContext, Map<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyBindings) {
+        ImmutableSortedMap.Builder<String, ManagedProperty<?>> managedPropertiesBuilder = ImmutableSortedMap.naturalOrder();
+        for (Map.Entry<String, Multimap<PropertyAccessorType, StructMethodBinding>> propertyEntry : propertyBindings.entrySet()) {
+            String propertyName = propertyEntry.getKey();
+            Multimap<PropertyAccessorType, StructMethodBinding> accessorBindings = propertyEntry.getValue();
+
+            if (isManagedProperty(extractionContext, propertyName, accessorBindings)) {
+                if (hasSetter(accessorBindings.keySet()) && !hasGetter(accessorBindings.keySet())) {
+                    extractionContext.add(propertyName, "it must both have an abstract getter and a setter");
+                    continue;
+                }
+
+                ModelType<?> propertyType = determineManagedPropertyType(extractionContext, propertyName, accessorBindings);
+                ModelSchema<?> propertySchema = schemaStore.getSchema(propertyType);
+                managedPropertiesBuilder.put(propertyName, createManagedProperty(extractionContext, propertyName, propertySchema, accessorBindings));
+            }
+        }
+        return managedPropertiesBuilder.build();
+    }
+
     private <T> Iterable<StructSchema<? extends T>> getStructSchemas(Iterable<? extends ModelType<? extends T>> types) {
         return Iterables.transform(types, new Function<ModelType<? extends T>, StructSchema<? extends T>>() {
             @Override
             public StructSchema<? extends T> apply(ModelType<? extends T> type) {
-                return  getStructSchema(type);
+                return getStructSchema(type);
             }
         });
     }
@@ -556,37 +587,5 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         public int hashCode() {
             return Objects.hashCode(publicType, viewTypes, delegateType);
         }
-    }
-
-    /**
-     * Finds the types in the given collection that cannot be assigned from any other type in the collection.
-     */
-    static Collection<ModelType<?>> findConvergingTypes(Collection<ModelType<?>> allTypes) {
-        if (allTypes.size() == 0) {
-            throw new IllegalArgumentException("No types given");
-        }
-        if (allTypes.size() == 1) {
-            return allTypes;
-        }
-
-        Set<ModelType<?>> typesToCheck = Sets.newLinkedHashSet(allTypes);
-        Set<ModelType<?>> convergingTypes = Sets.newLinkedHashSet(allTypes);
-
-        while (!typesToCheck.isEmpty()) {
-            Iterator<ModelType<?>> iTypeToCheck = typesToCheck.iterator();
-            ModelType<?> typeToCheck = iTypeToCheck.next();
-            iTypeToCheck.remove();
-
-            Iterator<ModelType<?>> iRemainingType = convergingTypes.iterator();
-            while (iRemainingType.hasNext()) {
-                ModelType<?> remainingType = iRemainingType.next();
-                if (!remainingType.equals(typeToCheck) && remainingType.isAssignableFrom(typeToCheck)) {
-                    iRemainingType.remove();
-                    typesToCheck.remove(remainingType);
-                }
-            }
-        }
-
-        return convergingTypes;
     }
 }

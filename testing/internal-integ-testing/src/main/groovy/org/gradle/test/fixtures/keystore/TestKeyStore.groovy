@@ -196,7 +196,7 @@ class TestKeyStore {
             KeyStore keyStore = KeyStore.getInstance(testKeyStore.getTrustStoreType());
             char[] keyStorePassword = testKeyStore.getTrustStorePassword().toCharArray();
 
-            testKeyStore.getTrustStore().withInputStream {keyStoreIn ->
+            testKeyStore.getTrustStore().withInputStream { keyStoreIn ->
                 keyStore.load(keyStoreIn, keyStorePassword)
             }
 
@@ -208,7 +208,7 @@ class TestKeyStore {
             KeyStore trustStore = KeyStore.getInstance(testKeyStore.getKeyStoreType());
             char[] trustStorePassword = testKeyStore.getKeyStorePassword().toCharArray();
 
-            testKeyStore.getKeyStore().withInputStream {keyStoreIn ->
+            testKeyStore.getKeyStore().withInputStream { keyStoreIn ->
                 trustStore.load(keyStoreIn, trustStorePassword)
             }
 

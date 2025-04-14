@@ -18,12 +18,6 @@ package org.gradle.cache;
 
 public interface CleanupProgressMonitor {
 
-    void incrementDeleted();
-
-    void incrementSkipped();
-
-    void incrementSkipped(long amount);
-
     CleanupProgressMonitor NO_OP = new CleanupProgressMonitor() {
         @Override
         public void incrementDeleted() {
@@ -37,5 +31,11 @@ public interface CleanupProgressMonitor {
         public void incrementSkipped(long amount) {
         }
     };
+
+    void incrementDeleted();
+
+    void incrementSkipped();
+
+    void incrementSkipped(long amount);
 
 }

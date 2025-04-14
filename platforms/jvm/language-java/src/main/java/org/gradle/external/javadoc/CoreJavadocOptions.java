@@ -56,7 +56,13 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private static final String OPTION_ENCODING = "encoding";
 
     protected final JavadocOptionFile optionFile;
-
+    /**
+     * Core options which are known, and have corresponding fields in this class.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    protected final Set<String> knownCoreOptionNames;
     private final JavadocOptionFileOption<String> overview;
     private final JavadocOptionFileOption<JavadocMemberLevel> memberLevel;
     private final JavadocOptionFileOption<String> doclet;
@@ -73,14 +79,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
     private List<String> jFlags = new ArrayList<>();
     private List<File> optionFiles = new ArrayList<>();
-
-    /**
-     * Core options which are known, and have corresponding fields in this class.
-     *
-     * @since 7.5
-     */
-    @Incubating
-    protected final Set<String> knownCoreOptionNames;
 
     public CoreJavadocOptions() {
         this(new JavadocOptionFile());
@@ -176,6 +174,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     /**
      * Fluent setter for the overview option.
+     *
      * @param overview The new overview.
      * @return The <code>MinimalJavadocOptions</code> object.
      */
@@ -239,7 +238,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * <p>
      * For example, to call the MIF doclet, use:
      * <p>
-     *     -doclet com.sun.tools.doclets.mif.MIFDoclet
+     * -doclet com.sun.tools.doclets.mif.MIFDoclet
      * <p>
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
@@ -271,11 +270,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * <p>
      * Example of path to jar file that contains the starting doclet class file. Notice the jar filename is included.
      * <p>
-     *    -docletpath C:/user/mifdoclet/lib/mifdoclet.jar
+     * -docletpath C:/user/mifdoclet/lib/mifdoclet.jar
      * <p>
      * Example of path to starting doclet class file. Notice the class filename is omitted.
      * <p>
-     *    -docletpath C:/user/mifdoclet/classes/com/sun/tools/doclets/mif/
+     * -docletpath C:/user/mifdoclet/classes/com/sun/tools/doclets/mif/
      * <p>
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
@@ -341,7 +340,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * For example, if you want to document com.mypackage, whose source files reside in the directory C:/user/src/com/mypackage,
      * and if this package relies on a library in C:/user/lib, you would specify:
      * <p>
-     *   javadoc -classpath /user/lib -sourcepath /user/src com.mypackage
+     * javadoc -classpath /user/lib -sourcepath /user/src com.mypackage
      * <p>
      * As with other tools, if you do not specify -classpath, the Javadoc tool uses the CLASSPATH environment variable,
      * if it is set. If both are not set, the Javadoc tool searches for classes from the current directory.
@@ -480,23 +479,23 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * From JDK 1.2 forward, the BreakIterator class is already used to determine the end of sentence for all languages but English.
      * Therefore, the -breakiterator option has no effect except for English from 1.2 forward. English has its own default algorithm:
      * <p>
-     *     * English default sentence-break algorithm - Stops at a period followed by a space or a HTML block tag, such as  &lt;P&gt;.
+     * * English default sentence-break algorithm - Stops at a period followed by a space or a HTML block tag, such as  &lt;P&gt;.
      * <p>
-     *     * Breakiterator sentence-break algorithm - In general, stops at a period,
-     *       question mark or exclamation mark followed by a space if the next word starts with a capital letter.
-     *       This is meant to handle most abbreviations (such as "The serial no. is valid", but won't handle "Mr. Smith").
-     *       Doesn't stop at HTML tags or sentences that begin with numbers or symbols.
-     *       Stops at the last period in "../filename", even if embedded in an HTML tag.
+     * * Breakiterator sentence-break algorithm - In general, stops at a period,
+     * question mark or exclamation mark followed by a space if the next word starts with a capital letter.
+     * This is meant to handle most abbreviations (such as "The serial no. is valid", but won't handle "Mr. Smith").
+     * Doesn't stop at HTML tags or sentences that begin with numbers or symbols.
+     * Stops at the last period in "../filename", even if embedded in an HTML tag.
      * <p>
-     *     NOTE: We have removed from 1.5.0 the breakiterator warning messages that were in 1.4.x and
-     *           have left the default sentence-break algorithm unchanged. That is, the -breakiterator option is not the default in 1.5.0,
-     *           nor do we expect it to become the default. This is a reversal from our former intention that
-     *           the default would change in the "next major release" (1.5.0).
-     *           This means if you have not modified your source code to eliminate the breakiterator warnings in 1.4.x,
-     *           then you don't have to do anything, and the warnings go away starting with 1.5.0.
-     *           The reason for this reversal is because any benefit to having breakiterator become the default
-     *           would be outweighed by the incompatible source change it would require.
-     *           We regret any extra work and confusion this has caused.
+     * NOTE: We have removed from 1.5.0 the breakiterator warning messages that were in 1.4.x and
+     * have left the default sentence-break algorithm unchanged. That is, the -breakiterator option is not the default in 1.5.0,
+     * nor do we expect it to become the default. This is a reversal from our former intention that
+     * the default would change in the "next major release" (1.5.0).
+     * This means if you have not modified your source code to eliminate the breakiterator warnings in 1.4.x,
+     * then you don't have to do anything, and the warnings go away starting with 1.5.0.
+     * The reason for this reversal is because any benefit to having breakiterator become the default
+     * would be outweighed by the incompatible source change it would require.
+     * We regret any extra work and confusion this has caused.
      */
     @Override
     @ToBeReplacedByLazyProperty
@@ -524,9 +523,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     /**
      * -locale  language_country_variant
      * <p>
-     *     Important - The -locale option must be placed ahead (to the left) of any options provided by the standard doclet or
-     *                 any other doclet. Otherwise, the navigation bars will appear in English.
-     *                 This is the only command-line option that is order-dependent.
+     * Important - The -locale option must be placed ahead (to the left) of any options provided by the standard doclet or
+     * any other doclet. Otherwise, the navigation bars will appear in English.
+     * This is the only command-line option that is order-dependent.
      * <p>
      * Specifies the locale that javadoc uses when generating documentation.
      * The argument is the name of the locale, as described in java.util.Locale documentation, such as
@@ -606,13 +605,13 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * then you would call the -Xmx option of java as follows (-Xms is optional, as it only sets the size of initial memory,
      * which is useful if you know the minimum amount of memory required):
      * <p>
-     *    javadoc -J-Xmx32m -J-Xms32m com.mypackage
+     * javadoc -J-Xmx32m -J-Xms32m com.mypackage
      * <p>
      * To tell what version of javadoc you are using, call the "-version" option of java:
      * <p>
-     *    javadoc -J-version
-     *    java version "1.2"
-     *    Classic VM (build JDK-1.2-V, green threads, sunwjit)
+     * javadoc -J-version
+     * java version "1.2"
+     * Classic VM (build JDK-1.2-V, green threads, sunwjit)
      * <p>
      * (The version number of the standard doclet appears in its output stream.)
      */
@@ -705,6 +704,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * <pre>
      *     -foo 'a,b,c'
      * </pre>
+     *
      * @param option command-line option
      * @param joinBy separator
      */
@@ -722,6 +722,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *     -foo 'b'
      *     -foo 'c'
      * </pre>
+     *
      * @param option command-line option
      */
     public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
@@ -739,8 +740,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *     -foo 'a'
      *     -foo 'b' 'c'
      * </pre>
-     * @param option command-line option
      *
+     * @param option command-line option
      * @since 3.5
      */
     public JavadocOptionFileOption<List<List<String>>> addMultilineMultiValueOption(String option) {
@@ -773,7 +774,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Input
     protected String getExtraOptions() {
         return optionFile.stringifyExtraOptionsToMap(knownOptionNames()).entrySet().stream()
-                .map(e -> e.getKey() + ":" + e.getValue())
-                .collect(Collectors.joining(", "));
+            .map(e -> e.getKey() + ":" + e.getValue())
+            .collect(Collectors.joining(", "));
     }
 }

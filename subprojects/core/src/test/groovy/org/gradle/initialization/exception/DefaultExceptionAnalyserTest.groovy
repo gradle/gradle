@@ -140,7 +140,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         result.size() == 1
         def transformedFailure = result[0]
         transformedFailure instanceof LocationAwareException
-        transformedFailure.sourceDisplayName ==  null
+        transformedFailure.sourceDisplayName == null
         transformedFailure.lineNumber == null
     }
 

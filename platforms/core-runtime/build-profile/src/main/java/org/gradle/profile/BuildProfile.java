@@ -50,13 +50,13 @@ public class BuildProfile {
     private final Map<String, ProjectProfile> projects = new LinkedHashMap<>();
     private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<>();
     private final Map<String, FragmentedOperation> transforms = new LinkedHashMap<>();
+    private final StartParameter startParameter;
+    private final BuildStartedTime buildStartedTime;
     private long profilingStarted = NOT_INITIALIZED_VALUE;
     private long buildStarted = NOT_INITIALIZED_VALUE;
     private long settingsEvaluated = NOT_INITIALIZED_VALUE;
     private long projectsLoaded = NOT_INITIALIZED_VALUE;
     private long buildFinished;
-    private final StartParameter startParameter;
-    private final BuildStartedTime buildStartedTime;
     private boolean successful;
 
     public BuildProfile(StartParameter startParameter, BuildStartedTime buildStartedTime) {
@@ -66,6 +66,14 @@ public class BuildProfile {
 
     public long getBuildStarted() {
         return valueOrBuildStartedTimeIfNotInitialized(buildStarted);
+    }
+
+    /**
+     * Should be set with a timestamp from a {@link org.gradle.BuildListener#beforeSettings(Settings)}
+     * callback.
+     */
+    public void setBuildStarted(long buildStarted) {
+        this.buildStarted = buildStarted;
     }
 
     /**
@@ -162,14 +170,6 @@ public class BuildProfile {
      */
     public void setProfilingStarted(long profilingStarted) {
         this.profilingStarted = profilingStarted;
-    }
-
-    /**
-     * Should be set with a timestamp from a {@link org.gradle.BuildListener#beforeSettings(Settings)}
-     * callback.
-     */
-    public void setBuildStarted(long buildStarted) {
-        this.buildStarted = buildStarted;
     }
 
     /**

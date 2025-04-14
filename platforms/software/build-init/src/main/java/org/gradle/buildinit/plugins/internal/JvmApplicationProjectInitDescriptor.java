@@ -35,6 +35,24 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
         super(description, libraryVersionProvider, documentationRegistry);
     }
 
+    private static String getTestFrameWorkName(InitSettings settings) {
+        switch (settings.getTestFramework()) {
+            case SPOCK:
+                return "groovy/AppTest";
+            case TESTNG:
+                return "testng/AppTest";
+            case JUNIT:
+            case KOTLINTEST:
+                return "AppTest";
+            case JUNIT_JUPITER:
+                return "junitjupiter/AppTest";
+            case SCALATEST:
+                return "AppSuite";
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
     @Override
     public ComponentType getComponentType() {
         return ComponentType.APPLICATION;
@@ -107,24 +125,6 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 return Collections.singletonList("multi/list/junit5/LinkedListTest");
             default:
                 return Collections.emptyList();
-        }
-    }
-
-    private static String getTestFrameWorkName(InitSettings settings) {
-        switch (settings.getTestFramework()) {
-            case SPOCK:
-                return "groovy/AppTest";
-            case TESTNG:
-                return "testng/AppTest";
-            case JUNIT:
-            case KOTLINTEST:
-                return "AppTest";
-            case JUNIT_JUPITER:
-                return "junitjupiter/AppTest";
-            case SCALATEST:
-                return "AppSuite";
-            default:
-                throw new IllegalArgumentException();
         }
     }
 }

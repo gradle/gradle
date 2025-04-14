@@ -56,7 +56,6 @@ public class JavaClassUtil {
      * from the provided {@code loader}.
      *
      * @return null if the class cannot be loaded.
-     *
      * @throws IOException If there is an error reading the class file contents.
      */
     public static Integer getClassMajorVersion(String name, ClassLoader loader) throws IOException {

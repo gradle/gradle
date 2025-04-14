@@ -84,7 +84,7 @@ class AcceptedApiChangesTest extends Specification {
                 ]
             }
         """,
-        """
+                                                """
             {
                 "acceptedApiChanges": [
                     {

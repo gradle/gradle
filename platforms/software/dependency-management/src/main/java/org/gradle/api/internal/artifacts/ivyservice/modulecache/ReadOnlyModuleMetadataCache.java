@@ -34,6 +34,10 @@ public class ReadOnlyModuleMetadataCache extends PersistentModuleMetadataCache {
         super(timeProvider, cacheAccessCoordinator, artifactCacheMetadata, moduleIdentifierFactory, attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, moduleSourcesSerializer, checksumService);
     }
 
+    private static <T> T operationShouldNotHaveBeenCalled() {
+        throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
+    }
+
     @Override
     protected CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetadata) {
         operationShouldNotHaveBeenCalled();
@@ -48,9 +52,5 @@ public class ReadOnlyModuleMetadataCache extends PersistentModuleMetadataCache {
     @Override
     public CachedMetadata cacheMetaData(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id, ModuleComponentResolveMetadata metadata) {
         return operationShouldNotHaveBeenCalled();
-    }
-
-    private static <T> T operationShouldNotHaveBeenCalled() {
-        throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
     }
 }

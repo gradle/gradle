@@ -38,9 +38,7 @@ public interface DependencyLockingProvider {
      *
      * @param lockId the ID of the lock to load
      * @param lockOwner the display name of the owner of the lock
-     *
      * @return the lock state corresponding to the lock with the given ID.
-     *
      * @throws org.gradle.internal.locking.MissingLockStateException If the {@code LockMode} is {@link LockMode#STRICT} but no lock state can be found.
      */
     DependencyLockingState loadLockState(String lockId, DisplayName lockOwner);

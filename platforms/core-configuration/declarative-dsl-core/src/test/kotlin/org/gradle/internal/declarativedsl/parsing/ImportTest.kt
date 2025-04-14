@@ -23,6 +23,7 @@ import org.junit.Test
 class ImportTest {
     private
     val resolver = defaultCodeResolver()
+
     private
     val errorCollector = ErrorCollectorImpl()
 

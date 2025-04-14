@@ -31,7 +31,8 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 public class TestWorkerTest extends ConcurrentSpec {
-    @Rule SetSystemProperties properties = new SetSystemProperties()
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties()
     def workerContext = Mock(WorkerProcessContext)
     def connection = Mock(ObjectConnection)
     def factory = Mock(WorkerTestClassProcessorFactory)

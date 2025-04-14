@@ -279,12 +279,12 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
             ]
         } else {
             assert plugins == [
-                    "org.gradle.build-init", "org.gradle.wrapper", "org.gradle.help-tasks",
-                    "build.gradle", "script.gradle",
-                    "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
-                    "org.gradle.api.plugins.BasePlugin",
-                    "org.gradle.language.base.plugins.LifecycleBasePlugin",
-                    "org.gradle.api.plugins.ReportingBasePlugin"
+                "org.gradle.build-init", "org.gradle.wrapper", "org.gradle.help-tasks",
+                "build.gradle", "script.gradle",
+                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.api.plugins.BasePlugin",
+                "org.gradle.language.base.plugins.LifecycleBasePlugin",
+                "org.gradle.api.plugins.ReportingBasePlugin"
             ]
         }
     }

@@ -24,5 +24,6 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
  */
 public interface VariantDerivationStrategy {
     boolean derivesVariants();
+
     ImmutableList<? extends ModuleConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata);
 }

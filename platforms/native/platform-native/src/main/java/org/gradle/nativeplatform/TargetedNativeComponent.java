@@ -23,7 +23,8 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  * A native component that can be configured to target certain variant dimensions.
  * This functionality is a temporary workaround to eliminate configuration of unnecessary domain objects and tasks.
  */
-@Incubating @HasInternalProtocol
+@Incubating
+@HasInternalProtocol
 public interface TargetedNativeComponent extends PlatformAwareComponentSpec, NativeComponentSpec {
 
     /**

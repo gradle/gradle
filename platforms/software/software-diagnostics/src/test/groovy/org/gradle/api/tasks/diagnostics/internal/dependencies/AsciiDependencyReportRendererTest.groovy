@@ -56,9 +56,9 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
 
         then:
         textOutput.value.readLines() == [
-                'config1 - description',
-                '',
-                'config2 (n)'
+            'config1 - description',
+            '',
+            'config2 (n)'
         ]
     }
 

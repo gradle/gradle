@@ -160,6 +160,21 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
         assertInternalIntegrity();
     }
 
+    private void assertInternalIntegrity() {
+        synchronized (lock) {
+            Map<ClassLoaderId, CachedClassLoader> orphaned = new HashMap<>();
+            for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
+                if (!bySpec.containsKey(entry.getValue().spec)) {
+                    orphaned.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            if (!orphaned.isEmpty()) {
+                throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
+            }
+        }
+    }
+
     private static abstract class ClassLoaderSpec {
     }
 
@@ -246,21 +261,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
                 }
             } else {
                 throw new IllegalStateException("Classloader '" + this + "' not used by '" + loaderId + "'");
-            }
-        }
-    }
-
-    private void assertInternalIntegrity() {
-        synchronized (lock) {
-            Map<ClassLoaderId, CachedClassLoader> orphaned = new HashMap<>();
-            for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
-                if (!bySpec.containsKey(entry.getValue().spec)) {
-                    orphaned.put(entry.getKey(), entry.getValue());
-                }
-            }
-
-            if (!orphaned.isEmpty()) {
-                throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
             }
         }
     }

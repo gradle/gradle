@@ -29,9 +29,9 @@ class GradleMetadataResolveInterceptor extends BehindFlagFeatureInterceptor {
 
     GradleMetadataResolveInterceptor(Class<?> target) {
         super(target, [
-                (GRADLE_METADATA): booleanFeature("Gradle metadata"),
-                (REPOSITORY_TYPE): new Feature(ivy: 'Ivy repository', maven: 'Maven repository')
-            ],
+            (GRADLE_METADATA): booleanFeature("Gradle metadata"),
+            (REPOSITORY_TYPE): new Feature(ivy: 'Ivy repository', maven: 'Maven repository')
+        ],
             doNotExecuteAllPermutationsForNoDaemonExecuter())
     }
 

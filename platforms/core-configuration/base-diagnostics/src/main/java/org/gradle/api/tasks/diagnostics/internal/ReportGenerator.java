@@ -47,23 +47,6 @@ public final class ReportGenerator {
         this.textOutputFactory = textOutputFactory;
     }
 
-    @FunctionalInterface
-    public interface ReportMarginaliaAction {
-        void execute() throws IOException;
-
-        ReportMarginaliaAction DO_NOTHING = new ReportMarginaliaAction() {
-            @Override
-            public void execute() throws IOException {
-                // Do nothing;
-            }
-        };
-    }
-
-    @FunctionalInterface
-    public interface ReportAction<T> {
-        void execute(T project) throws IOException;
-    }
-
     public void generateReport(Set<Project> projects, ReportAction<Project> projectReportGenerator) {
         generateReport(projects, ProjectDetails::of, projectReportGenerator);
     }
@@ -126,5 +109,22 @@ public final class ReportGenerator {
 
     private StyledTextOutputFactory getTextOutputFactory() {
         return textOutputFactory;
+    }
+
+    @FunctionalInterface
+    public interface ReportMarginaliaAction {
+        ReportMarginaliaAction DO_NOTHING = new ReportMarginaliaAction() {
+            @Override
+            public void execute() throws IOException {
+                // Do nothing;
+            }
+        };
+
+        void execute() throws IOException;
+    }
+
+    @FunctionalInterface
+    public interface ReportAction<T> {
+        void execute(T project) throws IOException;
     }
 }

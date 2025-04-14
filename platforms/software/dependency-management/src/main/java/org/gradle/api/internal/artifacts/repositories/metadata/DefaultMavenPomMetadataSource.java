@@ -55,7 +55,7 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
 
     @Override
     protected MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
-       MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseResult = pomParser.parseMetaData(context, cachedResource);
+        MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseResult = pomParser.parseMetaData(context, cachedResource);
         MutableMavenModuleResolveMetadata metaData = parseResult.getResult();
         if (metaData != null) {
             if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {

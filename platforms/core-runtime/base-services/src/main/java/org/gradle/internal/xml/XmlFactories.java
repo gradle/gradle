@@ -35,6 +35,8 @@ import javax.xml.xpath.XPathFactoryConfigurationException;
 @NullMarked
 public final class XmlFactories {
 
+    private XmlFactories() {}
+
     public static DocumentBuilderFactory newDocumentBuilderFactory() {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -82,6 +84,4 @@ public final class XmlFactories {
     private static String errorMessageFor(String factory) {
         return "Unable to create secure " + factory + ", please make sure that your build does not depend on an old XML parser.";
     }
-
-    private XmlFactories() {}
 }

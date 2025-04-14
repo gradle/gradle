@@ -41,14 +41,6 @@ import java.util.stream.Stream;
 
 public class WithExtensionReferencesPostProcessor implements RequestPostProcessorExtension {
 
-    @Override
-    public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
-        Optional<WithExtensionReferencesExtra> extra = originalRequest.getRequestExtras().getByType(WithExtensionReferencesExtra.class);
-        return extra
-            .map(withExtensionReferencesExtra -> Arrays.asList(originalRequest, modifiedRequest(originalRequest, withExtensionReferencesExtra)))
-            .orElseGet(() -> Collections.singletonList(originalRequest));
-    }
-
     private static CallInterceptionRequest modifiedRequest(CallInterceptionRequest originalRequest, WithExtensionReferencesExtra extra) {
         return new CallInterceptionRequestImpl(
             modifiedCallableInfo(originalRequest.getInterceptedCallable(), extra),
@@ -78,5 +70,13 @@ public class WithExtensionReferencesPostProcessor implements RequestPostProcesso
             originalExtras.getAll().stream().filter(it -> !(it instanceof WithExtensionReferencesExtra)),
             Stream.<RequestExtra>of(new WithExtensionReferencesExtra.ProducedSynthetically())
         ).flatMap(Function.identity()).collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
+        Optional<WithExtensionReferencesExtra> extra = originalRequest.getRequestExtras().getByType(WithExtensionReferencesExtra.class);
+        return extra
+            .map(withExtensionReferencesExtra -> Arrays.asList(originalRequest, modifiedRequest(originalRequest, withExtensionReferencesExtra)))
+            .orElseGet(() -> Collections.singletonList(originalRequest));
     }
 }

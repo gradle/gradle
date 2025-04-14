@@ -51,7 +51,7 @@ class MultiSourceSetsJavaModulesCompileIntegrationTest extends AbstractMultipleL
 
     @Override
     protected producingModuleInfo(String... statements) {
-        file('src/producer/java/module-info.java').text = "module producer { ${statements.collect { it + ';' }.join(' ') } }"
+        file('src/producer/java/module-info.java').text = "module producer { ${statements.collect { it + ';' }.join(' ')} }"
     }
 
     @Override

@@ -26,15 +26,21 @@
             </thead>
             <tr>
                 <td>memoryInitialSize</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>memoryMaximumSize</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>jvmArgs</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
         </table>
     </section>

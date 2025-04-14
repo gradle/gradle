@@ -50,7 +50,8 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         Collection<Configuration> configurationDefinitions,
         Collection<? extends Artifact> artifactDefinitions,
         Collection<? extends Exclude> excludes,
-        ImmutableAttributesSchema schema) {
+        ImmutableAttributesSchema schema
+    ) {
         super(attributesFactory, id, componentIdentifier, schema);
         this.configurationDefinitions = toMap(configurationDefinitions);
         this.artifactDefinitions = ImmutableList.copyOf(artifactDefinitions);

@@ -24,6 +24,21 @@ import java.util.Map;
 @GroovyNullMarked
 public class TestMBeanAttributeProvider implements MBeanAttributeProvider {
 
+    private final Map<AttributeKey, Object> attributes;
+
+    public TestMBeanAttributeProvider(Map<AttributeKey, Object> attributes) {
+        this.attributes = attributes;
+    }
+
+    @Override
+    public <T> T getMbeanAttribute(String mbean, String attribute, Class<T> type) {
+        Object value = attributes.get(new AttributeKey(mbean, attribute, type));
+        if (value == null) {
+            throw new UnsupportedOperationException("(" + mbean + ")." + attribute + " is unsupported in this test.");
+        }
+        return type.cast(value);
+    }
+
     public static final class AttributeKey {
         private final String mbean;
         private final String attribute;
@@ -63,20 +78,5 @@ public class TestMBeanAttributeProvider implements MBeanAttributeProvider {
         public int hashCode() {
             return Objects.hashCode(mbean, attribute, type);
         }
-    }
-
-    private final Map<AttributeKey, Object> attributes;
-
-    public TestMBeanAttributeProvider(Map<AttributeKey, Object> attributes) {
-        this.attributes = attributes;
-    }
-
-    @Override
-    public <T> T getMbeanAttribute(String mbean, String attribute, Class<T> type) {
-        Object value = attributes.get(new AttributeKey(mbean, attribute, type));
-        if (value == null) {
-            throw new UnsupportedOperationException("(" + mbean + ")." + attribute + " is unsupported in this test.");
-        }
-        return type.cast(value);
     }
 }

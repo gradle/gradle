@@ -27,9 +27,11 @@ public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSou
         super(writer);
     }
 
-    public static String generateSource(Writer writer,
-                                        ProjectDescriptor current,
-                                        String packageName) {
+    public static String generateSource(
+        Writer writer,
+        ProjectDescriptor current,
+        String packageName
+    ) {
         ProjectAccessorsSourceGenerator generator = new ProjectAccessorsSourceGenerator(writer);
         try {
             String className = toClassName(current.getPath(), rootProjectName(current));

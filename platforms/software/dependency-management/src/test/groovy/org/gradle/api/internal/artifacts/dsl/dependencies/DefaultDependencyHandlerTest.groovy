@@ -348,7 +348,7 @@ class DefaultDependencyHandlerTest extends Specification {
         dep1.isEndorsingStrictVersions()
 
         when:
-        dependencyHandler.platform(dep2) { }
+        dependencyHandler.platform(dep2) {}
 
         then:
         1 * dependencyFactory.createDependency(dep2) >> dep2

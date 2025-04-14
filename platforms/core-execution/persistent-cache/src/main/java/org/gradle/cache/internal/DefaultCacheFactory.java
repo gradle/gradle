@@ -113,43 +113,6 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         return new ReferenceTrackingCache(dirCacheReference);
     }
 
-    private class DirCacheReference implements Closeable {
-        private final Map<String, ?> properties;
-        private final LockOptions lockOptions;
-        private final ReferencablePersistentCache cache;
-        private final Set<ReferenceTrackingCache> references = new HashSet<>();
-
-        DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, LockOptions lockOptions) {
-            this.cache = cache;
-            this.properties = properties;
-            this.lockOptions = lockOptions;
-            onOpen(cache);
-        }
-
-        public void addReference(ReferenceTrackingCache cache) {
-            references.add(cache);
-        }
-
-        public void release(ReferenceTrackingCache cache) {
-            lock.lock();
-            try {
-                if (references.remove(cache) && references.isEmpty()) {
-                    close();
-                }
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        @Override
-        public void close() {
-            onClose(cache);
-            dirCaches.values().remove(this);
-            references.clear();
-            cache.close();
-        }
-    }
-
     private static class ReferenceTrackingCache implements PersistentCache {
         private final DirCacheReference reference;
 
@@ -221,6 +184,43 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Override
         public void cleanup() {
             reference.cache.cleanup();
+        }
+    }
+
+    private class DirCacheReference implements Closeable {
+        private final Map<String, ?> properties;
+        private final LockOptions lockOptions;
+        private final ReferencablePersistentCache cache;
+        private final Set<ReferenceTrackingCache> references = new HashSet<>();
+
+        DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, LockOptions lockOptions) {
+            this.cache = cache;
+            this.properties = properties;
+            this.lockOptions = lockOptions;
+            onOpen(cache);
+        }
+
+        public void addReference(ReferenceTrackingCache cache) {
+            references.add(cache);
+        }
+
+        public void release(ReferenceTrackingCache cache) {
+            lock.lock();
+            try {
+                if (references.remove(cache) && references.isEmpty()) {
+                    close();
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        @Override
+        public void close() {
+            onClose(cache);
+            dirCaches.values().remove(this);
+            references.clear();
+            cache.close();
         }
     }
 }

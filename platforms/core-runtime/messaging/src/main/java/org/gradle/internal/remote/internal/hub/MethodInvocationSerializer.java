@@ -101,6 +101,7 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
 
     private static class MethodInvocationReader implements ObjectReader<MethodInvocation> {
         private static final Map<String, Class<?>> PRIMITIVE_TYPES;
+
         static {
             PRIMITIVE_TYPES = new HashMap<String, Class<?>>();
             PRIMITIVE_TYPES.put(Integer.TYPE.getName(), Integer.TYPE);

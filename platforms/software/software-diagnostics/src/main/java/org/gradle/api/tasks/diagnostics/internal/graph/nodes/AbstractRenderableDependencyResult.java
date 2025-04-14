@@ -31,14 +31,14 @@ public abstract class AbstractRenderableDependencyResult extends AbstractRendera
         ComponentSelector requested = getRequested();
         ComponentIdentifier selected = getActual();
 
-        if(exactMatch(requested, selected)) {
+        if (exactMatch(requested, selected)) {
             return getSimpleName();
         }
 
-        if(requested instanceof ModuleComponentSelector && selected instanceof ModuleComponentIdentifier) {
-            ModuleComponentSelector requestedModuleComponentSelector = (ModuleComponentSelector)requested;
-            ModuleComponentIdentifier selectedModuleComponentedIdentifier = (ModuleComponentIdentifier)selected;
-            if(requestedModuleComponentSelector.getModuleIdentifier().equals(selectedModuleComponentedIdentifier.getModuleIdentifier())) {
+        if (requested instanceof ModuleComponentSelector && selected instanceof ModuleComponentIdentifier) {
+            ModuleComponentSelector requestedModuleComponentSelector = (ModuleComponentSelector) requested;
+            ModuleComponentIdentifier selectedModuleComponentedIdentifier = (ModuleComponentIdentifier) selected;
+            if (requestedModuleComponentSelector.getModuleIdentifier().equals(selectedModuleComponentedIdentifier.getModuleIdentifier())) {
                 return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getVersion();
             }
         }

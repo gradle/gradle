@@ -62,6 +62,26 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
         return Joiner.on(' ').join(parts);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultProjectDependencySpec that = (DefaultProjectDependencySpec) o;
+        return ObjectUtils.equals(projectPath, that.projectPath)
+            && ObjectUtils.equals(libraryName, that.libraryName);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ObjectUtils.hashCode(projectPath);
+        result = 31 * result + ObjectUtils.hashCode(libraryName);
+        return result;
+    }
+
     public static class Builder implements ProjectDependencySpecBuilder {
         private String projectPath;
         private String libraryName;
@@ -98,25 +118,5 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
                     String.format("'%s' is not a valid library name. Did you mean to refer to a module instead?", libraryName));
             }
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultProjectDependencySpec that = (DefaultProjectDependencySpec) o;
-        return ObjectUtils.equals(projectPath, that.projectPath)
-            && ObjectUtils.equals(libraryName, that.libraryName);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = ObjectUtils.hashCode(projectPath);
-        result = 31 * result + ObjectUtils.hashCode(libraryName);
-        return result;
     }
 }

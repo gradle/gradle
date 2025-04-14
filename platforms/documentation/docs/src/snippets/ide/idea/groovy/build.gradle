@@ -33,8 +33,8 @@ idea.module.iml {
 idea.project.ipr {
     withXml { provider ->
         provider.node.component
-                .find { it.@name == 'VcsDirectoryMappings' }
-                .mapping.@vcs = 'Git'
+            .find { it.@name == 'VcsDirectoryMappings' }
+            .mapping.@vcs = 'Git'
     }
 }
 // end::project-with-xml[]

@@ -29,7 +29,7 @@ class CompilationStateSerializerTest extends SerializerSpec {
         def state = new CompilationState()
 
         expect:
-        with (serialized(state)) {
+        with(serialized(state)) {
             sourceInputs.empty
             fileStates.isEmpty()
         }
@@ -85,7 +85,7 @@ class CompilationStateSerializerTest extends SerializerSpec {
     }
 
     private SourceFileState compilationFileState(HashCode hash, Collection<String> includes) {
-        return new SourceFileState(hash, true, ImmutableSet.copyOf(includes.collect { new IncludeFileEdge(it, null, TestHashCodes.hashCodeFrom(123) )}))
+        return new SourceFileState(hash, true, ImmutableSet.copyOf(includes.collect { new IncludeFileEdge(it, null, TestHashCodes.hashCodeFrom(123)) }))
     }
 
     private CompilationState compilationState(Map<File, SourceFileState> states) {

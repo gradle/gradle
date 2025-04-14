@@ -174,7 +174,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * descriptor.
      *
      * @param rule the class of the rule. Gradle will instantiate a new rule for each dependency which requires metadata.
-     *
      * @since 4.0
      */
     @Override
@@ -185,7 +184,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *
      * @param rule the class of the rule. Gradle will instantiate a new rule for each dependency which requires metadata.
      * @param configureAction the action to use to configure the rule.
-     *
      * @since 4.0
      */
     @Override
@@ -196,7 +194,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * of metadata.
      *
      * @param configureAction the configuration of metadata sources.
-     *
      * @since 4.5
      */
     void metadataSources(Action<? super MetadataSources> configureAction);
@@ -213,7 +210,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * Allows configuring the sources of metadata for a specific repository.
      *
      * @since 4.5
-     *
      */
     interface MetadataSources {
         /**
@@ -239,7 +235,6 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          * Indicates that this repository will ignore Gradle module metadata redirection markers found in Ivy files.
          *
          * @since 5.6
-         *
          */
         void ignoreGradleMetadataRedirection();
 

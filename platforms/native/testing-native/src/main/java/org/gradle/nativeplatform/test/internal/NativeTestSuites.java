@@ -46,10 +46,12 @@ import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.ins
  */
 public class NativeTestSuites {
 
-    public static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinaries(ModelMap<S> binaries,
-                                                     NativeTestSuiteSpec testSuite,
-                                                     final Class<S> testSuiteBinaryClass,
-                                                     final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
+    public static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinaries(
+        ModelMap<S> binaries,
+        NativeTestSuiteSpec testSuite,
+        final Class<S> testSuiteBinaryClass,
+        final String typeString, final File buildDir, final ServiceRegistry serviceRegistry
+    ) {
         for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
             if (testedBinary instanceof SharedLibraryBinary) {
                 // For now, we only create test suites for static library variants
@@ -59,12 +61,14 @@ public class NativeTestSuites {
         }
     }
 
-    private static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinary(ModelMap<S> binaries,
-                                                    NativeTestSuiteSpec testSuite,
-                                                    Class<S> testSuiteBinaryClass,
-                                                    String typeString,
-                                                    final NativeBinarySpec testedBinary,
-                                                    final File buildDir, ServiceRegistry serviceRegistry) {
+    private static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinary(
+        ModelMap<S> binaries,
+        NativeTestSuiteSpec testSuite,
+        Class<S> testSuiteBinaryClass,
+        String typeString,
+        final NativeBinarySpec testedBinary,
+        final File buildDir, ServiceRegistry serviceRegistry
+    ) {
 
         final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, (NativeBinarySpecInternal) testedBinary, typeString);
         final NativeDependencyResolver resolver = serviceRegistry.get(NativeDependencyResolver.class);
@@ -98,6 +102,7 @@ public class NativeTestSuites {
             }
         });
     }
+
     public static Collection<NativeBinarySpec> testedBinariesOf(NativeTestSuiteSpec testSuite) {
         return testedBinariesWithType(NativeBinarySpec.class, testSuite);
     }

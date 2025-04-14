@@ -143,6 +143,7 @@ class ResolutionTracerTest {
     private
     val <R> ResolutionTrace.ResolutionOrErrors<R>.result: R?
         get() = (this as? ResolutionTrace.ResolutionOrErrors.Resolution)?.result
+
     private
     val <R> ResolutionTrace.ResolutionOrErrors<R>.errors: List<ResolutionError>?
         get() = (this as? ResolutionTrace.ResolutionOrErrors.Errors)?.errors

@@ -74,13 +74,13 @@ public class DefaultTestFilter implements TestFilter {
     }
 
     @Override
-    public void setFailOnNoMatchingTests(boolean failOnNoMatchingTests) {
-        this.failOnNoMatching = failOnNoMatchingTests;
+    public boolean isFailOnNoMatchingTests() {
+        return failOnNoMatching;
     }
 
     @Override
-    public boolean isFailOnNoMatchingTests() {
-        return failOnNoMatching;
+    public void setFailOnNoMatchingTests(boolean failOnNoMatchingTests) {
+        this.failOnNoMatching = failOnNoMatchingTests;
     }
 
     @Override

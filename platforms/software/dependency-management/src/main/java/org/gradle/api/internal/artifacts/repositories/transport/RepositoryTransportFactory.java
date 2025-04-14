@@ -62,16 +62,18 @@ public class RepositoryTransportFactory {
     private final FileResourceRepository fileRepository;
     private final ChecksumService checksumService;
 
-    public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
-                                      TemporaryFileProvider temporaryFileProvider,
-                                      CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                                      BuildCommencedTimeProvider timeProvider,
-                                      ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-                                      BuildOperationRunner buildOperationRunner,
-                                      StartParameterResolutionOverride startParameterResolutionOverride,
-                                      ProducerGuard<ExternalResourceName> producerGuard,
-                                      FileResourceRepository fileRepository,
-                                      ChecksumService checksumService) {
+    public RepositoryTransportFactory(
+        Collection<ResourceConnectorFactory> resourceConnectorFactory,
+        TemporaryFileProvider temporaryFileProvider,
+        CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+        BuildCommencedTimeProvider timeProvider,
+        ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+        BuildOperationRunner buildOperationRunner,
+        StartParameterResolutionOverride startParameterResolutionOverride,
+        ProducerGuard<ExternalResourceName> producerGuard,
+        FileResourceRepository fileRepository,
+        ChecksumService checksumService
+    ) {
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;

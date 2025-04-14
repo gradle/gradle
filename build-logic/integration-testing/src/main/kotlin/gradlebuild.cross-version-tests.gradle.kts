@@ -43,6 +43,7 @@ fun configureTestFixturesForCrossVersionTests() {
         }
     }
 }
+
 val releasedVersions = moduleIdentity.releasedVersions.orNull
 
 fun createQuickFeedbackTasks() {

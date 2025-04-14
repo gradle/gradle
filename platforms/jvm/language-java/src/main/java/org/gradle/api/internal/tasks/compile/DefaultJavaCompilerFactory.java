@@ -37,9 +37,9 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final AnnotationProcessorDetector processorDetector;
     private final ClassPathRegistry classPathRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
-    private JavaHomeBasedJavaCompilerFactory javaHomeBasedJavaCompilerFactory;
     private final InternalProblems problems;
     private final ProjectCacheDir projectCacheDir;
+    private JavaHomeBasedJavaCompilerFactory javaHomeBasedJavaCompilerFactory;
 
     public DefaultJavaCompilerFactory(
         WorkerDirectoryProvider workingDirProvider,

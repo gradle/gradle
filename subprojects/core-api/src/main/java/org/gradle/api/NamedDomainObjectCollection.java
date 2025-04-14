@@ -235,7 +235,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @param nameFilter The specification to test names against.
      * @return The collection of objects with names satisfying the filter. Returns an empty collection if there are no such objects in this collection.
-     *
      * @since 8.6
      */
     @Incubating

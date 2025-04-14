@@ -23,11 +23,13 @@ import spock.lang.Specification
 
 class UnsupportedFilePermissionsTest extends Specification {
     private static final String WARN_MESSAGE = '[[WARN] [org.gradle.internal.nativeintegration.filesystem.services.UnsupportedFilePermissions] ' +
-                                   'Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+        'Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
 
     def outputEventListener = new TestOutputEventListener()
-    @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def permissions = new UnsupportedFilePermissions()
 
     def "warns on first attempt to stat a file"() {

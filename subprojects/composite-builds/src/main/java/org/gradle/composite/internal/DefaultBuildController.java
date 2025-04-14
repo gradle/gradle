@@ -48,20 +48,51 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 class DefaultBuildController implements BuildController {
-    private enum State {
-        DiscoveringTasks, ReadyToRun, RunningTasks, Finished
-    }
-
     private final BuildWorkGraph workGraph;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
     private final WorkerLeaseService workerLeaseService;
-
     private State state = State.DiscoveringTasks;
 
     public DefaultBuildController(BuildState build, WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
         this.workGraph = build.getWorkGraph().newWorkGraph();
+    }
+
+    private static void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
+        if (visited.contains(task)) {
+            // Already checked
+            return;
+        }
+        if (!visiting.add(task)) {
+            // Visiting dependencies -> have found a cycle
+            CachingDirectedGraphWalker<TaskInternal, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
+            graphWalker.add(task);
+            List<Set<TaskInternal>> cycles = graphWalker.findCycles();
+            Set<TaskInternal> cycle = cycles.get(0);
+
+            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
+                if (cycle.contains(dep)) {
+                    connectedNodes.add(dep);
+                }
+            }));
+            StringWriter writer = new StringWriter();
+            graphRenderer.renderTo(task, writer);
+            throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
+        }
+        visitDependenciesOf(task, dep -> checkForCyclesFor(dep, visited, visiting));
+        visiting.remove(task);
+        visited.add(task);
+    }
+
+    private static void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
+        TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
+        TaskNode node = taskNodeFactory.getOrCreateNode(task);
+        for (Node dependency : node.getAllSuccessors()) {
+            if (dependency instanceof TaskNode) {
+                consumer.accept(((TaskNode) dependency).getTask());
+            }
+        }
     }
 
     @Override
@@ -140,48 +171,16 @@ class DefaultBuildController implements BuildController {
         }
     }
 
-    private static void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
-        if (visited.contains(task)) {
-            // Already checked
-            return;
-        }
-        if (!visiting.add(task)) {
-            // Visiting dependencies -> have found a cycle
-            CachingDirectedGraphWalker<TaskInternal, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
-            graphWalker.add(task);
-            List<Set<TaskInternal>> cycles = graphWalker.findCycles();
-            Set<TaskInternal> cycle = cycles.get(0);
-
-            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
-                if (cycle.contains(dep)) {
-                    connectedNodes.add(dep);
-                }
-            }));
-            StringWriter writer = new StringWriter();
-            graphRenderer.renderTo(task, writer);
-            throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
-        }
-        visitDependenciesOf(task, dep -> checkForCyclesFor(dep, visited, visiting));
-        visiting.remove(task);
-        visited.add(task);
-    }
-
-    private static void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
-        TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
-        TaskNode node = taskNodeFactory.getOrCreateNode(task);
-        for (Node dependency : node.getAllSuccessors()) {
-            if (dependency instanceof TaskNode) {
-                consumer.accept(((TaskNode) dependency).getTask());
-            }
-        }
-    }
-
     private ExecutionResult<Void> doRun() {
         try {
             return workerLeaseService.runAsWorkerThread(workGraph::runWork);
         } catch (Throwable t) {
             return ExecutionResult.failed(t);
         }
+    }
+
+    private enum State {
+        DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
 
     private class BuildOpRunnable implements Runnable {

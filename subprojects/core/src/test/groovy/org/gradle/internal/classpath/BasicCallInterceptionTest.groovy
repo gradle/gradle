@@ -117,7 +117,7 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         "vararg"                | "Groovy dynamic dispatch" | { testVararg(it, it, it) }                | true           | "testVararg(Object...)"
         "vararg with array"     | "Groovy dynamic dispatch" | { testVararg([it, it, it].toArray()) }    | true           | "testVararg(Object...)"
         "vararg with null item" | "Groovy dynamic dispatch" | { testVararg(null) }                      | true           | "testVararg(Object...)"
-        "non-existent-method"   | "Groovy dynamic dispatch" | { nonExistent(null) }                     | true          | "nonExistent(String)-non-existent"
+        "non-existent-method"   | "Groovy dynamic dispatch" | { nonExistent(null) }                     | true           | "nonExistent(String)-non-existent"
     }
 
     def 'access to a #kind of a Groovy property from a #caller caller is intercepted as #expected'() {

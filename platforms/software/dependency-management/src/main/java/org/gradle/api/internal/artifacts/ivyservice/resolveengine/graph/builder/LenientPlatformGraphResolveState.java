@@ -64,18 +64,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
     private final ResolveState resolveState;
     private final VirtualPlatformState virtualPlatformState;
 
-    public static LenientPlatformGraphResolveState of(
-        ComponentIdGenerator componentIdGenerator,
-        ModuleComponentIdentifier moduleComponentIdentifier,
-        ModuleVersionIdentifier moduleVersionIdentifier,
-        VirtualPlatformState virtualPlatformState,
-        NodeState platformNode,
-        ResolveState resolveState
-    ) {
-        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier);
-        return new LenientPlatformGraphResolveState(componentIdGenerator.nextComponentId(), metadata, componentIdGenerator, virtualPlatformState, platformNode, resolveState);
-    }
-
     private LenientPlatformGraphResolveState(
         long instanceId,
         LenientPlatformResolveMetadata metadata,
@@ -89,6 +77,18 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         this.platformNode = platformNode;
         this.resolveState = resolveState;
         this.virtualPlatformState = virtualPlatformState;
+    }
+
+    public static LenientPlatformGraphResolveState of(
+        ComponentIdGenerator componentIdGenerator,
+        ModuleComponentIdentifier moduleComponentIdentifier,
+        ModuleVersionIdentifier moduleVersionIdentifier,
+        VirtualPlatformState virtualPlatformState,
+        NodeState platformNode,
+        ResolveState resolveState
+    ) {
+        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier);
+        return new LenientPlatformGraphResolveState(componentIdGenerator.nextComponentId(), metadata, componentIdGenerator, virtualPlatformState, platformNode, resolveState);
     }
 
     /**
@@ -108,6 +108,32 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
     @Override
     public ComponentArtifactResolveMetadata getArtifactMetadata() {
         return new LenientPlatformArtifactResolveMetadata(getMetadata());
+    }
+
+    @Override
+    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
+        // Variants are not selected from a lenient platform in the conventional manner.
+        return Collections.emptyList();
+    }
+
+    @Override
+    public LenientPlatformGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
+        return new LenientPlatformGraphSelectionCandidates(this);
+    }
+
+    /**
+     * Factory for dependencies of a variant.
+     * <p>
+     * Lenient platforms have both an implicit variant and a source-aware variant.
+     * The implicit variant is selected when a normal dependency targets the platform,
+     * while the source-aware variant is selected when another lenient platform targets the platform.
+     * <p>
+     * These two schemes have different approaches to selecting dependencies.
+     */
+    interface VariantDependencyFactory {
+
+        List<? extends ModuleDependencyMetadata> getDependencies();
+
     }
 
     /**
@@ -148,17 +174,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
 
     }
 
-    @Override
-    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        // Variants are not selected from a lenient platform in the conventional manner.
-        return Collections.emptyList();
-    }
-
-    @Override
-    public LenientPlatformGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        return new LenientPlatformGraphSelectionCandidates(this);
-    }
-
     public static class LenientPlatformGraphSelectionCandidates implements GraphSelectionCandidates {
 
         private final LenientPlatformGraphResolveState component;
@@ -167,17 +182,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         public LenientPlatformGraphSelectionCandidates(LenientPlatformGraphResolveState component) {
             this.component = component;
             this.implicitVariantState = Lazy.locking().of(() -> createImplicitVariant(component));
-        }
-
-        @Override
-        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
-            // Variants are not selected from a lenient platform in the conventional manner.
-            return Collections.emptyList();
-        }
-
-        @Override
-        public VariantGraphResolveState getLegacyVariant() {
-            return implicitVariantState.get();
         }
 
         /**
@@ -196,6 +200,17 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 component.getMetadata().getId(),
                 new LenientPlatformVariantGraphResolveMetadata(Dependency.DEFAULT_CONFIGURATION, false, dependencyFactory)
             );
+        }
+
+        @Override
+        public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
+            // Variants are not selected from a lenient platform in the conventional manner.
+            return Collections.emptyList();
+        }
+
+        @Override
+        public VariantGraphResolveState getLegacyVariant() {
+            return implicitVariantState.get();
         }
 
         /**
@@ -367,21 +382,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 variant.getCapabilities()
             ));
         }
-
-    }
-
-    /**
-     * Factory for dependencies of a variant.
-     * <p>
-     * Lenient platforms have both an implicit variant and a source-aware variant.
-     * The implicit variant is selected when a normal dependency targets the platform,
-     * while the source-aware variant is selected when another lenient platform targets the platform.
-     * <p>
-     * These two schemes have different approaches to selecting dependencies.
-     */
-    interface VariantDependencyFactory {
-
-        List<? extends ModuleDependencyMetadata> getDependencies();
 
     }
 

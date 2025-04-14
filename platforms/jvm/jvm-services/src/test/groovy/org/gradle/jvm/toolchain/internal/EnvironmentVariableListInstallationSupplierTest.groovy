@@ -24,7 +24,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class EnvironmentVariableListInstallationSupplierTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     final buildOptions = Mock(ToolchainConfiguration)
     final jdk8 = tmpDir.createDir("jdk8")
@@ -32,7 +33,7 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
     final Map<String, String> environment = [JDK8: jdk8.absolutePath, JDK9: jdk9.absolutePath]
 
     @Subject
-    def supplier =  new EnvironmentVariableListInstallationSupplier(buildOptions, new IdentityFileResolver(), environment)
+    def supplier = new EnvironmentVariableListInstallationSupplier(buildOptions, new IdentityFileResolver(), environment)
 
     def "supplies no installations for empty property"() {
         when:

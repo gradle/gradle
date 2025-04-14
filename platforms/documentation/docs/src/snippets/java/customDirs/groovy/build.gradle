@@ -19,9 +19,9 @@ dependencies {
 // tag::custom-src-dirs[]
 sourceSets {
     main {
-         java {
+        java {
             srcDirs = ['src']
-         }
+        }
     }
 
     test {

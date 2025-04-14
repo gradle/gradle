@@ -40,33 +40,30 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     protected final AttributesFactory attributesFactory;
     protected final CapabilityNotationParser capabilityNotationParser;
 
-    @SuppressWarnings("unused")
-    public static abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
-        protected final AbstractExternalDependencyFactory owner;
-
-        protected SubDependencyFactory(AbstractExternalDependencyFactory owner) {
-            this.owner = owner;
-        }
-
-        @Override
-        public Provider<MinimalExternalModuleDependency> create(String alias) {
-            return owner.create(alias);
-        }
-
-    }
-
     @Inject
-    protected AbstractExternalDependencyFactory(DefaultVersionCatalog config,
-                                                ProviderFactory providers,
-                                                ObjectFactory objects,
-                                                AttributesFactory attributesFactory,
-                                                CapabilityNotationParser capabilityNotationParser
+    protected AbstractExternalDependencyFactory(
+        DefaultVersionCatalog config,
+        ProviderFactory providers,
+        ObjectFactory objects,
+        AttributesFactory attributesFactory,
+        CapabilityNotationParser capabilityNotationParser
     ) {
         this.config = config;
         this.providers = providers;
         this.objects = objects;
         this.attributesFactory = attributesFactory;
         this.capabilityNotationParser = capabilityNotationParser;
+    }
+
+    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser, ObjectFactory objectFactory) {
+        ImmutableVersionConstraint version = data.getVersion();
+        DefaultMinimalDependency result = new DefaultMinimalDependency(
+            DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
+        );
+        result.setAttributesFactory(attributesFactory);
+        result.setCapabilityNotationParser(capabilityNotationParser);
+        result.setObjectFactory(objectFactory);
+        return result;
     }
 
     @Override
@@ -83,15 +80,19 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         });
     }
 
-    private static DefaultMinimalDependency createMinimalDependency(DependencyModel data, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser, ObjectFactory objectFactory) {
-        ImmutableVersionConstraint version = data.getVersion();
-        DefaultMinimalDependency result = new DefaultMinimalDependency(
-            DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
-        );
-        result.setAttributesFactory(attributesFactory);
-        result.setCapabilityNotationParser(capabilityNotationParser);
-        result.setObjectFactory(objectFactory);
-        return result;
+    @SuppressWarnings("unused")
+    public static abstract class SubDependencyFactory implements ExternalModuleDependencyFactory {
+        protected final AbstractExternalDependencyFactory owner;
+
+        protected SubDependencyFactory(AbstractExternalDependencyFactory owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public Provider<MinimalExternalModuleDependency> create(String alias) {
+            return owner.create(alias);
+        }
+
     }
 
     public static class VersionFactory {
@@ -150,14 +151,14 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         protected Provider<ExternalModuleDependencyBundle> createBundle(String name) {
             Property<ExternalModuleDependencyBundle> property = objects.property(ExternalModuleDependencyBundle.class);
             property.convention(providers.of(
-                    DependencyBundleValueSource.class,
-                    spec -> spec.parameters(params -> {
-                        params.getConfig().set(config);
-                        params.getBundleName().set(name);
-                    })
+                DependencyBundleValueSource.class,
+                spec -> spec.parameters(params -> {
+                    params.getConfig().set(config);
+                    params.getBundleName().set(name);
+                })
             ).map(dataList -> dataList.stream()
-                    .map(x -> createMinimalDependency(x, attributesFactory, capabilityNotationParser, objects))
-                    .collect(Collectors.toCollection(DefaultExternalModuleDependencyBundle::new))));
+                .map(x -> createMinimalDependency(x, attributesFactory, capabilityNotationParser, objects))
+                .collect(Collectors.toCollection(DefaultExternalModuleDependencyBundle::new))));
             return property;
         }
     }

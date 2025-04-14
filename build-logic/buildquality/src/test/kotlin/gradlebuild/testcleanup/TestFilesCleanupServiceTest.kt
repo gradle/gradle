@@ -28,7 +28,11 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = ".*", disabledReason = "Tests rely on setup conditional on CI in gradlebuild.ci-reporting plugin running first, these test should only run if CI env var is present (it's value doesn't matter)")
+@EnabledIfEnvironmentVariable(
+    named = "CI",
+    matches = ".*",
+    disabledReason = "Tests rely on setup conditional on CI in gradlebuild.ci-reporting plugin running first, these test should only run if CI env var is present (it's value doesn't matter)"
+)
 class TestFilesCleanupServiceTest {
     @TempDir
     lateinit var projectDir: File

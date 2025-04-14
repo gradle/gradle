@@ -17,6 +17,7 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.collect.ImmutableList;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -37,6 +38,14 @@ public class UnboundRule {
         this.mutableInputs = mutableInputs;
     }
 
+    public static Builder descriptor(String descriptor) {
+        return new Builder(descriptor);
+    }
+
+    public static Builder descriptor(String descriptor, File location, int line, int column) {
+        return new Builder(String.format("%s @ build file '%s' line %d, column %d", descriptor, location.getAbsolutePath(), line, column));
+    }
+
     public String getDescriptor() {
         return descriptor;
     }
@@ -49,20 +58,12 @@ public class UnboundRule {
         return mutableInputs;
     }
 
-    public static Builder descriptor(String descriptor) {
-        return new Builder(descriptor);
-    }
-
-    public static Builder descriptor(String descriptor, File location, int line, int column) {
-        return new Builder(String.format("%s @ build file '%s' line %d, column %d", descriptor, location.getAbsolutePath(), line, column));
-    }
-
     @NotThreadSafe
     public static class Builder {
 
-        private String descriptor;
         private final ImmutableList.Builder<UnboundRuleInput> immutableInputs = ImmutableList.builder();
         private final ImmutableList.Builder<UnboundRuleInput> mutableInputs = ImmutableList.builder();
+        private String descriptor;
 
         private Builder(String descriptor) {
             this.descriptor = descriptor;

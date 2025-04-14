@@ -33,6 +33,18 @@ public class DefaultLineInFileLocation extends DefaultFileLocation implements Li
         this.length = length;
     }
 
+    public static FileLocation from(String path, Integer line) {
+        return new DefaultLineInFileLocation(path, line, -1, -1);
+    }
+
+    public static FileLocation from(String path, Integer line, Integer column) {
+        return new DefaultLineInFileLocation(path, line, column, -1);
+    }
+
+    public static FileLocation from(String path, Integer line, Integer column, Integer length) {
+        return new DefaultLineInFileLocation(path, line, column, length);
+    }
+
     @Override
     public int getLine() {
         return line;
@@ -46,18 +58,6 @@ public class DefaultLineInFileLocation extends DefaultFileLocation implements Li
     @Override
     public int getLength() {
         return length;
-    }
-
-    public static FileLocation from(String path, Integer line) {
-        return new DefaultLineInFileLocation(path, line, -1, -1);
-    }
-
-    public static FileLocation from(String path, Integer line, Integer column) {
-        return new DefaultLineInFileLocation(path, line, column, -1);
-    }
-
-    public static FileLocation from(String path, Integer line, Integer column, Integer length) {
-        return new DefaultLineInFileLocation(path, line, column, length);
     }
 
     @Override

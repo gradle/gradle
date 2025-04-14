@@ -25,97 +25,6 @@ import static org.junit.Assert.fail;
 @SuppressWarnings("OctalInteger")
 public class DefaultConfigurableFilePermissionsTest {
 
-    @Test
-    public void directoryInitializedWithSensibleDefaults() {
-        DefaultConfigurableFilePermissions permissions = newPermission(true);
-        assertPermissions(permissions.getUser(), true, true, true);
-        assertPermissions(permissions.getGroup(), true, false, true);
-        assertPermissions(permissions.getOther(), true, false, true);
-        assertEquals(0755, permissions.toUnixNumeric());
-    }
-
-    @Test
-    public void fileInitializedWithSensibleDefaults() {
-        DefaultConfigurableFilePermissions permissions = newPermission(false);
-        assertPermissions(permissions.getUser(), true, true, false);
-        assertPermissions(permissions.getGroup(), true, false, false);
-        assertPermissions(permissions.getOther(), true, false, false);
-        assertEquals(0644, permissions.toUnixNumeric());
-    }
-
-    @Test
-    public void unixPermissionInNumericNotation() {
-        for (int u = 0; u <=7; u++) {
-            for (int g = 0; g <= 7; g++) {
-                for (int o = 0; o <= 7; o++) {
-                    String numericNotation = String.format("%d%d%d", u, g, o);
-                    int unixNumeric = u * 64 + g * 8 + o;
-                    assertEquals(unixNumeric, newUnixPermission(numericNotation).toUnixNumeric());
-                    assertEquals(unixNumeric, newUnixPermission(unixNumeric).toUnixNumeric());
-                }
-            }
-        }
-
-        assertInvalidUnixNumericPermissionRejected(Integer.MIN_VALUE);
-        assertInvalidUnixNumericPermissionRejected(-100);
-        assertInvalidUnixNumericPermissionRejected(-10);
-        assertInvalidUnixNumericPermissionRejected(-1);
-        assertInvalidUnixNumericPermissionRejected(512);
-        assertInvalidUnixNumericPermissionRejected(513);
-        assertInvalidUnixNumericPermissionRejected(1024);
-        assertInvalidUnixNumericPermissionRejected(Integer.MAX_VALUE);
-    }
-
-    @Test
-    public void unixPermissionInNumericNotation_whitespaceIsTrimmed() {
-        assertEquals(0754, newUnixPermission("  754   ").toUnixNumeric());
-    }
-
-    @Test
-    public void unixPermissionInNumericNotation_octalLiteralIsAccepted() {
-        assertEquals(0754, newUnixPermission("0754").toUnixNumeric());
-    }
-
-    @Test
-    public void unixPermissionInSymbolicNotation() {
-        for (int u = 0; u <=7; u++) {
-            for (int g = 0; g <= 7; g++) {
-                for (int o = 0; o <= 7; o++) {
-                    String symbolicNotation = String.format("%s%s%s", toUnixSymbolic(u), toUnixSymbolic(g), toUnixSymbolic(o));
-                    int mode = u * 64 + g * 8 + o;
-                    assertEquals(mode, newUnixPermission(symbolicNotation).toUnixNumeric());
-                }
-            }
-        }
-    }
-
-    @Test
-    public void unixPermissionInSymbolicNotation_whitespaceIsTrimmed() {
-        assertEquals(0754, newUnixPermission("  rwxr-xr--   ").toUnixNumeric());
-    }
-
-    @Test
-    public void unixPermissionBadValues() {
-        assertInvalidUnixPermission("", "'' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-        assertInvalidUnixPermission(" ", "' ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-        assertInvalidUnixPermission("   ", "'   ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-        assertInvalidUnixPermission("         ", "'         ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-        assertInvalidUnixPermission("812", "'812' isn't a proper Unix permission. Can't be parsed as octal number.");
-        assertInvalidUnixPermission("790", "'790' isn't a proper Unix permission. Can't be parsed as octal number.");
-        assertInvalidUnixPermission("649", "'649' isn't a proper Unix permission. Can't be parsed as octal number.");
-        assertInvalidUnixPermission("64 9", "'64 9' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-        assertInvalidUnixPermission("|wxrwxrwx", "'|wxrwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
-        assertInvalidUnixPermission("rwx|wxrwx", "'rwx|wxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
-        assertInvalidUnixPermission("rwxrwx|wx", "'rwxrwx|wx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
-        assertInvalidUnixPermission("r|xrwxrwx", "'r|xrwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
-        assertInvalidUnixPermission("rwxr|xrwx", "'rwxr|xrwx' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
-        assertInvalidUnixPermission("rwxrwxr|x", "'rwxrwxr|x' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
-        assertInvalidUnixPermission("rw|rwxrwx", "'rw|rwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
-        assertInvalidUnixPermission("rwxrw|rwx", "'rwxrw|rwx' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
-        assertInvalidUnixPermission("rwxrwxrw|", "'rwxrwxrw|' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
-        assertInvalidUnixPermission("rwxrw xrwx", "'rwxrw xrwx' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
-    }
-
     private static DefaultConfigurableFilePermissions newUnixPermission(String unixPermission) {
         DefaultConfigurableFilePermissions permissions = newPermission(false);
         permissions.unix(unixPermission);
@@ -172,6 +81,97 @@ public class DefaultConfigurableFilePermissionsTest {
 
     private static boolean isExecute(int unixNumeric) {
         return (unixNumeric & 1) == 1;
+    }
+
+    @Test
+    public void directoryInitializedWithSensibleDefaults() {
+        DefaultConfigurableFilePermissions permissions = newPermission(true);
+        assertPermissions(permissions.getUser(), true, true, true);
+        assertPermissions(permissions.getGroup(), true, false, true);
+        assertPermissions(permissions.getOther(), true, false, true);
+        assertEquals(0755, permissions.toUnixNumeric());
+    }
+
+    @Test
+    public void fileInitializedWithSensibleDefaults() {
+        DefaultConfigurableFilePermissions permissions = newPermission(false);
+        assertPermissions(permissions.getUser(), true, true, false);
+        assertPermissions(permissions.getGroup(), true, false, false);
+        assertPermissions(permissions.getOther(), true, false, false);
+        assertEquals(0644, permissions.toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionInNumericNotation() {
+        for (int u = 0; u <= 7; u++) {
+            for (int g = 0; g <= 7; g++) {
+                for (int o = 0; o <= 7; o++) {
+                    String numericNotation = String.format("%d%d%d", u, g, o);
+                    int unixNumeric = u * 64 + g * 8 + o;
+                    assertEquals(unixNumeric, newUnixPermission(numericNotation).toUnixNumeric());
+                    assertEquals(unixNumeric, newUnixPermission(unixNumeric).toUnixNumeric());
+                }
+            }
+        }
+
+        assertInvalidUnixNumericPermissionRejected(Integer.MIN_VALUE);
+        assertInvalidUnixNumericPermissionRejected(-100);
+        assertInvalidUnixNumericPermissionRejected(-10);
+        assertInvalidUnixNumericPermissionRejected(-1);
+        assertInvalidUnixNumericPermissionRejected(512);
+        assertInvalidUnixNumericPermissionRejected(513);
+        assertInvalidUnixNumericPermissionRejected(1024);
+        assertInvalidUnixNumericPermissionRejected(Integer.MAX_VALUE);
+    }
+
+    @Test
+    public void unixPermissionInNumericNotation_whitespaceIsTrimmed() {
+        assertEquals(0754, newUnixPermission("  754   ").toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionInNumericNotation_octalLiteralIsAccepted() {
+        assertEquals(0754, newUnixPermission("0754").toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionInSymbolicNotation() {
+        for (int u = 0; u <= 7; u++) {
+            for (int g = 0; g <= 7; g++) {
+                for (int o = 0; o <= 7; o++) {
+                    String symbolicNotation = String.format("%s%s%s", toUnixSymbolic(u), toUnixSymbolic(g), toUnixSymbolic(o));
+                    int mode = u * 64 + g * 8 + o;
+                    assertEquals(mode, newUnixPermission(symbolicNotation).toUnixNumeric());
+                }
+            }
+        }
+    }
+
+    @Test
+    public void unixPermissionInSymbolicNotation_whitespaceIsTrimmed() {
+        assertEquals(0754, newUnixPermission("  rwxr-xr--   ").toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionBadValues() {
+        assertInvalidUnixPermission("", "'' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission(" ", "' ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("   ", "'   ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("         ", "'         ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("812", "'812' isn't a proper Unix permission. Can't be parsed as octal number.");
+        assertInvalidUnixPermission("790", "'790' isn't a proper Unix permission. Can't be parsed as octal number.");
+        assertInvalidUnixPermission("649", "'649' isn't a proper Unix permission. Can't be parsed as octal number.");
+        assertInvalidUnixPermission("64 9", "'64 9' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("|wxrwxrwx", "'|wxrwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        assertInvalidUnixPermission("rwx|wxrwx", "'rwx|wxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        assertInvalidUnixPermission("rwxrwx|wx", "'rwxrwx|wx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        assertInvalidUnixPermission("r|xrwxrwx", "'r|xrwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        assertInvalidUnixPermission("rwxr|xrwx", "'rwxr|xrwx' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        assertInvalidUnixPermission("rwxrwxr|x", "'rwxrwxr|x' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        assertInvalidUnixPermission("rw|rwxrwx", "'rw|rwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        assertInvalidUnixPermission("rwxrw|rwx", "'rwxrw|rwx' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        assertInvalidUnixPermission("rwxrwxrw|", "'rwxrwxrw|' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        assertInvalidUnixPermission("rwxrw xrwx", "'rwxrw xrwx' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
     }
 
 }

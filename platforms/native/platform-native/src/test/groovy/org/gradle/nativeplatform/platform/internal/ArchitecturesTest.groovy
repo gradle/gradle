@@ -24,14 +24,14 @@ class ArchitecturesTest extends Specification {
         expect:
         Architectures.forInput(architecture).isI386()
         where:
-        architecture << [ "x86", "i386", "ia-32", "i686" ]
+        architecture << ["x86", "i386", "ia-32", "i686"]
     }
 
     def "test 64-bit aliases"() {
         expect:
         Architectures.forInput(architecture).isAmd64()
         where:
-        architecture << [ "x86-64", "x86_64", "amd64", "x64" ]
+        architecture << ["x86-64", "x86_64", "amd64", "x64"]
     }
 
     def "test ARM aliases"() {
@@ -39,7 +39,7 @@ class ArchitecturesTest extends Specification {
         Architectures.forInput(architecture).isArm32()
         Architectures.forInput(architecture).isArm()
         where:
-        architecture << [ "arm", "armv7" ]
+        architecture << ["arm", "armv7"]
     }
 
     def "test ARM 64 aliases"() {
@@ -47,6 +47,6 @@ class ArchitecturesTest extends Specification {
         Architectures.forInput(architecture).isArm64()
         Architectures.forInput(architecture).isArm()
         where:
-        architecture << [ "aarch64", "arm-v8" ]
+        architecture << ["aarch64", "arm-v8"]
     }
 }

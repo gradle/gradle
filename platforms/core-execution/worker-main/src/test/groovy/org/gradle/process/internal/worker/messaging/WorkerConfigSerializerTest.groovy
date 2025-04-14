@@ -64,6 +64,7 @@ class WorkerConfigSerializerTest extends Specification {
 
     private static class TestAction implements Action<WorkerProcessContext>, Serializable {
         private final String value
+
         private TestAction(String value) {
             this.value = value
         }

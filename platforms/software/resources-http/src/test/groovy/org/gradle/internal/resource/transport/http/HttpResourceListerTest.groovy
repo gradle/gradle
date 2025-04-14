@@ -33,15 +33,15 @@ class HttpResourceListerTest extends Specification {
         when:
         lister.list(name)
         then:
-        1 * accessorMock.withContent(name, true, _) >> {  uri, revalidate, action ->
+        1 * accessorMock.withContent(name, true, _) >> { uri, revalidate, action ->
             return action.execute(inputStream, metaData)
         }
         _ * metaData.getContentType() >> "text/html"
     }
 
-    def "list returns null if HttpAccessor returns null"(){
+    def "list returns null if HttpAccessor returns null"() {
         setup:
-        accessorMock.openResource(new ExternalResourceName("http://testrepo/"), true)  >> null
+        accessorMock.openResource(new ExternalResourceName("http://testrepo/"), true) >> null
         expect:
         null == lister.list(new ExternalResourceName("http://testrepo"))
     }

@@ -45,6 +45,23 @@ public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
         return GradleDsl.valueOf(property);
     }
 
+    @Nonnull
+    private static Set<GradleDsl> skippedDSLs(Annotation[] annotations) {
+        return Arrays.stream(annotations)
+            .flatMap((Function<Annotation, Stream<SkipDsl>>) a -> {
+                if (a instanceof SkipDsl) {
+                    return Streams.of((SkipDsl) a);
+                } else if (a instanceof SkipDsl.List) {
+                    SkipDsl.List al = (SkipDsl.List) a;
+                    return Arrays.stream(al.value());
+                } else {
+                    return null;
+                }
+            })
+            .map(SkipDsl::dsl)
+            .collect(Collectors.toSet());
+    }
+
     @Override
     protected void createExecutions() {
         for (GradleDsl dsl : GradleDsl.values()) {
@@ -86,22 +103,5 @@ public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
             Set<GradleDsl> methodSpecificSkippedDSLs = skippedDSLs(testDetails.getAnnotations());
             return !methodSpecificSkippedDSLs.contains(dsl);
         }
-    }
-
-    @Nonnull
-    private static Set<GradleDsl> skippedDSLs(Annotation[] annotations) {
-        return Arrays.stream(annotations)
-            .flatMap((Function<Annotation, Stream<SkipDsl>>) a -> {
-                if (a instanceof SkipDsl) {
-                    return Streams.of((SkipDsl) a);
-                } else if (a instanceof SkipDsl.List) {
-                    SkipDsl.List al = (SkipDsl.List) a;
-                    return Arrays.stream(al.value());
-                } else {
-                    return null;
-                }
-            })
-            .map(SkipDsl::dsl)
-            .collect(Collectors.toSet());
     }
 }

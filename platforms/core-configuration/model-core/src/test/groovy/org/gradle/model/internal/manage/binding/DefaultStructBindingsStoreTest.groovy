@@ -46,6 +46,7 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     static abstract class TypeWithAbstractProperty {
         abstract int getZ()
+
         abstract void setZ(int value)
     }
 
@@ -61,6 +62,7 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     static abstract class TypeWithImplementedProperty {
         int getZ() { 0 }
+
         void setZ(int value) {}
     }
 
@@ -89,8 +91,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "fails when delegate type is abstract"() {
-        when: extract(Object, Serializable)
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract(Object, Serializable)
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == "Type 'Object' is not a valid managed type: delegate type must be null or a non-abstract type instead of 'Serializable'."
     }
 
@@ -98,8 +102,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     static class EmptyStaticClass {}
 
     def "public type must be abstract"() {
-        when: extract EmptyStaticClass
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract EmptyStaticClass
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(EmptyStaticClass)} is not a valid managed type:
 - Must be defined as an interface or an abstract class."""
     }
@@ -108,8 +114,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     static interface ParameterizedEmptyInterface<T> {}
 
     def "public type cannot be parameterized"() {
-        when: extract ParameterizedEmptyInterface
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract ParameterizedEmptyInterface
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(ParameterizedEmptyInterface)} is not a valid managed type:
 - Cannot be a parameterized type."""
     }
@@ -122,8 +130,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "instance scoped fields are not allowed"() {
-        when:  extract WithInstanceScopedField
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract WithInstanceScopedField
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(WithInstanceScopedField)} is not a valid managed type:
 - Field name is not valid: Fields must be static final.
 - Field age is not valid: Fields must be static final."""
@@ -134,8 +144,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "instance scoped fields are not allowed in super-class"() {
-        when: extract WithInstanceScopedFieldInSuperclass
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract WithInstanceScopedFieldInSuperclass
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(WithInstanceScopedFieldInSuperclass)} is not a valid managed type:
 - Field DefaultStructBindingsStoreTest.WithInstanceScopedField.name is not valid: Fields must be static final.
 - Field DefaultStructBindingsStoreTest.WithInstanceScopedField.age is not valid: Fields must be static final."""
@@ -196,8 +208,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "protected and private non-abstract methods are not allowed in super-type"() {
-        when: extract ProtectedAndPrivateNonAbstractMethodsInSuper
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract ProtectedAndPrivateNonAbstractMethodsInSuper
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(ProtectedAndPrivateNonAbstractMethodsInSuper)} is not a valid managed type:
 - Method DefaultStructBindingsStoreTest.ProtectedAndPrivateNonAbstractMethods.setName(java.lang.String) is not a valid method: Protected and private methods are not supported.
 - Method DefaultStructBindingsStoreTest.ProtectedAndPrivateNonAbstractMethods.getName() is not a valid method: Protected and private methods are not supported."""
@@ -228,6 +242,7 @@ class DefaultStructBindingsStoreTest extends Specification {
 
     static abstract class TypeWithInconsistentPropertyType {
         abstract String getZ()
+
         abstract void setZ(int value)
     }
 
@@ -280,12 +295,15 @@ class DefaultStructBindingsStoreTest extends Specification {
     static interface HasUnmanagedOnManaged {
         @Unmanaged
         MyEnum getMyEnum();
+
         void setMyEnum(MyEnum myEnum)
     }
 
     def "cannot annotate managed type property with unmanaged"() {
-        when: extract HasUnmanagedOnManaged
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract HasUnmanagedOnManaged
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(HasUnmanagedOnManaged)} is not a valid managed type:
 - Property 'myEnum' is not valid: it is marked as @Unmanaged, but is of @Managed type '${getName(MyEnum)}'; please remove the @Managed annotation"""
     }
@@ -297,8 +315,10 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "must have setter for unmanaged"() {
-        when: extract NoSetterForUnmanaged
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract NoSetterForUnmanaged
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(NoSetterForUnmanaged)} is not a valid managed type:
 - Property 'thing' is not valid: it must not be read only, because it is marked as @Unmanaged"""
     }
@@ -317,25 +337,31 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static abstract class WritableMapProperty {
         abstract void setMap(ModelMap<NamedThingInterface> map)
+
         abstract ModelMap<NamedThingInterface> getMap()
     }
 
     @Managed
     static abstract class WritableSetProperty {
         abstract void setSet(ModelSet<NamedThingInterface> set)
+
         abstract ModelSet<NamedThingInterface> getSet()
     }
 
     def "map cannot be writable"() {
-        when: extract WritableMapProperty
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract WritableMapProperty
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(WritableMapProperty)} is not a valid managed type:
 - Property 'map' is not valid: it cannot have a setter (ModelMap properties must be read only)"""
     }
 
     def "set cannot be writable"() {
-        when: extract WritableSetProperty
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract WritableSetProperty
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(WritableSetProperty)} is not a valid managed type:
 - Property 'set' is not valid: it cannot have a setter (ModelSet properties must be read only)"""
     }
@@ -343,12 +369,15 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static interface GetterWithParams {
         String getName(String name)
+
         void setName(String name)
     }
 
     def "malformed getter"() {
-        when: extract GetterWithParams
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract GetterWithParams
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(GetterWithParams)} is not a valid managed type:
 - Method getName(java.lang.String) is not a valid property accessor method: getter method must not take parameters
 - Property 'name' is not valid: it must both have an abstract getter and a setter"""
@@ -357,6 +386,7 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static interface NonVoidSetter {
         String getName()
+
         String setName(String name)
     }
 
@@ -370,12 +400,15 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static interface SetterWithExtraParams {
         String getName()
+
         void setName(String name, String otherName)
     }
 
     def "setter with extra params"() {
-        when: extract SetterWithExtraParams
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract SetterWithExtraParams
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(SetterWithExtraParams)} is not a valid managed type:
 - Method setName(java.lang.String, java.lang.String) is not a valid property accessor method: setter method must take exactly one parameter"""
     }
@@ -394,15 +427,19 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "can only have abstract getters and setters"() {
-        when: extract HasExtraNonPropertyMethods
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract HasExtraNonPropertyMethods
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(HasExtraNonPropertyMethods)} is not a valid managed type:
 - Method foo(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
 
     def "can only have abstract getters and setters in inherited type"() {
-        when: extract ChildWithExtraNonPropertyMethods
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract ChildWithExtraNonPropertyMethods
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(ChildWithExtraNonPropertyMethods)} is not a valid managed type:
 - Method DefaultStructBindingsStoreTest.HasExtraNonPropertyMethods.foo(java.lang.String) is not a valid managed type method: it must have an implementation"""
     }
@@ -410,12 +447,15 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static interface MisalignedSetterType {
         String getThing()
+
         void setThing(Object name)
     }
 
     def "misaligned setter type"() {
-        when: extract MisalignedSetterType
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract MisalignedSetterType
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(MisalignedSetterType)} is not a valid managed type:
 - Method setThing(java.lang.Object) is not a valid method: it should take parameter with type 'String'"""
     }
@@ -423,25 +463,31 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static abstract class NonAbstractGetterWithSetter {
         String getName() {}
+
         abstract void setName(String name)
     }
 
     @Managed
     static abstract class NonAbstractSetter {
         abstract String getName()
+
         void setName(String name) {}
     }
 
     def "non-abstract getter with abstract setter is not allowed"() {
-        when: extract NonAbstractGetterWithSetter
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract NonAbstractGetterWithSetter
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(NonAbstractGetterWithSetter)} is not a valid managed type:
 - Property 'name' is not valid: it must have either only abstract accessor methods or only implemented accessor methods"""
     }
 
     def "non-abstract setter without getter is not allowed"() {
-        when: extract NonAbstractSetter
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract NonAbstractSetter
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(NonAbstractSetter)} is not a valid managed type:
 - Property 'name' is not valid: it must have either only abstract accessor methods or only implemented accessor methods"""
     }
@@ -449,12 +495,16 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static interface CollectionType {
         List<String> getItems()
+
         void setItems(List<Integer> integers)
     }
 
     def "displays a reasonable error message when getter and setter of a property of collection of scalar types do not use the same generic type"() {
-        given: when: extract CollectionType
-        then: def ex = thrown InvalidManagedTypeException
+        given:
+        when:
+        extract CollectionType
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(CollectionType)} is not a valid managed type:
 - Method setItems(java.util.List<java.lang.Integer>) is not a valid method: it should take parameter with type 'List<String>'"""
     }
@@ -470,8 +520,10 @@ class DefaultStructBindingsStoreTest extends Specification {
                 void setPrimitiveProperty($secondType.name value)
             }
         """
-        when: extract interfaceWithPrimitiveProperty
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract interfaceWithPrimitiveProperty
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type PrimitiveProperty is not a valid managed type:
 - Method setPrimitiveProperty($secondType.name) is not a valid method: it should take parameter with type '$firstType.simpleName'"""
 
@@ -513,12 +565,15 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static interface HasIsAndGetPropertyWithDifferentTypes {
         boolean isValue()
+
         String getValue()
     }
 
     def "handles is/get property with non-matching type"() {
-        when: extract HasIsAndGetPropertyWithDifferentTypes
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract HasIsAndGetPropertyWithDifferentTypes
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(HasIsAndGetPropertyWithDifferentTypes)} is not a valid managed type:
 - Property 'value' is not valid: it must have a consistent type, but it's defined as String, boolean"""
     }
@@ -526,18 +581,22 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     interface IsNotAllowedForOtherTypeThanBoolean {
         String isThing()
+
         void setThing(String thing)
     }
 
     @Managed
     interface BoxedBoolean {
         Boolean isThing()
+
         void setThing(Boolean thing)
     }
 
     def "should not allow 'is' as a prefix for getter on non boolean in #type"() {
-        when: extract IsNotAllowedForOtherTypeThanBoolean
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract IsNotAllowedForOtherTypeThanBoolean
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(IsNotAllowedForOtherTypeThanBoolean)} is not a valid managed type:
 - Property 'thing' is not valid: it must both have an abstract getter and a setter"""
     }
@@ -555,8 +614,10 @@ class DefaultStructBindingsStoreTest extends Specification {
      */
     def "does not allow 'is' as a prefix for getter on non primitive Boolean in #type"() {
         assumeTrue('This test requires bundled Groovy 4 or later', VersionNumber.parse(GroovySystem.version).major >= 4)
-        when: extract(BoxedBoolean)
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract(BoxedBoolean)
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(BoxedBoolean)} is not a valid managed type:
 - Property 'thing' is not valid: it must both have an abstract getter and a setter"""
     }
@@ -569,6 +630,7 @@ class DefaultStructBindingsStoreTest extends Specification {
     @Managed
     static abstract class AdditionalConstructorWithArguments {
         AdditionalConstructorWithArguments() {}
+
         AdditionalConstructorWithArguments(String arg) {}
     }
 
@@ -588,37 +650,48 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "custom constructors are not allowed"() {
-        when: extract ConstructorWithArguments
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract ConstructorWithArguments
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(ConstructorWithArguments)} is not a valid managed type:
 - Constructor DefaultStructBindingsStoreTest.ConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
 
-        when: extract AdditionalConstructorWithArguments
-        then: ex = thrown InvalidManagedTypeException
+        when:
+        extract AdditionalConstructorWithArguments
+        then:
+        ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(AdditionalConstructorWithArguments)} is not a valid managed type:
 - Constructor DefaultStructBindingsStoreTest.AdditionalConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
 
-        when: extract CustomConstructorInSuperClass
-        then: ex = thrown InvalidManagedTypeException
+        when:
+        extract CustomConstructorInSuperClass
+        then:
+        ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(CustomConstructorInSuperClass)} is not a valid managed type:
 - Constructor DefaultStructBindingsStoreTest.SuperConstructorWithArguments(java.lang.String) is not valid: Custom constructors are not supported."""
     }
 
     static abstract class MultipleProblemsSuper {
         private String field1
+
         MultipleProblemsSuper(String s) {}
+
         private String getPrivate() { field1 }
     }
 
     @Managed
     static class MultipleProblems<T extends List<?>> extends MultipleProblemsSuper {
         private String field2
+
         MultipleProblems(String s) { super(s) }
     }
 
     def "collects all problems for a type"() {
-        when: extract MultipleProblems
-        then: def ex = thrown InvalidManagedTypeException
+        when:
+        extract MultipleProblems
+        then:
+        def ex = thrown InvalidManagedTypeException
         ex.message == """Type ${fullyQualifiedNameOf(MultipleProblems)} is not a valid managed type:
 - Must be defined as an interface or an abstract class.
 - Cannot be a parameterized type.
@@ -633,6 +706,7 @@ class DefaultStructBindingsStoreTest extends Specification {
     def extract(Class<?> type, Class<?> delegateType = null) {
         return extract(type, [], delegateType)
     }
+
     def extract(Class<?> type, List<Class<?>> viewTypes, Class<?> delegateType = null) {
         return bindingStore.getBindings(
             ModelType.of(type),

@@ -34,9 +34,9 @@ import java.util.Map;
 @NullMarked
 public class DefaultGccPlatformToolChain implements GccPlatformToolChain, ToolRegistry {
     private final NativePlatform platform;
+    private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
     private boolean canUseCommandFile = true;
     private List<String> compilerProbeArgs = new ArrayList<String>();
-    private final Map<ToolType, GccCommandLineToolConfigurationInternal> tools = new HashMap<ToolType, GccCommandLineToolConfigurationInternal>();
 
     public DefaultGccPlatformToolChain(NativePlatform platform) {
         this.platform = platform;

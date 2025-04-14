@@ -98,6 +98,7 @@ public class SetPropertySetView<E> extends AbstractSet<E> {
         Iterator<E> it = set.iterator();
         return new Iterator<E>() {
             E previousValue = null;
+
             @Override
             public boolean hasNext() {
                 return it.hasNext();

@@ -23,16 +23,16 @@ import java.util.regex.Pattern;
 // implementation based on Spock's StackTraceFilter class
 public class GroovyStackTraceSpec implements Spec<StackTraceElement> {
     private static final Pattern INTERNAL_CLASSES = Pattern.compile(
-            "org.codehaus.groovy.runtime\\..*"
-                    + "|org.codehaus.groovy.reflection\\..*"
-                    + "|org.codehaus.groovy\\..*MetaClass.*"
-                    + "|groovy\\..*MetaClass.*"
-                    + "|groovy.lang.MetaMethod"
-                    + "|groovy.lang.GroovyObject"
-                    + "|java.lang.reflect\\..*"
-                    + "|sun.reflect\\..*"
-                    + "|jdk.internal.reflect\\..*"
-                    + "|org.codehaus.groovy.vmplugin\\..*"
+        "org.codehaus.groovy.runtime\\..*"
+            + "|org.codehaus.groovy.reflection\\..*"
+            + "|org.codehaus.groovy\\..*MetaClass.*"
+            + "|groovy\\..*MetaClass.*"
+            + "|groovy.lang.MetaMethod"
+            + "|groovy.lang.GroovyObject"
+            + "|java.lang.reflect\\..*"
+            + "|sun.reflect\\..*"
+            + "|jdk.internal.reflect\\..*"
+            + "|org.codehaus.groovy.vmplugin\\..*"
     );
 
     @Override

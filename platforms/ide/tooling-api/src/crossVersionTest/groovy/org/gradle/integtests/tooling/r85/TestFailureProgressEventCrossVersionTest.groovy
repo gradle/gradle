@@ -371,12 +371,12 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         failure.expected == expectedActual
 
         where:
-        typeInstantiation | expectedActual
+        typeInstantiation                               | expectedActual
         'new FileInfo("/path/from", new byte[]{ 0x0 })' | "/path/from"
-        '"expected"' | "expected"
-        'ValueWrapper.create("expected")' | "expected"
-        '1' | "1"
-        'ValueWrapper.create(1)' | "1"
+        '"expected"'                                    | "expected"
+        'ValueWrapper.create("expected")'               | "expected"
+        '1'                                             | "1"
+        'ValueWrapper.create(1)'                        | "1"
     }
 
 }

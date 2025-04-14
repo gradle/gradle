@@ -29,17 +29,9 @@ import java.util.List;
 
 public class ProcessArgumentsSpec {
 
-    interface HasExecutable {
-
-        String getExecutable();
-
-        void setExecutable(Object executable);
-    }
-
     private final HasExecutable hasExecutable;
     private final List<Object> arguments = new ArrayList<>();
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
-
     public ProcessArgumentsSpec(HasExecutable hasExecutable) {
         this.hasExecutable = hasExecutable;
     }
@@ -90,6 +82,14 @@ public class ProcessArgumentsSpec {
         return this;
     }
 
+    public List<String> getArgs() {
+        List<String> args = new ArrayList<>();
+        for (Object argument : arguments) {
+            args.add(argument.toString());
+        }
+        return args;
+    }
+
     public ProcessArgumentsSpec setArgs(List<String> arguments) {
         this.arguments.clear();
         args(arguments);
@@ -102,15 +102,14 @@ public class ProcessArgumentsSpec {
         return this;
     }
 
-    public List<String> getArgs() {
-        List<String> args = new ArrayList<>();
-        for (Object argument : arguments) {
-            args.add(argument.toString());
-        }
-        return args;
-    }
-
     public List<CommandLineArgumentProvider> getArgumentProviders() {
         return argumentProviders;
+    }
+
+    interface HasExecutable {
+
+        String getExecutable();
+
+        void setExecutable(Object executable);
     }
 }

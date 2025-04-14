@@ -35,6 +35,17 @@ import org.jspecify.annotations.Nullable;
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
 
+    private static String formatInvalidTypeException(String owner, Class<?> targetType, Class<?> selfType) {
+        String targetTypeName = targetType.getName();
+        String selfTypeName = selfType.getName();
+        if (targetTypeName.equals(selfTypeName)) {
+            // This may happen when the same type is loaded by different classloaders.
+            targetTypeName = targetTypeName + " loaded with " + targetType.getClassLoader();
+            selfTypeName = selfTypeName + " loaded with " + selfType.getClassLoader();
+        }
+        return String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner, targetTypeName, selfTypeName);
+    }
+
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends @Nullable S, ? super T> transformer) {
         // Could do a better job of inferring the type
@@ -151,17 +162,6 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         } else {
             return this;
         }
-    }
-
-    private static String formatInvalidTypeException(String owner, Class<?> targetType, Class<?> selfType) {
-        String targetTypeName = targetType.getName();
-        String selfTypeName = selfType.getName();
-        if (targetTypeName.equals(selfTypeName)) {
-            // This may happen when the same type is loaded by different classloaders.
-            targetTypeName = targetTypeName + " loaded with " + targetType.getClassLoader();
-            selfTypeName = selfTypeName + " loaded with " + selfType.getClassLoader();
-        }
-        return String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner, targetTypeName, selfTypeName);
     }
 
     @Override

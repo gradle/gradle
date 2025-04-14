@@ -8,10 +8,10 @@
     <% if (repository ) { %>
     <repositories>
         <repository>
-          <id>local-repo</id>
-          <url>${repository.getUri()}</url>
+            <id>local-repo</id>
+            <url>${repository.getUri()}</url>
         </repository>
-      </repositories>
+    </repositories>
     <% } %>
     <dependencies>
         <dependency>
@@ -51,12 +51,13 @@
             <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
-    <% if (dependencies) { dependencies.each { dep -> %>
+        <% if (dependencies) { dependencies.each { dep -> %>
         <dependency>
             <groupId>${dep.groupId}</groupId>
             <artifactId>${dep.artifactId}</artifactId>
             <version>${dep.version}</version>
-        </dependency> <% } %>  <% } %>
+        </dependency>
+        <% } %><% } %>
     </dependencies>
     <build>
         <plugins>
@@ -73,8 +74,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <!--<version>2.5</version>-->
                 <!--<configuration>-->
-                    <!--<parallel>classes</parallel>-->
-                    <!--<threadCount>4</threadCount>-->
+                <!--<parallel>classes</parallel>-->
+                <!--<threadCount>4</threadCount>-->
                 <!--</configuration>-->
             </plugin>
             <plugin>

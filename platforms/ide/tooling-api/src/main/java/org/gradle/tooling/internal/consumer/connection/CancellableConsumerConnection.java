@@ -41,8 +41,8 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
 
     private ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, CancellationExceptionTransformer exceptionTransformer) {
         return new PluginClasspathInjectionSupportedCheckModelProducer(
-                new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer),
-                getVersionDetails()
+            new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, exceptionTransformer),
+            getVersionDetails()
         );
     }
 

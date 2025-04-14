@@ -23,7 +23,7 @@ import java.util.concurrent.ScheduledExecutorService
 class GarbageCollectionMonitorTest extends Specification {
     ScheduledExecutorService scheduledExecutorService = Mock(ScheduledExecutorService)
 
-    def "does not schedule garbage collection check when GC strategy is unknown" () {
+    def "does not schedule garbage collection check when GC strategy is unknown"() {
         when:
         new DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
 

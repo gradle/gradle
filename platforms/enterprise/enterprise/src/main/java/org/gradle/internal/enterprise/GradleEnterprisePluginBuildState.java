@@ -38,7 +38,8 @@ public interface GradleEnterprisePluginBuildState {
 
     String getUserId();
 
-    @Nullable // if not a daemon build
+    @Nullable
+        // if not a daemon build
     DaemonScanInfo getDaemonScanInfo();
 
     StartParameter getStartParameter();

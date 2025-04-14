@@ -310,11 +310,13 @@ class FilteringClassLoaderTest extends Specification {
         try {
             classLoader.loadClass(clazz.name, false)
             fail()
-        } catch (ClassNotFoundException expected) {}
+        } catch (ClassNotFoundException expected) {
+        }
         try {
             classLoader.loadClass(clazz.name)
             fail()
-        } catch (ClassNotFoundException expected) {}
+        } catch (ClassNotFoundException expected) {
+        }
     }
 
     def "does not attempt to load not allowed class"() {
@@ -345,7 +347,7 @@ class FilteringClassLoaderTest extends Specification {
     void "spec is copied correctly"() {
         given:
         def parent = Mock(ClassLoader, useObjenesis: false)
-        def spec = new FilteringClassLoader.Spec(['allow.ClassName' ], ['allowPackage' ], ['allowPackagePrefix' ], ['allowPackageResource' ], ['allowResource' ], ['disallow.ClassName' ], ['disallowPackage' ])
+        def spec = new FilteringClassLoader.Spec(['allow.ClassName'], ['allowPackage'], ['allowPackagePrefix'], ['allowPackageResource'], ['allowResource'], ['disallow.ClassName'], ['disallowPackage'])
         def filteringClassLoader = new FilteringClassLoader(parent, spec)
         def visitor = Mock(ClassLoaderVisitor)
 

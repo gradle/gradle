@@ -24,7 +24,7 @@ class PropertiesTransformerTest extends Specification {
 
     def 'returns original when no action specified'() {
         given:
-        Map map = [test:'value']
+        Map map = [test: 'value']
         Properties original = props(map)
         Properties test = props(map)
         when:
@@ -37,7 +37,7 @@ class PropertiesTransformerTest extends Specification {
         given:
         Action<Properties> action = Mock()
         transformer.addAction(action)
-        Properties original = props(removed:'value', changed:'old')
+        Properties original = props(removed: 'value', changed: 'old')
         when:
         def result = transformer.transform(original)
         then:
@@ -46,7 +46,7 @@ class PropertiesTransformerTest extends Specification {
             props.changed = 'new'
             props.added = 'value'
         }
-        props(changed:'new', added:'value') == result
+        props(changed: 'new', added: 'value') == result
     }
 
     def 'can use closure as action'() {
@@ -57,7 +57,7 @@ class PropertiesTransformerTest extends Specification {
         when:
         def result = transformer.transform(new Properties())
         then:
-        props(added:'value') == result
+        props(added: 'value') == result
     }
 
     def 'can chain actions'() {
@@ -71,11 +71,11 @@ class PropertiesTransformerTest extends Specification {
         transformer.addAction action { Properties props ->
             props.added = 'value'
         }
-        Properties original = props(removed:'value', changed:'old')
+        Properties original = props(removed: 'value', changed: 'old')
         when:
         def result = transformer.transform(original)
         then:
-        props(changed:'new', added:'value') == result
+        props(changed: 'new', added: 'value') == result
     }
 
     def 'can transform to an OutputStream'() {

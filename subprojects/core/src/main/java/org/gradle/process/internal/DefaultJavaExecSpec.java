@@ -41,16 +41,14 @@ import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
 
 public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
 
-    private boolean ignoreExitValue;
     private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
-
     private final Property<String> mainClass;
     private final Property<String> mainModule;
     private final ModularitySpec modularity;
     private final ListProperty<String> jvmArguments;
-
     private final FileCollectionFactory fileCollectionFactory;
+    private boolean ignoreExitValue;
     private ConfigurableFileCollection classpath;
 
     @Inject

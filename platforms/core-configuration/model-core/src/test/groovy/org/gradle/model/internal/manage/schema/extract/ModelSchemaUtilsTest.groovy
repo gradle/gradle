@@ -51,8 +51,9 @@ class ModelSchemaUtilsTest extends Specification {
     }
 
     @Managed
-    abstract class ManagedType  {
+    abstract class ManagedType {
         abstract String getValue()
+
         abstract void setValue(String value)
     }
 
@@ -61,7 +62,7 @@ class ModelSchemaUtilsTest extends Specification {
         ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(ManagedType).methodsNamed("getValue").values().flatten())
     }
 
-    class UnmanagedType  {
+    class UnmanagedType {
         String value
     }
 
@@ -72,8 +73,11 @@ class ModelSchemaUtilsTest extends Specification {
 
     interface TypeWithOverloadedMethods {
         String anything()
+
         String someOverloadedMethod(Object param)
+
         String someOverloadedMethod(int param)
+
         CharSequence someOverriddenCovariantMethod(Object param)
     }
 
@@ -91,9 +95,14 @@ class ModelSchemaUtilsTest extends Specification {
     }
 
     interface SubTypeWithOverloadedMethods extends TypeWithOverloadedMethods {
-        @Override String someOverloadedMethod(Object param)
-        @Override String someOverloadedMethod(int param)
-        @Override String someOverriddenCovariantMethod(Object param)
+        @Override
+        String someOverloadedMethod(Object param)
+
+        @Override
+        String someOverloadedMethod(int param)
+
+        @Override
+        String someOverriddenCovariantMethod(Object param)
     }
 
     def "gets overridden methods from type hierarchy"() {

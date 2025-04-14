@@ -32,6 +32,10 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
     private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableSet::builder;
 
+    public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
+        super(host, Set.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
+    }
+
     /**
      * Convenience method to add a possibly-missing provider to a set property without clearing the set.
      *
@@ -42,10 +46,6 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     // Should be removed when https://github.com/gradle/gradle/issues/20266 is resolved
     public static <T> void addOptionalProvider(SetProperty<T> set, Provider<? extends T> provider) {
         set.addAll(provider.map(Collections::singleton).orElse(Collections.emptySet()));
-    }
-
-    public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
-        super(host, Set.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
     }
 
     @Override

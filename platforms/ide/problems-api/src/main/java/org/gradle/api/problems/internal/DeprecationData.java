@@ -23,11 +23,11 @@ import org.gradle.api.problems.AdditionalData;
  */
 public interface DeprecationData extends AdditionalData {
 
+    Type getType();
+
     enum Type {
         USER_CODE_DIRECT,
         USER_CODE_INDIRECT,
         BUILD_INVOCATION
     }
-
-    Type getType();
 }

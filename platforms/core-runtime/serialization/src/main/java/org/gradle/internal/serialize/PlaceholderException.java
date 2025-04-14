@@ -31,8 +31,10 @@ public class PlaceholderException extends RuntimeException implements Placeholde
     private final Throwable toStringRuntimeEx;
 
     @UsedByScanPlugin("test-distribution")
-    public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
-                                @Nullable Throwable toStringException, @Nullable Throwable cause) {
+    public PlaceholderException(
+        String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
+        @Nullable Throwable toStringException, @Nullable Throwable cause
+    ) {
         super(message, cause);
         this.exceptionClassName = exceptionClassName;
         this.getMessageException = getMessageException;

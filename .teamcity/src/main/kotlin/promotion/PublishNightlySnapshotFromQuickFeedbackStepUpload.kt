@@ -21,10 +21,10 @@ import common.VersionedSettingsBranch
 class PublishNightlySnapshotFromQuickFeedbackStepUpload(
     branch: VersionedSettingsBranch,
 ) : BasePublishGradleDistribution(
-        promotedBranch = branch.branchName,
-        prepTask = branch.prepNightlyTaskName(),
-        triggerName = "QuickFeedback",
-    ) {
+    promotedBranch = branch.branchName,
+    prepTask = branch.prepNightlyTaskName(),
+    triggerName = "QuickFeedback",
+) {
     init {
         id("Promotion_SnapshotFromQuickFeedbackStepUpload")
         name = "Nightly Snapshot (from QuickFeedback) - Upload"

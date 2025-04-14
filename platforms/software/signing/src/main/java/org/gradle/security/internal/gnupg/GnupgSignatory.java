@@ -49,11 +49,6 @@ public class GnupgSignatory extends SignatorySupport {
     private final String keyName;
     private final String passphrase;
 
-    interface Services {
-        @Inject
-        ExecOperations getExecOperations();
-    }
-
     public GnupgSignatory(Project project, String name, GnupgSettings settings) {
         this.execOperations = project.getObjects().newInstance(Services.class).getExecOperations();
         this.name = name;
@@ -128,6 +123,11 @@ public class GnupgSignatory extends SignatorySupport {
     @Override
     public String getKeyId() {
         return keyName;
+    }
+
+    interface Services {
+        @Inject
+        ExecOperations getExecOperations();
     }
 
 }

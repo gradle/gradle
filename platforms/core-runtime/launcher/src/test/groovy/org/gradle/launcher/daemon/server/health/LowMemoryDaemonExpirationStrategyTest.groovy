@@ -125,7 +125,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         thrown IllegalArgumentException
     }
 
-    def "does not expire when no memory status notification is received" () {
+    def "does not expire when no memory status notification is received"() {
         given:
         def expirationStrategy = new LowMemoryDaemonExpirationStrategy(1)
         _ * mockMemoryStatus.physicalMemory >> { new DefaultAvailableOsMemoryStatusAspect("physical", MAX_MEMORY, 0L) }

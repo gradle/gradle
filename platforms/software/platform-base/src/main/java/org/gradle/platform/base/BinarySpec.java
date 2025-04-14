@@ -27,7 +27,8 @@ import org.gradle.model.ModelMap;
 /**
  * Represents a binary that is the result of building a component.
  */
-@Incubating @HasInternalProtocol
+@Incubating
+@HasInternalProtocol
 public interface BinarySpec extends BuildableComponentSpec, CheckableComponentSpec, Binary {
 
     /**

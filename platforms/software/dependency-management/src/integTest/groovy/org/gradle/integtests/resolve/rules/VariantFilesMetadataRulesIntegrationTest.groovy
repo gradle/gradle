@@ -274,16 +274,20 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
                     variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
-                                            'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
+                                              'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                     artifact(type: 'jar')
                     artifact(type: 'pom')
-                    if (hasModuleFile) { artifact(type: 'module') }
+                    if (hasModuleFile) {
+                        artifact(type: 'module')
+                    }
                     module('org.test:moduleB:1.0') {
                         variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
-                                                'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
+                                                  'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                         artifact(type: 'jar')
                         artifact(type: 'pom')
-                        if (hasModuleFile) { artifact(type: 'module') }
+                        if (hasModuleFile) {
+                            artifact(type: 'module')
+                        }
                     }
                 }
             }

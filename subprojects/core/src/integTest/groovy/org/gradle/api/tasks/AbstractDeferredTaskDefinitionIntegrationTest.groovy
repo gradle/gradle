@@ -64,18 +64,18 @@ abstract class AbstractDeferredTaskDefinitionIntegrationTest extends AbstractInt
 
 
     static final def INVALID_CALL_FROM_LAZY_CONFIGURATION = [
-        ["Project#afterEvaluate(Closure)"   , "afterEvaluate {}"],
-        ["Project#afterEvaluate(Action)"    , "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
-        ["Project#beforeEvaluate(Closure)"  , "beforeEvaluate {}"],
-        ["Project#beforeEvaluate(Action)"   , "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
-        ["Gradle#beforeProject(Closure)"    , "gradle.beforeProject {}"],
-        ["Gradle#beforeProject(Action)"     , "gradle.beforeProject new Action<Project>() { void execute(Project p) {} }"],
-        ["Gradle#afterProject(Closure)"     , "gradle.afterProject {}"],
-        ["Gradle#afterProject(Action)"      , "gradle.afterProject new Action<Project>() { void execute(Project p) {} }"],
-        ["Gradle#projectsLoaded(Closure)"   , "gradle.projectsLoaded {}"],
-        ["Gradle#projectsLoaded(Action)"    , "gradle.projectsLoaded new Action<Gradle>() { void execute(Gradle g) {} }"],
+        ["Project#afterEvaluate(Closure)", "afterEvaluate {}"],
+        ["Project#afterEvaluate(Action)", "afterEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Project#beforeEvaluate(Closure)", "beforeEvaluate {}"],
+        ["Project#beforeEvaluate(Action)", "beforeEvaluate new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#beforeProject(Closure)", "gradle.beforeProject {}"],
+        ["Gradle#beforeProject(Action)", "gradle.beforeProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#afterProject(Closure)", "gradle.afterProject {}"],
+        ["Gradle#afterProject(Action)", "gradle.afterProject new Action<Project>() { void execute(Project p) {} }"],
+        ["Gradle#projectsLoaded(Closure)", "gradle.projectsLoaded {}"],
+        ["Gradle#projectsLoaded(Action)", "gradle.projectsLoaded new Action<Gradle>() { void execute(Gradle g) {} }"],
         ["Gradle#projectsEvaluated(Closure)", "gradle.projectsEvaluated {}"],
-        ["Gradle#projectsEvaluated(Action)" , "gradle.projectsEvaluated new Action<Gradle>() { void execute(Gradle g) {} }"]
+        ["Gradle#projectsEvaluated(Action)", "gradle.projectsEvaluated new Action<Gradle>() { void execute(Gradle g) {} }"]
     ]
 
     String mutationExceptionFor(description) {

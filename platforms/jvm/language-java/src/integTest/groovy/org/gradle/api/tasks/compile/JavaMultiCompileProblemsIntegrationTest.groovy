@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.tasks.compile.fixtures.ProblematicClassGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 /**
  * Sister class of {@link JavaCompileProblemsIntegrationTest} that tests the problems API with multiple compilation tasks.
  */

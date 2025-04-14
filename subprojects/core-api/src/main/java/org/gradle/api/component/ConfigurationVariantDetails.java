@@ -68,7 +68,6 @@ public interface ConfigurationVariantDetails {
      * The mapping only applies to dependencies: dependency constraints will
      * systematically be published as import scope.
      *  @param scope the Maven scope to use for dependencies found in this configuration variant
-     *
      */
     void mapToMavenScope(String scope);
 }

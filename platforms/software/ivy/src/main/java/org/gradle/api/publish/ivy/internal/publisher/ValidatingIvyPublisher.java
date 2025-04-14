@@ -60,14 +60,14 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         ModuleVersionIdentifier identity = publication.getCoordinates();
 
         IvyFieldValidator organisation = field(publication, "organisation", identity.getGroup())
-                .notEmpty()
-                .validInFileName();
+            .notEmpty()
+            .validInFileName();
         IvyFieldValidator moduleName = field(publication, "module name", identity.getName())
-                .notEmpty()
-                .validInFileName();
+            .notEmpty()
+            .validInFileName();
         IvyFieldValidator revision = field(publication, "revision", identity.getVersion())
-                .notEmpty()
-                .validInFileName();
+            .notEmpty()
+            .validInFileName();
 
         MutableIvyModuleResolveMetadata metadata = parseIvyFile(publication);
         ModuleVersionIdentifier moduleId = metadata.getModuleVersionId();
@@ -76,12 +76,12 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         revision.matches(moduleId.getVersion());
 
         field(publication, "branch", metadata.getBranch())
-                .optionalNotEmpty()
-                .doesNotContainSpecialCharacters(true);
+            .optionalNotEmpty()
+            .doesNotContainSpecialCharacters(true);
 
         field(publication, "status", metadata.getStatus())
-                .optionalNotEmpty()
-                .validInFileName();
+            .optionalNotEmpty()
+            .validInFileName();
     }
 
     private MutableIvyModuleResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
@@ -96,13 +96,13 @@ public class ValidatingIvyPublisher implements IvyPublisher {
     private void validateArtifacts(IvyNormalizedPublication publication) {
         for (final IvyArtifact artifact : publication.getAllArtifacts()) {
             field(publication, "artifact name", artifact.getName())
-                    .notEmpty().validInFileName();
+                .notEmpty().validInFileName();
             field(publication, "artifact type", artifact.getType())
-                    .notEmpty().validInFileName();
+                .notEmpty().validInFileName();
             field(publication, "artifact extension", artifact.getExtension())
-                    .notNull().validInFileName();
+                .notNull().validInFileName();
             field(publication, "artifact classifier", artifact.getClassifier())
-                    .optionalNotEmpty().validInFileName();
+                .optionalNotEmpty().validInFileName();
 
             checkCanPublish(publication.getName(), artifact);
         }
@@ -124,8 +124,8 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         for (IvyArtifact alreadyVerified : verified) {
             if (hasCoordinates(alreadyVerified, name, extension, type, classifier)) {
                 String message = String.format(
-                        "multiple artifacts with the identical name, extension, type and classifier ('%s', %s', '%s', '%s').",
-                        name, extension, type, classifier
+                    "multiple artifacts with the identical name, extension, type and classifier ('%s', %s', '%s', '%s').",
+                    name, extension, type, classifier
                 );
                 throw new InvalidIvyPublicationException(publication.getName(), message);
             }
@@ -134,9 +134,9 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private boolean hasCoordinates(IvyArtifact one, String name, String extension, String type, String classifier) {
         return ObjectUtils.equals(one.getName(), name)
-                && ObjectUtils.equals(one.getType(), type)
-                && ObjectUtils.equals(one.getExtension(), extension)
-                && ObjectUtils.equals(one.getClassifier(), classifier);
+            && ObjectUtils.equals(one.getType(), type)
+            && ObjectUtils.equals(one.getExtension(), extension)
+            && ObjectUtils.equals(one.getClassifier(), classifier);
     }
 
     private void checkCanPublish(String name, IvyArtifact artifact) {
@@ -158,7 +158,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
         public IvyFieldValidator matches(String expectedValue) {
             if (!value.equals(expectedValue)) {
                 throw new InvalidIvyPublicationException(publicationName,
-                        String.format("supplied %s does not match ivy descriptor (cannot edit %1$s directly in the ivy descriptor file).", name)
+                    String.format("supplied %s does not match ivy descriptor (cannot edit %1$s directly in the ivy descriptor file).", name)
                 );
             }
             return this;

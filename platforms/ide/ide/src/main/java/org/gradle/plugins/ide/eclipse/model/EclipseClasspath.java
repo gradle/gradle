@@ -139,34 +139,21 @@ import java.util.Set;
  * </pre>
  */
 public abstract class EclipseClasspath {
-    private Iterable<SourceSet> sourceSets;
-
-    private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
-
-    private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
-
-    private Set<String> containers = new LinkedHashSet<String>();
-
-    private File defaultOutputDir;
-
-    private boolean downloadSources = true;
-
-    private boolean downloadJavadoc;
-
-    private XmlFileContentMerger file = new XmlFileContentMerger(new XmlTransformer());
-
-    private Map<String, File> pathVariables = new HashMap<String, File>();
-
-    private boolean projectDependenciesOnly;
-
-    private List<File> classFolders;
-
     private final org.gradle.api.Project project;
-
     private final Property<Boolean> containsTestFixtures;
-
     private final SetProperty<SourceSet> testSourceSets;
     private final SetProperty<Configuration> testConfigurations;
+    private Iterable<SourceSet> sourceSets;
+    private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
+    private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
+    private Set<String> containers = new LinkedHashSet<String>();
+    private File defaultOutputDir;
+    private boolean downloadSources = true;
+    private boolean downloadJavadoc;
+    private XmlFileContentMerger file = new XmlFileContentMerger(new XmlTransformer());
+    private Map<String, File> pathVariables = new HashMap<String, File>();
+    private boolean projectDependenciesOnly;
+    private List<File> classFolders;
 
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {

@@ -67,11 +67,11 @@ class NormalizingCopyActionDecoratorTest extends Specification {
         })
 
         then:
-        1 * delegateAction.processFile({ it.path == 'a'})
-        1 * delegateAction.processFile({ it.path == 'a/b'})
+        1 * delegateAction.processFile({ it.path == 'a' })
+        1 * delegateAction.processFile({ it.path == 'a/b' })
         1 * delegateAction.processFile(dir1)
         1 * delegateAction.processFile(file1)
-        1 * delegateAction.processFile({ it.path == 'a/b/d'})
+        1 * delegateAction.processFile({ it.path == 'a/b/d' })
         1 * delegateAction.processFile(dir2)
         1 * delegateAction.processFile(file2)
     }
@@ -83,8 +83,8 @@ class NormalizingCopyActionDecoratorTest extends Specification {
         visit(decorator, details)
 
         then:
-        1 * delegateAction.processFile({ it.path == 'a'})
-        1 * delegateAction.processFile({ it.path == 'a/b'})
+        1 * delegateAction.processFile({ it.path == 'a' })
+        1 * delegateAction.processFile({ it.path == 'a/b' })
         1 * delegateAction.processFile(details)
     }
 

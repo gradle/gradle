@@ -40,17 +40,21 @@ public class ModelTypeInitializationException extends GradleException {
     private static final String MANAGED_TYPE_DESCRIPTION = "A managed type (annotated with @Managed)";
     private static final String UNMANAGED_PROPERTY_DESCRIPTION = "An unmanaged property (i.e. annotated with @Unmanaged)";
 
-    public ModelTypeInitializationException(NodeInitializerContext<?> context,
-                                            ModelSchemaStore schemaStore,
-                                            Iterable<? extends ModelType<?>> scalarTypes,
-                                            Iterable<? extends ModelType<?>> constructibleTypes) {
+    public ModelTypeInitializationException(
+        NodeInitializerContext<?> context,
+        ModelSchemaStore schemaStore,
+        Iterable<? extends ModelType<?>> scalarTypes,
+        Iterable<? extends ModelType<?>> constructibleTypes
+    ) {
         super(toMessage(context, schemaStore, scalarTypes, constructibleTypes));
     }
 
-    private static <T> String toMessage(NodeInitializerContext<T> context,
-                                    ModelSchemaStore schemaStore,
-                                    Iterable<? extends ModelType<?>> scalarTypes,
-                                    Iterable<? extends ModelType<?>> constructibleTypes) {
+    private static <T> String toMessage(
+        NodeInitializerContext<T> context,
+        ModelSchemaStore schemaStore,
+        Iterable<? extends ModelType<?>> scalarTypes,
+        Iterable<? extends ModelType<?>> constructibleTypes
+    ) {
 
         Optional<? extends NodeInitializerContext.PropertyContext> propertyContextOptional = context.getPropertyContextOptional();
         StringBuilder s = new StringBuilder();

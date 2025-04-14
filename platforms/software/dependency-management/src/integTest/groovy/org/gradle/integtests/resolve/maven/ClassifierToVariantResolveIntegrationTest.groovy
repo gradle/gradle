@@ -48,20 +48,20 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
      */
     def "reasonable behavior when a Maven library uses a classifier to select a Gradle variant"() {
         def gradleLibrary = mavenHttpRepo.module("org", "lib", "1.0")
-                .adhocVariants()
-                .variant("apiElements", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'classic'])
-                .variant("runtimeElements", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'classic'])
-                .variant("apiElementsIndy", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'indy']) {
-                    artifact("lib-1.0-indy.jar")
-                }
-                .variant("runtimeElementsIndy", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'indy']) {
-                    artifact("lib-1.0-indy.jar")
-                }
-                .withModuleMetadata()
-                .publish()
+            .adhocVariants()
+            .variant("apiElements", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'classic'])
+            .variant("runtimeElements", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'classic'])
+            .variant("apiElementsIndy", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'indy']) {
+                artifact("lib-1.0-indy.jar")
+            }
+            .variant("runtimeElementsIndy", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'indy']) {
+                artifact("lib-1.0-indy.jar")
+            }
+            .withModuleMetadata()
+            .publish()
         def mavenConsumer = mavenHttpRepo.module("org", "maven-consumer", "1.0")
-                .dependsOn("org", "lib", "1.0", "jar", "compile", "indy")
-                .publish()
+            .dependsOn("org", "lib", "1.0", "jar", "compile", "indy")
+            .publish()
 
         buildFile << """
             dependencies {
@@ -83,9 +83,9 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
                 module('org:maven-consumer:1.0') {
                     module('org:lib:1.0') {
                         variant('apiElementsIndy', [
-                                'org.gradle.usage': Usage.JAVA_API,
-                                'org.gradle.status': 'release',
-                                'groovy.runtime': 'indy'])
+                            'org.gradle.usage': Usage.JAVA_API,
+                            'org.gradle.status': 'release',
+                            'groovy.runtime': 'indy'])
                         artifact(classifier: 'indy')
                     }
                 }
@@ -103,17 +103,17 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
      */
     def "reasonable behavior when a Gradle consumer uses a classifier to select a Gradle variant"() {
         def gradleLibrary = mavenHttpRepo.module("org", "lib", "1.0")
-                .adhocVariants()
-                .variant("apiElements", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'classic'])
-                .variant("runtimeElements", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'classic'])
-                .variant("apiElementsIndy", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'indy']) {
-                    artifact("lib-1.0-indy.jar")
-                }
-                .variant("runtimeElementsIndy", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'indy']) {
-                    artifact("lib-1.0-indy.jar")
-                }
-                .withModuleMetadata()
-                .publish()
+            .adhocVariants()
+            .variant("apiElements", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'classic'])
+            .variant("runtimeElements", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'classic'])
+            .variant("apiElementsIndy", ['org.gradle.usage': Usage.JAVA_API, 'groovy.runtime': 'indy']) {
+                artifact("lib-1.0-indy.jar")
+            }
+            .variant("runtimeElementsIndy", ['org.gradle.usage': Usage.JAVA_RUNTIME, 'groovy.runtime': 'indy']) {
+                artifact("lib-1.0-indy.jar")
+            }
+            .withModuleMetadata()
+            .publish()
 
         buildFile << """
             dependencies {
@@ -132,9 +132,9 @@ class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyRe
             root(":", ":test:") {
                 module('org:lib:1.0') {
                     variant('apiElementsIndy', [
-                            'org.gradle.usage': Usage.JAVA_API,
-                            'org.gradle.status': 'release',
-                            'groovy.runtime': 'indy'])
+                        'org.gradle.usage': Usage.JAVA_API,
+                        'org.gradle.status': 'release',
+                        'groovy.runtime': 'indy'])
                     artifact(classifier: 'indy')
                 }
             }

@@ -55,7 +55,7 @@ class IdeaProjectFixture extends IdeWorkspaceFixture {
 
     ProjectModules getModules() {
         def projectModuleManager = ipr.component.find { it.@name == "ProjectModuleManager" }
-        def moduleNames = projectModuleManager.modules.module.@filepath.collect {it.text()}
+        def moduleNames = projectModuleManager.modules.module.@filepath.collect { it.text() }
         return new ProjectModules(moduleNames)
     }
 
@@ -78,7 +78,7 @@ class IdeaProjectFixture extends IdeWorkspaceFixture {
         }
 
         void assertHasModule(String name) {
-            assert modules.any { it.endsWith(name)} : "No module with $name found in ${modules}"
+            assert modules.any { it.endsWith(name) }: "No module with $name found in ${modules}"
         }
 
         void assertHasModules(String... name) {

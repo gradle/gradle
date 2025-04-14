@@ -27,7 +27,7 @@ class TestNGOptionsTest extends Specification {
             getAsFile() >> new File("projectDir")
         }
     }
-    TestNGOptions testngOptions  = TestUtil.newInstance(TestNGOptions, layout)
+    TestNGOptions testngOptions = TestUtil.newInstance(TestNGOptions, layout)
 
     String[] groups = ['fast', 'unit']
 
@@ -97,22 +97,22 @@ class TestNGOptionsTest extends Specification {
 
     private TestNGOptions testNGOptionsWithPrefix(String prefix, boolean booleanValue, int intValue) {
         return TestUtil.newInstance(TestNGOptions, layout)
-        .tap {
-            setOutputDirectory(new File(prefix + "OutputDirectory"))
-            setIncludeGroups([prefix + "IncludedGroup"] as Set)
-            setExcludeGroups([prefix + "ExcludedGroup"] as Set)
-            setConfigFailurePolicy(prefix + "ConfigFailurePolicy")
-            setListeners([prefix + "Listener"] as Set)
-            setParallel(prefix + "Parallel")
-            setThreadCount(intValue)
-            getSuiteThreadPoolSize().set(intValue)
-            setUseDefaultListeners(booleanValue)
-            setThreadPoolFactoryClass(prefix + "ThreadPoolFactoryClass")
-            setSuiteName(prefix + "SuiteName")
-            setTestName(prefix + "TestName")
-            setSuiteXmlFiles([new File(prefix + "SuiteXmlFile")])
-            setPreserveOrder(booleanValue)
-            setGroupByInstances(booleanValue)
-        }
+            .tap {
+                setOutputDirectory(new File(prefix + "OutputDirectory"))
+                setIncludeGroups([prefix + "IncludedGroup"] as Set)
+                setExcludeGroups([prefix + "ExcludedGroup"] as Set)
+                setConfigFailurePolicy(prefix + "ConfigFailurePolicy")
+                setListeners([prefix + "Listener"] as Set)
+                setParallel(prefix + "Parallel")
+                setThreadCount(intValue)
+                getSuiteThreadPoolSize().set(intValue)
+                setUseDefaultListeners(booleanValue)
+                setThreadPoolFactoryClass(prefix + "ThreadPoolFactoryClass")
+                setSuiteName(prefix + "SuiteName")
+                setTestName(prefix + "TestName")
+                setSuiteXmlFiles([new File(prefix + "SuiteXmlFile")])
+                setPreserveOrder(booleanValue)
+                setGroupByInstances(booleanValue)
+            }
     }
 }

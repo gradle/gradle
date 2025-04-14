@@ -111,11 +111,11 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
             @Override
             public CppTestExecutable call() throws Exception {
                 return getAllBuildableTestExecutable()
-                        .filter(it -> isCurrentArchitecture(it.getNativePlatform()))
-                        .findFirst()
-                        .orElseGet(
-                                () -> getAllBuildableTestExecutable().findFirst().orElseGet(
-                                        () -> getAllTestExecutable().findFirst().orElse(null)));
+                    .filter(it -> isCurrentArchitecture(it.getNativePlatform()))
+                    .findFirst()
+                    .orElseGet(
+                        () -> getAllBuildableTestExecutable().findFirst().orElseGet(
+                            () -> getAllTestExecutable().findFirst().orElse(null)));
             }
 
             private boolean isCurrentArchitecture(NativePlatform targetPlatform) {
@@ -128,8 +128,8 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
 
             private Stream<DefaultCppTestExecutable> getAllTestExecutable() {
                 return testComponent.getBinaries().get().stream()
-                        .filter(CppTestExecutable.class::isInstance)
-                        .map(DefaultCppTestExecutable.class::cast);
+                    .filter(CppTestExecutable.class::isInstance)
+                    .map(DefaultCppTestExecutable.class::cast);
             }
         }));
 
@@ -159,15 +159,15 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
             final CppComponent mainComponent = testComponent.getTestedComponent().getOrNull();
             final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
             Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), mainTargetMachines,
-                    objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                    variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
-                            // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
-                            testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                        }
-                    });
+                objectFactory, attributesFactory,
+                providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                variantIdentity -> {
+                    if (tryToBuildOnHost(variantIdentity)) {
+                        ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
+                        // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
+                        testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                    }
+                });
             // TODO: Publishing for test executable?
             testComponent.getBinaries().realizeNow();
         });
@@ -213,9 +213,9 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
     private boolean isTestedBinary(DefaultCppTestExecutable testExecutable, ProductionCppComponent mainComponent, CppBinary testedBinary) {
         // TODO: Make this more intelligent by matching the attributes of the runtime usage on the variant identities
         return testedBinary.getTargetMachine().getOperatingSystemFamily().getName().equals(testExecutable.getTargetMachine().getOperatingSystemFamily().getName())
-                && testedBinary.getTargetMachine().getArchitecture().getName().equals(testExecutable.getTargetMachine().getArchitecture().getName())
-                && !testedBinary.isOptimized()
-                && hasDevelopmentBinaryLinkage(mainComponent, testedBinary);
+            && testedBinary.getTargetMachine().getArchitecture().getName().equals(testExecutable.getTargetMachine().getArchitecture().getName())
+            && !testedBinary.isOptimized()
+            && hasDevelopmentBinaryLinkage(mainComponent, testedBinary);
     }
 
     private boolean hasDevelopmentBinaryLinkage(ProductionCppComponent mainComponent, CppBinary testedBinary) {
@@ -223,7 +223,7 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
             return true;
         }
         ConfigurableComponentWithLinkUsage developmentBinaryWithUsage = (ConfigurableComponentWithLinkUsage) mainComponent.getDevelopmentBinary().get();
-        ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage)testedBinary;
+        ConfigurableComponentWithLinkUsage testedBinaryWithUsage = (ConfigurableComponentWithLinkUsage) testedBinary;
         return testedBinaryWithUsage.getLinkage() == developmentBinaryWithUsage.getLinkage();
     }
 }

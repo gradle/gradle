@@ -38,7 +38,7 @@ public interface IdeaCompilerOutput {
      * directory to store module's production classes and resources.
      *
      * @return directory to store production output. non-<code>null</code> if
-     *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
+     * {@link #getInheritOutputDirs()} returns <code>'false'</code>
      */
     @Nullable
     File getOutputDir();
@@ -47,7 +47,7 @@ public interface IdeaCompilerOutput {
      * directory to store module's test classes and resources.
      *
      * @return directory to store test output. non-<code>null</code> if
-     *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
+     * {@link #getInheritOutputDirs()} returns <code>'false'</code>
      */
     @Nullable
     File getTestOutputDir();

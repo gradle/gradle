@@ -27,7 +27,8 @@ class IvyPublishJavaRetriesIntegTest extends AbstractIvyPublishIntegTest {
 
     TestKeyStore keyStore
 
-    @Rule public final HttpServer server = new HttpServer()
+    @Rule
+    public final HttpServer server = new HttpServer()
 
     IvyHttpRepository ivyRemoteRepo
     IvyHttpModule module

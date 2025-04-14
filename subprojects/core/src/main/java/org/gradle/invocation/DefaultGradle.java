@@ -80,9 +80,6 @@ import java.util.function.Supplier;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal, Closeable {
 
-    private SettingsState settings;
-    private ProjectInternal rootProject;
-    private ProjectInternal defaultProject;
     private final BuildState parent;
     private final StartParameter startParameter;
     private final ServiceRegistry services;
@@ -90,9 +87,12 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
-    private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
+    private SettingsState settings;
+    private ProjectInternal rootProject;
+    private ProjectInternal defaultProject;
+    private List<IncludedBuildInternal> includedBuilds;
     private GradleLifecycle lifecycle;
     private boolean projectsLoaded;
     private Path identityPath;
@@ -556,19 +556,19 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope) {
-        if (this.classLoaderScope != null) {
-            throw new IllegalStateException("Class loader scope already used");
-        }
-        this.classLoaderScope = classLoaderScope;
-    }
-
-    @Override
     public ClassLoaderScope getClassLoaderScope() {
         if (classLoaderScope == null) {
             classLoaderScope = () -> getClassLoaderScopeRegistry().getCoreAndPluginsScope();
         }
         return classLoaderScope.get();
+    }
+
+    @Override
+    public void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope) {
+        if (this.classLoaderScope != null) {
+            throw new IllegalStateException("Class loader scope already used");
+        }
+        this.classLoaderScope = classLoaderScope;
     }
 
     @Inject

@@ -118,7 +118,6 @@ public abstract class InstallExecutable extends DefaultTask {
      * The executable file to install.
      *
      * @since 4.7
-     *
      */
     @Internal("Covered by inputFileIfExists")
     public RegularFileProperty getExecutableFile() {
@@ -233,26 +232,26 @@ public abstract class InstallExecutable extends DefaultTask {
         }
 
         String runScriptText =
-              "\n@echo off"
-            + "\nSETLOCAL"
-            + "\n" + toolChainPath
-            + "\nCALL \"%~dp0lib\\" + executable.getName() + "\" %*"
-            + "\nEXIT /B %ERRORLEVEL%"
-            + "\nENDLOCAL"
-            + "\n";
+            "\n@echo off"
+                + "\nSETLOCAL"
+                + "\n" + toolChainPath
+                + "\nCALL \"%~dp0lib\\" + executable.getName() + "\" %*"
+                + "\nEXIT /B %ERRORLEVEL%"
+                + "\nENDLOCAL"
+                + "\n";
         GFileUtils.writeFile(runScriptText, runScript);
     }
 
     private void installUnix(File executable, File runScript) {
         String runScriptText =
-              "#!/bin/sh"
-            + "\nAPP_BASE_NAME=`dirname \"$0\"`"
-            + "\nDYLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
-            + "\nexport DYLD_LIBRARY_PATH"
-            + "\nLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
-            + "\nexport LD_LIBRARY_PATH"
-            + "\nexec \"$APP_BASE_NAME/lib/" + executable.getName() + "\" \"$@\""
-            + "\n";
+            "#!/bin/sh"
+                + "\nAPP_BASE_NAME=`dirname \"$0\"`"
+                + "\nDYLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
+                + "\nexport DYLD_LIBRARY_PATH"
+                + "\nLD_LIBRARY_PATH=\"$APP_BASE_NAME/lib\""
+                + "\nexport LD_LIBRARY_PATH"
+                + "\nexec \"$APP_BASE_NAME/lib/" + executable.getName() + "\" \"$@\""
+                + "\n";
 
         GFileUtils.writeFile(runScriptText, runScript);
 

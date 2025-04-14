@@ -33,7 +33,7 @@ class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
     @Timeout(90)
     def "consumes input when building model"() {
         given:
-        file('build.gradle')  << """
+        file('build.gradle') << """
 description = System.in.text
 """
         when:
@@ -50,7 +50,7 @@ description = System.in.text
     @Timeout(90)
     def "works well if the standard input configured with null"() {
         given:
-        file('build.gradle')  << """
+        file('build.gradle') << """
 description = System.in.text
 """
         when:
@@ -67,7 +67,7 @@ description = System.in.text
     @Timeout(90)
     def "does not consume input when not explicitly provided"() {
         given:
-        file('build.gradle')  << """
+        file('build.gradle') << """
 description = "empty" + System.in.text
 """
         when:

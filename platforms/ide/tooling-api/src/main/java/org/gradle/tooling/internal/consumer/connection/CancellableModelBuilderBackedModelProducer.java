@@ -31,8 +31,8 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
     protected final ProtocolToModelAdapter adapter;
     protected final VersionDetails versionDetails;
     protected final ModelMapping modelMapping;
-    private final InternalCancellableConnection builder;
     protected final CancellationExceptionTransformer exceptionTransformer;
+    private final InternalCancellableConnection builder;
 
     public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder, CancellationExceptionTransformer exceptionTransformer) {
         this.adapter = adapter;

@@ -51,7 +51,8 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @TargetGradleVersion('>=4.8 <5.1') // fixture uses ProjectLayout.files()
+    @TargetGradleVersion('>=4.8 <5.1')
+    // fixture uses ProjectLayout.files()
     def "reports generic work item progress events as descendants of tasks"() {
         when:
         def events = runBuild("runInWorker", EnumSet.allOf(OperationType))
@@ -100,7 +101,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
             assertIsWorkItem()
             descriptor.className == "org.gradle.test.TestWork"
             failures.size() == 1
-            with (failures[0]) {
+            with(failures[0]) {
                 message == "something went horribly wrong"
                 description.startsWith("java.lang.IllegalStateException: something went horribly wrong")
             }

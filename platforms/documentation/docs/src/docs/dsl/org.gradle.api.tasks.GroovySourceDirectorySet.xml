@@ -5,7 +5,8 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>groovy</literal> plugin</td>
+                    <td>Default with <literal>groovy</literal> plugin
+                    </td>
                 </tr>
             </thead>
         </table>

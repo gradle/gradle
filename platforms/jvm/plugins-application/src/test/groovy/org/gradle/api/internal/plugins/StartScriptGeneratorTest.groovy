@@ -39,7 +39,8 @@ class StartScriptGeneratorTest extends Specification {
     ScriptGenerator windowsStartScriptGenerator = Mock()
     StartScriptGenerator.UnixFileOperation unixFileOperation = Mock()
     StartScriptGenerator startScriptGenerator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator, unixFileOperation)
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         populateStartScriptGenerator()

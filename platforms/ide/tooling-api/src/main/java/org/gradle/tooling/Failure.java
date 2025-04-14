@@ -54,8 +54,8 @@ public interface Failure {
 
     /**
      * Returns the problems associated with this failure.
-     * @return The problems, or an empty list if there are no problems.
      *
+     * @return The problems, or an empty list if there are no problems.
      * @since 8.12
      */
     @Incubating

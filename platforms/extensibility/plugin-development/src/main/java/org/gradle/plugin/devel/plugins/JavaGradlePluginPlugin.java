@@ -92,8 +92,6 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @NullMarked
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
-    private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
-
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -110,41 +108,69 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
     static final String VALIDATE_PLUGINS_TASK_NAME = "validatePlugins";
-
     /**
      * Suppress adding the {@code DependencyHandler#gradleApi()} dependency.
      *
      * Experimental property used to test using an external Gradle API dependency.
      */
     static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-api");
-
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
      *
      * @since 4.0
      */
     static final String PLUGIN_DEVELOPMENT_GROUP = "Plugin development";
-
     /**
      * The description for the task generating metadata for plugin functional tests.
      *
      * @since 4.0
      */
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION = "Generates the metadata for plugin functional tests.";
-
     /**
      * The description for the task generating plugin descriptors from plugin declarations.
      *
      * @since 4.0
      */
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION = "Generates plugin descriptors from plugin declarations.";
-
     /**
      * The description for the task validating the plugin.
      *
      * @since 6.0
      */
     static final String VALIDATE_PLUGIN_TASK_DESCRIPTION = "Validates the plugin by checking parameter annotations on task and artifact transform types etc.";
+    private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
+
+    private static void applyDependencies(Project project) {
+        // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
+        InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
+        if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
+            return;
+        }
+        DependencyHandler dependencies = project.getDependencies();
+        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+    }
+
+    private static Callable<FileCollection> classpathForPlugin(Project project, GradlePluginDevelopmentExtension extension) {
+        return () -> {
+            SourceSet sourceSet = extension.getPluginSourceSet();
+            Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config ->
+                config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi))
+            );
+            return project.getObjects().fileCollection().from(
+                sourceSet.getOutput(),
+                view.getFiles().getElements()
+            );
+        };
+    }
+
+    private static boolean excludeGradleApi(ComponentIdentifier componentId) {
+        if (componentId instanceof OpaqueComponentIdentifier) {
+            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
+        }
+        return true;
+    }
 
     @Override
     public void apply(Project project) {
@@ -166,16 +192,6 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         ProjectPublicationRegistry registry = projectInternal.getServices().get(ProjectPublicationRegistry.class);
         ProjectIdentity projectIdentity = projectInternal.getProjectIdentity();
         extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration)));
-    }
-
-    private static void applyDependencies(Project project) {
-        // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
-        InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
-        if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
-            return;
-        }
-        DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
@@ -212,28 +228,6 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             pluginUnderTestMetadataTask.getPluginClasspath().from(classpathForPlugin(project, extension));
         });
-    }
-
-    private static Callable<FileCollection> classpathForPlugin(Project project, GradlePluginDevelopmentExtension extension) {
-        return () -> {
-            SourceSet sourceSet = extension.getPluginSourceSet();
-            Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
-            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config ->
-                config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi))
-            );
-            return project.getObjects().fileCollection().from(
-                sourceSet.getOutput(),
-                view.getFiles().getElements()
-            );
-        };
-    }
-
-    private static boolean excludeGradleApi(ComponentIdentifier componentId) {
-        if (componentId instanceof OpaqueComponentIdentifier) {
-            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-            return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
-        }
-        return true;
     }
 
     private void establishTestKitAndPluginClasspathDependencies(Project project, GradlePluginDevelopmentExtension extension, TaskProvider<PluginUnderTestMetadata> pluginClasspathTask) {

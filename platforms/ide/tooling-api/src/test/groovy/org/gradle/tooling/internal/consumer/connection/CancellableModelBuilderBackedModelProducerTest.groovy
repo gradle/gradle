@@ -68,7 +68,7 @@ class CancellableModelBuilderBackedModelProducerTest extends Specification {
         SomeModel model = modelProducer.produceModel(SomeModel.class, operationParameters)
 
         then:
-        1 * builder.getModel(someModelIdentifier, {!null}, operationParameters) >> buildResult
+        1 * builder.getModel(someModelIdentifier, { !null }, operationParameters) >> buildResult
         1 * buildResult.model >> original
         1 * adapter.builder(SomeModel.class) >> viewBuilder
         1 * viewBuilder.build(original) >> adapted

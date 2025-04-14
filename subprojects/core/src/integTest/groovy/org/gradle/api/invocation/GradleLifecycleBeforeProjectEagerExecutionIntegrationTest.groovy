@@ -206,7 +206,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         file("a/build.gradle") << ""
         file("b/build.gradle") << ""
 
-        buildFile"""
+        buildFile """
             $invocation { project ->
                 println "access :\${project.name}"
                 println "\${project.foo}"

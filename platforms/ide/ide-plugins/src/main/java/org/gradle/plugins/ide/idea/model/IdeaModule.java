@@ -160,6 +160,10 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 public abstract class IdeaModule {
 
+    private final IdeaModuleIml iml;
+    private final Project project;
+    protected IdeaLanguageLevel languageLevel;
+    protected JavaVersion targetBytecodeVersion;
     private String name;
     private Set<File> sourceDirs;
     private Set<File> generatedSourceDirs = new LinkedHashSet<>();
@@ -186,10 +190,6 @@ public abstract class IdeaModule {
     private File testOutputDir;
     private Map<String, File> pathVariables = new LinkedHashMap<>();
     private String jdkName;
-    protected IdeaLanguageLevel languageLevel;
-    protected JavaVersion targetBytecodeVersion;
-    private final IdeaModuleIml iml;
-    private final Project project;
     private PathFactory pathFactory;
     private boolean offline;
     private Map<String, Iterable<File>> singleEntryLibraries;

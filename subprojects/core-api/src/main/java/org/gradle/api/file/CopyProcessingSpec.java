@@ -139,5 +139,5 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param closure The action to execute.
      * @return this
      */
-    CopyProcessingSpec eachFile(@DelegatesTo(value=FileCopyDetails.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
+    CopyProcessingSpec eachFile(@DelegatesTo(value = FileCopyDetails.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
 }

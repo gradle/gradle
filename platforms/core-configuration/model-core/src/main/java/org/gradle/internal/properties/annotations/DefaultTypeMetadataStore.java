@@ -51,6 +51,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
+    private static final String ANNOTATION_INVALID_IN_CONTEXT = "ANNOTATION_INVALID_IN_CONTEXT";
+    private static final String INCOMPATIBLE_ANNOTATIONS = "INCOMPATIBLE_ANNOTATIONS";
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
     private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
     private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers;
@@ -93,14 +95,31 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             : "an input annotation";
     }
 
+    private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
+        return classes.stream()
+            .map(Class::getSimpleName)
+            .map(s -> "@" + s)
+            .sorted()
+            .collect(forDisplay());
+    }
+
+    private static Collector<? super String, ?, String> forDisplay() {
+        return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
+            if (stringList.isEmpty()) {
+                return "";
+            }
+            if (stringList.size() == 1) {
+                return stringList.get(0);
+            }
+            int bound = stringList.size() - 1;
+            return String.join(", ", stringList.subList(0, bound)) + " or " + stringList.get(bound);
+        });
+    }
+
     @Override
     public <T> TypeMetadata getTypeMetadata(Class<T> type) {
         return cache.get(type, this::createTypeMetadata);
     }
-
-
-    private static final String ANNOTATION_INVALID_IN_CONTEXT = "ANNOTATION_INVALID_IN_CONTEXT";
-    private static final String INCOMPATIBLE_ANNOTATIONS = "INCOMPATIBLE_ANNOTATIONS";
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
         Class<?> publicType = GeneratedSubclasses.unpack(type);
@@ -255,14 +274,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             effectiveFunctions.add(function);
         }
         return effectiveFunctions.build();
-    }
-
-    private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
-        return classes.stream()
-            .map(Class::getSimpleName)
-            .map(s -> "@" + s)
-            .sorted()
-            .collect(forDisplay());
     }
 
     private static class DefaultTypeMetadata implements TypeMetadata {
@@ -453,18 +464,5 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         public String toString() {
             return annotationMetadata.toString();
         }
-    }
-
-    private static Collector<? super String, ?, String> forDisplay() {
-        return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
-            if (stringList.isEmpty()) {
-                return "";
-            }
-            if (stringList.size() == 1) {
-                return stringList.get(0);
-            }
-            int bound = stringList.size() - 1;
-            return String.join(", ", stringList.subList(0, bound)) + " or " + stringList.get(bound);
-        });
     }
 }

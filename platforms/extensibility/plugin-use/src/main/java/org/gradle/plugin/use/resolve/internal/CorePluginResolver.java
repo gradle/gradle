@@ -36,22 +36,6 @@ public class CorePluginResolver implements PluginResolver {
         this.pluginRegistry = pluginRegistry;
     }
 
-    @Override
-    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
-        PluginId id = pluginRequest.getId();
-        if (!isCorePluginRequest(id)) {
-            return PluginResolutionResult.notFound(getDescription(), format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
-        }
-
-        PluginImplementation<?> plugin = pluginRegistry.lookup(id);
-        if (plugin == null) {
-            return PluginResolutionResult.notFound(getDescription(), "not a core plugin. " + documentationRegistry.getDocumentationRecommendationFor("available plugins", "plugin_reference"));
-        }
-
-        validate(pluginRequest);
-        return PluginResolutionResult.found(new SimplePluginResolution(plugin));
-    }
-
     private static void validate(PluginRequestInternal pluginRequest) {
         if (pluginRequest.getVersion() != null) {
             throw new InvalidPluginRequestException(pluginRequest,
@@ -77,12 +61,28 @@ public class CorePluginResolver implements PluginResolver {
         return "Plugin '" + pluginRequest.getId() + "' is a core Gradle plugin, ";
     }
 
-    private static  boolean isCorePluginRequest(PluginId id) {
+    private static boolean isCorePluginRequest(PluginId id) {
         String namespace = id.getNamespace();
         return namespace == null || namespace.equals(CORE_PLUGIN_NAMESPACE);
     }
 
     public static String getDescription() {
         return "Gradle Core Plugins";
+    }
+
+    @Override
+    public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
+        PluginId id = pluginRequest.getId();
+        if (!isCorePluginRequest(id)) {
+            return PluginResolutionResult.notFound(getDescription(), format("plugin is not in '%s' namespace", CORE_PLUGIN_NAMESPACE));
+        }
+
+        PluginImplementation<?> plugin = pluginRegistry.lookup(id);
+        if (plugin == null) {
+            return PluginResolutionResult.notFound(getDescription(), "not a core plugin. " + documentationRegistry.getDocumentationRecommendationFor("available plugins", "plugin_reference"));
+        }
+
+        validate(pluginRequest);
+        return PluginResolutionResult.found(new SimplePluginResolution(plugin));
     }
 }

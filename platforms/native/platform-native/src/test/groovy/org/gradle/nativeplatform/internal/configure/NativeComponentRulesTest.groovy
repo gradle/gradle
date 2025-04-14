@@ -49,6 +49,7 @@ class NativeComponentRulesTest extends Specification {
     def createdBinaries = [] as SortedSet
 
     static interface MockNativeLibrarySpec extends TargetedNativeComponentInternal, NativeLibrarySpec {}
+
     static interface MockBinaries extends ModelMap<BinarySpec>, ManagedInstance {}
 
     def setup() {

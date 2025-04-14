@@ -29,10 +29,10 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
 
     public JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort) {
         this(propertyPrefix, defaultPort,
-                getAndTrimSystemProperty(propertyPrefix + ".proxyHost"),
-                getAndTrimSystemProperty(propertyPrefix + ".proxyPort"),
-                getAndTrimSystemProperty(propertyPrefix + ".proxyUser"),
-                getAndTrimSystemProperty(propertyPrefix + ".proxyPassword"));
+            getAndTrimSystemProperty(propertyPrefix + ".proxyHost"),
+            getAndTrimSystemProperty(propertyPrefix + ".proxyPort"),
+            getAndTrimSystemProperty(propertyPrefix + ".proxyUser"),
+            getAndTrimSystemProperty(propertyPrefix + ".proxyPassword"));
     }
 
     JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort, String proxyHost, String proxyPortString, String proxyUser, String proxyPassword) {
@@ -43,6 +43,11 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
         } else {
             this.proxy = new HttpProxy(proxyHost, initProxyPort(proxyPortString), proxyUser, proxyPassword);
         }
+    }
+
+    private static String getAndTrimSystemProperty(String key) {
+        String value = System.getProperty(key);
+        return value != null ? value.trim() : null;
     }
 
     private int initProxyPort(String proxyPortString) {
@@ -70,10 +75,5 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
 
     public int getDefaultPort() {
         return defaultPort;
-    }
-
-    private static String getAndTrimSystemProperty(String key) {
-        String value = System.getProperty(key);
-        return value != null ? value.trim() : null;
     }
 }

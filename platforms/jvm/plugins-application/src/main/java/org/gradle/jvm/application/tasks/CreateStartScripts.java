@@ -123,16 +123,16 @@ import java.util.stream.Collectors;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class CreateStartScripts extends ConventionTask {
 
-    private File outputDir;
-    private String executableDir = "bin";
     private final Property<String> mainModule;
     private final Property<String> mainClass;
+    private final ModularitySpec modularity;
+    private File outputDir;
+    private String executableDir = "bin";
     private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
     private FileCollection classpath;
-    private final ModularitySpec modularity;
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
@@ -171,6 +171,10 @@ public abstract class CreateStartScripts extends ConventionTask {
         return GUtil.toConstant(getApplicationName()) + "_OPTS";
     }
 
+    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
+        this.optsEnvironmentVar = optsEnvironmentVar;
+    }
+
     /**
      * The environment variable to use to control exit value (Windows only).
      */
@@ -188,6 +192,10 @@ public abstract class CreateStartScripts extends ConventionTask {
         }
 
         return GUtil.toConstant(getApplicationName()) + "_EXIT_CONSOLE";
+    }
+
+    public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
+        this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
     /**
@@ -224,6 +232,7 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     /**
      * The directory to write the scripts into in the distribution.
+     *
      * @since 4.5
      */
     @Input
@@ -234,6 +243,7 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     /**
      * The directory to write the scripts into in the distribution.
+     *
      * @since 4.5
      */
     public void setExecutableDir(String executableDir) {
@@ -291,14 +301,6 @@ public abstract class CreateStartScripts extends ConventionTask {
         this.applicationName = applicationName;
     }
 
-    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
-        this.optsEnvironmentVar = optsEnvironmentVar;
-    }
-
-    public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
-        this.exitEnvironmentVar = exitEnvironmentVar;
-    }
-
     /**
      * The class path for the application.
      */
@@ -310,6 +312,10 @@ public abstract class CreateStartScripts extends ConventionTask {
         return classpath;
     }
 
+    public void setClasspath(@Nullable FileCollection classpath) {
+        this.classpath = classpath;
+    }
+
     /**
      * Returns the module path handling for executing the main class.
      *
@@ -318,10 +324,6 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Nested
     public ModularitySpec getModularity() {
         return modularity;
-    }
-
-    public void setClasspath(@Nullable FileCollection classpath) {
-        this.classpath = classpath;
     }
 
     /**

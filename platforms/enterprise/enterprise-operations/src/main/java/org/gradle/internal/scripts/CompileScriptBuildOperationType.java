@@ -29,7 +29,7 @@ public class CompileScriptBuildOperationType implements BuildOperationType<Compi
         /**
          * The build script backing language.
          * The language should be upper case. E.g GROOVY
-         * */
+         */
         String getLanguage();
 
         /**
@@ -37,7 +37,7 @@ public class CompileScriptBuildOperationType implements BuildOperationType<Compi
          * Build scripts can be processed in multiple stages, depending on the language.
          * Groovy backed build scripts are processed in two stages.
          * Kotlin backed build scripts are processed in three stages
-         * */
+         */
         String getStage();
     }
 

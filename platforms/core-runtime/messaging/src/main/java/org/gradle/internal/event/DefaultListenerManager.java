@@ -66,6 +66,28 @@ public class DefaultListenerManager implements ScopedListenerManager {
         this.parent = parent;
     }
 
+    private static boolean registrationProvides(Class<?> type, Registration registration) {
+        for (Class<?> declaredType : registration.getDeclaredTypes()) {
+            if (type.isAssignableFrom(declaredType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String displayScopes(Class<? extends Scope>[] scopes) {
+        if (scopes.length == 1) {
+            return "service scope '" + scopes[0].getSimpleName() + "'";
+        }
+
+        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
+            @Override
+            public String transform(Class<? extends Scope> aClass) {
+                return "'" + aClass.getSimpleName() + "'";
+            }
+        });
+    }
+
     @Override
     public List<Class<? extends Annotation>> getAnnotations() {
         return ANNOTATIONS;
@@ -111,15 +133,6 @@ public class DefaultListenerManager implements ScopedListenerManager {
                 }
             }
         }
-    }
-
-    private static boolean registrationProvides(Class<?> type, Registration registration) {
-        for (Class<?> declaredType : registration.getDeclaredTypes()) {
-            if (type.isAssignableFrom(declaredType)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -219,44 +232,25 @@ public class DefaultListenerManager implements ScopedListenerManager {
         return new DefaultListenerManager(scope, this);
     }
 
-    private static String displayScopes(Class<? extends Scope>[] scopes) {
-        if (scopes.length == 1) {
-            return "service scope '" + scopes[0].getSimpleName() + "'";
-        }
-
-        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
-            @Override
-            public String transform(Class<? extends Scope> aClass) {
-                return "'" + aClass.getSimpleName() + "'";
-            }
-        });
-    }
-
     /**
      * A broadcaster. Manages all state and registered listener implementations for a given
      * listener interface.
      */
-    private abstract class EventBroadcast<T>  {
+    private abstract class EventBroadcast<T> {
         protected final Class<T> type;
+        protected final Object initializationLock = new Object();
         private final ListenerDispatch dispatch;
         private final ListenerDispatch dispatchNoLogger;
-
         private final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
-
+        protected volatile boolean initialized;
         @Nullable
         private volatile ProxyDispatchAdapter<T> source;
-
         @Nullable
         private ListenerDetails logger;
-
         @Nullable
         private Dispatch<MethodInvocation> parentDispatch;
-
         private ImmutableList<Dispatch<MethodInvocation>> allWithLogger = ImmutableList.of();
         private ImmutableList<Dispatch<MethodInvocation>> allWithNoLogger = ImmutableList.of();
-
-        protected volatile boolean initialized;
-        protected final Object initializationLock = new Object();
 
         EventBroadcast(Class<T> type) {
             this.type = type;
@@ -533,7 +527,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
         }
 
         @Override
-        protected void endDispatch() { }
+        protected void endDispatch() {}
 
         @Override
         protected void assertMutable(String operation) {

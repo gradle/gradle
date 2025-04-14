@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
 import org.gradle.api.Action;
 import org.gradle.model.ModelViewClosedException;
 import org.gradle.model.ReadOnlyModelViewException;
@@ -30,9 +31,9 @@ public class DefaultModelViewState implements ModelViewState {
     private final ModelPath path;
     private final ModelType<?> type;
     private final ModelRuleDescriptor ruleDescriptor;
-    private boolean closed;
     private final boolean mutable;
     private final boolean canReadChildren;
+    private boolean closed;
 
     public DefaultModelViewState(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor, boolean mutable, boolean canReadChildren) {
         this.path = path;

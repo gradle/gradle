@@ -107,27 +107,9 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     }
 
     private static class WatchProbe {
-        public enum State {
-            /**
-             * Probe hasn't been armed yet.
-             */
-            UNARMED,
-
-            /**
-             * Probe file exists, waiting for event to arrive.
-             */
-            ARMED,
-
-            /**
-             * The expected event has arrived.
-             */
-            TRIGGERED
-        }
-
         private final File watchableHierarchy;
         private final File probeFile;
         private State state = State.UNARMED;
-
         public WatchProbe(File watchableHierarchy, File probeFile) {
             this.watchableHierarchy = watchableHierarchy;
             this.probeFile = probeFile;
@@ -187,6 +169,23 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
 
         public File getWatchableHierarchy() {
             return watchableHierarchy;
+        }
+
+        public enum State {
+            /**
+             * Probe hasn't been armed yet.
+             */
+            UNARMED,
+
+            /**
+             * Probe file exists, waiting for event to arrive.
+             */
+            ARMED,
+
+            /**
+             * The expected event has arrived.
+             */
+            TRIGGERED
         }
     }
 }

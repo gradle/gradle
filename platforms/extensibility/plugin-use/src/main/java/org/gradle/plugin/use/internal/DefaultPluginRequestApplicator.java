@@ -80,6 +80,34 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginApplicationListenerBroadcaster = listenerManager.getBroadcaster(PluginApplicationListener.class);
     }
 
+    private static InvalidPluginException couldNotApply(PluginRequestInternal request, PluginId id, UnknownPluginException cause) {
+        return new InvalidPluginException(
+            String.format(
+                "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
+                    + " This is caused by an incorrect plugin implementation."
+                    + " Please contact the plugin author(s).",
+                request.getDisplayName(), id),
+            cause);
+    }
+
+    private static InvalidPluginException exceptionOccurred(PluginRequestInternal request, Exception e) {
+        return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request.getDisplayName()), e);
+    }
+
+    private static PluginResolution resolvePluginRequest(PluginResolver resolver, PluginRequestInternal request) {
+        PluginResolutionResult result;
+        try {
+            result = resolver.resolve(request);
+            LOGGER.info("Resolved plugin {}", request.getDisplayName());
+        } catch (Exception e) {
+            throw new LocationAwareException(
+                new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
+                request.getScriptDisplayName(), request.getLineNumber());
+        }
+
+        return result.getFound(request);
+    }
+
     @Override
     public void applyPlugins(PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
         if (target == null || requests.isEmpty()) {
@@ -141,76 +169,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector, pluginVersionTracker);
     }
 
-    /**
-     * The action that applies a plugin.
-     */
-    private class ApplyAction {
-        private final PluginRequestInternal request;
-        private final PluginResolution resolved;
-
-        public ApplyAction(PluginRequestInternal request, PluginResolution resolved) {
-            this.request = request;
-            this.resolved = resolved;
-        }
-
-        public void apply(PluginManagerInternal target) {
-            try {
-                try {
-                    pluginApplicationListenerBroadcaster.pluginApplied(request);
-                    resolved.applyTo(target);
-                } catch (UnknownPluginException e) {
-                    throw couldNotApply(request, request.getId(), e);
-                } catch (Exception e) {
-                    throw exceptionOccurred(request, e);
-                }
-            } catch (Exception e) {
-                throw new LocationAwareException(e, request.getScriptDisplayName(), request.getLineNumber());
-            }
-        }
-    }
-
-    private static InvalidPluginException couldNotApply(PluginRequestInternal request, PluginId id, UnknownPluginException cause) {
-        return new InvalidPluginException(
-            String.format(
-                "Could not apply requested plugin %s as it does not provide a plugin with id '%s'."
-                    + " This is caused by an incorrect plugin implementation."
-                    + " Please contact the plugin author(s).",
-                request.getDisplayName(), id),
-            cause);
-    }
-
-    private static InvalidPluginException exceptionOccurred(PluginRequestInternal request, Exception e) {
-        return new InvalidPluginException(String.format("An exception occurred applying plugin request %s", request.getDisplayName()), e);
-    }
-
-    private static PluginResolution resolvePluginRequest(PluginResolver resolver, PluginRequestInternal request) {
-        PluginResolutionResult result;
-        try {
-            result = resolver.resolve(request);
-            LOGGER.info("Resolved plugin {}", request.getDisplayName());
-        } catch (Exception e) {
-            throw new LocationAwareException(
-                new GradleException(String.format("Error resolving plugin %s", request.getDisplayName()), e),
-                request.getScriptDisplayName(), request.getLineNumber());
-        }
-
-        return result.getFound(request);
-    }
-
     private static class CollectingPluginRequestResolutionVisitor implements PluginResolutionVisitor {
         private List<Dependency> additionalDependencies;
         private List<ModuleReplacement> replacements;
         private List<ClassLoader> additionalClassloaders;
-
-        static class ModuleReplacement {
-            private final ModuleIdentifier original;
-            private final ModuleIdentifier replacement;
-
-            public ModuleReplacement(ModuleIdentifier original, ModuleIdentifier replacement) {
-                this.original = original;
-                this.replacement = replacement;
-            }
-        }
 
         @Override
         public void visitDependency(Dependency dependency) {
@@ -255,6 +217,44 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                 return Collections.emptyList();
             }
             return additionalClassloaders;
+        }
+
+        static class ModuleReplacement {
+            private final ModuleIdentifier original;
+            private final ModuleIdentifier replacement;
+
+            public ModuleReplacement(ModuleIdentifier original, ModuleIdentifier replacement) {
+                this.original = original;
+                this.replacement = replacement;
+            }
+        }
+    }
+
+    /**
+     * The action that applies a plugin.
+     */
+    private class ApplyAction {
+        private final PluginRequestInternal request;
+        private final PluginResolution resolved;
+
+        public ApplyAction(PluginRequestInternal request, PluginResolution resolved) {
+            this.request = request;
+            this.resolved = resolved;
+        }
+
+        public void apply(PluginManagerInternal target) {
+            try {
+                try {
+                    pluginApplicationListenerBroadcaster.pluginApplied(request);
+                    resolved.applyTo(target);
+                } catch (UnknownPluginException e) {
+                    throw couldNotApply(request, request.getId(), e);
+                } catch (Exception e) {
+                    throw exceptionOccurred(request, e);
+                }
+            } catch (Exception e) {
+                throw new LocationAwareException(e, request.getScriptDisplayName(), request.getLineNumber());
+            }
         }
     }
 

@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
+
 // TODO: Test incremental
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -269,9 +270,9 @@ model {
     def "generator task produces assembler sources"() {
         given:
         def app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
-        def asmSources = app.sourceFiles.findAll({it.path == 'asm'})
-        def mainSources = app.headerFiles + app.sourceFiles.findAll({it.path != 'asm'})
-        mainSources.removeAll {it.path == 'asm'}
+        def asmSources = app.sourceFiles.findAll({ it.path == 'asm' })
+        def mainSources = app.headerFiles + app.sourceFiles.findAll({ it.path != 'asm' })
+        mainSources.removeAll { it.path == 'asm' }
         mainSources*.writeToDir(file("src/main"))
         asmSources*.writeToDir(file("src/input"))
         degenerateInputSources()
@@ -306,7 +307,7 @@ model {
     def "generator task produces windows resources"() {
         given:
         def app = new WindowsResourceHelloWorldApp()
-        def rcSources = app.sourceFiles.findAll {it.path == 'rc'}
+        def rcSources = app.sourceFiles.findAll { it.path == 'rc' }
         def mainSources = app.headerFiles + app.sourceFiles - rcSources
         mainSources*.writeToDir(file("src/main"))
         rcSources*.writeToDir(file("src/input"))
@@ -468,14 +469,14 @@ model {
         and:
         final projectFile = new ProjectFile(file("mainExe.vcxproj"))
         projectFile.sourceFiles as Set == [
-                "build.gradle",
-                "build/src/generated/c/hello.c",
-                "build/src/generated/c/main.c",
-                "build/src/generated/c/sum.c"
+            "build.gradle",
+            "build/src/generated/c/hello.c",
+            "build/src/generated/c/main.c",
+            "build/src/generated/c/sum.c"
         ] as Set
-        projectFile.headerFiles.sort() == [ "build/src/generated/headers/common.h", "build/src/generated/headers/hello.h" ]
+        projectFile.headerFiles.sort() == ["build/src/generated/headers/common.h", "build/src/generated/headers/hello.h"]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
-        with (projectFile.projectConfigurations['debug']) {
+        with(projectFile.projectConfigurations['debug']) {
             // TODO - should not include the default location
             includePath == "src/main/headers;build/src/generated/headers"
         }

@@ -252,8 +252,8 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
         then:
         executedAndNotSkipped ":sampleLibBinaryOneTaskOne", ":sampleLibBinaryOneTaskTwo", ":sampleLibBinaryOne",
-                ":sampleLibBinaryTwoTaskOne", ":sampleLibBinaryTwoTaskTwo", ":sampleLibBinaryTwo",
-                ":assemble"
+            ":sampleLibBinaryTwoTaskOne", ":sampleLibBinaryTwoTaskTwo", ":sampleLibBinaryTwo",
+            ":assemble"
 
         output.contains "running sampleLibBinaryOneTaskOne"
         output.contains "running sampleLibBinaryOneTaskTwo"

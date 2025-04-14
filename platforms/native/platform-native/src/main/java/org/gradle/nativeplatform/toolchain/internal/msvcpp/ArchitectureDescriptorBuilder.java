@@ -133,7 +133,7 @@ public enum ArchitectureDescriptorBuilder {
     // Host: x86
     // Target: ia64
     // (ia64 is no longer supported on later versions of Visual Studio)
-    LEGACY_IA64_ON_X86("ia64", "bin/x86_ia64", "lib/ia64", "ias.exe")  {
+    LEGACY_IA64_ON_X86("ia64", "bin/x86_ia64", "lib/ia64", "ias.exe") {
         @Override
         File getCrossCompilePath(File basePath) {
             return LEGACY_X86_ON_X86.getBinPath(basePath);
@@ -187,7 +187,7 @@ public enum ArchitectureDescriptorBuilder {
         paths.add(commonTools);
         paths.add(commonIde);
         File crossCompilePath = getCrossCompilePath(basePath);
-        if (crossCompilePath!=null) {
+        if (crossCompilePath != null) {
             paths.add(crossCompilePath);
         }
         File includePath = new File(basePath, PATH_INCLUDE);

@@ -20,7 +20,6 @@ package org.gradle.tooling.model.eclipse;
  * Access rule associated with an Eclipse classpath entry.
  *
  * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.jdt.doc.isv/reference/api/org/eclipse/jdt/core/IAccessRule.html">IAccessRule Javadoc</a>
- *
  * @since 3.0
  */
 public interface AccessRule {

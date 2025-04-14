@@ -37,7 +37,7 @@ class DefaultIvyContextManagerTest extends ConcurrentSpec {
         manager.withIvy(action)
 
         then:
-        1 * action.execute({it != null})
+        1 * action.execute({ it != null })
         0 * action._
     }
 
@@ -51,7 +51,7 @@ class DefaultIvyContextManagerTest extends ConcurrentSpec {
         result == "result"
 
         and:
-        1 * action.transform({it != null}) >> "result"
+        1 * action.transform({ it != null }) >> "result"
         0 * action._
     }
 

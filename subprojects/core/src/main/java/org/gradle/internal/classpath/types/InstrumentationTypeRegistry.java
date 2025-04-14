@@ -26,6 +26,10 @@ public interface InstrumentationTypeRegistry {
 
     InstrumentationTypeRegistry EMPTY = new EmptyInstrumentationTypeRegistry();
 
+    static InstrumentationTypeRegistry empty() {
+        return EMPTY;
+    }
+
     /**
      * Returns instrumented Gradle super types for a given type.
      *
@@ -37,10 +41,6 @@ public interface InstrumentationTypeRegistry {
     Set<String> getSuperTypes(String type);
 
     boolean isEmpty();
-
-    static InstrumentationTypeRegistry empty() {
-        return EMPTY;
-    }
 
     class EmptyInstrumentationTypeRegistry implements InstrumentationTypeRegistry {
         @Override

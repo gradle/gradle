@@ -243,14 +243,14 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
-private fun typedSoftwareType(softwareTypeEntry: SoftwareTypeEntry<TypeAccessibility>) : TypedSoftwareTypeEntry? {
+private fun typedSoftwareType(softwareTypeEntry: SoftwareTypeEntry<TypeAccessibility>): TypedSoftwareTypeEntry? {
     val name = AccessorNameSpec.createOrNull(softwareTypeEntry.softwareTypeName)
     return name?.let {
         TypedSoftwareTypeEntry(name, softwareTypeEntry.modelType)
     }
 }
 
-private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) : TypedContainerElementFactoryEntry? {
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>): TypedContainerElementFactoryEntry? {
     val name = AccessorNameSpec.createOrNull(containerElementFactoryEntry.factoryName)
     return name?.let {
         TypedContainerElementFactoryEntry(name, containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)

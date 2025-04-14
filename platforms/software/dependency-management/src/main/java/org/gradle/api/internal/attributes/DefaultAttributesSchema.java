@@ -101,14 +101,14 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes) {
-        precedence.clear();
-        attributeDisambiguationPrecedence(attributes.toArray(new Attribute<?>[0]));
+    public List<Attribute<?>> getAttributeDisambiguationPrecedence() {
+        return Collections.unmodifiableList(new ArrayList<>(precedence));
     }
 
     @Override
-    public List<Attribute<?>> getAttributeDisambiguationPrecedence() {
-        return Collections.unmodifiableList(new ArrayList<>(precedence));
+    public void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes) {
+        precedence.clear();
+        attributeDisambiguationPrecedence(attributes.toArray(new Attribute<?>[0]));
     }
 
     // endregion

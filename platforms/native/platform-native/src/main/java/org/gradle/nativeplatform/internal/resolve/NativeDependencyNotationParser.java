@@ -30,10 +30,10 @@ import org.jspecify.annotations.Nullable;
 class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {
         return NotationParserBuilder
-                .toType(NativeLibraryRequirement.class)
-                .converter(new LibraryConverter())
-                .converter(new NativeLibraryRequirementMapNotationConverter())
-                .toComposite();
+            .toType(NativeLibraryRequirement.class)
+            .converter(new LibraryConverter())
+            .converter(new NativeLibraryRequirementMapNotationConverter())
+            .toComposite();
     }
 
     private static class LibraryConverter extends TypedNotationConverter<NativeLibrarySpec, NativeLibraryRequirement> {

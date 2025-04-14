@@ -25,6 +25,7 @@ public final class OperationProgressEvent {
 
     /**
      * Create a new progress event to carry a progress event's details.
+     *
      * @param currentTime This should always be the current time when this operation is created, not the time of the event itself.
      * @param details the details to carry
      */

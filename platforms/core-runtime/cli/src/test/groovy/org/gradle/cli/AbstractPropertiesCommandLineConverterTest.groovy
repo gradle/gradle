@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class AbstractPropertiesCommandLineConverterTest extends Specification {
 
-    final AbstractPropertiesCommandLineConverter converter = new AbstractPropertiesCommandLineConverter(){
+    final AbstractPropertiesCommandLineConverter converter = new AbstractPropertiesCommandLineConverter() {
         @Override
         protected String getPropertyOption() {
             return "A"
@@ -45,15 +45,15 @@ class AbstractPropertiesCommandLineConverterTest extends Specification {
         def parser = Mock(CommandLineParser);
         def option = Mock(CommandLineOption);
         setup:
-            parser.option(_,_) >> option
-            option.hasArguments() >> option
-            option.hasDescription(_) >> option
+        parser.option(_, _) >> option
+        option.hasArguments() >> option
+        option.hasDescription(_) >> option
         when:
-            converter.configure(parser)
+        converter.configure(parser)
         then:
-            1 * option.hasArguments() >> option
-            1 * option.hasDescription(converter.propertyOptionDescription) >> option
-            1 * parser.option(converter.propertyOption, converter.propertyOptionDetailed) >> option
+        1 * option.hasArguments() >> option
+        1 * option.hasDescription(converter.propertyOptionDescription) >> option
+        1 * parser.option(converter.propertyOption, converter.propertyOptionDetailed) >> option
     }
 
     def "parses properties args"() {

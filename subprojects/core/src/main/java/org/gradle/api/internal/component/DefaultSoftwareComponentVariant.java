@@ -54,7 +54,7 @@ public class DefaultSoftwareComponentVariant extends AbstractSoftwareComponentVa
         Set<? extends Capability> capabilities,
         Set<ExcludeRule> globalExcludes
     ) {
-        super(((AttributeContainerInternal)attributes).asImmutable(), artifacts);
+        super(((AttributeContainerInternal) attributes).asImmutable(), artifacts);
 
         assert dependencies != null;
         assert dependencyConstraints != null;

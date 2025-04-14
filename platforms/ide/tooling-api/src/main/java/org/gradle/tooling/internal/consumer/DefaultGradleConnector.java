@@ -29,17 +29,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnector extends GradleConnector implements ProjectConnectionCloseListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
-
     public static final GradleVersion MINIMUM_SUPPORTED_GRADLE_VERSION = GradleVersion.version("4.0");
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
     private final ConnectionFactory connectionFactory;
     private final DistributionFactory distributionFactory;
-    private Distribution distribution;
-
     private final List<DefaultProjectConnection> connections = new ArrayList<DefaultProjectConnection>(4);
-    private boolean stopped = false;
-
     private final DefaultConnectionParameters.Builder connectionParamsBuilder = DefaultConnectionParameters.builder();
+    private Distribution distribution;
+    private boolean stopped = false;
 
     public DefaultGradleConnector(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
         this.connectionFactory = connectionFactory;

@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 public final class LineSearchFailures {
 
+    private LineSearchFailures() { /* empty */ }
+
     public static void insufficientSize(List<String> expected, List<String> actual) {
         throw new InsufficientSizeLineListComparisonFailure(expected, actual);
     }
@@ -36,8 +38,6 @@ public final class LineSearchFailures {
     public static void noMatchingLines(List<String> expected, List<String> actual) {
         throw new NoMatchingLinesExistComparisonFailure(expected, actual);
     }
-
-    private LineSearchFailures() { /* empty */ }
 
     /* package */ static abstract class AbstractLineListComparisonFailure extends SpockException {
         protected final List<String> expectedLines;
@@ -119,7 +119,7 @@ public final class LineSearchFailures {
 
     public static final class NoMatchingLinesExistComparisonFailure extends AbstractLineListComparisonFailure {
         @VisibleForTesting
-        /* package */  static final String HEADER = "Not a single matching line was found.";
+        /* package */ static final String HEADER = "Not a single matching line was found.";
 
         public NoMatchingLinesExistComparisonFailure(List<String> expectedLines, List<String> actualLines) {
             super(expectedLines, actualLines);

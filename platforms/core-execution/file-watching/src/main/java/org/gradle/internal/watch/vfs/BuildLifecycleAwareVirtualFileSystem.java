@@ -38,6 +38,7 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
      * started.
      */
     boolean afterBuildStarted(WatchMode watchingEnabled, VfsLogging vfsLogging, BuildOperationRunner buildOperationRunner);
+
     /**
      * Register a watchable hierarchy.
      *

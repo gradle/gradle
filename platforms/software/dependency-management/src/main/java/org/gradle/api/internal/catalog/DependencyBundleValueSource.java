@@ -24,12 +24,6 @@ import java.util.stream.Collectors;
 
 public abstract class DependencyBundleValueSource implements ValueSource<List<DependencyModel>, DependencyBundleValueSource.Params> {
 
-    interface Params extends ValueSourceParameters {
-        Property<String> getBundleName();
-
-        Property<DefaultVersionCatalog> getConfig();
-    }
-
     @Override
     public List<DependencyModel> obtain() {
         String bundle = getParameters().getBundleName().get();
@@ -39,6 +33,12 @@ public abstract class DependencyBundleValueSource implements ValueSource<List<De
             .map(config::getDependencyData)
             .collect(Collectors.toList());
 
+    }
+
+    interface Params extends ValueSourceParameters {
+        Property<String> getBundleName();
+
+        Property<DefaultVersionCatalog> getConfig();
     }
 
 }

@@ -33,11 +33,11 @@ import java.io.OutputStream;
 public abstract class AbstractFileTreeElement implements FileTreeElement {
     private final Chmod chmod;
 
-    public abstract String getDisplayName();
-
     protected AbstractFileTreeElement(Chmod chmod) {
         this.chmod = chmod;
     }
+
+    public abstract String getDisplayName();
 
     protected Chmod getChmod() {
         return chmod;
@@ -91,7 +91,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     private void validateTimeStamps() {
         final long lastModified = getLastModified();
-        if(lastModified < 0) {
+        if (lastModified < 0) {
             throw new GradleException(String.format("Invalid Timestamp %s for '%s'.", lastModified, getDisplayName()));
         }
     }

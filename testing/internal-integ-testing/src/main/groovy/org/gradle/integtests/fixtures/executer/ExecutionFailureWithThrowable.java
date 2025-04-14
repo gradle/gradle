@@ -70,21 +70,6 @@ public class ExecutionFailureWithThrowable implements DelegatingExecutionFailure
         }
     }
 
-    private void extractDetails(Throwable failure) {
-        List<String> causes = new ArrayList<>();
-        extractCauses(failure, causes);
-
-        String failureMessage = failure.getMessage() == null ? "" : normalizeLambdaIds(failure.getMessage());
-        java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
-        if (matcher.find()) {
-            fileNames.add(matcher.group(1));
-            lineNumbers.add(matcher.group(3));
-            failures.add(new FailureDetails(failure, failureMessage.substring(matcher.end()).trim(), causes));
-        } else {
-            failures.add(new FailureDetails(failure, failureMessage.trim(), causes));
-        }
-    }
-
     private static void extractCauses(Throwable failure, List<String> causes) {
         if (failure instanceof MultipleBuildFailures) {
             MultipleBuildFailures exception = (MultipleBuildFailures) failure;
@@ -97,6 +82,21 @@ public class ExecutionFailureWithThrowable implements DelegatingExecutionFailure
             }
         } else {
             causes.add(failure.getMessage());
+        }
+    }
+
+    private void extractDetails(Throwable failure) {
+        List<String> causes = new ArrayList<>();
+        extractCauses(failure, causes);
+
+        String failureMessage = failure.getMessage() == null ? "" : normalizeLambdaIds(failure.getMessage());
+        java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
+        if (matcher.find()) {
+            fileNames.add(matcher.group(1));
+            lineNumbers.add(matcher.group(3));
+            failures.add(new FailureDetails(failure, failureMessage.substring(matcher.end()).trim(), causes));
+        } else {
+            failures.add(new FailureDetails(failure, failureMessage.trim(), causes));
         }
     }
 

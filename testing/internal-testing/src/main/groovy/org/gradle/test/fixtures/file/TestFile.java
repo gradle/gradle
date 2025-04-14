@@ -71,8 +71,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 public class TestFile extends File {
-    private boolean useNativeTools;
     private final File relativeBase;
+    private boolean useNativeTools;
 
     public TestFile(File file, Object... path) {
         super(join(file, path).getAbsolutePath());
@@ -89,6 +89,42 @@ public class TestFile extends File {
 
     public TestFile(URL url) {
         this(toUri(url));
+    }
+
+    private static URI toUri(URL url) {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static File join(File file, Object[] path) {
+        File current = file.getAbsoluteFile();
+        for (Object p : path) {
+            current = new File(current, p.toString());
+        }
+        try {
+            return current.getCanonicalFile();
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Could not canonicalise '%s'.", current), e);
+        }
+    }
+
+    /**
+     * Changes the last modified time for the given file so that it is different to and smaller than its current last modified time, within file system resolution.
+     */
+    public static void makeOlder(File file) {
+        // Just move back 2 seconds
+        assert file.setLastModified(file.lastModified() - 2000L);
+    }
+
+    public static HashCode md5(File file) {
+        try {
+            return Hashing.hashFile(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public TestFile usingNativeTools() {
@@ -113,26 +149,6 @@ public class TestFile extends File {
     @Override
     public String getCanonicalPath() throws IOException {
         return new File(getAbsolutePath()).getCanonicalPath();
-    }
-
-    private static URI toUri(URL url) {
-        try {
-            return url.toURI();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static File join(File file, Object[] path) {
-        File current = file.getAbsoluteFile();
-        for (Object p : path) {
-            current = new File(current, p.toString());
-        }
-        try {
-            return current.getCanonicalFile();
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Could not canonicalise '%s'.", current), e);
-        }
     }
 
     public TestFile file(Object... path) {
@@ -178,16 +194,6 @@ public class TestFile extends File {
         }
     }
 
-    public TestFile setText(String content) {
-        getParentFile().mkdirs();
-        try {
-            ResourceGroovyMethods.setText(this, content);
-            return this;
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Could not append to test file '%s'", this), e);
-        }
-    }
-
     /**
      * Resets the file content to be empty (creating the file if it does not exist).
      *
@@ -218,6 +224,16 @@ public class TestFile extends File {
             return FileUtils.readFileToString(this, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(String.format("Could not read from test file '%s'", this), e);
+        }
+    }
+
+    public TestFile setText(String content) {
+        getParentFile().mkdirs();
+        try {
+            ResourceGroovyMethods.setText(this, content);
+            return this;
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Could not append to test file '%s'", this), e);
         }
     }
 
@@ -364,14 +380,6 @@ public class TestFile extends File {
     }
 
     /**
-     * Changes the last modified time for the given file so that it is different to and smaller than its current last modified time, within file system resolution.
-     */
-    public static void makeOlder(File file) {
-        // Just move back 2 seconds
-        assert file.setLastModified(file.lastModified() - 2000L);
-    }
-
-    /**
      * Creates a directory structure specified by the given closure.
      * <pre>
      * dir.create {
@@ -497,14 +505,6 @@ public class TestFile extends File {
         return md5(this).toString();
     }
 
-    public static HashCode md5(File file) {
-        try {
-            return Hashing.hashFile(file);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     public TestFile createLink(String target) {
         return createLink(new File(target));
     }
@@ -563,15 +563,15 @@ public class TestFile extends File {
         return this;
     }
 
+    public int getMode() {
+        assertExists();
+        return new TestFileHelper(this).getMode();
+    }
+
     public TestFile setMode(int mode) {
         assertExists();
         new TestFileHelper(this).setMode(mode);
         return this;
-    }
-
-    public int getMode() {
-        assertExists();
-        return new TestFileHelper(this).getMode();
     }
 
     /**

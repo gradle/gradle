@@ -197,9 +197,11 @@ fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): 
                 ktProperty.receiverTypeReference != null &&
                     method.firstParameterMatches(ktProperty.receiverTypeReference!!)
             }
+
             couldBeProperty -> {
                 ktProperty.receiverTypeReference == null
             }
+
             else -> false
         }
     }

@@ -22,8 +22,8 @@ import org.gradle.api.provider.Provider;
 /**
  * Represents a binary that is created and configured as required.
  *
- * @since 4.5
  * @param <T> The type of binary.
+ * @since 4.5
  */
 public interface BinaryProvider<T> extends Provider<T> {
     /**

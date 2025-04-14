@@ -34,6 +34,23 @@ import static com.google.common.base.Strings.emptyToNull;
 
 public class DependentComponentsRenderableDependency extends AbstractRenderableDependency {
 
+    private final Object id;
+    private final String name;
+    private final String description;
+    private final boolean buildable;
+    private final boolean testSuite;
+    private final LinkedHashSet<? extends RenderableDependency> children;
+    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite, LinkedHashSet<? extends RenderableDependency> children) {
+        checkNotNull(id, "id must not be null");
+        checkNotNull(emptyToNull(name), "name must not be null nor empty");
+        this.id = id;
+        this.name = name;
+        this.description = emptyToNull(description);
+        this.buildable = buildable;
+        this.testSuite = testSuite;
+        this.children = children;
+    }
+
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
         return of(componentSpec, internalProtocol, new LinkedHashSet<>());
     }
@@ -62,24 +79,6 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
             children.add(of(childResolutionResult));
         }
         return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
-    }
-
-    private final Object id;
-    private final String name;
-    private final String description;
-    private final boolean buildable;
-    private final boolean testSuite;
-    private final LinkedHashSet<? extends RenderableDependency> children;
-
-    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite, LinkedHashSet<? extends RenderableDependency> children) {
-        checkNotNull(id, "id must not be null");
-        checkNotNull(emptyToNull(name), "name must not be null nor empty");
-        this.id = id;
-        this.name = name;
-        this.description = emptyToNull(description);
-        this.buildable = buildable;
-        this.testSuite = testSuite;
-        this.children = children;
     }
 
     @Override

@@ -234,6 +234,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
+        private static List<ResolutionAwareRepository> collectRepositories(RepositoryHandler repositoryHandler) {
+            return repositoryHandler.stream()
+                .map(ResolutionAwareRepository.class::cast)
+                .collect(Collectors.toList());
+        }
+
         void configure(ServiceRegistration registration) {
             registration.add(TransformedVariantFactory.class, DefaultTransformedVariantFactory.class);
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
@@ -616,12 +622,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
                 return repositories;
             };
-        }
-
-        private static List<ResolutionAwareRepository> collectRepositories(RepositoryHandler repositoryHandler) {
-            return repositoryHandler.stream()
-                .map(ResolutionAwareRepository.class::cast)
-                .collect(Collectors.toList());
         }
     }
 

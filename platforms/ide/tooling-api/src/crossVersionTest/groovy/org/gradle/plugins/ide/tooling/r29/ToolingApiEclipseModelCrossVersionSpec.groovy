@@ -29,7 +29,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        def natures = rootProject.projectNatures.collect{ it.id }
+        def natures = rootProject.projectNatures.collect { it.id }
 
         then:
         natures == expectedNatures
@@ -60,15 +60,15 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        EclipseProject javaProject = rootProject.children.find{ it.name == 'java-project' }
-        EclipseProject groovyProject = rootProject.children.find{ it.name == 'groovy-project' }
-        EclipseProject scalaProject = rootProject.children.find{ it.name == 'scala-project' }
+        EclipseProject javaProject = rootProject.children.find { it.name == 'java-project' }
+        EclipseProject groovyProject = rootProject.children.find { it.name == 'groovy-project' }
+        EclipseProject scalaProject = rootProject.children.find { it.name == 'scala-project' }
 
         then:
-        rootProject.projectNatures.collect{ it.id } == []
-        javaProject.projectNatures.collect{ it.id } == ['org.eclipse.jdt.core.javanature']
-        groovyProject.projectNatures.collect{ it.id } == ['org.eclipse.jdt.groovy.core.groovyNature', 'org.eclipse.jdt.core.javanature']
-        scalaProject.projectNatures.collect{ it.id } == ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
+        rootProject.projectNatures.collect { it.id } == []
+        javaProject.projectNatures.collect { it.id } == ['org.eclipse.jdt.core.javanature']
+        groovyProject.projectNatures.collect { it.id } == ['org.eclipse.jdt.groovy.core.groovyNature', 'org.eclipse.jdt.core.javanature']
+        scalaProject.projectNatures.collect { it.id } == ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
     }
 
     def "custom added natures are returned"() {
@@ -87,7 +87,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.projectNatures.collect{ it.id } == ['sample.nature.a', 'sample.nature.b']
+        rootProject.projectNatures.collect { it.id } == ['sample.nature.a', 'sample.nature.b']
     }
 
     def "Java project returns Java nature along with custom natures"() {
@@ -108,7 +108,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.projectNatures.collect{ it.id } == ['org.eclipse.jdt.core.javanature', 'sample.nature.a', 'sample.nature.b']
+        rootProject.projectNatures.collect { it.id } == ['org.eclipse.jdt.core.javanature', 'sample.nature.a', 'sample.nature.b']
     }
 
     def "applying plugins configure appropriate build commands"() {
@@ -118,7 +118,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        def buuldCommandNames = rootProject.buildCommands.collect{ it.name }
+        def buuldCommandNames = rootProject.buildCommands.collect { it.name }
 
         then:
         buuldCommandNames == expectedBuildCommandNames
@@ -133,7 +133,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         ['java', 'scala', 'groovy'] | ['org.scala-ide.sdt.core.scalabuilder']
     }
 
-    def "multi-module build defines different build commands for each modules"(){
+    def "multi-module build defines different build commands for each modules"() {
         given:
         buildFile << """
             project(':java-project') { apply plugin: 'java' }
@@ -147,13 +147,13 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        EclipseProject javaProject = rootProject.children.find{ it.name == 'java-project' }
-        EclipseProject scalaProject = rootProject.children.find{ it.name == 'scala-project' }
+        EclipseProject javaProject = rootProject.children.find { it.name == 'java-project' }
+        EclipseProject scalaProject = rootProject.children.find { it.name == 'scala-project' }
 
         then:
-        rootProject.buildCommands.collect{ it.name } == []
-        javaProject.buildCommands.collect{ it.name } == ['org.eclipse.jdt.core.javabuilder']
-        scalaProject.buildCommands.collect{ it.name } == ['org.scala-ide.sdt.core.scalabuilder']
+        rootProject.buildCommands.collect { it.name } == []
+        javaProject.buildCommands.collect { it.name } == ['org.eclipse.jdt.core.javabuilder']
+        scalaProject.buildCommands.collect { it.name } == ['org.scala-ide.sdt.core.scalabuilder']
     }
 
     def "custom added build commands are returned"() {

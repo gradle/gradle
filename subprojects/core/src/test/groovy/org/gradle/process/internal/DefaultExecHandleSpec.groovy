@@ -35,7 +35,8 @@ import java.util.concurrent.Executor
 @UsesNativeServices
 @Timeout(60)
 class DefaultExecHandleSpec extends ConcurrentSpec {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
 
     void "forks process"() {
@@ -44,10 +45,10 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         def err = new ByteArrayOutputStream()
 
         def execHandle = handle()
-                .args(args(TestApp.class, "arg1", "arg2"))
-                .setStandardOutput(out)
-                .setErrorOutput(err)
-                .build()
+            .args(args(TestApp.class, "arg1", "arg2"))
+            .setStandardOutput(out)
+            .setErrorOutput(err)
+            .build()
 
         when:
         def result = execHandle.start().waitForFinish()
@@ -71,8 +72,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "waiting for process returns quickly if process already completed"() {
         given:
         def execHandle = handle()
-                .args(args(TestApp.class))
-                .build()
+            .args(args(TestApp.class))
+            .build()
 
         def handle = execHandle.start()
 
@@ -294,7 +295,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.abort()
     }
 
-    @Ignore //not yet implemented
+    @Ignore
+    //not yet implemented
     void "aborts daemon"() {
         def output = new ByteArrayOutputStream()
         def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build()
@@ -365,7 +367,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
-    @Ignore //not yet implemented
+    @Ignore
+    //not yet implemented
     //it may not be easily testable
     void "detach detects when process did not start or died prematurely"() {
         def execHandle = handle().args(args(BrokenApp.class)).build()
@@ -410,7 +413,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     @Timeout(2)
-    @Ignore //not yet implemented
+    @Ignore
+    //not yet implemented
     void "exec handle can detach with timeout"() {
         given:
         def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build()
@@ -424,7 +428,8 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         //the timeout does not hit
     }
 
-    @Ignore //not yet implemented
+    @Ignore
+    //not yet implemented
     void "exec handle can wait with timeout"() {
         given:
         def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build()

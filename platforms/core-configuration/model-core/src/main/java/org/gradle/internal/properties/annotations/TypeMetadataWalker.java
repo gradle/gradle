@@ -67,6 +67,7 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
 
     interface TypeMetadataVisitor<T> {
         void visitRoot(TypeMetadata typeMetadata, T value);
+
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);
     }
 
@@ -75,7 +76,9 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
     interface InstanceMetadataVisitor extends TypeMetadataVisitor<Object> {
         @Override
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value);
+
         void visitNestedUnpackingError(String qualifiedName, Exception e);
+
         void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata);
     }
 }

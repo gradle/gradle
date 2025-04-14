@@ -251,7 +251,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group1", "module") { ComponentSelection cs ->
             cs.metadata
             cs.getDescriptor(IvyModuleDescriptor)
-            closuresCalled << 2 }
+            closuresCalled << 2
+        }
 
         apply(metadataProvider)
 

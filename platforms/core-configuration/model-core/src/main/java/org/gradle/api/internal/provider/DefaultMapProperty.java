@@ -365,6 +365,158 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return value.calculateExecutionTimeValue();
     }
 
+    private CollectingSupplier<K, V> newCollectingSupplierOf(MapCollector<K, V> collector) {
+        return new CollectingSupplier<>(keyCollector, entryCollector, collector);
+    }
+
+    private static class CollectingSupplier<K, V> extends AbstractCollectingSupplier<MapCollector<K, V>, Map<K, V>> implements MapSupplier<K, V> {
+        private final ValueCollector<K> keyCollector;
+        private final MapEntryCollector<K, V> entryCollector;
+
+        public CollectingSupplier(
+            ValueCollector<K> keyCollector,
+            MapEntryCollector<K, V> entryCollector,
+            MapCollector<K, V> collector
+        ) {
+            this(keyCollector, entryCollector, AppendOnceList.of(collector));
+        }
+
+        public CollectingSupplier(
+            ValueCollector<K> keyCollector,
+            MapEntryCollector<K, V> entryCollector,
+            AppendOnceList<MapCollector<K, V>> collectors
+        ) {
+            super(collectors);
+            this.keyCollector = keyCollector;
+            this.entryCollector = entryCollector;
+        }
+
+        @Nullable
+        @Override
+        @SuppressWarnings("unchecked")
+        public Class<Map<K, V>> getType() {
+            return (Class) Map.class;
+        }
+
+        @Override
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
+            return calculateValue(
+                (builder, collector) -> collector.collectKeys(consumer, keyCollector, builder),
+                ImmutableSet.<K>builder(),
+                ImmutableSet.Builder::build
+            );
+        }
+
+        @Override
+        protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
+            // TODO - don't make a copy when the collector already produces an immutable collection
+            return calculateValue(
+                (builder, collector) -> collector.collectEntries(consumer, entryCollector, builder),
+                // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
+                // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
+                // with the same key
+                new LinkedHashMap<K, V>(),
+                ImmutableMap::copyOf
+            );
+        }
+
+        @Override
+        public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector) {
+            return new CollectingSupplier<>(keyCollector, entryCollector, collectors.plus(addedCollector));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
+            return calculateExecutionTimeValue(
+                collector -> (ExecutionTimeValue<? extends Map<K, V>>) collector.calculateExecutionTimeValue(),
+                this::calculateFixedExecutionTimeValue,
+                this::calculateChangingExecutionTimeValue
+            );
+        }
+
+        private ExecutionTimeValue<? extends Map<K, V>> calculateFixedExecutionTimeValue(
+            List<ExecutionTimeValue<? extends Map<K, V>>> values,
+            SideEffectBuilder<Map<K, V>> sideEffectBuilder
+        ) {
+            // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
+            // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
+            // with the same key.
+            Map<K, V> entries = new LinkedHashMap<>();
+            for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
+                entryCollector.addAll(value.getFixedValue().entrySet(), entries);
+                sideEffectBuilder.add(SideEffect.fixedFrom(value));
+            }
+            return ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
+        }
+
+        private ExecutionTimeValue<? extends Map<K, V>> calculateChangingExecutionTimeValue(
+            List<ExecutionTimeValue<? extends Map<K, V>>> values
+        ) {
+            return ExecutionTimeValue.changingValue(new CollectingSupplier<>(
+                keyCollector,
+                entryCollector,
+                values.stream().map(this::toCollector).collect(toAppendOnceList())
+            ));
+        }
+
+        private MapCollector<K, V> toCollector(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
+            Preconditions.checkArgument(!value.isMissing(), "Cannot get a collector for the missing value");
+            if (value.isChangingValue() || value.hasChangingContent() || value.getSideEffect() != null) {
+                return new EntriesFromMapProvider<>(value.toProvider());
+            }
+            return new EntriesFromMap<>(value.getFixedValue());
+        }
+    }
+
+    /**
+     * A fixed value collector, similar to {@link EntriesFromMap} but with a side effect.
+     */
+    private static class FixedValueCollector<K, V> implements MapCollector<K, V> {
+        @Nullable
+        private final SideEffect<? super Map<K, V>> sideEffect;
+        private final Map<K, V> entries;
+
+        private FixedValueCollector(Map<K, V> entries, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
+            this.entries = entries;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            collector.addAll(entries.entrySet(), dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(entries, sideEffect))
+                : Value.present();
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            collector.addAll(entries.keySet(), dest);
+            return Value.present();
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return entries.toString();
+        }
+    }
+
     private class EntryProvider extends AbstractMinimalProvider<V> {
         private final K key;
 
@@ -536,159 +688,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
-        }
-
-        @Override
-        public String toString() {
-            return entries.toString();
-        }
-    }
-
-    private CollectingSupplier<K, V> newCollectingSupplierOf(MapCollector<K, V> collector) {
-        return new CollectingSupplier<>(keyCollector, entryCollector, collector);
-    }
-
-
-    private static class CollectingSupplier<K, V> extends AbstractCollectingSupplier<MapCollector<K, V>, Map<K, V>> implements MapSupplier<K, V> {
-        private final ValueCollector<K> keyCollector;
-        private final MapEntryCollector<K, V> entryCollector;
-
-        public CollectingSupplier(
-            ValueCollector<K> keyCollector,
-            MapEntryCollector<K, V> entryCollector,
-            MapCollector<K, V> collector
-        ) {
-            this(keyCollector, entryCollector, AppendOnceList.of(collector));
-        }
-
-        public CollectingSupplier(
-            ValueCollector<K> keyCollector,
-            MapEntryCollector<K, V> entryCollector,
-            AppendOnceList<MapCollector<K, V>> collectors
-        ) {
-            super(collectors);
-            this.keyCollector = keyCollector;
-            this.entryCollector = entryCollector;
-        }
-
-        @Nullable
-        @Override
-        @SuppressWarnings("unchecked")
-        public Class<Map<K, V>> getType() {
-            return (Class) Map.class;
-        }
-
-        @Override
-        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
-            return calculateValue(
-                (builder, collector) -> collector.collectKeys(consumer, keyCollector, builder),
-                ImmutableSet.<K>builder(),
-                ImmutableSet.Builder::build
-            );
-        }
-
-        @Override
-        protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
-            // TODO - don't make a copy when the collector already produces an immutable collection
-            return calculateValue(
-                (builder, collector) -> collector.collectEntries(consumer, entryCollector, builder),
-                // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
-                // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
-                // with the same key
-                new LinkedHashMap<K, V>(),
-                ImmutableMap::copyOf
-            );
-        }
-
-        @Override
-        public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector) {
-            return new CollectingSupplier<>(keyCollector, entryCollector, collectors.plus(addedCollector));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
-            return calculateExecutionTimeValue(
-                collector -> (ExecutionTimeValue<? extends Map<K, V>>) collector.calculateExecutionTimeValue(),
-                this::calculateFixedExecutionTimeValue,
-                this::calculateChangingExecutionTimeValue
-            );
-        }
-
-        private ExecutionTimeValue<? extends Map<K, V>> calculateFixedExecutionTimeValue(
-            List<ExecutionTimeValue<? extends Map<K, V>>> values,
-            SideEffectBuilder<Map<K, V>> sideEffectBuilder
-        ) {
-            // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
-            // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
-            // with the same key.
-            Map<K, V> entries = new LinkedHashMap<>();
-            for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
-                entryCollector.addAll(value.getFixedValue().entrySet(), entries);
-                sideEffectBuilder.add(SideEffect.fixedFrom(value));
-            }
-            return ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
-        }
-
-        private ExecutionTimeValue<? extends Map<K, V>> calculateChangingExecutionTimeValue(
-            List<ExecutionTimeValue<? extends Map<K, V>>> values
-        ) {
-            return ExecutionTimeValue.changingValue(new CollectingSupplier<>(
-                keyCollector,
-                entryCollector,
-                values.stream().map(this::toCollector).collect(toAppendOnceList())
-            ));
-        }
-
-        private MapCollector<K, V> toCollector(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
-            Preconditions.checkArgument(!value.isMissing(), "Cannot get a collector for the missing value");
-            if (value.isChangingValue() || value.hasChangingContent() || value.getSideEffect() != null) {
-                return new EntriesFromMapProvider<>(value.toProvider());
-            }
-            return new EntriesFromMap<>(value.getFixedValue());
-        }
-    }
-
-    /**
-     * A fixed value collector, similar to {@link EntriesFromMap} but with a side effect.
-     */
-    private static class FixedValueCollector<K, V> implements MapCollector<K, V> {
-        @Nullable
-        private final SideEffect<? super Map<K, V>> sideEffect;
-        private final Map<K, V> entries;
-
-        private FixedValueCollector(Map<K, V> entries, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
-            this.entries = entries;
-            this.sideEffect = sideEffect;
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collector.addAll(entries.entrySet(), dest);
-            return sideEffect != null
-                ? Value.present().withSideEffect(SideEffect.fixed(entries, sideEffect))
-                : Value.present();
-        }
-
-        @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            collector.addAll(entries.keySet(), dest);
-            return Value.present();
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
-            return ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return ValueProducer.unknown();
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return true;
         }
 
         @Override

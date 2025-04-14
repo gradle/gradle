@@ -24,7 +24,7 @@ import java.io.File;
  * The outputs of the artifact transform.
  *
  * <p>
- *     The registered output {@link File}s will appear in the transformed variant in the order they were registered.
+ * The registered output {@link File}s will appear in the transformed variant in the order they were registered.
  * </p>
  *
  * @since 5.3
@@ -35,9 +35,9 @@ public interface TransformOutputs {
      * Registers an output directory.
      *
      * <p>
-     *     For an <strong>absolute path</strong>, the location is registered as an output directory of the {@link TransformAction}.
-     *     The path must to point to the {@link InputArtifact}, or point inside the input artifact if it is a directory.
-     *     Example:
+     * For an <strong>absolute path</strong>, the location is registered as an output directory of the {@link TransformAction}.
+     * The path must to point to the {@link InputArtifact}, or point inside the input artifact if it is a directory.
+     * Example:
      * </p>
      * <pre class='autoTested'>
      * import org.gradle.api.artifacts.transform.TransformParameters;
@@ -54,8 +54,8 @@ public interface TransformOutputs {
      * </pre>
      *
      * <p>
-     *     For a <strong>relative path</strong>, Gradle creates an output directory into which the {@link TransformAction} must place its output files.
-     *     Example:
+     * For a <strong>relative path</strong>, Gradle creates an output directory into which the {@link TransformAction} must place its output files.
+     * Example:
      * </p>
      * <pre class='autoTested'>
      * import org.gradle.api.artifacts.transform.TransformParameters;
@@ -70,7 +70,7 @@ public interface TransformOutputs {
      * </pre>
      *
      * <p>
-     *     <strong>Note:</strong> it is an error if the registered directory does not exist when the {@link TransformAction#transform(TransformOutputs)} method finishes.
+     * <strong>Note:</strong> it is an error if the registered directory does not exist when the {@link TransformAction#transform(TransformOutputs)} method finishes.
      * </p>
      *
      * @param path path of the output directory
@@ -82,9 +82,9 @@ public interface TransformOutputs {
      * Registers an output file.
      *
      * <p>
-     *     For an absolute path, the location is registered as an output file of the {@link TransformAction}.
-     *     The path is required to point to the {@link InputArtifact} or be inside it if the input artifact is a directory.
-     *     Example:
+     * For an absolute path, the location is registered as an output file of the {@link TransformAction}.
+     * The path is required to point to the {@link InputArtifact} or be inside it if the input artifact is a directory.
+     * Example:
      * </p>
      * <pre class='autoTested'>
      * import org.gradle.api.artifacts.transform.TransformParameters;
@@ -105,9 +105,9 @@ public interface TransformOutputs {
      * </pre>
      *
      * <p>
-     *     For a relative path, a location for the output file is provided by Gradle, so that the {@link TransformAction} can produce its outputs at that location.
-     *     The parent directory of the provided location is created automatically when calling the method.
-     *     Example:
+     * For a relative path, a location for the output file is provided by Gradle, so that the {@link TransformAction} can produce its outputs at that location.
+     * The parent directory of the provided location is created automatically when calling the method.
+     * Example:
      * </p>
      * <pre class='autoTested'>
      * import org.gradle.api.artifacts.transform.TransformParameters;

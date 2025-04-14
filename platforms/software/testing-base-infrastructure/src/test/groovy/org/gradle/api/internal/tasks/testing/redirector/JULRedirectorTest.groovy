@@ -31,7 +31,8 @@ import java.util.logging.Logger
 class JULRedirectorTest extends Specification {
     private static final String EOL = SystemProperties.instance.lineSeparator
 
-    @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    @Rule
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private DefaultStandardOutputRedirector redirector = new JULRedirector()
     private final StandardOutputRedirector.OutputListener stdOutListener = Mock()
     private final StandardOutputRedirector.OutputListener stdErrListener = Mock()
@@ -51,11 +52,11 @@ class JULRedirectorTest extends Specification {
         JULCustomInit() {
             LogManager.getLogManager().readConfiguration(IOUtils.toInputStream(
                 'handlers = java.util.logging.ConsoleHandler' + EOL +
-                '.level = FINEST' + EOL +
-                'java.util.logging.ConsoleHandler.formatter = ' + DummyFormatter.class.name + EOL +
-                'java.util.logging.ConsoleHandler.level = FINEST' + EOL +
-                'hello.level = INFO' + EOL +
-                'hello.world.level = FINER' + EOL))
+                    '.level = FINEST' + EOL +
+                    'java.util.logging.ConsoleHandler.formatter = ' + DummyFormatter.class.name + EOL +
+                    'java.util.logging.ConsoleHandler.level = FINEST' + EOL +
+                    'hello.level = INFO' + EOL +
+                    'hello.world.level = FINER' + EOL))
         }
     }
 

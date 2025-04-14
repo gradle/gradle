@@ -88,8 +88,8 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions.findAll {
             // versions prior to 2.0.0 don't support java 21
             (JavaVersion.current() < JavaVersion.VERSION_21 || VersionNumber.parse(it) >= VersionNumber.parse('2.0.0-Beta1'))
-            // versions prior to 2.0.20 use deprecated APIs removed in Gradle 9.0
-            && VersionNumber.parse(it) >= KotlinGradlePluginVersions.KOTLIN_2_0_20
+                // versions prior to 2.0.20 use deprecated APIs removed in Gradle 9.0
+                && VersionNumber.parse(it) >= KotlinGradlePluginVersions.KOTLIN_2_0_20
         }
     }
 

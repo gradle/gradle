@@ -32,8 +32,8 @@ repositories {
     def "resolves and does not cache source and javadoc artifacts"() {
         publishModule()
         fixture.expectSourceArtifact("sources")
-                .expectJavadocArtifact("javadoc")
-                .prepare()
+            .expectJavadocArtifact("javadoc")
+            .prepare()
 
         when:
         succeeds("verify")
@@ -77,7 +77,7 @@ Searched in the following locations:
         file("repo/some-artifact-1.0-sources.jar").createFile()
 
         fixture.expectSourceArtifact("sources")
-                .prepare()
+            .prepare()
 
         expect:
         succeeds("verify")

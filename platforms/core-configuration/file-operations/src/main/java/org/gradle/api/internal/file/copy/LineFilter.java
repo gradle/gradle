@@ -23,19 +23,14 @@ import java.io.IOException;
 import java.io.Reader;
 
 public class LineFilter extends Reader {
-    private static enum State {
-        NORMAL,
-        SKIP_LINE,
-        EOF
-    };
-
     private final Transformer<String, String> transformer;
-    private String transformedLine;
-    private int transformedIndex;
+
+    ;
     private final BufferedReader bufferedIn;
     private final Reader in;
+    private String transformedLine;
+    private int transformedIndex;
     private State state = State.NORMAL;
-
     /**
      * Creates a new filtered reader.
      *
@@ -118,5 +113,11 @@ public class LineFilter extends Reader {
     @Override
     public void close() throws IOException {
         in.close();
+    }
+
+    private static enum State {
+        NORMAL,
+        SKIP_LINE,
+        EOF
     }
 }

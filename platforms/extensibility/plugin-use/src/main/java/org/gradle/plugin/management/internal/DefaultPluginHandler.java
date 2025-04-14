@@ -41,31 +41,6 @@ public class DefaultPluginHandler implements PluginHandler {
         this.registry = registry;
     }
 
-    @Override
-    public PluginRequests getAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget) {
-        if (pluginTarget instanceof Project) {
-            Project project = (Project) pluginTarget;
-
-            PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(project);
-            if (autoAppliedPlugins.isEmpty()) {
-                return PluginRequests.EMPTY;
-            }
-            return filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, project.getPlugins(), project.getBuildscript());
-        } else if (pluginTarget instanceof Settings) {
-            Settings settings = (Settings) pluginTarget;
-
-            PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(settings);
-            if (autoAppliedPlugins.isEmpty()) {
-                return PluginRequests.EMPTY;
-            }
-            return filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, settings.getPlugins(), settings.getBuildscript());
-        } else {
-            // No auto-applied plugins available
-            return PluginRequests.EMPTY;
-        }
-
-    }
-
     private static PluginRequests filterAlreadyAppliedOrRequested(PluginRequests autoAppliedPlugins, final PluginRequests initialRequests, final PluginContainer pluginContainer, final ScriptHandler scriptHandler) {
         return PluginRequests.of(ImmutableList.copyOf(StreamSupport.stream(autoAppliedPlugins.spliterator(), false)
             .filter(autoAppliedPlugin -> !isAlreadyAppliedOrRequested(PluginCoordinates.from(autoAppliedPlugin), initialRequests, pluginContainer, scriptHandler))
@@ -110,6 +85,31 @@ public class DefaultPluginHandler implements PluginHandler {
 
     private static boolean hasMatchingCoordinates(Dependency dependency, ModuleIdentifier module) {
         return module.getGroup().equals(dependency.getGroup()) && module.getName().equals(dependency.getName());
+    }
+
+    @Override
+    public PluginRequests getAutoAppliedPlugins(PluginRequests initialRequests, Object pluginTarget) {
+        if (pluginTarget instanceof Project) {
+            Project project = (Project) pluginTarget;
+
+            PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(project);
+            if (autoAppliedPlugins.isEmpty()) {
+                return PluginRequests.EMPTY;
+            }
+            return filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, project.getPlugins(), project.getBuildscript());
+        } else if (pluginTarget instanceof Settings) {
+            Settings settings = (Settings) pluginTarget;
+
+            PluginRequests autoAppliedPlugins = registry.getAutoAppliedPlugins(settings);
+            if (autoAppliedPlugins.isEmpty()) {
+                return PluginRequests.EMPTY;
+            }
+            return filterAlreadyAppliedOrRequested(autoAppliedPlugins, initialRequests, settings.getPlugins(), settings.getBuildscript());
+        } else {
+            // No auto-applied plugins available
+            return PluginRequests.EMPTY;
+        }
+
     }
 
 }

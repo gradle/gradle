@@ -43,12 +43,9 @@ import java.io.File;
 
 public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToolChain> implements org.gradle.nativeplatform.toolchain.VisualCpp {
 
-    private final String name;
-
-    protected static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
-
     public static final String DEFAULT_NAME = "visualCpp";
-
+    protected static final Logger LOGGER = LoggerFactory.getLogger(VisualCppToolChain.class);
+    private final String name;
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private final WindowsSdkLocator windowsSdkLocator;
@@ -66,8 +63,10 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
     private WindowsSdkInstall windowsSdk;
     private ToolChainAvailability availability;
 
-    public VisualCppToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    public VisualCppToolChain(
+        String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
+        CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator, UcrtLocator ucrtLocator, Instantiator instantiator, WorkerLeaseService workerLeaseService
+    ) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.name = name;
         this.execActionFactory = execActionFactory;

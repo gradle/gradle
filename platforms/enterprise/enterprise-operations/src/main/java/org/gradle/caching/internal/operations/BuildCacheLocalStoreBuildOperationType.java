@@ -24,9 +24,12 @@ import org.gradle.internal.operations.BuildOperationType;
  * A store operation may actually store or fail.
  * Store operation results and failures are mutually exclusive.
  *
- *  @since 8.6
+ * @since 8.6
  */
 public final class BuildCacheLocalStoreBuildOperationType implements BuildOperationType<BuildCacheLocalStoreBuildOperationType.Details, BuildCacheLocalStoreBuildOperationType.Result> {
+
+    private BuildCacheLocalStoreBuildOperationType() {
+    }
 
     public interface Details {
 
@@ -55,8 +58,5 @@ public final class BuildCacheLocalStoreBuildOperationType implements BuildOperat
          */
         boolean isStored();
 
-    }
-
-    private BuildCacheLocalStoreBuildOperationType() {
     }
 }

@@ -42,21 +42,6 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
         this.reuseClassloader = reuseClassloader;
     }
 
-    @Override
-    public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
-        GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
-        try {
-            return executeInClassLoader(spec, workerClassLoader);
-        } finally {
-            workerClasspathGroovy.shutdown();
-            // TODO: we should just cache these classloaders and eject/stop them when they are no longer in use
-            if (!reuseClassloader) {
-                CompositeStoppable.stoppable(workerClassLoader).stop();
-                this.workerClassLoader = null;
-            }
-        }
-    }
-
     static ClassLoader createIsolatedWorkerClassloader(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, LegacyTypesSupport legacyTypesSupport) {
         return createWorkerClassLoaderWithStructure(workerInfrastructureClassloader, classLoaderStructure, legacyTypesSupport);
     }
@@ -93,6 +78,21 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
             return new FilteringClassLoader(parent, filteringSpec);
         } else {
             throw new IllegalArgumentException("Can't handle spec of type " + spec.getClass().getName());
+        }
+    }
+
+    @Override
+    public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
+        GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
+        try {
+            return executeInClassLoader(spec, workerClassLoader);
+        } finally {
+            workerClasspathGroovy.shutdown();
+            // TODO: we should just cache these classloaders and eject/stop them when they are no longer in use
+            if (!reuseClassloader) {
+                CompositeStoppable.stoppable(workerClassLoader).stop();
+                this.workerClassLoader = null;
+            }
         }
     }
 }

@@ -5,24 +5,36 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>scala</literal> plugin</td>
+                    <td>Default with <literal>scala</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>destinationDir</td>
-                <td><literal><replaceable>${project.docsDir}</replaceable>/scaladoc</literal></td>
+                <td>
+                    <literal><replaceable>${project.docsDir}</replaceable>/scaladoc
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>maxMemory</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>classpath</td>
-                <td><literal>project.sourceSets.main.output + project.sourceSets.main.compileClasspath</literal></td>
+                <td>
+                    <literal>project.sourceSets.main.output + project.sourceSets.main.compileClasspath</literal>
+                </td>
             </tr>
             <tr>
                 <td>scalaClasspath</td>
-                <td><literal>scala-compiler</literal> dependency matching the <literal>scala-library</literal> version found on <literal>classpath</literal></td>
+                <td>
+                    <literal>scala-compiler</literal>
+                    dependency matching the <literal>scala-library</literal> version found on
+                    <literal>classpath</literal>
+                </td>
             </tr>
             <tr>
                 <td>scalaDocOptions</td>
@@ -30,27 +42,39 @@
             </tr>
             <tr>
                 <td>title</td>
-                <td><literal>project.reporting.apiDocTitle</literal></td>
+                <td>
+                    <literal>project.reporting.apiDocTitle</literal>
+                </td>
             </tr>
             <tr>
                 <td>includes</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>excludes</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>source</td>
-                <td><literal>project.sourceSets.main.scala</literal></td>
+                <td>
+                    <literal>project.sourceSets.main.scala</literal>
+                </td>
             </tr>
             <tr>
                 <td>compilationOutputs</td>
-                <td><literal>project.sourceSets.main.output</literal></td>
+                <td>
+                    <literal>project.sourceSets.main.output</literal>
+                </td>
             </tr>
             <tr>
                 <td>javaLauncher</td>
-                <td><literal>java.toolchain</literal></td>
+                <td>
+                    <literal>java.toolchain</literal>
+                </td>
             </tr>
         </table>
     </section>

@@ -76,7 +76,8 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
                     getSubject() >> action.subject
                     getInputs() >> action.inputs
                     execute(_, _) >> { MutableModelNode node, List<ModelView<?>> inputs ->
-                        action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { JavaReflectionUtil.newInstance(rule.ruleDefinition.method.method.declaringClass) } as Factory), node, inputs) }
+                        action.execute(new DefaultModelRuleInvoker(rule.ruleDefinition.method, { JavaReflectionUtil.newInstance(rule.ruleDefinition.method.method.declaringClass) } as Factory), node, inputs)
+                    }
                 }
             }
             getScope() >> ModelPath.ROOT
@@ -135,7 +136,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
 
     String getStringDescription(WeaklyTypeReferencingMethod<?, ?> method) {
         return MethodDescription.name(method.getName())
-                .takes(method.method.getGenericParameterTypes())
-                .toString();
+            .takes(method.method.getGenericParameterTypes())
+            .toString();
     }
 }

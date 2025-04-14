@@ -17,5 +17,6 @@
 package org.gradle;
 
 public class BarTest {
-    @org.testng.annotations.Test public void anotherOk() {}
+    @org.testng.annotations.Test
+    public void anotherOk() {}
 }

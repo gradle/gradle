@@ -40,6 +40,10 @@ import java.util.List;
 
 public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
 
+    private static UnsupportedOperationException unsupportedType(TypeMirror t) {
+        return new UnsupportedOperationException("unsupported type " + t);
+    }
+
     @Override
     public Type visitPrimitive(PrimitiveType t, Void unused) {
         TypeKind kind = t.getKind();
@@ -140,9 +144,5 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
     @Override
     public Type visitUnion(UnionType t, Void unused) {
         throw unsupportedType(t);
-    }
-
-    private static UnsupportedOperationException unsupportedType(TypeMirror t) {
-        return new UnsupportedOperationException("unsupported type " + t);
     }
 }

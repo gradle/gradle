@@ -24,7 +24,8 @@ import spock.lang.Specification
 
 class DefaultCachedExternalResourceIndexTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass())
 
     def commonPath = folder.createDir("common").toPath()
 

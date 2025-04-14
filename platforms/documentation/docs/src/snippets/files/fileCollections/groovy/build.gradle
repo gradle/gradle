@@ -2,9 +2,9 @@ import java.nio.file.Paths
 
 // tag::simple-params[]
 FileCollection collection = layout.files('src/file1.txt',
-                                  new File('src/file2.txt'),
-                                  ['src/file3.csv', 'src/file4.csv'],
-                                  Paths.get('src', 'file5.txt'))
+    new File('src/file2.txt'),
+    ['src/file3.csv', 'src/file4.csv'],
+    Paths.get('src', 'file5.txt'))
 // end::simple-params[]
 
 file('src').mkdirs()

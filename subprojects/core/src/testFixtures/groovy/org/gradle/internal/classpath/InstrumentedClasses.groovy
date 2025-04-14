@@ -30,10 +30,10 @@ class InstrumentedClasses {
     private final TestInstrumentedClassLoader loader
 
     InstrumentedClasses(
-            ClassLoader source,
-            Predicate<String> shouldInstrumentClassByName,
-            BytecodeInterceptorFilter interceptorFilter,
-            InstrumentationTypeRegistry typeRegistry
+        ClassLoader source,
+        Predicate<String> shouldInstrumentClassByName,
+        BytecodeInterceptorFilter interceptorFilter,
+        InstrumentationTypeRegistry typeRegistry
     ) {
         this.shouldInstrumentClassByName = shouldInstrumentClassByName
         loader = new TestInstrumentedClassLoader(
@@ -44,7 +44,7 @@ class InstrumentedClasses {
     }
 
     static Predicate<String> nestedClassesOf(Class<?> theClass) {
-        return { className -> className.startsWith(theClass.name + "\$")}
+        return { className -> className.startsWith(theClass.name + "\$") }
     }
 
     Class<?> instrumentedClass(Class<?> originalClass) {

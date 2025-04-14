@@ -40,7 +40,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.testClassStarted("some-test")
 
         then:
-        1 * target.started({it.id == 1 && it.className == 'some-test'}, {it.startTime == 1200})
+        1 * target.started({ it.id == 1 && it.className == 'some-test' }, { it.startTime == 1200 })
         0 * target._
     }
 
@@ -57,7 +57,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.testClassFinished(null)
 
         then:
-        1 * target.completed(1, {it.endTime == 1300})
+        1 * target.completed(1, { it.endTime == 1300 })
         0 * target._
     }
 
@@ -74,7 +74,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.testClassFinished(failure)
 
         then:
-        1 * target.started({it.id == 2 && it.className == 'some-test' && it.name == 'initializationError'}, !null)
+        1 * target.started({ it.id == 2 && it.className == 'some-test' && it.name == 'initializationError' }, !null)
         1 * target.failure(2, failure)
         1 * target.completed(2, !null)
         1 * target.completed(1, !null)
@@ -125,7 +125,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         processor.testClassFinished(failure)
 
         then:
-        1 * target.started({it.id == 3 && it.className == 'some-test' && it.name == 'executionError'}, !null)
+        1 * target.started({ it.id == 3 && it.className == 'some-test' && it.name == 'executionError' }, !null)
         1 * target.failure(3, failure)
         1 * target.completed(3, !null)
         1 * target.completed(1, !null)

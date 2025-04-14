@@ -76,7 +76,7 @@ dependencies {
         // when:
         createDirs("sub")
         runEclipseTask "include 'sub'",
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'war'
            apply plugin: 'eclipse-wtp'
 
@@ -265,7 +265,7 @@ apply plugin: "groovy"
         executer.withTasks("eclipse").run()
     }
 
-	private static Set getHandleFilenames(projectModules) {
-		projectModules."wb-module"."dependent-module".@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } as Set
-	}
+    private static Set getHandleFilenames(projectModules) {
+        projectModules."wb-module"."dependent-module".@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } as Set
+    }
 }

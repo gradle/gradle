@@ -51,7 +51,7 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
         } catch (ClassNotFoundException e) {
             throw new InvalidUserCodeException(
                 "Failed to load JUnit 4. " +
-                "Please ensure that JUnit 4 is available on the test runtime classpath."
+                    "Please ensure that JUnit 4 is available on the test runtime classpath."
             );
         }
 

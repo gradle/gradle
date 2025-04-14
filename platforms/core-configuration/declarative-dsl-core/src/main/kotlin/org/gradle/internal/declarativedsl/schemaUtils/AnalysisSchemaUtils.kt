@@ -154,7 +154,7 @@ fun AnalysisSchema.findTypeFor(kType: KType): DataType.ClassDataType? {
         } else {
             if (kType.arguments.all { it == KTypeProjection.STAR || it.variance == KVariance.INVARIANT && it.type != null }) {
                 genericInstantiationsByFqName[DefaultFqName.parse(classifier.qualifiedName ?: return null)]
-                    ?.get(kType.arguments.map { typeArgument(it)?: return null })
+                    ?.get(kType.arguments.map { typeArgument(it) ?: return null })
             } else null
         }
     } else null

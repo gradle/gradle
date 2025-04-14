@@ -26,11 +26,15 @@
             </thead>
             <tr>
                 <td>jvmArgumentProviders</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>allJvmArgs</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
         </table>
     </section>

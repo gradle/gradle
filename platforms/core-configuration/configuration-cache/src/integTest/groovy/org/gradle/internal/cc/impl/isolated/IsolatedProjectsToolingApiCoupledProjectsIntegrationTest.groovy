@@ -334,7 +334,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             // some change
         """
         withIsolatedProjects(WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
-        def model3 = runBuildAction (new FetchCustomModelForEachProject())
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
         model3.size() == 2

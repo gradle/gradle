@@ -39,6 +39,10 @@ public class PerformanceDatabase {
         this.databaseInitializers = Arrays.asList(schemaInitializers);
     }
 
+    public static boolean isAvailable() {
+        return System.getProperty(PERFORMANCE_DB_URL_PROPERTY_NAME) != null;
+    }
+
     private Connection getConnection() throws SQLException {
         if (dataSource == null) {
             HikariConfig config = new HikariConfig();
@@ -68,10 +72,6 @@ public class PerformanceDatabase {
                 }
             }
         }
-    }
-
-    public static boolean isAvailable() {
-        return System.getProperty(PERFORMANCE_DB_URL_PROPERTY_NAME) != null;
     }
 
     public void close() {

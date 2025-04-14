@@ -217,7 +217,8 @@ class GradleDistributionInstallTest {
     private
     fun createMinimalDistribution() {
         projectRoot.mkdir()
-        File(projectRoot, "build.gradle.kts").writeText("""
+        File(projectRoot, "build.gradle.kts").writeText(
+            """
         plugins {
             id("gradlebuild.install")
         }
@@ -242,7 +243,8 @@ class GradleDistributionInstallTest {
         dependencies {
             gradleScriptPath(files("gradlew.bat"))
         }
-        """)
+        """
+        )
         File(projectRoot, "version.txt").writeText("8.2")
         File(projectRoot, "gradlew.bat").writeText(marker)
     }

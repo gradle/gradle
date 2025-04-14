@@ -27,6 +27,13 @@ public class DefaultDeprecationData implements DeprecationData {
         this.type = type;
     }
 
+    public static AdditionalDataBuilder<DeprecationData> builder(@Nullable DeprecationData from) {
+        if (from == null) {
+            return new DefaultDeprecationDataBuilder();
+        }
+        return new DefaultDeprecationDataBuilder(from);
+    }
+
     @Override
     public Type getType() {
         return type;
@@ -46,13 +53,6 @@ public class DefaultDeprecationData implements DeprecationData {
         return Objects.hashCode(type);
     }
 
-    public static AdditionalDataBuilder<DeprecationData> builder(@Nullable DeprecationData from) {
-        if(from == null) {
-            return new DefaultDeprecationDataBuilder();
-        }
-        return new DefaultDeprecationDataBuilder(from);
-    }
-
     private static class DefaultDeprecationDataBuilder implements DeprecationDataSpec, AdditionalDataBuilder<DeprecationData> {
 
         private Type type;
@@ -60,6 +60,7 @@ public class DefaultDeprecationData implements DeprecationData {
         public DefaultDeprecationDataBuilder() {
             this.type = Type.USER_CODE_DIRECT;
         }
+
         public DefaultDeprecationDataBuilder(DeprecationData from) {
             this.type = from.getType();
         }

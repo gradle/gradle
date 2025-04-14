@@ -57,8 +57,15 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
         this.store = cache.get().createIndexedCache(
             IndexedCacheParameters.of("executionHistory", String.class, serializer)
-            .withCacheDecorator(inMemoryCacheDecorator)
+                .withCacheDecorator(inMemoryCacheDecorator)
         );
+    }
+
+    private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
+        return copyOfSorted(transformValues(
+            fingerprints,
+            value -> value.archive(SerializableFileCollectionFingerprint::new)
+        ));
     }
 
     @Override
@@ -83,12 +90,5 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     @Override
     public void remove(String key) {
         store.remove(key);
-    }
-
-    private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
-        return copyOfSorted(transformValues(
-            fingerprints,
-            value -> value.archive(SerializableFileCollectionFingerprint::new)
-        ));
     }
 }

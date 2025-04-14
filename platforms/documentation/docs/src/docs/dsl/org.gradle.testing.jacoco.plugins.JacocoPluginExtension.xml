@@ -26,7 +26,9 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>0.8.13</literal></td>
+                <td>
+                    <literal>0.8.13</literal>
+                </td>
             </tr>
             <tr>
                 <td>reportsDirectory</td>

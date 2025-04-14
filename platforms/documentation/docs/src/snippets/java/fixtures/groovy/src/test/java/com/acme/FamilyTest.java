@@ -2,6 +2,7 @@ package com.acme;
 
 import org.junit.Test;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+
 import static org.junit.Assert.*;
 import static com.acme.Simpsons.*;
 

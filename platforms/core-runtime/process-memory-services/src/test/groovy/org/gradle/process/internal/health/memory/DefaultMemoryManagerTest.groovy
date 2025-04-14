@@ -75,10 +75,10 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
     def "does not attempt to release memory when claiming 0 memory and free virtual memory is available"() {
         given:
         def windowsMemoryInfo = new TestWindowsOsMemoryInfo()
-        windowsMemoryInfo.totalMemory =  MemoryAmount.of('8g').bytes
-        windowsMemoryInfo.freeMemory =  MemoryAmount.of('7g').bytes
-        windowsMemoryInfo.totalVirtual =  MemoryAmount.of('12g').bytes
-        windowsMemoryInfo.freeVirtual =  MemoryAmount.of('6g').bytes
+        windowsMemoryInfo.totalMemory = MemoryAmount.of('8g').bytes
+        windowsMemoryInfo.freeMemory = MemoryAmount.of('7g').bytes
+        windowsMemoryInfo.totalVirtual = MemoryAmount.of('12g').bytes
+        windowsMemoryInfo.freeVirtual = MemoryAmount.of('6g').bytes
         def memoryManager = newMemoryManager(windowsMemoryInfo)
 
         and:
@@ -97,7 +97,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "attempt to release memory when claiming 0 memory and free physical memory is not available"() {
         given:
-        osMemoryInfo.freeMemory =  MemoryAmount.of('1g').bytes
+        osMemoryInfo.freeMemory = MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -117,10 +117,10 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
     def "attempt to release memory when claiming 0 memory and free virtual memory is not available"() {
         given:
         def windowsMemoryInfo = new TestWindowsOsMemoryInfo()
-        windowsMemoryInfo.totalMemory =  MemoryAmount.of('4g').bytes
-        windowsMemoryInfo.freeMemory =  MemoryAmount.of('3g').bytes
-        windowsMemoryInfo.totalVirtual =  MemoryAmount.of('8g').bytes
-        windowsMemoryInfo.freeVirtual =  MemoryAmount.of('1g').bytes
+        windowsMemoryInfo.totalMemory = MemoryAmount.of('4g').bytes
+        windowsMemoryInfo.freeMemory = MemoryAmount.of('3g').bytes
+        windowsMemoryInfo.totalVirtual = MemoryAmount.of('8g').bytes
+        windowsMemoryInfo.freeVirtual = MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager(windowsMemoryInfo)
 
         and:
@@ -139,7 +139,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "loop over all memory holders when claiming more memory than releasable"() {
         given:
-        osMemoryInfo.freeMemory =  MemoryAmount.of(1).bytes
+        osMemoryInfo.freeMemory = MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -161,7 +161,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "stop looping over memory holders once claimed memory has been released"() {
         given:
-        osMemoryInfo.freeMemory =  MemoryAmount.of('1g').bytes
+        osMemoryInfo.freeMemory = MemoryAmount.of('1g').bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -183,7 +183,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "only one request for memory is performed for a given snapshot"() {
         given:
-        osMemoryInfo.freeMemory =  MemoryAmount.of(1).bytes
+        osMemoryInfo.freeMemory = MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
 
         and:
@@ -226,7 +226,7 @@ class DefaultMemoryManagerTest extends ConcurrentSpec {
 
     def "can add and remove holders concurrently"() {
         given:
-        osMemoryInfo.freeMemory =  MemoryAmount.of(1).bytes
+        osMemoryInfo.freeMemory = MemoryAmount.of(1).bytes
         def memoryManager = newMemoryManager()
         def holders = new LinkedBlockingQueue<MemoryHolder>()
         when:

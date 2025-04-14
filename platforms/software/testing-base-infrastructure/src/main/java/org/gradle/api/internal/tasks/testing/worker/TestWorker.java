@@ -61,18 +61,14 @@ import java.util.concurrent.BlockingQueue;
  * main thread in order of arrival.
  */
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
-    private enum State {INITIALIZING, STARTED, STOPPED}
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
     public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     private static final String WORK_THREAD_NAME = "Test worker";
-
     private final WorkerTestClassProcessorFactory factory;
     private final BlockingQueue<Runnable> runQueue = new ArrayBlockingQueue<Runnable>(1);
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
-
     /**
      * Note that the state object is not synchronized and not thread-safe.  Any modifications to the
      * the state should ONLY be made inside the main thread or inside a command passed to the run queue
@@ -82,6 +78,15 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
+    }
+
+    private static void executeAndMaintainThreadName(Runnable action) {
+        try {
+            action.run();
+        } finally {
+            // Reset the thread name if the action changes it (e.g. if a test sets the thread name without resetting it afterwards)
+            Thread.currentThread().setName(WORK_THREAD_NAME);
+        }
     }
 
     @Override
@@ -124,15 +129,6 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                 }
             }
             testServices.close();
-        }
-    }
-
-    private static void executeAndMaintainThreadName(Runnable action) {
-        try {
-            action.run();
-        } finally {
-            // Reset the thread name if the action changes it (e.g. if a test sets the thread name without resetting it afterwards)
-            Thread.currentThread().setName(WORK_THREAD_NAME);
         }
     }
 
@@ -218,19 +214,21 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         }
     }
 
+    private enum State {INITIALIZING, STARTED, STOPPED}
+
     private static class TestFrameworkServiceRegistry implements ServiceRegistrationProvider {
+
+        private final WorkerProcessContext workerProcessContext;
+
+        public TestFrameworkServiceRegistry(WorkerProcessContext workerProcessContext) {
+            this.workerProcessContext = workerProcessContext;
+        }
 
         public static CloseableServiceRegistry create(WorkerProcessContext workerProcessContext) {
             return ServiceRegistryBuilder.builder()
                 .displayName("test framework services")
                 .provider(new TestFrameworkServiceRegistry(workerProcessContext))
                 .build();
-        }
-
-        private final WorkerProcessContext workerProcessContext;
-
-        public TestFrameworkServiceRegistry(WorkerProcessContext workerProcessContext) {
-            this.workerProcessContext = workerProcessContext;
         }
 
         @Provides

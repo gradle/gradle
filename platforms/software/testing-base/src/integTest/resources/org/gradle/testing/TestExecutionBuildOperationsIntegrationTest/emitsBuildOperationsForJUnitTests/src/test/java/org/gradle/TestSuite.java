@@ -22,12 +22,14 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({Test.class, OtherTest.class})
 public class TestSuite {
-    @org.junit.BeforeClass public static void init() {
+    @org.junit.BeforeClass
+    public static void init() {
         System.out.println("before suite class out");
         System.err.println("before suite class err");
     }
 
-    @org.junit.AfterClass public static void end() {
+    @org.junit.AfterClass
+    public static void end() {
         System.out.println("after suite class out");
         System.err.println("after suite class err");
     }

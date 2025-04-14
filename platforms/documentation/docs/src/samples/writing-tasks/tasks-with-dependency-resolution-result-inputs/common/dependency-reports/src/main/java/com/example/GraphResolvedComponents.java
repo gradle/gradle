@@ -20,9 +20,9 @@ import java.util.stream.Stream;
 
 public abstract class GraphResolvedComponents extends DefaultTask {
 
-// tag::inputs[]
-@Input
-public abstract Property<ResolvedComponentResult> getRootComponent();
+    // tag::inputs[]
+    @Input
+    public abstract Property<ResolvedComponentResult> getRootComponent();
 // end::inputs[]
 
     @OutputFile

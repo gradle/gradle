@@ -34,8 +34,8 @@ import java.util.TreeSet;
  * Static meta-data about a class extracted from the source for the class.
  */
 public class ClassMetaData extends AbstractLanguageElement implements Serializable, Attachable<ClassMetaData>, TypeContainer {
+    public final HashMap<String, String> constants = new HashMap<String, String>();
     private final String className;
-    private String superClassName;
     private final String packageName;
     private final MetaType metaType;
     private final boolean isGroovy;
@@ -44,10 +44,10 @@ public class ClassMetaData extends AbstractLanguageElement implements Serializab
     private final Map<String, PropertyMetaData> declaredProperties = new HashMap<String, PropertyMetaData>();
     private final Set<MethodMetaData> declaredMethods = new HashSet<MethodMetaData>();
     private final List<String> innerClassNames = new ArrayList<String>();
+    private final List<EnumConstantMetaData> enumConstants = new ArrayList<EnumConstantMetaData>();
+    private String superClassName;
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
-    public final HashMap<String, String> constants = new HashMap<String, String>();
-    private final List<EnumConstantMetaData> enumConstants = new ArrayList<EnumConstantMetaData>();
 
     public ClassMetaData(String className, String packageName, MetaType metaType, boolean isGroovy, String rawClassComment) {
         super(rawClassComment);

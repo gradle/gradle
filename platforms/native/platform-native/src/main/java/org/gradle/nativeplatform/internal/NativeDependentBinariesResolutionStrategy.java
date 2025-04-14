@@ -62,39 +62,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NativeDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
 
-    public interface TestSupport {
-        boolean isTestSuite(BinarySpecInternal target);
-
-        List<NativeBinarySpecInternal> getTestDependencies(NativeBinarySpecInternal nativeBinary);
-    }
-
-    private static class State {
-        private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = new LinkedHashMap<>();
-        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = new HashMap<>();
-
-        void registerBinary(NativeBinarySpecInternal binary) {
-            if (dependencies.get(binary) == null) {
-                dependencies.put(binary, new LinkedHashSet<>());
-            }
-        }
-
-        List<NativeBinarySpecInternal> getDependents(NativeBinarySpecInternal target) {
-            List<NativeBinarySpecInternal> result = dependents.get(target);
-            if (result == null) {
-                result = new ArrayList<>();
-                for (NativeBinarySpecInternal dependentBinary : dependencies.keySet()) {
-                    if (dependencies.get(dependentBinary).contains(target)) {
-                        result.add(dependentBinary);
-                    }
-                }
-                dependents.put(target, result);
-            }
-            return result;
-        }
-    }
-
     public static final String NAME = "native";
-
     private final BuildProjectRegistry projectRegistry;
     private final ProjectModelResolver projectModelResolver;
     private final Cache<String, State> stateCache = CacheBuilder.newBuilder()
@@ -105,9 +73,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         .maximumSize(3000)
         .expireAfterAccess(10, TimeUnit.SECONDS)
         .build();
-
     private TestSupport testSupport;
-
     public NativeDependentBinariesResolutionStrategy(BuildProjectRegistry projectRegistry, ProjectModelResolver projectModelResolver) {
         super();
         checkNotNull(projectRegistry, "ProjectRegistry must not be null");
@@ -250,5 +216,36 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(target, writer);
         throw new CircularReferenceException(String.format("Circular dependency between the following binaries:%n%s", writer.toString()));
+    }
+
+    public interface TestSupport {
+        boolean isTestSuite(BinarySpecInternal target);
+
+        List<NativeBinarySpecInternal> getTestDependencies(NativeBinarySpecInternal nativeBinary);
+    }
+
+    private static class State {
+        private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = new LinkedHashMap<>();
+        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = new HashMap<>();
+
+        void registerBinary(NativeBinarySpecInternal binary) {
+            if (dependencies.get(binary) == null) {
+                dependencies.put(binary, new LinkedHashSet<>());
+            }
+        }
+
+        List<NativeBinarySpecInternal> getDependents(NativeBinarySpecInternal target) {
+            List<NativeBinarySpecInternal> result = dependents.get(target);
+            if (result == null) {
+                result = new ArrayList<>();
+                for (NativeBinarySpecInternal dependentBinary : dependencies.keySet()) {
+                    if (dependencies.get(dependentBinary).contains(target)) {
+                        result.add(dependentBinary);
+                    }
+                }
+                dependents.put(target, result);
+            }
+            return result;
+        }
     }
 }

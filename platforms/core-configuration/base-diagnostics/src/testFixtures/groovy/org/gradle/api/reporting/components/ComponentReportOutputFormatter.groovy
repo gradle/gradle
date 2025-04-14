@@ -22,7 +22,7 @@ class ComponentReportOutputFormatter implements InternalTransformer<String, Stri
 
     @Override
     String transform(String original) {
-         return original
-                .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
+        return original
+            .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }
 }

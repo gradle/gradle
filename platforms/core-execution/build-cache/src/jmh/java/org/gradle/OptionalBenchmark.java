@@ -43,12 +43,6 @@ public class OptionalBenchmark {
     final Path path = Paths.get(".");
     final Path pathRoot = Paths.get(".").toAbsolutePath().getRoot();
 
-    @Benchmark
-    public void nullCheck(Blackhole bh) {
-        bh.consume(nullCheck(path));
-        bh.consume(nullCheck(pathRoot));
-    }
-
     private static Object nullCheck(Path path) {
         Path fileName = path.getFileName();
         if (fileName != null) {
@@ -58,15 +52,21 @@ public class OptionalBenchmark {
         }
     }
 
-    @Benchmark
-    public void optional(Blackhole bh) {
-        bh.consume(optional(path));
-        bh.consume(optional(pathRoot));
-    }
-
     private static Object optional(Path path) {
         return Optional.ofNullable(path.getFileName())
             .map(Object::toString)
             .orElse("");
+    }
+
+    @Benchmark
+    public void nullCheck(Blackhole bh) {
+        bh.consume(nullCheck(path));
+        bh.consume(nullCheck(pathRoot));
+    }
+
+    @Benchmark
+    public void optional(Blackhole bh) {
+        bh.consume(optional(path));
+        bh.consume(optional(pathRoot));
     }
 }

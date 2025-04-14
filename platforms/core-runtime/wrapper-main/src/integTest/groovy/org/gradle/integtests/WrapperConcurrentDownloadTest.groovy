@@ -24,7 +24,8 @@ import spock.lang.Issue
 
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.expect(server.head("/gradle-bin.zip"))

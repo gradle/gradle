@@ -35,7 +35,6 @@ public interface VariantTransformRegistry {
      *
      * @param actionType the type of the transform action
      * @param registrationAction an action used to configure the transform
-     *
      * @see TransformAction
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);

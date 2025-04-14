@@ -51,6 +51,11 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
+    public void setTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
+        this.taskExecutionMode = taskExecutionMode;
+    }
+
+    @Override
     public WorkValidationContext getValidationContext() {
         return validationContext;
     }
@@ -58,11 +63,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public ValidationAction getValidationAction() {
         return validationAction;
-    }
-
-    @Override
-    public void setTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
-        this.taskExecutionMode = taskExecutionMode;
     }
 
     @Override

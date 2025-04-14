@@ -92,9 +92,9 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     def testTask() {
         expect:
         getTask().isEnabled()
-        TEST_TASK_NAME ==  getTask().getName()
+        TEST_TASK_NAME == getTask().getName()
         getTask().getDescription() == null
-        project.is( getTask().getProject())
+        project.is(getTask().getProject())
         getTask().getStandardOutputCapture() != null
         getTask().getInputs() != null
         getTask().getOutputs() != null
@@ -112,19 +112,19 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         Task task = createTask(project, TEST_TASK_NAME)
 
         then:
-        Project.PATH_SEPARATOR + TEST_TASK_NAME ==  task.getPath()
+        Project.PATH_SEPARATOR + TEST_TASK_NAME == task.getPath()
 
         when:
         task = createTask(childProject, TEST_TASK_NAME)
 
         then:
-        Project.PATH_SEPARATOR + "child" + Project.PATH_SEPARATOR + TEST_TASK_NAME ==  task.getPath()
+        Project.PATH_SEPARATOR + "child" + Project.PATH_SEPARATOR + TEST_TASK_NAME == task.getPath()
 
         when:
         task = createTask(childchildProject, TEST_TASK_NAME)
 
         then:
-        Project.PATH_SEPARATOR + "child" + Project.PATH_SEPARATOR + "childchild" + Project.PATH_SEPARATOR + TEST_TASK_NAME ==  task.getPath()
+        Project.PATH_SEPARATOR + "child" + Project.PATH_SEPARATOR + "childchild" + Project.PATH_SEPARATOR + TEST_TASK_NAME == task.getPath()
     }
 
     def testDependsOn() {
@@ -147,7 +147,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def testToString() {
-        "task '" + getTask().getPath() + "'" ==  getTask().toString()
+        "task '" + getTask().getPath() + "'" == getTask().toString()
     }
 
     def testSetActions() {
@@ -159,7 +159,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         getTask().actions = [action2]
 
         then:
-        [new AbstractTask.TaskActionWrapper(action2, "doLast(Action)")] ==  getTask().actions
+        [new AbstractTask.TaskActionWrapper(action2, "doLast(Action)")] == getTask().actions
     }
 
     def testAddActionWithNull() {
@@ -176,7 +176,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         getTask().setDescription(testDescription)
 
         then:
-        testDescription ==  getTask().getDescription()
+        testDescription == getTask().getDescription()
     }
 
     def canSpecifyOnlyIfPredicateUsingClosure() {

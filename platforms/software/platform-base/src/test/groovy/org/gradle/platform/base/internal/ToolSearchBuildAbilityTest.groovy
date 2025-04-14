@@ -24,7 +24,7 @@ class ToolSearchBuildAbilityTest extends Specification {
     ToolSearchResult result = Mock(ToolSearchResult)
     ToolSearchBuildAbility ability = new ToolSearchBuildAbility(result)
 
-    def "is buildable when tool search is successful" () {
+    def "is buildable when tool search is successful"() {
         when:
         result.isAvailable() >> true
 
@@ -32,7 +32,7 @@ class ToolSearchBuildAbilityTest extends Specification {
         ability.isBuildable()
     }
 
-    def "is not buildable when tool search is not successful" () {
+    def "is not buildable when tool search is not successful"() {
         when:
         result.isAvailable() >> false
 
@@ -40,7 +40,7 @@ class ToolSearchBuildAbilityTest extends Specification {
         !ability.isBuildable()
     }
 
-    def "explains reason when tool search is not successful" () {
+    def "explains reason when tool search is not successful"() {
         def visitor = Mock(DiagnosticsVisitor)
 
         when:

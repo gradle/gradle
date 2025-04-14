@@ -30,14 +30,6 @@ import java.util.Set;
 
 abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleWorkAction.Maven2GradleWorkParameters> {
 
-    public interface Maven2GradleWorkParameters extends WorkParameters {
-        DirectoryProperty getWorkingDir();
-        Property<BuildInitDsl> getDsl();
-        Property<Boolean> getUseIncubatingAPIs();
-        Property<Settings> getMavenSettings();
-        Property<InsecureProtocolOption> getInsecureProtocolOption();
-    }
-
     @Override
     public void execute() {
         Maven2GradleWorkParameters params = getParameters();
@@ -48,5 +40,17 @@ abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleW
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
+    }
+
+    public interface Maven2GradleWorkParameters extends WorkParameters {
+        DirectoryProperty getWorkingDir();
+
+        Property<BuildInitDsl> getDsl();
+
+        Property<Boolean> getUseIncubatingAPIs();
+
+        Property<Settings> getMavenSettings();
+
+        Property<InsecureProtocolOption> getInsecureProtocolOption();
     }
 }

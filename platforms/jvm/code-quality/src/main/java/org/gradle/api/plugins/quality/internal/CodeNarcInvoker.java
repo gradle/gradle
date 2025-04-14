@@ -44,6 +44,22 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
         this.parameters = parameters;
     }
 
+    @SuppressWarnings("unchecked")
+    static void setLifecycleLogLevel(AntBuilderDelegate ant, @Nullable String lifecycleLogLevel) {
+        try {
+            Object project = ant.getBuilder().getClass().getMethod("getProject").invoke(ant.getBuilder());
+            List<Object> buildListeners = (List<Object>) project.getClass().getMethod("getBuildListeners").invoke(project);
+            for (Object it : buildListeners) {
+                // We cannot use instanceof or getClass().equals(AntLoggingAdapter.class) since they're in different class loaders
+                if (it.getClass().getName().equals(AntLoggingAdapter.class.getName())) {
+                    it.getClass().getMethod("setLifecycleLogLevel", String.class).invoke(it, lifecycleLogLevel);
+                }
+            }
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void execute(AntBuilderDelegate ant) {
         FileCollection compilationClasspath = parameters.getCompilationClasspath();
@@ -133,22 +149,6 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
                 throw new GradleException(message, e);
             }
             throw e;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static void setLifecycleLogLevel(AntBuilderDelegate ant, @Nullable String lifecycleLogLevel) {
-        try {
-            Object project = ant.getBuilder().getClass().getMethod("getProject").invoke(ant.getBuilder());
-            List<Object> buildListeners = (List<Object>) project.getClass().getMethod("getBuildListeners").invoke(project);
-            for (Object it : buildListeners) {
-                // We cannot use instanceof or getClass().equals(AntLoggingAdapter.class) since they're in different class loaders
-                if (it.getClass().getName().equals(AntLoggingAdapter.class.getName())) {
-                    it.getClass().getMethod("setLifecycleLogLevel", String.class).invoke(it, lifecycleLogLevel);
-                }
-            }
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
         }
     }
 }

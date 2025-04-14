@@ -51,6 +51,7 @@ public abstract class AbstractAttributeContainer implements AttributeContainerIn
 
     @Override
     public abstract boolean equals(Object o);
+
     @Override
     public abstract int hashCode();
 

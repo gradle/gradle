@@ -35,6 +35,12 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
     private final ImmutableListMultimap<String, Macro> macros;
     private final ImmutableListMultimap<String, MacroFunction> macroFunctions;
 
+    private DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableListMultimap<String, Macro> macros, ImmutableListMultimap<String, MacroFunction> macroFunctions) {
+        this.allIncludes = allIncludes;
+        this.macros = macros;
+        this.macroFunctions = macroFunctions;
+    }
+
     public static IncludeDirectives of(ImmutableList<Include> allIncludes, ImmutableList<Macro> macros, ImmutableList<MacroFunction> macroFunctions) {
         if (allIncludes.isEmpty() && macros.isEmpty() && macroFunctions.isEmpty()) {
             return EMPTY;
@@ -54,12 +60,6 @@ public class DefaultIncludeDirectives implements IncludeDirectives {
                     return input.getName();
                 }
             }));
-    }
-
-    private DefaultIncludeDirectives(ImmutableList<Include> allIncludes, ImmutableListMultimap<String, Macro> macros, ImmutableListMultimap<String, MacroFunction> macroFunctions) {
-        this.allIncludes = allIncludes;
-        this.macros = macros;
-        this.macroFunctions = macroFunctions;
     }
 
     @Override

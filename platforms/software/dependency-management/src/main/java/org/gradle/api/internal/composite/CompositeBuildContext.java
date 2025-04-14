@@ -30,5 +30,6 @@ import java.util.Set;
 @ServiceScope(Scope.BuildTree.class)
 public interface CompositeBuildContext extends DependencySubstitutionRules {
     void addAvailableModules(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules);
+
     void registerSubstitution(Action<DependencySubstitution> substitutions);
 }

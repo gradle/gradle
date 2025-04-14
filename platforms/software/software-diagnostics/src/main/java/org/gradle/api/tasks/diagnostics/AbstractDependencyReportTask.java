@@ -64,20 +64,6 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         this.renderer = renderer;
     }
 
-    /**
-     * Report model.
-     *
-     * @since 7.6
-     */
-    @Incubating
-    public static final class DependencyReportModel {
-        private final List<ConfigurationDetails> configurations;
-
-        private DependencyReportModel(List<ConfigurationDetails> configurations) {
-            this.configurations = configurations;
-        }
-    }
-
     @Override
     protected DependencyReportModel calculateReportModelFor(Project project) {
         SortedSet<Configuration> sortedConfigurations = new TreeSet<>(Comparator.comparing(Configuration::getName));
@@ -137,7 +123,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     private Set<Configuration> getConfigurationsWithDependencies() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
         for (Configuration configuration : Objects.requireNonNull(getTaskConfigurations())) {
-            if (((ConfigurationInternal)configuration).isDeclarableByExtension()) {
+            if (((ConfigurationInternal) configuration).isDeclarableByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }
@@ -147,5 +133,19 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     @Internal
     public ConfigurationContainer getTaskConfigurations() {
         return getProject().getConfigurations();
+    }
+
+    /**
+     * Report model.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public static final class DependencyReportModel {
+        private final List<ConfigurationDetails> configurations;
+
+        private DependencyReportModel(List<ConfigurationDetails> configurations) {
+            this.configurations = configurations;
+        }
     }
 }

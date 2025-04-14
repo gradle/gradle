@@ -29,7 +29,6 @@ public interface TaskDestroyables {
      * Registers files or directories that this task destroys.
      *
      * @param paths The files or directories that will be destroyed. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     *
      * @since 4.3
      */
     void register(Object... paths);

@@ -20,7 +20,8 @@ import org.junit.Rule
 import org.gradle.util.SetSystemProperties
 
 class GradleLauncherMetaDataTest extends Specification {
-    @Rule public final SetSystemProperties sysProps = new SetSystemProperties()
+    @Rule
+    public final SetSystemProperties sysProps = new SetSystemProperties()
 
     def usesSystemPropertyToDetermineApplicationName() {
         System.setProperty("org.gradle.appname", "some-gradle-launcher")

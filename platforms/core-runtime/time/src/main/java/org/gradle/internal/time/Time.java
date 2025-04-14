@@ -25,6 +25,9 @@ public abstract class Time {
 
     private static final Clock CLOCK = new MonotonicClock();
 
+    private Time() {
+    }
+
     /**
      * A clock that is guaranteed not to go backwards.
      *
@@ -63,9 +66,6 @@ public abstract class Time {
 
     public static CountdownTimer startCountdownTimer(long timeout, TimeUnit unit) {
         return new DefaultCountdownTimer(TimeSource.SYSTEM, timeout, unit);
-    }
-
-    private Time() {
     }
 
 }

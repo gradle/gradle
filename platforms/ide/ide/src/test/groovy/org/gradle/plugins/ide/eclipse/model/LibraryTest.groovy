@@ -36,7 +36,7 @@ class LibraryTest extends Specification {
 
     String platformXml;
 
-    def setup(){
+    def setup() {
         //xml differs on windows and mac due to required absolute paths for javadoc uri
         platformXml = XML_TEXT_TEMPLATE.replace("%FILE_URI%", new File("ant-javadoc.jar").toURI().toString());
     }

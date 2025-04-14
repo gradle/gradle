@@ -25,8 +25,10 @@ import java.util.Map;
 
 public interface IvyModule extends Module {
     String getOrganisation();
+
     @Override
     String getModule();
+
     String getRevision();
 
     ModuleArtifact getIvy();
@@ -65,12 +67,12 @@ public interface IvyModule extends Module {
 
     /**
      * Attributes:
-     *  organisation
-     *  module
-     *  revision
-     *  revConstraint
-     *  conf
-     *  exclusions - list of maps: [[group: ?, module: ?], ...]
+     * organisation
+     * module
+     * revision
+     * revConstraint
+     * conf
+     * exclusions - list of maps: [[group: ?, module: ?], ...]
      */
     IvyModule dependsOn(Map<String, ?> attributes);
 
@@ -89,10 +91,10 @@ public interface IvyModule extends Module {
 
     /**
      * Options:
-     *  name
-     *  type
-     *  classifier
-     *  conf
+     * name
+     * type
+     * classifier
+     * conf
      */
     IvyModule artifact(Map<String, ?> options);
 
@@ -107,9 +109,9 @@ public interface IvyModule extends Module {
 
     /**
      * Options:
-     *  extendsFrom
-     *  transitive
-     *  visibility
+     * extendsFrom
+     * transitive
+     * visibility
      */
     IvyModule configuration(Map<String, ?> options, String name);
 

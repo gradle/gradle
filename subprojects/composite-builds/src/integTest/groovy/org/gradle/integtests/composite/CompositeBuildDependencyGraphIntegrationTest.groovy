@@ -702,6 +702,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
     }
 
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
+
     @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "includes build identifier in error message on failure to resolve dependencies of included build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")

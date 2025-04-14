@@ -30,10 +30,10 @@ public class AbstractInputExecutionState<C extends FileCollectionFingerprint> im
     protected final ImmutableSortedMap<String, C> inputFileProperties;
 
     public AbstractInputExecutionState(
-            ImplementationSnapshot implementation,
-            ImmutableList<ImplementationSnapshot> additionalImplementations,
-            ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-            ImmutableSortedMap<String, C> inputFileProperties
+        ImplementationSnapshot implementation,
+        ImmutableList<ImplementationSnapshot> additionalImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedMap<String, C> inputFileProperties
     ) {
         this.implementation = implementation;
         this.additionalImplementations = additionalImplementations;

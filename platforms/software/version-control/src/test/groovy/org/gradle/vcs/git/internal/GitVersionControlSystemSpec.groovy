@@ -79,9 +79,9 @@ class GitVersionControlSystemSpec extends Specification {
         gitVcs.populate(target, repoHead, repoSpec)
 
         then:
-        target.file( '.git').assertIsDir()
-        target.file( 'source.txt').text == 'Hello world!'
-        target.file( 'dir/another.txt').text == 'Goodbye world!'
+        target.file('.git').assertIsDir()
+        target.file('source.txt').text == 'Hello world!'
+        target.file('dir/another.txt').text == 'Goodbye world!'
     }
 
     def 'clone a repository with a submodule'() {
@@ -93,8 +93,8 @@ class GitVersionControlSystemSpec extends Specification {
         gitVcs.populate(target, repoHead, repoSpec)
 
         then:
-        target.file( '.git').assertIsDir()
-        target.file( 'submodule/foo.txt').text == "hello from submodule"
+        target.file('.git').assertIsDir()
+        target.file('submodule/foo.txt').text == "hello from submodule"
     }
 
     def 'reset a cloned repository with dirty working dir'() {

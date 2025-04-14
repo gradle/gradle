@@ -221,5 +221,6 @@ fun builtinMapAugmentation(lhs: Any, rhs: Map<*, *>): Any =
             Cast.uncheckedNonnullCast<MapProperty<Any, Any>>(lhs).putAll(Cast.uncheckedNonnullCast<Map<Any, Any>>(rhs))
             skipSetterSpecialValue
         }
+
         else -> error("Unexpected augmented map property value: $lhs")
     }

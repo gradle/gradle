@@ -37,6 +37,6 @@ public interface JavaRuntime {
      * The home directory of the Java runtime installation.
      *
      * @return The home directory. Never returns {@code null}.
-     * */
+     */
     File getJavaHome();
 }

@@ -207,7 +207,7 @@ class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec
             }
         """
     }
-    
+
     static String getDependsOnPidCapturingAnnotationProcessor() {
         return """
             dependencies {

@@ -41,7 +41,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def "writes correct prologue and schema declarations"() {
         expect:
         writePomFile().text.startsWith(TextUtil.toPlatformLineSeparators(
-"""<?xml version="1.0" encoding="UTF-8"?>
+            """<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 """))
@@ -63,7 +63,7 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "writes configured coordinates"() {
         expect:
-        with (xml) {
+        with(xml) {
             groupId == "group-id"
             artifactId == "artifact-id"
             version == "1.0"
@@ -123,7 +123,7 @@ class MavenPomFileGeneratorTest extends Specification {
         }
 
         expect:
-        with (xml) {
+        with(xml) {
             packaging == "pom"
             name == "my name"
             description == "my description"
@@ -151,7 +151,7 @@ class MavenPomFileGeneratorTest extends Specification {
         pom.coordinates.version.set('version-&"')
 
         expect:
-        with (xml) {
+        with(xml) {
             groupId == 'group-ぴ₦ガき∆ç√∫'
             artifactId == 'artifact-<tag attrib="value"/>-markup'
             version == 'version-&"'
@@ -166,9 +166,9 @@ class MavenPomFileGeneratorTest extends Specification {
         pom.getDependencies().set(pomDependencies(dependency))
 
         expect:
-        with (xml) {
+        with(xml) {
             dependencies.dependency.size() == 1
-            with (dependencies[0].dependency[0]) {
+            with(dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "dep-name"
                 version == "dep-version"
@@ -183,7 +183,7 @@ class MavenPomFileGeneratorTest extends Specification {
         pom.getDependencies().set(pomDependencies(dependency))
 
         expect:
-        with (xml) {
+        with(xml) {
             dependencies.dependency.exclusions.size() == 0
         }
     }
@@ -206,17 +206,17 @@ class MavenPomFileGeneratorTest extends Specification {
         exclude3.module >> "excl-3-module"
 
         then:
-        with (xml) {
+        with(xml) {
             dependencies.dependency.exclusions.exclusion.size() == 3
-            with (dependencies[0].dependency[0].exclusions[0].exclusion[0]) {
+            with(dependencies[0].dependency[0].exclusions[0].exclusion[0]) {
                 groupId == "excl-1-group"
                 artifactId == "excl-1-module"
             }
-            with (dependencies[0].dependency[0].exclusions[0].exclusion[1]) {
+            with(dependencies[0].dependency[0].exclusions[0].exclusion[1]) {
                 groupId == "excl-2-group"
                 artifactId == "*"
             }
-            with (dependencies[0].dependency[0].exclusions[0].exclusion[2]) {
+            with(dependencies[0].dependency[0].exclusions[0].exclusion[2]) {
                 groupId == "*"
                 artifactId == "excl-3-module"
             }
@@ -230,9 +230,9 @@ class MavenPomFileGeneratorTest extends Specification {
         ]))
 
         expect:
-        with (xml) {
+        with(xml) {
             dependencies.dependency.size() == 2
-            with (dependencies[0].dependency[0]) {
+            with(dependencies[0].dependency[0]) {
                 groupId == "dep-group"
                 artifactId == "artifact-1"
                 version == "dep-version"
@@ -240,7 +240,7 @@ class MavenPomFileGeneratorTest extends Specification {
                 classifier == "classifier-1"
                 scope == "runtime"
             }
-            with (dependencies[0].dependency[1]) {
+            with(dependencies[0].dependency[1]) {
                 groupId == "dep-group"
                 artifactId == "artifact-2"
                 version == "dep-version"
@@ -261,7 +261,7 @@ class MavenPomFileGeneratorTest extends Specification {
         }
 
         then:
-        with (xml) {
+        with(xml) {
             groupId == "new-group"
             description == "custom-description-ぴ₦ガき∆ç√∫"
         }

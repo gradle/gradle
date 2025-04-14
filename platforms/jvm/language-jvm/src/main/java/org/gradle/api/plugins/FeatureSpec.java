@@ -28,6 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface FeatureSpec {
     /**
      * Declares the source set which this feature is built from.
+     *
      * @param sourceSet the source set
      */
     void usingSourceSet(SourceSet sourceSet);

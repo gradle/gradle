@@ -46,13 +46,17 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
  * Generates an HTML report based on test class results from a {@link TestResultsProvider}.
  */
 public class HtmlTestReport {
+    private final static Logger LOG = Logging.getLogger(HtmlTestReport.class);
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final static Logger LOG = Logging.getLogger(HtmlTestReport.class);
 
     public HtmlTestReport(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
+    }
+
+    public static <T extends CompositeTestResults> HtmlReportFileGenerator<T> generator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
+        return new HtmlReportFileGenerator<T>(fileUrl, results, renderer, output);
     }
 
     public void generateReport(TestResultsProvider resultsProvider, File reportDir) {
@@ -124,10 +128,6 @@ public class HtmlTestReport {
         } catch (Exception e) {
             throw new GradleException(String.format("Could not generate test report to '%s'.", reportDir), e);
         }
-    }
-
-    public static <T extends CompositeTestResults> HtmlReportFileGenerator<T> generator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
-        return new HtmlReportFileGenerator<T>(fileUrl, results, renderer, output);
     }
 
     private static class HtmlReportFileGenerator<T extends CompositeTestResults> implements RunnableBuildOperation {

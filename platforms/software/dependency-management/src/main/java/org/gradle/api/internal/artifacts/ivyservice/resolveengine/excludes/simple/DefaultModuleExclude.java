@@ -23,13 +23,13 @@ final class DefaultModuleExclude implements ModuleExclude {
     private final String module;
     private final int hashCode;
 
-    public static ModuleExclude of(String module) {
-        return new DefaultModuleExclude(module);
-    }
-
     private DefaultModuleExclude(String module) {
         this.module = module;
         this.hashCode = module.hashCode();
+    }
+
+    public static ModuleExclude of(String module) {
+        return new DefaultModuleExclude(module);
     }
 
     @Override

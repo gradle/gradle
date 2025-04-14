@@ -122,7 +122,8 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             builder.internalView(PlatformAwareComponentSpecInternal.class);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         LanguageTransformContainer languageTransforms(CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
             return new DefaultLanguageTransformContainer(collectionCallbackActionDecorator);
         }
@@ -151,7 +152,8 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator, collectionCallbackActionDecorator);
         }
 
-        @Hidden @Model
+        @Hidden
+        @Model
         PlatformResolvers platformResolver(PlatformContainer platforms) {
             return new DefaultPlatformResolvers(platforms);
         }
@@ -186,33 +188,6 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             }
             if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
                 assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
-            }
-        }
-
-        private static class CheckForNotBuildableBinariesAction implements Action<Task> {
-            private final List<BinarySpecInternal> notBuildable;
-
-            public CheckForNotBuildableBinariesAction(List<BinarySpecInternal> notBuildable) {
-                this.notBuildable = notBuildable;
-            }
-
-            @Override
-            public void execute(Task task) {
-                Set<? extends Task> taskDependencies = TaskDependencyUtil.getDependenciesForInternalUse(task.getTaskDependencies(), task);
-
-                if (taskDependencies.isEmpty()) {
-                    TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("No buildable binaries found");
-                    formatter.startChildren();
-                    for (BinarySpecInternal binary : notBuildable) {
-                        formatter.node(binary.getDisplayName());
-                        formatter.startChildren();
-                        binary.getBuildAbility().explain(formatter);
-                        formatter.endChildren();
-                    }
-                    formatter.endChildren();
-                    throw new GradleException(formatter.toString());
-                }
             }
         }
 
@@ -252,13 +227,13 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             for (BinarySpec binary : binaries) {
                 Task checkTask = binary.getCheckTask();
                 if (checkTask != null) {
-                    ((TaskContainerInternal)tasks).addInternal(checkTask);
+                    ((TaskContainerInternal) tasks).addInternal(checkTask);
                 }
             }
         }
 
         @Defaults
-        // TODO:LPTR We should collect all source sets in the project source set, however this messes up ComponentReportRenderer
+            // TODO:LPTR We should collect all source sets in the project source set, however this messes up ComponentReportRenderer
         void addComponentSourcesSetsToProjectSourceSet(@Each SourceComponentSpec component, final ProjectSourceSet projectSourceSet) {
             component.getSources().afterEach(new Action<LanguageSourceSet>() {
                 @Override
@@ -274,13 +249,53 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             attachInputs.setSources(component.getSources());
         }
 
+        @Hidden
+        @Model
+        DependentBinariesResolver dependentBinariesResolver(Instantiator instantiator) {
+            return instantiator.newInstance(DefaultDependentBinariesResolver.class);
+        }
+
+        @Defaults
+        void registerBaseDependentBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
+            resolver.register(new BaseDependentBinariesResolutionStrategy());
+        }
+
+        private static class CheckForNotBuildableBinariesAction implements Action<Task> {
+            private final List<BinarySpecInternal> notBuildable;
+
+            public CheckForNotBuildableBinariesAction(List<BinarySpecInternal> notBuildable) {
+                this.notBuildable = notBuildable;
+            }
+
+            @Override
+            public void execute(Task task) {
+                Set<? extends Task> taskDependencies = TaskDependencyUtil.getDependenciesForInternalUse(task.getTaskDependencies(), task);
+
+                if (taskDependencies.isEmpty()) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("No buildable binaries found");
+                    formatter.startChildren();
+                    for (BinarySpecInternal binary : notBuildable) {
+                        formatter.node(binary.getDisplayName());
+                        formatter.startChildren();
+                        binary.getBuildAbility().explain(formatter);
+                        formatter.endChildren();
+                    }
+                    formatter.endChildren();
+                    throw new GradleException(formatter.toString());
+                }
+            }
+        }
+
         static abstract class AttachInputs extends RuleSource {
             @RuleTarget
             abstract ModelMap<BinarySpec> getBinaries();
+
             abstract void setBinaries(ModelMap<BinarySpec> binaries);
 
             @RuleInput
             abstract ModelMap<LanguageSourceSet> getSources();
+
             abstract void setSources(ModelMap<LanguageSourceSet> sources);
 
             @Mutate
@@ -293,16 +308,6 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
                     }
                 });
             }
-        }
-
-        @Hidden @Model
-        DependentBinariesResolver dependentBinariesResolver(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultDependentBinariesResolver.class);
-        }
-
-        @Defaults
-        void registerBaseDependentBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
-            resolver.register(new BaseDependentBinariesResolutionStrategy());
         }
     }
 }

@@ -40,12 +40,11 @@ import java.util.List;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
     private final ProblemsInfrastructure problemsInfrastructure;
-
+    private final List<ProblemLocation> originLocations = new ArrayList<ProblemLocation>();
+    private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
     private ProblemId id;
     private String contextualLabel;
     private Severity severity;
-    private final List<ProblemLocation> originLocations = new ArrayList<ProblemLocation>();
-    private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
     private String details;
     private DocLink docLink;
     private List<String> solutions;
@@ -77,6 +76,33 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
+    }
+
+    @Nullable
+    private static PluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
+        UserCodeSource source = problemDiagnostics.getSource();
+        if (source == null) {
+            return null;
+        }
+        String pluginId = source.getPluginId();
+        if (pluginId == null) {
+            return null;
+        }
+        return new DefaultPluginIdLocation(pluginId);
+    }
+
+    private static FileLocation getFileLocation(Location loc) {
+        String path = loc.getFilePath();
+        int line = loc.getLineNumber();
+        return DefaultLineInFileLocation.from(path, line);
+    }
+
+    private static ProblemId cloneId(ProblemId original) {
+        return ProblemId.create(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
+    }
+
+    private static ProblemGroup cloneGroup(ProblemGroup original) {
+        return ProblemGroup.create(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override
@@ -146,25 +172,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (pluginIdLocation != null) {
             locations.add(pluginIdLocation);
         }
-    }
-
-    @Nullable
-    private static PluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
-        UserCodeSource source = problemDiagnostics.getSource();
-        if (source == null) {
-            return null;
-        }
-        String pluginId = source.getPluginId();
-        if (pluginId == null) {
-            return null;
-        }
-        return new DefaultPluginIdLocation(pluginId);
-    }
-
-    private static FileLocation getFileLocation(Location loc) {
-        String path = loc.getFilePath();
-        int line = loc.getLineNumber();
-        return DefaultLineInFileLocation.from(path, line);
     }
 
     private InternalProblem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
@@ -300,14 +307,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
         this.id = ProblemId.create(name, displayName, cloneGroup(parent));
         return this;
-    }
-
-    private static ProblemId cloneId(ProblemId original) {
-        return ProblemId.create(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
-    }
-
-    private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return ProblemGroup.create(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override

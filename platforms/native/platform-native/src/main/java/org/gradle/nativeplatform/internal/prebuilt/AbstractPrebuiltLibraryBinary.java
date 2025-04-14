@@ -30,12 +30,12 @@ import java.util.Collections;
 import java.util.Set;
 
 public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBinary {
+    protected final FileCollectionFactory fileCollectionFactory;
     private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
     private final NativePlatform targetPlatform;
     private final Flavor flavor;
-    protected final FileCollectionFactory fileCollectionFactory;
 
     public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, NativePlatform targetPlatform, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
         this.name = name;

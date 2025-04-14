@@ -115,7 +115,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             fqid == 'task-selection:no-matches'
             contextualLabel == 'Cannot locate tasks that match \':a:javadocJar\' as task \'javadocJar\' not found in project \':a\'. Some candidates are: \'javadoc\'.'
-            additionalData.asMap == [ 'requestedPath' : ':a:javadocJar']
+            additionalData.asMap == ['requestedPath': ':a:javadocJar']
         }
 
         when:
@@ -139,7 +139,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             fqid == 'task-selection:selection-failed'
             contextualLabel == 'Cannot locate tasks that match \':a:sourcesJar\' as task \'sourcesJar\' not found in project \':a\'.'
-            additionalData.asMap == [ 'requestedPath' : ':a:sourcesJar']
+            additionalData.asMap == ['requestedPath': ':a:sourcesJar']
         }
 
         when:
@@ -210,7 +210,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         new ZipTestFixture(file("a/build/$jarName"))
     }
 
-    private void subproject(String name, @DelegatesTo(value=FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
+    private void subproject(String name, @DelegatesTo(value = FileTreeBuilder, strategy = Closure.DELEGATE_FIRST) Closure<Void> config) {
         file("settings.gradle") << "include '$name'\n"
         def subprojectDir = file(name)
         subprojectDir.mkdirs()

@@ -32,16 +32,26 @@ import static org.junit.Assume.assumeTrue
 
 @Requires(UnitTestPreconditions.CanInstallExecutable)
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
-    @Rule public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')
-    @Rule public final Sample multiProject = sample(testDirectoryProvider, 'multi-project')
-    @Rule public final Sample flavors = sample(testDirectoryProvider, 'flavors')
-    @Rule public final Sample variants = sample(testDirectoryProvider, 'variants')
-    @Rule public final Sample toolChains = sample(testDirectoryProvider, 'tool-chains')
-    @Rule public final Sample prebuilt = sample(testDirectoryProvider, 'prebuilt')
-    @Rule public final Sample targetPlatforms = sample(testDirectoryProvider, 'target-platforms')
-    @Rule public final Sample sourcesetVariant = sample(testDirectoryProvider, "sourceset-variant")
-    @Rule public final Sample customCheck = sample(testDirectoryProvider, "custom-check")
+    @Rule
+    public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
+    @Rule
+    public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')
+    @Rule
+    public final Sample multiProject = sample(testDirectoryProvider, 'multi-project')
+    @Rule
+    public final Sample flavors = sample(testDirectoryProvider, 'flavors')
+    @Rule
+    public final Sample variants = sample(testDirectoryProvider, 'variants')
+    @Rule
+    public final Sample toolChains = sample(testDirectoryProvider, 'tool-chains')
+    @Rule
+    public final Sample prebuilt = sample(testDirectoryProvider, 'prebuilt')
+    @Rule
+    public final Sample targetPlatforms = sample(testDirectoryProvider, 'target-platforms')
+    @Rule
+    public final Sample sourcesetVariant = sample(testDirectoryProvider, "sourceset-variant")
+    @Rule
+    public final Sample customCheck = sample(testDirectoryProvider, "custom-check")
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
@@ -237,16 +247,17 @@ model {
         then:
 
         executable(prebuilt.dir.file("build/exe/main/debug/main")).exec().out ==
-"""Built with Boost version: 1_55
+            """Built with Boost version: 1_55
 Util build type: DEBUG
 """
         executable(prebuilt.dir.file("build/exe/main/release/main")).exec().out ==
-"""Built with Boost version: 1_55
+            """Built with Boost version: 1_55
 Util build type: RELEASE
 """
     }
 
-    @RequiresInstalledToolChain(GCC_COMPATIBLE) // latest clang seems to have issues:
+    @RequiresInstalledToolChain(GCC_COMPATIBLE)
+    // latest clang seems to have issues:
     // /usr/bin/ld: /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/teŝt files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainExecutablePlatformLinux/3aor34f2b62iejk2eq3fn5ikr/platform-linux.o:(.data+0x0): multiple definition of `platform_name';
     // /home/tcagent1/agent/work/e67123fb5b9af0ac/subprojects/platform-native/build/tmp/teŝt files/NativePlatf.Test/89jnk/sourceset-variant/build/objs/main/mainC/dey3oyi6y0a9luwot945rff8j/main.o:(.bss+0x0): first defined here
     //clang: error: linker command failed with exit code 1 (use -v to see invocation)

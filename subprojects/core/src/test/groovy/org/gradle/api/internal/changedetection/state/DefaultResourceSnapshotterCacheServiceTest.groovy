@@ -32,7 +32,7 @@ class DefaultResourceSnapshotterCacheServiceTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
     def snapshot = new RegularFileSnapshot(path, "path", TestHashCodes.hashCodeFrom(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
-    def snapshotContext = new DefaultRegularFileSnapshotContext({path}, snapshot)
+    def snapshotContext = new DefaultRegularFileSnapshotContext({ path }, snapshot)
     def snapshotterCache = new DefaultResourceSnapshotterCacheService(new TestInMemoryIndexedCache(new HashCodeSerializer()))
 
     def "returns result from delegate"() {

@@ -34,6 +34,16 @@ class ImplementationDependencyRelocator extends Remapper {
 
     private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
     private final Trie prefixes;
+    private final List<String> mustRelocateList = Arrays.asList(
+        // In order to use a newer version of jna the resources must not be available in the old location
+        "com/sun/jna",
+        "org/apache/groovy",
+        // JGit properties work from their relocated locations and conflict if they are left in place.
+        "org/eclipse/jgit");
+
+    public ImplementationDependencyRelocator(RuntimeShadedJarType type) {
+        prefixes = readPrefixes(type);
+    }
 
     private static Trie readPrefixes(RuntimeShadedJarType type) {
         final Trie.Builder builder = new Trie.Builder();
@@ -51,10 +61,6 @@ class ImplementationDependencyRelocator extends Remapper {
             }
         });
         return builder.build();
-    }
-
-    public ImplementationDependencyRelocator(RuntimeShadedJarType type) {
-        prefixes = readPrefixes(type);
     }
 
     @Override
@@ -89,13 +95,6 @@ class ImplementationDependencyRelocator extends Remapper {
             || maybeRelocateResource(resource) == null
             || !mustBeRelocated(resource);
     }
-
-    private final List<String> mustRelocateList = Arrays.asList(
-        // In order to use a newer version of jna the resources must not be available in the old location
-        "com/sun/jna",
-        "org/apache/groovy",
-        // JGit properties work from their relocated locations and conflict if they are left in place.
-        "org/eclipse/jgit");
 
     private final boolean mustBeRelocated(String resource) {
         for (String mustRelocate : mustRelocateList) {

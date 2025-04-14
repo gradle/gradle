@@ -55,7 +55,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         given:
         // We need to put these files in subdirectories, since on Linux we'd stop watching a directory as soon as we
         // received file changes for all the files inside.
-        def inputSubdirectories = (1..changesLimit).collect { inputDir.createDir("subdir${it}")}
+        def inputSubdirectories = (1..changesLimit).collect { inputDir.createDir("subdir${it}") }
         def inputFiles = inputSubdirectories.collect { inputDir.file("input.txt") }
         when:
         succeeds("theTask")
@@ -71,7 +71,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         given:
         // We need to put these files in subdirectories, since on Linux we'd stop watching a directory as soon as we
         // received file changes for all the files inside.
-        def inputSubdirectories = (1..9).collect { inputDir.createDir("subdir${it}")}
+        def inputSubdirectories = (1..9).collect { inputDir.createDir("subdir${it}") }
         def inputFiles = inputSubdirectories.collect { it.file("input.txt") }
         when:
         succeeds("theTask")
@@ -125,7 +125,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         given:
         // We need to put these directories in subdirectories, since on Linux we'd stop watching a directory as soon as we
         // received file changes for all the files inside.
-        def inputSubdirectories = (1..changesCount).collect { inputDir.createDir("subdir${it}")}
+        def inputSubdirectories = (1..changesCount).collect { inputDir.createDir("subdir${it}") }
         def inputDirectories = inputSubdirectories.collect { it.file("inputDirectory") }
         boolean expectMoreChanges = (changesCount > changesLimit)
 

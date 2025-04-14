@@ -55,6 +55,11 @@ public class Project extends XmlPersistableConfigurationObject {
         this.pathFactory = (PathFactory) pathFactory;
     }
 
+    private static void setNodeAttribute(Node node, String key, Object value) {
+        final Map<String, Object> attributes = Cast.uncheckedCast(node.attributes());
+        attributes.put(key, value);
+    }
+
     /**
      * A set of {@link Path} instances pointing to the modules contained in the ipr.
      */
@@ -70,7 +75,6 @@ public class Project extends XmlPersistableConfigurationObject {
      * Adds a module to the module paths included in the Project.
      *
      * @param moduleFile path to the module's module file
-     *
      * @since 4.0
      */
     public void addModulePath(File moduleFile) {
@@ -126,9 +130,11 @@ public class Project extends XmlPersistableConfigurationObject {
         return "defaultProject.xml";
     }
 
-    public void configure(List<IdeaModule> modules,
-                          String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,
-                          Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {
+    public void configure(
+        List<IdeaModule> modules,
+        String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,
+        Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs
+    ) {
         if (!isNullOrEmpty(jdkName)) {
             jdk = new Jdk(jdkName, languageLevel);
         }
@@ -321,11 +327,6 @@ public class Project extends XmlPersistableConfigurationObject {
             libraryTable = getXml().appendNode("component", attributes);
         }
         return libraryTable;
-    }
-
-    private static void setNodeAttribute(Node node, String key, Object value) {
-        final Map<String, Object> attributes = Cast.uncheckedCast(node.attributes());
-        attributes.put(key, value);
     }
 
     @Override

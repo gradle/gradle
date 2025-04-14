@@ -27,13 +27,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
+    private final Lock listenersLock = new ReentrantLock();
     // This cannot be CopyOnWriteArrayList because we need to iterate it in reverse,
     // which requires atomically getting an iterator and the size.
     // Moreover, we iterate this list far more often that we mutate,
     // making a (albeit home grown) copy-on-write strategy more appealing.
     private List<ProgressShieldingBuildOperationListener> listeners = Collections.emptyList();
-    private final Lock listenersLock = new ReentrantLock();
-
     private final BuildOperationListener broadcaster = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {

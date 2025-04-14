@@ -50,6 +50,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     def fileSystemAccess = TestFiles.fileSystemAccess()
 
     abstract protected FilePermissionAccess createFilePermissionAccess()
+
     abstract protected Deleter createDeleter()
 
     def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, TreeDefinition... treeDefs) {

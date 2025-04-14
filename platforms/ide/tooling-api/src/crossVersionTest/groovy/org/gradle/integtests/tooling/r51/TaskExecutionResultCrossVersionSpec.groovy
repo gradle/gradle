@@ -61,7 +61,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
         runBuild('helloWorld')
 
         then:
-        with (taskSuccessResult(':helloWorld')) {
+        with(taskSuccessResult(':helloWorld')) {
             !incremental
             executionReasons == ["Task has not declared any outputs despite executing actions."]
         }
@@ -84,7 +84,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
         runBuild('writeFile')
 
         then:
-        with (taskSuccessResult(':writeFile')) {
+        with(taskSuccessResult(':writeFile')) {
             !upToDate
             !executionReasons.empty
         }
@@ -93,7 +93,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
         runBuild('writeFile')
 
         then:
-        with (taskSuccessResult(':writeFile')) {
+        with(taskSuccessResult(':writeFile')) {
             upToDate
             executionReasons.empty
         }
@@ -114,7 +114,7 @@ class TaskExecutionResultCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        with (taskFailureResult(':failingTask')) {
+        with(taskFailureResult(':failingTask')) {
             !executionReasons.empty
             failures[0].description.contains("task failed intentionally")
         }

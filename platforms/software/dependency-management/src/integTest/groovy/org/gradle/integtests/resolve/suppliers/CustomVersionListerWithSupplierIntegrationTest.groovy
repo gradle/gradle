@@ -39,11 +39,11 @@ class CustomVersionListerWithSupplierIntegrationTest extends AbstractModuleDepen
     )
     private final static String ALL_METADATA = new JsonBuilder(
         [
-            [group:'org', name: 'testA', version: '3', attributes: ['org.gradle.status': 'release', 'custom': 'foo']],
-            [group:'org', name: 'testA', version: '2', attributes: ['org.gradle.status': 'integration', 'custom': 'bar']],
-            [group:'org', name: 'testA', version: '1', attributes: ['org.gradle.status': 'release', 'custom': 'bar']],
-            [group:'org', name: 'testB', version: '2', attributes: ['org.gradle.status': 'release', 'custom': 'bar']],
-            [group:'org', name: 'testB', version: '1', attributes: ['org.gradle.status': 'release', 'custom': 'foo']]
+            [group: 'org', name: 'testA', version: '3', attributes: ['org.gradle.status': 'release', 'custom': 'foo']],
+            [group: 'org', name: 'testA', version: '2', attributes: ['org.gradle.status': 'integration', 'custom': 'bar']],
+            [group: 'org', name: 'testA', version: '1', attributes: ['org.gradle.status': 'release', 'custom': 'bar']],
+            [group: 'org', name: 'testB', version: '2', attributes: ['org.gradle.status': 'release', 'custom': 'bar']],
+            [group: 'org', name: 'testB', version: '1', attributes: ['org.gradle.status': 'release', 'custom': 'foo']]
         ]
     )
 

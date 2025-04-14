@@ -63,7 +63,9 @@ abstract class IncrementalReverseTask extends DefaultTask {
 
         // tag::process-file-changes[]
         inputChanges.getFileChanges(inputDir).each { change ->
-            if (change.fileType == FileType.DIRECTORY) return
+            if (change.fileType == FileType.DIRECTORY) {
+                return
+            }
 
             println "${change.changeType}: ${change.normalizedPath}"
             def targetFile = outputDir.file(change.normalizedPath).get().asFile

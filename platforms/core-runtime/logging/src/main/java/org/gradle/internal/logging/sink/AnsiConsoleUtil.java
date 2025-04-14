@@ -44,11 +44,11 @@ final class AnsiConsoleUtil {
     private static final boolean IS_XTERM = environmentVariableStartsWith("TERM", "xterm");
     private static final boolean IS_MINGW_XTERM = IS_XTERM && environmentVariableStartsWith("MSYSTEM", "MINGW");
 
-    private static boolean environmentVariableStartsWith(String name, String pattern) {
-        return System.getenv(name) != null && System.getenv(name).startsWith(pattern);
+    private AnsiConsoleUtil() {
     }
 
-    private AnsiConsoleUtil() {
+    private static boolean environmentVariableStartsWith(String name, String pattern) {
+        return System.getenv(name) != null && System.getenv(name).startsWith(pattern);
     }
 
     /**

@@ -4,7 +4,7 @@
         <output url="file://$MODULE_DIR$/out"/>
         <output-test url="file://$MODULE_DIR$/outTest"/>
         <exclude-output/>
-        <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
+        <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK"/>
         <content url="file://$MODULE_DIR$">
             <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/generated-src" isTestSource="false" generated="true"/>
@@ -41,7 +41,7 @@
                 <jarDirectory url="file://$MODULE_DIR$/ant/lib" recursive="false"/>
             </library>
         </orderEntry>
-        <orderEntry type="module" module-name="someModule" exported="" />
+        <orderEntry type="module" module-name="someModule" exported=""/>
     </component>
     <component name="ModuleRootManager"/>
 </module>

@@ -65,25 +65,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private GroupedOutputFixture groupedOutputFixture;
     private Set<String> tasks;
 
-    public static List<String> flattenTaskPaths(Object[] taskPaths) {
-        return CollectionUtils.toStringList(GUtil.flatten(taskPaths, new ArrayList<>()));
-    }
-
-    /**
-     * Creates a result from the output of a <em>single</em> Gradle invocation.
-     *
-     * @param output The raw build stdout chars.
-     * @param error The raw build stderr chars.
-     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
-     */
-    public static OutputScrapingExecutionResult from(String output, String error) {
-        // Should provide a Gradle version as parameter so this check can be more precise
-        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED") || error.contains("CONFIGURE FAILED")) {
-            return new OutputScrapingExecutionFailure(output, error, true);
-        }
-        return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error), true);
-    }
-
     /**
      * @param output The build stdout content.
      * @param error The build stderr content. Must have normalized line endings.
@@ -104,6 +85,35 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.postBuild = match.getRight().drop(1);
         }
         this.errorContent = error.ansiCharsToPlainText();
+    }
+
+    public static List<String> flattenTaskPaths(Object[] taskPaths) {
+        return CollectionUtils.toStringList(GUtil.flatten(taskPaths, new ArrayList<>()));
+    }
+
+    /**
+     * Creates a result from the output of a <em>single</em> Gradle invocation.
+     *
+     * @param output The raw build stdout chars.
+     * @param error The raw build stderr chars.
+     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
+     */
+    public static OutputScrapingExecutionResult from(String output, String error) {
+        // Should provide a Gradle version as parameter so this check can be more precise
+        if (output.contains("BUILD FAILED") || output.contains("FAILURE: Build failed with an exception.") || error.contains("BUILD FAILED") || error.contains("CONFIGURE FAILED")) {
+            return new OutputScrapingExecutionFailure(output, error, true);
+        }
+        return new OutputScrapingExecutionResult(LogContent.of(output), LogContent.of(error), true);
+    }
+
+    /**
+     * Normalize the non-deterministic part of lambda class name.
+     *
+     * Lambdas do have some non-deterministic class names, depending on when they are loaded.
+     * Since we want to assert the Lambda class name for some deprecation warning tests, we replace the non-deterministic part by {@code <non-deterministic>}.
+     */
+    public static String normalizeLambdaIds(@Nullable String line) {
+        return line == null ? null : line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }
 
     @Override
@@ -167,10 +177,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (line.contains(HealthExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "The Daemon will expire" message
-                i+=7;
+                i += 7;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
                 // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
-                i+=4;
+                i += 4;
             } else if (BUILD_RESULT_PATTERN.matcher(line).matches()) {
                 result.add(BUILD_RESULT_PATTERN.matcher(line).replaceFirst("$1 $2 in 0s"));
                 i++;
@@ -181,16 +191,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         }
 
         return LogContent.of(result).withNormalizedEol();
-    }
-
-    /**
-     * Normalize the non-deterministic part of lambda class name.
-     *
-     * Lambdas do have some non-deterministic class names, depending on when they are loaded.
-     * Since we want to assert the Lambda class name for some deprecation warning tests, we replace the non-deterministic part by {@code <non-deterministic>}.
-     */
-    public static String normalizeLambdaIds(@Nullable String line) {
-        return line == null ? null : line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }
 
     @Override
@@ -217,28 +217,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
-        if (getOutput().contains(expectedText)|| getError().contains(expectedText)) {
+        if (getOutput().contains(expectedText) || getError().contains(expectedText)) {
             failureOnUnexpectedOutput(String.format("Found unexpected text in build output.%nExpected not present: %s%n", expectedText));
         }
         return this;
-    }
-
-    private static class LineWithDistance {
-        private final String line;
-        private final int distance;
-
-        public LineWithDistance(String line, int distance) {
-            this.line = line;
-            this.distance = distance;
-        }
-
-        public String getLine() {
-            return line;
-        }
-
-        public int getDistance() {
-            return distance;
-        }
     }
 
     @Override
@@ -467,5 +449,23 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         });
 
         return tasks;
+    }
+
+    private static class LineWithDistance {
+        private final String line;
+        private final int distance;
+
+        public LineWithDistance(String line, int distance) {
+            this.line = line;
+            this.distance = distance;
+        }
+
+        public String getLine() {
+            return line;
+        }
+
+        public int getDistance() {
+            return distance;
+        }
     }
 }

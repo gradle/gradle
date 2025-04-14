@@ -42,15 +42,17 @@ import java.lang.annotation.Target
         /**
          * Do not skip this test, this is the default.
          */
-        DO_NOT_SKIP {
-            @Override String getReason() { throw new UnsupportedOperationException("Must not be skipped") }
+        DO_NOT_SKIP{
+            @Override
+            String getReason() { throw new UnsupportedOperationException("Must not be skipped") }
         },
 
         /**
          * Use this reason on tests that intermittently fail with isolated projects.
          */
-        FLAKY {
-            @Override String getReason() { "flaky" }
+        FLAKY{
+            @Override
+            String getReason() { "flaky" }
         };
 
         abstract String getReason();

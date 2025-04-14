@@ -111,6 +111,18 @@ public abstract class SigningExtension {
     /**
      * Whether this task should fail if no signatory or signature type are configured at generation time.
      *
+     * <p>Defaults to {@code true}.</p>
+     *
+     * @see #setRequired(Object)
+     */
+    @ToBeReplacedByLazyProperty
+    public boolean isRequired() {
+        return castToBoolean(force(required));
+    }
+
+    /**
+     * Whether this task should fail if no signatory or signature type are configured at generation time.
+     *
      * @since 4.0
      */
     public void setRequired(boolean required) {
@@ -141,18 +153,6 @@ public abstract class SigningExtension {
      */
     public void setRequired(Object required) {
         this.required = required;
-    }
-
-    /**
-     * Whether this task should fail if no signatory or signature type are configured at generation time.
-     *
-     * <p>Defaults to {@code true}.</p>
-     *
-     * @see #setRequired(Object)
-     */
-    @ToBeReplacedByLazyProperty
-    public boolean isRequired() {
-        return castToBoolean(force(required));
     }
 
     /**
@@ -213,22 +213,14 @@ public abstract class SigningExtension {
     }
 
     @SuppressWarnings("unused")
-    public void setSignatureTypes(SignatureTypeProvider signatureTypes) {
-        this.signatureTypes = signatureTypes;
-    }
-
-    @SuppressWarnings("unused")
     @ToBeReplacedByLazyProperty
     public SignatureTypeProvider getSignatureTypes() {
         return signatureTypes;
     }
 
-    public void setSignatories(SignatoryProvider<?> signatories) {
-        this.signatories = signatories;
-    }
-
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
+    @SuppressWarnings("unused")
+    public void setSignatureTypes(SignatureTypeProvider signatureTypes) {
+        this.signatureTypes = signatureTypes;
     }
 
     /**
@@ -287,6 +279,10 @@ public abstract class SigningExtension {
     @ToBeReplacedByLazyProperty
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     /**
@@ -398,8 +394,7 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
-        @SuppressWarnings("deprecation")
-        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
+        @SuppressWarnings("deprecation") final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
             task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
             task.sign(publicationToSign);
         });
@@ -428,8 +423,7 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
-        @SuppressWarnings("deprecation")
-        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
+        @SuppressWarnings("deprecation") final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;
     }
@@ -534,6 +528,10 @@ public abstract class SigningExtension {
     @ToBeReplacedByLazyProperty
     public SignatoryProvider<?> getSignatories() {
         return signatories;
+    }
+
+    public void setSignatories(SignatoryProvider<?> signatories) {
+        this.signatories = signatories;
     }
 
     private Object force(Object maybeCallable) {

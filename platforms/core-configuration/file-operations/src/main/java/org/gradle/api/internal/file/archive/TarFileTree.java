@@ -62,7 +62,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         FileHasher fileHasher,
         DecompressionCoordinator decompressionCoordinator,
         TemporaryFileProvider temporaryExtractionDir
-        ) {
+    ) {
         super(decompressionCoordinator);
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
@@ -112,9 +112,9 @@ public class TarFileTree extends AbstractArchiveFileTree {
                 throw e; // Gradle exceptions are already meant to be human-readable, so just rethrow it
             } catch (Exception e) {
                 String message = "Unable to expand " + getDisplayName() + "\n"
-                        + "  The tar might be corrupted or it is compressed in an unexpected way.\n"
-                        + "  By default the tar tree tries to guess the compression based on the file extension.\n"
-                        + "  If you need to specify the compression explicitly please refer to the DSL reference.";
+                    + "  The tar might be corrupted or it is compressed in an unexpected way.\n"
+                    + "  By default the tar tree tries to guess the compression based on the file extension.\n"
+                    + "  If you need to specify the compression explicitly please refer to the DSL reference.";
                 throw new GradleException(message, e);
             }
         });

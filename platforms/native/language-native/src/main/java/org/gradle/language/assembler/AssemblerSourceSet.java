@@ -43,6 +43,7 @@ import org.gradle.model.Managed;
  * }
  * </pre>
  */
-@Incubating @Managed
+@Incubating
+@Managed
 public interface AssemblerSourceSet extends LanguageSourceSet {
 }

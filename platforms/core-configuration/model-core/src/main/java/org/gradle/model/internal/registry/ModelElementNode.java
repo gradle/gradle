@@ -46,14 +46,20 @@ import static org.gradle.model.internal.core.ModelNode.State.Created;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
 
 class ModelElementNode extends ModelNodeInternal {
-    private Map<String, ModelNodeInternal> links;
     private final MutableModelNode parent;
+    private Map<String, ModelNodeInternal> links;
     private Object privateData;
     private ModelType<?> privateDataType;
 
     public ModelElementNode(ModelRegistryInternal modelRegistry, ModelRegistration registration, MutableModelNode parent) {
         super(modelRegistry, registration);
         this.parent = parent;
+    }
+
+    private static String describe(ModelRuleDescriptor descriptor) {
+        StringBuilder stringBuilder = new StringBuilder();
+        descriptor.describeTo(stringBuilder);
+        return stringBuilder.toString();
     }
 
     @Override
@@ -263,7 +269,7 @@ class ModelElementNode extends ModelNodeInternal {
 
     @Override
     public void removeLink(String name) {
-        if (links!=null && links.remove(name) != null) {
+        if (links != null && links.remove(name) != null) {
             modelRegistry.remove(getPath().child(name));
         }
     }
@@ -281,11 +287,5 @@ class ModelElementNode extends ModelNodeInternal {
     @Override
     public void ensureAtLeast(State state) {
         modelRegistry.transition(this, state, true);
-    }
-
-    private static String describe(ModelRuleDescriptor descriptor) {
-        StringBuilder stringBuilder = new StringBuilder();
-        descriptor.describeTo(stringBuilder);
-        return stringBuilder.toString();
     }
 }

@@ -27,7 +27,8 @@ import spock.lang.Issue
  * Test the JVM version compatibility of the GradleRunner where the
  * client JVM is the same as the daemon JVM.
  */
-@NonCrossVersion // Supporting multiple Gradle versions is more work.
+@NonCrossVersion
+// Supporting multiple Gradle versions is more work.
 @SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerImplicitDaemonJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
 

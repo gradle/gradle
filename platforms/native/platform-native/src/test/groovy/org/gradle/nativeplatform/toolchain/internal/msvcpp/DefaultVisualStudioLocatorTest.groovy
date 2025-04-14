@@ -35,12 +35,13 @@ import spock.lang.Specification
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*
 
 class DefaultVisualStudioLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final VisualStudioVersionLocator commandLineLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioVersionLocator windowsRegistryLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioVersionLocator systemPathLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioMetaDataProvider versionDeterminer = Mock(VisualStudioMetaDataProvider)
-    final SystemInfo systemInfo =  Stub(SystemInfo)
+    final SystemInfo systemInfo = Stub(SystemInfo)
     final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, systemInfo)
 
     def "use highest visual studio version found in the registry"() {
@@ -123,7 +124,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         allResults.size() == 3
-        allResults.collect { it.visualCpp.name } == [ "Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0" ]
+        allResults.collect { it.visualCpp.name } == ["Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0"]
     }
 
     def "can locate all versions of visual studio using command line"() {
@@ -142,7 +143,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         allResults.size() == 4
-        allResults.collect { it.visualCpp.name } == [ "Visual C++ 1.2.3-4", "Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0" ]
+        allResults.collect { it.visualCpp.name } == ["Visual C++ 1.2.3-4", "Visual C++ 13.0.0", "Visual C++ 12.0.0", "Visual C++ 11.0.0"]
     }
 
     def "visual studio not available when nothing in registry or command line and executable not found in path"() {
@@ -267,7 +268,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def ignored = vs2017Dir("vs-3")
 
         given:
-        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")]}
+        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")] }
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
         0 * systemPathLocator.getVisualStudioInstalls()
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> vs2017Install(vsDir1, "15.1")
@@ -301,7 +302,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def ignored = vs2017Dir("vs-3")
 
         given:
-        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")]}
+        1 * commandLineLocator.getVisualStudioInstalls() >> { [vs2017Install(ignored, "15.0")] }
         1 * windowsRegistryLocator.getVisualStudioInstalls() >> []
         0 * systemPathLocator.getVisualStudioInstalls()
         1 * versionDeterminer.getVisualStudioMetadataFromInstallDir(vsDir1) >> vs2017Install(vsDir1, null)
@@ -521,39 +522,43 @@ class DefaultVisualStudioLocatorTest extends Specification {
     def fullVsDir(String name, boolean is64BitInstall) {
         def dir = vsDir(name)
         def vcDir = new File(dir, "VC")
-        createCompilers(vcDir, is64BitInstall) { it in [
-            LEGACY_AMD64_ON_X86,
-            LEGACY_AMD64_ON_AMD64,
-            LEGACY_AMD64_ON_X86,
-            LEGACY_X86_ON_X86,
-            LEGACY_X86_ON_AMD64,
-            LEGACY_X86_ON_X86,
-            LEGACY_IA64_ON_X86,
-            LEGACY_IA64_ON_X86,
-            LEGACY_IA64_ON_X86,
-            LEGACY_ARM_ON_X86,
-            LEGACY_ARM_ON_AMD64,
-            LEGACY_ARM_ON_X86
-        ]}
+        createCompilers(vcDir, is64BitInstall) {
+            it in [
+                LEGACY_AMD64_ON_X86,
+                LEGACY_AMD64_ON_AMD64,
+                LEGACY_AMD64_ON_X86,
+                LEGACY_X86_ON_X86,
+                LEGACY_X86_ON_AMD64,
+                LEGACY_X86_ON_X86,
+                LEGACY_IA64_ON_X86,
+                LEGACY_IA64_ON_X86,
+                LEGACY_IA64_ON_X86,
+                LEGACY_ARM_ON_X86,
+                LEGACY_ARM_ON_AMD64,
+                LEGACY_ARM_ON_X86
+            ]
+        }
         return dir
     }
 
     def fullVs2017Dir(String name, boolean is64BitInstall) {
         def dir = vs2017Dir(name)
         def vcDir = new File(dir, "VC/Tools/MSVC/1.2.3.4")
-        createCompilers(vcDir, is64BitInstall) { it in [
-            AMD64_ON_X86,
-            AMD64_ON_AMD64,
-            AMD64_ON_X86,
-            X86_ON_X86,
-            X86_ON_AMD64,
-            X86_ON_X86,
-            ARM_ON_X86,
-            ARM_ON_AMD64,
-            ARM_ON_X86,
-            ARM64_ON_AMD64,
-            ARM64_ON_X86
-        ]}
+        createCompilers(vcDir, is64BitInstall) {
+            it in [
+                AMD64_ON_X86,
+                AMD64_ON_AMD64,
+                AMD64_ON_X86,
+                X86_ON_X86,
+                X86_ON_AMD64,
+                X86_ON_X86,
+                ARM_ON_X86,
+                ARM_ON_AMD64,
+                ARM_ON_X86,
+                ARM64_ON_AMD64,
+                ARM64_ON_X86
+            ]
+        }
         return dir
     }
 

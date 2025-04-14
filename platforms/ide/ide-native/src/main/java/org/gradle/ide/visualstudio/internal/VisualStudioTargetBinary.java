@@ -148,10 +148,6 @@ public interface VisualStudioTargetBinary {
             this.value = value;
         }
 
-        public String getValue() {
-            return value;
-        }
-
         public static LanguageStandard from(List<String> arguments) {
             return arguments.stream().filter(it -> it.matches("^[-/]std:c\\+\\+.+")).findFirst().map(it -> {
                 if (it.endsWith("++14")) {
@@ -163,6 +159,10 @@ public interface VisualStudioTargetBinary {
                 }
                 return LanguageStandard.NONE;
             }).orElse(LanguageStandard.NONE);
+        }
+
+        public String getValue() {
+            return value;
         }
     }
 }

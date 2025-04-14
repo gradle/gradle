@@ -21,6 +21,7 @@ public final class OperationStartEvent {
 
     /**
      * Create a new operation start event.
+     *
      * @param currentTime current time when the operation started
      */
     public OperationStartEvent(long currentTime) {

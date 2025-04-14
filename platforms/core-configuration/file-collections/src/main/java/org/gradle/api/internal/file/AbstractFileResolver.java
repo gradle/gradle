@@ -43,6 +43,14 @@ public abstract class AbstractFileResolver implements FileResolver {
             .toComposite();
     }
 
+    private static <T> T unpackAndParseNotation(Object input, NotationParser<Object, T> parser, String hint) {
+        Object unpacked = DeferredUtil.unpack(input);
+        if (unpacked == null || "".equals(unpacked)) {
+            throw new IllegalArgumentException(String.format("Cannot convert '%s' to %s.", input, hint));
+        }
+        return parser.parseNotation(unpacked);
+    }
+
     public FileResolver withBaseDir(Object path) {
         return new BaseDirFileResolver(resolve(path));
     }
@@ -87,14 +95,6 @@ public abstract class AbstractFileResolver implements FileResolver {
     @Override
     public URI resolveUri(Object uri) {
         return unpackAndParseNotation(uri, uriOrFileNotationParser, "URI");
-    }
-
-    private static <T> T unpackAndParseNotation(Object input, NotationParser<Object, T> parser, String hint) {
-        Object unpacked = DeferredUtil.unpack(input);
-        if (unpacked == null || "".equals(unpacked)) {
-            throw new IllegalArgumentException(String.format("Cannot convert '%s' to %s.", input, hint));
-        }
-        return parser.parseNotation(unpacked);
     }
 
     protected abstract File doResolve(File path);

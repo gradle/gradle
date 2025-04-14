@@ -57,7 +57,7 @@ public abstract class ReportingExtension {
 
     @Inject
     public ReportingExtension(Project project) {
-        this.project = (ProjectInternal)project;
+        this.project = (ProjectInternal) project;
         this.baseDirectory = project.getObjects().directoryProperty();
         this.reports = project.getObjects().polymorphicDomainObjectContainer(ReportSpec.class);
         baseDirectory.set(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));

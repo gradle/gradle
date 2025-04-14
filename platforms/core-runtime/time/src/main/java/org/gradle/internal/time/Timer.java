@@ -25,6 +25,7 @@ public interface Timer {
 
     /**
      * Return the elapsed time in ms. Returned value is always &gt;= 0.
+     *
      * @return The elapsed time, in ms.
      */
     long getElapsedMillis();

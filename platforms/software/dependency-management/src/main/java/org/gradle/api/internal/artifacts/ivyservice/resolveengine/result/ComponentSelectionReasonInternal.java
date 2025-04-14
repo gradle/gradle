@@ -22,7 +22,9 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public interface ComponentSelectionReasonInternal extends ComponentSelectionReason {
     ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description);
+
     ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description);
+
     ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, Describable description);
 
     /**

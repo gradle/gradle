@@ -30,8 +30,8 @@ class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResoluti
     def "substitutes system properties into ivy descriptor"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45")
-                .dependsOn('org.gradle.${sys_prop}', 'module_${sys_prop}', 'v_${sys_prop}')
-                .publish()
+            .dependsOn('org.gradle.${sys_prop}', 'module_${sys_prop}', 'v_${sys_prop}')
+            .publish()
 
         ivyRepo.module("org.gradle.111", "module_111", "v_111").publish()
 

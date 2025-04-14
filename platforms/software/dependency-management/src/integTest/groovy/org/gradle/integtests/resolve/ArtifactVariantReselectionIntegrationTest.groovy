@@ -106,7 +106,7 @@ class ArtifactVariantReselectionIntegrationTest extends AbstractIntegrationSpec 
         succeeds(":resolve")
 
         where:
-        featureName      | expectedArtifacts
+        featureName       | expectedArtifacts
         // We request sources for a variant that does not have sources.
         // We should not fail, since variant reselection allows no matching variants.
         "without-sources" | "[]"

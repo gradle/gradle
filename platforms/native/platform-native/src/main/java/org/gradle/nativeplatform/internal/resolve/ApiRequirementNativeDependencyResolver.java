@@ -61,6 +61,7 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
 
     private static class ApiAdaptedNativeLibraryRequirement implements NativeLibraryRequirement {
         private final NativeLibraryRequirement original;
+
         public ApiAdaptedNativeLibraryRequirement(NativeLibraryRequirement original) {
             this.original = original;
         }

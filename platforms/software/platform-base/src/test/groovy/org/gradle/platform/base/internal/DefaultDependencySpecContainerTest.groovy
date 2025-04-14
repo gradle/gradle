@@ -15,13 +15,15 @@
  */
 
 package org.gradle.platform.base.internal
+
 import org.gradle.api.IllegalDependencyNotation
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultDependencySpecContainerTest extends Specification {
 
-    @Subject container = new DefaultDependencySpecContainer()
+    @Subject
+        container = new DefaultDependencySpecContainer()
 
     def "can build project dependency spec with project or library or both"() {
         when:

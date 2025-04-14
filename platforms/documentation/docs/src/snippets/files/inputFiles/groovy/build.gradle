@@ -16,7 +16,7 @@ tasks.register('compile', JavaCompile) {
     // Using a closure to specify the source files.
     source = {
         // Use the contents of each zip file in the src dir
-        file('src').listFiles().findAll {it.name.endsWith('.zip')}.collect { zipTree(it) }
+        file('src').listFiles().findAll { it.name.endsWith('.zip') }.collect { zipTree(it) }
     }
 }
 // end::set-input-files[]

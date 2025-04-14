@@ -23,7 +23,8 @@ import static org.gradle.launcher.daemon.server.api.DaemonState.*
 
 class EmbeddedDaemonRegistrySpec extends Specification {
 
-    @Delegate EmbeddedDaemonRegistry registry = new EmbeddedDaemonRegistry()
+    @Delegate
+    EmbeddedDaemonRegistry registry = new EmbeddedDaemonRegistry()
 
     def context = [:] as DaemonContext
 

@@ -47,8 +47,8 @@ public class ClassLoaderStructureProvider {
 
         // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
         return new HierarchicalClassLoaderStructure(workerExtensionSpec)
-                .withChild(gradleApiFilter)
-                .withChild(userSpec);
+            .withChild(gradleApiFilter)
+            .withChild(userSpec);
     }
 
     public ClassLoaderStructure getInProcessClassLoaderStructure(final Iterable<File> additionalClasspath, Class<?>... classes) {
@@ -56,7 +56,7 @@ public class ClassLoaderStructureProvider {
         VisitableURLClassLoader.Spec userSpec = getUserSpec("worker-loader", additionalClasspath, classes);
         // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
         return new HierarchicalClassLoaderStructure(gradleApiFilter)
-                .withChild(userSpec);
+            .withChild(userSpec);
     }
 
     /**

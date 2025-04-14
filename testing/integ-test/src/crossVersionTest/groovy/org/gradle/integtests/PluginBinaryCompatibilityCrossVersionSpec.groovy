@@ -24,7 +24,8 @@ import org.gradle.util.GradleVersion
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
-@TargetVersions("4.10+") // JavaPluginExtension did not exist before 4.10
+@TargetVersions("4.10+")
+// JavaPluginExtension did not exist before 4.10
 class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "plugin implemented in Groovy can use types converted from Groovy to Java"() {

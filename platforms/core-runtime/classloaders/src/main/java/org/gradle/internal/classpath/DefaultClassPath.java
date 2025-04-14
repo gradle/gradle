@@ -44,6 +44,16 @@ import java.util.Set;
 @NullMarked
 public class DefaultClassPath implements ClassPath, Serializable {
 
+    private final ImmutableUniqueList<File> files;
+
+    DefaultClassPath() {
+        this(ImmutableUniqueList.<File>empty());
+    }
+
+    protected DefaultClassPath(ImmutableUniqueList<File> files) {
+        this.files = files;
+    }
+
     public static Builder builderWithExactSize(int size) {
         return new Builder(size);
     }
@@ -81,14 +91,19 @@ public class DefaultClassPath implements ClassPath, Serializable {
         }
     }
 
-    private final ImmutableUniqueList<File> files;
-
-    DefaultClassPath() {
-        this(ImmutableUniqueList.<File>empty());
+    private static URL toURL(File file) {
+        try {
+            return file.toURI().toURL();
+        } catch (MalformedURLException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
-    protected DefaultClassPath(ImmutableUniqueList<File> files) {
-        this.files = files;
+    private static ImmutableUniqueList<File> concat(Collection<File> files1, Collection<File> files2) {
+        Set<File> result = new LinkedHashSet<File>();
+        result.addAll(files1);
+        result.addAll(files2);
+        return new ImmutableUniqueList<File>(result);
     }
 
     @Override
@@ -132,14 +147,6 @@ public class DefaultClassPath implements ClassPath, Serializable {
             urls.add(toURL(file));
         }
         return urls;
-    }
-
-    private static URL toURL(File file) {
-        try {
-            return file.toURI().toURL();
-        } catch (MalformedURLException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     @Override
@@ -196,13 +203,6 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return files.hashCode();
     }
 
-    private static ImmutableUniqueList<File> concat(Collection<File> files1, Collection<File> files2) {
-        Set<File> result = new LinkedHashSet<File>();
-        result.addAll(files1);
-        result.addAll(files2);
-        return new ImmutableUniqueList<File>(result);
-    }
-
     public static class Builder {
 
         private final ImmutableUniqueList.Builder<File> uniqueListBuilder;
@@ -222,6 +222,25 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     public static final class ImmutableUniqueList<T> extends AbstractList<T> implements Serializable {
         private static final ImmutableUniqueList<Object> EMPTY = new ImmutableUniqueList<Object>(Collections.emptySet());
+        private final Object[] asArray;
+        private final Set<T> asSet;
+        private final int size;
+
+        /**
+         * Unsafe constructor for internally created Sets that we know won't be mutated.
+         */
+        ImmutableUniqueList(Set<T> from) {
+            this(from, from.toArray(new Object[0]));
+        }
+
+        /**
+         * Unsafe constructor for {@link Builder}.
+         */
+        ImmutableUniqueList(Set<T> set, Object[] array) {
+            size = array.length;
+            asArray = array;
+            asSet = set;
+        }
 
         public static <T> ImmutableUniqueList<T> of(Collection<T> collection) {
             if (collection.isEmpty()) {
@@ -236,6 +255,34 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
         public static <T> Builder<T> builderWithExactSize(int exactSize) {
             return new Builder<T>(exactSize);
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <T> ImmutableUniqueList<T> empty() {
+            return (ImmutableUniqueList<T>) EMPTY;
+        }
+
+        @Override
+        public T get(int index) {
+            if (index >= size) {
+                throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+            }
+            return Cast.uncheckedNonnullCast(asArray[index]);
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return asSet.contains(o);
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> c) {
+            return asSet.containsAll(c);
+        }
+
+        @Override
+        public int size() {
+            return size;
         }
 
         public static class Builder<T> {
@@ -278,54 +325,6 @@ public class DefaultClassPath implements ClassPath, Serializable {
                 System.arraycopy(array, 0, newArray, 0, inserted);
                 return newArray;
             }
-        }
-
-        @SuppressWarnings("unchecked")
-        public static <T> ImmutableUniqueList<T> empty() {
-            return (ImmutableUniqueList<T>) EMPTY;
-        }
-
-        private final Object[] asArray;
-        private final Set<T> asSet;
-        private final int size;
-
-        /**
-         * Unsafe constructor for internally created Sets that we know won't be mutated.
-         */
-        ImmutableUniqueList(Set<T> from) {
-            this(from, from.toArray(new Object[0]));
-        }
-
-        /**
-         * Unsafe constructor for {@link Builder}.
-         */
-        ImmutableUniqueList(Set<T> set, Object[] array) {
-            size = array.length;
-            asArray = array;
-            asSet = set;
-        }
-
-        @Override
-        public T get(int index) {
-            if (index >= size) {
-                throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-            }
-            return Cast.uncheckedNonnullCast(asArray[index]);
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return asSet.contains(o);
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            return asSet.containsAll(c);
-        }
-
-        @Override
-        public int size() {
-            return size;
         }
     }
 }

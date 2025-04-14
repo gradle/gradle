@@ -5,36 +5,51 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>failOnError</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>verbose</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>listFiles</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>deprecation</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>warnings</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>encoding</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>debug</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>debugOptions</td>
@@ -42,7 +57,9 @@
             </tr>
             <tr>
                 <td>fork</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
             <tr>
                 <td>forkOptions</td>
@@ -50,23 +67,33 @@
             </tr>
             <tr>
                 <td>bootstrapClasspath</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>extensionDirs</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>compilerArgs</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>compilerArgumentProviders</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>sourcepath</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>javaModuleVersion</td>
@@ -78,23 +105,38 @@
             </tr>
             <tr>
                 <td>incremental</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>incrementalAfterFailure</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
             <tr>
                 <td>annotationProcessorPath</td>
-                <td><literal><replaceable>sourceSet</replaceable>.annotationProcessorPath</literal></td>
+                <td>
+                    <literal><replaceable>sourceSet</replaceable>.annotationProcessorPath
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>generatedSourceOutputDirectory</td>
-                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/generated/sources/annotationProcessor/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>
+                    <literal><replaceable>${project.layout.buildDirectory}</replaceable>/generated/sources/annotationProcessor/<replaceable>${sourceDirectorySet.name}</replaceable>/
+                        <replaceable>${sourceSet.name}</replaceable>
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>headerOutputDirectory</td>
-                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/generated/sources/headers/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
+                <td>
+                    <literal><replaceable>${project.layout.buildDirectory}</replaceable>/generated/sources/headers/<replaceable>${sourceDirectorySet.name}</replaceable>/
+                        <replaceable>${sourceSet.name}</replaceable>
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>release</td>

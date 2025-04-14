@@ -157,7 +157,7 @@ abstract class InstrumentationCodeGenTest extends Specification {
                 @Override
                 void visitMethodInsn(int opcode, String owner, String methodName, String methodDescriptor, boolean isInterface) {
                     def interceptor = interceptorFactory.create(instrumentationMetadata, BytecodeInterceptorFilter.ALL)
-                    if (interceptor.visitMethodInsn(this, className, opcode, owner, methodName, methodDescriptor, isInterface, () -> {})) {
+                    if (interceptor.visitMethodInsn(this, className, opcode, owner, methodName, methodDescriptor, isInterface, () -> { })) {
                         return
                     }
                     super.visitMethodInsn(opcode, owner, methodName, methodDescriptor, isInterface)

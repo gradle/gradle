@@ -29,7 +29,7 @@ public interface ScalaPluginExtension {
     /**
      * The version of the Zinc compiler to use for compiling Scala code.
      * <p>
-     *     Default version is Zinc {@value ScalaBasePlugin#DEFAULT_ZINC_VERSION}.
+     * Default version is Zinc {@value ScalaBasePlugin#DEFAULT_ZINC_VERSION}.
      * </p>
      *
      * Gradle supports Zinc from 1.6.0.
@@ -43,7 +43,6 @@ public interface ScalaPluginExtension {
      * The version of the Scala to use for compiling Scala code.
      *
      * @return The scala version
-     *
      * @since 8.13
      */
     @Incubating

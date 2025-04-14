@@ -92,7 +92,7 @@ public class LinkRenderer {
         if (className.startsWith("java.")) {
             Element linkElement = document.createElement("ulink");
             linkElement.setAttribute("url", String.format("https://docs.oracle.com/javase/%s/docs/api/%s.html", javaVersion,
-                    className.replace(".", "/")));
+                className.replace(".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
@@ -102,7 +102,7 @@ public class LinkRenderer {
         if (className.startsWith("groovy.")) {
             Element linkElement = document.createElement("ulink");
             linkElement.setAttribute("url", String.format("https://docs.groovy-lang.org/%s/html/gapi/%s.html", groovyVersion, className.replace(
-                    ".", "/")));
+                ".", "/")));
             Element classNameElement = document.createElement("classname");
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
@@ -128,7 +128,7 @@ public class LinkRenderer {
             listener.warning(String.format("Could not generate link for method %s", method));
             Element element = document.createElement("UNKNOWN-METHOD");
             element.appendChild(document.createTextNode(String.format("%s.%s()", method.getOwnerClass().getClassName(),
-                    method.getName())));
+                method.getName())));
             return element;
         }
     }

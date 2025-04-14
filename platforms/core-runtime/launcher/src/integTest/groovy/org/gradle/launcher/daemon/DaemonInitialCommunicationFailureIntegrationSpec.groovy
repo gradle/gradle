@@ -38,7 +38,8 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 @LocalOnly
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
-    @Rule TestServer server = new TestServer()
+    @Rule
+    TestServer server = new TestServer()
 
     @Issue("GRADLE-2444")
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4202")

@@ -111,9 +111,9 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
             return locationCache.computeIfAbsent(file,
                 location -> fileSystemAccess.readRegularFileContentHash(location.getAbsolutePath())
                     .map(contentHash -> contentCache.get(contentHash, key -> calculator.calculate(location, true))
-                ).orElseGet(
-                    () -> calculator.calculate(location, false)
-                ));
+                    ).orElseGet(
+                        () -> calculator.calculate(location, false)
+                    ));
         }
 
         private void assertStoredIn(IndexedCache<HashCode, V> store) {

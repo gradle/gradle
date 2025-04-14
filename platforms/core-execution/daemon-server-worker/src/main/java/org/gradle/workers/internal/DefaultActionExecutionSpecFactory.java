@@ -33,6 +33,14 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
         this.serializerRegistry = serializerRegistry;
     }
 
+    static Class<?> fromClassName(String className) {
+        try {
+            return ClassLoaderUtils.classFromContextLoader(className);
+        } catch (Exception e) {
+            throw new WorkSerializationException("Could not deserialize unit of work.", e);
+        }
+    }
+
     @Override
     public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
         return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serializerRegistry.serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.getProjectCacheDir(), spec.isInternalServicesRequired());
@@ -54,14 +62,6 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec spec) {
         T params = Cast.uncheckedCast(serializerRegistry.deserialize(spec.getSerializedParameters()).isolate());
         return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, spec.isInternalServicesRequired());
-    }
-
-    static Class<?> fromClassName(String className) {
-        try {
-            return ClassLoaderUtils.classFromContextLoader(className);
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not deserialize unit of work.", e);
-        }
     }
 
 }

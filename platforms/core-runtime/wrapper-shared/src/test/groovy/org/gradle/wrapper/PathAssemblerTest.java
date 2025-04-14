@@ -29,8 +29,8 @@ import static org.junit.Assert.fail;
 public class PathAssemblerTest {
     public static final String TEST_GRADLE_USER_HOME = "someUserHome";
     public static final String TEST_PROJECT_DIR = "someProjectDir";
-    private PathAssembler pathAssembler = new PathAssembler(new File(TEST_GRADLE_USER_HOME), new File(TEST_PROJECT_DIR));
     final WrapperConfiguration configuration = new WrapperConfiguration();
+    private PathAssembler pathAssembler = new PathAssembler(new File(TEST_GRADLE_USER_HOME), new File(TEST_PROJECT_DIR));
 
     @Before
     public void setup() {

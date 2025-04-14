@@ -34,6 +34,10 @@ public class CacheVersionMapping {
         this.versions = new TreeMap<>(versions);
     }
 
+    public static Builder introducedIn(String gradleVersion) {
+        return new Builder().changedTo(1, gradleVersion);
+    }
+
     public CacheVersion getLatestVersion() {
         return versions.get(versions.lastKey());
     }
@@ -41,10 +45,6 @@ public class CacheVersionMapping {
     public Optional<CacheVersion> getVersionUsedBy(GradleVersion gradleVersion) {
         GradleVersion versionToFind = gradleVersion.isSnapshot() ? gradleVersion.getBaseVersion() : gradleVersion;
         return Optional.ofNullable(versions.floorEntry(versionToFind)).map(Map.Entry::getValue);
-    }
-
-    public static Builder introducedIn(String gradleVersion) {
-        return new Builder().changedTo(1, gradleVersion);
     }
 
     public static class Builder {

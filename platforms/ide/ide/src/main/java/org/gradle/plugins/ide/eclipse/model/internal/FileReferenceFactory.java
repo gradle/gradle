@@ -77,7 +77,7 @@ public class FileReferenceFactory {
      * Creates a reference to the given path. Returns null for null path
      */
     public FileReference fromJarURI(String jarURI) {
-        if (jarURI== null) {
+        if (jarURI == null) {
             return null;
         }
         //cut the pre and postfix of this url
@@ -91,6 +91,7 @@ public class FileReferenceFactory {
         String path = PathUtil.normalizePath(file.getAbsolutePath());
         return new FileReferenceImpl(file, path, false);
     }
+
     /**
      * Creates a reference to the given path containing a variable reference. Returns null for null variable path
      */
@@ -142,9 +143,9 @@ public class FileReferenceFactory {
         }
 
         @Override
-        public String getJarURL(){
+        public String getJarURL() {
             //windows needs an additional backslash in jar urls
-            return  "jar:" + file.toURI() + "!/";
+            return "jar:" + file.toURI() + "!/";
 
         }
 
@@ -155,7 +156,7 @@ public class FileReferenceFactory {
 
         @Override
         public String toString() {
-            return "{file='" + file + "', path='" + path  + "', jarUrl='" + getJarURL() + "'}";
+            return "{file='" + file + "', path='" + path + "', jarUrl='" + getJarURL() + "'}";
         }
 
         @Override

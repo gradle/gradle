@@ -52,12 +52,17 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
         return "https://builds.gradle.org/viewLog.html?buildId=" + buildId;
     }
 
+    private Optional<String> determineBaseline() {
+        return executionDataProvider.getReportScenarios().stream()
+            .filter(scenario -> !scenario.getCrossBuild())
+            .flatMap(scenario -> scenario.getHistoryExecutions().stream())
+            .filter(execution -> DEPENDENCY_PERFORMANCE_TEST_TEAM_CITY_BUILD_IDS.contains(execution.getTeamCityBuildId()))
+            .findFirst()
+            .map(execution -> execution.getBaseVersion().getName());
+    }
+
     protected abstract class TableHtml extends MetricsHtml {
         AtomicInteger counter = new AtomicInteger();
-
-        public TableHtml(Writer writer) {
-            super(writer);
-        }
 
         // @formatter:off
             {
@@ -81,6 +86,10 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 footer(this);
                 endAll();
             }
+
+        public TableHtml(Writer writer) {
+            super(writer);
+        }
 
             protected abstract String getPageTitle();
 
@@ -264,14 +273,5 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 end();
             }
             // @formatter:on
-    }
-
-    private Optional<String> determineBaseline() {
-        return executionDataProvider.getReportScenarios().stream()
-            .filter(scenario -> !scenario.getCrossBuild())
-            .flatMap(scenario -> scenario.getHistoryExecutions().stream())
-            .filter(execution -> DEPENDENCY_PERFORMANCE_TEST_TEAM_CITY_BUILD_IDS.contains(execution.getTeamCityBuildId()))
-            .findFirst()
-            .map(execution -> execution.getBaseVersion().getName());
     }
 }

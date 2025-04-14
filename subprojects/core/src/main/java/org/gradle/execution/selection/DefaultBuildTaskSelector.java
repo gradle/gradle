@@ -66,6 +66,12 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         this.problemsService = problemsService;
     }
 
+    private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
+        spec.contextualLabel(message);
+        spec.severity(Severity.ERROR);
+        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
+    }
+
     @Override
     public Filter resolveExcludedTaskName(BuildState defaultBuild, String taskName) {
         if (!defaultBuild.isProjectsCreated()) {
@@ -179,12 +185,6 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         throw problemsService.getInternalReporter().throwing(new ProjectSelectionException(message), nameMatcher.problemId(), spec -> {
             configureProblem(spec, message, context.getOriginalPath().getPath());
         });
-    }
-
-    private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
-        spec.contextualLabel(message);
-        spec.severity(Severity.ERROR);
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
     }
 
     private TaskSelector.SelectionContext sanityCheckPath(String name, String type) {

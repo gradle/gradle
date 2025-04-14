@@ -49,11 +49,11 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         public void endOfStream(@Nullable Throwable failure) {
         }
     });
+    private final StandardOutputListener listener;
+    private final OutputEventListener outputEventListener;
     private PrintStreamDestination original;
     private boolean enabled;
     private LogLevel logLevel;
-    private final StandardOutputListener listener;
-    private final OutputEventListener outputEventListener;
 
     protected PrintStreamLoggingSystem(OutputEventListener listener, String category, Clock clock) {
         outputEventListener = listener;

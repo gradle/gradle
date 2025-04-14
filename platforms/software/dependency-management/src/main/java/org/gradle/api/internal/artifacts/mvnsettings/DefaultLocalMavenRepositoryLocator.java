@@ -98,6 +98,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
 
     public interface SystemPropertyAccess {
         String getProperty(String name);
+
         String getEnv(String name);
     }
 

@@ -26,7 +26,6 @@ public interface InMemoryLoadingCache<K, V> {
      * on demand if it is not already present in the cache.
      *
      * @param key The key to look up.
-     *
      * @return The value corresponding to the key.
      */
     V get(K key);

@@ -68,15 +68,16 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     private final InstantiatorFactory instantiatorFactory;
     private final ChecksumService checksumService;
 
-    public DefaultFlatDirArtifactRepository(FileCollectionFactory fileCollectionFactory,
-                                            RepositoryTransportFactory transportFactory,
-                                            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                            FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                            IvyMutableModuleMetadataFactory metadataFactory,
-                                            InstantiatorFactory instantiatorFactory,
-                                            ObjectFactory objectFactory,
-                                            ChecksumService checksumService,
-                                            VersionParser versionParser
+    public DefaultFlatDirArtifactRepository(
+        FileCollectionFactory fileCollectionFactory,
+        RepositoryTransportFactory transportFactory,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        IvyMutableModuleMetadataFactory metadataFactory,
+        InstantiatorFactory instantiatorFactory,
+        ObjectFactory objectFactory,
+        ChecksumService checksumService,
+        VersionParser versionParser
     ) {
         super(objectFactory, versionParser);
         this.fileCollectionFactory = fileCollectionFactory;

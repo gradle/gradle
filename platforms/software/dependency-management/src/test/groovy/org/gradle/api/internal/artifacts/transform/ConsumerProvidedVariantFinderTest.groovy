@@ -55,7 +55,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         def sourceVariant = variant([usage: "source"])
         def otherVariant = variant([usage: "other"])
-        def variants = [ sourceVariant, otherVariant ]
+        def variants = [sourceVariant, otherVariant]
 
         given:
         transformRegistry.registrations >> [transform1, transform2, transform3]
@@ -95,7 +95,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         def sourceVariant = variant([usage: "source"])
         def otherVariant = variant([usage: "other"])
-        def variants = [ sourceVariant, otherVariant ]
+        def variants = [sourceVariant, otherVariant]
 
         given:
         transformRegistry.registrations >> [transform1, transform2, transform3, transform4]
@@ -137,7 +137,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         def sourceVariant = variant([usage: "source"])
         def otherVariant = variant([usage: "other"])
-        def variants = [ sourceVariant, otherVariant ]
+        def variants = [sourceVariant, otherVariant]
 
         given:
         transformRegistry.registrations >> [transform1, transform2]
@@ -162,8 +162,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         when:
         def anotherVariants = [
-                variant(otherVariant.getAttributes()),
-                variant(sourceVariant.getAttributes())
+            variant(otherVariant.getAttributes()),
+            variant(sourceVariant.getAttributes())
         ]
         def result2 = transformations.findCandidateTransformationChains(anotherVariants, requested)
 
@@ -203,7 +203,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         def sourceVariant = variant([usage: "source"])
         def otherVariant = variant([usage: "other"])
-        def variants = [ sourceVariant, otherVariant ]
+        def variants = [sourceVariant, otherVariant]
 
         def transform1 = registration(fromSource, incompatible)
         def transform2 = registration(fromSource, intermediate)
@@ -240,7 +240,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         attributeMatcher.isMatchingCandidate(compatible2, requested) >> true
 
         // all other matching attempts are not compatible
-        _ * attributeMatcher.isMatchingCandidate(_ ,_) >> false
+        _ * attributeMatcher.isMatchingCandidate(_, _) >> false
         0 * attributeMatcher._
     }
 
@@ -258,7 +258,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         def sourceVariant = variant([usage: "source"])
         def otherVariant = variant([usage: "other"])
-        def variants = [ sourceVariant, otherVariant ]
+        def variants = [sourceVariant, otherVariant]
 
         def transform1 = registration(fromIndirect, incompatible)
         def transform2 = registration(fromIndirect, compatibleIndirect)
@@ -309,7 +309,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def compatible = AttributeTestUtil.attributes([usage: "compatible"])
 
         def sourceVariant = variant([usage: "source"])
-        def variants = [ sourceVariant ]
+        def variants = [sourceVariant]
 
         def transform1 = registration(fromSource, fromOther)
         def transform2 = registration(fromSource, intermediate)
@@ -364,7 +364,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def compatible = AttributeTestUtil.attributes([usage: "compatible", other: "transform3"])
 
         def sourceVariant = variant([usage: "source"])
-        def variants = [ sourceVariant ]
+        def variants = [sourceVariant]
 
         def transform1 = registration(fromSource, incompatible)
         def transform2 = registration(fromSource, intermediate)
@@ -408,7 +408,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform2 = registration(fromSource, incompatible2)
 
         def sourceVariant = variant([usage: "source"])
-        def variants = [ sourceVariant ]
+        def variants = [sourceVariant]
 
         given:
         transformRegistry.registrations >> [transform1, transform2]
@@ -437,7 +437,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform2 = registration(fromSource, incompatible)
 
         def sourceVariant = variant([usage: "source"])
-        def variants = [ sourceVariant ]
+        def variants = [sourceVariant]
 
         given:
         transformRegistry.registrations >> [transform1, transform2]
@@ -471,7 +471,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def compatible = AttributeTestUtil.attributes([other: "compatible"])
 
         def sourceVariant = variant([usage: "source"])
-        def variants = [ sourceVariant ]
+        def variants = [sourceVariant]
 
         def transform1 = registration(fromSource, compatible)
 

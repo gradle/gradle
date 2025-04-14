@@ -22,7 +22,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 
 class StacktraceIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup () {
+    def setup() {
         buildFile << 'throw new RuntimeException("show stacktrace was " + gradle.startParameter.showStacktrace)'
         settingsFile << 'rootProject.name = "stacktrace-integration-test-sample"'
     }

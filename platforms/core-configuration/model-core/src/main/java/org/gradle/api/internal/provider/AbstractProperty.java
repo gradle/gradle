@@ -33,12 +33,12 @@ import java.util.ConcurrentModificationException;
 /**
  * The base implementation for all properties in Gradle.
  * <p>
- *     A property is a provider where the value is configurable.
+ * A property is a provider where the value is configurable.
  * </p>
  * <p>
- *     A property's value is not stored in the property itself,
- *     but computed by some {@link ValueSupplier}, which
- *     provides the basic machinery for lazy evaluation.
+ * A property's value is not stored in the property itself,
+ * but computed by some {@link ValueSupplier}, which
+ * provides the basic machinery for lazy evaluation.
  * </p>
  *
  * @param <T> the type of the value this property provides
@@ -432,13 +432,6 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    @Contextual
-    public static class PropertyQueryException extends RuntimeException {
-        public PropertyQueryException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
     /**
      * Creates a shallow copy of this property. Further changes to this property (via {@code set(...)}, or {@code convention(Object...)}) do not
      * change the copy. However, the copy still reflects changes to the underlying providers that constitute this property. Consider the following snippet:
@@ -458,6 +451,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      */
     public ProviderInternal<T> shallowCopy() {
         return new ShallowCopyProvider();
+    }
+
+    @Contextual
+    public static class PropertyQueryException extends RuntimeException {
+        public PropertyQueryException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {

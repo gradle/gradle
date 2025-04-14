@@ -63,7 +63,7 @@ class GcsClientIntegrationTest extends Specification {
         gcsClient.put(stream, file.length(), uri)
 
         when:
-        server.stubGetFile(file,"/$bucketName/maven/release/$FILE_NAME")
+        server.stubGetFile(file, "/$bucketName/maven/release/$FILE_NAME")
 
         then:
         StorageObject object = gcsClient.getResource(uri)

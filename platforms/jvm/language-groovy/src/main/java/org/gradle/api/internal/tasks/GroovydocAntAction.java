@@ -33,6 +33,28 @@ import java.util.Locale;
 import java.util.Map;
 
 public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParameters> {
+    private static VersionNumber getGroovyVersion() {
+        try {
+            Class<?> groovySystem = Thread.currentThread().getContextClassLoader().loadClass("groovy.lang.GroovySystem");
+            Method getVersion = groovySystem.getDeclaredMethod("getVersion");
+            String versionString = (String) getVersion.invoke(null);
+            return VersionNumber.parse(versionString);
+        } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InvocationTargetException ex) {
+            // ignore
+        }
+        return VersionNumber.UNKNOWN;
+    }
+
+    private static boolean isAtLeast(VersionNumber version, String versionString) {
+        return version.compareTo(VersionNumber.parse(versionString)) >= 0;
+    }
+
+    private static void putIfNotNull(Map<String, Object> map, String key, @Nullable Object value) {
+        if (value != null) {
+            map.put(key, value);
+        }
+    }
+
     @Override
     protected String getActionName() {
         return "groovydoc";
@@ -90,27 +112,5 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
                 }});
             }
         };
-    }
-
-    private static VersionNumber getGroovyVersion() {
-        try {
-            Class<?> groovySystem = Thread.currentThread().getContextClassLoader().loadClass("groovy.lang.GroovySystem");
-            Method getVersion = groovySystem.getDeclaredMethod("getVersion");
-            String versionString = (String) getVersion.invoke(null);
-            return VersionNumber.parse(versionString);
-        } catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InvocationTargetException ex) {
-            // ignore
-        }
-        return VersionNumber.UNKNOWN;
-    }
-
-    private static boolean isAtLeast(VersionNumber version, String versionString) {
-        return version.compareTo(VersionNumber.parse(versionString)) >= 0;
-    }
-
-    private static void putIfNotNull(Map<String, Object> map, String key, @Nullable Object value) {
-        if (value != null) {
-            map.put(key, value);
-        }
     }
 }

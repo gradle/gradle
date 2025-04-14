@@ -54,6 +54,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
-@InjectionPointQualifier(supportedProviderTypes = { FileSystemLocation.class })
+@InjectionPointQualifier(supportedProviderTypes = {FileSystemLocation.class})
 public @interface InputArtifact {
 }

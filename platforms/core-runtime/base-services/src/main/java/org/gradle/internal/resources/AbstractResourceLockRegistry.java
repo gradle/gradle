@@ -121,9 +121,9 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     private static class ThreadLockDetails<T extends ResourceLock> {
+        private final List<T> locks = new ArrayList<T>();
         // Only accessed by the thread itself, so does not require synchronization
         private boolean mayChange = true;
         private boolean canAccessAnything = false;
-        private final List<T> locks = new ArrayList<T>();
     }
 }

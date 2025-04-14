@@ -113,7 +113,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         FileCollection searchPath
 
         @SearchMethod
-        void doSearch() { }
+        void doSearch() {}
     }
 
     @CustomCacheable
@@ -445,8 +445,9 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         String oldProperty
         @Console
         boolean console
+
         @TaskAction
-        void doSomething() { }
+        void doSomething() {}
     }
 
     def "can get annotated properties and methods of simple task"() {
@@ -483,10 +484,12 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     static class TypeWithUnannotatedMethods extends DefaultTask {
-        void bad1() { }
-        void bad2() { }
+        void bad1() {}
+
+        void bad2() {}
+
         @TaskAction
-        void good() { }
+        void good() {}
     }
 
     def "ignores methods that are not annotated"() {

@@ -83,7 +83,7 @@ abstract class DefaultFileLockManagerTestHelper {
 
     static boolean isIntegrityViolated(File file) {
         try {
-            createOnDemandFileLock(file).readFile { }
+            createOnDemandFileLock(file).readFile {}
             false
         } catch (FileIntegrityViolationException e) {
             true

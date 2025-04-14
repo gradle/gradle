@@ -45,26 +45,6 @@ import static java.util.regex.Pattern.quote;
  * Usage: java build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java
  */
 public class KillLeakingJavaProcesses {
-    enum ExecutionMode {
-        /**
-         * Run at the beginning of each build. Kill potentially leaked processes in previous builds.
-         * Only kill local Gradle processes (classpath in checkout directory).
-         * Not clean up global Gradle processes (i.e. classpath in ~/.gradle/...).
-         */
-        KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS,
-        /**
-         * Run at the end of each build. Kill potentially leaked processes in the current build.
-         * Only kill local Gradle processes (classpath in checkout directory).
-         * Not clean up global Gradle processes (i.e. classpath in ~/.gradle/...).
-         * Because the step is not guaranteed to run (e.g. build timeout), we need `KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS` mode.
-         */
-        KILL_PROCESSES_STARTED_BY_GRADLE,
-        /**
-         * Run when we want to retry the build. Kill all Gradle processes, regardless of they're global or local.
-         */
-        KILL_ALL_GRADLE_PROCESSES
-    }
-
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final String MY_PID = String.valueOf(ProcessHandle.current().pid());
@@ -206,32 +186,6 @@ public class KillLeakingJavaProcesses {
         return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac");
     }
 
-    private static class ExecResult {
-        private final String[] args;
-        private final int code;
-        private final String stdout;
-        private final String stderr;
-
-        public ExecResult(String[] args, int code, String stdout, String stderr) {
-            this.args = args;
-            this.code = code;
-            this.stdout = stdout;
-            this.stderr = stderr;
-        }
-
-        @Override
-        public String toString() {
-            return "ExecResult{" + "code=" + code + "\n stdout='" + stdout + '\'' + "\n stderr='" + stderr + '\'' + '}';
-        }
-
-        ExecResult assertZeroExit() {
-            if (code != 0) {
-                throw new AssertionError(String.format("%s return:\n%s\n%s\n", Arrays.toString(args), stdout, stderr));
-            }
-            return this;
-        }
-    }
-
     private static ExecResult run(String... args) {
         try {
             Process process = new ProcessBuilder().command(args).start();
@@ -264,5 +218,51 @@ public class KillLeakingJavaProcesses {
             }
         }).start();
         return os;
+    }
+
+    enum ExecutionMode {
+        /**
+         * Run at the beginning of each build. Kill potentially leaked processes in previous builds.
+         * Only kill local Gradle processes (classpath in checkout directory).
+         * Not clean up global Gradle processes (i.e. classpath in ~/.gradle/...).
+         */
+        KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS,
+        /**
+         * Run at the end of each build. Kill potentially leaked processes in the current build.
+         * Only kill local Gradle processes (classpath in checkout directory).
+         * Not clean up global Gradle processes (i.e. classpath in ~/.gradle/...).
+         * Because the step is not guaranteed to run (e.g. build timeout), we need `KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS` mode.
+         */
+        KILL_PROCESSES_STARTED_BY_GRADLE,
+        /**
+         * Run when we want to retry the build. Kill all Gradle processes, regardless of they're global or local.
+         */
+        KILL_ALL_GRADLE_PROCESSES
+    }
+
+    private static class ExecResult {
+        private final String[] args;
+        private final int code;
+        private final String stdout;
+        private final String stderr;
+
+        public ExecResult(String[] args, int code, String stdout, String stderr) {
+            this.args = args;
+            this.code = code;
+            this.stdout = stdout;
+            this.stderr = stderr;
+        }
+
+        @Override
+        public String toString() {
+            return "ExecResult{" + "code=" + code + "\n stdout='" + stdout + '\'' + "\n stderr='" + stderr + '\'' + '}';
+        }
+
+        ExecResult assertZeroExit() {
+            if (code != 0) {
+                throw new AssertionError(String.format("%s return:\n%s\n%s\n", Arrays.toString(args), stdout, stderr));
+            }
+            return this;
+        }
     }
 }

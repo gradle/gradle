@@ -79,7 +79,7 @@ public abstract class AbstractTestLogger {
         }
 
         int effectiveDisplayGranularity = displayGranularity == -1
-                ? names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
+            ? names.size() - 1 : Math.min(displayGranularity, names.size() - 1);
         List<String> displayedNames = Lists.reverse(names).subList(effectiveDisplayGranularity, names.size());
         return Joiner.on(" > ").join(displayedNames) + " ";
     }
@@ -101,10 +101,14 @@ public abstract class AbstractTestLogger {
 
     private StyledTextOutput.Style getStyle(TestLogEvent event) {
         switch (event) {
-            case PASSED: return StyledTextOutput.Style.Identifier;
-            case FAILED: return StyledTextOutput.Style.Failure;
-            case SKIPPED: return StyledTextOutput.Style.Info;
-            default: return StyledTextOutput.Style.Normal;
+            case PASSED:
+                return StyledTextOutput.Style.Identifier;
+            case FAILED:
+                return StyledTextOutput.Style.Failure;
+            case SKIPPED:
+                return StyledTextOutput.Style.Info;
+            default:
+                return StyledTextOutput.Style.Normal;
         }
     }
 }

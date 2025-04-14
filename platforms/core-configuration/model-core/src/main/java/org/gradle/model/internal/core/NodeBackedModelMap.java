@@ -80,13 +80,17 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private final ModelType<?> publicType;
 
     // Note: used by generated subtypes
-    public NodeBackedModelMap(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                              ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
+    public NodeBackedModelMap(
+        ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
+        ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy
+    ) {
         this(publicType, elementType, sourceDescriptor, modelNode, viewState, NO_PARENT, creatorStrategy);
     }
 
-    private NodeBackedModelMap(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                               ModelViewState viewState, ElementFilter parentFilter, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
+    private NodeBackedModelMap(
+        ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
+        ModelViewState viewState, ElementFilter parentFilter, ChildNodeInitializerStrategy<? super T> creatorStrategy
+    ) {
         this.publicType = publicType;
         this.viewState = viewState;
         this.creatorStrategy = creatorStrategy;
@@ -282,11 +286,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         } else {
             modelNode.addLink(
                 ModelRegistrations.unmanagedInstance(
-                    ModelReference.of(modelNode.getPath().child(name), type),
-                    Factories.constant(instance)
-                )
-                .descriptor(descriptor)
-                .build()
+                        ModelReference.of(modelNode.getPath().child(name), type),
+                        Factories.constant(instance)
+                    )
+                    .descriptor(descriptor)
+                    .build()
             );
         }
     }

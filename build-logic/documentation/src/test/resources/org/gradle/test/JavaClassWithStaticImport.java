@@ -21,5 +21,5 @@ import static java.util.Collections.emptyList;
 import java.util.List;
 
 public class JavaClassWithStaticImport {
-    List<String> getProperty() { return emptyList(); }
+    List<String> getProperty() {return emptyList();}
 }

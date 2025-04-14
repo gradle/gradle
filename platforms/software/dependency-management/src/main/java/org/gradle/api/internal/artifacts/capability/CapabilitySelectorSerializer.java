@@ -32,16 +32,6 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     private static final int SPECIFIC_CAPABILITY_SELECTOR = 1;
     private static final int FEATURE_CAPABILITY_SELECTOR = 2;
 
-    @Override
-    public CapabilitySelector read(Decoder decoder) throws IOException {
-        int type = decoder.readSmallInt();
-        switch (type) {
-            case SPECIFIC_CAPABILITY_SELECTOR: return readSpecificCapabilitySelector(decoder);
-            case FEATURE_CAPABILITY_SELECTOR: return readFeatureCapabilitySelector(decoder);
-            default: throw new IllegalArgumentException("Unknown capability selector type: " + type);
-        }
-    }
-
     private static CapabilitySelector readSpecificCapabilitySelector(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
@@ -52,6 +42,30 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     private static CapabilitySelector readFeatureCapabilitySelector(Decoder decoder) throws IOException {
         String feature = decoder.readString();
         return new DefaultFeatureCapabilitySelector(feature);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void writeSpecificCapabilitySelector(Encoder encoder, DefaultSpecificCapabilitySelector value) throws IOException {
+        encoder.writeString(value.getGroup());
+        encoder.writeString(value.getName());
+        encoder.writeNullableString(value.getBackingCapability().getVersion());
+    }
+
+    private static void writeFeatureCapabilitySelector(Encoder encoder, FeatureCapabilitySelector value) throws IOException {
+        encoder.writeString(value.getFeatureName());
+    }
+
+    @Override
+    public CapabilitySelector read(Decoder decoder) throws IOException {
+        int type = decoder.readSmallInt();
+        switch (type) {
+            case SPECIFIC_CAPABILITY_SELECTOR:
+                return readSpecificCapabilitySelector(decoder);
+            case FEATURE_CAPABILITY_SELECTOR:
+                return readFeatureCapabilitySelector(decoder);
+            default:
+                throw new IllegalArgumentException("Unknown capability selector type: " + type);
+        }
     }
 
     @Override
@@ -65,16 +79,5 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
         } else {
             throw new IllegalArgumentException("Unknown capability selector type: " + value.getClass());
         }
-    }
-
-    @SuppressWarnings("deprecation")
-    private static void writeSpecificCapabilitySelector(Encoder encoder, DefaultSpecificCapabilitySelector value) throws IOException {
-        encoder.writeString(value.getGroup());
-        encoder.writeString(value.getName());
-        encoder.writeNullableString(value.getBackingCapability().getVersion());
-    }
-
-    private static void writeFeatureCapabilitySelector(Encoder encoder, FeatureCapabilitySelector value) throws IOException {
-        encoder.writeString(value.getFeatureName());
     }
 }

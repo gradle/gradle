@@ -40,7 +40,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "fails with meaningful error when no tests declared"() {
         when:
         launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':test',[])
+            launcher.withTaskAndTestClasses(':test', [])
         }
 
         then:
@@ -62,7 +62,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "no tests executed when withTaskAndTestClasses() invoked for old clients"() {
         when:
         launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':secondTest',["example.MyTest"])
+            launcher.withTaskAndTestClasses(':secondTest', ["example.MyTest"])
         }
 
         then:
@@ -75,7 +75,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "can target specific test task and classes"() {
         when:
         launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':secondTest',["example.MyTest2"])
+            launcher.withTaskAndTestClasses(':secondTest', ["example.MyTest2"])
         }
         then:
         assertTaskNotExecuted(":test")

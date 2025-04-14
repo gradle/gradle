@@ -39,6 +39,13 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ImmutableSet.Builder<RejectedVersion> rejections;
     private Object mark;
 
+    private static <T> Collection<T> safeBuild(ImmutableSet.Builder<T> builder) {
+        if (builder == null) {
+            return Collections.emptyList();
+        }
+        return builder.build();
+    }
+
     @Override
     public boolean hasResult() {
         return id != null || failure != null;
@@ -144,13 +151,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         }
         mark = o;
         return true;
-    }
-
-    private static <T> Collection<T> safeBuild(ImmutableSet.Builder<T> builder) {
-        if (builder == null) {
-            return Collections.emptyList();
-        }
-        return builder.build();
     }
 
     private void assertResolved() {

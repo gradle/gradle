@@ -160,8 +160,8 @@ class PluginBuilder {
             gradlePlugin {
                 plugins {
                     ${pluginIds.collect { id, className ->
-                        "'${id}' { id='${id}'; implementationClass='${packageName}.${className}' }"
-                    }.join("\n")}
+            "'${id}' { id='${id}'; implementationClass='${packageName}.${className}' }"
+        }.join("\n")}
                 }
             }
         """

@@ -50,6 +50,16 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         this.runAllExecutions = runAllExecutions;
     }
 
+    private static boolean canSkipFeature(FeatureInfo feature, List<Execution> executions) {
+        TestDetails testDetails = new TestDetails(feature);
+        for (Execution execution : executions) {
+            if (execution.isTestEnabled(testDetails)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void interceptFeature(FeatureInfo feature) {
         initExecutions();
 
@@ -67,7 +77,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
 
         feature.setDataDriver((dataIterator, iterationRunner, parameters) -> {
             TestDetails testDetails = new TestDetails(feature);
-            while(dataIterator.hasNext()) {
+            while (dataIterator.hasNext()) {
                 Object[] arguments = dataIterator.next();
                 Object[] actualArguments = IDataDriver.prepareArgumentArray(arguments, parameters);
                 for (Execution execution : executions) {
@@ -110,16 +120,6 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             }
             executionsInitialized = true;
         }
-    }
-
-    private static boolean canSkipFeature(FeatureInfo feature, List<Execution> executions) {
-        TestDetails testDetails = new TestDetails(feature);
-        for (Execution execution : executions) {
-            if (execution.isTestEnabled(testDetails)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public static abstract class Execution {

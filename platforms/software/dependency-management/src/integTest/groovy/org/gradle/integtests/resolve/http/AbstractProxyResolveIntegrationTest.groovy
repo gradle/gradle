@@ -25,7 +25,8 @@ import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties()
     protected TestProxyServer testProxyServer
     def MavenHttpModule module
 
@@ -38,9 +39,13 @@ abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependenc
     }
 
     abstract MavenHttpRepository getRepo()
+
     abstract String getProxyScheme()
+
     abstract String getRepoServerUrl()
+
     abstract boolean isTunnel()
+
     abstract void setupServer()
 
     def setup() {

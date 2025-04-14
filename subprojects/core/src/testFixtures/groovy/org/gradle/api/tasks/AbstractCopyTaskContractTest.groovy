@@ -94,7 +94,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         TestFile newDir = new TestFile(parentDir, path)
         boolean success = newDir.mkdirs()
 
-        if(!success) {
+        if (!success) {
             fail "Failed to create directory $newDir"
         }
 

@@ -37,7 +37,7 @@ class MultiLanguageSamplesDocinfoProcessor extends DocinfoProcessor {
     @Override
     public String process(Document document) {
         return "<style type=\"text/css\">" + readResourceContent("/multi-language-samples.css") + "</style>" +
-                "<script type=\"text/javascript\">" + readResourceContent("/multi-language-samples.js") + "</script>";
+            "<script type=\"text/javascript\">" + readResourceContent("/multi-language-samples.js") + "</script>";
     }
 
     private String readResourceContent(String resourcePath) {

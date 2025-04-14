@@ -45,14 +45,14 @@ public final class ConfigurationCreationTest {
      */
     @ArchTest
     public static final ArchRule configurations_are_created_with_role_based_api =
-            ArchRuleDefinition.noClasses()
-                    .should().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "maybeCreate", String.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName(), Closure.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName(), Action.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName())
-                    .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName(), Action.class.getName())
-                    .because("Configurations should be created with the role-based API in org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal");
+        ArchRuleDefinition.noClasses()
+            .should().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName())
+            .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "maybeCreate", String.class.getName())
+            .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName(), Closure.class.getName())
+            .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName(), Action.class.getName())
+            .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName())
+            .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName(), Action.class.getName())
+            .because("Configurations should be created with the role-based API in org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal");
 
     /**
      * Ensures no new usages of resolvable + dependency scope Configurations are added and ensures usages of "maybe" methods are avoided.

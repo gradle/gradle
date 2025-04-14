@@ -121,7 +121,7 @@ class MultiParentClassLoaderTest extends Specification {
         loader.visit(visitor)
 
         then:
-        1 * visitor.visitSpec({it instanceof MultiParentClassLoader.Spec})
+        1 * visitor.visitSpec({ it instanceof MultiParentClassLoader.Spec })
         1 * visitor.visitParent(parent1)
         1 * visitor.visitParent(parent2)
         0 * visitor._

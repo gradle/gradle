@@ -156,7 +156,7 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
     def "will only search for defined metadata sources"() {
         def metadataSource = isGradleMetadataPublished() ? "gradleMetadata" : useIvy() ? "ivyDescriptor" : "mavenPom"
         def metadataType = isGradleMetadataPublished() ? HttpRepository.MetadataType.ONLY_GRADLE : HttpRepository.MetadataType.ONLY_ORIGINAL
-        def metadataUri = isGradleMetadataPublished() ? gradleMetadataURI("org.test", "projectA", "1.1"): legacyMetadataURI("org.test", "projectA", "1.1")
+        def metadataUri = isGradleMetadataPublished() ? gradleMetadataURI("org.test", "projectA", "1.1") : legacyMetadataURI("org.test", "projectA", "1.1")
         buildFile << """
             repositories.all {
                 metadataSources {

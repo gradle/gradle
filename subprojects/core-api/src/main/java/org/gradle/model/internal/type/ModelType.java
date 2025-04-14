@@ -46,7 +46,7 @@ import java.util.List;
 public abstract class ModelType<T> {
 
     public static final ModelType<Object> UNTYPED = ModelType.of(Object.class);
-
+    private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
     private final TypeWrapper wrapper;
 
     private ModelType(TypeWrapper wrapper) {
@@ -90,6 +90,71 @@ public abstract class ModelType<T> {
         return Simple.typed(type);
     }
 
+    public static ModelType<Object> untyped() {
+        return UNTYPED;
+    }
+
+    @Nullable
+    private static TypeWrapper wrap(Type type) {
+        if (type == null) {
+            return null;
+        } else if (type instanceof Class) {
+            return new ClassTypeWrapper((Class<?>) type);
+        } else if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            return new ParameterizedTypeWrapper(
+                toWrappers(parameterizedType.getActualTypeArguments()),
+                (ClassTypeWrapper) wrap(parameterizedType.getRawType()),
+                wrap(parameterizedType.getOwnerType())
+            );
+        } else if (type instanceof WildcardType) {
+            WildcardType wildcardType = (WildcardType) type;
+            return new WildcardTypeWrapper(
+                toWrappers(wildcardType.getUpperBounds()),
+                toWrappers(wildcardType.getLowerBounds()),
+                type.hashCode()
+            );
+        } else if (type instanceof TypeVariable) {
+            TypeVariable<?> typeVariable = (TypeVariable<?>) type;
+            return new TypeVariableTypeWrapper(
+                typeVariable.getName(),
+                toWrappers(typeVariable.getBounds()),
+                type.hashCode()
+            );
+        } else if (type instanceof GenericArrayType) {
+            GenericArrayType genericArrayType = (GenericArrayType) type;
+            return new GenericArrayTypeWrapper(wrap(genericArrayType.getGenericComponentType()), type.hashCode());
+        } else {
+            throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
+        }
+    }
+
+    static TypeWrapper[] toWrappers(Type[] types) {
+        if (types.length == 0) {
+            return EMPTY_TYPE_WRAPPER_ARRAY;
+        } else {
+            TypeWrapper[] wrappers = new TypeWrapper[types.length];
+            int i = 0;
+            for (Type type : types) {
+                wrappers[i++] = wrap(type);
+            }
+            return wrappers;
+        }
+    }
+
+    static TypeWrapper[] toWrappers(List<ModelType<?>> types) {
+        if (types.isEmpty()) {
+            return EMPTY_TYPE_WRAPPER_ARRAY;
+        } else {
+            TypeWrapper[] wrappers = new TypeWrapper[types.size()];
+            int i = 0;
+            for (ModelType<?> type : types) {
+                wrappers[i++] = type.wrapper;
+            }
+            return wrappers;
+        }
+    }
+
     /**
      * Returns true if this type represents a class.
      */
@@ -107,10 +172,6 @@ public abstract class ModelType<T> {
 
     public boolean isRawClassOfParameterizedType() {
         return wrapper instanceof ClassTypeWrapper && ((ClassTypeWrapper) wrapper).unwrap().getTypeParameters().length > 0;
-    }
-
-    public static ModelType<Object> untyped() {
-        return UNTYPED;
     }
 
     public boolean isParameterized() {
@@ -307,84 +368,21 @@ public abstract class ModelType<T> {
         }
     }
 
-    private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
-
-    @Nullable
-    private static TypeWrapper wrap(Type type) {
-        if (type == null) {
-            return null;
-        } else if (type instanceof Class) {
-            return new ClassTypeWrapper((Class<?>) type);
-        } else if (type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            return new ParameterizedTypeWrapper(
-                    toWrappers(parameterizedType.getActualTypeArguments()),
-                    (ClassTypeWrapper) wrap(parameterizedType.getRawType()),
-                    wrap(parameterizedType.getOwnerType())
-            );
-        } else if (type instanceof WildcardType) {
-            WildcardType wildcardType = (WildcardType) type;
-            return new WildcardTypeWrapper(
-                    toWrappers(wildcardType.getUpperBounds()),
-                    toWrappers(wildcardType.getLowerBounds()),
-                    type.hashCode()
-            );
-        } else if (type instanceof TypeVariable) {
-            TypeVariable<?> typeVariable = (TypeVariable<?>) type;
-            return new TypeVariableTypeWrapper(
-                typeVariable.getName(),
-                toWrappers(typeVariable.getBounds()),
-                type.hashCode()
-            );
-        } else if (type instanceof GenericArrayType) {
-            GenericArrayType genericArrayType = (GenericArrayType) type;
-            return new GenericArrayTypeWrapper(wrap(genericArrayType.getGenericComponentType()), type.hashCode());
-        } else {
-            throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
-        }
-    }
-
-    static TypeWrapper[] toWrappers(Type[] types) {
-        if (types.length == 0) {
-            return EMPTY_TYPE_WRAPPER_ARRAY;
-        } else {
-            TypeWrapper[] wrappers = new TypeWrapper[types.length];
-            int i = 0;
-            for (Type type : types) {
-                wrappers[i++] = wrap(type);
-            }
-            return wrappers;
-        }
-    }
-
-    static TypeWrapper[] toWrappers(List<ModelType<?>> types) {
-        if (types.isEmpty()) {
-            return EMPTY_TYPE_WRAPPER_ARRAY;
-        } else {
-            TypeWrapper[] wrappers = new TypeWrapper[types.size()];
-            int i = 0;
-            for (ModelType<?> type : types) {
-                wrappers[i++] = type.wrapper;
-            }
-            return wrappers;
-        }
-    }
-
     private static class Simple<T> extends ModelType<T> {
-        public static <T> ModelType<T> typed(Type type) {
-            return new Simple<T>(type);
-        }
-
-        public static <T> ModelType<T> typed(TypeWrapper wrapper) {
-            return new Simple<T>(wrapper);
-        }
-
         public Simple(Type type) {
             super(wrap(type));
         }
 
         public Simple(TypeWrapper type) {
             super(type);
+        }
+
+        public static <T> ModelType<T> typed(Type type) {
+            return new Simple<T>(type);
+        }
+
+        public static <T> ModelType<T> typed(TypeWrapper wrapper) {
+            return new Simple<T>(wrapper);
         }
     }
 

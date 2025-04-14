@@ -16,8 +16,11 @@ println myProjectProp
 // end::configuration[]
 
 abstract class PrintValue extends DefaultTask {
-    @Input abstract Property<String> getInputValue()
-    @TaskAction void action() { println(inputValue.get()) }
+    @Input
+    abstract Property<String> getInputValue()
+
+    @TaskAction
+    void action() { println(inputValue.get()) }
 }
 
 // tag::execution[]

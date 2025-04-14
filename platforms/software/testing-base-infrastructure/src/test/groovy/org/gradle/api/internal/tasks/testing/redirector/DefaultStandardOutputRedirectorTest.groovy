@@ -23,7 +23,8 @@ import spock.lang.Specification
 class DefaultStandardOutputRedirectorTest extends Specification {
     private static final String EOL = SystemProperties.instance.lineSeparator
 
-    @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    @Rule
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final DefaultStandardOutputRedirector redirector = new DefaultStandardOutputRedirector()
     private final StandardOutputRedirector.OutputListener stdOutListener = Mock()
     private final StandardOutputRedirector.OutputListener stdErrListener = Mock()

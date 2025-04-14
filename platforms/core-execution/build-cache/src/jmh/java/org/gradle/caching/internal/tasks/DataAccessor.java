@@ -22,6 +22,8 @@ import java.io.IOException;
 
 public interface DataAccessor {
     DataSource createSource(String name, byte[] bytes, Level level) throws IOException;
+
     DataTarget createTarget(String name, Level level);
+
     DataTargetFactory createTargetFactory(String root, Level level) throws IOException;
 }

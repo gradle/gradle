@@ -143,7 +143,7 @@ model {
         wrapperTool(binDir, "linker", toolChain.linker)
 
         when:
-        file("src/execTest/c/execTest.c") <<"""
+        file("src/execTest/c/execTest.c") << """
             #include <stdio.h>
 
             int main () {

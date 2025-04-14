@@ -72,8 +72,8 @@ public interface GradleProject extends HierarchicalElement, BuildableElement, Pr
      * Returns the build script for this project.
      *
      * @return The build script.
-     * @since 1.8
      * @throws UnsupportedMethodException For Gradle versions older than 1.8, where this method is not supported.
+     * @since 1.8
      */
     GradleScript getBuildScript() throws UnsupportedMethodException;
 
@@ -81,8 +81,8 @@ public interface GradleProject extends HierarchicalElement, BuildableElement, Pr
      * Returns the build directory for this project.
      *
      * @return The build directory.
-     * @since 2.0
      * @throws UnsupportedMethodException For Gradle versions older than 2.0, where this method is not supported.
+     * @since 2.0
      */
     File getBuildDirectory() throws UnsupportedMethodException;
 
@@ -90,8 +90,8 @@ public interface GradleProject extends HierarchicalElement, BuildableElement, Pr
      * Returns the project directory for this project.
      *
      * @return The project directory.
-     * @since 2.4
      * @throws UnsupportedMethodException For Gradle versions older than 2.4, where this method is not supported.
+     * @since 2.4
      */
     File getProjectDirectory() throws UnsupportedMethodException;
 

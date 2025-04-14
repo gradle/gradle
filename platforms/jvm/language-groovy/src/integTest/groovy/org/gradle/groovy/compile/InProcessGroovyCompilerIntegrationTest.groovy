@@ -27,7 +27,7 @@ class InProcessGroovyCompilerIntegrationTest extends AbstractApiGroovyCompilerIn
     }
 
     String compilerConfiguration() {
-'''
+        '''
     tasks.withType(GroovyCompile) {
         groovyOptions.fork = false
     }

@@ -24,7 +24,7 @@ import java.util.Collection;
 
 @ServiceScope(Scope.Build.class)
 public interface ClientInjectedClasspathPluginResolver {
-    ClientInjectedClasspathPluginResolver EMPTY = dest -> { };
+    ClientInjectedClasspathPluginResolver EMPTY = dest -> {};
 
     void collectResolversInto(Collection<? super PluginResolver> dest);
 }

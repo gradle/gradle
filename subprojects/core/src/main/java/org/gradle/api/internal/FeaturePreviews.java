@@ -33,13 +33,21 @@ public class FeaturePreviews {
         /**
          * When enabled, service usage must be explicitly declared, or deprecation warnings will be issued.
          * <p>
-         *     This functionality used to be behind {@link #STABLE_CONFIGURATION_CACHE}, but since it triggers false
-         *     positives and does not cover several required scenarios
-         *     (services used by work that is not tasks, services used at configuration time),
-         *     it is now behind a specific (internal) feature, used only by some internal tests.
+         * This functionality used to be behind {@link #STABLE_CONFIGURATION_CACHE}, but since it triggers false
+         * positives and does not cover several required scenarios
+         * (services used by work that is not tasks, services used at configuration time),
+         * it is now behind a specific (internal) feature, used only by some internal tests.
          * </p>
          */
         INTERNAL_BUILD_SERVICE_USAGE(true, null);
+
+        private final boolean active;
+        private final String systemPropertyName;
+
+        Feature(boolean active, @Nullable String systemPropertyName) {
+            this.active = active;
+            this.systemPropertyName = systemPropertyName;
+        }
 
         public static Feature withName(String name) {
             try {
@@ -61,14 +69,6 @@ public class FeaturePreviews {
                 }
             }
             return activeFeatures;
-        }
-
-        private final boolean active;
-        private final String systemPropertyName;
-
-        Feature(boolean active, @Nullable String systemPropertyName) {
-            this.active = active;
-            this.systemPropertyName = systemPropertyName;
         }
 
         /**

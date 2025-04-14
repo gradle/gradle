@@ -17,7 +17,7 @@ package org.gradle.api.specs;
 
 /**
  * A {@link org.gradle.api.specs.Spec} implementation which negates another {@code Spec}.
- * 
+ *
  * @param <T> The target type for this Spec
  */
 public class NotSpec<T> implements Spec<T> {

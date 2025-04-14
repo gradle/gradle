@@ -28,9 +28,9 @@ import spock.lang.Issue
 class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
 
     def locales = [
-            LocaleUtils.toLocale("es_MX"),
-            LocaleUtils.toLocale("ja_JP"),
-            LocaleUtils.toLocale("hr_HR")
+        LocaleUtils.toLocale("es_MX"),
+        LocaleUtils.toLocale("ja_JP"),
+        LocaleUtils.toLocale("hr_HR")
     ].findAll {
         it != Locale.default
     }

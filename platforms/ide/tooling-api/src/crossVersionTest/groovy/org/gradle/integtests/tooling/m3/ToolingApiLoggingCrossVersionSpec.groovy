@@ -25,7 +25,8 @@ import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
 class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "logging is live"() {
         server.start()

@@ -34,7 +34,7 @@ class ArgsMappingMacroFunction extends AbstractMacroFunction {
     private final String value;
     private final List<Expression> arguments;
 
-    public ArgsMappingMacroFunction(String macroName, int parameters, int[] argsMap, IncludeType type,  String value, List<Expression> arguments) {
+    public ArgsMappingMacroFunction(String macroName, int parameters, int[] argsMap, IncludeType type, String value, List<Expression> arguments) {
         super(macroName, parameters);
         this.argsMap = argsMap;
         this.type = type;

@@ -37,6 +37,10 @@ import java.util.function.Supplier;
  */
 public abstract class ProducerGuard<T> {
 
+    private ProducerGuard() {
+
+    }
+
     /**
      * Creates a {@link ProducerGuard} which guarantees that different keys will block on different locks,
      * ensuring maximum concurrency. This comes at the cost of allocating locks for each key, leading to
@@ -63,10 +67,6 @@ public abstract class ProducerGuard<T> {
      */
     public static <T> ProducerGuard<T> serial() {
         return new SerialProducerGuard<T>();
-    }
-
-    private ProducerGuard() {
-
     }
 
     /**

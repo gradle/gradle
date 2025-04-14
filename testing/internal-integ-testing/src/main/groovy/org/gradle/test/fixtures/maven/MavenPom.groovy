@@ -24,7 +24,7 @@ class MavenPom {
     final Map<String, MavenScope> scopes = [:]
 
     MavenPom(File pomFile) {
-        if (pomFile.exists()){
+        if (pomFile.exists()) {
             pom = new XmlParser().parse(pomFile)
 
             def scopesByDependency = ArrayListMultimap.create()
@@ -132,7 +132,7 @@ class MavenPom {
         def exclusions = []
         boolean optional = false
         if (dep.optional) {
-            optional = "true"==dep.optional.text()
+            optional = "true" == dep.optional.text()
         }
         if (dep.exclusions) {
             dep.exclusions.exclusion.each { excl ->
@@ -165,7 +165,7 @@ class MavenPom {
         scope
     }
 
-    void scope(String scopeName, @DelegatesTo(value=MavenScope, strategy=Closure.DELEGATE_FIRST) Closure<?> spec) {
+    void scope(String scopeName, @DelegatesTo(value = MavenScope, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def scope = scopes[scopeName]
         if (scope) {
             spec.delegate = scope
@@ -177,6 +177,6 @@ class MavenPom {
     }
 
     void hasNoScope(String scopeName) {
-        assert scopes[scopeName] == null : "Didn't expect to find scope $scopeName"
+        assert scopes[scopeName] == null: "Didn't expect to find scope $scopeName"
     }
 }

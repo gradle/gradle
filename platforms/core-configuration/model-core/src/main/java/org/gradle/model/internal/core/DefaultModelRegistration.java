@@ -18,7 +18,9 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
+
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 @ThreadSafe
@@ -28,8 +30,10 @@ public class DefaultModelRegistration implements ModelRegistration {
     private final boolean hidden;
     private final Multimap<ModelActionRole, ? extends ModelAction> actions;
 
-    public DefaultModelRegistration(ModelPath path, ModelRuleDescriptor descriptor,
-                                    boolean hidden, Multimap<ModelActionRole, ? extends ModelAction> actions) {
+    public DefaultModelRegistration(
+        ModelPath path, ModelRuleDescriptor descriptor,
+        boolean hidden, Multimap<ModelActionRole, ? extends ModelAction> actions
+    ) {
         this.path = Preconditions.checkNotNull(path, "path");
         this.descriptor = Preconditions.checkNotNull(descriptor, "descriptor");
         this.hidden = hidden;

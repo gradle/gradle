@@ -45,8 +45,10 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
     private final NotationParser<Object, ComponentIdentifier> componentNotationParser;
     private final List<CapabilityAction> actions = new ArrayList<>(2);
 
-    public DefaultCapabilitiesResolution(NotationParser<Object, Capability> capabilityNotationParser,
-                                         NotationParser<Object, ComponentIdentifier> componentNotationParser) {
+    public DefaultCapabilitiesResolution(
+        NotationParser<Object, Capability> capabilityNotationParser,
+        NotationParser<Object, ComponentIdentifier> componentNotationParser
+    ) {
         this.capabilityNotationParser = capabilityNotationParser;
         this.componentNotationParser = componentNotationParser;
     }

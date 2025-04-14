@@ -88,6 +88,10 @@ public class TarCopyAction implements CopyAction {
         return WorkResults.didWork(true);
     }
 
+    private long getArchiveTimeFor(FileCopyDetails details) {
+        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_TAR_ENTRIES;
+    }
+
     private class StreamAction implements CopyActionProcessingStreamAction {
         private final TarArchiveOutputStream tarOutStr;
 
@@ -130,9 +134,5 @@ public class TarCopyAction implements CopyAction {
                 throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
             }
         }
-    }
-
-    private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_TAR_ENTRIES;
     }
 }

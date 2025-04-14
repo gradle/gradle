@@ -25,16 +25,17 @@ public abstract class SearchUtil {
      * Does a binary search for an element determined by a {@link Comparable}.
      *
      * See {@link java.util.Collections#binarySearch(List, Object, Comparator)}.
+     *
      * @param sortedElements {@link java.util.RandomAccess} list, sorted compatible with the comparable.
      * @param key determines which element to search for.
      * @return the index of the search key, if it is contained in the list;
-     *         otherwise, <code>(-(<i>insertion point</i>) - 1)</code>.  The
-     *         <i>insertion point</i> is defined as the point at which the
-     *         key would be inserted into the list: the index of the first
-     *         element greater than the key, or {@code list.size()} if all
-     *         elements in the list are less than the specified key.  Note
-     *         that this guarantees that the return value will be &gt;= 0 if
-     *         and only if the key is found.
+     * otherwise, <code>(-(<i>insertion point</i>) - 1)</code>.  The
+     * <i>insertion point</i> is defined as the point at which the
+     * key would be inserted into the list: the index of the first
+     * element greater than the key, or {@code list.size()} if all
+     * elements in the list are less than the specified key.  Note
+     * that this guarantees that the return value will be &gt;= 0 if
+     * and only if the key is found.
      */
     public static <T> int binarySearch(List<T> sortedElements, Comparable<T> key) {
         int size = sortedElements.size();
@@ -47,8 +48,8 @@ public abstract class SearchUtil {
                 return comparedToSearch == 0
                     ? 0
                     : comparedToSearch < 0
-                        ? -1
-                        : -2;
+                    ? -1
+                    : -2;
             default:
                 int low = 0;
                 int high = size - 1;

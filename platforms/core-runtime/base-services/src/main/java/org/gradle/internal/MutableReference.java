@@ -28,16 +28,16 @@ import java.io.Serializable;
 public final class MutableReference<T> implements Serializable {
     private T value;
 
+    private MutableReference(@Nullable T initialValue) {
+        this.value = initialValue;
+    }
+
     public static <T> MutableReference<T> empty() {
         return of(null);
     }
 
     public static <T> MutableReference<T> of(@Nullable T initialValue) {
         return new MutableReference<T>(initialValue);
-    }
-
-    private MutableReference(@Nullable T initialValue) {
-        this.value = initialValue;
     }
 
     public void set(@Nullable T value) {

@@ -58,6 +58,10 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
     public static final String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
+    private static Spec<ComponentIdentifier> projectComponent() {
+        return spec(id -> id instanceof ProjectComponentIdentifier);
+    }
+
     @Inject
     protected abstract JvmPluginServices getEcosystemUtilities();
 
@@ -133,10 +137,6 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                 });
             });
         });
-    }
-
-    private static Spec<ComponentIdentifier> projectComponent() {
-        return spec(id -> id instanceof ProjectComponentIdentifier);
     }
 
     private void configureReportTaskInputs(JacocoReport task, ArtifactView classDirectories, ArtifactView sourceDirectories, ArtifactView executionData) {

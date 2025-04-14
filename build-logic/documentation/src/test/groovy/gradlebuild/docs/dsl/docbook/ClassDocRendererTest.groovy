@@ -92,7 +92,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
-        def subtypes = [ "org.gradle.Subtype1", "org.gradle.Subtype2", "org.gradle.Subtype3", "org.gradle.Subtype4" ].collect {
+        def subtypes = ["org.gradle.Subtype1", "org.gradle.Subtype2", "org.gradle.Subtype3", "org.gradle.Subtype4"].collect {
             ClassDoc subtype = Mock()
             _ * subtype.name >> it
             subtype
@@ -1059,7 +1059,7 @@ class ClassDocRendererTest extends XmlSpecification {
         def content = args.content ?: parse('<section></section>')
         def propertiesSection = withCategories { content.section.find { it.title[0].text().trim() == 'Properties' } }
         def propertyDetailsSection = withCategories { content.section.find { it.title[0].text().trim() == 'Property details' } }
-        def propertiesTable = withCategories { propertiesSection ? propertiesSection.table[0] : parse('<table/>')}
+        def propertiesTable = withCategories { propertiesSection ? propertiesSection.table[0] : parse('<table/>') }
         def methodsSection = withCategories { content.section.find { it.title[0].text().trim() == 'Methods' } }
         def methodDetailsSection = withCategories { content.section.find { it.title[0].text().trim() == 'Method details' } }
         def methodsTable = withCategories { methodsSection ? methodsSection.table[0] : parse('<table/>') }

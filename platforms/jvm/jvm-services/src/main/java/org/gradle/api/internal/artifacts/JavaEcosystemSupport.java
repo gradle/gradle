@@ -101,12 +101,12 @@ public abstract class JavaEcosystemSupport {
         configureTargetEnvironment(attributesSchema);
         configureConsumerDescriptors(attributeDescribers);
         attributesSchema.attributeDisambiguationPrecedence(
-                Category.CATEGORY_ATTRIBUTE,
-                Usage.USAGE_ATTRIBUTE,
-                TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-                LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                Bundling.BUNDLING_ATTRIBUTE,
-                TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
+            Category.CATEGORY_ATTRIBUTE,
+            Usage.USAGE_ATTRIBUTE,
+            TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+            LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+            Bundling.BUNDLING_ATTRIBUTE,
+            TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
         );
     }
 
@@ -165,10 +165,12 @@ public abstract class JavaEcosystemSupport {
         final ImmutableSet<Usage> runtimeVariants;
 
         @Inject
-        public UsageDisambiguationRules(Usage javaApi,
-                                 Usage javaApiJars,
-                                 Usage javaRuntime,
-                                 Usage javaRuntimeJars) {
+        public UsageDisambiguationRules(
+            Usage javaApi,
+            Usage javaApiJars,
+            Usage javaRuntime,
+            Usage javaRuntimeJars
+        ) {
             this.javaApi = javaApi;
             this.javaApiJars = javaApiJars;
             this.apiVariants = ImmutableSet.of(javaApi, javaApiJars);
@@ -218,10 +220,11 @@ public abstract class JavaEcosystemSupport {
     @VisibleForTesting
     public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage> {
         private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
-                DEPRECATED_JAVA_API_JARS,
-                DEPRECATED_JAVA_RUNTIME_JARS,
-                Usage.JAVA_RUNTIME
+            DEPRECATED_JAVA_API_JARS,
+            DEPRECATED_JAVA_RUNTIME_JARS,
+            Usage.JAVA_RUNTIME
         );
+
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             Usage consumerValue = details.getConsumerValue();
@@ -324,9 +327,9 @@ public abstract class JavaEcosystemSupport {
     @VisibleForTesting
     static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling> {
         private static final Set<String> COMPATIBLE_WITH_EXTERNAL = ImmutableSet.of(
-                // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
-                Bundling.EMBEDDED,
-                Bundling.SHADOWED
+            // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
+            Bundling.EMBEDDED,
+            Bundling.SHADOWED
         );
 
         @Override

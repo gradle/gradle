@@ -36,6 +36,15 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         this.startParameter = startParameter;
     }
 
+    private static boolean requiresInputChanges(TaskInternal task) {
+        for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
+            if (taskAction instanceof IncrementalTaskAction) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties properties) {
         if (task.getReasonNotToTrackState().isPresent()) {
@@ -60,14 +69,5 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         }
 
         return DefaultTaskExecutionMode.incremental();
-    }
-
-    private static boolean requiresInputChanges(TaskInternal task) {
-        for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-            if (taskAction instanceof IncrementalTaskAction) {
-                return true;
-            }
-        }
-        return false;
     }
 }

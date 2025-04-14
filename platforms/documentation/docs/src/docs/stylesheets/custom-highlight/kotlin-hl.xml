@@ -40,7 +40,7 @@
     </highlighter>
     <highlighter type="hexnumber">
         <prefix>0x</prefix>
-        <ignoreCase />
+        <ignoreCase/>
     </highlighter>
     <highlighter type="number">
         <point>.</point>
@@ -48,7 +48,7 @@
         <suffix>f</suffix>
         <suffix>d</suffix>
         <suffix>l</suffix>
-        <ignoreCase />
+        <ignoreCase/>
     </highlighter>
     <highlighter type="keywords">
         <keyword>as</keyword>

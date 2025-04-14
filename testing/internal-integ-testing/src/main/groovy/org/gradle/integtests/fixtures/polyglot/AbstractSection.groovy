@@ -32,5 +32,6 @@ abstract class AbstractSection implements SectionBuilder {
     }
 
     abstract String getGroovy()
+
     abstract String getKotlin()
 }

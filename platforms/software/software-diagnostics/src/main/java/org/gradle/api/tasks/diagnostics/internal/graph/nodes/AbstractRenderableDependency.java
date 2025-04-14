@@ -61,7 +61,7 @@ public abstract class AbstractRenderableDependency implements RenderableDependen
         if (requested instanceof ModuleComponentSelector) {
             VersionConstraint versionConstraint = ((ModuleComponentSelector) requested).getVersionConstraint();
             if (!(versionConstraint.getRequiredVersion().isEmpty()
-                    || versionConstraint.getDisplayName().equals(versionConstraint.getRequiredVersion()))) {
+                || versionConstraint.getDisplayName().equals(versionConstraint.getRequiredVersion()))) {
                 return false;
             }
         }

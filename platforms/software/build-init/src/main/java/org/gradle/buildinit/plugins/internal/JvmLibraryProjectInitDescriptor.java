@@ -29,6 +29,24 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
         super(description, libraryVersionProvider, documentationRegistry);
     }
 
+    private static String getUnitTestSourceTemplateName(InitSettings settings) {
+        switch (settings.getTestFramework()) {
+            case SPOCK:
+                return "groovy/LibraryTest";
+            case TESTNG:
+                return "testng/LibraryTest";
+            case JUNIT:
+            case KOTLINTEST:
+                return "LibraryTest";
+            case JUNIT_JUPITER:
+                return "junitjupiter/LibraryTest";
+            case SCALATEST:
+                return "LibrarySuite";
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
     @Override
     public ComponentType getComponentType() {
         return ComponentType.LIBRARY;
@@ -55,23 +73,5 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     @Override
     protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
         return Collections.singletonList(getUnitTestSourceTemplateName(settings));
-    }
-
-    private static String getUnitTestSourceTemplateName(InitSettings settings) {
-        switch (settings.getTestFramework()) {
-            case SPOCK:
-                return "groovy/LibraryTest";
-            case TESTNG:
-                return "testng/LibraryTest";
-            case JUNIT:
-            case KOTLINTEST:
-                return "LibraryTest";
-            case JUNIT_JUPITER:
-                return "junitjupiter/LibraryTest";
-            case SCALATEST:
-                return "LibrarySuite";
-            default:
-                throw new IllegalArgumentException();
-        }
     }
 }

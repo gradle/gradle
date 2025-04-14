@@ -70,7 +70,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
             if (replacement != null) {
                 ProjectComponentSelector targetProject = new DefaultProjectComponentSelector(
                     replacement.getProjectIdentity(),
-                    ((AttributeContainerInternal)requested.getAttributes()).asImmutable(),
+                    ((AttributeContainerInternal) requested.getAttributes()).asImmutable(),
                     ImmutableSet.copyOf(requested.getCapabilitySelectors())
                 );
                 dependencySubstitution.useTarget(
@@ -96,8 +96,8 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
         throw new ModuleVersionResolveException(selector, () -> {
             SortedSet<String> sortedProjects =
                 providingProjects.stream()
-                .map(ComponentIdentifier::getDisplayName)
-                .collect(Collectors.toCollection(TreeSet::new));
+                    .map(ComponentIdentifier::getDisplayName)
+                    .collect(Collectors.toCollection(TreeSet::new));
             return String.format("Module version '%s' is not unique in composite: can be provided by %s.", selector.getDisplayName(), sortedProjects);
         });
     }

@@ -22,11 +22,18 @@ import java.util.List;
 
 public interface PomDependencyMgt {
     MavenDependencyKey getId();
+
     String getGroupId();
+
     String getArtifactId();
+
     String getVersion();
+
     String getScope();
+
     String getType();
+
     String getClassifier();
+
     List<ModuleIdentifier> getExcludedModules();
 }

@@ -35,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements JavaToolchainFixture {
     abstract String getJUnitVersionAssertion()
+
     abstract TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName)
 
     String getStableEnvironmentDependencies() {

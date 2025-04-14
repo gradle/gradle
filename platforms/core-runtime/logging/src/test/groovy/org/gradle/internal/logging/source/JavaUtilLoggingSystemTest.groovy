@@ -28,7 +28,8 @@ import java.util.logging.Logger
 
 class JavaUtilLoggingSystemTest extends Specification {
     final TestOutputEventListener outputEventListener = new TestOutputEventListener()
-    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     private final JavaUtilLoggingSystem configurer = new JavaUtilLoggingSystem()
 
     def routesJulToListener() {

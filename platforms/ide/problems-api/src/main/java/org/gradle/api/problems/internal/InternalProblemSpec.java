@@ -37,9 +37,9 @@ public interface InternalProblemSpec extends ProblemSpec {
      * If not additional data was configured for this problem, then a new instance will be created. If additional data was already configured, then the existing instance will be used and the configuration will be applied to it.
      *
      * @param specType the type of the additional data configurer (see the AdditionalDataSpec interface for the list of supported types)
-     * @param config  The action configuring the additional data
-     * @return this
+     * @param config The action configuring the additional data
      * @param <U> The type of the configurator object that will be applied to the additional data
+     * @return this
      */
     <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
 

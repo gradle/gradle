@@ -28,7 +28,6 @@ public interface ProjectDependency extends ModuleDependency {
      * Get the path to the project that this dependency refers to relative to its owning build.
      *
      * @see Project#getPath()
-     *
      * @since 8.11
      */
     String getPath();

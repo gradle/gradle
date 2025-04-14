@@ -90,9 +90,9 @@ class ModelRuleSourceDetectorTest extends Specification {
 
         where:
         impl << [
-                "class SomeThing {}",
-                "class SomeThing extends ${RuleSource.name} {}",
-                "class SomeThing { static class Inner extends ${RuleSource.name} { } }",
+            "class SomeThing {}",
+            "class SomeThing extends ${RuleSource.name} {}",
+            "class SomeThing { static class Inner extends ${RuleSource.name} { } }",
         ]
     }
 

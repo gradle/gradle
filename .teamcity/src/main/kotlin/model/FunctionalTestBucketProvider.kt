@@ -73,11 +73,13 @@ class DefaultFunctionalTestBucketProvider(
                     stage,
                     testCoverage,
                 )
+
             testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION ->
                 allCrossVersionTestBucketProvider.createFunctionalTestsFor(
                     stage,
                     testCoverage,
                 )
+
             else -> functionalTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
         }
 }
@@ -147,7 +149,7 @@ class StatisticBasedFunctionalTestBucketProvider(
                         (
                             it.parallelizationMethod !is ParallelizationMethod.TeamCityParallelTests ||
                                 it.parallelizationMethod.numberOfBatches == 1
-                        )
+                            )
                 }
             val firstSmallSubprojectsBucket = get(firstAvailableBucketIndex) as SmallSubprojectBucket
 

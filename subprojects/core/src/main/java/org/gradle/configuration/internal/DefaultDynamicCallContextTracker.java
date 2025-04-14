@@ -24,10 +24,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public class DefaultDynamicCallContextTracker implements DynamicCallContextTracker {
-    private static class State {
-        Stack<Object> entryPointsStack = new Stack<>();
-    }
-
     private final ThreadLocal<State> stateByThread = ThreadLocal.withInitial(State::new);
     private final List<Consumer<Object>> enterListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<Object>> leaveListeners = new CopyOnWriteArrayList<>();
@@ -63,5 +59,9 @@ public class DefaultDynamicCallContextTracker implements DynamicCallContextTrack
 
     private Stack<Object> currentEntryPointStack() {
         return stateByThread.get().entryPointsStack;
+    }
+
+    private static class State {
+        Stack<Object> entryPointsStack = new Stack<>();
     }
 }

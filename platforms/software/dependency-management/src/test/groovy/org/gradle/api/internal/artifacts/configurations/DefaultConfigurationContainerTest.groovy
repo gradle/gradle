@@ -76,10 +76,10 @@ class DefaultConfigurationContainerTest extends Specification {
         TestFiles.fileCollectionFactory(),
         buildOperationRunner,
         new PublishArtifactNotationParserFactory(
-                instantiator,
-                metaDataProvider,
-                TestFiles.resolver(),
-                TestFiles.taskDependencyFactory(),
+            instantiator,
+            metaDataProvider,
+            TestFiles.resolver(),
+            TestFiles.taskDependencyFactory(),
         ),
         attributesFactory,
         Stub(ResolveExceptionMapper),
@@ -194,12 +194,12 @@ class DefaultConfigurationContainerTest extends Specification {
         legacy.isCanBeDeclared()
 
         where:
-        name                        | action
-        "create(String)"            | { create("foo") }
-        "maybeCreate(String)"       | { maybeCreate("foo") }
-        "create(String, Action)"    | { create("foo") {} }
-        "register(String)"          | { register("foo").get() }
-        "register(String, Action)"  | { register("foo", {}).get() }
+        name                       | action
+        "create(String)"           | { create("foo") }
+        "maybeCreate(String)"      | { maybeCreate("foo") }
+        "create(String, Action)"   | { create("foo") {} }
+        "register(String)"         | { register("foo").get() }
+        "register(String, Action)" | { register("foo", {}).get() }
     }
 
     def "creates resolvable configurations"() {

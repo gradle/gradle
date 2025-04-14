@@ -18,55 +18,55 @@ package org.gradle.plugins.signing
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
 class SignOperationSpec extends SigningProjectSpec {
-    
+
     def input1
     def input2
     def input1Artifact
     def input2Artifact
     def output1
     def output2
-    
+
     def setup() {
         applyPlugin()
         addSigningProperties()
-        
+
         input1 = getResourceFile("1.txt")
         input1Artifact = new DefaultPublishArtifact(input1.name, "Text File", "txt", null, null, input1)
         output1 = signing.signatureType.fileFor(input1)
-        
+
         input2 = getResourceFile("2.txt")
         output2 = signing.signatureType.fileFor(input2)
         input2Artifact = new DefaultPublishArtifact(input2.name, "Text File", "txt", null, null, input2)
-        
+
         [output1, output2].each { output ->
             assert !output.exists() || output.delete()
         }
-        
+
         assert input1.text && input2.text  // don't care what it is, just need some
     }
-    
+
     def "sign single file with defaults"() {
         when:
         def operation = signing.sign(input1)
-        
+
         then:
         output1.exists()
         output1 == operation.singleSignature.file
     }
-    
+
     def "sign single artifact with defaults"() {
         when:
         def operation = signing.sign(input1Artifact)
-        
+
         then:
         output1.exists()
         output1 == operation.singleSignature.file
     }
-    
+
     def "sign multiple files with defaults"() {
         when:
         def operation = signing.sign(input1, input2)
-        
+
         then:
         output1.exists() && output2.exists()
         [input1, input2] == operation.filesToSign.files.toList()[0..1]
@@ -77,12 +77,12 @@ class SignOperationSpec extends SigningProjectSpec {
     def "sign multiple artifacts with defaults"() {
         when:
         def operation = signing.sign(input1Artifact, input2Artifact)
-        
+
         then:
         output1.exists() && output2.exists()
         [input1, input2] == operation.filesToSign.files.toList()[0..1]
         [output1, output2] == operation.signatureFiles.files.toList()[0..1]
         [output1, output2] == operation.signatures*.file.toList()
     }
-    
+
 }

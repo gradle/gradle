@@ -39,6 +39,20 @@ public class PerformanceTestRuntimesGenerator {
         new PerformanceTestRuntimesGenerator().generate(new File(args[0]));
     }
 
+    private static Long estimatedTimeForOs(PerformanceExperiment experiment, OperatingSystem os, Map<OperatingSystem, Long> perOs, Map<OperatingSystem, PerformanceFlakinessDataProvider> flakinessDataProviders) {
+        Long baseDuration = perOs.get(os);
+        PerformanceFlakinessDataProvider performanceFlakinessDataProvider = flakinessDataProviders.get(os);
+        BigDecimal flakinessRate = performanceFlakinessDataProvider.getFlakinessRate(experiment);
+        return increaseByFlakinessRate(baseDuration, flakinessRate);
+    }
+
+    private static Long increaseByFlakinessRate(Long baseDuration, @Nullable BigDecimal flakinessRate) {
+        if (flakinessRate == null || baseDuration == null) {
+            return baseDuration;
+        }
+        return baseDuration + flakinessRate.multiply(BigDecimal.valueOf(baseDuration)).longValue();
+    }
+
     public void generate(File runtimesFile) throws IOException {
         try (AllResultsStore resultsStore = new AllResultsStore()) {
             Map<OperatingSystem, PerformanceFlakinessDataProvider> flakinessDataProviders = Arrays.stream(OperatingSystem.values())
@@ -85,20 +99,6 @@ public class PerformanceTestRuntimesGenerator {
                 .writeValue(runtimesFile, json);
             Files.write(runtimesFile.toPath(), "\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         }
-    }
-
-    private static Long estimatedTimeForOs(PerformanceExperiment experiment, OperatingSystem os, Map<OperatingSystem, Long> perOs, Map<OperatingSystem, PerformanceFlakinessDataProvider> flakinessDataProviders) {
-        Long baseDuration = perOs.get(os);
-        PerformanceFlakinessDataProvider performanceFlakinessDataProvider = flakinessDataProviders.get(os);
-        BigDecimal flakinessRate = performanceFlakinessDataProvider.getFlakinessRate(experiment);
-        return increaseByFlakinessRate(baseDuration, flakinessRate);
-    }
-
-    private static Long increaseByFlakinessRate(Long baseDuration, @Nullable BigDecimal flakinessRate) {
-        if (flakinessRate == null || baseDuration == null) {
-            return baseDuration;
-        }
-        return baseDuration + flakinessRate.multiply(BigDecimal.valueOf(baseDuration)).longValue();
     }
 
 }

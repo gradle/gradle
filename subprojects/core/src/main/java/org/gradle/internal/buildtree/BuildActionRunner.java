@@ -44,12 +44,12 @@ public interface BuildActionRunner {
      * <p>Failures are represented using 2 exceptions: the build failure, which is the failure that the build completed with and that should be reported to the user (via logging), plus the client failure, which is the exception that should be forwarded to the client. Often these are the same, but may be different for specific combinations of action + failure.
      */
     class Result {
+        private static final Result NOTHING = new Result(false, null, null, null);
+        private static final Result NULL = new Result(true, null, null, null);
         private final boolean hasResult;
         private final Object result;
         private final Throwable buildFailure;
         private final Throwable clientFailure;
-        private static final Result NOTHING = new Result(false, null, null, null);
-        private static final Result NULL = new Result(true, null, null, null);
 
         private Result(boolean hasResult, @Nullable Object result, @Nullable Throwable buildFailure, @Nullable Throwable clientFailure) {
             this.hasResult = hasResult;

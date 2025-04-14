@@ -54,7 +54,6 @@ public interface ModuleComponentSelector extends ComponentSelector {
      * The version constraint of the module to select the component from.
      *
      * @return Module version constraint
-     *
      * @since 4.4
      */
     VersionConstraint getVersionConstraint();
@@ -64,7 +63,6 @@ public interface ModuleComponentSelector extends ComponentSelector {
      * as {@link #getGroup()} and {@link #getModule()}.
      *
      * @return the module identifier
-     *
      * @since 4.9
      */
     ModuleIdentifier getModuleIdentifier();

@@ -77,9 +77,9 @@ import static org.gradle.internal.FileUtils.canonicalize;
  * Takes care of instantiating and wiring together the services required by the daemon server.
  */
 public class DaemonServices implements ServiceRegistrationProvider {
+    private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
-    private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
     public DaemonServices(DaemonServerConfiguration configuration, LoggingManagerInternal loggingManager) {
         this.configuration = configuration;

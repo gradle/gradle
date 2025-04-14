@@ -46,6 +46,15 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         this.host = DefaultNativePlatform.host();
     }
 
+    static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
+        for (SwiftVersion version : SwiftVersion.values()) {
+            if (version.getVersion() == swiftCompilerVersion.getMajor()) {
+                return version;
+            }
+        }
+        throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
+    }
+
     @Override
     public <T> Result<T> select(Class<T> platformType, T requestPlatform) {
         if (CppPlatform.class.isAssignableFrom(platformType)) {
@@ -102,15 +111,6 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         toolChain.assertSupported();
 
         return toolChain;
-    }
-
-    static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
-        for (SwiftVersion version : SwiftVersion.values()) {
-            if (version.getVersion() == swiftCompilerVersion.getMajor()) {
-                return version;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
     }
 
     static class DefaultResult<T> implements Result<T> {

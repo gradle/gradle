@@ -10,35 +10,52 @@
             </thead>
             <tr>
                 <td>scriptFile</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/gradlew</literal></td>
+                <td>
+                    <literal><replaceable>${project.projectDir}</replaceable>/gradlew
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>jarFile</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/gradle/wrapper/gradle-wrapper.jar</literal></td>
+                <td>
+                    <literal><replaceable>${project.projectDir}</replaceable>/gradle/wrapper/gradle-wrapper.jar
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>propertiesFile</td>
-                <td><literal>jarFile</literal>, replacing <literal>.jar</literal> with <literal>.properties</literal></td>
+                <td><literal>jarFile</literal>, replacing <literal>.jar</literal> with
+                    <literal>.properties</literal>
+                </td>
             </tr>
             <tr>
                 <td>distributionPath</td>
-                <td><literal>'wrapper/dists'</literal></td>
+                <td>
+                    <literal>'wrapper/dists'</literal>
+                </td>
             </tr>
             <tr>
                 <td>distributionBase</td>
-                <td><literal>PathBase.GRADLE_USER_HOME</literal></td>
+                <td>
+                    <literal>PathBase.GRADLE_USER_HOME</literal>
+                </td>
             </tr>
             <tr>
                 <td>archivePath</td>
-                <td><literal>'wrapper/dists'</literal></td>
+                <td>
+                    <literal>'wrapper/dists'</literal>
+                </td>
             </tr>
             <tr>
                 <td>archiveBase</td>
-                <td><literal>PathBase.GRADLE_USER_HOME</literal></td>
+                <td>
+                    <literal>PathBase.GRADLE_USER_HOME</literal>
+                </td>
             </tr>
             <tr>
                 <td>distributionUrl</td>
-                <td><literal>"http\://services.gradle.org/distributions/gradle-${gradleVersion}-bin.zip"</literal>
+                <td>
+                    <literal>"http\://services.gradle.org/distributions/gradle-${gradleVersion}-bin.zip"</literal>
                     (or
                     <literal>"http\://services.gradle.org/distributions-snapshots/gradle-${gradleVersion}-bin.zip"</literal>
                     for snapshot versions).
@@ -46,19 +63,26 @@
             </tr>
             <tr>
                 <td>gradleVersion</td>
-                <td><literal>gradle.gradleVersion</literal></td>
+                <td>
+                    <literal>gradle.gradleVersion</literal>
+                </td>
             </tr>
             <tr>
                 <td>distributionType</td>
-                <td><literal>DistributionType.BIN</literal></td>
+                <td>
+                    <literal>DistributionType.BIN</literal>
+                </td>
             </tr>
             <tr>
                 <td>networkTimeout</td>
-                <td><literal>10000</literal>ms</td>
+                <td><literal>10000</literal>ms
+                </td>
             </tr>
             <tr>
                 <td>validateDistributionUrl</td>
-                <td><literal>true</literal></td>
+                <td>
+                    <literal>true</literal>
+                </td>
             </tr>
         </table>
     </section>

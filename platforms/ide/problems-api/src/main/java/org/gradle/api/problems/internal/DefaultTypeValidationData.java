@@ -39,6 +39,13 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         this.typeName = typeName;
     }
 
+    public static AdditionalDataBuilder<TypeValidationData> builder(@Nullable TypeValidationData from) {
+        if (from == null) {
+            return new DefaultTypeValidationDataBuilder();
+        }
+        return new DefaultTypeValidationDataBuilder(from);
+    }
+
     @Override
     public String getPluginId() {
         return pluginId;
@@ -80,13 +87,6 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     @Override
     public int hashCode() {
         return Objects.hashCode(pluginId, propertyName, functionName, parentPropertyName, typeName);
-    }
-
-    public static AdditionalDataBuilder<TypeValidationData> builder(@Nullable TypeValidationData from) {
-        if(from == null) {
-            return new DefaultTypeValidationDataBuilder();
-        }
-        return new DefaultTypeValidationDataBuilder(from);
     }
 
     private static class DefaultTypeValidationDataBuilder implements TypeValidationDataSpec, AdditionalDataBuilder<TypeValidationData> {

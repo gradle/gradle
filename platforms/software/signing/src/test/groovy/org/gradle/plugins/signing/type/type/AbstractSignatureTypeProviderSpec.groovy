@@ -22,15 +22,23 @@ import spock.lang.Specification
 
 class AbstractSignatureTypeProviderSpec extends Specification {
 
-    static type1 = new AbstractSignatureType() { String getExtension() { "1" } }
-    static type2 = new AbstractSignatureType() { String getExtension() { "2" } }
-    static type3 = new AbstractSignatureType() { String getExtension() { "3" } }
+    static type1 = new AbstractSignatureType() {
+        String getExtension() { "1" }
+    }
+    static type2 = new AbstractSignatureType() {
+        String getExtension() { "2" }
+    }
+    static type3 = new AbstractSignatureType() {
+        String getExtension() { "3" }
+    }
 
-    def provider = new AbstractSignatureTypeProvider() {{
-        register(AbstractSignatureTypeProviderSpec.type1)
-        register(AbstractSignatureTypeProviderSpec.type2)
-        setDefaultType(AbstractSignatureTypeProviderSpec.type1.extension)
-    }}
+    def provider = new AbstractSignatureTypeProvider() {
+        {
+            register(AbstractSignatureTypeProviderSpec.type1)
+            register(AbstractSignatureTypeProviderSpec.type2)
+            setDefaultType(AbstractSignatureTypeProviderSpec.type1.extension)
+        }
+    }
 
     def "has check"() {
         expect:

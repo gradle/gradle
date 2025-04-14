@@ -118,7 +118,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 4 : 2
         assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
         when:
-        includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
+        includedBuild.file("src/main/java/NewClass.java") << "public class NewClass {}"
         withWatchFs().run("assemble")
         then:
         executedAndNotSkipped(":includedBuild:jar")

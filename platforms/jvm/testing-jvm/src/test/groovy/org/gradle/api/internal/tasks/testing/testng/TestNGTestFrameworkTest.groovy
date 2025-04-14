@@ -30,7 +30,8 @@ import spock.lang.Specification
 
 public class TestNGTestFrameworkTest extends Specification {
 
-    @Shared ObjectFactory objects = TestUtil.objectFactory()
+    @Shared
+    ObjectFactory objects = TestUtil.objectFactory()
 
     private project = ProjectBuilder.builder().build()
     Test testTask = TestUtil.createTask(Test, project)

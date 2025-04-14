@@ -22,7 +22,8 @@ import spock.lang.Subject
 
 class UserInputRequestEventSerializerTest extends LogSerializerSpec {
 
-    @Subject def serializer = new UserInputRequestEventSerializer()
+    @Subject
+    def serializer = new UserInputRequestEventSerializer()
 
     def "can serialize user input event"() {
         given:

@@ -50,6 +50,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @NullMarked
 public class ArchUnitFixtureTest {
+    private static String eventDescription(ConditionEvent event) {
+        return String.join(" ", event.getDescriptionLines());
+    }
+
+    private static void assertHasViolation(ConditionEvent event, Class<?> violatedType) {
+        assertThat(event.isViolation()).isTrue();
+        String description = event.getDescriptionLines().get(0);
+        assertThat(description).matches(String.format(".* has arguments/return type %s that is not allowed in .*", Pattern.quote(violatedType.getName())));
+    }
+
     @Test
     public void reports_valid_methods() {
         ConditionEvent event = checkThatHasOnlyAllowedTypes("validMethod");
@@ -133,8 +143,8 @@ public class ArchUnitFixtureTest {
         assertThat(events.getViolating().size()).isEqualTo(2);
         List<String> descriptions = events.getViolating().stream().map(ArchUnitFixtureTest::eventDescription).collect(Collectors.toList());
         assertThat(descriptions).containsExactlyInAnyOrder(
-                "org.gradlebuild.WrongNullable.returnsNull() is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable",
-                "parameter 0 for org.gradlebuild.WrongNullable.acceptsNull(java.lang.String) is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable"
+            "org.gradlebuild.WrongNullable.returnsNull() is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable",
+            "parameter 0 for org.gradlebuild.WrongNullable.acceptsNull(java.lang.String) is using forbidden Nullable annotations: org.jetbrains.annotations.Nullable"
         );
     }
 
@@ -146,10 +156,6 @@ public class ArchUnitFixtureTest {
         assertTrue(event.isViolation());
         assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
         // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
-    }
-
-    private static String eventDescription(ConditionEvent event) {
-        return String.join(" ", event.getDescriptionLines());
     }
 
     private ConditionEvents checkMethodCondition(ArchCondition<JavaMethod> archCondition, Class<?> clazz) {
@@ -185,12 +191,6 @@ public class ArchUnitFixtureTest {
 
     private void assertNoViolation(ConditionEvent event) {
         assertThat(event.isViolation()).isFalse();
-    }
-
-    private static void assertHasViolation(ConditionEvent event, Class<?> violatedType) {
-        assertThat(event.isViolation()).isTrue();
-        String description = event.getDescriptionLines().get(0);
-        assertThat(description).matches(String.format(".* has arguments/return type %s that is not allowed in .*", Pattern.quote(violatedType.getName())));
     }
 
     private static class CollectingConditionEvents implements ConditionEvents {

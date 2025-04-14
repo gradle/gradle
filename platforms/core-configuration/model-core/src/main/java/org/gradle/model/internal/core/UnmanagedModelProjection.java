@@ -17,7 +17,9 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
+
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -30,16 +32,16 @@ import static org.gradle.model.internal.manage.schema.extract.ScalarTypes.isScal
 @ThreadSafe
 public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
+    public UnmanagedModelProjection(ModelType<M> type) {
+        super(type);
+    }
+
     public static <M> ModelProjection of(ModelType<M> type) {
         return new UnmanagedModelProjection<M>(type);
     }
 
     public static <M> ModelProjection of(Class<M> type) {
         return of(ModelType.of(type));
-    }
-
-    public UnmanagedModelProjection(ModelType<M> type) {
-        super(type);
     }
 
     @Override

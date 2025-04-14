@@ -24,6 +24,9 @@ import java.io.Flushable;
 import java.io.IOException;
 
 public class AnsiConsole implements Console {
+    private final Flushable flushable;
+    private final MultiLineBuildProgressArea buildStatusArea = new MultiLineBuildProgressArea();
+    private final DefaultTextArea buildOutputArea;
     private final Action<AnsiContext> redrawAction = new Action<AnsiContext>() {
         @Override
         public void execute(AnsiContext ansiContext) {
@@ -34,9 +37,6 @@ public class AnsiConsole implements Console {
             }
         }
     };
-    private final Flushable flushable;
-    private final MultiLineBuildProgressArea buildStatusArea = new MultiLineBuildProgressArea();
-    private final DefaultTextArea buildOutputArea;
     private final AnsiExecutor ansiExecutor;
 
     public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap, ConsoleMetaData consoleMetaData, boolean forceAnsi) {

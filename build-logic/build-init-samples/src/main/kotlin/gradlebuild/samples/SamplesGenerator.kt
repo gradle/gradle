@@ -92,7 +92,14 @@ object SamplesGenerator {
 
     @Suppress("detekt:LongMethod")
     private
-    fun generateReadmeFragment(templateFolder: Directory, templateFragment: String, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateReadmeFragment(
+        templateFolder: Directory,
+        templateFragment: String,
+        settings: InitSettings,
+        comments: Map<String, List<String>>,
+        descriptor: CompositeProjectInitDescriptor,
+        projectLayoutSetupRegistry: ProjectLayoutSetupRegistry
+    ) {
 
         val languages = projectLayoutSetupRegistry.getLanguagesFor(descriptor.componentType)
         var exampleClass = if (descriptor.componentType === ComponentType.LIBRARY) "Library" else "App"
@@ -111,6 +118,7 @@ object SamplesGenerator {
         │       └── app.h"""
                 testSourceFileTree = "                └── $testSourceFile"
             }
+
             descriptor.language === Language.SWIFT -> {
                 exampleClass = if (descriptor.componentType === ComponentType.LIBRARY) "Hello" else "Greeter"
                 sourceFile = (if (descriptor.componentType === ComponentType.LIBRARY) "Hello" else "main") + ".swift"
@@ -119,6 +127,7 @@ object SamplesGenerator {
                 testSourceFileTree = """                └── $testSourceFile
                 └── LinuxMain.swift"""
             }
+
             else -> {
                 sourceFile = "demo/" + exampleClass + "." + descriptor.language.extension
                 testSourceFile = "demo/" + exampleClass + testFileSuffix + "." + descriptor.language.extension
@@ -148,9 +157,11 @@ Enter selection (default: Single application project) [1..2] 1
             descriptor.language === Language.SWIFT -> {
                 "* An installed Swift compiler. See which link:{userManualPath}/building_swift_projects.html#sec:swift_supported_tool_chain[Swift tool chains] are supported by Gradle."
             }
+
             descriptor.language === Language.CPP -> {
                 "* An installed {cpp} compiler. See which link:{userManualPath}/building_cpp_projects.html#sec:cpp_supported_tool_chain[{cpp} tool chains] are supported by Gradle."
             }
+
             else -> {
                 ""
             }
@@ -187,7 +198,13 @@ Enter selection (default: Single application project) [1..2] 1
     }
 
     private
-    fun generateOutput(templateFolder: Directory, templateFragment: String, settings: InitSettings, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateOutput(
+        templateFolder: Directory,
+        templateFragment: String,
+        settings: InitSettings,
+        descriptor: CompositeProjectInitDescriptor,
+        projectLayoutSetupRegistry: ProjectLayoutSetupRegistry
+    ) {
         val subprojectName = settings.subprojects.first()
         val languageName = descriptor.language.getName().substring(0, 1).uppercase() + descriptor.language.getName().substring(1)
         val extraCompileJava = if (descriptor.language != Language.JAVA) """

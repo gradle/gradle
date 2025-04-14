@@ -26,6 +26,14 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 public class DefaultComponentSpec extends AbstractComponentSpec {
     private static final ThreadLocal<ComponentInfo> NEXT_COMPONENT_INFO = new ThreadLocal<ComponentInfo>();
 
+    public DefaultComponentSpec() {
+        this(getInfo());
+    }
+
+    public DefaultComponentSpec(ComponentInfo info) {
+        super(validate(info).componentIdentifier, info.publicType);
+    }
+
     public static <T extends DefaultComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
         NEXT_COMPONENT_INFO.set(new ComponentInfo(identifier, modelNode, publicType));
         try {
@@ -41,14 +49,6 @@ public class DefaultComponentSpec extends AbstractComponentSpec {
 
     protected static ComponentInfo getInfo() {
         return NEXT_COMPONENT_INFO.get();
-    }
-
-    public DefaultComponentSpec() {
-        this(getInfo());
-    }
-
-    public DefaultComponentSpec(ComponentInfo info) {
-        super(validate(info).componentIdentifier, info.publicType);
     }
 
     private static ComponentInfo validate(ComponentInfo info) {

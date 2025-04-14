@@ -70,6 +70,27 @@ import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 public class ToolchainsJvmServices extends AbstractGradleModuleServices {
 
+    @Override
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new GlobalServices());
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.add(JvmInstallationProblemReporter.class);
+    }
+
+    @Override
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildServices());
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(JavaToolchainResolverService.class, DefaultJavaToolchainResolverService.class);
+        registration.add(JavaToolchainService.class, DefaultJavaToolchainService.class);
+    }
+
     protected static class GlobalServices implements ServiceRegistrationProvider {
         @Provides
         protected CurrentJvmToolchainSpec createJavaToolchainSpec(ObjectFactory objectFactory, Jvm currentJvm) {
@@ -90,7 +111,8 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
             Instantiator instantiator,
             ObjectFactory objectFactory,
             ProviderFactory providerFactory,
-            AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+            AuthenticationSchemeRegistry authenticationSchemeRegistry
+        ) {
             return objectFactory.newInstance(DefaultJavaToolchainResolverRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
         }
 
@@ -128,26 +150,5 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
             registration.add(JavaToolchainQueryService.class);
 
         }
-    }
-
-    @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new GlobalServices());
-    }
-
-    @Override
-    public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.add(JvmInstallationProblemReporter.class);
-    }
-
-    @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildServices());
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(JavaToolchainResolverService.class, DefaultJavaToolchainResolverService.class);
-        registration.add(JavaToolchainService.class, DefaultJavaToolchainService.class);
     }
 }

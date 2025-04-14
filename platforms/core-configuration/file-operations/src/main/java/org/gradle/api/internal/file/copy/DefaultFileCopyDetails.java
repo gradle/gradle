@@ -157,6 +157,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
+    public void setRelativePath(RelativePath path) {
+        this.relativePath = path;
+    }
+
+    @Override
     public FilePermissions getPermissions() {
         if (permissions != null) {
             return permissions;
@@ -170,13 +175,13 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return fileDetails.getPermissions();
     }
 
-    private Provider<FilePermissions> getSpecMode() {
-        return fileDetails.isDirectory() ? specResolver.getImmutableDirPermissions() : specResolver.getImmutableFilePermissions();
+    @Override
+    public void setPermissions(FilePermissions permissions) {
+        getPermissionsHolder().unix(permissions.toUnixNumeric());
     }
 
-    @Override
-    public void setRelativePath(RelativePath path) {
-        this.relativePath = path;
+    private Provider<FilePermissions> getSpecMode() {
+        return fileDetails.isDirectory() ? specResolver.getImmutableDirPermissions() : specResolver.getImmutableFilePermissions();
     }
 
     @Override
@@ -201,11 +206,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
         configureAction.execute(getPermissionsHolder());
-    }
-
-    @Override
-    public void setPermissions(FilePermissions permissions) {
-        getPermissionsHolder().unix(permissions.toUnixNumeric());
     }
 
     private DefaultConfigurableFilePermissions getPermissionsHolder() {
@@ -252,14 +252,14 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        this.duplicatesStrategy = strategy;
-        this.defaultDuplicatesStrategy = strategy == DuplicatesStrategy.INHERIT;
+    public DuplicatesStrategy getDuplicatesStrategy() {
+        return this.duplicatesStrategy;
     }
 
     @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
-        return this.duplicatesStrategy;
+    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        this.duplicatesStrategy = strategy;
+        this.defaultDuplicatesStrategy = strategy == DuplicatesStrategy.INHERIT;
     }
 
     @Override

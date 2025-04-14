@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 abstract class GccCompatibleNativeCompilerTest extends NativeCompilerTest {
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        return [ '-c', '-Dfoo=bar', '-Dempty', '-firstArg', '-secondArg', '-nostdinc', '-I', includeDir.absoluteFile.toString(), '-isystem', systemIncludeDir.absoluteFile.toString() ]
+        return ['-c', '-Dfoo=bar', '-Dempty', '-firstArg', '-secondArg', '-nostdinc', '-I', includeDir.absoluteFile.toString(), '-isystem', systemIncludeDir.absoluteFile.toString()]
     }
 
     def "arguments include GCC output flag and output file name"() {
@@ -35,7 +35,7 @@ abstract class GccCompatibleNativeCompilerTest extends NativeCompilerTest {
         def args = compiler.getOutputArgs(Stub(NativeCompileSpec), outputFile)
 
         then:
-        args == [ '-o', outputFile.absoluteFile.toString() ]
+        args == ['-o', outputFile.absoluteFile.toString()]
     }
 
 }

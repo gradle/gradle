@@ -65,8 +65,8 @@ project (':a') { description = 'A rocks!' }
         a.children.size() == 2
         a.children.find { it.name == 'b' && it.path == ':a:b' }
         a.children.find { it.name == 'c' && it.path == ':a:c' }
-        
-        a.children.find { it.name == 'c'}.children[0].name == 'd'
+
+        a.children.find { it.name == 'c' }.children[0].name == 'd'
     }
 
     def "can provide tasks for hierarchical project"() {
@@ -91,9 +91,9 @@ project(':a:c') { task taskAC }
         !a.tasks.find { it.name == 'rootTask' }
 
         GradleProject ab = a.children.find { it.path == ':a:b' }
-        ab.tasks.find { it.name == 'taskAB'}
+        ab.tasks.find { it.name == 'taskAB' }
 
         GradleProject ac = a.children.find { it.path == ':a:c' }
-        ac.tasks.find { it.name == 'taskAC'}
+        ac.tasks.find { it.name == 'taskAC' }
     }
 }

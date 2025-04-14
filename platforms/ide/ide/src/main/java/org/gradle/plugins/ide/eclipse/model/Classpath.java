@@ -55,61 +55,6 @@ public class Classpath extends XmlPersistableConfigurationObject {
         this(new FileReferenceFactory());
     }
 
-    public List<ClasspathEntry> getEntries() {
-        return entries;
-    }
-
-    public void setEntries(List<ClasspathEntry> entries) {
-        this.entries = entries;
-    }
-
-    @Override
-    protected String getDefaultResourceName() {
-        return "defaultClasspath.xml";
-    }
-
-    @Override
-    protected void load(Node xml) {
-        for (Object e : (NodeList)xml.get("classpathentry")) {
-            Node entryNode = (Node) e;
-            Object kind = entryNode.attribute("kind");
-            if ("src".equals(kind)) {
-                String path = (String) entryNode.attribute("path");
-                entries.add(path.startsWith("/") ? new ProjectDependency(entryNode) : new SourceFolder(entryNode));
-            } else if ("var".equals(kind)) {
-                entries.add(new Variable(entryNode, fileReferenceFactory));
-            } else if ("con".equals(kind)) {
-                entries.add(new Container(entryNode));
-            } else if ("lib".equals(kind)) {
-                entries.add(new Library(entryNode, fileReferenceFactory));
-            } else if ("output".equals(kind)) {
-                entries.add(new Output(entryNode));
-            }
-        }
-    }
-
-    @SuppressWarnings({"unchecked"}) // TODO: Change this signature once we can break compatibility
-    public Object configure(List<?> newEntries) {
-        List<SourceFolder> newSourceFolders = newEntries.stream()
-            .filter(SourceFolder.class::isInstance)
-            .map(SourceFolder.class::cast)
-            .collect(toList());
-
-        Set<ClasspathEntry> updatedEntries = entries.stream()
-            .filter(entry -> shouldKeepEntry(newSourceFolders, entry))
-            .collect(toCollection(LinkedHashSet::new));
-
-        updatedEntries.addAll((List<ClasspathEntry>)newEntries); //merge new and old entries with matching path entries
-        return entries = Lists.newArrayList(updatedEntries);
-    }
-
-    private boolean shouldKeepEntry(List<SourceFolder> newEntries, ClasspathEntry entry) {
-        return !isDependency(entry)
-            && !isJreContainer(entry)
-            && !isOutputLocation(entry)
-            && !isExistingEntryDuplicate(newEntries, entry);
-    }
-
     private static boolean isExistingEntryDuplicate(List<SourceFolder> newSourceFolders, ClasspathEntry existingEntry) {
         if (!(existingEntry instanceof SourceFolder)) {
             return false;
@@ -122,17 +67,6 @@ public class Classpath extends XmlPersistableConfigurationObject {
                 && Objects.equal(sourceFolder.getExcludes(), newSourceFolder.getExcludes())
                 && Objects.equal(sourceFolder.getIncludes(), newSourceFolder.getIncludes());
         });
-    }
-
-    @Override
-    protected void store(Node xml) {
-        NodeList classpathEntryNodes = (NodeList)xml.get("classpathentry");
-        for (Object classpathEntry : classpathEntryNodes) {
-            xml.remove((Node) classpathEntry);
-        }
-        for (ClasspathEntry entry : filterDuplicateProjectDependencies(entries)) {
-            entry.appendNode(xml);
-        }
     }
 
     /*
@@ -179,6 +113,72 @@ public class Classpath extends XmlPersistableConfigurationObject {
     private static boolean hasTestSourcesAttribute(ProjectDependency projectDependency) {
         Object value = projectDependency.getEntryAttributes().get(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY);
         return EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE.equals(value);
+    }
+
+    public List<ClasspathEntry> getEntries() {
+        return entries;
+    }
+
+    public void setEntries(List<ClasspathEntry> entries) {
+        this.entries = entries;
+    }
+
+    @Override
+    protected String getDefaultResourceName() {
+        return "defaultClasspath.xml";
+    }
+
+    @Override
+    protected void load(Node xml) {
+        for (Object e : (NodeList) xml.get("classpathentry")) {
+            Node entryNode = (Node) e;
+            Object kind = entryNode.attribute("kind");
+            if ("src".equals(kind)) {
+                String path = (String) entryNode.attribute("path");
+                entries.add(path.startsWith("/") ? new ProjectDependency(entryNode) : new SourceFolder(entryNode));
+            } else if ("var".equals(kind)) {
+                entries.add(new Variable(entryNode, fileReferenceFactory));
+            } else if ("con".equals(kind)) {
+                entries.add(new Container(entryNode));
+            } else if ("lib".equals(kind)) {
+                entries.add(new Library(entryNode, fileReferenceFactory));
+            } else if ("output".equals(kind)) {
+                entries.add(new Output(entryNode));
+            }
+        }
+    }
+
+    @SuppressWarnings({"unchecked"}) // TODO: Change this signature once we can break compatibility
+    public Object configure(List<?> newEntries) {
+        List<SourceFolder> newSourceFolders = newEntries.stream()
+            .filter(SourceFolder.class::isInstance)
+            .map(SourceFolder.class::cast)
+            .collect(toList());
+
+        Set<ClasspathEntry> updatedEntries = entries.stream()
+            .filter(entry -> shouldKeepEntry(newSourceFolders, entry))
+            .collect(toCollection(LinkedHashSet::new));
+
+        updatedEntries.addAll((List<ClasspathEntry>) newEntries); //merge new and old entries with matching path entries
+        return entries = Lists.newArrayList(updatedEntries);
+    }
+
+    private boolean shouldKeepEntry(List<SourceFolder> newEntries, ClasspathEntry entry) {
+        return !isDependency(entry)
+            && !isJreContainer(entry)
+            && !isOutputLocation(entry)
+            && !isExistingEntryDuplicate(newEntries, entry);
+    }
+
+    @Override
+    protected void store(Node xml) {
+        NodeList classpathEntryNodes = (NodeList) xml.get("classpathentry");
+        for (Object classpathEntry : classpathEntryNodes) {
+            xml.remove((Node) classpathEntry);
+        }
+        for (ClasspathEntry entry : filterDuplicateProjectDependencies(entries)) {
+            entry.appendNode(xml);
+        }
     }
 
     @Override

@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 
 /**
  * A feature of a cache-like storage that provides an ability to invalidate the items matching a predicate.
+ *
  * @param <T> the type of the stored items.
  */
 public interface ConditionalInvalidation<T> {

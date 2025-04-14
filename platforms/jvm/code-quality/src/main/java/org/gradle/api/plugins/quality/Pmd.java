@@ -61,18 +61,18 @@ import java.util.stream.Collectors;
 @CacheableTask
 public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<PmdReports> {
 
+    private final PmdReports reports;
+    private final Property<Integer> rulesMinimumPriority;
+    private final Property<Integer> maxFailures;
+    private final Property<Boolean> incrementalAnalysis;
+    private final Property<Integer> threads;
     private FileCollection pmdClasspath;
     private List<String> ruleSets;
     private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
     private FileCollection ruleSetFiles;
-    private final PmdReports reports;
     private boolean consoleOutput;
     private FileCollection classpath;
-    private final Property<Integer> rulesMinimumPriority;
-    private final Property<Integer> maxFailures;
-    private final Property<Boolean> incrementalAnalysis;
-    private final Property<Integer> threads;
 
     public Pmd() {
         super();
@@ -82,6 +82,28 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
         this.threads = objects.property(Integer.class);
+    }
+
+    /**
+     * Validates the value is a valid PMD rules minimum priority (1-5)
+     *
+     * @param value rules minimum priority threshold
+     */
+    public static void validate(int value) {
+        if (value > 5 || value < 1) {
+            throw new InvalidUserDataException(String.format("Invalid rulesMinimumPriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
+        }
+    }
+
+    /**
+     * Validates the number of threads used by PMD.
+     *
+     * @param value the number of threads used by PMD
+     */
+    private static void validateThreads(int value) {
+        if (value < 0) {
+            throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
+        }
     }
 
     @TaskAction
@@ -150,28 +172,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     public PmdReports reports(Action<? super PmdReports> configureAction) {
         configureAction.execute(reports);
         return reports;
-    }
-
-    /**
-     * Validates the value is a valid PMD rules minimum priority (1-5)
-     *
-     * @param value rules minimum priority threshold
-     */
-    public static void validate(int value) {
-        if (value > 5 || value < 1) {
-            throw new InvalidUserDataException(String.format("Invalid rulesMinimumPriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
-        }
-    }
-
-    /**
-     * Validates the number of threads used by PMD.
-     *
-     * @param value the number of threads used by PMD
-     */
-    private static void validateThreads(int value) {
-        if (value < 0) {
-            throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
-        }
     }
 
     /**

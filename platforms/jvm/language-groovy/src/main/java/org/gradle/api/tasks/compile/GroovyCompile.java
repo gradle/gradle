@@ -80,12 +80,12 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  */
 @CacheableTask
 public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
-    private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = getProject().getObjects().newInstance(GroovyCompileOptions.class);
     private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final Property<JavaLauncher> javaLauncher;
+    private FileCollection groovyClasspath;
     private File previousCompilationDataFile;
 
     public GroovyCompile() {
@@ -103,6 +103,16 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
             this.astTransformationClasspath.from((Callable<FileCollection>) this::getClasspath);
         }
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+    }
+
+    private static void validateIncrementalCompilationOptions(List<File> sourceRoots, boolean annotationProcessingConfigured) {
+        if (sourceRoots.isEmpty()) {
+            throw new InvalidUserDataException("Unable to infer source roots. Incremental Groovy compilation requires the source roots. Change the configuration of your sources or disable incremental Groovy compilation.");
+        }
+
+        if (annotationProcessingConfigured) {
+            throw new InvalidUserDataException("Enabling incremental compilation and configuring Java annotation processors for Groovy compilation is not allowed. Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
+        }
     }
 
     @Override
@@ -210,16 +220,6 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
             return astTransformationClasspath.plus(getClasspath());
         } else {
             return getClasspath();
-        }
-    }
-
-    private static void validateIncrementalCompilationOptions(List<File> sourceRoots, boolean annotationProcessingConfigured) {
-        if (sourceRoots.isEmpty()) {
-            throw new InvalidUserDataException("Unable to infer source roots. Incremental Groovy compilation requires the source roots. Change the configuration of your sources or disable incremental Groovy compilation.");
-        }
-
-        if (annotationProcessingConfigured) {
-            throw new InvalidUserDataException("Enabling incremental compilation and configuring Java annotation processors for Groovy compilation is not allowed. Disable incremental Groovy compilation or remove the Java annotation processor configuration.");
         }
     }
 

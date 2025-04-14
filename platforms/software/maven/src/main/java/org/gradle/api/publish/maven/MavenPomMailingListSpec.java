@@ -21,9 +21,9 @@ import org.gradle.api.Action;
 /**
  * Allows to add mailing lists to a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomMailingList
+ * @since 4.8
  */
 public interface MavenPomMailingListSpec {
 

@@ -38,6 +38,19 @@ import java.util.stream.Stream;
  */
 @NullMarked
 public abstract class MavenPublicationErrorChecker extends PublicationErrorChecker {
+    private static final Comparator<Set<ArtifactDifference>> DIFFERENCE_SET_COMPARATOR =
+        // Put the artifacts with the least differences first, since they're more likely to be useful
+        Comparator.<Set<ArtifactDifference>>comparingInt(Set::size)
+            // Prefer FILE differences over CLASSIFIER differences over EXTENSION differences,
+            // since different classifiers/extensions are unlikely to be right
+            .thenComparing(set -> set.contains(ArtifactDifference.FILE))
+            .thenComparing(set -> set.contains(ArtifactDifference.CLASSIFIER))
+            .thenComparing(set -> set.contains(ArtifactDifference.EXTENSION));
+    private static final Comparator<Map.Entry<MavenArtifact, Set<ArtifactDifference>>> DIFFERENCE_ENTRY_COMPARATOR =
+        Map.Entry.<MavenArtifact, Set<ArtifactDifference>>comparingByValue(DIFFERENCE_SET_COMPARATOR)
+            // Last ditch effort to make the order deterministic
+            .thenComparing(entry -> entry.getKey().getFile().toPath());
+
     /**
      * When the artifacts declared in a component are modified for publishing (name/classifier/extension), then the
      * Maven publication no longer represents the underlying java component. Instead of
@@ -83,20 +96,6 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
         throw new PublishException("Cannot publish module metadata because an artifact from the '" + componentName +
             "' component has been removed. The available artifacts had these problems:\n" + formatDifferences(projectDisplayName, buildDir, source, differences));
     }
-
-    private static final Comparator<Set<ArtifactDifference>> DIFFERENCE_SET_COMPARATOR =
-        // Put the artifacts with the least differences first, since they're more likely to be useful
-        Comparator.<Set<ArtifactDifference>>comparingInt(Set::size)
-            // Prefer FILE differences over CLASSIFIER differences over EXTENSION differences,
-            // since different classifiers/extensions are unlikely to be right
-            .thenComparing(set -> set.contains(ArtifactDifference.FILE))
-            .thenComparing(set -> set.contains(ArtifactDifference.CLASSIFIER))
-            .thenComparing(set -> set.contains(ArtifactDifference.EXTENSION));
-
-    private static final Comparator<Map.Entry<MavenArtifact, Set<ArtifactDifference>>> DIFFERENCE_ENTRY_COMPARATOR =
-        Map.Entry.<MavenArtifact, Set<ArtifactDifference>>comparingByValue(DIFFERENCE_SET_COMPARATOR)
-            // Last ditch effort to make the order deterministic
-            .thenComparing(entry -> entry.getKey().getFile().toPath());
 
     private static String formatDifferences(String projectDisplayName, Path buildDir, PublishArtifact source, Map<MavenArtifact, Set<ArtifactDifference>> differencesByArtifact) {
         Stream<String> differencesFormatted = differencesByArtifact.entrySet().stream()

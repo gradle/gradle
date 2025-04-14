@@ -20,7 +20,7 @@ class SwiftSumTest extends XCTestSourceFileElement {
     final SumElement testedElement
 
     SwiftSumTest(SumElement testedElement) {
-        super( "SumTestSuite")
+        super("SumTestSuite")
         this.testedElement = testedElement
     }
 

@@ -27,13 +27,14 @@ import java.util.List;
  * Build phase which represents running a shell script.
  */
 public class PBXShellScriptBuildPhase extends PBXBuildPhase {
-    private List<String> inputPaths;
-    private List<String> outputPaths;
-    @Nullable private String shellPath;
-    @Nullable private String shellScript;
-
     private static final NSString DEFAULT_SHELL_PATH = new NSString("/bin/sh");
     private static final NSString DEFAULT_SHELL_SCRIPT = new NSString("");
+    private List<String> inputPaths;
+    private List<String> outputPaths;
+    @Nullable
+    private String shellPath;
+    @Nullable
+    private String shellScript;
 
     public PBXShellScriptBuildPhase() {
         this.inputPaths = new ArrayList<>();

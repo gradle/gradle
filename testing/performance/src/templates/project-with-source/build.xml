@@ -41,8 +41,8 @@
             <formatter type="xml"/>
         </junit>
         <!--<junitreport toDir="\${build.dir}">-->
-            <!--<fileset dir="\${test.reports.dir}" includes="*.xml"/>-->
-            <!--<report todir="\${test.reports.dir}"/>-->
+        <!--<fileset dir="\${test.reports.dir}" includes="*.xml"/>-->
+        <!--<report todir="\${test.reports.dir}"/>-->
         <!--</junitreport>-->
     </target>
 

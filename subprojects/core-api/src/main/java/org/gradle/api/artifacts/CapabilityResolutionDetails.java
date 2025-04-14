@@ -46,7 +46,6 @@ public interface CapabilityResolutionDetails {
      *
      * @param candidate the selected candidate
      * @return this details instance
-     *
      * @since 6.0
      */
     CapabilityResolutionDetails select(ComponentVariantIdentifier candidate);
@@ -56,7 +55,6 @@ public interface CapabilityResolutionDetails {
      * provide a human-readable explanation to the choice by calling the {@link #because(String)} method
      *
      * @param notation the selected candidate
-     *
      * @return this details instance
      */
     CapabilityResolutionDetails select(Object notation);
@@ -74,7 +72,6 @@ public interface CapabilityResolutionDetails {
      * Describes why a particular candidate is selected.
      *
      * @param reason the reason why a candidate is selected.
-     *
      * @return this details instance
      */
     CapabilityResolutionDetails because(String reason);

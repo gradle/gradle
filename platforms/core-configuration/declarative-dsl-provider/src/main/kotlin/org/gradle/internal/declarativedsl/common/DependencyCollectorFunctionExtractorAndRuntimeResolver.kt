@@ -211,10 +211,11 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
     override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution {
         // We can't just use find receiverClass directly as a key because at runtime we get a decorated class with a different type
         // that extends the original class we extracted into the managedFunctions map, so we have to check the superClass
-        fun searchDeclarationsByClass(declarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>>): RuntimeFunctionResolver.Resolution.Resolved? = typeHierarchyViaJavaReflection(receiverClass)
-            .firstNotNullOfOrNull(declarationsByClass::get)
-            ?.entries?.find { (fn, _) -> fn == schemaFunction }
-            ?.value?.let(RuntimeFunctionResolver.Resolution::Resolved)
+        fun searchDeclarationsByClass(declarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>>): RuntimeFunctionResolver.Resolution.Resolved? =
+            typeHierarchyViaJavaReflection(receiverClass)
+                .firstNotNullOfOrNull(declarationsByClass::get)
+                ?.entries?.find { (fn, _) -> fn == schemaFunction }
+                ?.value?.let(RuntimeFunctionResolver.Resolution::Resolved)
 
         return searchDeclarationsByClass(collectorDeclarationsByClass) ?: searchDeclarationsByClass(modifierDeclarationsByClass) ?: RuntimeFunctionResolver.Resolution.Unresolved
     }

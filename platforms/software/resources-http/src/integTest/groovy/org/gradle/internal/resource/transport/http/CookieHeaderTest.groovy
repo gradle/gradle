@@ -54,10 +54,10 @@ class CookieHeaderTest extends Specification {
 
         where:
         attributes << [
-                'Max-Age=31536000; Expires=Sun, 24 Jun 2018 16:26:36 GMT;',
-                'Max-Age=31536000; Expires=Sun Jun 24 16:26:36 2018;',
-                'Max-Age=31536000; Expires=Sun, 24-Jun-18 16:26:36 GMT;',
-                'Max-Age=31536000; Expires=Sun, 24-Jun-18 16:26:36 GMT-08:00;',
+            'Max-Age=31536000; Expires=Sun, 24 Jun 2018 16:26:36 GMT;',
+            'Max-Age=31536000; Expires=Sun Jun 24 16:26:36 2018;',
+            'Max-Age=31536000; Expires=Sun, 24-Jun-18 16:26:36 GMT;',
+            'Max-Age=31536000; Expires=Sun, 24-Jun-18 16:26:36 GMT-08:00;',
         ]
     }
 

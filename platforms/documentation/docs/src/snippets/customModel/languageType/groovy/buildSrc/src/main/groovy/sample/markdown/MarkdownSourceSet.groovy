@@ -7,9 +7,11 @@ import org.gradle.model.Managed
 @Managed
 interface MarkdownSourceSet extends LanguageSourceSet {
     boolean isGenerateIndex()
+
     void setGenerateIndex(boolean generateIndex)
 
     boolean isSmartQuotes()
+
     void setSmartQuotes(boolean smartQuotes)
 }
 // end::markdown-lang-declaration[]

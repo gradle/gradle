@@ -32,7 +32,7 @@ class DefaultJvmVendorSpecTest extends Specification {
         }
 
         when:
-        def asPredicate = (Predicate<JvmInstallationMetadata>)JvmVendorSpec.ADOPTOPENJDK
+        def asPredicate = (Predicate<JvmInstallationMetadata>) JvmVendorSpec.ADOPTOPENJDK
 
         then:
         !asPredicate.test(metadata)

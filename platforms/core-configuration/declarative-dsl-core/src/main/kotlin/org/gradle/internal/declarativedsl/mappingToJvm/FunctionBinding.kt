@@ -54,6 +54,7 @@ object FunctionBinding {
                         captor = newCaptor
                         put(param, newCaptor.lambda)
                     }
+
                     paramName != null && paramName in namedArguments -> {
                         put(param, namedArguments.getValue(paramName))
                         used++

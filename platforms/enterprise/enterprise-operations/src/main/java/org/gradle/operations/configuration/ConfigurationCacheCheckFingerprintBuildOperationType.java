@@ -28,6 +28,39 @@ import java.util.List;
  */
 public final class ConfigurationCacheCheckFingerprintBuildOperationType implements BuildOperationType<ConfigurationCacheCheckFingerprintBuildOperationType.Details, ConfigurationCacheCheckFingerprintBuildOperationType.Result> {
     /**
+     * An overall result of the fingerprint check.
+     *
+     * @since 8.10
+     */
+    public enum CheckStatus {
+        /**
+         * Fingerprint file was not found. Most likely, there is no cached configuration for the given key. No invalidation reasons are reported.
+         *
+         * @since 8.10
+         */
+        NOT_FOUND,
+        /**
+         * The cached entry is valid and can be reused. No invalidation reasons are reported.
+         *
+         * @since 8.10
+         */
+        VALID,
+        /**
+         * Configuration of some projects is invalidated. Configuration phase is going to be re-executed but the data from unaffected project will be reused.
+         * A list of invalidated projects and their invalidation reasons can be found in {@link Result#getProjectInvalidationReasons()}.
+         *
+         * @since 8.10
+         */
+        PARTIAL,
+        /**
+         * The cached entry is invalid. Configuration phase is going to be re-executed from scratch. A list of invalidation reasons can be found in {@link Result#getBuildInvalidationReasons()}.
+         *
+         * @since 8.10
+         */
+        INVALID
+    }
+
+    /**
      * Build operation details.
      *
      * @since 8.10
@@ -171,38 +204,5 @@ public final class ConfigurationCacheCheckFingerprintBuildOperationType implemen
          * @since 8.10
          */
         String getMessage();
-    }
-
-    /**
-     * An overall result of the fingerprint check.
-     *
-     * @since 8.10
-     */
-    public enum CheckStatus {
-        /**
-         * Fingerprint file was not found. Most likely, there is no cached configuration for the given key. No invalidation reasons are reported.
-         *
-         * @since 8.10
-         */
-        NOT_FOUND,
-        /**
-         * The cached entry is valid and can be reused. No invalidation reasons are reported.
-         *
-         * @since 8.10
-         */
-        VALID,
-        /**
-         * Configuration of some projects is invalidated. Configuration phase is going to be re-executed but the data from unaffected project will be reused.
-         * A list of invalidated projects and their invalidation reasons can be found in {@link Result#getProjectInvalidationReasons()}.
-         *
-         * @since 8.10
-         */
-        PARTIAL,
-        /**
-         * The cached entry is invalid. Configuration phase is going to be re-executed from scratch. A list of invalidation reasons can be found in {@link Result#getBuildInvalidationReasons()}.
-         *
-         * @since 8.10
-         */
-        INVALID
     }
 }

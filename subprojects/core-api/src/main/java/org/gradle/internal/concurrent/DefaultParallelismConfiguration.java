@@ -36,6 +36,10 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
         this.maxWorkerCount = maxWorkerCount;
     }
 
+    public static int getDefaultMaxWorkerCount() {
+        return Runtime.getRuntime().availableProcessors();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -80,9 +84,5 @@ public class DefaultParallelismConfiguration implements Serializable, Parallelis
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    public static int getDefaultMaxWorkerCount() {
-        return Runtime.getRuntime().availableProcessors();
     }
 }

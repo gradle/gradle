@@ -84,6 +84,6 @@ class DefaultProblemDefinitionReportTest extends Specification {
         List<String> solutions = ImmutableList.of(),
         String displayName = "display name"
     ) {
-            new DefaultProblemDefinition(ProblemId.create(label, displayName, ProblemGroup.create("generic", "Generic")), severity, documentation)
+        new DefaultProblemDefinition(ProblemId.create(label, displayName, ProblemGroup.create("generic", "Generic")), severity, documentation)
     }
 }

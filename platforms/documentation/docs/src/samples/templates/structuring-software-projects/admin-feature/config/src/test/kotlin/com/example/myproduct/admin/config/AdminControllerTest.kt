@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class AdminControllerTest {
-    @Test fun updatesState() {
+    @Test
+    fun updatesState() {
         AdminController.update(VersionRange("1", "2"))
         assertEquals(VersionRangeSetting("1", "2"), ConfigurationState.rangeSetting)
     }

@@ -27,21 +27,6 @@ import java.util.Set;
  */
 public interface BuildableModuleVersionListingResolveResult extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
 
-    enum State {
-        /**
-         * Listing has succeeded.
-         */
-        Listed,
-        /**
-         * Listing has failed.
-         */
-        Failed,
-        /**
-         * Listing hasn't been performed yet, or another attempt can be made.
-         */
-        Unknown
-    }
-
     /**
      * Returns the current state of this result.
      */
@@ -75,4 +60,19 @@ public interface BuildableModuleVersionListingResolveResult extends ResourceAwar
     boolean isAuthoritative();
 
     void setAuthoritative(boolean authoritative);
+
+    enum State {
+        /**
+         * Listing has succeeded.
+         */
+        Listed,
+        /**
+         * Listing has failed.
+         */
+        Failed,
+        /**
+         * Listing hasn't been performed yet, or another attempt can be made.
+         */
+        Unknown
+    }
 }

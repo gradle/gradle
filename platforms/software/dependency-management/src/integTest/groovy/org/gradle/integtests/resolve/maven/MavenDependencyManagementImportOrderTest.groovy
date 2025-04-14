@@ -22,11 +22,11 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class MavenDependencyManagementImportOrderTest extends AbstractIntegrationSpec {
-	@Issue("https://github.com/gradle/gradle/issues/2212")
+    @Issue("https://github.com/gradle/gradle/issues/2212")
     @Requires(UnitTestPreconditions.Online)
-	def "Verify that gradle resolves org.wildfly.swarm:undertow the same as maven"() {
-		when:
-		buildFile.text = """
+    def "Verify that gradle resolves org.wildfly.swarm:undertow the same as maven"() {
+        when:
+        buildFile.text = """
 ${mavenCentralRepository()}
 configurations {
 	test
@@ -46,13 +46,13 @@ task verifyUndertowVersion {
 }
 		"""
 
-		then:
-		succeeds 'verifyUndertowVersion'
-	}
+        then:
+        succeeds 'verifyUndertowVersion'
+    }
 
-	@Issue("https://github.com/gradle/gradle/issues/2212")
-	def "Verify that if multiple boms declare the same dependency, the first bom wins"() {
-		file("mavenRoot/group/level1/1/level1-1.pom").text = '''\
+    @Issue("https://github.com/gradle/gradle/issues/2212")
+    def "Verify that if multiple boms declare the same dependency, the first bom wins"() {
+        file("mavenRoot/group/level1/1/level1-1.pom").text = '''\
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -85,9 +85,9 @@ task verifyUndertowVersion {
   </dependencies>
 </project>'''
 
-		file("mavenRoot/group/level1/1/level1-1.jar").text = 'foo'
+        file("mavenRoot/group/level1/1/level1-1.jar").text = 'foo'
 
-		file("mavenRoot/group/bom1/1/bom1-1.pom").text = '''\
+        file("mavenRoot/group/bom1/1/bom1-1.pom").text = '''\
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -107,7 +107,7 @@ task verifyUndertowVersion {
   </dependencyManagement>
 </project>'''
 
-		file("mavenRoot/group/bom2/1/bom2-1.pom").text = '''\
+        file("mavenRoot/group/bom2/1/bom2-1.pom").text = '''\
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -127,7 +127,7 @@ task verifyUndertowVersion {
   </dependencyManagement>
 </project>'''
 
-		file("mavenRoot/group/level2/1/level2-1.pom").text = '''\
+        file("mavenRoot/group/level2/1/level2-1.pom").text = '''\
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -138,9 +138,9 @@ task verifyUndertowVersion {
   <packaging>jar</packaging>
 </project>'''
 
-		file("mavenRoot/group/level2/1/level2-1.jar").text = 'foo'
+        file("mavenRoot/group/level2/1/level2-1.jar").text = 'foo'
 
-		file("mavenRoot/group/level2/2/level2-2.pom").text = '''\
+        file("mavenRoot/group/level2/2/level2-2.pom").text = '''\
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -151,10 +151,10 @@ task verifyUndertowVersion {
   <packaging>jar</packaging>
 </project>'''
 
-		file("mavenRoot/group/level2/2/level2-2.jar").text = 'foo'
+        file("mavenRoot/group/level2/2/level2-2.jar").text = 'foo'
 
-		when:
-		buildFile.text = '''
+        when:
+        buildFile.text = '''
 repositories {
 	maven {
 		url = uri(file('mavenRoot'))
@@ -177,7 +177,7 @@ task verifyVersion {
 }
 		'''
 
-		then:
-		succeeds 'verifyVersion'
-	}
+        then:
+        succeeds 'verifyVersion'
+    }
 }

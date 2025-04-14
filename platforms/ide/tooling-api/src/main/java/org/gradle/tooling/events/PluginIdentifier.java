@@ -19,9 +19,9 @@ package org.gradle.tooling.events;
 /**
  * Identifies a Gradle plugin.
  *
- * @since 5.1
  * @see BinaryPluginIdentifier
  * @see ScriptPluginIdentifier
+ * @since 5.1
  */
 public interface PluginIdentifier {
 

@@ -28,7 +28,7 @@ public interface Buildable {
      * buildable.
      *
      * @return The dependency. Never returns null. Returns an empty dependency when this artifact is not built by any
-     *         tasks.
+     * tasks.
      */
     TaskDependency getBuildDependencies();
 }

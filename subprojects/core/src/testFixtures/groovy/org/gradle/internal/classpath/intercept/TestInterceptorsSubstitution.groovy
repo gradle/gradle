@@ -32,7 +32,9 @@ abstract class TestInterceptorsSubstitution<T> {
     }
 
     abstract T getCurrentInterceptorSet();
+
     abstract ThreadLocalInterceptorSet<T> decorateWithThreadLocalImpl(T original);
+
     abstract void setCurrentInterceptorSet(T newInterceptorSet);
 
     /**

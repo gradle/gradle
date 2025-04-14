@@ -58,7 +58,7 @@ class TestTaskRelocationIntegrationTest extends AbstractProjectRelocationIntegra
     @Override
     protected extractResultsFrom(TestFile projectDir) {
         def contents = normaliseLineSeparators(projectDir.file("build/reports/tests/test/index.html").text)
-        contents = contents.replaceAll(/(<a href=".*">Gradle .*?<\/a>) at [^<]+/, '$1 at [DATE]' )
+        contents = contents.replaceAll(/(<a href=".*">Gradle .*?<\/a>) at [^<]+/, '$1 at [DATE]')
         contents = contents.replaceAll(/\b\d+(\.\d+)?s\b/, "[TIME]")
         return contents
     }

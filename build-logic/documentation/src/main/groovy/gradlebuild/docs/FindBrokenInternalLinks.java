@@ -78,7 +78,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getDocumentationRoot();
 
-    @Optional @InputDirectory
+    @Optional
+    @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getSamplesRoot();
 
@@ -86,7 +87,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getJavadocRoot();
 
-    @Optional @InputFile
+    @Optional
+    @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getReleaseNotesFile();
 
@@ -182,7 +184,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String fileName = getFileName(link, sourceFile);
             File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
             if (!referencedFile.exists()) {
-                    errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
+                errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
             }
         }
     }
@@ -297,8 +299,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     private void gatherMarkdownLinksInLine(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Matcher matcher = markdownLinkPattern.matcher(line);
         while (matcher.find()) {
-             String invalidLink = matcher.group();
-             errorsForFile.add(new Error(lineNumber, line, "Markdown-style links are not supported: " + invalidLink));
+            String invalidLink = matcher.group();
+            errorsForFile.add(new Error(lineNumber, line, "Markdown-style links are not supported: " + invalidLink));
         }
     }
 

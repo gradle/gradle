@@ -27,13 +27,6 @@ import java.io.File;
  * is called for each element in a file collection that is an atomic source of files.
  */
 public interface FileCollectionStructureVisitor {
-    enum VisitType {
-        // Visitor is interested in the contents of the collection
-        Visit,
-        // Visitor is not interested in the contents of the collection, but would like to receive the source and other metadata
-        NoContents
-    }
-
     /**
      * Called when starting to visit a file collection. Can return true to continue with visiting or false to skip this collection and its contents.
      *
@@ -74,4 +67,11 @@ public interface FileCollectionStructureVisitor {
      * Visits a file tree whose content is generated from the contents of a file.
      */
     void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree);
+
+    enum VisitType {
+        // Visitor is interested in the contents of the collection
+        Visit,
+        // Visitor is not interested in the contents of the collection, but would like to receive the source and other metadata
+        NoContents
+    }
 }

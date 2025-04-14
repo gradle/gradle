@@ -39,6 +39,8 @@ import java.net.URI;
  */
 public class BuildOperationScriptPlugin implements ScriptPlugin {
 
+    private static final ApplyScriptPluginBuildOperationType.Result OPERATION_RESULT = new ApplyScriptPluginBuildOperationType.Result() {
+    };
     private final ScriptPlugin decorated;
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
@@ -137,8 +139,4 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
             return applicationId.longValue();
         }
     }
-
-
-    private static final ApplyScriptPluginBuildOperationType.Result OPERATION_RESULT = new ApplyScriptPluginBuildOperationType.Result() {
-    };
 }

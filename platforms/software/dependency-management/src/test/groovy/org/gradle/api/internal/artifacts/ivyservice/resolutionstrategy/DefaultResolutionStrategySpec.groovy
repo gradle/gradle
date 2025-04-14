@@ -89,7 +89,7 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.force 'org.foo:bar:1.0'
 
         when:
-        strategy.forcedModules = ['hello:world:1.0', [group:'g', name:'n', version:'1']]
+        strategy.forcedModules = ['hello:world:1.0', [group: 'g', name: 'n', version: '1']]
 
         then:
         def versions = strategy.forcedModules as List
@@ -194,8 +194,8 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.dependencySubstitution == dependencySubstitutions
         copy.dependencySubstitution == newDependencySubstitutions
 
-        ((ResolutionStrategyInternal)copy).isFailingOnDynamicVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnDynamicVersions()
-        ((ResolutionStrategyInternal)copy).isFailingOnChangingVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnChangingVersions()
+        ((ResolutionStrategyInternal) copy).isFailingOnDynamicVersions() == ((ResolutionStrategyInternal) strategy).isFailingOnDynamicVersions()
+        ((ResolutionStrategyInternal) copy).isFailingOnChangingVersions() == ((ResolutionStrategyInternal) strategy).isFailingOnChangingVersions()
     }
 
     def "configures changing modules cache with jdk5+ units"() {
@@ -254,38 +254,56 @@ class DefaultResolutionStrategySpec extends Specification {
         def validator = Mock(MutationValidator)
         strategy.setMutationValidator(validator)
 
-        when: strategy.failOnVersionConflict()
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnVersionConflict()
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.failOnDynamicVersions()
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnDynamicVersions()
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.failOnChangingVersions()
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnChangingVersions()
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.failOnNonReproducibleResolution()
-        then: 2 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.failOnNonReproducibleResolution()
+        then:
+        2 * validator.validateMutation(STRATEGY)
 
-        when: strategy.force("org.utils:api:1.3")
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.force("org.utils:api:1.3")
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.forcedModules = ["org.utils:api:1.4"]
-        then: (1.._) * validator.validateMutation(STRATEGY)
+        when:
+        strategy.forcedModules = ["org.utils:api:1.4"]
+        then:
+        (1.._) * validator.validateMutation(STRATEGY)
 
         // DependencySubstitutionsInternal.allWithDependencyResolveDetails() will call back to validateMutation() instead
-        when: strategy.eachDependency(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.eachDependency(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.componentSelection.all(Actions.doNothing())
-        then: 1 * validator.validateMutation(STRATEGY)
+        when:
+        strategy.componentSelection.all(Actions.doNothing())
+        then:
+        1 * validator.validateMutation(STRATEGY)
 
-        when: strategy.componentSelection(new Action<ComponentSelectionRules>() {
+        when:
+        strategy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
             void execute(ComponentSelectionRules componentSelectionRules) {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 1 * validator.validateMutation(STRATEGY)
+        then:
+        1 * validator.validateMutation(STRATEGY)
     }
 
     def "mutation is not checked for copy"() {
@@ -295,25 +313,35 @@ class DefaultResolutionStrategySpec extends Specification {
         strategy.setMutationValidator(validator)
         def copy = strategy.copy()
 
-        when: copy.failOnVersionConflict()
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.failOnVersionConflict()
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.force("org.utils:api:1.3")
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.force("org.utils:api:1.3")
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.forcedModules = ["org.utils:api:1.4"]
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.forcedModules = ["org.utils:api:1.4"]
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.componentSelection.all(Actions.doNothing())
-        then: 0 * validator.validateMutation(_)
+        when:
+        copy.componentSelection.all(Actions.doNothing())
+        then:
+        0 * validator.validateMutation(_)
 
-        when: copy.componentSelection(new Action<ComponentSelectionRules>() {
+        when:
+        copy.componentSelection(new Action<ComponentSelectionRules>() {
             @Override
             void execute(ComponentSelectionRules componentSelectionRules) {
                 componentSelectionRules.all(Actions.doNothing())
             }
         })
-        then: 0 * validator.validateMutation(_)
+        then:
+        0 * validator.validateMutation(_)
     }
 
     def 'provides the expected DependencyLockingProvider'() {

@@ -10,6 +10,6 @@ public class TagTest {
 
     @Tag("slow")
     @Test
-    public void slowTest(){
+    public void slowTest() {
     }
 }

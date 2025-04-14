@@ -19,7 +19,7 @@ package org.gradle.language
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
-abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec  {
+abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'

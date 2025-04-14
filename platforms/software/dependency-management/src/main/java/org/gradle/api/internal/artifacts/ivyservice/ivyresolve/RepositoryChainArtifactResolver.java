@@ -80,7 +80,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     private ModuleComponentRepository<?> findSourceRepository(ModuleSources sources) {
         RepositoryChainModuleSource repositoryChainModuleSource =
             sources.getSource(RepositoryChainModuleSource.class)
-                   .orElseThrow(() -> new IllegalArgumentException("No sources provided for artifact resolution"));
+                .orElseThrow(() -> new IllegalArgumentException("No sources provided for artifact resolution"));
 
         ModuleComponentRepository<?> moduleVersionRepository = repositories.get(repositoryChainModuleSource.getRepositoryId());
         if (moduleVersionRepository == null) {

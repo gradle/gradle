@@ -341,7 +341,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
     }
 
     def "cannot attach custom annotation that is known but not enabled to static method"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()],Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         create(generator, StaticCustomInjectBean)

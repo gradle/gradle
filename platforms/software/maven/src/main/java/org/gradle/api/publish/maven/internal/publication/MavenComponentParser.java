@@ -87,8 +87,8 @@ public class MavenComponentParser {
     @VisibleForTesting
     public static final String PUBLICATION_WARNING_FOOTER =
         "These issues indicate information that is lost in the published 'pom' metadata file, " +
-        "which may be an issue if the published library is consumed by an old Gradle version or Apache Maven.\n" +
-        "The 'module' metadata file, which is used by Gradle 6+ is not affected.";
+            "which may be an issue if the published library is consumed by an old Gradle version or Apache Maven.\n" +
+            "The 'module' metadata file, which is used by Gradle 6+ is not affected.";
 
     /*
      * Maven supports wildcards in exclusion rules according to:
@@ -119,6 +119,25 @@ public class MavenComponentParser {
         this.documentationRegistry = documentationRegistry;
         this.mavenArtifactParser = mavenArtifactParser;
         this.dependencyCoordinateResolverFactory = dependencyCoordinateResolverFactory;
+    }
+
+    private static boolean isNotDefaultCapability(Capability capability, ModuleVersionIdentifier coordinates) {
+        return !coordinates.getGroup().equals(capability.getGroup())
+            || !coordinates.getName().equals(capability.getName())
+            || !coordinates.getVersion().equals(capability.getVersion());
+    }
+
+    private static boolean isDependencyWithDefaultArtifact(MavenDependency dependency) {
+        return dependency.getType() == null && dependency.getClassifier() == null;
+    }
+
+    private static boolean dependencyMatchesProject(MavenDependency dependency, ModuleVersionIdentifier coordinates) {
+        return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroupId(), dependency.getArtifactId()));
+    }
+
+    private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(SoftwareComponentInternal component) {
+        return component.getUsages().stream()
+            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant));
     }
 
     public Set<MavenArtifact> parseArtifacts(SoftwareComponentInternal component) {
@@ -247,25 +266,6 @@ public class MavenComponentParser {
         return new ParsedVariantDependencyResult(variant.getName(), dependencies, platforms, constraints, warnings);
     }
 
-    private static boolean isNotDefaultCapability(Capability capability, ModuleVersionIdentifier coordinates) {
-        return !coordinates.getGroup().equals(capability.getGroup())
-            || !coordinates.getName().equals(capability.getName())
-            || !coordinates.getVersion().equals(capability.getVersion());
-    }
-
-    private static boolean isDependencyWithDefaultArtifact(MavenDependency dependency) {
-        return dependency.getType() == null && dependency.getClassifier() == null;
-    }
-
-    private static boolean dependencyMatchesProject(MavenDependency dependency, ModuleVersionIdentifier coordinates) {
-        return coordinates.getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroupId(), dependency.getArtifactId()));
-    }
-
-    private static Stream<? extends SoftwareComponentVariant> createSortedVariantsStream(SoftwareComponentInternal component) {
-        return component.getUsages().stream()
-            .sorted(Comparator.comparing(MavenPublishingAwareVariant::scopeForVariant));
-    }
-
     /**
      * Converts the DSL representation of a variant's dependencies to one suitable for a POM.
      * Dependencies are transformed by querying the provided {@link VariantDependencyResolver}
@@ -298,6 +298,37 @@ public class MavenComponentParser {
             this.scope = scope;
             this.optional = optional;
             this.globalExcludes = globalExcludes;
+        }
+
+        private static MavenDependency newDependency(
+            ResolvedCoordinates coordinates,
+            @Nullable String type,
+            @Nullable String classifier,
+            @Nullable String scope,
+            Set<ExcludeRule> excludeRules,
+            boolean optional
+        ) {
+            return new DefaultMavenDependency(
+                coordinates.getGroup(), coordinates.getName(), coordinates.getVersion(),
+                type, classifier, scope, excludeRules, optional
+            );
+        }
+
+        private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
+            if (!dependency.isTransitive()) {
+                return EXCLUDE_ALL_RULE;
+            }
+
+            Set<ExcludeRule> excludeRules = dependency.getExcludeRules();
+            if (excludeRules.isEmpty()) {
+                return globalExcludes;
+            }
+
+            if (globalExcludes.isEmpty()) {
+                return excludeRules;
+            }
+
+            return Sets.union(globalExcludes, excludeRules);
         }
 
         private void convertDependency(ModuleDependency dependency, Consumer<MavenDependency> collector) {
@@ -404,37 +435,6 @@ public class MavenComponentParser {
             return ResolvedCoordinates.create(
                 groupId, artifactId, versionRangeMapper.map(version)
             );
-        }
-
-        private static MavenDependency newDependency(
-            ResolvedCoordinates coordinates,
-            @Nullable String type,
-            @Nullable String classifier,
-            @Nullable String scope,
-            Set<ExcludeRule> excludeRules,
-            boolean optional
-        ) {
-            return new DefaultMavenDependency(
-                coordinates.getGroup(), coordinates.getName(), coordinates.getVersion(),
-                type, classifier, scope, excludeRules, optional
-            );
-        }
-
-        private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
-            if (!dependency.isTransitive()) {
-                return EXCLUDE_ALL_RULE;
-            }
-
-            Set<ExcludeRule> excludeRules = dependency.getExcludeRules();
-            if (excludeRules.isEmpty()) {
-                return globalExcludes;
-            }
-
-            if (globalExcludes.isEmpty()) {
-                return excludeRules;
-            }
-
-            return Sets.union(globalExcludes, excludeRules);
         }
     }
 

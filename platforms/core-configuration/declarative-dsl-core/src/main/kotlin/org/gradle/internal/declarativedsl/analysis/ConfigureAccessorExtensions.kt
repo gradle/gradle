@@ -22,8 +22,10 @@ import org.gradle.declarative.dsl.schema.ConfigureAccessor
 fun ConfigureAccessor.access(objectOrigin: ObjectOrigin, inFunction: ObjectOrigin.AccessAndConfigureReceiver): ObjectOrigin = when (this) {
     is ConfigureAccessor.Property ->
         ObjectOrigin.PropertyReference(objectOrigin, dataProperty, objectOrigin.originElement)
+
     is ConfigureAccessor.Custom ->
         ObjectOrigin.CustomConfigureAccessor(objectOrigin, this, objectOrigin.originElement)
+
     is ConfigureAccessor.ConfiguringLambdaArgument ->
         ObjectOrigin.ConfiguringLambdaReceiver(inFunction.function, inFunction.parameterBindings, inFunction.invocationId, objectType, inFunction.originElement, inFunction.receiver)
 }

@@ -46,6 +46,22 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     private Object destination;
 
+    private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {
+        if (ivyModuleDescriptorSpec == null) {
+            return null;
+        } else if (ivyModuleDescriptorSpec instanceof IvyModuleDescriptorSpecInternal) {
+            return (IvyModuleDescriptorSpecInternal) ivyModuleDescriptorSpec;
+        } else {
+            throw new InvalidUserDataException(
+                String.format(
+                    "ivyModuleDescriptor implementations must implement the '%s' interface, implementation '%s' does not",
+                    IvyModuleDescriptorSpecInternal.class.getName(),
+                    ivyModuleDescriptorSpec.getClass().getName()
+                )
+            );
+        }
+    }
+
     @Inject
     protected PathToFileResolver getFileResolver() {
         throw new UnsupportedOperationException();
@@ -100,28 +116,12 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
-         ivyDescriptorSpec.get().writeTo(getDestination());
+        ivyDescriptorSpec.get().writeTo(getDestination());
     }
 
     IvyDescriptorFileGenerator.DescriptorFileSpec computeIvyDescriptorFileSpec() {
         IvyModuleDescriptorSpecInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
         return IvyDescriptorFileGenerator.generateSpec(descriptorInternal);
-    }
-
-    private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {
-        if (ivyModuleDescriptorSpec == null) {
-            return null;
-        } else if (ivyModuleDescriptorSpec instanceof IvyModuleDescriptorSpecInternal) {
-            return (IvyModuleDescriptorSpecInternal) ivyModuleDescriptorSpec;
-        } else {
-            throw new InvalidUserDataException(
-                    String.format(
-                            "ivyModuleDescriptor implementations must implement the '%s' interface, implementation '%s' does not",
-                            IvyModuleDescriptorSpecInternal.class.getName(),
-                            ivyModuleDescriptorSpec.getClass().getName()
-                    )
-            );
-        }
     }
 
 }

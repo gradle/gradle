@@ -81,18 +81,6 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             super(type);
         }
 
-        @Override
-        public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-            Collection<?> values = modelNodeInternal.asImmutable(getType(), null).getInstance();
-            if (values == null) {
-                return Optional.of("null");
-            }
-            return Optional.of(values.toString());
-        }
-
-        @Override
-        protected abstract ScalarCollectionModelView<E, C> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean readOnly);
-
         public static <E> ScalarCollectionModelProjection<E, List<E>> forList(final ModelType<E> elementType, final boolean readOnly) {
             return new ScalarCollectionModelProjection<E, List<E>>(ModelTypes.list(elementType)) {
                 @Override
@@ -110,6 +98,18 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
                 }
             };
         }
+
+        @Override
+        public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+            Collection<?> values = modelNodeInternal.asImmutable(getType(), null).getInstance();
+            if (values == null) {
+                return Optional.of("null");
+            }
+            return Optional.of(values.toString());
+        }
+
+        @Override
+        protected abstract ScalarCollectionModelView<E, C> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean readOnly);
     }
 
     private static class ListModelView<T> extends ScalarCollectionModelView<T, List<T>> {
@@ -252,6 +252,11 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             return getDelegate(false).toArray(a);
         }
 
+        @Override
+        public String toString() {
+            return delegate.toString();
+        }
+
         private final class MutationSafeIterator implements Iterator<T> {
             private final Iterator<T> delegate;
 
@@ -274,11 +279,6 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
                 state.assertCanMutate();
                 delegate.remove();
             }
-        }
-
-        @Override
-        public String toString() {
-            return delegate.toString();
         }
     }
 

@@ -107,6 +107,21 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             this.projectClass = projectClass;
         }
 
+        @Nullable
+        private static Class<?> typeOf(@Nullable Object value) {
+            return value == null ? null : value.getClass();
+        }
+
+        /**
+         * In a properties file, entries like '=' or ':' on a single line define a property with an empty string name and value.
+         * We know that no property will have an empty property name.
+         *
+         * @see java.util.Properties#load(java.io.Reader)
+         */
+        private static boolean isPossibleProperty(String name) {
+            return !name.isEmpty();
+        }
+
         void configureProperty(Project project, String name, Object value) {
             if (isPossibleProperty(name)) {
                 assert project.getClass() == projectClass;
@@ -120,11 +135,6 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         }
 
         @Nullable
-        private static Class<?> typeOf(@Nullable Object value) {
-            return value == null ? null : value.getClass();
-        }
-
-        @Nullable
         private PropertyMutator propertyMutatorFor(String propertyName, @Nullable Class<?> valueType) {
             return mutators.computeIfAbsent(
                 Pair.of(propertyName, valueType),
@@ -133,16 +143,6 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
                     return Optional.ofNullable(writeablePropertyIfExists(projectClass, key.left, key.right));
                 }
             ).orElse(null);
-        }
-
-        /**
-         * In a properties file, entries like '=' or ':' on a single line define a property with an empty string name and value.
-         * We know that no property will have an empty property name.
-         *
-         * @see java.util.Properties#load(java.io.Reader)
-         */
-        private static boolean isPossibleProperty(String name) {
-            return !name.isEmpty();
         }
 
         public void beginProjectProperties() {

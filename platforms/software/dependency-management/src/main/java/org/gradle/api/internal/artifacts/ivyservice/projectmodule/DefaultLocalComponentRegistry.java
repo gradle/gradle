@@ -52,6 +52,16 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         this.componentProvider = componentProvider;
     }
 
+    @Nullable
+    private static Path getProjectBuildTreePath(DomainObjectContext domainObjectContext) {
+        ProjectIdentity id = domainObjectContext.getProjectIdentity();
+        if (id != null) {
+            return id.getBuildTreePath();
+        }
+
+        return null;
+    }
+
     @Override
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
         Path targetProjectPath = ((ProjectComponentIdentifierInternal) projectIdentifier).getIdentityPath();
@@ -69,15 +79,5 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         }
 
         return componentProvider.getComponent(projectIdentifier, currentBuildPath);
-    }
-
-    @Nullable
-    private static Path getProjectBuildTreePath(DomainObjectContext domainObjectContext) {
-        ProjectIdentity id = domainObjectContext.getProjectIdentity();
-        if (id != null) {
-            return id.getBuildTreePath();
-        }
-
-        return null;
     }
 }

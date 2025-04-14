@@ -47,14 +47,14 @@ import java.util.concurrent.Callable;
  * <li>Configures the {@code "test"} task to run the tests of the {@code test} component, if present. Expects the test component to be of type {@link TestSuiteComponent}.</li>
  *
  * </ul>
+ *
  * @since 4.5
  */
 @Incubating
 public abstract class NativeTestingBasePlugin implements Plugin<Project> {
-    private final TargetMachineFactory targetMachineFactory;
-
     private static final String TEST_TASK_NAME = "test";
     private static final String TEST_COMPONENT_NAME = "test";
+    private final TargetMachineFactory targetMachineFactory;
 
     @Inject
     public NativeTestingBasePlugin(TargetMachineFactory targetMachineFactory) {
@@ -83,7 +83,7 @@ public abstract class NativeTestingBasePlugin implements Plugin<Project> {
                 ComponentWithTargetMachines componentWithTargetMachines = (ComponentWithTargetMachines) testSuiteComponent;
                 if (TEST_COMPONENT_NAME.equals(testSuiteComponent.getName())) {
                     test.configure(task -> task.dependsOn((Callable) () -> {
-                        TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
+                        TargetMachine currentHost = ((DefaultTargetMachineFactory) targetMachineFactory).host();
                         boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
                         if (!targetsCurrentMachine) {
                             task.getLogger().warn("'" + testSuiteComponent.getName() + "' component in project '" + project.getPath() + "' does not target this operating system.");

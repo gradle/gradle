@@ -207,6 +207,14 @@ public interface ResolutionStrategy {
     ResolutionStrategy force(Object... moduleVersionSelectorNotations);
 
     /**
+     * Returns currently configured forced modules. For more information on forcing versions see {@link #force(Object...)}
+     *
+     * @return forced modules
+     * @since 1.0-milestone-7
+     */
+    Set<ModuleVersionSelector> getForcedModules();
+
+    /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
      * <b>Replaces</b> existing forced modules with the input.
      * <p>
@@ -228,14 +236,6 @@ public interface ResolutionStrategy {
      * @since 1.0-milestone-7
      */
     ResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations);
-
-    /**
-     * Returns currently configured forced modules. For more information on forcing versions see {@link #force(Object...)}
-     *
-     * @return forced modules
-     * @since 1.0-milestone-7
-     */
-    Set<ModuleVersionSelector> getForcedModules();
 
     /**
      * Adds a dependency substitution rule that is triggered for every dependency (including transitive)

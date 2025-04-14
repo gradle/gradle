@@ -31,7 +31,8 @@ class UnusedVersionsCacheCleanupTest extends Specification {
 
     static final String CACHE_NAME = "cache"
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def usedGradleVersions = Stub(UsedGradleVersions)
     def progressMonitor = Mock(CleanupProgressMonitor)

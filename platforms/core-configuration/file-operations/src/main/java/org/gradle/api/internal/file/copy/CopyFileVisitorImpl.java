@@ -32,8 +32,10 @@ public class CopyFileVisitorImpl implements ReproducibleFileVisitor {
     private final FileSystem fileSystem;
     private final boolean reproducibleFileOrder;
 
-    public CopyFileVisitorImpl(CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, PropertyFactory propertyFactory, FileSystem fileSystem,
-                               boolean reproducibleFileOrder) {
+    public CopyFileVisitorImpl(
+        CopySpecResolver spec, CopyActionProcessingStreamAction action, Instantiator instantiator, PropertyFactory propertyFactory, FileSystem fileSystem,
+        boolean reproducibleFileOrder
+    ) {
         this.copySpecResolver = spec;
         this.action = action;
         this.instantiator = instantiator;

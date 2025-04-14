@@ -106,7 +106,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
 
         BuildableTestMethodResult testcase(long id, String name, @DelegatesTo(value = BuildableTestMethodResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
-            def duration = methodCounter.compute(name) { ignored, value ->  value == null ? 1 : value + 1 } * 1000
+            def duration = methodCounter.compute(name) { ignored, value -> value == null ? 1 : value + 1 } * 1000
             BuildableTestMethodResult methodResult = new BuildableTestMethodResult(id, name, outputEvents, new SimpleTestResult(duration))
             add(methodResult)
             ConfigureUtil.configure(configClosure, methodResult)

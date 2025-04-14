@@ -105,7 +105,6 @@ public interface ArtifactHandler {
      * @param artifactNotation The artifact notation, in one of the notations described above.
      * @param configureAction The action to execute to configure the artifact.
      * @return The artifact.
-     *
      * @since 3.3.
      */
     PublishArtifact add(String configurationName, Object artifactNotation, Action<? super ConfigurablePublishArtifact> configureAction);

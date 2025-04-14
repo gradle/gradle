@@ -34,14 +34,18 @@ import java.util.Set;
  */
 @ServiceScope(Scope.UserHome.class)
 public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
-    private CachingFileHasher fileHasher;
     private final Object lock = new Object();
-    private long currentTimestamp;
     private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
+    private CachingFileHasher fileHasher;
+    private long currentTimestamp;
     private boolean isCurrentTimestampHighPrecision;
 
     public GradleUserHomeScopeFileTimeStampInspector(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
         super(cacheBuilderFactory.baseDirForCache("file-changes"));
+    }
+
+    private static boolean isHighTimestampPrecision(long fileTimestamp) {
+        return fileTimestamp % 1000 != 0;
     }
 
     public void attach(CachingFileHasher fileHasher) {
@@ -101,9 +105,5 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
      */
     private boolean isReliableTimestampPrecision(long timestamp) {
         return isCurrentTimestampHighPrecision || isHighTimestampPrecision(timestamp);
-    }
-
-    private static boolean isHighTimestampPrecision(long fileTimestamp) {
-        return fileTimestamp % 1000 != 0;
     }
 }

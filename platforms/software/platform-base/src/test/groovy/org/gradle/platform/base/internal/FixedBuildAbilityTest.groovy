@@ -20,7 +20,7 @@ import org.gradle.internal.logging.text.DiagnosticsVisitor
 import spock.lang.Specification
 
 class FixedBuildAbilityTest extends Specification {
-    def "is buildable" () {
+    def "is buildable"() {
         when:
         def ability = new FixedBuildAbility(true)
 
@@ -28,7 +28,7 @@ class FixedBuildAbilityTest extends Specification {
         ability.buildable
     }
 
-    def "is not buildable" () {
+    def "is not buildable"() {
         when:
         def ability = new FixedBuildAbility(false)
 
@@ -36,7 +36,7 @@ class FixedBuildAbilityTest extends Specification {
         !ability.buildable
     }
 
-    def "explains not buildable reason" () {
+    def "explains not buildable reason"() {
         def visitor = Mock(DiagnosticsVisitor)
 
         when:

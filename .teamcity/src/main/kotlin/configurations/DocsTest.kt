@@ -71,9 +71,9 @@ class DocsTestProject(
     testJava: JvmCategory,
     testTypes: List<DocsTestType>,
 ) : Project({
-        id(asDocsTestId(model, os))
-        name = "Docs Test - ${testJava.version.toCapitalized()} ${os.asName()}"
-    }) {
+    id(asDocsTestId(model, os))
+    name = "Docs Test - ${testJava.version.toCapitalized()} ${os.asName()}"
+}) {
     val docsTests: List<BaseGradleBuildType>
 
     init {
@@ -108,16 +108,16 @@ class DocsTestTrigger(
     model: CIBuildModel,
     docsTestProject: DocsTestProject,
 ) : OsAwareBaseGradleBuildType(os = docsTestProject.os, init = {
-        id("${asDocsTestId(model, docsTestProject.os)}_Trigger")
-        name = docsTestProject.name + " (Trigger)"
-        type = Type.COMPOSITE
+    id("${asDocsTestId(model, docsTestProject.os)}_Trigger")
+    name = docsTestProject.name + " (Trigger)"
+    type = Type.COMPOSITE
 
-        applyDefaultSettings()
+    applyDefaultSettings()
 
-        dependencies {
-            snapshotDependencies(docsTestProject.docsTests)
-        }
-    })
+    dependencies {
+        snapshotDependencies(docsTestProject.docsTests)
+    }
+})
 
 enum class DocsTestType(
     val ccEnabled: Boolean,
@@ -139,22 +139,22 @@ class DocsTest(
     testClasses: List<String>,
 ) : OsAwareBaseGradleBuildType(os = os, stage = stage, init = {
 
-        id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}_$index")
-        name = "${docsTestType.docsTestDesc} - ${testJava.version.toCapitalized()} ${os.asName()} ($index)"
+    id("${model.projectId}_${docsTestType.docsTestName}_${os.asName()}_$index")
+    name = "${docsTestType.docsTestDesc} - ${testJava.version.toCapitalized()} ${os.asName()} ($index)"
 
-        applyTestDefaults(
-            model,
-            this,
-            "docs:docsTest${if (testSplitType == EXCLUDE) " docs:checkSamples" else ""}",
-            os = os,
-            arch = os.defaultArch,
-            timeout = 60,
-            extraParameters =
-                buildScanTagParam(docsTestType.docsTestName) +
-                    " -PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}" +
-                    " -PtestJavaVersion=${testJava.version.major}" +
-                    " -PtestJavaVendor=${testJava.vendor.name.lowercase()}" +
-                    " -P${testSplitType.name.lowercase()}TestClasses=true",
-            preSteps = prepareTestClassesStep(os, testSplitType, testClasses),
-        )
-    })
+    applyTestDefaults(
+        model,
+        this,
+        "docs:docsTest${if (testSplitType == EXCLUDE) " docs:checkSamples" else ""}",
+        os = os,
+        arch = os.defaultArch,
+        timeout = 60,
+        extraParameters =
+            buildScanTagParam(docsTestType.docsTestName) +
+                " -PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}" +
+                " -PtestJavaVersion=${testJava.version.major}" +
+                " -PtestJavaVendor=${testJava.vendor.name.lowercase()}" +
+                " -P${testSplitType.name.lowercase()}TestClasses=true",
+        preSteps = prepareTestClassesStep(os, testSplitType, testClasses),
+    )
+})

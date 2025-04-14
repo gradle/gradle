@@ -26,7 +26,8 @@ import org.gradle.tooling.events.ProgressEvent
 import org.junit.Rule
 
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
     boolean killed = false
 
     void setup() {

@@ -109,6 +109,11 @@ class TestVariant {
     private final EngineDiscoveryRequest discoveryRequest;
     private final Map<String, String> systemProperties = new HashMap<String, String>();
 
+    private TestVariant(UniqueId rootId, String variant, EngineDiscoveryRequest request) {
+        this.id = rootId.append(SEGMENT_TYPE, variant);
+        this.discoveryRequest = request;
+    }
+
     static TestVariant tapiCurrent(UniqueId rootId, EngineDiscoveryRequest discoveryRequest) {
         TestVariant testVariant = new TestVariant(rootId, "tapiCurrent", new ToolingApiCurrentDiscoveryRequest(discoveryRequest));
         testVariant.systemProperties.put(VERSIONS_SYSPROP_NAME, CoverageContext.DEFAULT.selector);
@@ -124,11 +129,6 @@ class TestVariant {
         TestVariant testVariant = new TestVariant(rootId, variant, new ToolingApiClassloaderDiscoveryRequest(discoveryRequest, variant));
         testVariant.systemProperties.put("org.gradle.integtest.currentVersion", GradleVersion.current().getVersion());
         return testVariant;
-    }
-
-    private TestVariant(UniqueId rootId, String variant, EngineDiscoveryRequest request) {
-        this.id = rootId.append(SEGMENT_TYPE, variant);
-        this.discoveryRequest = request;
     }
 
     TestDescriptor discover(final TestEngine discoveryEngine) {

@@ -201,9 +201,9 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
     }
 
     public static class ProjectSpec {
-        private final String name;
         @VisibleForTesting
         final File projectFile;
+        private final String name;
         private final List<ConfigurationSpec> configurations;
 
         public ProjectSpec(String name, File projectFile, List<ConfigurationSpec> configurations) {

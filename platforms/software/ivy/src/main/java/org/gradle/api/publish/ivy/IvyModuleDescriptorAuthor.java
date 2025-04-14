@@ -21,8 +21,8 @@ import org.gradle.api.provider.Property;
 /**
  * An author of an Ivy publication.
  *
- * @since 4.8
  * @see IvyModuleDescriptorSpec
+ * @since 4.8
  */
 public interface IvyModuleDescriptorAuthor {
 

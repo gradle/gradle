@@ -82,6 +82,18 @@ public class JdkTools {
         return JavacTool.create();
     }
 
+    private void ensureCompilerTask() {
+        if (incrementalCompileTaskClass == null) {
+            synchronized (this) {
+                try {
+                    incrementalCompileTaskClass = Cast.uncheckedCast(isolatedToolsLoader.loadClass("org.gradle.internal.compiler.java.IncrementalCompileTask"));
+                } catch (ClassNotFoundException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        }
+    }
+
     private class DefaultIncrementalAwareCompiler implements IncrementalCompilationAwareJavaCompiler {
         private final JavacTool delegate;
 
@@ -125,9 +137,10 @@ public class JdkTools {
         }
 
         @Override
-        public JavaCompiler.CompilationTask makeIncremental(JavaCompiler.CompilationTask task, Map<String, Set<String>> sourceToClassMapping,
-                                                            ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs,
-                                                            CompilationClassBackupService classBackupService
+        public JavaCompiler.CompilationTask makeIncremental(
+            JavaCompiler.CompilationTask task, Map<String, Set<String>> sourceToClassMapping,
+            ConstantsAnalysisResult constantsAnalysisResult, CompilationSourceDirs compilationSourceDirs,
+            CompilationClassBackupService classBackupService
         ) {
             ensureCompilerTask();
             // task (JavacTaskImpl) classloader: app classloader
@@ -139,18 +152,6 @@ public class JdkTools {
                 (BiConsumer<String, String>) constantsAnalysisResult::addPublicDependent,
                 (BiConsumer<String, String>) constantsAnalysisResult::addPrivateDependent
             );
-        }
-    }
-
-    private void ensureCompilerTask() {
-        if (incrementalCompileTaskClass == null) {
-            synchronized (this) {
-                try {
-                    incrementalCompileTaskClass = Cast.uncheckedCast(isolatedToolsLoader.loadClass("org.gradle.internal.compiler.java.IncrementalCompileTask"));
-                } catch (ClassNotFoundException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
         }
     }
 }

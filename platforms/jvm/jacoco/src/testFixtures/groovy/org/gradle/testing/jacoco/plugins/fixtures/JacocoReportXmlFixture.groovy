@@ -46,7 +46,7 @@ class JacocoReportXmlFixture {
         }
     }
 
-    void assertHasClassCoverage(String clazz, int covered=1) {
+    void assertHasClassCoverage(String clazz, int covered = 1) {
         def coverage = findClass(clazz)
         assert coverage
         assert coverage.covered == covered

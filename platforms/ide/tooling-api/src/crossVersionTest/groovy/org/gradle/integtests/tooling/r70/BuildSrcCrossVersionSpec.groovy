@@ -62,7 +62,7 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
     def "can request model from buildSrc without settings file"() {
         expect:
         def gradleProject = withConnectionToBuildSrc { connection ->
-             def modelBuilder = connection.model(GradleProject)
+            def modelBuilder = connection.model(GradleProject)
             modelBuilder.get()
         }
         gradleProject.projectDirectory == buildSrc

@@ -82,7 +82,7 @@ public class SuppliedComponentMetadataSerializer extends AbstractSerializer<Comp
     private List<String> readStatusScheme(Decoder decoder) throws IOException {
         int size = decoder.readSmallInt();
         ImmutableList.Builder<String> scheme = ImmutableList.builder();
-        for (int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             scheme.add(decoder.readString());
         }
         return scheme.build();

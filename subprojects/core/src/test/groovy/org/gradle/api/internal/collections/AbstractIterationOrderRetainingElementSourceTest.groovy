@@ -101,7 +101,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends ElementS
         source.add("bazz")
         source.add("bizz")
         iterator = source.iteratorNoFlush()
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             iterator.next()
             iterator.remove()
         }
@@ -170,7 +170,7 @@ abstract class AbstractIterationOrderRetainingElementSourceTest extends ElementS
 
         when:
         iterator = source.iterator()
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             iterator.next()
             iterator.remove()
         }

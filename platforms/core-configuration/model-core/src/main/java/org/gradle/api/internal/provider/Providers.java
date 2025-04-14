@@ -29,10 +29,9 @@ import java.io.Serializable;
 import java.util.concurrent.Callable;
 
 public class Providers {
-    private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
-
     public static final Provider<Boolean> TRUE = of(true);
     public static final Provider<Boolean> FALSE = of(false);
+    private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
 
     public static <T> ProviderInternal<T> fixedValue(DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
         value = sanitizer.sanitize(value);
@@ -86,11 +85,11 @@ public class Providers {
         }
     }
 
-    public interface SerializableCallable<V> extends Callable<V>, Serializable {
-    }
-
     public static <T> ProviderInternal<T> changing(SerializableCallable<T> value) {
         return new ChangingProvider<>(value);
+    }
+
+    public interface SerializableCallable<V> extends Callable<V>, Serializable {
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {

@@ -38,6 +38,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    private static final String SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE = "SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE";
+
     public ServiceReferencePropertyAnnotationHandler() {
         super(ServiceReference.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
     }
@@ -56,8 +58,6 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
             visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName, Cast.uncheckedCast(serviceType));
         });
     }
-
-    private static final String SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE = "SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE";
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {

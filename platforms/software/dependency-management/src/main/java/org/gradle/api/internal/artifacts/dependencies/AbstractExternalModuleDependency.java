@@ -38,8 +38,8 @@ import java.util.List;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private final ModuleIdentifier moduleIdentifier;
-    private boolean changing;
     private final DefaultMutableVersionConstraint versionConstraint;
+    private boolean changing;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
         if (module == null) {
@@ -63,6 +63,13 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
     }
 
+    static ModuleIdentifier assertModuleId(@Nullable String group, @Nullable String name) {
+        if (name == null) {
+            throw new InvalidUserDataException("Name must not be null!");
+        }
+        return DefaultModuleIdentifier.newId(group, name);
+    }
+
     protected void copyTo(AbstractExternalModuleDependency target) {
         super.copyTo(target);
         target.setChanging(isChanging());
@@ -73,7 +80,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
             return false;
         }
         return changing == dependencyRhs.isChanging() &&
-                Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
+            Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
     }
 
     @Override
@@ -127,13 +134,6 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     @Override
     public ModuleIdentifier getModule() {
         return moduleIdentifier;
-    }
-
-    static ModuleIdentifier assertModuleId(@Nullable String group, @Nullable String name) {
-        if (name == null) {
-            throw new InvalidUserDataException("Name must not be null!");
-        }
-        return DefaultModuleIdentifier.newId(group, name);
     }
 
     @Override

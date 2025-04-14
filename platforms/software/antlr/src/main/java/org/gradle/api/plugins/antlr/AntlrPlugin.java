@@ -48,6 +48,15 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         this.objectFactory = objectFactory;
     }
 
+    private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {
+        String name = parentDisplayName + ".antlr";
+        String displayName = parentDisplayName + " Antlr source";
+        AntlrSourceDirectorySet antlrSourceSet = objectFactory.newInstance(DefaultAntlrSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName));
+        antlrSourceSet.getFilter().include("**/*.g");
+        antlrSourceSet.getFilter().include("**/*.g4");
+        return antlrSourceSet;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public void apply(final Project project) {
@@ -101,14 +110,5 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     sourceSet.getJava().srcDir(antlrTask);
                 }
             });
-    }
-
-    private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {
-        String name = parentDisplayName + ".antlr";
-        String displayName = parentDisplayName + " Antlr source";
-        AntlrSourceDirectorySet antlrSourceSet = objectFactory.newInstance(DefaultAntlrSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName));
-        antlrSourceSet.getFilter().include("**/*.g");
-        antlrSourceSet.getFilter().include("**/*.g4");
-        return antlrSourceSet;
     }
 }

@@ -38,6 +38,48 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     private Thread currentOwner;
     private DefaultResourceLockState currentState;
 
+    /**
+     * Attempts an atomic, blocking lock on the provided resource locks.
+     */
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> lock(Iterable<? extends ResourceLock> resourceLocks) {
+        return new AcquireLocks(resourceLocks, true);
+    }
+
+    /**
+     * Attempts an atomic, blocking lock on the provided resource locks.
+     */
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> lock(ResourceLock... resourceLocks) {
+        return lock(Arrays.asList(resourceLocks));
+    }
+
+    /**
+     * Attempts an atomic, non-blocking lock on the provided resource locks.
+     */
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> tryLock(Iterable<? extends ResourceLock> resourceLocks) {
+        return new AcquireLocks(resourceLocks, false);
+    }
+
+    /**
+     * Attempts an atomic, non-blocking lock on the provided resource locks.
+     */
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> tryLock(ResourceLock... resourceLocks) {
+        return tryLock(Arrays.asList(resourceLocks));
+    }
+
+    /**
+     * Unlocks the provided resource locks.
+     */
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> unlock(Iterable<? extends ResourceLock> resourceLocks) {
+        return new ReleaseLocks(resourceLocks);
+    }
+
+    /**
+     * Unlocks the provided resource locks.
+     */
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> unlock(ResourceLock... resourceLocks) {
+        return unlock(Arrays.asList(resourceLocks));
+    }
+
     @Override
     public void close() throws IOException {
         synchronized (lock) {
@@ -190,9 +232,9 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     private static class DefaultResourceLockState implements ResourceLockState {
+        boolean rollback;
         private Set<ResourceLock> lockedResources;
         private Set<ResourceLock> unlockedResources;
-        boolean rollback;
 
         @Override
         public void registerLocked(ResourceLock resourceLock) {
@@ -242,48 +284,6 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
             }
             rollback = false;
         }
-    }
-
-    /**
-     * Attempts an atomic, blocking lock on the provided resource locks.
-     */
-    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> lock(Iterable<? extends ResourceLock> resourceLocks) {
-        return new AcquireLocks(resourceLocks, true);
-    }
-
-    /**
-     * Attempts an atomic, blocking lock on the provided resource locks.
-     */
-    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> lock(ResourceLock... resourceLocks) {
-        return lock(Arrays.asList(resourceLocks));
-    }
-
-    /**
-     * Attempts an atomic, non-blocking lock on the provided resource locks.
-     */
-    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> tryLock(Iterable<? extends ResourceLock> resourceLocks) {
-        return new AcquireLocks(resourceLocks, false);
-    }
-
-    /**
-     * Attempts an atomic, non-blocking lock on the provided resource locks.
-     */
-    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> tryLock(ResourceLock... resourceLocks) {
-        return tryLock(Arrays.asList(resourceLocks));
-    }
-
-    /**
-     * Unlocks the provided resource locks.
-     */
-    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> unlock(Iterable<? extends ResourceLock> resourceLocks) {
-        return new ReleaseLocks(resourceLocks);
-    }
-
-    /**
-     * Unlocks the provided resource locks.
-     */
-    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> unlock(ResourceLock... resourceLocks) {
-        return unlock(Arrays.asList(resourceLocks));
     }
 
     private static class AcquireLocks implements InternalTransformer<ResourceLockState.Disposition, ResourceLockState> {

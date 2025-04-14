@@ -20,7 +20,7 @@ def method() {
     }
     try {
         localScope2
-    } catch(MissingPropertyException e) {
+    } catch (MissingPropertyException e) {
         println 'localScope2NotAvailable'
     }
     println scriptScope

@@ -821,11 +821,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `accessor to extension of jvm type is accessible and typed`() {
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             import java.security.MessageDigest
             extensions.add(MessageDigest::class, "javaTypeExtension", MessageDigest.getInstance("MD5"))
-        """)
-        withBuildScript("""
+        """
+        )
+        withBuildScript(
+            """
             plugins {
                 id("my-plugin")
             }
@@ -836,7 +839,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 println("Type of `javaTypeExtension` receiver is " + typeOf(this@javaTypeExtension))
                 println("`javaTypeExtension` is MessageDigest? " + (this is java.security.MessageDigest))
             }
-        """)
+        """
+        )
 
         val result = build("help")
         assertThat(result.output, containsString("Type of `javaTypeExtension` receiver is MessageDigest"))

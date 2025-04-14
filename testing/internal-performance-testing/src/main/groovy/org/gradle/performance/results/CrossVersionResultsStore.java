@@ -79,6 +79,11 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         super(new PerformanceDatabase(databaseName));
     }
 
+    private static BigDecimal getMedianInMillis(MeasuredOperationList operations) {
+        Amount<Duration> median = operations.getTotalTime().getMedian();
+        return median == null ? null : median.toUnits(Duration.MILLI_SECONDS).getValue();
+    }
+
     @Override
     public void report(final CrossVersionPerformanceResults results) {
         withConnectionClosingDb("write results", (ConnectionAction<Void>) connection -> {
@@ -172,11 +177,6 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 return keys.getLong(1);
             }
         }
-    }
-
-    private static BigDecimal getMedianInMillis(MeasuredOperationList operations) {
-        Amount<Duration> median = operations.getTotalTime().getMedian();
-        return median == null ? null : median.toUnits(Duration.MILLI_SECONDS).getValue();
     }
 
     private void addOperations(PreparedStatement statement, long testId, String version, MeasuredOperationList operations) throws SQLException {

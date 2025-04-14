@@ -30,6 +30,8 @@ import org.jspecify.annotations.Nullable;
 @ServiceScope(Scope.Build.class)
 public interface BuildScanEndOfBuildNotifier {
 
+    void notify(Listener listener);
+
     interface BuildResult {
         @Nullable
         Throwable getFailure();
@@ -45,7 +47,5 @@ public interface BuildScanEndOfBuildNotifier {
          */
         BuildScanResult execute(BuildResult buildResult);
     }
-
-    void notify(Listener listener);
 
 }

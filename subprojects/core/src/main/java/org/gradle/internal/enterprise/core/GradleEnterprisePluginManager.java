@@ -31,16 +31,13 @@ import org.slf4j.LoggerFactory;
 @ServiceScope(Scope.BuildTree.class)
 public class GradleEnterprisePluginManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GradleEnterprisePluginManager.class);
-
     @VisibleForTesting
     public static final String NO_SCAN_PLUGIN_MSG = "An internal error occurred that prevented a build scan from being created.\n" +
         "Please report this via https://github.com/gradle/gradle/issues";
-
     public static final String OLD_SCAN_PLUGIN_VERSION_MESSAGE =
         "The build scan plugin is not compatible with this version of Gradle.\n"
             + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradleEnterprisePluginManager.class);
     @Nullable
     private GradleEnterprisePluginAdapter adapter;
 

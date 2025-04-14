@@ -22,7 +22,7 @@ class SwiftFailingXCTestBundle extends XCTestSourceElement {
             failingTestCase("testCanFailTestCaseWithAssertion")
         ]
     }
-    List<XCTestSourceFileElement> testSuites = [ failingTestSuite ]
+    List<XCTestSourceFileElement> testSuites = [failingTestSuite]
 
     SwiftFailingXCTestBundle() {
         super('app')

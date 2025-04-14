@@ -30,22 +30,23 @@ class BuildCacheErrorIntegrationTest extends AbstractIntegrationSpec {
             class TestBuildCacheService implements BuildCacheService {
                 TestBuildCacheService(TestBuildCache configuration) {
                 }
-                
+
                 @Override
                 boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
                     return false
                 }
-    
+
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                 }
-    
+
                 @Override
                 void close() throws IOException {
                 }
             }
         """
     }
+
     def "registering with null fails"() {
         given:
         settingsFile << """

@@ -118,7 +118,7 @@ class SourceFoldersCreatorTest extends Specification {
         when:
         def folders = externalSourceFolders("../parent1/sibling1/src", "../parent2/sibling1/src", "../sibling2/src", "../parent1/sibling1/sib-src")
         then:
-        folders.collect { it.path } ==  ["sibling1-src", "parent2-sibling1-src", "sibling2-src", "sib-src"]
+        folders.collect { it.path } == ["sibling1-src", "parent2-sibling1-src", "sibling2-src", "sib-src"]
     }
 
     private List<SourceFolder> regularSourceFolders() {

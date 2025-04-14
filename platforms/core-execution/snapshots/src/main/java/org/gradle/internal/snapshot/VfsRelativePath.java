@@ -33,20 +33,24 @@ import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
  * A relative path does not start or end with a slash.
  */
 public class VfsRelativePath {
+    public static final String ROOT = "";
     private final String absolutePath;
     private final int offset;
 
-    public static final String ROOT = "";
+    private VfsRelativePath(String absolutePath, int offset) {
+        this.absolutePath = absolutePath;
+        this.offset = offset;
+    }
 
     /**
      * The relative path from the root of the file system for the given absolute path.
      *
      * E.g.:
-     *    'C:/' -&gt; 'C:'
-     *    '/home/user/project' -&gt; 'home/user/project'
-     *    '/' -&gt; ''
-     *    '//uncpath/relative/path' -&gt; 'uncpath/relative/path'
-     *    'C:/Users/user/project' -&gt; 'C:/Users/user/project'
+     * 'C:/' -&gt; 'C:'
+     * '/home/user/project' -&gt; 'home/user/project'
+     * '/' -&gt; ''
+     * '//uncpath/relative/path' -&gt; 'uncpath/relative/path'
+     * 'C:/Users/user/project' -&gt; 'C:/Users/user/project'
      */
     public static VfsRelativePath of(String absolutePath) {
         String normalizedRoot = normalizeRoot(absolutePath);
@@ -76,18 +80,39 @@ public class VfsRelativePath {
         return absolutePath.length();
     }
 
-    private VfsRelativePath(String absolutePath, int offset) {
-        this.absolutePath = absolutePath;
-        this.offset = offset;
+    private static boolean isPrefix(String stringEndingInPrefix, int offsetInPrefix, String stringToCheck, int offsetInStringToCheck, CaseSensitivity caseSensitivity) {
+        int prefixLength = stringEndingInPrefix.length() - offsetInPrefix;
+        if (prefixLength == 0) {
+            return true;
+        }
+        int endOfPrefixInStringToCheck = offsetInStringToCheck + prefixLength;
+        if (stringToCheck.length() < endOfPrefixInStringToCheck) {
+            return false;
+        }
+        for (int i = stringEndingInPrefix.length() - 1, j = endOfPrefixInStringToCheck - 1; i >= offsetInPrefix; i--, j--) {
+            if (!equalChars(stringEndingInPrefix.charAt(i), stringToCheck.charAt(j), caseSensitivity)) {
+                return false;
+            }
+        }
+        return stringToCheck.length() == endOfPrefixInStringToCheck || isFileSeparator(stringToCheck.charAt(endOfPrefixInStringToCheck));
+    }
+
+    private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
+        if (!caseSensitive) {
+            return 0;
+        }
+        return previousCombinedValue == 0
+            ? compareChars(charInPath1, charInPath2)
+            : previousCombinedValue;
     }
 
     /**
      * Returns a new relative path starting from the child.
      *
      * E.g.
-     *   (some/path, some) -&gt; path
-     *   (some/path/other, some) -&gt; path/other
-     *   (C:, '') -&gt; C:
+     * (some/path, some) -&gt; path
+     * (some/path/other, some) -&gt; path/other
+     * (C:, '') -&gt; C:
      */
     public VfsRelativePath pathFromChild(String relativeChildPath) {
         return relativeChildPath.isEmpty()
@@ -99,9 +124,9 @@ public class VfsRelativePath {
      * Returns the relative path from this to the child.
      *
      * E.g.
-     *   (some, some/path) -&gt; path
-     *   (some, some/path/othere) -&gt; path/other
-     *   (C:, '') -&gt; C:
+     * (some, some/path) -&gt; path
+     * (some, some/path/othere) -&gt; path/other
+     * (C:, '') -&gt; C:
      */
     public String pathToChild(String relativeChildPath) {
         return isEmpty()
@@ -182,12 +207,12 @@ public class VfsRelativePath {
      * The path must not start with a separator.
      *
      * For example, this method returns:
-     *     some/path     == some/other
-     *     some1/path    &lt;  some2/other
-     *     some/path     &gt;  some1/other
-     *     some/same     == some/same/more
-     *     some/one/alma == some/two/bela
-     *     a/some        &lt;  b/other
+     * some/path     == some/other
+     * some1/path    &lt;  some2/other
+     * some/path     &gt;  some1/other
+     * some/same     == some/same/more
+     * some/one/alma == some/two/bela
+     * a/some        &lt;  b/other
      *
      * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
      */
@@ -229,32 +254,6 @@ public class VfsRelativePath {
      */
     public boolean isPrefixOf(String otherPath, CaseSensitivity caseSensitivity) {
         return isPrefix(absolutePath, offset, otherPath, 0, caseSensitivity);
-    }
-
-    private static boolean isPrefix(String stringEndingInPrefix, int offsetInPrefix, String stringToCheck, int offsetInStringToCheck, CaseSensitivity caseSensitivity) {
-        int prefixLength = stringEndingInPrefix.length() - offsetInPrefix;
-        if (prefixLength == 0) {
-            return true;
-        }
-        int endOfPrefixInStringToCheck = offsetInStringToCheck + prefixLength;
-        if (stringToCheck.length() < endOfPrefixInStringToCheck) {
-            return false;
-        }
-        for (int i = stringEndingInPrefix.length() - 1, j = endOfPrefixInStringToCheck - 1; i >= offsetInPrefix; i--, j--) {
-            if (!equalChars(stringEndingInPrefix.charAt(i), stringToCheck.charAt(j), caseSensitivity)) {
-                return false;
-            }
-        }
-        return stringToCheck.length() == endOfPrefixInStringToCheck || isFileSeparator(stringToCheck.charAt(endOfPrefixInStringToCheck));
-    }
-
-    private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
-        if (!caseSensitive) {
-            return 0;
-        }
-        return previousCombinedValue == 0
-            ? compareChars(charInPath1, charInPath2)
-            : previousCombinedValue;
     }
 
     @Override

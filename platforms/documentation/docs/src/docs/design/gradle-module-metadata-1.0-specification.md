@@ -10,15 +10,20 @@ enableFeaturePreview("GRADLE_METADATA")
 
 ## Goal
 
-This document describes version 1.0 of the Gradle module metadata file. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
+This document describes version 1.0 of the Gradle module metadata file. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository
+format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
 
-The module metadata file is a JSON file published alongside the existing repository-specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunneled" through existing repository formats while continuing to support existing Gradle versions and tooling that do not understand the format. 
+The module metadata file is a JSON file published alongside the existing repository-specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by
+Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunneled" through existing repository formats while continuing to support existing
+Gradle versions and tooling that do not understand the format.
 
 The module metadata file is intended to be machine-generated rather than written by a human but is intended to be human-readable.
 
-The module metadata file is also intended to fully describe the binaries in the module where it is present so that it can replace the existing metadata files. This would allow a Gradle repository format to be added, for example.
+The module metadata file is also intended to fully describe the binaries in the module where it is present so that it can replace the existing metadata files. This would allow a Gradle repository
+format to be added, for example.
 
-The module metadata file can describe only those modules that contain a single _component_, which is some piece of software such as a library or application. Support for more sophisticated mappings may be added by later versions.
+The module metadata file can describe only those modules that contain a single _component_, which is some piece of software such as a library or application. Support for more sophisticated mappings
+may be added by later versions.
 
 ## Usage in a Maven repository
 
@@ -44,13 +49,13 @@ This value must contain an object with the following values:
 - `group`: The group of this component. A string
 - `module`: The module name of this component. A string
 - `version`: The version of this component. A string
-- `url`: optional. When present, indicates where the metadata for the component may be found. When missing, indicates that this metadata file defines the metadata for the whole component. 
+- `url`: optional. When present, indicates where the metadata for the component may be found. When missing, indicates that this metadata file defines the metadata for the whole component.
 
 ### `createdBy` value
 
 This value must contain an object with the following values:
 
-- `gradle`: optional. Describes the Gradle instance that produced the contents of the module. 
+- `gradle`: optional. Describes the Gradle instance that produced the contents of the module.
 
 ### `gradle` value
 
@@ -87,10 +92,12 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 
 - `org.gradle.usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. The value must be a string.
 - `org.gradle.status` indicates the kind of release: one of `release` or `integration`.
-- `org.gradle.category` indicates the type of component (library, platform or documentation). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
+- `org.gradle.category` indicates the type of component (library, platform or documentation). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library.
+  Value must be a string.
 - `org.gradle.libraryelements` indicates the content of a `org.gradle.category=library` variant, like `jar`, `classes` or `headers-cplusplus`. Value must be a string.
 - `org.gradle.docstype` indicates the documentation type of a `org.gradle.category=documentation` variant, like `javadoc`, `sources` or `doxygen`. The value must be a string.
-- `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. The value must be a string.
+- `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. The
+  value must be a string.
 
 ##### Deprecated attributes value
 
@@ -105,7 +112,8 @@ Existing metadata must remain compatible, and thus, tools supporting the Gradle 
 
 #### Java ecosystem-specific attributes
 
-- `org.gradle.jvm.version` indicated the minimal target JVM version of a library. For example, it is built for Java 8, and its minimal target is `8`. If it's a multi-release jar for Java 9, 10 and 11, it's minimal target is `9`. Value must be an integer corresponding to the Java version.
+- `org.gradle.jvm.version` indicated the minimal target JVM version of a library. For example, it is built for Java 8, and its minimal target is `8`. If it's a multi-release jar for Java 9, 10 and 11,
+  it's minimal target is `9`. Value must be an integer corresponding to the Java version.
 
 #### Native ecosystem-specific attributes
 
@@ -127,14 +135,16 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `group`: The group of the dependency.
 - `module`: The module of the dependency.
 - `version`: optional. The version constraint of the dependency.
-- `excludes`: optional. Defines the exclusions that apply to this dependency. 
+- `excludes`: optional. Defines the exclusions that apply to this dependency.
 - `reason`: optional. An explanation of why the dependency is used. Can typically be used to explain why a specific version is requested.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 - `requestedCapabilities`: optional. If set, declares the capabilities that the dependency must provide in order to be selected. See `capabilities` above for the format.
 
 #### `version` value
 
-This value, nested in elements of the `dependencies` or `dependencyConstraints` nodes, defines the version constraint of a dependency or dependency constraint. Has the same meaning as `version` in the Gradle DSL. A version constraint consists of:
+This value, nested in elements of the `dependencies` or `dependencyConstraints` nodes, defines the version constraint of a dependency or dependency constraint. Has the same meaning as `version` in the
+Gradle DSL. A version constraint consists of:
+
 - `requires`: optional. The required version for this dependency.
 - `prefers`: optional. The preferred version for this dependency.
 - `strictly`: optional. A strictly enforced version requirement for this dependency.

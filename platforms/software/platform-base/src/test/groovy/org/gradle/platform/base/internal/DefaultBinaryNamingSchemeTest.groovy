@@ -145,9 +145,9 @@ class DefaultBinaryNamingSchemeTest extends Specification {
 
     def "prefers declared binary name over default binary name"() {
         def namingScheme = DefaultBinaryNamingScheme.component("testSuite")
-                .withBinaryType("GoogleTestExecutable")
-                .withVariantDimension("linux")
-                .withBinaryName("LinuxTest")
+            .withBinaryType("GoogleTestExecutable")
+            .withVariantDimension("linux")
+            .withBinaryName("LinuxTest")
 
         expect:
         namingScheme.binaryName == "LinuxTest"

@@ -41,7 +41,7 @@ class ToolingApiEclipseModelSourceDirectoryAccessRuleCrossVersionSpec extends To
 
     def "Has some access rules defined"() {
         buildFile <<
-        """import org.gradle.plugins.ide.eclipse.model.AccessRule
+            """import org.gradle.plugins.ide.eclipse.model.AccessRule
            apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {

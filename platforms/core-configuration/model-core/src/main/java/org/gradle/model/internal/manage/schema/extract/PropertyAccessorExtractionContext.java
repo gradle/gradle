@@ -103,7 +103,7 @@ public class PropertyAccessorExtractionContext {
 
     public List<Method> getGetters() {
         List<Method> getters;
-        if (mostSpecificDeclaration.getReturnType()==Boolean.TYPE) {
+        if (mostSpecificDeclaration.getReturnType() == Boolean.TYPE) {
             getters = new ArrayList<>();
             for (Method getter : declaringMethods) {
                 if (Proxy.isProxyClass(getter.getDeclaringClass())) {

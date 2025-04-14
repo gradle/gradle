@@ -32,8 +32,10 @@ import static org.hamcrest.CoreMatchers.containsString
 @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/mixedJavaAndScala')
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider, 'scala/mixedJavaAndScala')
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
     def setup() {
         executer.withRepositoryMirrors()

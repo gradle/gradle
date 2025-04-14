@@ -70,9 +70,9 @@ Binaries
 
         and:
         languageTypeSample.dir.file("build/docs/exploded").assertHasDescendants(
-                "reference/README.txt",
-                "userguide/chapter1.html",
-                "userguide/chapter2.html",
-                "userguide/index.html")
+            "reference/README.txt",
+            "userguide/chapter1.html",
+            "userguide/chapter2.html",
+            "userguide/index.html")
     }
 }

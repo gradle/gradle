@@ -1,12 +1,21 @@
-package ${packageName};
+package $
+
+{packageName};
 
 import static org.junit.Assert.*;
 
-public class ${testClassName} {
-    private final ${productionClassName} production = new ${productionClassName}("value");
+private final $ {productionClassName} {
 
-    @org.junit.Test
-    public void test() {
-        assertEquals(production.getProperty(), "value");
-    }
+$ {productionClassName}
+
+production =new
+
+@org.junit.Test
+public void test() {
+    assertEquals(production.getProperty(), "value");
+}("value");
+
+public class $ {
+    testClassName
+}
 }

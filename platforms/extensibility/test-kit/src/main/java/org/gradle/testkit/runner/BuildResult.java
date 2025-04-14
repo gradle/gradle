@@ -23,9 +23,9 @@ import java.util.List;
 /**
  * The result of executing a build, via the {@link GradleRunner}.
  *
- * @since 2.6
  * @see GradleRunner#build()
  * @see GradleRunner#buildAndFail()
+ * @since 2.6
  */
 public interface BuildResult {
 

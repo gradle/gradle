@@ -29,6 +29,10 @@ public class ReadOnlyModuleArtifactCache extends DefaultModuleArtifactCache {
         super(persistentCacheFile, timeProvider, cacheAccessCoordinator, fileAccessTracker, commonRootPath);
     }
 
+    private static void operationShouldNotHaveBeenCalled() {
+        throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
+    }
+
     @Override
     public void store(ArtifactAtRepositoryKey key, File artifactFile, HashCode moduleDescriptorHash) {
         operationShouldNotHaveBeenCalled();
@@ -48,9 +52,5 @@ public class ReadOnlyModuleArtifactCache extends DefaultModuleArtifactCache {
     public void clear(ArtifactAtRepositoryKey key) {
         // clear is actually called from org.gradle.internal.resource.cached.AbstractCachedIndex.lookup which
         // is a read operation, in case of missing entry, so we can't fail here, but should be a no-op only
-    }
-
-    private static void operationShouldNotHaveBeenCalled() {
-        throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
     }
 }

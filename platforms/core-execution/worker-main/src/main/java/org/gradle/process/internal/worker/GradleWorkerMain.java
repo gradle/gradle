@@ -31,6 +31,16 @@ import java.util.concurrent.Callable;
  * sets up the worker ClassLoader, and then delegates to {@link org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker} to deserialize and execute the action.
  */
 public class GradleWorkerMain {
+    public static void main(String[] args) {
+        try {
+            new GradleWorkerMain().run();
+            System.exit(0);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace(System.err);
+            System.exit(1);
+        }
+    }
+
     public void run() throws Exception {
         DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(System.in));
 
@@ -67,15 +77,5 @@ public class GradleWorkerMain {
         Class<? extends Callable<Void>> workerClass = (Class<? extends Callable<Void>>) implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
         Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
         main.call();
-    }
-
-    public static void main(String[] args) {
-        try {
-            new GradleWorkerMain().run();
-            System.exit(0);
-        } catch (Throwable throwable) {
-            throwable.printStackTrace(System.err);
-            System.exit(1);
-        }
     }
 }

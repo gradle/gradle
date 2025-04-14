@@ -143,7 +143,7 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
     TestNativeComponent getGoogleTestTests() {
         return new TestNativeComponent() {
             List<SourceFile> sourceFiles = [
-                    sourceFile("cpp", "test.cpp", """
+                sourceFile("cpp", "test.cpp", """
 #include "gtest/gtest.h"
 #include "hello.h"
 

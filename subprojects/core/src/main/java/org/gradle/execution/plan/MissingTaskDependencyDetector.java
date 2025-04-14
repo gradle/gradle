@@ -43,12 +43,58 @@ import java.util.Set;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class MissingTaskDependencyDetector {
+    private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
 
     public MissingTaskDependencyDetector(ExecutionNodeAccessHierarchy outputHierarchy, ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy) {
         this.outputHierarchy = outputHierarchy;
         this.inputHierarchy = inputHierarchy;
+    }
+
+    private static boolean isEnabled(Node node) {
+        if (node instanceof LocalTaskNode) {
+            TaskInternal task = ((LocalTaskNode) node).getTask();
+            return task.getOnlyIf().isSatisfiedBy(task);
+        }
+        return false;
+    }
+
+    private static boolean missesDependency(Node producer, Node consumer) {
+        if (consumer == producer) {
+            return false;
+        }
+        // This is a performance optimization to short-cut the search for a dependency if there is a direct dependency.
+        // We use `getDependencySuccessors()` instead of `getAllDependencySuccessors()`, since the former is a Set while the latter is only an Iterable.
+        if (consumer.getDependencySuccessors().contains(producer)) {
+            return false;
+        }
+        // Do a breadth first search for any dependency
+        Deque<Node> queue = new ArrayDeque<>();
+        Set<Node> seenNodes = new HashSet<>();
+        addHardSuccessorTasksToQueue(consumer, seenNodes, queue);
+        while (!queue.isEmpty()) {
+            Node dependency = queue.removeFirst();
+            if (dependency == producer) {
+                return false;
+            }
+            addHardSuccessorTasksToQueue(dependency, seenNodes, queue);
+        }
+        return true;
+    }
+
+    private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
+        node.getHardSuccessors().forEach(successor -> {
+            // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
+            // For example we can skip all the transform nodes between two task nodes.
+            if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
+                if (seenNodes.add(successor)) {
+                    queue.add(successor);
+                }
+            } else {
+                addHardSuccessorTasksToQueue(successor, seenNodes, queue);
+            }
+        });
     }
 
     public void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
@@ -114,14 +160,6 @@ public class MissingTaskDependencyDetector {
             ));
     }
 
-    private static boolean isEnabled(Node node) {
-        if (node instanceof LocalTaskNode) {
-            TaskInternal task = ((LocalTaskNode) node).getTask();
-            return task.getOnlyIf().isSatisfiedBy(task);
-        }
-        return false;
-    }
-
     // In a perfect world, the consumer should depend on the producer.
     // Though we still don't have a good solution for the code linter and formatter use-case.
     // And for that case, there will be a cyclic dependency between the analyze and the format task if we only take output/input locations into account.
@@ -130,45 +168,6 @@ public class MissingTaskDependencyDetector {
     private boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode) {
         return missesDependency(producerNode, consumerNode) && missesDependency(consumerNode, producerNode);
     }
-
-    private static boolean missesDependency(Node producer, Node consumer) {
-        if (consumer == producer) {
-            return false;
-        }
-        // This is a performance optimization to short-cut the search for a dependency if there is a direct dependency.
-        // We use `getDependencySuccessors()` instead of `getAllDependencySuccessors()`, since the former is a Set while the latter is only an Iterable.
-        if (consumer.getDependencySuccessors().contains(producer)) {
-            return false;
-        }
-        // Do a breadth first search for any dependency
-        Deque<Node> queue = new ArrayDeque<>();
-        Set<Node> seenNodes = new HashSet<>();
-        addHardSuccessorTasksToQueue(consumer, seenNodes, queue);
-        while (!queue.isEmpty()) {
-            Node dependency = queue.removeFirst();
-            if (dependency == producer) {
-                return false;
-            }
-            addHardSuccessorTasksToQueue(dependency, seenNodes, queue);
-        }
-        return true;
-    }
-
-    private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
-        node.getHardSuccessors().forEach(successor -> {
-            // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
-            // For example we can skip all the transform nodes between two task nodes.
-            if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
-                if (seenNodes.add(successor)) {
-                    queue.add(successor);
-                }
-            } else {
-                addHardSuccessorTasksToQueue(successor, seenNodes, queue);
-            }
-        });
-    }
-
-    private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
 
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->

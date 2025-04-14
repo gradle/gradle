@@ -29,8 +29,8 @@ public interface ProblemDefinition {
 
     /**
      * The id of the problem.
-     * @return the id.
      *
+     * @return the id.
      * @since 8.9
      */
     ProblemId getId();
@@ -41,7 +41,7 @@ public interface ProblemDefinition {
      * The severity of a problem is a hint to the user about how important the problem is.
      * ERROR will fail the build, WARNING will not.
      *
-     *  @since 8.9
+     * @since 8.9
      */
     Severity getSeverity();
 

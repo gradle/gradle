@@ -27,7 +27,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 abstract class AbstractPomReaderTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     PomReader pomReader
     TestFile pomFile
     LocallyAvailableExternalResource locallyAvailableExternalResource

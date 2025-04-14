@@ -33,8 +33,8 @@ class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection {
             it.newBuild()
-                    .setJvmArguments("-Xasdf")
-                    .run()
+                .setJvmArguments("-Xasdf")
+                .run()
         }
 
         then:

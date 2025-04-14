@@ -357,7 +357,8 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(UnitTestPreconditions.StableGroovy)
+    // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -392,7 +393,8 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(UnitTestPreconditions.StableGroovy)
+    // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -491,7 +493,8 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(UnitTestPreconditions.StableGroovy)
+    // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "does not add project repository to download localGroovy() sources"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()

@@ -342,9 +342,9 @@ class SimpleXmlWriterSpec extends Specification {
 
         where:
         action << [{ it.startElement("foo"); it.endElement() },
-                { it.startCDATA(); it.endCDATA() },
-                { it.characters("bar") },
-                { it.write("close") }]
+                   { it.startCDATA(); it.endCDATA() },
+                   { it.characters("bar") },
+                   { it.write("close") }]
     }
 
     def "closes attributed tags"() {
@@ -359,9 +359,9 @@ class SimpleXmlWriterSpec extends Specification {
 
         where:
         action << [{ it.startElement("foo"); it.endElement() },
-                { it.startCDATA(); it.endCDATA() },
-                { it.characters("bar") },
-                { it.write("close") }]
+                   { it.startCDATA(); it.endCDATA() },
+                   { it.characters("bar") },
+                   { it.write("close") }]
     }
 
     def "outputs empty element when element has no content"() {

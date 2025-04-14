@@ -29,60 +29,60 @@ class PotentialMatchTest extends Specification {
         actualContextMsg.readLines() == expectedContextMsg.readLines()
 
         where:
-        expectedLines           | actualLines                               | matchBegins    || contextBody
+        expectedLines   | actualLines                              | matchBegins || contextBody
 
         // Single Mismatches
-        ["a", "b", "c"]         | ["a", "b", "d"]                           | 0              || [" [     1: a",
-                                                                                                 "       2: b",
-                                                                                                 "   X ] 3: d",
-                                                                                                 PotentialMatch.buildComparison("c", "d", 1)]
+        ["a", "b", "c"] | ["a", "b", "d"]                          | 0           || [" [     1: a",
+                                                                                     "       2: b",
+                                                                                     "   X ] 3: d",
+                                                                                     PotentialMatch.buildComparison("c", "d", 1)]
 
-        ["b", "c"]              | ["a", "b", "d"]                           | 1              || ["       1: a",
-                                                                                                 " [     2: b",
-                                                                                                 "   X ] 3: d",
-                                                                                                 PotentialMatch.buildComparison("c", "d", 1)]
+        ["b", "c"]      | ["a", "b", "d"]                          | 1           || ["       1: a",
+                                                                                     " [     2: b",
+                                                                                     "   X ] 3: d",
+                                                                                     PotentialMatch.buildComparison("c", "d", 1)]
 
-        ["b", "c"]              | ["a", "b", "d", "e"]                      | 1              || ["       1: a",
-                                                                                                 " [     2: b",
-                                                                                                 "   X ] 3: d",
-                                                                                                 PotentialMatch.buildComparison("c", "d", 1),
-                                                                                                 "       4: e"]
+        ["b", "c"]      | ["a", "b", "d", "e"]                     | 1           || ["       1: a",
+                                                                                     " [     2: b",
+                                                                                     "   X ] 3: d",
+                                                                                     PotentialMatch.buildComparison("c", "d", 1),
+                                                                                     "       4: e"]
 
-        ["b", "c"]              | ["y", "z", "a", "b", "d", "e", "y", "z"]  | 3              || ["       2: z",
-                                                                                                 "       3: a",
-                                                                                                 " [     4: b",
-                                                                                                 "   X ] 5: d",
-                                                                                                 PotentialMatch.buildComparison("c", "d", 1),
-                                                                                                 "       6: e",
-                                                                                                 "       7: y"]
+        ["b", "c"]      | ["y", "z", "a", "b", "d", "e", "y", "z"] | 3           || ["       2: z",
+                                                                                     "       3: a",
+                                                                                     " [     4: b",
+                                                                                     "   X ] 5: d",
+                                                                                     PotentialMatch.buildComparison("c", "d", 1),
+                                                                                     "       6: e",
+                                                                                     "       7: y"]
 
-        ["e", "f", "g"]         | ["a", "b", "c", "d", "e", "f", "z"]       | 4              || ["       3: c",
-                                                                                                 "       4: d",
-                                                                                                 " [     5: e",
-                                                                                                 "       6: f",
-                                                                                                 "   X ] 7: z",
-                                                                                                 PotentialMatch.buildComparison("g", "z", 1)]
+        ["e", "f", "g"] | ["a", "b", "c", "d", "e", "f", "z"]      | 4           || ["       3: c",
+                                                                                     "       4: d",
+                                                                                     " [     5: e",
+                                                                                     "       6: f",
+                                                                                     "   X ] 7: z",
+                                                                                     PotentialMatch.buildComparison("g", "z", 1)]
 
         // Multiple Mismatches
 
-        ["b", "c", "d"]         | ["a", "b", "q", "q", "f"]                 | 1              || ["       1: a",
-                                                                                                 " [     2: b",
-                                                                                                 "   X   3: q",
-                                                                                                 PotentialMatch.buildComparison("c", "q", 1),
-                                                                                                 "   X ] 4: q",
-                                                                                                 PotentialMatch.buildComparison("d", "q", 1),
-                                                                                                 "       5: f"]
+        ["b", "c", "d"] | ["a", "b", "q", "q", "f"]                | 1           || ["       1: a",
+                                                                                     " [     2: b",
+                                                                                     "   X   3: q",
+                                                                                     PotentialMatch.buildComparison("c", "q", 1),
+                                                                                     "   X ] 4: q",
+                                                                                     PotentialMatch.buildComparison("d", "q", 1),
+                                                                                     "       5: f"]
 
         // Padding
-        ["b", "c", "d"]         | ["a", "b", "q", "q", "f",
-                                   "z", "b", "q", "d", "x",
-                                   "y", "z"]                                | 6              || ["        5: f",
-                                                                                                 "        6: z",
-                                                                                                 " [      7: b",
-                                                                                                 "   X    8: q",
-                                                                                                 PotentialMatch.buildComparison("c", "q", 1),
-                                                                                                 "     ]  9: d",
-                                                                                                 "       10: x",
-                                                                                                 "       11: y"]
+        ["b", "c", "d"] | ["a", "b", "q", "q", "f",
+                           "z", "b", "q", "d", "x",
+                           "y", "z"]                               | 6           || ["        5: f",
+                                                                                     "        6: z",
+                                                                                     " [      7: b",
+                                                                                     "   X    8: q",
+                                                                                     PotentialMatch.buildComparison("c", "q", 1),
+                                                                                     "     ]  9: d",
+                                                                                     "       10: x",
+                                                                                     "       11: y"]
     }
 }

@@ -21,11 +21,15 @@ import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.jspecify.annotations.Nullable;
 
 public class InternalPhasedActionAdapter implements InternalPhasedAction {
-    @Nullable private final InternalBuildActionVersion2<?> projectsLoadedAction;
-    @Nullable private final InternalBuildActionVersion2<?> buildFinishedAction;
+    @Nullable
+    private final InternalBuildActionVersion2<?> projectsLoadedAction;
+    @Nullable
+    private final InternalBuildActionVersion2<?> buildFinishedAction;
 
-    InternalPhasedActionAdapter(@Nullable InternalBuildActionVersion2<?> projectsLoadedAction,
-                                @Nullable InternalBuildActionVersion2<?> buildFinishedAction) {
+    InternalPhasedActionAdapter(
+        @Nullable InternalBuildActionVersion2<?> projectsLoadedAction,
+        @Nullable InternalBuildActionVersion2<?> buildFinishedAction
+    ) {
         this.projectsLoadedAction = projectsLoadedAction;
         this.buildFinishedAction = buildFinishedAction;
     }

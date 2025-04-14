@@ -36,10 +36,10 @@ class AbstractVersionCatalogTest extends Specification {
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
             supplier) {
-                @Override
-                protected InternalProblems getProblemsService() {
-                    TestUtil.problemsService()
-                }
+            @Override
+            protected InternalProblems getProblemsService() {
+                TestUtil.problemsService()
+            }
         }
     }
 

@@ -136,7 +136,6 @@ public abstract class GradleDocumentationExtension {
      * This property is wired into very slow documentation generation tasks.
      *
      * Passing -PquickDocs will disable slow documentation tasks.
-     *
      */
     public abstract Property<Boolean> getQuickFeedback();
 }

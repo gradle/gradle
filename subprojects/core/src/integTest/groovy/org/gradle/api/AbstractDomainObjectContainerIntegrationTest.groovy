@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractIntegrationSpec {
     abstract String makeContainer()
+
     abstract String getContainerStringRepresentation()
 
     String disallowMutationMessage(String assertingMethod) {
@@ -53,13 +54,13 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
 
     Map<String, String> getQueryMethods() {
         [
-            "${containerType}#getByName(String)":    "testContainer.getByName('unrealized')",
-            "${containerType}#named(String)":        "testContainer.named('unrealized')",
+            "${containerType}#getByName(String)": "testContainer.getByName('unrealized')",
+            "${containerType}#named(String)": "testContainer.named('unrealized')",
             "${containerType}#named(String, Class)": "testContainer.named('unrealized', testContainer.type)",
-            "${containerType}#findAll(Closure)":     "testContainer.findAll { it.name == 'unrealized' }",
-            "${containerType}#findByName(String)":   "testContainer.findByName('unrealized')",
-            "${containerType}#TaskProvider.get()":   "unrealized.get()",
-            "${containerType}#iterator()":           "for (def element : testContainer) { println element.name }",
+            "${containerType}#findAll(Closure)": "testContainer.findAll { it.name == 'unrealized' }",
+            "${containerType}#findByName(String)": "testContainer.findByName('unrealized')",
+            "${containerType}#TaskProvider.get()": "unrealized.get()",
+            "${containerType}#iterator()": "for (def element : testContainer) { println element.name }",
         ]
     }
 

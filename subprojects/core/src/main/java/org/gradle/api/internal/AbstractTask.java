@@ -114,63 +114,40 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskIdentity<?> identity;
 
     private final ProjectInternal project;
-
-    private List<InputChangesAwareTaskAction> actions;
-
-    private boolean enabled = true;
-
     private final DefaultTaskDependency dependencies;
-
     /**
      * "lifecycle dependencies" are dependencies declared via an explicit {@link Task#dependsOn(Object...)}
      */
     private final DefaultTaskDependency lifecycleDependencies;
-
     private final DefaultTaskDependency mustRunAfter;
-
     private final DefaultTaskDependency finalizedBy;
-
     private final DefaultTaskDependency shouldRunAfter;
-
-    private ExtensibleDynamicObject extensibleDynamicObject;
-
-    private String description;
-
-    private String group;
-
     private final Property<Duration> timeout;
-
-    private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
-
-    private String reasonNotToTrackState;
-
-    private String reasonIncompatibleWithConfigurationCache;
-
     private final ServiceRegistry services;
-
     private final TaskStateInternal state;
-
     private final ContextAwareTaskLogger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
-
     private final TaskMutator taskMutator;
-    private ObservableList observableActionList;
-    private boolean impliesSubProjects;
-    private boolean hasCustomActions;
-
     private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
     private final TaskLocalStateInternal taskLocalState;
     private final TaskRequiredServices taskRequiredServices;
     private final TaskExecutionAccessChecker taskExecutionAccessChecker;
+    private List<InputChangesAwareTaskAction> actions;
+    private boolean enabled = true;
+    private ExtensibleDynamicObject extensibleDynamicObject;
+    private String description;
+    private String group;
+    private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
+    private String reasonNotToTrackState;
+    private String reasonIncompatibleWithConfigurationCache;
+    private ObservableList observableActionList;
+    private boolean impliesSubProjects;
+    private boolean hasCustomActions;
     private LoggingManagerInternal loggingManager;
 
     protected AbstractTask() {
         this(taskInfo());
-    }
-
-    private static TaskInfo taskInfo() {
-        return NEXT_INSTANCE.get();
     }
 
     private AbstractTask(TaskInfo taskInfo) {
@@ -206,10 +183,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.timeout = project.getObjects().property(Duration.class);
     }
 
-    private void assertDynamicObject() {
-        if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstantiatorFactory.class).decorateLenient(services));
-        }
+    private static TaskInfo taskInfo() {
+        return NEXT_INSTANCE.get();
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, TaskIdentity<T> identity, Callable<T> factory) {
@@ -218,6 +193,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             return uncheckedCall(factory);
         } finally {
             NEXT_INSTANCE.set(null);
+        }
+    }
+
+    private static ImplementationSnapshot getActionImplementation(Object value, ClassLoaderHierarchyHasher hasher) {
+        HashCode classLoaderHash = hasher.getClassLoaderHash(value.getClass().getClassLoader());
+        String actionClassIdentifier = ScriptOriginUtil.getOriginClassIdentifier(value);
+        return ImplementationSnapshot.of(actionClassIdentifier, value, classLoaderHash);
+    }
+
+    private void assertDynamicObject() {
+        if (extensibleDynamicObject == null) {
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstantiatorFactory.class).decorateLenient(services));
         }
     }
 
@@ -267,19 +254,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public List<InputChangesAwareTaskAction> getTaskActions() {
-        if (actions == null) {
-            actions = new ArrayList<InputChangesAwareTaskAction>(3);
-        }
-        return actions;
-    }
-
-    @Override
-    public boolean hasTaskActions() {
-        return actions != null && !actions.isEmpty();
-    }
-
-    @Override
     public void setActions(final List<Action<? super Task>> replacements) {
         taskMutator.mutate("Task.setActions(List<Action>)", new Runnable() {
             @Override
@@ -290,6 +264,19 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 }
             }
         });
+    }
+
+    @Override
+    public List<InputChangesAwareTaskAction> getTaskActions() {
+        if (actions == null) {
+            actions = new ArrayList<InputChangesAwareTaskAction>(3);
+        }
+        return actions;
+    }
+
+    @Override
+    public boolean hasTaskActions() {
+        return actions != null && !actions.isEmpty();
     }
 
     @Internal
@@ -353,31 +340,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void setOnlyIf(final Spec<? super Task> spec) {
-        taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
-            @Override
-            public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
-            }
-        });
-    }
-
-    @Override
     public void setOnlyIf(String onlyIfReason, Spec<? super Task> spec) {
         taskMutator.mutate("Task.setOnlyIf(String, Spec)", new Runnable() {
             @Override
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
-            }
-        });
-    }
-
-    @Override
-    public void setOnlyIf(final Closure onlyIfClosure) {
-        taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
-            @Override
-            public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
@@ -394,6 +361,26 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Spec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
+    }
+
+    @Override
+    public void setOnlyIf(final Spec<? super Task> spec) {
+        taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
+            }
+        });
+    }
+
+    @Override
+    public void setOnlyIf(final Closure onlyIfClosure) {
+        taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
+            }
+        });
     }
 
     @Override
@@ -730,6 +717,148 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return new TaskActionWrapper(action, actionName);
     }
 
+    @Override
+    public Task mustRunAfter(final Object... paths) {
+        taskMutator.mutate("Task.mustRunAfter(Object...)", new Runnable() {
+            @Override
+            public void run() {
+                mustRunAfter.add(paths);
+            }
+        });
+        return this;
+    }
+
+    @Internal
+    @Override
+    public TaskDependency getMustRunAfter() {
+        return mustRunAfter;
+    }
+
+    @Override
+    public void setMustRunAfter(final Iterable<?> mustRunAfterTasks) {
+        taskMutator.mutate("Task.setMustRunAfter(Iterable)", new Runnable() {
+            @Override
+            public void run() {
+                mustRunAfter.setValues(mustRunAfterTasks);
+            }
+        });
+    }
+
+    @Override
+    public Task finalizedBy(final Object... paths) {
+        taskMutator.mutate("Task.finalizedBy(Object...)", new Runnable() {
+            @Override
+            public void run() {
+                finalizedBy.add(paths);
+            }
+        });
+        return this;
+    }
+
+    @Internal
+    @Override
+    public TaskDependency getFinalizedBy() {
+        return finalizedBy;
+    }
+
+    @Override
+    public void setFinalizedBy(final Iterable<?> finalizedByTasks) {
+        taskMutator.mutate("Task.setFinalizedBy(Iterable)", new Runnable() {
+            @Override
+            public void run() {
+                finalizedBy.setValues(finalizedByTasks);
+            }
+        });
+    }
+
+    @Override
+    public TaskDependency shouldRunAfter(final Object... paths) {
+        taskMutator.mutate("Task.shouldRunAfter(Object...)", new Runnable() {
+            @Override
+            public void run() {
+                shouldRunAfter.add(paths);
+            }
+        });
+        return shouldRunAfter;
+    }
+
+    @Internal
+    @Override
+    public TaskDependency getShouldRunAfter() {
+        return shouldRunAfter;
+    }
+
+    @Override
+    public void setShouldRunAfter(final Iterable<?> shouldRunAfterTasks) {
+        taskMutator.mutate("Task.setShouldRunAfter(Iterable)", new Runnable() {
+            @Override
+            public void run() {
+                shouldRunAfter.setValues(shouldRunAfterTasks);
+            }
+        });
+    }
+
+    @Override
+    public void prependParallelSafeAction(final Action<? super Task> action) {
+        if (action == null) {
+            throw new InvalidUserDataException("Action must not be null!");
+        }
+        getTaskActions().add(0, wrap(action));
+    }
+
+    @Override
+    public void appendParallelSafeAction(final Action<? super Task> action) {
+        if (action == null) {
+            throw new InvalidUserDataException("Action must not be null!");
+        }
+        getTaskActions().add(wrap(action));
+    }
+
+    @Override
+    public boolean isHasCustomActions() {
+        return hasCustomActions;
+    }
+
+    @Internal
+    @Override
+    public Property<Duration> getTimeout() {
+        return timeout;
+    }
+
+    @Override
+    public void usesService(Provider<? extends BuildService<?>> service) {
+        taskRequiredServices.registerServiceUsage(service);
+    }
+
+    @Override
+    public TaskRequiredServices getRequiredServices() {
+        return taskRequiredServices;
+    }
+
+    @Override
+    public void acceptServiceReferences(Set<ServiceReferenceSpec> serviceReferences) {
+        if (!taskRequiredServices.hasServiceReferences()) {
+            BuildServiceRegistryInternal buildServiceRegistry = getBuildServiceRegistry();
+            List<? extends BuildServiceProvider<?, ?>> asConsumedServices = serviceReferences.stream()
+                .map(it -> buildServiceRegistry.consume(it.getBuildServiceName(), it.getBuildServiceType()))
+                .collect(Collectors.toList());
+            taskRequiredServices.acceptServiceReferences(asConsumedServices);
+        }
+    }
+
+    @Override
+    public List<ResourceLock> getSharedResources() {
+        return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
+    }
+
+    private void notifyConventionAccess(String invocationDescription) {
+        taskExecutionAccessChecker.notifyConventionAccess(this, invocationDescription);
+    }
+
+    private BuildServiceRegistryInternal getBuildServiceRegistry() {
+        return getServices().get(BuildServiceRegistryInternal.class);
+    }
+
     private static class TaskInfo {
         private final TaskIdentity<?> identity;
         private final ProjectInternal project;
@@ -866,93 +995,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static ImplementationSnapshot getActionImplementation(Object value, ClassLoaderHierarchyHasher hasher) {
-        HashCode classLoaderHash = hasher.getClassLoaderHash(value.getClass().getClassLoader());
-        String actionClassIdentifier = ScriptOriginUtil.getOriginClassIdentifier(value);
-        return ImplementationSnapshot.of(actionClassIdentifier, value, classLoaderHash);
-    }
-
-    @Override
-    public void setMustRunAfter(final Iterable<?> mustRunAfterTasks) {
-        taskMutator.mutate("Task.setMustRunAfter(Iterable)", new Runnable() {
-            @Override
-            public void run() {
-                mustRunAfter.setValues(mustRunAfterTasks);
-            }
-        });
-    }
-
-    @Override
-    public Task mustRunAfter(final Object... paths) {
-        taskMutator.mutate("Task.mustRunAfter(Object...)", new Runnable() {
-            @Override
-            public void run() {
-                mustRunAfter.add(paths);
-            }
-        });
-        return this;
-    }
-
-    @Internal
-    @Override
-    public TaskDependency getMustRunAfter() {
-        return mustRunAfter;
-    }
-
-    @Override
-    public void setFinalizedBy(final Iterable<?> finalizedByTasks) {
-        taskMutator.mutate("Task.setFinalizedBy(Iterable)", new Runnable() {
-            @Override
-            public void run() {
-                finalizedBy.setValues(finalizedByTasks);
-            }
-        });
-    }
-
-    @Override
-    public Task finalizedBy(final Object... paths) {
-        taskMutator.mutate("Task.finalizedBy(Object...)", new Runnable() {
-            @Override
-            public void run() {
-                finalizedBy.add(paths);
-            }
-        });
-        return this;
-    }
-
-    @Internal
-    @Override
-    public TaskDependency getFinalizedBy() {
-        return finalizedBy;
-    }
-
-    @Override
-    public TaskDependency shouldRunAfter(final Object... paths) {
-        taskMutator.mutate("Task.shouldRunAfter(Object...)", new Runnable() {
-            @Override
-            public void run() {
-                shouldRunAfter.add(paths);
-            }
-        });
-        return shouldRunAfter;
-    }
-
-    @Override
-    public void setShouldRunAfter(final Iterable<?> shouldRunAfterTasks) {
-        taskMutator.mutate("Task.setShouldRunAfter(Iterable)", new Runnable() {
-            @Override
-            public void run() {
-                shouldRunAfter.setValues(shouldRunAfterTasks);
-            }
-        });
-    }
-
-    @Internal
-    @Override
-    public TaskDependency getShouldRunAfter() {
-        return shouldRunAfter;
-    }
-
     private class ObservableActionWrapperList extends ObservableList {
         public ObservableActionWrapperList(List delegate) {
             super(delegate);
@@ -1011,66 +1053,5 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         private Collection<InputChangesAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
             return Collections2.transform(c, input -> wrap(Cast.uncheckedCast(input)));
         }
-    }
-
-    @Override
-    public void prependParallelSafeAction(final Action<? super Task> action) {
-        if (action == null) {
-            throw new InvalidUserDataException("Action must not be null!");
-        }
-        getTaskActions().add(0, wrap(action));
-    }
-
-    @Override
-    public void appendParallelSafeAction(final Action<? super Task> action) {
-        if (action == null) {
-            throw new InvalidUserDataException("Action must not be null!");
-        }
-        getTaskActions().add(wrap(action));
-    }
-
-    @Override
-    public boolean isHasCustomActions() {
-        return hasCustomActions;
-    }
-
-    @Internal
-    @Override
-    public Property<Duration> getTimeout() {
-        return timeout;
-    }
-
-    @Override
-    public void usesService(Provider<? extends BuildService<?>> service) {
-        taskRequiredServices.registerServiceUsage(service);
-    }
-
-    @Override
-    public TaskRequiredServices getRequiredServices() {
-        return taskRequiredServices;
-    }
-
-    @Override
-    public void acceptServiceReferences(Set<ServiceReferenceSpec> serviceReferences) {
-        if (!taskRequiredServices.hasServiceReferences()) {
-            BuildServiceRegistryInternal buildServiceRegistry = getBuildServiceRegistry();
-            List<? extends BuildServiceProvider<?, ?>> asConsumedServices = serviceReferences.stream()
-                .map(it -> buildServiceRegistry.consume(it.getBuildServiceName(), it.getBuildServiceType()))
-                .collect(Collectors.toList());
-            taskRequiredServices.acceptServiceReferences(asConsumedServices);
-        }
-    }
-
-    @Override
-    public List<ResourceLock> getSharedResources() {
-        return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
-    }
-
-    private void notifyConventionAccess(String invocationDescription) {
-        taskExecutionAccessChecker.notifyConventionAccess(this, invocationDescription);
-    }
-
-    private BuildServiceRegistryInternal getBuildServiceRegistry() {
-        return getServices().get(BuildServiceRegistryInternal.class);
     }
 }

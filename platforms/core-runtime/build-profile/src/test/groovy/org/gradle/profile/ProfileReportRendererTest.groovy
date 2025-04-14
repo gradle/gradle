@@ -27,18 +27,19 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ProfileReportRendererTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def "renders report"() {
         def model = new BuildProfile(new StartParameter(), new BuildStartedTime(0))
         def file = temp.file("report.html")
 
-        model.profilingStarted   = time(12, 20, 0)
-        model.buildStarted       = time(12, 20, 0, 700)
-        model.settingsEvaluated  = time(12, 20, 3)
-        model.projectsLoaded     = time(12, 20, 6)
+        model.profilingStarted = time(12, 20, 0)
+        model.buildStarted = time(12, 20, 0, 700)
+        model.settingsEvaluated = time(12, 20, 3)
+        model.projectsLoaded = time(12, 20, 6)
 
-        model.buildFinished      = time(12, 35, 30)
+        model.buildFinished = time(12, 35, 30)
 
         model.getDependencySetProfile("compile").start = time(12, 22, 0)
         model.getDependencySetProfile("compile").finish = time(12, 23, 30)

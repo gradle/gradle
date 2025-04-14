@@ -2,15 +2,15 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver").version("0.9.0")
 }
 
-import org.gradle.api.Plugin
-import org.gradle.api.initialization.Settings
-import org.gradle.jvm.toolchain.JavaToolchainResolver
-import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry
-import java.net.URI
-import java.util.Optional
-import javax.inject.Inject
+import org . gradle . api . Plugin
+    import org . gradle . api . initialization . Settings
+    import org . gradle . jvm . toolchain . JavaToolchainResolver
+    import org . gradle . jvm . toolchain . JavaToolchainResolverRegistry
+    import java . net . URI
+    import java . util . Optional
+    import javax . inject . Inject
 
-apply<MadeUpPlugin>()
+    apply<MadeUpPlugin>()
 
 // tag::toolchain-management[]
 toolchainManagement {
@@ -36,7 +36,7 @@ toolchainManagement {
 
 rootProject.name = "toolchain-management"
 
-abstract class MadeUpPlugin: Plugin<Settings> {
+abstract class MadeUpPlugin : Plugin<Settings> {
 
     @get:Inject
     protected abstract val toolchainResolverRegistry: JavaToolchainResolverRegistry
@@ -50,7 +50,7 @@ abstract class MadeUpPlugin: Plugin<Settings> {
 
 }
 
-abstract class MadeUpResolver: JavaToolchainResolver {
+abstract class MadeUpResolver : JavaToolchainResolver {
     override fun resolve(request: JavaToolchainRequest): Optional<JavaToolchainDownload> {
         return Optional.empty()
     }

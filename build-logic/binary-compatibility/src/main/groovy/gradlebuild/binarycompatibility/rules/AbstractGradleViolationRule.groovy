@@ -50,7 +50,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     private final File projectRootDir
 
     AbstractGradleViolationRule(Map<String, Object> params) {
-        Map<String, String> acceptedApiChanges = (Map<String, String>)params.get("acceptedApiChanges")
+        Map<String, String> acceptedApiChanges = (Map<String, String>) params.get("acceptedApiChanges")
         this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges) : [:]
 
         // Tests will not supply these

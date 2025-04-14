@@ -21,6 +21,7 @@ package org.gradle.api.artifacts;
 public interface ResolvedModuleVersion {
     /**
      * The identifier of this resolved module version.
+     *
      * @return the identifier
      */
     ModuleVersionIdentifier getId();

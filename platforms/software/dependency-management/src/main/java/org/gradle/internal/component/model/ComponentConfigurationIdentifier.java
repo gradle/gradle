@@ -33,6 +33,10 @@ public class ComponentConfigurationIdentifier implements VariantResolveMetadata.
         this.hashCode = computeHashCode(component, configurationName);
     }
 
+    private static int computeHashCode(ComponentIdentifier component, String configurationName) {
+        return 31 * component.hashCode() + configurationName.hashCode();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -43,10 +47,6 @@ public class ComponentConfigurationIdentifier implements VariantResolveMetadata.
         }
         ComponentConfigurationIdentifier other = (ComponentConfigurationIdentifier) obj;
         return component.equals(other.component) && configurationName.equals(other.configurationName);
-    }
-
-    private static int computeHashCode(ComponentIdentifier component, String configurationName) {
-        return 31 * component.hashCode() + configurationName.hashCode();
     }
 
     @Override

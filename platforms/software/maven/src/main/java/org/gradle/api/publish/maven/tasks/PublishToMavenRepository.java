@@ -70,6 +70,16 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         return repository.get();
     }
 
+    /**
+     * Sets the repository to publish to.
+     *
+     * @param repository The repository to publish to
+     */
+    public void setRepository(MavenArtifactRepository repository) {
+        this.repository.set((DefaultMavenArtifactRepository) repository);
+        this.credentials.set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
+    }
+
     @Nested
     @Optional
     Property<Credentials> getCredentials() {
@@ -79,16 +89,6 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     @Inject
     protected ListenerManager getListenerManager() {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Sets the repository to publish to.
-     *
-     * @param repository The repository to publish to
-     */
-    public void setRepository(MavenArtifactRepository repository) {
-        this.repository.set((DefaultMavenArtifactRepository) repository);
-        this.credentials.set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
     }
 
     @TaskAction
@@ -112,8 +112,8 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         }
         MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
-                RepositorySpec.of(repository),
-                normalizedPublication
+            RepositorySpec.of(repository),
+            normalizedPublication
         );
     }
 
@@ -128,7 +128,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
 
     private MavenPublisher validatingMavenPublisher() {
         return new ValidatingMavenPublisher(
-                getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
+            getMavenPublishers().getRemotePublisher(getTemporaryDirFactory())
         );
     }
 
@@ -138,8 +138,8 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         private final MavenNormalizedPublication publication;
 
         public PublishSpec(
-                RepositorySpec repository,
-                MavenNormalizedPublication publication
+            RepositorySpec repository,
+            MavenNormalizedPublication publication
         ) {
             this.repository = repository;
             this.publication = publication;
@@ -186,6 +186,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
                 this.credentials = credentials;
                 this.authentications = authentications;
             }
+
             @Override
             MavenArtifactRepository get(ServiceRegistry services) {
                 DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) services.get(BaseRepositoryFactory.class).createMavenRepository();

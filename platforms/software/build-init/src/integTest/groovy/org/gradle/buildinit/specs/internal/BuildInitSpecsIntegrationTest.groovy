@@ -78,7 +78,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
     }
 
     def "can specify plugin using argument to init with settings file present"() {
-        groovyFile("new-project/settings.gradle","""
+        groovyFile("new-project/settings.gradle", """
             rootProject.name = "rootProject"
         """)
 
@@ -90,7 +90,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
     }
 
     def "can specify plugin using argument to init with settings KTS file present"() {
-        kotlinFile("new-project/settings.gradle.kts","""
+        kotlinFile("new-project/settings.gradle.kts", """
             rootProject.name = "rootProject"
         """)
 
@@ -102,7 +102,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
     }
 
     def "can specify plugin using argument to init with root build and settings files present"() {
-        groovyFile("new-project/settings.gradle","""
+        groovyFile("new-project/settings.gradle", """
             rootProject.name = "rootProject"
         """)
 
@@ -120,7 +120,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
     }
 
     def "can specify plugin using argument to init with root build and settings KTS files present"() {
-        kotlinFile("new-project/settings.gradle.kts","""
+        kotlinFile("new-project/settings.gradle.kts", """
             rootProject.name = "rootProject"
         """)
 

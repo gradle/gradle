@@ -76,7 +76,7 @@ class JUnitTestClassProcessorTest extends Specification {
         process(ATestClassWithIgnoredMethod)
 
         then:
-        1 * processor.started({it.id == 1}, {it.parentId == null})
+        1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "ignored" && it.className == ATestClassWithIgnoredMethod.name }, { it.parentId == 1 })
         1 * processor.completed(2, { it.resultType == SKIPPED })
         1 * processor.completed(1, { it.resultType == null })
@@ -88,7 +88,7 @@ class JUnitTestClassProcessorTest extends Specification {
         process(ATestClassWithFailedTestAssumption)
 
         then:
-        1 * processor.started({it.id == 1}, {it.parentId == null})
+        1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "assumed" && it.className == ATestClassWithFailedTestAssumption.name }, { it.parentId == 1 })
         1 * processor.failure(2, { it.rawFailure instanceof AssumptionViolatedException })
         1 * processor.completed(2, { it.resultType == SKIPPED })
@@ -101,7 +101,7 @@ class JUnitTestClassProcessorTest extends Specification {
         process(AnIgnoredTestClass)
 
         then:
-        1 * processor.started({it.id == 1}, {it.parentId == null})
+        1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "ignored2" && it.className == AnIgnoredTestClass.name }, { it.parentId == 1 })
         1 * processor.completed(2, { it.resultType == SKIPPED })
         1 * processor.started({ it.id == 3 && it.name == "ignored" && it.className == AnIgnoredTestClass.name }, { it.parentId == 1 })
@@ -115,7 +115,7 @@ class JUnitTestClassProcessorTest extends Specification {
         process(AJunit3TestClass)
 
         then:
-        1 * processor.started({it.id == 1}, {it.parentId == null})
+        1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
@@ -147,7 +147,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "broken" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken custom runner")})
+        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken custom runner") })
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
@@ -195,16 +195,16 @@ class JUnitTestClassProcessorTest extends Specification {
         0 * processor._
 
         where:
-        testClass                             |testMethodName
-        ABrokenTestClass                      |'broken'
-        ABrokenJunit3TestClass                |'testBroken'
-        ATestClassWithBrokenRunner            |'initializationError'
-        ATestClassWithUnconstructibleRunner   |'initializationError'
-        ATestClassWithBrokenBeforeClassMethod |'classMethod'
-        ATestClassWithBrokenConstructor       |'test'
-        ATestClassWithBrokenBeforeMethod      |'test'
-        ATestClassWithBrokenSuiteMethod       |'initializationError'
-        ATestSetUpWithBrokenSetUp             |AJunit3TestClass.name
+        testClass                             | testMethodName
+        ABrokenTestClass                      | 'broken'
+        ABrokenJunit3TestClass                | 'testBroken'
+        ATestClassWithBrokenRunner            | 'initializationError'
+        ATestClassWithUnconstructibleRunner   | 'initializationError'
+        ATestClassWithBrokenBeforeClassMethod | 'classMethod'
+        ATestClassWithBrokenConstructor       | 'test'
+        ATestClassWithBrokenBeforeMethod      | 'test'
+        ATestClassWithBrokenSuiteMethod       | 'initializationError'
+        ATestSetUpWithBrokenSetUp             | AJunit3TestClass.name
     }
 
     def "executes a test class with runner that breaks after running some tests"() {
@@ -235,7 +235,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then:
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == 'pass' && it.className == testClassName }, { it.parentId == 1 })
-        1 * processor.failure(2, { it.rawFailure instanceof NoClassDefFoundError})
+        1 * processor.failure(2, { it.rawFailure instanceof NoClassDefFoundError })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -271,7 +271,7 @@ class JUnitTestClassProcessorTest extends Specification {
     def "executes multiple specific methods"() {
         setup:
         classProcessor = createProcessor([] as Set, [] as Set, [ATestClassWithSeveralMethods.name + ".pass",
-                ATestClassWithSeveralMethods.name + ".pass2"] as Set, [] as Set, [] as Set)
+                                                                ATestClassWithSeveralMethods.name + ".pass2"] as Set, [] as Set, [] as Set)
 
         when:
         process(ATestClassWithSeveralMethods)
@@ -311,7 +311,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "broken" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken custom runner")})
+        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken custom runner") })
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
@@ -346,7 +346,7 @@ class JUnitTestClassProcessorTest extends Specification {
 
     def "executes all tests within a JUnit 3 suite when the suite class name matches"() {
         setup:
-        classProcessor = createProcessor([] as Set, [] as Set, ["*ATestClassWithSuiteMethod"] as Set,[] as Set,  [] as Set)
+        classProcessor = createProcessor([] as Set, [] as Set, ["*ATestClassWithSuiteMethod"] as Set, [] as Set, [] as Set)
 
         //Run tests in ATestClassWithSuiteMethod only
         when:
@@ -434,7 +434,7 @@ class JUnitTestClassProcessorTest extends Specification {
         process(AnEmptyTestSuite)
 
         then:
-        1 * processor.started({ it.id == 1 && it.className == AnEmptyTestSuite.name }, { it.parentId == null})
+        1 * processor.started({ it.id == 1 && it.className == AnEmptyTestSuite.name }, { it.parentId == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }

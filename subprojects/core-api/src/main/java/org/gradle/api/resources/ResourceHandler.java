@@ -41,9 +41,8 @@ public interface ResourceHandler {
      * Returns a factory for creating {@code TextResource}s from various sources such as
      * strings, files, and archive entries.
      *
-     * @since 2.2
-     *
      * @return a factory for creating {@code TextResource}s
+     * @since 2.2
      */
     TextResourceFactory getText();
 }

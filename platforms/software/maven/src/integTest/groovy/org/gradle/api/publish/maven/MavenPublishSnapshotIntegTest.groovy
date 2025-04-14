@@ -55,7 +55,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         and:
         module.parsedPom.version == '1.0-SNAPSHOT'
 
-        with (module.rootMetaData) {
+        with(module.rootMetaData) {
             groupId == "org.gradle"
             artifactId == "snapshotPublish"
             releaseVersion == null
@@ -63,7 +63,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             versions == ['1.0-SNAPSHOT']
         }
 
-        with (module.snapshotMetaData) {
+        with(module.snapshotMetaData) {
             groupId == "org.gradle"
             artifactId == "snapshotPublish"
             version == "1.0-SNAPSHOT"
@@ -76,7 +76,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             snapshotVersions == ["1.0-${snapshotTimestamp}-${snapshotBuildNumber}"]
         }
 
-        with (module.parsedModuleMetadata) {
+        with(module.parsedModuleMetadata) {
             variants[0].files[0].url == "snapshotPublish-1.0-SNAPSHOT.jar"
         }
 
@@ -94,7 +94,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 
         module.snapshotMetaData.snapshotVersions == [secondVersion]
 
-        with (module.parsedModuleMetadata) {
+        with(module.parsedModuleMetadata) {
             variants[0].files[0].url == "snapshotPublish-1.0-SNAPSHOT.jar"
         }
 
@@ -141,7 +141,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         and:
         module.parsedPom.version == '1.0-SNAPSHOT'
 
-        with (module.rootMetaData) {
+        with(module.rootMetaData) {
             groupId == "org.gradle"
             artifactId == "snapshotInstall"
             releaseVersion == null
@@ -149,7 +149,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             versions == ['1.0-SNAPSHOT']
         }
 
-        with (module.snapshotMetaData) {
+        with(module.snapshotMetaData) {
             groupId == "org.gradle"
             artifactId == "snapshotInstall"
             version == "1.0-SNAPSHOT"
@@ -173,7 +173,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         and:
         module.parsedPom.version == '1.0-SNAPSHOT'
 
-        with (module.rootMetaData) {
+        with(module.rootMetaData) {
             groupId == "org.gradle"
             artifactId == "snapshotInstall"
             releaseVersion == null
@@ -181,7 +181,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             versions == ['1.0-SNAPSHOT']
         }
 
-        with (module.snapshotMetaData) {
+        with(module.snapshotMetaData) {
             groupId == "org.gradle"
             artifactId == "snapshotInstall"
             version == "1.0-SNAPSHOT"

@@ -251,8 +251,8 @@ class IsolatableSerializerRegistryTest extends Specification {
 
     def "can serialize/deserialize isolated Map"() {
         Map<String, String> map = [
-                "foo": "bar",
-                "baz": "buzz"
+            "foo": "bar",
+            "baz": "buzz"
         ]
 
         when:
@@ -354,7 +354,7 @@ class IsolatableSerializerRegistryTest extends Specification {
         return isolatables as Isolatable<?>[]
     }
 
-    static class SomeType { }
+    static class SomeType {}
 
     static class SerializableType implements Serializable {
         final String foo
@@ -365,6 +365,6 @@ class IsolatableSerializerRegistryTest extends Specification {
     }
 
     enum EnumType {
-        FOO {}, BAR
+        FOO{}, BAR
     }
 }

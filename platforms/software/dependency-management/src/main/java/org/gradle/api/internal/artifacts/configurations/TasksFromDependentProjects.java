@@ -72,18 +72,15 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
         return taskDependencyDelegate.getDependenciesForInternalUse(task);
     }
 
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public String getConfigurationName() {
+        return configurationName;
+    }
+
     static class TaskDependencyChecker {
-        //checks if candidate project is dependent of the origin project with given configuration
-        boolean isDependent(Project originProject, String configurationName, Project candidateProject) {
-            Configuration configuration = candidateProject.getConfigurations().findByName(configurationName);
-            if (configuration == null) {
-                return false;
-            }
-
-            Path identityPath = ((ProjectInternal) originProject).getIdentityPath();
-            return doesConfigurationDependOnProject(configuration, identityPath);
-        }
-
         private static boolean doesConfigurationDependOnProject(Configuration configuration, Path identityPath) {
             Set<ProjectDependency> projectDependencies = configuration.getAllDependencies().withType(ProjectDependency.class);
             for (ProjectDependency projectDependency : projectDependencies) {
@@ -94,13 +91,16 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
             }
             return false;
         }
-    }
 
-    public String getTaskName() {
-        return taskName;
-    }
+        //checks if candidate project is dependent of the origin project with given configuration
+        boolean isDependent(Project originProject, String configurationName, Project candidateProject) {
+            Configuration configuration = candidateProject.getConfigurations().findByName(configurationName);
+            if (configuration == null) {
+                return false;
+            }
 
-    public String getConfigurationName() {
-        return configurationName;
+            Path identityPath = ((ProjectInternal) originProject).getIdentityPath();
+            return doesConfigurationDependOnProject(configuration, identityPath);
+        }
     }
 }

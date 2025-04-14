@@ -20,7 +20,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DslObjectTest extends Specification {
-    
+
     def "fails lazily for non dsl object"() {
         when:
         def dsl = new DslObject(new Object())

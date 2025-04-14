@@ -72,14 +72,6 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         this.clock = Time.clock();
     }
 
-    public DaemonInfo setState(DaemonState state) {
-        if ((this.state == Idle || this.state == null) && state == Busy) {
-            lastBusy = clock.getCurrentTime();
-        }
-        this.state = state;
-        return this;
-    }
-
     @Override
     public String getUid() {
         return context.getUid();
@@ -103,12 +95,22 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         return state;
     }
 
+    public DaemonInfo setState(DaemonState state) {
+        if ((this.state == Idle || this.state == null) && state == Busy) {
+            lastBusy = clock.getCurrentTime();
+        }
+        this.state = state;
+        return this;
+    }
+
     @Override
     public byte[] getToken() {
         return token;
     }
 
-    /** Last time the daemon was brought out of idle mode. */
+    /**
+     * Last time the daemon was brought out of idle mode.
+     */
     public Date getLastBusy() {
         return new Date(lastBusy);
     }

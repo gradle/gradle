@@ -124,11 +124,26 @@ import static sun.reflect.ReflectionFactory.getReflectionFactory;
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<>();
     private static final AtomicReference<Cache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
+    private static final String GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME = "getDisplayNameForNext";
+    private static final String GET_SERVICES_FOR_NEXT_METHOD_NAME = "getServicesForNext";
+    private static final String GET_FACTORY_FOR_NEXT_METHOD_NAME = "getFactoryForNext";
     private final boolean decorate;
     private final String suffix;
     private final int factoryId;
 
-    private static final String GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME = "getDisplayNameForNext";
+    private AsmBackedClassGenerator(
+        boolean decorate, String suffix,
+        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+        Collection<Class<? extends Annotation>> enabledInjectAnnotations,
+        PropertyRoleAnnotationHandler roleHandler,
+        Cache<Class<?>, GeneratedClassImpl> generatedClasses,
+        int factoryId
+    ) {
+        super(allKnownAnnotations, enabledInjectAnnotations, roleHandler, generatedClasses);
+        this.decorate = decorate;
+        this.suffix = suffix;
+        this.factoryId = factoryId;
+    }
 
     // Used by generated code, see ^
     @SuppressWarnings("unused")
@@ -141,17 +156,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return details.displayName;
     }
 
-    private static final String GET_SERVICES_FOR_NEXT_METHOD_NAME = "getServicesForNext";
+    // Used by generated code, see ^
 
     // Used by generated code, see ^
     @SuppressWarnings("unused")
     public static ServiceLookup getServicesForNext() {
         return getDetails().services;
     }
-
-    private static final String GET_FACTORY_FOR_NEXT_METHOD_NAME = "getFactoryForNext";
-
-    // Used by generated code, see ^
 
     @SuppressWarnings("unused")
     public static ManagedObjectFactory getFactoryForNext() {
@@ -167,20 +178,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             throw new IllegalStateException(String.format("No object creation details have been provided for this context (clz: %s, cl: %s)", System.identityHashCode(AsmBackedClassGenerator.class), AsmBackedClassGenerator.class.getClassLoader()));
         }
         return details;
-    }
-
-    private AsmBackedClassGenerator(
-        boolean decorate, String suffix,
-        Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
-        Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-        PropertyRoleAnnotationHandler roleHandler,
-        Cache<Class<?>, GeneratedClassImpl> generatedClasses,
-        int factoryId
-    ) {
-        super(allKnownAnnotations, enabledInjectAnnotations, roleHandler, generatedClasses);
-        this.decorate = decorate;
-        this.suffix = suffix;
-        this.factoryId = factoryId;
     }
 
     /**
@@ -232,6 +229,50 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return new AsmBackedClassGenerator(false, suffix, allKnownAnnotations, enabledInjectAnnotations, roleHandler, cacheFactory.newClassMap(), factoryId);
     }
 
+    @SuppressWarnings("unused")
+    public static void logGroovySpaceAssignmentDeprecation(String propertyName) {
+        DeprecationLogger
+            .deprecate("Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL")
+            .withAdvice("Use assignment ('" + propertyName + " = <value>') instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(8, "groovy_space_assignment_syntax")
+            .nagUser();
+    }
+
+    @Nullable
+    private static String getBuildServiceName(PropertyMetadata property) {
+        ServiceReference annotation = property.findAnnotation(ServiceReference.class);
+        if (annotation != null) {
+            return annotation.value();
+        }
+        return null;
+    }
+
+    @NonNull
+    private static String descriptorOf(Class<?> type) {
+        return getType(type).getDescriptor();
+    }
+
+    private static String propFieldName(PropertyMetadata property) {
+        return propFieldName(property.getName());
+    }
+
+    public static String propFieldName(String name) {
+        return "__" + name + "__";
+    }
+
+    private static Class<?> rawTypeParam(PropertyMetadata property, int paramNum) {
+        java.lang.reflect.Type type = property.getGenericType();
+        if (!(type instanceof ParameterizedType)) {
+            throw new IllegalArgumentException("Declaration of property " + property.getName() + " does not include any type arguments in its property type " + type);
+        }
+        java.lang.reflect.Type argument = ((ParameterizedType) type).getActualTypeArguments()[paramNum];
+        if (argument instanceof Class) {
+            return (Class<?>) argument;
+        }
+        return (Class<?>) Cast.cast(ParameterizedType.class, argument).getRawType();
+    }
+
     @Override
     protected InstantiationStrategy createUsingConstructor(Constructor<?> constructor) {
         return new InvokeConstructorStrategy(constructor, getRoleHandler());
@@ -264,28 +305,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return new ClassInspectionVisitorImpl(type, decorate, suffix, factoryId);
     }
 
-    @SuppressWarnings("unused")
-    public static void logGroovySpaceAssignmentDeprecation(String propertyName) {
-        DeprecationLogger
-            .deprecate("Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL")
-            .withAdvice("Use assignment ('" + propertyName + " = <value>') instead.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(8, "groovy_space_assignment_syntax")
-            .nagUser();
-    }
-
     private static class AttachedProperty {
-
-        public static AttachedProperty of(PropertyMetadata property, boolean applyRole) {
-            return new AttachedProperty(property, applyRole);
-        }
 
         public final PropertyMetadata property;
         public final boolean applyRole;
-
         private AttachedProperty(PropertyMetadata property, boolean applyRole) {
             this.property = property;
             this.applyRole = applyRole;
+        }
+
+        public static AttachedProperty of(PropertyMetadata property, boolean applyRole) {
+            return new AttachedProperty(property, applyRole);
         }
     }
 
@@ -294,6 +324,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final boolean decorate;
         private final String suffix;
         private final int factoryId;
+        private final List<AttachedProperty> propertiesToAttachAtConstruction = new ArrayList<>();
+        private final List<AttachedProperty> propertiesToAttachOnDemand = new ArrayList<>();
+        private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
         private boolean extensible;
         private boolean serviceInjection;
         private boolean conventionAware;
@@ -302,9 +335,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private boolean providesOwnServicesImplementation;
         private boolean providesOwnToStringImplementation;
         private boolean requiresFactory;
-        private final List<AttachedProperty> propertiesToAttachAtConstruction = new ArrayList<>();
-        private final List<AttachedProperty> propertiesToAttachOnDemand = new ArrayList<>();
-        private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
 
         public ClassInspectionVisitorImpl(Class<?> type, boolean decorate, String suffix, int factoryId) {
             this.type = type;
@@ -513,8 +543,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID = getMethodDescriptor(Type.VOID_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
         private static final String RETURN_CONVENTION = getMethodDescriptor(CONVENTION_TYPE);
+        private static final Type RETURN_CONVENTION_METHOD_TYPE = Type.getMethodType(RETURN_CONVENTION);
         private static final String RETURN_CONVENTION_MAPPING = getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_OBJECT = getMethodDescriptor(OBJECT_TYPE);
+        private static final Type RETURN_OBJECT_METHOD_TYPE = Type.getMethodType(RETURN_OBJECT);
         private static final String RETURN_EXTENSION_CONTAINER = getMethodDescriptor(EXTENSION_CONTAINER_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
@@ -539,12 +571,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(VOID_TYPE, STRING_TYPE);
         private static final String LAMBDA_METAFACTORY_METHOD = getMethodDescriptor(getType(CallSite.class), METHOD_HANDLES_LOOKUP_TYPE, STRING_TYPE, METHOD_TYPE_TYPE, METHOD_TYPE_TYPE, getType(MethodHandle.class), METHOD_TYPE_TYPE);
+        private static final Handle LAMBDA_BOOTSTRAP_HANDLE = new Handle(H_INVOKESTATIC, LAMBDA_METAFACTORY_TYPE.getInternalName(), "metafactory", LAMBDA_METAFACTORY_METHOD, false);
         private static final String DEPRECATION_LOGGER_WHILE_DISABLED_RUNNABLE_METHOD = getMethodDescriptor(Type.VOID_TYPE, RUNNABLE_TYPE);
         private static final String DEPRECATION_LOGGER_WHILE_DISABLED_FACTORY_METHOD = getMethodDescriptor(OBJECT_TYPE, FACTORY_TYPE);
-        private static final Handle LAMBDA_BOOTSTRAP_HANDLE = new Handle(H_INVOKESTATIC, LAMBDA_METAFACTORY_TYPE.getInternalName(), "metafactory", LAMBDA_METAFACTORY_METHOD, false);
         private static final Type RETURN_VOID_METHOD_TYPE = Type.getMethodType(RETURN_VOID);
-        private static final Type RETURN_OBJECT_METHOD_TYPE = Type.getMethodType(RETURN_OBJECT);
-        private static final Type RETURN_CONVENTION_METHOD_TYPE = Type.getMethodType(RETURN_CONVENTION);
         private static final Type DEPRECATION_HOLDER_TYPE = Type.getType(AsmBackedClassGenerator.class);
         private static final Type DEPRECATED_ANNOTATION_TYPE = getType(Deprecated.class);
 
@@ -558,7 +588,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final Map<java.lang.reflect.Type, ReturnTypeEntry> genericReturnTypeConstantsIndex = new HashMap<>();
         private final AsmClassGenerator classGenerator;
         private final int factoryId;
-        private boolean hasMappingField;
         private final boolean conventionAware;
         private final boolean mixInDsl;
         private final boolean extensible;
@@ -569,6 +598,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final List<PropertyMetadata> ineligibleProperties;
         private final boolean requiresServicesMethod;
         private final boolean requiresFactory;
+        private boolean hasMappingField;
 
         private ClassBuilderImpl(
             AsmClassGenerator classGenerator,
@@ -602,6 +632,47 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             this.requiresServicesMethod = requiresServicesMethod;
             this.requiresFactory = requiresFactory;
             this.ineligibleProperties = ineligibleProperties;
+        }
+
+        @NonNull
+        private static List<Type> paramTypesOf(Constructor<?> constructor, boolean addNameParameter) {
+            Class<?>[] parameterTypes = constructor.getParameterTypes();
+            List<Type> paramTypes = new ArrayList<>(parameterTypes.length + (addNameParameter ? 1 : 0));
+            for (Class<?> paramType : parameterTypes) {
+                paramTypes.add(getType(paramType));
+            }
+            return paramTypes;
+        }
+
+        private static void visitDeclaredAnnotationsOf(Constructor<?> constructor, MethodVisitor methodVisitor) {
+            for (Annotation annotation : constructor.getDeclaredAnnotations()) {
+                Class<? extends Annotation> annotationType = annotation.annotationType();
+                if (annotationType.getAnnotation(Inherited.class) != null) {
+                    continue;
+                }
+                Retention retention = annotationType.getAnnotation(Retention.class);
+                methodVisitor
+                    .visitAnnotation(descriptorOf(annotationType), retention != null && retention.value() == RetentionPolicy.RUNTIME)
+                    .visitEnd();
+            }
+        }
+
+        private static Object getAnnotationParameterValue(Annotation annotation, Method method) {
+            try {
+                return method.invoke(annotation);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        private static void attachFactoryIdToImplType(Class<?> implClass, int id) {
+            try {
+                Field factoryField = implClass.getDeclaredField(FACTORY_ID_FIELD);
+                factoryField.setAccessible(true);
+                factoryField.set(null, id);
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
 
         public void startClass() {
@@ -728,29 +799,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 _RETURN();
             }});
-        }
-
-        @NonNull
-        private static List<Type> paramTypesOf(Constructor<?> constructor, boolean addNameParameter) {
-            Class<?>[] parameterTypes = constructor.getParameterTypes();
-            List<Type> paramTypes = new ArrayList<>(parameterTypes.length + (addNameParameter ? 1 : 0));
-            for (Class<?> paramType : parameterTypes) {
-                paramTypes.add(getType(paramType));
-            }
-            return paramTypes;
-        }
-
-        private static void visitDeclaredAnnotationsOf(Constructor<?> constructor, MethodVisitor methodVisitor) {
-            for (Annotation annotation : constructor.getDeclaredAnnotations()) {
-                Class<? extends Annotation> annotationType = annotation.annotationType();
-                if (annotationType.getAnnotation(Inherited.class) != null) {
-                    continue;
-                }
-                Retention retention = annotationType.getAnnotation(Retention.class);
-                methodVisitor
-                    .visitAnnotation(descriptorOf(annotationType), retention != null && retention.value() == RetentionPolicy.RUNTIME)
-                    .visitEnd();
-            }
         }
 
         /**
@@ -1304,65 +1352,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
         }
 
-        /**
-         * Local extensions to {@link MethodVisitorScope}.
-         */
-        private class LocalMethodVisitorScope extends MethodVisitorScope {
-
-            public LocalMethodVisitorScope(MethodVisitor methodVisitor) {
-                super(methodVisitor);
-            }
-
-            protected void attachProperty(AttachedProperty attached) {
-                // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
-                PropertyMetadata property = attached.property;
-                boolean applyRole = attached.applyRole;
-                MethodMetadata getter = property.getMainGetter();
-                _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                if (applyRole) {
-                    _DUP();
-                }
-                _ALOAD(0);
-                _LDC(property.getName());
-                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
-                if (applyRole) {
-                    applyRole();
-                }
-            }
-
-            // Caller should place property value on the top of the stack
-            protected void applyRole() {
-                // GENERATE getFactory().applyRole(<value>)
-                _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY);
-                _SWAP();
-                _ALOAD(0);
-                _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "applyRole", RETURN_VOID_FROM_OBJECT_MODEL_OBJECT);
-            }
-
-            // Caller should place property value on the top of the stack
-            protected void setBuildServiceConvention(@Nullable String serviceName) {
-                // GENERATE BuildServiceProvider.setBuildServiceAsConvention(defaultProperty, getServices(), "<serviceName>")
-                _CHECKCAST(DEFAULT_PROPERTY_TYPE);
-                putServiceRegistryOnStack();
-                _LDC(serviceName);
-                _INVOKESTATIC(BUILD_SERVICE_PROVIDER_TYPE, "setBuildServiceAsConvention", RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING);
-            }
-
-            protected void putServiceRegistryOnStack() {
-                if (requiresServicesMethod) {
-                    // this.<services_method>()
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(generatedType, SERVICES_METHOD, RETURN_SERVICE_LOOKUP);
-                } else {
-                    // this.getServices()
-                    _ALOAD(0);
-                    _INVOKEVIRTUAL(generatedType, "getServices", RETURN_SERVICE_REGISTRY);
-                }
-            }
-        }
-
         @Override
         public void applyManagedStateToGetter(PropertyMetadata property, Method getter) {
             // GENERATE public <type> <getter>() { return <field> }
@@ -1486,6 +1475,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // See ManagedTypeFactory for how it's used.
             addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "initFromState", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {
 
+                int propertyIndex = 0;
+
                 {
                     // for each property
                     //   this.$property = state[$propertyIndex];
@@ -1493,8 +1484,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     loadPropertiesFromState(readOnlyProperties);
                     _RETURN();
                 }
-
-                int propertyIndex = 0;
 
                 private void loadPropertiesFromState(List<PropertyMetadata> properties) {
                     for (PropertyMetadata property : properties) {
@@ -1860,24 +1849,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
-        private static Object getAnnotationParameterValue(Annotation annotation, Method method) {
-            try {
-                return method.invoke(annotation);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        private static void attachFactoryIdToImplType(Class<?> implClass, int id) {
-            try {
-                Field factoryField = implClass.getDeclaredField(FACTORY_ID_FIELD);
-                factoryField.setAccessible(true);
-                factoryField.set(null, id);
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
         @Override
         public void addNameProperty() {
             addField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_FINAL, NAME_FIELD, STRING_TYPE);
@@ -1950,40 +1921,65 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 this.getterName = getterName;
             }
         }
-    }
 
-    @Nullable
-    private static String getBuildServiceName(PropertyMetadata property) {
-        ServiceReference annotation = property.findAnnotation(ServiceReference.class);
-        if (annotation != null) {
-            return annotation.value();
+        /**
+         * Local extensions to {@link MethodVisitorScope}.
+         */
+        private class LocalMethodVisitorScope extends MethodVisitorScope {
+
+            public LocalMethodVisitorScope(MethodVisitor methodVisitor) {
+                super(methodVisitor);
+            }
+
+            protected void attachProperty(AttachedProperty attached) {
+                // ManagedObjectFactory.attachOwner(get<prop>(), this, <property-name>))
+                PropertyMetadata property = attached.property;
+                boolean applyRole = attached.applyRole;
+                MethodMetadata getter = property.getMainGetter();
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
+                if (applyRole) {
+                    _DUP();
+                }
+                _ALOAD(0);
+                _LDC(property.getName());
+                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                if (applyRole) {
+                    applyRole();
+                }
+            }
+
+            // Caller should place property value on the top of the stack
+            protected void applyRole() {
+                // GENERATE getFactory().applyRole(<value>)
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY);
+                _SWAP();
+                _ALOAD(0);
+                _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "applyRole", RETURN_VOID_FROM_OBJECT_MODEL_OBJECT);
+            }
+
+            // Caller should place property value on the top of the stack
+            protected void setBuildServiceConvention(@Nullable String serviceName) {
+                // GENERATE BuildServiceProvider.setBuildServiceAsConvention(defaultProperty, getServices(), "<serviceName>")
+                _CHECKCAST(DEFAULT_PROPERTY_TYPE);
+                putServiceRegistryOnStack();
+                _LDC(serviceName);
+                _INVOKESTATIC(BUILD_SERVICE_PROVIDER_TYPE, "setBuildServiceAsConvention", RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING);
+            }
+
+            protected void putServiceRegistryOnStack() {
+                if (requiresServicesMethod) {
+                    // this.<services_method>()
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(generatedType, SERVICES_METHOD, RETURN_SERVICE_LOOKUP);
+                } else {
+                    // this.getServices()
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(generatedType, "getServices", RETURN_SERVICE_REGISTRY);
+                }
+            }
         }
-        return null;
-    }
-
-    @NonNull
-    private static String descriptorOf(Class<?> type) {
-        return getType(type).getDescriptor();
-    }
-
-    private static String propFieldName(PropertyMetadata property) {
-        return propFieldName(property.getName());
-    }
-
-    public static String propFieldName(String name) {
-        return "__" + name + "__";
-    }
-
-    private static Class<?> rawTypeParam(PropertyMetadata property, int paramNum) {
-        java.lang.reflect.Type type = property.getGenericType();
-        if (!(type instanceof ParameterizedType)) {
-            throw new IllegalArgumentException("Declaration of property " + property.getName() + " does not include any type arguments in its property type " + type);
-        }
-        java.lang.reflect.Type argument = ((ParameterizedType) type).getActualTypeArguments()[paramNum];
-        if (argument instanceof Class) {
-            return (Class<?>) argument;
-        }
-        return (Class<?>) Cast.cast(ParameterizedType.class, argument).getRawType();
     }
 
     private static class ObjectCreationDetails {

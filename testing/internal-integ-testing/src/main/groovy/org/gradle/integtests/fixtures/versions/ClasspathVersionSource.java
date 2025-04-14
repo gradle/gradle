@@ -43,9 +43,9 @@ public class ClasspathVersionSource implements Factory<Properties> {
         URL resource = classLoader.getResource(resourceName);
         if (resource == null) {
             throw new RuntimeException(
-                    "Unable to find the released versions information.\n"
-                            + "The resource '" + resourceName + "' was not found.\n"
-                            + "Most likely, you haven't run the 'prepareVersionsInfo' task.\n"
+                "Unable to find the released versions information.\n"
+                    + "The resource '" + resourceName + "' was not found.\n"
+                    + "Most likely, you haven't run the 'prepareVersionsInfo' task.\n"
             );
         }
 

@@ -48,11 +48,10 @@ performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", Java
     inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
         return []
     }
-    classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
+    classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava') || it.name.contains('gradle-') }
     mainClass = 'org.gradle.performance.generator.DeclarativeDslTestProjectGenerator'
     args name, buildDir.absolutePath
 }
-
 
 
 // === Java ===
@@ -66,7 +65,7 @@ performanceTest.registerTestProject("largeEmptyMultiProjectDeclarativeDsl", Java
         inputs.property('args') { // Arguments are covered by the testProjectName and the outputs. We don't want them to contain the absolute path
             return []
         }
-        classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava')  || it.name.contains('gradle-') }
+        classpath = sourceSets.performanceTest.runtimeClasspath.filter { it.name.contains('groovy') || it.name.contains('guava') || it.name.contains('gradle-') }
         mainClass = 'org.gradle.performance.generator.TestProjectGenerator'
         args name, buildDir.absolutePath
     }

@@ -27,9 +27,6 @@ import java.util.function.Supplier;
  */
 @FunctionalInterface
 public interface IoSupplier<T> {
-    @Nullable
-    T get() throws IOException;
-
     /**
      * Wraps an {@link IOException}-throwing {@link IoSupplier} into a regular {@link Supplier}.
      *
@@ -44,4 +41,7 @@ public interface IoSupplier<T> {
             }
         };
     }
+
+    @Nullable
+    T get() throws IOException;
 }

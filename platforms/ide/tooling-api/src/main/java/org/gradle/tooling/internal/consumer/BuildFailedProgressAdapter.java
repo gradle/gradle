@@ -33,6 +33,10 @@ public class BuildFailedProgressAdapter implements ProgressListener {
 
     public List<Failure> failures = new ArrayList<>();
 
+    private static boolean isBuildFinishedEvent(ProgressEvent event) {
+        return event instanceof FinishEvent && event.getDescriptor().getParent() == null;
+    }
+
     @Override
     public void statusChanged(ProgressEvent event) {
         if (isBuildFinishedEvent(event)) {
@@ -43,9 +47,5 @@ public class BuildFailedProgressAdapter implements ProgressListener {
                 this.failures = Collections.emptyList();
             }
         }
-    }
-
-    private static boolean isBuildFinishedEvent(ProgressEvent event) {
-        return event instanceof FinishEvent && event.getDescriptor().getParent() == null;
     }
 }

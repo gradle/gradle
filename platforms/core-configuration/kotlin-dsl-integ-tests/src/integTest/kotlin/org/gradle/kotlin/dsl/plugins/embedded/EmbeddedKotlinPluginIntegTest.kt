@@ -100,10 +100,12 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
             $repositoriesBlock
 
             dependencies {
-                ${dependencyDeclarationsFor(
-                "implementation",
-                listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
-            )}
+                ${
+                dependencyDeclarationsFor(
+                    "implementation",
+                    listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
+                )
+            }
             }
 
             configurations["compileClasspath"].files.map { println(it) }

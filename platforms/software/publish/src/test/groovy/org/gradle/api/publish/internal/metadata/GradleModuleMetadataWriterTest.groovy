@@ -596,17 +596,17 @@ class GradleModuleMetadataWriterTest extends Specification {
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
         v1.attributes >> attributesTyped(
-                (Attribute.of("usage", String)): "compile",
-                (Attribute.of("debuggable", Boolean)): true,
-                (Attribute.of("platform", Named)): platform,
-                (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_1)
+            (Attribute.of("usage", String)): "compile",
+            (Attribute.of("debuggable", Boolean)): true,
+            (Attribute.of("platform", Named)): platform,
+            (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_1)
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributesTyped(
-                (Attribute.of("usage", String)): "runtime",
-                (Attribute.of("debuggable", Boolean)): true,
-                (Attribute.of("platform", Named)): platform,
-                (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_2)
+            (Attribute.of("usage", String)): "runtime",
+            (Attribute.of("debuggable", Boolean)): true,
+            (Attribute.of("platform", Named)): platform,
+            (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_2)
 
         component.usages >> [v1, v2]
 

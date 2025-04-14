@@ -35,7 +35,7 @@ class JavaMethodTest extends Specification {
         JavaMethod.of(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
     }
 
-    def "call static methods successfully reflectively" () {
+    def "call static methods successfully reflectively"() {
         when:
         JavaMethod.ofStatic(myProperties.class, Void, "setStaticProperty", String.class).invokeStatic("foo")
 
@@ -43,7 +43,7 @@ class JavaMethodTest extends Specification {
         JavaMethod.ofStatic(myProperties.class, String, "getStaticProperty").invokeStatic() == "foo"
     }
 
-    def "static methods are identifiable" () {
+    def "static methods are identifiable"() {
         expect:
         JavaMethod.ofStatic(myProperties.class, Void, "setStaticProperty", String.class).isStatic()
         JavaMethod.ofStatic(myProperties.class, String, "getStaticProperty").isStatic()

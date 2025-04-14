@@ -66,7 +66,6 @@ class TestTest extends AbstractConventionTaskTest {
     def testFrameworkMock = Mock(TestFramework)
 
 
-
     private FileCollection classpathMock = TestFiles.fixed(new File("classpath"))
     private Test test
 

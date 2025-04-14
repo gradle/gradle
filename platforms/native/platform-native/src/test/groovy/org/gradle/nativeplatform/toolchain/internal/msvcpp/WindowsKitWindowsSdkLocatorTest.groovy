@@ -31,7 +31,8 @@ import spock.lang.Specification
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.AbstractWindowsKitComponentLocator.PLATFORMS
 
 class WindowsKitWindowsSdkLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
     final SystemInfo systemInfo = Stub(SystemInfo) {
         getArchitecture() >> SystemInfo.Architecture.amd64
@@ -141,15 +142,15 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.version == VersionNumber.withPatchNumber().parse(expected)
         result.component.baseDir == dir1
         def platformSdk = result.component.forPlatform(x64())
-        platformSdk.includeDirs == [ dir1.file("Include/${expected}/um"), dir1.file("Include/${expected}/shared") ]
+        platformSdk.includeDirs == [dir1.file("Include/${expected}/um"), dir1.file("Include/${expected}/shared")]
         platformSdk.path == [dir1.file("bin/x64")]
         platformSdk.libDirs == [dir1.file("Lib/${expected}/um/x64")]
 
         where:
-        versions                                           | expected
-        [ "10.0.10150.0" ]                                 | "10.0.10150.0"
-        [ "10.0.10150.0", "10.0.10240.0", "10.0.10500.0" ] | "10.0.10500.0"
-        [ "10.0.10240.0", "10.0.10500.0", "10.1.10080.0" ] | "10.1.10080.0"
+        versions                                         | expected
+        ["10.0.10150.0"]                                 | "10.0.10150.0"
+        ["10.0.10150.0", "10.0.10240.0", "10.0.10500.0"] | "10.0.10500.0"
+        ["10.0.10240.0", "10.0.10500.0", "10.1.10080.0"] | "10.1.10080.0"
     }
 
     def "locates Windows Kit with versioned bin dir"() {
@@ -167,7 +168,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10500.0")
         result.component.baseDir == dir1
         def platformSdk = result.component.forPlatform(x64())
-        platformSdk.includeDirs == [ dir1.file("Include/10.0.10500.0/um"), dir1.file("Include/10.0.10500.0/shared") ]
+        platformSdk.includeDirs == [dir1.file("Include/10.0.10500.0/um"), dir1.file("Include/10.0.10500.0/shared")]
         platformSdk.path == [dir1.file("bin/10.0.10500.0/x64")]
         platformSdk.libDirs == [dir1.file("Lib/10.0.10500.0/um/x64")]
     }
@@ -254,7 +255,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.baseDir == dir1
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
         def platformSdk = result.component.forPlatform(x64())
-        platformSdk.includeDirs == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ]
+        platformSdk.includeDirs == [dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared")]
     }
 
     def "uses windows SDK using specified install dir"() {
@@ -275,7 +276,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.baseDir == dir2
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
         def platformSdk = result.component.forPlatform(x64())
-        platformSdk.includeDirs == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ]
+        platformSdk.includeDirs == [dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared")]
         platformSdk.path == [dir2.file("bin/x64")]
         platformSdk.libDirs == [dir2.file("Lib/10.0.10150.0/um/x64")]
 
@@ -288,7 +289,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.name == "User-provided Windows SDK 10"
         result.component.baseDir == dir3
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10500.0")
-        platformSdk.includeDirs == [ dir3.file("Include/10.0.10500.0/um"), dir3.file("Include/10.0.10500.0/shared") ]
+        platformSdk.includeDirs == [dir3.file("Include/10.0.10500.0/um"), dir3.file("Include/10.0.10500.0/shared")]
         platformSdk.path == [dir3.file("bin/x64")]
         platformSdk.libDirs == [dir3.file("Lib/10.0.10500.0/um/x64")]
     }
@@ -310,7 +311,7 @@ class WindowsKitWindowsSdkLocatorTest extends Specification {
         result.component.baseDir == dir2
         result.component.version == VersionNumber.withPatchNumber().parse("10.0.10150.0")
         def platformSdk = result.component.forPlatform(x64())
-        platformSdk.includeDirs == [ dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared") ]
+        platformSdk.includeDirs == [dir2.file("Include/10.0.10150.0/um"), dir2.file("Include/10.0.10150.0/shared")]
         platformSdk.path == [dir2.file("bin/10.0.10150.0/x64")]
         platformSdk.libDirs == [dir2.file("Lib/10.0.10150.0/um/x64")]
     }

@@ -266,7 +266,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         val pluginJarV2 = withPluginJar("my-plugin-2.0.jar", "2.0")
 
         withDefaultSettingsIn("buildSrc")
-        withBuildScriptIn("buildSrc", """
+        withBuildScriptIn(
+            "buildSrc", """
             plugins {
                 `kotlin-dsl`
             }
@@ -276,14 +277,18 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
             dependencies {
                 compileOnly(files("${normaliseFileSeparators(pluginJarV1.absolutePath)}"))
             }
-        """)
-        val precompiledScript = withFile("buildSrc/src/main/kotlin/my-precompiled-script.gradle.kts", """
+        """
+        )
+        val precompiledScript = withFile(
+            "buildSrc/src/main/kotlin/my-precompiled-script.gradle.kts", """
             plugins {
                 id("my-plugin")
             }
-        """)
+        """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
             buildscript {
                 dependencies {
                     classpath(files("${normaliseFileSeparators(pluginJarV2.absolutePath)}"))
@@ -292,7 +297,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
             plugins {
                 id("my-precompiled-script")
             }
-        """)
+        """
+        )
 
         buildAndFail("action").apply {
             assertHasFailure("Plugin [id: 'my-plugin'] was not found in any of the following sources") {

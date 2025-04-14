@@ -59,18 +59,18 @@ abstract class ResultSpecification extends Specification {
 
     CrossBuildPerformanceResults crossBuildResults(Map<String, ?> options = [:]) {
         def results = new CrossBuildPerformanceResults(
-                testClass: "org.gradle.performance.MyCrossBuildPerformanceTest",
-                testId: "test-id",
-                testGroup: "test-group",
-                testProject: "test-project",
-                jvm: "java 7",
-                versionUnderTest: "Gradle 1.0",
-                operatingSystem: "windows",
-                host: "me",
-                vcsBranch: "master",
-                vcsCommits: ["abcdef"],
-                channel: channel,
-                startTime: new Date().time
+            testClass: "org.gradle.performance.MyCrossBuildPerformanceTest",
+            testId: "test-id",
+            testGroup: "test-group",
+            testProject: "test-project",
+            jvm: "java 7",
+            versionUnderTest: "Gradle 1.0",
+            operatingSystem: "windows",
+            host: "me",
+            vcsBranch: "master",
+            vcsCommits: ["abcdef"],
+            channel: channel,
+            startTime: new Date().time
         )
         options.each { key, value -> results."$key" = value }
         return results
@@ -78,17 +78,17 @@ abstract class ResultSpecification extends Specification {
 
     GradleVsMavenBuildPerformanceResults gradleVsMavenBuildResults(Map<String, ?> options = [:]) {
         def results = new GradleVsMavenBuildPerformanceResults(
-                testClass: "org.gradle.performance.MyGradleVsMavenPerformanceTest",
-                testId: "test-id",
-                testProject: 'test-project',
-                testGroup: "test-group",
-                jvm: "java 7",
-                versionUnderTest: "Gradle 1.0",
-                operatingSystem: "windows",
-                host: "me",
-                startTime: 100,
-                vcsBranch: "master",
-                vcsCommits: ["abcdef"]
+            testClass: "org.gradle.performance.MyGradleVsMavenPerformanceTest",
+            testId: "test-id",
+            testProject: 'test-project',
+            testGroup: "test-group",
+            jvm: "java 7",
+            versionUnderTest: "Gradle 1.0",
+            operatingSystem: "windows",
+            host: "me",
+            startTime: 100,
+            vcsBranch: "master",
+            vcsCommits: ["abcdef"]
         )
         options.each { key, value -> results."$key" = value }
         return results
@@ -123,11 +123,11 @@ abstract class ResultSpecification extends Specification {
 
     PerformanceTestHistory mockCrossBuildHistory() {
         BuildDisplayInfo info1 = buildDisplayInfo('build1')
-        CrossBuildPerformanceResults result1  = crossBuildResults(startTime: 100)
+        CrossBuildPerformanceResults result1 = crossBuildResults(startTime: 100)
         result1.buildResult(info1).addAll(measuredOperations([1]))
 
         BuildDisplayInfo info2 = buildDisplayInfo('build2')
-        CrossBuildPerformanceResults result2  = crossBuildResults(startTime: 200)
+        CrossBuildPerformanceResults result2 = crossBuildResults(startTime: 200)
         result1.buildResult(info2).addAll(measuredOperations([2]))
 
         return new CrossBuildPerformanceTestHistory(new PerformanceExperiment("test-project", new PerformanceScenario("org.gradle.performance.MyCrossBuildPerformanceTest", "my scenario name")), [info1, info2], [result2, result1])

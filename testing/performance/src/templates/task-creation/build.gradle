@@ -16,14 +16,14 @@
 
 @groovy.transform.CompileStatic
 void createTasks(Project p, int iterations) {
-    for (int i=0; i<iterations; i++) {
+    for (int i = 0; i < iterations; i++) {
         p.task("foo\$i", type: Copy)
     }
 }
 
 if (tasks.metaClass.respondsTo(tasks, "register")) {
-    for (int i=0; i<$taskCount; i++) {
-       project.tasks.register("foo\$i", Copy)
+    for (int i = 0; i < $taskCount; i++) {
+        project.tasks.register("foo\$i", Copy)
     }
 } else {
     createTasks(project, $taskCount)

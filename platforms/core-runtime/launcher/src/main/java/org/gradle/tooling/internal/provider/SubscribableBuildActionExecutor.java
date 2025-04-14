@@ -42,11 +42,13 @@ public class SubscribableBuildActionExecutor implements BuildSessionActionExecut
     private final List<Object> listeners = new ArrayList<>();
     private final BuildEventListenerFactory factory;
 
-    public SubscribableBuildActionExecutor(ListenerManager listenerManager,
-                                           BuildOperationListenerManager buildOperationListenerManager,
-                                           BuildEventListenerFactory factory,
-                                           BuildEventConsumer eventConsumer,
-                                           BuildSessionActionExecutor delegate) {
+    public SubscribableBuildActionExecutor(
+        ListenerManager listenerManager,
+        BuildOperationListenerManager buildOperationListenerManager,
+        BuildEventListenerFactory factory,
+        BuildEventConsumer eventConsumer,
+        BuildSessionActionExecutor delegate
+    ) {
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.factory = factory;

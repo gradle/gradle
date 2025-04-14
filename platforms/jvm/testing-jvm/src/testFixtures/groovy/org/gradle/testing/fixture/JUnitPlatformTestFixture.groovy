@@ -118,7 +118,7 @@ trait JUnitPlatformTestFixture {
                 import org.junit.jupiter.params.provider.ValueSource;
                 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-                ${disabled ? "@Disabled"  : ""}
+                ${disabled ? "@Disabled" : ""}
                 public class ${name} {
                     ${methodContents}
                 }

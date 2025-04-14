@@ -31,15 +31,15 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C> {
-    private final List<ModelReference<?>> inputs;
     protected final int baseTypeParameterIndex;
+    private final List<ModelReference<?>> inputs;
 
     public ModelMapBasedRule(ModelReference<C> subject, final ModelType<? extends T> baseType, MethodRuleDefinition<?, ?> ruleDefinition, ModelReference<?>... additionalInputs) {
         super(subject, ruleDefinition.getDescriptor());
         this.inputs = calculateInputs(
-                baseType,
-                ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()),
-                Arrays.asList(additionalInputs)
+            baseType,
+            ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()),
+            Arrays.asList(additionalInputs)
         );
         this.baseTypeParameterIndex = 1 + Iterables.indexOf(ruleDefinition.getReferences().subList(1, ruleDefinition.getReferences().size()), new Predicate<ModelReference<?>>() {
             @Override

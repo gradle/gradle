@@ -26,8 +26,8 @@ import org.gradle.vcs.VersionControlSpec;
 import java.util.List;
 
 public abstract class AbstractVersionControlSpec implements VersionControlSpec {
-    private String rootDir = "";
     private final DefaultInjectedPluginDependencies pluginDependencies = new DefaultInjectedPluginDependencies();
+    private String rootDir = "";
 
     @Override
     public String getRootDir() {

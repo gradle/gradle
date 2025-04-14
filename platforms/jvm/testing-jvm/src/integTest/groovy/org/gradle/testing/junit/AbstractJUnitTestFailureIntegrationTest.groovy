@@ -30,12 +30,19 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract void writeBrokenRunnerOrExtension(String className)
+
     abstract void writeClassUsingBrokenRunnerOrExtension(String className, String runnerOrExtensionName)
+
     abstract String getInitializationErrorTestName()
+
     abstract String getAssertionFailureClassName()
+
     abstract String getBeforeClassErrorTestName()
+
     abstract String getAfterClassErrorTestName()
+
     abstract Matcher<? super String>[] getBrokenBeforeAndAfterMatchers()
+
     abstract boolean hasStableInitializationErrors()
 
     def "reports and breaks build when tests fail"() {

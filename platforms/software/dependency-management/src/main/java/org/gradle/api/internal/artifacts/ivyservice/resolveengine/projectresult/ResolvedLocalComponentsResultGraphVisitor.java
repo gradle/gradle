@@ -46,9 +46,8 @@ import java.util.List;
 public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGraphVisitor {
     private final BuildIdentifier thisBuild;
     private final ProjectStateRegistry projectStateRegistry;
-
-    private ComponentIdentifier rootId;
     private final List<ResolvedProjectConfiguration> resolvedProjectConfigurations = new ArrayList<>();
+    private ComponentIdentifier rootId;
 
     public ResolvedLocalComponentsResultGraphVisitor(BuildIdentifier thisBuild, ProjectStateRegistry projectStateRegistry) {
         this.thisBuild = thisBuild;

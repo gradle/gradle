@@ -46,13 +46,13 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final Lock lock = new ReentrantLock();
     private final WorkerThreadRegistry workerThreadRegistry;
+    private final DocumentationRegistry documentationRegistry;
+    private final Set<Throwable> unrecoverableExceptions = new HashSet<Throwable>();
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
-    private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
-    private final Set<Throwable> unrecoverableExceptions = new HashSet<Throwable>();
 
 
     public ForkingTestClassProcessor(

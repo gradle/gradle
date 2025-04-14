@@ -39,18 +39,6 @@ public class GradleInstallation {
         this.libDirs = Collections.unmodifiableList(findLibDirs(dir));
     }
 
-    public File getGradleHome() {
-        return dir;
-    }
-
-    public List<File> getLibDirs() {
-        return libDirs;
-    }
-
-    public File getSrcDir() {
-        return dir.toPath().resolve("src").toFile();
-    }
-
     private static List<File> findLibDirs(File dir) {
         List<File> libDirAndSubdirs = new ArrayList<File>();
         collectWithSubdirectories(new File(dir, "lib"), libDirAndSubdirs);
@@ -65,6 +53,18 @@ public class GradleInstallation {
                 collectWithSubdirectories(subdirectory, collection);
             }
         }
+    }
+
+    public File getGradleHome() {
+        return dir;
+    }
+
+    public List<File> getLibDirs() {
+        return libDirs;
+    }
+
+    public File getSrcDir() {
+        return dir.toPath().resolve("src").toFile();
     }
 
 }

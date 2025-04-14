@@ -23,6 +23,17 @@ import java.io.File;
 import java.util.Collection;
 
 public interface SourceIncludesResolver {
+    /**
+     * Resolves the given include directive to zero or more include files.
+     */
+    IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros);
+
+    /**
+     * Resolves the given include path to zero or one include file.
+     */
+    @Nullable
+    IncludeFile resolveInclude(@Nullable File sourceFile, String includePath);
+
     interface IncludeResolutionResult {
         /**
          * Returns true if the include files could be completely resolved. If false, there were additional include files but they could not be resolved.
@@ -36,19 +47,11 @@ public interface SourceIncludesResolver {
 
     interface IncludeFile {
         boolean isQuotedInclude();
+
         String getPath();
+
         File getFile();
+
         HashCode getContentHash();
     }
-
-    /**
-     * Resolves the given include directive to zero or more include files.
-     */
-    IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros);
-
-    /**
-     * Resolves the given include path to zero or one include file.
-     */
-    @Nullable
-    IncludeFile resolveInclude(@Nullable File sourceFile, String includePath);
 }

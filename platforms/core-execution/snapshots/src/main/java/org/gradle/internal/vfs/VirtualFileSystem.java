@@ -58,6 +58,16 @@ public interface VirtualFileSystem {
     <T> T storeWithAction(String baseLocation, StoringAction<T> storingAction);
 
     /**
+     * Removes any information at the absolute paths from the VFS.
+     */
+    void invalidate(Iterable<String> locations);
+
+    /**
+     * Removes any information from the VFS.
+     */
+    void invalidateAll();
+
+    /**
      * Snapshotting action which produces possibly more than one snapshot.
      *
      * For example when snapshotting a filtered directory, the snapshots for complete subdirectories
@@ -70,15 +80,5 @@ public interface VirtualFileSystem {
     interface VfsStorer {
         FileSystemLocationSnapshot store(FileSystemLocationSnapshot snapshot);
     }
-
-    /**
-     * Removes any information at the absolute paths from the VFS.
-     */
-    void invalidate(Iterable<String> locations);
-
-    /**
-     * Removes any information from the VFS.
-     */
-    void invalidateAll();
 
 }

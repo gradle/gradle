@@ -31,8 +31,8 @@ import org.gradle.api.Action;
 public interface ComponentMetadataVersionLister extends Action<ComponentMetadataListerDetails> {
     /**
      * Perform a version listing query
-     * @param details the details of the version listing query
      *
+     * @param details the details of the version listing query
      * @since 4.9
      */
     @Override

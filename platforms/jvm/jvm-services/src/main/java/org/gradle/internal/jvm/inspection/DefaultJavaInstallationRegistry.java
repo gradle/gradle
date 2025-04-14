@@ -125,6 +125,11 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         return allSuppliers;
     }
 
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
         if (buildOperationRunner == null) {
             return collectInstallations(suppliers);
@@ -227,11 +232,6 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     private boolean hasJavaExecutable(File potentialHome) {
         return new File(potentialHome, os.getExecutableName("bin/java")).exists();
-    }
-
-    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Set<Object> seen = ConcurrentHashMap.newKeySet();
-        return t -> seen.add(keyExtractor.apply(t));
     }
 
     @NullMarked

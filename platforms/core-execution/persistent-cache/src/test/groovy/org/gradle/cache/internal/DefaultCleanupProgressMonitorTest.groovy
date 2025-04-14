@@ -26,7 +26,8 @@ class DefaultCleanupProgressMonitorTest extends Specification {
     def context = Mock(BuildOperationContext) {
     }
 
-    @Subject def progressMonitor = new DefaultCleanupProgressMonitor(context)
+    @Subject
+    def progressMonitor = new DefaultCleanupProgressMonitor(context)
 
     def "reports deleted and skipped"() {
         when:

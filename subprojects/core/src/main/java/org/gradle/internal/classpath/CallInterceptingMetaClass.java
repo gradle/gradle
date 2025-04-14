@@ -63,11 +63,10 @@ import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallK
 @NullMarked
 public class CallInterceptingMetaClass extends MetaClassImpl implements AdaptingMetaClass, InstrumentedMetaClass {
 
-    private MetaClass adaptee;
+    private static final Object[] NO_ARG = new Object[0];
     private final InstrumentedGroovyCallsTracker callsTracker;
     private final CallInterceptorResolver interceptorResolver;
-
-    private static final Object[] NO_ARG = new Object[0];
+    private MetaClass adaptee;
 
     public CallInterceptingMetaClass(
         MetaClassRegistry registry,
@@ -82,6 +81,35 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         this.interceptorResolver = interceptorResolver;
 
         super.initialize();
+    }
+
+    @Nullable
+    private static Object invokeWithInterceptor(InstrumentedGroovyCallsTracker callsTracker, CallInterceptor interceptor, String name, InstrumentedGroovyCallsTracker.CallKind kind, Object receiver, Object[] arguments, String consumerClass, Callable<Object> doCallOriginal) {
+        final InvokedFlag invokedOriginal = new InvokedFlag();
+
+        try {
+            if (consumerClass.equals(callsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind))) {
+                Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, invokedOriginal);
+                return interceptor.intercept(invocation, consumerClass);
+            } else {
+                invokedOriginal.run();
+                return doCallOriginal.call();
+            }
+        } catch (Throwable throwable) {
+            ThrowAsUnchecked.doThrow(throwable);
+            throw new IllegalStateException("this is an unreachable statement, the call above always throws an exception");
+        } finally {
+            if (!invokedOriginal.invoked) {
+                callsTracker.markCurrentCallAsIntercepted(name, kind);
+            }
+        }
+    }
+
+    private static Invocation callOriginalReportingInvocation(Object receiver, Object[] arguments, Callable<Object> doCallOriginal, Runnable reportCallOriginal) {
+        return new InvocationImpl<>(receiver, arguments, () -> {
+            reportCallOriginal.run();
+            return doCallOriginal.call();
+        });
     }
 
     @Override
@@ -290,6 +318,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     public MetaMethod getStaticMetaMethod(String name, Object[] argTypes) {
         return adaptee.getStaticMetaMethod(name, argTypes);
     }
+    //endregion
 
     /**
      * This is overridden just to make the compiler happy about the unchecked conversions.
@@ -305,46 +334,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     @Override
     public List<MetaMethod> respondsTo(Object obj, String name) {
         return Cast.uncheckedNonnullCast(super.respondsTo(obj, name));
-    }
-    //endregion
-
-    @Nullable
-    private static Object invokeWithInterceptor(InstrumentedGroovyCallsTracker callsTracker, CallInterceptor interceptor, String name, InstrumentedGroovyCallsTracker.CallKind kind, Object receiver, Object[] arguments, String consumerClass, Callable<Object> doCallOriginal) {
-        final InvokedFlag invokedOriginal = new InvokedFlag();
-
-        try {
-            if (consumerClass.equals(callsTracker.findCallerForCurrentCallIfNotIntercepted(name, kind))) {
-                Invocation invocation = callOriginalReportingInvocation(receiver, arguments, doCallOriginal, invokedOriginal);
-                return interceptor.intercept(invocation, consumerClass);
-            } else {
-                invokedOriginal.run();
-                return doCallOriginal.call();
-            }
-        } catch (Throwable throwable) {
-            ThrowAsUnchecked.doThrow(throwable);
-            throw new IllegalStateException("this is an unreachable statement, the call above always throws an exception");
-        } finally {
-            if (!invokedOriginal.invoked) {
-                callsTracker.markCurrentCallAsIntercepted(name, kind);
-            }
-        }
-    }
-
-    private static Invocation callOriginalReportingInvocation(Object receiver, Object[] arguments, Callable<Object> doCallOriginal, Runnable reportCallOriginal) {
-        return new InvocationImpl<>(receiver, arguments, () -> {
-            reportCallOriginal.run();
-            return doCallOriginal.call();
-        });
-    }
-
-    @NullMarked
-    static class InvokedFlag implements Runnable {
-        public boolean invoked = false;
-
-        @Override
-        public void run() {
-            invoked = true;
-        }
     }
 
     @Override
@@ -367,7 +356,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
 
     @Nullable
     private Pair<String, CallInterceptor> findSetterCallerAndInterceptor(String propertyName) {
-        String caller =  callsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, SET_PROPERTY);
+        String caller = callsTracker.findCallerForCurrentCallIfNotIntercepted(propertyName, SET_PROPERTY);
         if (caller == null) {
             return null;
         }
@@ -376,6 +365,16 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             return null;
         }
         return Pair.of(caller, interceptor);
+    }
+
+    @NullMarked
+    static class InvokedFlag implements Runnable {
+        public boolean invoked = false;
+
+        @Override
+        public void run() {
+            invoked = true;
+        }
     }
 
     @NullMarked

@@ -64,9 +64,9 @@ public class GradleWrapperMain {
         IDownload download = new Download(logger, "gradlew", UNKNOWN_VERSION, configuration.getNetworkTimeout());
 
         wrapperExecutor.execute(
-                args,
-                new Install(logger, download, new PathAssembler(gradleUserHome, rootDir)),
-                new BootstrapMainStarter());
+            args,
+            new Install(logger, download, new PathAssembler(gradleUserHome, rootDir)),
+            new BootstrapMainStarter());
     }
 
     private static void addSystemProperties(Properties systemProperties, File gradleUserHome, File rootDir) {

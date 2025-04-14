@@ -27,13 +27,13 @@ class DefaultEarModuleTest extends Specification {
         rhs.equals(lhs) == equals
 
         where:
-        lhs || rhs || equals
-        new DefaultEarModule("some.jar") | new DefaultEarModule("some-other.jar") | false
-        new DefaultEarModule("some.jar") | new DefaultEarModule("some.jar") | true
-        new DefaultEarModule(path: "some.jar", altDeployDescriptor: "some.xml") | new DefaultEarModule("some.jar") | false
-        new DefaultEarSecurityRole("role", "description") | new DefaultEarSecurityRole("role", "description") | true
-        new DefaultEarSecurityRole("role") | new DefaultEarSecurityRole("role") | true
-        new DefaultEarSecurityRole("role") | new DefaultEarSecurityRole("other-role") | false
-        new DefaultEarSecurityRole("role", "description") | new DefaultEarSecurityRole("other-role", "other-description") | false
+        lhs                                                                    || rhs                                                          || equals
+        new DefaultEarModule("some.jar")                                        | new DefaultEarModule("some-other.jar")                        | false
+        new DefaultEarModule("some.jar")                                        | new DefaultEarModule("some.jar")                              | true
+        new DefaultEarModule(path: "some.jar", altDeployDescriptor: "some.xml") | new DefaultEarModule("some.jar")                              | false
+        new DefaultEarSecurityRole("role", "description")                       | new DefaultEarSecurityRole("role", "description")             | true
+        new DefaultEarSecurityRole("role")                                      | new DefaultEarSecurityRole("role")                            | true
+        new DefaultEarSecurityRole("role")                                      | new DefaultEarSecurityRole("other-role")                      | false
+        new DefaultEarSecurityRole("role", "description")                       | new DefaultEarSecurityRole("other-role", "other-description") | false
     }
 }

@@ -189,11 +189,11 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
             return false;
         }
         if (getTargetConfiguration() != null ? !getTargetConfiguration().equals(dependencyRhs.getTargetConfiguration())
-            : dependencyRhs.getTargetConfiguration()!=null) {
+            : dependencyRhs.getTargetConfiguration() != null) {
             return false;
         }
         if (getVersion() != null ? !getVersion().equals(dependencyRhs.getVersion())
-                : dependencyRhs.getVersion() != null) {
+            : dependencyRhs.getVersion() != null) {
             return false;
         }
         return true;
@@ -227,6 +227,10 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
     @Override
     public AttributeContainer getAttributes() {
         return attributes == null ? ImmutableAttributes.EMPTY : attributes.asImmutable();
+    }
+
+    private void setAttributes(AttributeContainerInternal attributes) {
+        this.attributes = attributes;
     }
 
     @Override
@@ -289,32 +293,28 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
         LOG.warn("Cannot set " + thing + " for dependency \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
     }
 
-    public void setAttributesFactory(AttributesFactory attributesFactory) {
-        this.attributesFactory = attributesFactory;
-    }
-
-    public void setCapabilityNotationParser(NotationParser<Object, Capability> capabilityNotationParser) {
-        this.capabilityNotationParser = capabilityNotationParser;
-    }
-
-    public void setObjectFactory(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-    }
-
     public AttributesFactory getAttributesFactory() {
         return attributesFactory;
+    }
+
+    public void setAttributesFactory(AttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
     }
 
     public NotationParser<Object, Capability> getCapabilityNotationParser() {
         return capabilityNotationParser;
     }
 
+    public void setCapabilityNotationParser(NotationParser<Object, Capability> capabilityNotationParser) {
+        this.capabilityNotationParser = capabilityNotationParser;
+    }
+
     public ObjectFactory getObjectFactory() {
         return objectFactory;
     }
 
-    private void setAttributes(AttributeContainerInternal attributes) {
-        this.attributes = attributes;
+    public void setObjectFactory(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
     }
 
     public void addMutationValidator(Action<? super ModuleDependency> action) {

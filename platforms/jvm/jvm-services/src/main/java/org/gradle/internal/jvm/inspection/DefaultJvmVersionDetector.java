@@ -42,7 +42,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
     public int getJavaVersionMajor(String javaCommand) {
         File executable = new File(javaCommand);
         File parentFolder = executable.getParentFile();
-        if(parentFolder == null || !parentFolder.exists()) {
+        if (parentFolder == null || !parentFolder.exists()) {
             Exception cause = new NoSuchFileException(javaCommand);
             throw new ExecException("A problem occurred starting process 'command '" + javaCommand + "''", cause);
         }
@@ -55,7 +55,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
     }
 
     private JvmInstallationMetadata validate(JvmInstallationMetadata metadata) {
-        if(metadata.isValidInstallation()) {
+        if (metadata.isValidInstallation()) {
             return metadata;
         }
         throw new GradleException("Unable to determine version for JDK located at " + metadata.getJavaHome() + ". Reason: " + metadata.getErrorMessage(), metadata.getErrorCause());

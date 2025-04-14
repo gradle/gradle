@@ -24,8 +24,8 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 public class AttachParentTestResultProcessor implements TestResultProcessor {
-    private Object rootId;
     private final TestResultProcessor processor;
+    private Object rootId;
 
     public AttachParentTestResultProcessor(TestResultProcessor processor) {
         this.processor = processor;

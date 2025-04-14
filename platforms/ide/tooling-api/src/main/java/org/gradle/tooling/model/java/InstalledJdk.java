@@ -37,6 +37,6 @@ public interface InstalledJdk {
      * The home directory of the Java installation.
      *
      * @return The home directory. Never returns {@code null}.
-     * */
+     */
     File getJavaHome();
 }

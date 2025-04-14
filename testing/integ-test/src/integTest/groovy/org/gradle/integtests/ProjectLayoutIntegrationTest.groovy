@@ -107,13 +107,13 @@ sourceSets.each {
         )
 
         buildDir.file('resources/main').assertHasDescendants(
-                'org/gradle/main/resource.txt',
-                'org/gradle/main/resource2.txt'
+            'org/gradle/main/resource.txt',
+            'org/gradle/main/resource2.txt'
         )
 
         buildDir.file('classes/java/test').assertHasDescendants(
-                'org/gradle/JavaClassTest.class',
-                'org/gradle/JavaClassTest2.class',
+            'org/gradle/JavaClassTest.class',
+            'org/gradle/JavaClassTest2.class',
         )
         buildDir.file('classes/groovy/test').assertHasDescendants(
             'org/gradle/GroovyClassTest.class',
@@ -125,22 +125,22 @@ sourceSets.each {
         )
 
         buildDir.file('resources/test').assertHasDescendants(
-                'org/gradle/test/resource.txt',
-                'org/gradle/test/resource2.txt',
+            'org/gradle/test/resource.txt',
+            'org/gradle/test/resource2.txt',
         )
 
         TestFile tmpDir = file('jarContents')
         buildDir.file('libs/sharedSource.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/main/resource.txt',
-                'org/gradle/main/resource2.txt',
-                'org/gradle/JavaClass.class',
-                'org/gradle/JavaClass2.class',
-                'org/gradle/GroovyClass.class',
-                'org/gradle/GroovyClass2.class',
-                'org/gradle/ScalaClass.class',
-                'org/gradle/ScalaClass2.class'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/main/resource.txt',
+            'org/gradle/main/resource2.txt',
+            'org/gradle/JavaClass.class',
+            'org/gradle/JavaClass2.class',
+            'org/gradle/GroovyClass.class',
+            'org/gradle/GroovyClass2.class',
+            'org/gradle/ScalaClass.class',
+            'org/gradle/ScalaClass2.class'
         )
 
         def runScalaDoc = !GradleContextualExecuter.daemon
@@ -184,10 +184,10 @@ sourceSets.main.java {
         executer.withTasks('clean', 'assemble').run()
 
         file('a/build/classes/java/main').assertHasDescendants(
-                'org/gradle/a/ClassA.class'
+            'org/gradle/a/ClassA.class'
         )
         file('b/build/classes/java/main').assertHasDescendants(
-                'org/gradle/b/ClassB.class'
+            'org/gradle/b/ClassB.class'
         )
     }
 

@@ -52,41 +52,6 @@ import java.util.function.Predicate;
 @ServiceScope(Scope.Build.class)
 public class JavaToolchainQueryService {
 
-    private static final class ToolchainLookupKey {
-        private final JavaToolchainSpecInternal.Key specKey;
-        private final Set<JavaInstallationCapability> requiredCapabilities;
-
-        private ToolchainLookupKey(JavaToolchainSpecInternal.Key specKey, Set<JavaInstallationCapability> requiredCapabilities) {
-            this.specKey = specKey;
-            this.requiredCapabilities = Sets.immutableEnumSet(requiredCapabilities);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            ToolchainLookupKey that = (ToolchainLookupKey) o;
-            return Objects.equals(specKey, that.specKey) && Objects.equals(requiredCapabilities, that.requiredCapabilities);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(specKey, requiredCapabilities);
-        }
-
-        @Override
-        public String toString() {
-            return "ToolchainLookupKey{" +
-                "specKey=" + specKey +
-                ", requiredCapabilities=" + requiredCapabilities +
-                '}';
-        }
-    }
-
     // A key that matches only the fallback toolchain
     private static final JavaToolchainSpecInternal.Key FALLBACK_TOOLCHAIN_KEY = new JavaToolchainSpecInternal.Key() {
         @Override
@@ -94,7 +59,6 @@ public class JavaToolchainQueryService {
             return "FallbackToolchainSpecKey";
         }
     };
-
     private final FileFactory fileFactory;
     private final JvmMetadataDetector detector;
     private final JavaToolchainProvisioningService installService;
@@ -103,7 +67,6 @@ public class JavaToolchainQueryService {
     private final JavaToolchainSpec fallbackToolchainSpec;
     private final File currentJavaHome;
     private final JavaInstallationRegistry registry;
-
     @Inject
     public JavaToolchainQueryService(
         JvmMetadataDetector detector,
@@ -243,5 +206,40 @@ public class JavaToolchainQueryService {
             throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' does not provide the required capabilities: " + requiredCapabilities);
         }
         return new JavaToolchain(metadata, fileFactory, new JavaToolchainInput(spec), isFallback);
+    }
+
+    private static final class ToolchainLookupKey {
+        private final JavaToolchainSpecInternal.Key specKey;
+        private final Set<JavaInstallationCapability> requiredCapabilities;
+
+        private ToolchainLookupKey(JavaToolchainSpecInternal.Key specKey, Set<JavaInstallationCapability> requiredCapabilities) {
+            this.specKey = specKey;
+            this.requiredCapabilities = Sets.immutableEnumSet(requiredCapabilities);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ToolchainLookupKey that = (ToolchainLookupKey) o;
+            return Objects.equals(specKey, that.specKey) && Objects.equals(requiredCapabilities, that.requiredCapabilities);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(specKey, requiredCapabilities);
+        }
+
+        @Override
+        public String toString() {
+            return "ToolchainLookupKey{" +
+                "specKey=" + specKey +
+                ", requiredCapabilities=" + requiredCapabilities +
+                '}';
+        }
     }
 }

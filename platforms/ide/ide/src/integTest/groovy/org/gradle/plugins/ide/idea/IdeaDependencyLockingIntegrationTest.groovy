@@ -52,7 +52,7 @@ dependencies {
     implementation 'groupOne:artifactTwo:[2.0,3.0)'
 }
 """
-        def content = getFile([print : true], 'root.iml').text
+        def content = getFile([print: true], 'root.iml').text
 
         //then
         assert content.count("artifactTwo-2.0.jar") == 1
@@ -90,7 +90,7 @@ dependencies {
     implementation 'groupOne:artifactTwo:[2.0,3.0)'
 }
 """
-        def content = getFile([print : true], 'root.iml').text
+        def content = getFile([print: true], 'root.iml').text
 
         //then
         assert content.count("artifactOne-1.1.jar") == 1

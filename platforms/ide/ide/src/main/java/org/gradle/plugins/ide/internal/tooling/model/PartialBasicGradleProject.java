@@ -70,6 +70,11 @@ public class PartialBasicGradleProject implements Serializable, GradleProjectIde
         return projectIdentifier;
     }
 
+    public PartialBasicGradleProject setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
+        return this;
+    }
+
     @Override
     public String getProjectPath() {
         return projectIdentifier.getProjectPath();
@@ -78,10 +83,5 @@ public class PartialBasicGradleProject implements Serializable, GradleProjectIde
     @Override
     public File getRootDir() {
         return projectIdentifier.getBuildIdentifier().getRootDir();
-    }
-
-    public PartialBasicGradleProject setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
-        this.projectIdentifier = projectIdentifier;
-        return this;
     }
 }

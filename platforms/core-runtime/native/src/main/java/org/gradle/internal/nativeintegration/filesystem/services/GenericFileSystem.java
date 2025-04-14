@@ -39,16 +39,14 @@ import java.util.UUID;
 
 class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
-
-    private Boolean caseSensitive;
     private final boolean canCreateSymbolicLink;
     private final TemporaryFileProvider temporaryFileProvider;
-
     private final FileModeMutator chmod;
     private final FileModeAccessor stat;
     private final Symlink symlink;
     private final FileMetadataAccessor metadata;
     private final StatStatistics.Collector statisticsCollector;
+    private Boolean caseSensitive;
 
     public GenericFileSystem(
         FileModeMutator chmod,

@@ -65,13 +65,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final FileChangeListeners fileChangeListeners;
     private final List<File> unsupportedFileSystems = new ArrayList<>();
-    private Logger warningLogger = LOGGER;
-
     /**
      * Watchable hierarchies registered before the {@link FileWatcherRegistry} has been started.
      */
     private final Set<File> watchableHierarchiesRegisteredEarly = new LinkedHashSet<>();
-
+    private Logger warningLogger = LOGGER;
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
     private boolean stateInvalidatedAtStartOfBuild;
@@ -341,104 +339,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         return false;
     }
 
-    private static class FilterChangesToOutputsChangesHandler implements FileWatcherRegistry.ChangeHandler {
-        private final FileWatchingFilter locationsWrittenByCurrentBuild;
-        private final FileWatcherRegistry.ChangeHandler delegate;
-
-        public FilterChangesToOutputsChangesHandler(FileWatchingFilter locationsWrittenByCurrentBuild, FileWatcherRegistry.ChangeHandler delegate) {
-            this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            if (locationsWrittenByCurrentBuild.shouldWatchLocation(path.toString())) {
-                delegate.handleChange(type, path);
-            }
-        }
-
-        @Override
-        public void stopWatchingAfterError() {
-            delegate.stopWatchingAfterError();
-        }
-    }
-
-    private class InvalidateVfsChangeHandler implements FileWatcherRegistry.ChangeHandler {
-        @Override
-        public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            updateRootUnderLock(root -> updateNotifyingListeners(
-                diffListener -> root.invalidate(path.toString(), new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
-            ));
-        }
-
-        @Override
-        public void stopWatchingAfterError() {
-            stopWatchingAndInvalidateHierarchyAfterError();
-        }
-    }
-
-    private class BroadcastingChangeHandler implements FileWatcherRegistry.ChangeHandler {
-        @Override
-        public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            fileChangeListeners.broadcastChange(type, path);
-        }
-
-        @Override
-        public void stopWatchingAfterError() {
-            fileChangeListeners.broadcastWatchingError();
-        }
-    }
-
-    private static class CompositeChangeHandler implements FileWatcherRegistry.ChangeHandler {
-        private final List<FileWatcherRegistry.ChangeHandler> handlers;
-
-        public CompositeChangeHandler(FileWatcherRegistry.ChangeHandler... handlers) {
-            this.handlers = ImmutableList.copyOf(handlers);
-        }
-
-        @Override
-        public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            handlers.forEach(handler -> handler.handleChange(type, path));
-        }
-
-        @Override
-        public void stopWatchingAfterError() {
-            handlers.forEach(FileWatcherRegistry.ChangeHandler::stopWatchingAfterError);
-        }
-    }
-
-    private static class VfsChangeLoggingNodeDiffListener implements SnapshotHierarchy.NodeDiffListener {
-        private final FileWatcherRegistry.Type type;
-        private final Path path;
-        private final SnapshotHierarchy.NodeDiffListener delegate;
-        private boolean alreadyLogged;
-
-        public VfsChangeLoggingNodeDiffListener(FileWatcherRegistry.Type type, Path path, SnapshotHierarchy.NodeDiffListener delegate) {
-            this.type = type;
-            this.path = path;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void nodeRemoved(FileSystemNode node) {
-            maybeLogVfsChangeMessage();
-            delegate.nodeRemoved(node);
-        }
-
-        @Override
-        public void nodeAdded(FileSystemNode node) {
-            maybeLogVfsChangeMessage();
-            delegate.nodeAdded(node);
-        }
-
-        private void maybeLogVfsChangeMessage() {
-            if (!alreadyLogged) {
-                alreadyLogged = true;
-                LOGGER.debug("Handling VFS change {} {}", type, path);
-            }
-        }
-    }
-
     private SnapshotHierarchy withWatcherChangeErrorHandling(SnapshotHierarchy currentRoot, Runnable runnable) {
         return withWatcherChangeErrorHandling(currentRoot, () -> {
             runnable.run();
@@ -528,6 +428,104 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             } finally {
                 watchRegistry = null;
             }
+        }
+    }
+
+    private static class FilterChangesToOutputsChangesHandler implements FileWatcherRegistry.ChangeHandler {
+        private final FileWatchingFilter locationsWrittenByCurrentBuild;
+        private final FileWatcherRegistry.ChangeHandler delegate;
+
+        public FilterChangesToOutputsChangesHandler(FileWatchingFilter locationsWrittenByCurrentBuild, FileWatcherRegistry.ChangeHandler delegate) {
+            this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            if (locationsWrittenByCurrentBuild.shouldWatchLocation(path.toString())) {
+                delegate.handleChange(type, path);
+            }
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            delegate.stopWatchingAfterError();
+        }
+    }
+
+    private static class CompositeChangeHandler implements FileWatcherRegistry.ChangeHandler {
+        private final List<FileWatcherRegistry.ChangeHandler> handlers;
+
+        public CompositeChangeHandler(FileWatcherRegistry.ChangeHandler... handlers) {
+            this.handlers = ImmutableList.copyOf(handlers);
+        }
+
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            handlers.forEach(handler -> handler.handleChange(type, path));
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            handlers.forEach(FileWatcherRegistry.ChangeHandler::stopWatchingAfterError);
+        }
+    }
+
+    private static class VfsChangeLoggingNodeDiffListener implements SnapshotHierarchy.NodeDiffListener {
+        private final FileWatcherRegistry.Type type;
+        private final Path path;
+        private final SnapshotHierarchy.NodeDiffListener delegate;
+        private boolean alreadyLogged;
+
+        public VfsChangeLoggingNodeDiffListener(FileWatcherRegistry.Type type, Path path, SnapshotHierarchy.NodeDiffListener delegate) {
+            this.type = type;
+            this.path = path;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void nodeRemoved(FileSystemNode node) {
+            maybeLogVfsChangeMessage();
+            delegate.nodeRemoved(node);
+        }
+
+        @Override
+        public void nodeAdded(FileSystemNode node) {
+            maybeLogVfsChangeMessage();
+            delegate.nodeAdded(node);
+        }
+
+        private void maybeLogVfsChangeMessage() {
+            if (!alreadyLogged) {
+                alreadyLogged = true;
+                LOGGER.debug("Handling VFS change {} {}", type, path);
+            }
+        }
+    }
+
+    private class InvalidateVfsChangeHandler implements FileWatcherRegistry.ChangeHandler {
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            updateRootUnderLock(root -> updateNotifyingListeners(
+                diffListener -> root.invalidate(path.toString(), new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
+            ));
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            stopWatchingAndInvalidateHierarchyAfterError();
+        }
+    }
+
+    private class BroadcastingChangeHandler implements FileWatcherRegistry.ChangeHandler {
+        @Override
+        public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            fileChangeListeners.broadcastChange(type, path);
+        }
+
+        @Override
+        public void stopWatchingAfterError() {
+            fileChangeListeners.broadcastWatchingError();
         }
     }
 }

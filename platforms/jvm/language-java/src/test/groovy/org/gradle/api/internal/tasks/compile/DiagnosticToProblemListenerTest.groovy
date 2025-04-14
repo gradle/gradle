@@ -63,7 +63,7 @@ class DiagnosticToProblemListenerTest extends Specification {
             name >> "SomeFile.java"
         }
         diagnostic.lineNumber >> 1
-        diagnostic.columnNumber  >> NOPOS
+        diagnostic.columnNumber >> NOPOS
         diagnostic.startPosition >> NOPOS
         diagnostic.endPosition >> NOPOS
 
@@ -88,7 +88,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         }
         diagnostic.lineNumber >> 1
         diagnostic.columnNumber >> 1
-        diagnostic.startPosition  >> NOPOS
+        diagnostic.startPosition >> NOPOS
         diagnostic.endPosition >> NOPOS
         diagnostic.position >> NOPOS
 

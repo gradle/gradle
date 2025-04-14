@@ -111,6 +111,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.listener = listener;
     }
 
+    private static ModuleDescriptorHashModuleSource findCachingModuleSource(ModuleSources sources) {
+        return sources.getSource(ModuleDescriptorHashModuleSource.class)
+            .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
+    }
+
     @Override
     public String getId() {
         return delegate.getId();
@@ -144,6 +149,22 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     @Override
     public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
         return delegate.getComponentMetadataSupplier();
+    }
+
+    private ModuleComponentResolveMetadata attachRepositorySource(ModuleComponentResolveMetadata processedMetadata) {
+        RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(delegate);
+        ModuleSources originSources = processedMetadata.getSources();
+        ImmutableModuleSources mergedSources = ImmutableModuleSources.of(originSources, moduleSource);
+        processedMetadata = processedMetadata.withSources(mergedSources);
+        return processedMetadata;
+    }
+
+    private String cacheKey(ArtifactType artifactType) {
+        return "artifacts:" + artifactType.name();
+    }
+
+    private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactIdentifier id) {
+        return new ArtifactAtRepositoryKey(delegate.getId(), id);
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
@@ -346,11 +367,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    private static ModuleDescriptorHashModuleSource findCachingModuleSource(ModuleSources sources) {
-        return sources.getSource(ModuleDescriptorHashModuleSource.class)
-               .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
-    }
-
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         @Override
         public String toString() {
@@ -473,22 +489,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
             return delegate.getLocalAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
-    }
-
-    private ModuleComponentResolveMetadata attachRepositorySource(ModuleComponentResolveMetadata processedMetadata) {
-        RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(delegate);
-        ModuleSources originSources = processedMetadata.getSources();
-        ImmutableModuleSources mergedSources = ImmutableModuleSources.of(originSources, moduleSource);
-        processedMetadata = processedMetadata.withSources(mergedSources);
-        return processedMetadata;
-    }
-
-    private String cacheKey(ArtifactType artifactType) {
-        return "artifacts:" + artifactType.name();
-    }
-
-    private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactIdentifier id) {
-        return new ArtifactAtRepositoryKey(delegate.getId(), id);
     }
 
 }

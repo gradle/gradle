@@ -98,6 +98,11 @@ public class UpgradedProperty {
             '}';
     }
 
+    public enum BinaryCompatibility {
+        ACCESSORS_REMOVED,
+        ACCESSORS_KEPT
+    }
+
     public static class ReplacedAccessor {
         private final String name;
         private final String descriptor;
@@ -150,11 +155,6 @@ public class UpgradedProperty {
                 ", binaryCompatibility='" + binaryCompatibility + '\'' +
                 '}';
         }
-    }
-
-    public enum BinaryCompatibility {
-        ACCESSORS_REMOVED,
-        ACCESSORS_KEPT
     }
 
     public static class AccessorKey {

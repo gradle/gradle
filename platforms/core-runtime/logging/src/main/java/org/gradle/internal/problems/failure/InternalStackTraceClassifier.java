@@ -23,12 +23,6 @@ import org.jspecify.annotations.Nullable;
  */
 public class InternalStackTraceClassifier implements StackTraceClassifier {
 
-    @Nullable
-    @Override
-    public StackTraceRelevance classify(StackTraceElement frame) {
-        return isInternal(frame.getClassName()) ? StackTraceRelevance.INTERNAL : null;
-    }
-
     private static boolean isInternal(String className) {
         // JDK calls
         return className.startsWith("java.") ||
@@ -44,5 +38,11 @@ public class InternalStackTraceClassifier implements StackTraceClassifier {
     public static boolean isGradleCall(String className) {
         return className.startsWith("org.gradle.") ||
             className.startsWith("worker.org.gradle.");
+    }
+
+    @Nullable
+    @Override
+    public StackTraceRelevance classify(StackTraceElement frame) {
+        return isInternal(frame.getClassName()) ? StackTraceRelevance.INTERNAL : null;
     }
 }

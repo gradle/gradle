@@ -62,6 +62,24 @@ import static org.gradle.architecture.test.ArchUnitFixture.useJSpecifyNullable;
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiCorrectnessTest {
 
+    @ArchTest
+    public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()
+        .that(are(gradlePublicApi()))
+        .should(not(haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi())))
+    );
+    /**
+     * Code written in Kotlin implicitly uses {@link org.jetbrains.annotations.Nullable}, so
+     * those packages are excluded from this check.
+     */
+    @ArchTest
+    public static final ArchRule all_methods_use_proper_Nullable = methods()
+        .that(are(not_written_in_kotlin).and(are(not_from_fileevents)))
+        .should(useJSpecifyNullable()
+        );
+    @ArchTest
+    public static final ArchRule named_domain_object_collection_implementations_override_named_method = classes()
+        .that(implement(NamedDomainObjectCollection.class))
+        .should(overrideMethod("named", new Class<?>[]{Spec.class}, NamedDomainObjectCollection.class));
     private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
         gradlePublicApi()
             .or(primitive)
@@ -84,39 +102,15 @@ public class PublicApiCorrectnessTest {
                 .or(type(Pair[].class))
                 .as("Kotlin classes")
             );
-    private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
-            gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
-
     @ArchTest
     public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
         .that(are(public_api_methods))
         .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api))
     );
-
+    private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
+        gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
     @ArchTest
     public static final ArchRule public_api_tasks_and_plugins_are_abstract = classes()
-            .that(are(public_api_tasks_or_plugins))
-            .should(beAbstract());
-
-
-    @ArchTest
-    public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()
-        .that(are(gradlePublicApi()))
-        .should(not(haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi())))
-    );
-
-    /**
-     * Code written in Kotlin implicitly uses {@link org.jetbrains.annotations.Nullable}, so
-     * those packages are excluded from this check.
-     */
-    @ArchTest
-    public static final ArchRule all_methods_use_proper_Nullable = methods()
-            .that(are(not_written_in_kotlin).and(are(not_from_fileevents)))
-            .should(useJSpecifyNullable()
-    );
-
-    @ArchTest
-    public static final ArchRule named_domain_object_collection_implementations_override_named_method = classes()
-        .that(implement(NamedDomainObjectCollection.class))
-        .should(overrideMethod("named", new Class<?>[] {Spec.class}, NamedDomainObjectCollection.class));
+        .that(are(public_api_tasks_or_plugins))
+        .should(beAbstract());
 }

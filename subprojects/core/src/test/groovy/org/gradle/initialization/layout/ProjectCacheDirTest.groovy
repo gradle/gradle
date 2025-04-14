@@ -34,14 +34,16 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 
 class ProjectCacheDirTest extends Specification implements VersionSpecificCacheCleanupFixture {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheDir = temporaryFolder.createDir(".gradle")
     def context = Mock(BuildOperationContext)
     def buildOperationRunner = Mock(BuildOperationRunner)
     def deleter = TestFiles.deleter()
 
-    @Subject def projectCacheDir = new ProjectCacheDir(cacheDir, buildOperationRunner, deleter)
+    @Subject
+    def projectCacheDir = new ProjectCacheDir(cacheDir, buildOperationRunner, deleter)
 
     def "cleans up unused version-specific cache directories"() {
         given:

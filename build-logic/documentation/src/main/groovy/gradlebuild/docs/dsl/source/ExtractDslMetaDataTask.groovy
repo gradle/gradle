@@ -74,7 +74,7 @@ abstract class ExtractDslMetaDataTask extends SourceTask {
 
         Date stop = new Date()
         TimeDuration elapsedTime = TimeCategory.minus(stop, start)
-        Logging.getLogger(this.getClass()).lifecycle( "Parsed $counter classes in ${elapsedTime}")
+        Logging.getLogger(this.getClass()).lifecycle("Parsed $counter classes in ${elapsedTime}")
     }
 
     def parse(File sourceFile, ClassMetaDataRepository<gradlebuild.docs.dsl.source.model.ClassMetaData> repository) {
@@ -90,7 +90,7 @@ abstract class ExtractDslMetaDataTask extends SourceTask {
 
     def fullyQualifyAllTypeNames(gradlebuild.docs.dsl.source.model.ClassMetaData classMetaData, TypeNameResolver resolver) {
         try {
-            classMetaData.resolveTypes(new Transformer<String, String>(){
+            classMetaData.resolveTypes(new Transformer<String, String>() {
                 String transform(String i) {
                     return resolver.resolve(i, classMetaData)
                 }

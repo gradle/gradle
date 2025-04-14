@@ -70,7 +70,8 @@ class BasicParsingTest {
         val results = ParseTestUtil.parse(
             """
             f.g.h.i.j.k(test)
-            """.trimIndent())
+            """.trimIndent()
+        )
 
         val expected = """
             FunctionCall [indexes: 10..17, line/column: 1/11..1/18, file: test] (
@@ -345,7 +346,8 @@ class BasicParsingTest {
             `backtick block with param` ("param") {
                 b = 2
             }
-            """.trimIndent())
+            """.trimIndent()
+        )
 
         val expected = """
             FunctionCall [indexes: 0..11, line/column: 1/1..1/12, file: test] (

@@ -35,7 +35,7 @@ public class ComponentArtifactMetadataSerializer extends AbstractSerializer<Comp
         if (value instanceof ModuleComponentArtifactMetadata) {
             ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) value;
             componentIdentifierSerializer.write(encoder, moduleComponentArtifactMetadata.getComponentId());
-            IvyArtifactNameSerializer.INSTANCE.write(encoder,  moduleComponentArtifactMetadata.getName());
+            IvyArtifactNameSerializer.INSTANCE.write(encoder, moduleComponentArtifactMetadata.getName());
         } else {
             throw new IllegalArgumentException("Unknown artifact metadata type.");
         }

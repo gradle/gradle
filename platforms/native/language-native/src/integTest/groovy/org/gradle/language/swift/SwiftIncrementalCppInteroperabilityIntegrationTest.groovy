@@ -58,7 +58,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         then:
         result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped( ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksNotSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
 

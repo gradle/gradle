@@ -44,7 +44,7 @@ class GroovyToJavaConversionIntegrationTest extends AbstractIntegrationSpec {
         executer.requireDaemon().requireIsolatedDaemons() // We need to fork - if we do not fork Class-Decoration does not happen
 
         when:
-        def convertedClasses = this.getClass().getResource( '/org/gradle/initialization/converted-types.txt' ).readLines()
+        def convertedClasses = this.getClass().getResource('/org/gradle/initialization/converted-types.txt').readLines()
         buildFile << """
             task checkHasGetters {
                 doLast {

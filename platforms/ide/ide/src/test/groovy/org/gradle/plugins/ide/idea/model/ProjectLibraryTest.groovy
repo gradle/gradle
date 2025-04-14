@@ -22,7 +22,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectLibraryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     def "has friendly defaults"() {
         def library = new ProjectLibrary()
@@ -40,21 +41,21 @@ class ProjectLibraryTest extends Specification {
         expect:
         new ProjectLibrary() == new ProjectLibrary()
         new ProjectLibrary(name: "lib1") == new ProjectLibrary(name: "lib1")
-        new ProjectLibrary(name: "lib1", classes:  [new File("class/one"), new File("class/two")]) ==
-                new ProjectLibrary(name: "lib1", classes: [new File("class/two"), new File("class/one")])
+        new ProjectLibrary(name: "lib1", classes: [new File("class/one"), new File("class/two")]) ==
+            new ProjectLibrary(name: "lib1", classes: [new File("class/two"), new File("class/one")])
 
         new ProjectLibrary(name: "lib1") != new ProjectLibrary(name: "OTHER")
-        new ProjectLibrary(name: "lib1", classes:  [new File("class/one"), new File("class/two")]) !=
-                new ProjectLibrary(name: "lib1", classes:  [new File("class/one"), new File("class/OTHER")])
+        new ProjectLibrary(name: "lib1", classes: [new File("class/one"), new File("class/two")]) !=
+            new ProjectLibrary(name: "lib1", classes: [new File("class/one"), new File("class/OTHER")])
     }
 
     def "generates correct XML"() {
         def userHome = testDirProvider.testDirectory
 
         def lib = new ProjectLibrary(name: "lib",
-                classes: [new File(userHome, "class/one.jar"), new File(userHome, "class/two.jar")] as LinkedHashSet,
-                javadoc: [new File(userHome, "javadoc/one.jar"), new File(userHome, "javadoc/two.jar")] as LinkedHashSet,
-                sources: [new File(userHome, "source/one.jar"), new File(userHome, "source/two.jar")] as LinkedHashSet)
+            classes: [new File(userHome, "class/one.jar"), new File(userHome, "class/two.jar")] as LinkedHashSet,
+            javadoc: [new File(userHome, "javadoc/one.jar"), new File(userHome, "javadoc/two.jar")] as LinkedHashSet,
+            sources: [new File(userHome, "source/one.jar"), new File(userHome, "source/two.jar")] as LinkedHashSet)
 
         def pathFactory = new PathFactory()
         pathFactory.addPathVariable("USER_HOME", userHome)

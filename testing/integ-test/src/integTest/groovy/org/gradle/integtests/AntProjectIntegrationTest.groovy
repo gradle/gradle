@@ -184,10 +184,10 @@ ant.importBuild('build.xml')
 """
         inTestDirectory().withTasks('a', 'e', 'h').run()
             .assertTasksExecutedInOrder any(
-                exact(any(':d', ':c', ':b'), ':a'),
-                exact(any(':g', ':f'), ':e'),
-                exact(':i', ':h')
-            )
+            exact(any(':d', ':c', ':b'), ':a'),
+            exact(any(':g', ':f'), ':e'),
+            exact(':i', ':h')
+        )
     }
 
     @Test

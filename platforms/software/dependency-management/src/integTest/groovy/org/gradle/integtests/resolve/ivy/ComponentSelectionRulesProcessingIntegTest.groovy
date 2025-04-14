@@ -100,9 +100,9 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
     }
 
     // this test doesn't make sense with Gradle metadata
-    @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     // only test one combination
-    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
     def "maven module is not affected by rule requiring ivy module descriptor input"() {
         def mavenModule = mavenRepo.module("org.utils", "api", "1.1").publishWithChangedContent()
 
@@ -148,8 +148,8 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
     }
 
     // Gradle metadata doesn't support parents
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    def "parent is not affected by selection rules" () {
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    def "parent is not affected by selection rules"() {
         given:
         repository {
             'org:parent_dep:1.2'()
@@ -226,8 +226,8 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
     }
 
     // because of the IvyModuleDescriptor rule
-    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
-    def "component metadata is requested only once for rules that do require it" () {
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+    def "component metadata is requested only once for rules that do require it"() {
         buildFile << """
             dependencies {
                 conf "org.utils:api:2.0"
@@ -277,10 +277,10 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
     }
 
     // because of the IvyModuleDescriptor rule
-    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
     // because of branch
-    @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    def "changed component metadata becomes visible when module is refreshed" () {
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    def "changed component metadata becomes visible when module is refreshed"() {
 
         def commonBuildFile = buildFile.text + """
             dependencies {
@@ -381,7 +381,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         succeeds 'checkDeps'
     }
 
-    def "copies selection rules when configuration is copied" () {
+    def "copies selection rules when configuration is copied"() {
         buildFile << """
             configurations {
                 notCopy
@@ -430,7 +430,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies("assertDeps")
     }
 
-    def "can provide component selection rule as closure" () {
+    def "can provide component selection rule as closure"() {
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.+"

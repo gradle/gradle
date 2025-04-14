@@ -19,7 +19,7 @@ tree = fileTree(dir: 'src', include: '**/*.java', exclude: '**/*test*/**')
 
 // tag::use[]
 // Iterate over the contents of a tree
-tree.each {File file ->
+tree.each { File file ->
     println file
 }
 
@@ -32,7 +32,7 @@ FileTree filtered = tree.matching {
 FileTree sum = tree + fileTree(dir: 'src/test')
 
 // Visit the elements of the tree
-tree.visit {element ->
+tree.visit { element ->
     println "$element.relativePath => $element.file"
 }
 // end::use[]

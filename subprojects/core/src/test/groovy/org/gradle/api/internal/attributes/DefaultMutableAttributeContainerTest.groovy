@@ -40,10 +40,10 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
     @Override
     protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
         DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator(), TestUtil.propertyFactory())
-        attributes.forEach {key, value ->
+        attributes.forEach { key, value ->
             container.attribute(key, value)
         }
-        moreAttributes.forEach {key, value ->
+        moreAttributes.forEach { key, value ->
             container.attribute(key, value)
         }
         return container
@@ -54,9 +54,9 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def actual = []
         def expected = []
         (1..100).each { idx ->
-            def testAttribute = Attribute.of("test"+idx, String)
+            def testAttribute = Attribute.of("test" + idx, String)
             expected << idx
-            container.attributeProvider(testAttribute, Providers.<String>changing {
+            container.attributeProvider(testAttribute, Providers.<String> changing {
                 actual << idx
                 "value " + idx
             })
@@ -70,7 +70,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def container = createContainer()
         def firstAttribute = Attribute.of("first", String)
         def secondAttribute = Attribute.of("second", String)
-        container.attributeProvider(firstAttribute, Providers.<String>changing {
+        container.attributeProvider(firstAttribute, Providers.<String> changing {
             // side effect is to evaluate the secondAttribute's value and prevent
             // it from changing by removing it from the list of "lazy attributes"
             container.getAttribute(secondAttribute)
@@ -89,8 +89,8 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def container = createContainer()
         def firstAttribute = Attribute.of("first", String)
         def secondAttribute = Attribute.of("second", String)
-        container.attributeProvider(firstAttribute, Providers.<String>changing {
-            container.attribute(secondAttribute, "second" )
+        container.attributeProvider(firstAttribute, Providers.<String> changing {
+            container.attribute(secondAttribute, "second")
             "first"
         })
 
@@ -106,7 +106,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def container = createContainer()
         def firstAttribute = Attribute.of("first", String)
         def secondAttribute = Attribute.of("second", String)
-        container.attributeProvider(firstAttribute, Providers.<String>changing {
+        container.attributeProvider(firstAttribute, Providers.<String> changing {
             container.attributeProvider(secondAttribute, Providers.of("second"))
             "first"
         })
@@ -133,7 +133,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
     }
 
     def "adding mismatched attribute types fails when retrieving the key when the provider does not know the type"() {
-        Provider<?> testProperty = new DefaultProvider<?>( { 1 })
+        Provider<?> testProperty = new DefaultProvider<?>({ 1 })
         def testAttribute = Attribute.of("test", String)
         def container = createContainer()
 

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal
+
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -208,8 +209,7 @@ class DefaultNativeToolChainRegistryTest extends Specification {
         return testToolChain
     }
 
-    interface TestNativeToolChain extends NativeToolChainInternal
-    {
+    interface TestNativeToolChain extends NativeToolChainInternal {
         void setBaseDir(String value);
     }
 

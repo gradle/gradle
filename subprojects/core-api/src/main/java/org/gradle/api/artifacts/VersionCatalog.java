@@ -39,6 +39,7 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
+     *
      * @param alias the alias of the library
      * @since 7.4
      */
@@ -49,6 +50,7 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Bundle will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
+     *
      * @param alias the alias of the bundle
      */
     Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String alias);
@@ -58,6 +60,7 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
+     *
      * @param alias the alias of the version
      */
     Optional<VersionConstraint> findVersion(String alias);
@@ -67,8 +70,8 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Alias will be automatically normalized: '-', '_' and '.' will be replaced with '.'
      * </p>
-     * @param alias the alias of the plugin
      *
+     * @param alias the alias of the plugin
      * @since 7.2
      */
     Optional<Provider<PluginDependency>> findPlugin(String alias);
@@ -78,8 +81,8 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
      * </p>
-     * @return the list of library aliases
      *
+     * @return the list of library aliases
      * @since 7.4
      */
     List<String> getLibraryAliases();
@@ -89,8 +92,8 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
      * </p>
-     * @return the list of bundle aliases
      *
+     * @return the list of bundle aliases
      * @since 7.1
      */
     List<String> getBundleAliases();
@@ -100,8 +103,8 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
      * </p>
-     * @return the list of version aliases
      *
+     * @return the list of version aliases
      * @since 7.1
      */
     List<String> getVersionAliases();
@@ -111,8 +114,8 @@ public interface VersionCatalog extends Named {
      * <p>
      * Note: Returned aliases are normalized: '-', '_' and '.' have been replaced with '.'
      * </p>
-     * @return the list of plugin aliases
      *
+     * @return the list of plugin aliases
      * @since 7.2
      */
     List<String> getPluginAliases();

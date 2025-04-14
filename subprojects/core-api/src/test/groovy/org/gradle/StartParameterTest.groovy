@@ -31,8 +31,10 @@ import static org.gradle.util.Matchers.isSerializable
 import static org.hamcrest.MatcherAssert.assertThat
 
 class StartParameterTest extends Specification {
-    @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule private SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule
+    private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    private SetSystemProperties systemProperties = new SetSystemProperties()
 
     void "new instance has correct state"() {
         def parameter = new StartParameter()
@@ -345,7 +347,7 @@ class StartParameterTest extends Specification {
         parameter.taskRequests = requests
 
         then:
-        parameter.taskNames == [ 'a', 'b' ]
+        parameter.taskNames == ['a', 'b']
         parameter.taskRequests == requests
     }
 
@@ -353,11 +355,11 @@ class StartParameterTest extends Specification {
         StartParameter parameter = new StartParameter()
 
         when:
-        parameter.taskNames = [ 'a', 'b' ]
+        parameter.taskNames = ['a', 'b']
 
         then:
-        parameter.taskNames == [ 'a', 'b' ]
-        parameter.taskRequests == [ new DefaultTaskExecutionRequest(['a', 'b']) ]
+        parameter.taskNames == ['a', 'b']
+        parameter.taskRequests == [new DefaultTaskExecutionRequest(['a', 'b'])]
 
         when:
         parameter.taskNames = null

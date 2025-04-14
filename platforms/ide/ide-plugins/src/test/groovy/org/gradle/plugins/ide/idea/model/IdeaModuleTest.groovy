@@ -63,17 +63,17 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         module.targetBytecodeVersion == null
     }
 
-   def "target bytecode version is null if matching calculated idea project bytecode version"() {
-       given:
-       project.getPlugins().apply(IdeaPlugin)
-       project.getPlugins().apply(JavaPlugin)
-       moduleProject.getPlugins().apply(JavaPlugin)
-       moduleProject.java.targetCompatibility = 1.5
-       project.java.targetCompatibility = 1.5
+    def "target bytecode version is null if matching calculated idea project bytecode version"() {
+        given:
+        project.getPlugins().apply(IdeaPlugin)
+        project.getPlugins().apply(JavaPlugin)
+        moduleProject.getPlugins().apply(JavaPlugin)
+        moduleProject.java.targetCompatibility = 1.5
+        project.java.targetCompatibility = 1.5
 
-       def iml = Mock(IdeaModuleIml)
-       def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
-       expect:
-       module.targetBytecodeVersion == null
-   }
+        def iml = Mock(IdeaModuleIml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
+        expect:
+        module.targetBytecodeVersion == null
+    }
 }

@@ -15,13 +15,12 @@
  */
 
 
-
 package org.gradle.language
 
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
-class AutoTestedSamplesLanguageNativeIntegrationTest extends AbstractAutoTestedSamplesTest{
+class AutoTestedSamplesLanguageNativeIntegrationTest extends AbstractAutoTestedSamplesTest {
 
     @Test
     void runSamples() {

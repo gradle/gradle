@@ -14,37 +14,37 @@ model {
         }
     }
     components {
-<%
-components.each { component ->
-    out.println """
+        < %
+        components.each { component ->
+            out.println """
         ${component.name}(${component.type}) {
             binaries.all {"""
-    component.deps.each { dep ->
-        out.println """
+            component.deps.each { dep ->
+                out.println """
                 lib project: '${dep.project}', library: '${dep.library}', linkage: '${dep.linkage}'"""
-    }
-    out.println """    
+            }
+            out.println """
             }
         }"""
-}
-%>
+        }
+            % >
     }
 
     testSuites {
-<%
-components.each { component ->
-    out.println """
+        < %
+        components.each { component ->
+            out.println """
         ${component.name}Test {
             binaries.all {"""
-    component.deps.each { dep ->
-        out.println """
+            component.deps.each { dep ->
+                out.println """
                 lib project: '${dep.project}', library: '${dep.library}', linkage: '${dep.linkage}'"""
-    }
-    out.println """    
+            }
+            out.println """
             }
         }"""
-}
-%>
+        }
+            % >
     }
 
     binaries {

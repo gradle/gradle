@@ -72,11 +72,11 @@ plugins {
         outputContains("org:foo:1.0")
 
         where:
-        inSettings  | notation
-        true        | "excludeGroup('org')"
-        true        | "excludeGroupByRegex('or.+')"
-        false       | "excludeGroup('org')"
-        false       | "excludeGroupByRegex('or.+')"
+        inSettings | notation
+        true       | "excludeGroup('org')"
+        true       | "excludeGroupByRegex('or.+')"
+        false      | "excludeGroup('org')"
+        false      | "excludeGroupByRegex('or.+')"
     }
 
     def 'exclusive content filtering in settings prevents adding repositories in project'() {

@@ -48,7 +48,6 @@ import static java.lang.String.format;
 
 @NullMarked
 public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, FinalizedExecutionPlan {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFinalizedExecutionPlan.class);
     public static final Comparator<Node> NODE_EXECUTION_ORDER = new Comparator<Node>() {
         @Override
         public int compare(Node node1, Node node2) {
@@ -65,7 +64,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             return NodeComparator.INSTANCE.compare(node1, node2);
         }
     };
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFinalizedExecutionPlan.class);
     private final Set<Node> waitingToStartNodes = new HashSet<>();
     private final ExecutionQueue readyNodes = new ExecutionQueue();
     private final List<Throwable> failures = new ArrayList<>();
@@ -74,21 +73,17 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private final ResourceLockCoordinationService lockCoordinator;
-    private final Action<ResourceLock> resourceUnlockListener = this::resourceUnlocked;
-
-    private boolean invalidNodeRunning;
     private final boolean continueOnFailure;
     private final QueryableExecutionPlan contents;
-
     private final Set<Node> runningNodes = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
     private final Consumer<LocalTaskNode> completionHandler;
-
+    private boolean invalidNodeRunning;
     // When true, there may be nodes that are both ready and "selectable", which means their project and resources are able to be locked
     // When false, there are definitely no nodes that are "selectable"
     private boolean maybeNodesSelectable;
-
+    private final Action<ResourceLock> resourceUnlockListener = this::resourceUnlocked;
     private boolean buildCancelled;
 
     public DefaultFinalizedExecutionPlan(
@@ -678,6 +673,10 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         return waitingToStartNodes.isEmpty() && runningNodes.isEmpty();
     }
 
+    private interface DiagnosticEvent {
+        String message();
+    }
+
     /**
      * An ordered queue of nodes, sorted by {@link #NODE_EXECUTION_ORDER}.
      */
@@ -736,10 +735,6 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 current = null;
             }
         }
-    }
-
-    private interface DiagnosticEvent {
-        String message();
     }
 
     private static abstract class AbstractNodeEvent implements DiagnosticEvent {

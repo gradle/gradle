@@ -58,7 +58,7 @@ public class HierarchicalClassLoaderStructure implements ClassLoaderStructure {
         }
         HierarchicalClassLoaderStructure that = (HierarchicalClassLoaderStructure) o;
         return Objects.equal(self, that.self) &&
-                Objects.equal(parent, that.parent);
+            Objects.equal(parent, that.parent);
     }
 
     @Override
@@ -69,8 +69,8 @@ public class HierarchicalClassLoaderStructure implements ClassLoaderStructure {
     @Override
     public String toString() {
         return "HierarchicalClassLoaderStructure{" +
-                "self=" + self +
-                ", parent=" + parent +
-                '}';
+            "self=" + self +
+            ", parent=" + parent +
+            '}';
     }
 }

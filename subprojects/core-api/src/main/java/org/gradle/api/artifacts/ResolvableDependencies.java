@@ -76,7 +76,6 @@ public interface ResolvableDependencies extends ArtifactView {
      * Returns the set of dependency constraints which will be considered during resolution.
      *
      * @return the dependency constraints. Never null.
-     *
      * @since 4.6
      */
     DependencyConstraintSet getDependencyConstraints();
@@ -134,8 +133,8 @@ public interface ResolvableDependencies extends ArtifactView {
 
     /**
      * Returns a builder that can be used to define and access a filtered view of the resolved artifacts.
-     * @return A view over the artifacts resolved for this set of dependencies.
      *
+     * @return A view over the artifacts resolved for this set of dependencies.
      * @since 3.4
      */
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction);

@@ -52,7 +52,7 @@ class IdeaSourceDirTypesIntegrationTests extends AbstractIntegrationSpec {
         then:
         result.assertTasksExecuted(":ideaModule", ":ideaProject", ":ideaWorkspace", ":idea")
 
-        def moduleFixture = parseIml(file ( 'root.iml'))
+        def moduleFixture = parseIml(file('root.iml'))
         def sources = moduleFixture.getContent().getProperty("sources")
         def integTestSource = sources.find { s -> s.url == 'file://$MODULE_DIR$/src/integTest/java' }
         assert integTestSource.isTestSource

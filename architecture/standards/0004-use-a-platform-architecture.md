@@ -38,11 +38,12 @@ This is a general-purpose automation platform which takes care of the efficient 
 This platform is agnostic to what exactly the purpose of the work is.
 It might be creating an application, setting up development environments, orchestrating deployments, running simulations, etc.
 
-This platform does not provide special support for a particular kind of automation. This is the responsibility of other platforms. 
+This platform does not provide special support for a particular kind of automation. This is the responsibility of other platforms.
 
 It is made up of 3 architecture modules:
 
-- **Runtime**: Provides the runtimes or "containers" in which code runs. These runtimes include the Gradle client, the daemon and the worker processes. This is the base module on which all other architecture modules depend.
+- **Runtime**: Provides the runtimes or "containers" in which code runs. These runtimes include the Gradle client, the daemon and the worker processes. This is the base module on which all other
+  architecture modules depend.
 - **Configuration**: Allows the build structure and work, such as tasks, to be specified. This includes the project model, the DSL and so on.
 - **Execution**: Runs the work efficiently. This includes scheduling, execution, caching and so on.
 
@@ -60,7 +61,7 @@ This platform does not provide special support for a particular language or ecos
 This is a platform that builds on the core and software platforms to add support for developing software that runs on the JVM.
 This includes software that is implemented using Java, Kotlin or some other JVM language.
 
-This platform provides specific support for Java, Groovy and Scala, and includes the foojay toolchain plugin. 
+This platform provides specific support for Java, Groovy and Scala, and includes the foojay toolchain plugin.
 
 #### Extensibility platform
 

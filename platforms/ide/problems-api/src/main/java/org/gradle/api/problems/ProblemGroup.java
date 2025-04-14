@@ -29,8 +29,8 @@ import javax.annotation.concurrent.Immutable;
  * <p>
  * Two problem groups  are considered equal if their {@link #getName()} and their parents are equal.
  *
- * @since 8.8
  * @see ProblemId
+ * @since 8.8
  */
 @Incubating
 @Immutable
@@ -44,28 +44,6 @@ public abstract class ProblemGroup {
     protected ProblemGroup() {
         // clients should use the static create() method
     }
-
-    /**
-     * The name of the problem group.
-     *
-     * @since 8.8
-     */
-    public abstract String getName();
-
-    /**
-     * Returns a human-readable label describing the group.
-     *
-     * @since 8.8
-     */
-    public abstract String getDisplayName();
-
-    /**
-     * Returns the parent group or {@code null} for root groups.
-     *
-     * @since 8.8
-     */
-    @Nullable
-    public abstract ProblemGroup getParent();
 
     /**
      * Creates a new root problem i.e. a group with no parent.
@@ -91,4 +69,26 @@ public abstract class ProblemGroup {
     public static ProblemGroup create(String name, String displayName, @Nullable ProblemGroup parent) {
         return new DefaultProblemGroup(name, displayName, parent);
     }
+
+    /**
+     * The name of the problem group.
+     *
+     * @since 8.8
+     */
+    public abstract String getName();
+
+    /**
+     * Returns a human-readable label describing the group.
+     *
+     * @since 8.8
+     */
+    public abstract String getDisplayName();
+
+    /**
+     * Returns the parent group or {@code null} for root groups.
+     *
+     * @since 8.8
+     */
+    @Nullable
+    public abstract ProblemGroup getParent();
 }

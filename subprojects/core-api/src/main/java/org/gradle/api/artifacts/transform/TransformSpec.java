@@ -22,8 +22,8 @@ import org.gradle.api.attributes.AttributeContainer;
 /**
  * Base configuration for artifact transform registrations.
  *
- * @see org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)
  * @param <T> The transform specific parameter type.
+ * @see org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)
  * @since 5.3
  */
 public interface TransformSpec<T extends TransformParameters> {
@@ -50,7 +50,7 @@ public interface TransformSpec<T extends TransformParameters> {
 
     /**
      * Configure the parameters for the transform action.
-     * 
+     *
      * @see org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)
      */
     void parameters(Action<? super T> action);

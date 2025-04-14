@@ -91,7 +91,7 @@ tasks.jar {
         .withPropertyName("flamegraph")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    from(files(provider{ flamegraph.map { zipTree(it) } }))
+    from(files(provider { flamegraph.map { zipTree(it) } }))
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

@@ -35,6 +35,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
     File temporaryFolder
 
     TestFile tmpDir
+
     def setup() {
         tmpDir = new TestFile(new File(temporaryFolder, "tmp").tap { mkdirs() })
     }
@@ -75,55 +76,55 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         metadata.javaHome != null
 
         where:
-        jdk              | systemProperties         | javaVersion             | displayName                  | jre
-        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                         | false
-        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                         | true
-        'openJdk4'       | openJdkJvm('4')          | JavaVersion.VERSION_1_4 | 'OpenJDK 4'                  | false
-        'openJdk5'       | openJdkJvm('5')          | JavaVersion.VERSION_1_5 | 'OpenJDK 5'                  | false
-        'openJdk6'       | openJdkJvm('6')          | JavaVersion.VERSION_1_6 | 'OpenJDK 6'                  | false
-        'openJdk7'       | openJdkJvm('7')          | JavaVersion.VERSION_1_7 | 'OpenJDK 7'                  | false
-        'openJdk8'       | openJdkJvm('8')          | JavaVersion.VERSION_1_8 | 'OpenJDK 8'                  | false
-        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK 9'                  | false
-        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9'              | true
-        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK 11'            | false
-        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'        | true
-        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | JavaVersion.VERSION_14  | 'AdoptOpenJDK 14'            | false
-        'oracleJdk4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'               | false
-        'oracleJre4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'               | true
-        'oracleJdk5'     | oracleJvm('5')           | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'               | false
-        'oracleJdk6'     | oracleJvm('6')           | JavaVersion.VERSION_1_6 | 'Oracle JDK 6'               | false
-        'oracleJdk7'     | oracleJvm('7')           | JavaVersion.VERSION_1_7 | 'Oracle JDK 7'               | false
-        'oracleJdk8'     | oracleJvm('8')           | JavaVersion.VERSION_1_8 | 'Oracle JDK 8'               | false
-        'oracleJdk9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JDK 9'               | false
-        'oracleJre9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JRE 9'               | true
-        'ibmJdk4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JDK 4'                  | false
-        'ibmJre4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JRE 4'                  | true
-        'ibmJdk5'        | ibmJvm('5')              | JavaVersion.VERSION_1_5 | 'IBM JDK 5'                  | false
-        'ibmJdk6'        | ibmJvm('6')              | JavaVersion.VERSION_1_6 | 'IBM JDK 6'                  | false
-        'ibmJdk7'        | ibmJvm('7')              | JavaVersion.VERSION_1_7 | 'IBM JDK 7'                  | false
-        'ibmJdk8'        | ibmJvm('8')              | JavaVersion.VERSION_1_8 | 'IBM JDK 8'                  | false
-        'ibmJdk9'        | ibmJvm('9')              | JavaVersion.VERSION_1_9 | 'IBM JDK 9'                  | false
-        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Azul Zulu JRE 6'            | true
-        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Azul Zulu JDK 8'            | false
-        'hpuxJre6'       | hpuxJvm('6')             | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'                | true
-        'hpuxJdk7'       | hpuxJvm('7')             | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'                | false
-        'sapjdk13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13'      | false
-        'sapjre13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JRE 13'      | true
-        'correttojdk11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JDK 11'     | false
-        'correttojre11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JRE 11'     | true
-        'bellsoftjdk11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15'   | false
-        'bellsoftjre11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15'   | true
-        'graalvm'        | graalVm('15')            | JavaVersion.VERSION_15  | 'GraalVM Community JRE 15'   | true
-        'temurinjdk8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JDK 8'      | false
-        'temurinjdk11'   | temurin11Jvm('11')       | JavaVersion.VERSION_11  | 'Eclipse Temurin JDK 11'     | false
-        'temurinjdk16'   | temurin11Jvm('16')       | JavaVersion.VERSION_16  | 'Eclipse Temurin JDK 16'     | false
-        'temurinjdk17'   | temurinJvm('17')         | JavaVersion.VERSION_17  | 'Eclipse Temurin JDK 17'     | false
-        'temurinjre8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JRE 8'      | true
-        'temurinjre11'   | temurin11Jvm('11')       | JavaVersion.VERSION_11  | 'Eclipse Temurin JRE 11'     | true
-        'semerujdk11'    | semeruJvm11()            | JavaVersion.VERSION_11  | 'IBM JDK 11'                 | false
-        'semerujdk16'    | semeruJvm16()            | JavaVersion.VERSION_16  | 'IBM JDK 16'                 | false
-        'semerujdk17'    | semeruJvm17()            | JavaVersion.VERSION_17  | 'IBM JDK 17'                 | false
-        'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'        | true
+        jdk              | systemProperties         | javaVersion             | displayName                | jre
+        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                       | false
+        'localGradle'    | currentGradle()          | JavaVersion.current()   | null                       | true
+        'openJdk4'       | openJdkJvm('4')          | JavaVersion.VERSION_1_4 | 'OpenJDK 4'                | false
+        'openJdk5'       | openJdkJvm('5')          | JavaVersion.VERSION_1_5 | 'OpenJDK 5'                | false
+        'openJdk6'       | openJdkJvm('6')          | JavaVersion.VERSION_1_6 | 'OpenJDK 6'                | false
+        'openJdk7'       | openJdkJvm('7')          | JavaVersion.VERSION_1_7 | 'OpenJDK 7'                | false
+        'openJdk8'       | openJdkJvm('8')          | JavaVersion.VERSION_1_8 | 'OpenJDK 8'                | false
+        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK 9'                | false
+        'openJdk9'       | openJdkJvm('9')          | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9'            | true
+        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK 11'          | false
+        'AdoptOpenJDK11' | adoptOpenJDK('11.0.3')   | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true
+        'AdoptOpenJDKJ9' | adoptOpenJDKJ9('14.0.2') | JavaVersion.VERSION_14  | 'AdoptOpenJDK 14'          | false
+        'oracleJdk4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'             | false
+        'oracleJre4'     | oracleJvm('4')           | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'             | true
+        'oracleJdk5'     | oracleJvm('5')           | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'             | false
+        'oracleJdk6'     | oracleJvm('6')           | JavaVersion.VERSION_1_6 | 'Oracle JDK 6'             | false
+        'oracleJdk7'     | oracleJvm('7')           | JavaVersion.VERSION_1_7 | 'Oracle JDK 7'             | false
+        'oracleJdk8'     | oracleJvm('8')           | JavaVersion.VERSION_1_8 | 'Oracle JDK 8'             | false
+        'oracleJdk9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JDK 9'             | false
+        'oracleJre9'     | oracleJvm('9')           | JavaVersion.VERSION_1_9 | 'Oracle JRE 9'             | true
+        'ibmJdk4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JDK 4'                | false
+        'ibmJre4'        | ibmJvm('4')              | JavaVersion.VERSION_1_4 | 'IBM JRE 4'                | true
+        'ibmJdk5'        | ibmJvm('5')              | JavaVersion.VERSION_1_5 | 'IBM JDK 5'                | false
+        'ibmJdk6'        | ibmJvm('6')              | JavaVersion.VERSION_1_6 | 'IBM JDK 6'                | false
+        'ibmJdk7'        | ibmJvm('7')              | JavaVersion.VERSION_1_7 | 'IBM JDK 7'                | false
+        'ibmJdk8'        | ibmJvm('8')              | JavaVersion.VERSION_1_8 | 'IBM JDK 8'                | false
+        'ibmJdk9'        | ibmJvm('9')              | JavaVersion.VERSION_1_9 | 'IBM JDK 9'                | false
+        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Azul Zulu JRE 6'          | true
+        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Azul Zulu JDK 8'          | false
+        'hpuxJre6'       | hpuxJvm('6')             | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'              | true
+        'hpuxJdk7'       | hpuxJvm('7')             | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'              | false
+        'sapjdk13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13'    | false
+        'sapjre13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JRE 13'    | true
+        'correttojdk11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JDK 11'   | false
+        'correttojre11'  | correttoJvm('11')        | JavaVersion.VERSION_11  | 'Amazon Corretto JRE 11'   | true
+        'bellsoftjdk11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JDK 15' | false
+        'bellsoftjre11'  | bellsoftJvm('15')        | JavaVersion.VERSION_15  | 'BellSoft Liberica JRE 15' | true
+        'graalvm'        | graalVm('15')            | JavaVersion.VERSION_15  | 'GraalVM Community JRE 15' | true
+        'temurinjdk8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JDK 8'    | false
+        'temurinjdk11'   | temurin11Jvm('11')       | JavaVersion.VERSION_11  | 'Eclipse Temurin JDK 11'   | false
+        'temurinjdk16'   | temurin11Jvm('16')       | JavaVersion.VERSION_16  | 'Eclipse Temurin JDK 16'   | false
+        'temurinjdk17'   | temurinJvm('17')         | JavaVersion.VERSION_17  | 'Eclipse Temurin JDK 17'   | false
+        'temurinjre8'    | temurin8Jvm('8')         | JavaVersion.VERSION_1_8 | 'Eclipse Temurin JRE 8'    | true
+        'temurinjre11'   | temurin11Jvm('11')       | JavaVersion.VERSION_11  | 'Eclipse Temurin JRE 11'   | true
+        'semerujdk11'    | semeruJvm11()            | JavaVersion.VERSION_11  | 'IBM JDK 11'               | false
+        'semerujdk16'    | semeruJvm16()            | JavaVersion.VERSION_16  | 'IBM JDK 16'               | false
+        'semerujdk17'    | semeruJvm17()            | JavaVersion.VERSION_17  | 'IBM JDK 17'               | false
+        'whitespaces'    | whitespaces('11.0.3')    | JavaVersion.VERSION_11  | 'AdoptOpenJDK JRE 11'      | true
     }
 
     def "probes whether #jdk is a j9 virtual machine"() {
@@ -193,8 +194,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
     private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory) {
         return new DefaultJvmMetadataDetector(
-                execHandleFactory,
-                TestFiles.tmpDirTemporaryFileProvider(tmpDir)
+            execHandleFactory,
+            TestFiles.tmpDirTemporaryFileProvider(tmpDir)
         )
     }
 

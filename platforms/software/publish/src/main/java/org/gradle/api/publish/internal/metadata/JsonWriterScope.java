@@ -26,10 +26,6 @@ import java.util.List;
  */
 abstract class JsonWriterScope {
 
-    protected interface Contents {
-        void write() throws IOException;
-    }
-
     private final JsonWriter jsonWriter;
 
     protected JsonWriterScope(JsonWriter jsonWriter) {
@@ -89,5 +85,9 @@ abstract class JsonWriterScope {
 
     protected void write(String name, String value) throws IOException {
         jsonWriter.name(name).value(value);
+    }
+
+    protected interface Contents {
+        void write() throws IOException;
     }
 }

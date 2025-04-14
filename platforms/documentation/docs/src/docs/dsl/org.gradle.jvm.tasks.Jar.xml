@@ -5,13 +5,14 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java</literal> plugin
+                    </td>
                 </tr>
             </thead>
-                <tr>
-                    <td>manifest</td>
-                    <td/>
-                </tr>
+            <tr>
+                <td>manifest</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>

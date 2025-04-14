@@ -27,11 +27,11 @@ import java.util.List;
 
 public class JacocoViolationRuleImpl implements JacocoViolationRule {
 
+    private final List<JacocoLimit> limits = new ArrayList<JacocoLimit>();
     private boolean enabled = true;
     private String scope = "BUNDLE";
     private List<String> includes = ImmutableList.of("*");
     private List<String> excludes = ImmutableList.of();
-    private final List<JacocoLimit> limits = new ArrayList<JacocoLimit>();
 
     @Override
     public boolean isEnabled() {
@@ -44,18 +44,13 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     }
 
     @Override
-    public void setElement(String element) {
-        this.scope = element;
-    }
-
-    @Override
     public String getElement() {
         return scope;
     }
 
     @Override
-    public void setIncludes(List<String> includes) {
-        this.includes = includes;
+    public void setElement(String element) {
+        this.scope = element;
     }
 
     @Override
@@ -64,13 +59,18 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     }
 
     @Override
-    public void setExcludes(List<String> excludes) {
-        this.excludes = excludes;
+    public void setIncludes(List<String> includes) {
+        this.includes = includes;
     }
 
     @Override
     public List<String> getExcludes() {
         return Collections.unmodifiableList(excludes);
+    }
+
+    @Override
+    public void setExcludes(List<String> excludes) {
+        this.excludes = excludes;
     }
 
     @Override

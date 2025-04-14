@@ -294,11 +294,11 @@ public final class MavenPomFileGenerator {
     private static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
         String comment = Joiner.on("").join(
             Streams.concat(
-                Arrays.stream(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES),
-                Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
-            )
-            .map(content -> "<!-- " + content + " -->\n  ")
-            .iterator()
+                    Arrays.stream(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES),
+                    Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
+                )
+                .map(content -> "<!-- " + content + " -->\n  ")
+                .iterator()
         );
 
         StringBuilder builder = xmlProvider.asString();

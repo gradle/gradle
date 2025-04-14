@@ -25,6 +25,7 @@ import java.util.Set;
 
 public interface RepositoryContentDescriptorInternal extends RepositoryContentDescriptor {
     Action<? super ArtifactResolutionDetails> toContentFilter();
+
     RepositoryContentDescriptorInternal asMutableCopy();
 
     /**

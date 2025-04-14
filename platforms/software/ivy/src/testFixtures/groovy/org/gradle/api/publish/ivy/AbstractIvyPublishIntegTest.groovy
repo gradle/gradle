@@ -94,7 +94,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
             dependencyNotation = "${dependencyNotation}, configuration: '${sq(params.configuration)}'"
         }
 
-        def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
+        def externalRepo = requiresExternalDependencies ? mavenCentralRepositoryDefinition() : ''
         def optional = params.optionalFeatureCapabilities.collect {
             "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
         }.join('\n')
@@ -110,7 +110,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 ivy {
                     url = "${ivyRepo.uri}"
                     metadataSources {
-                       ${params.resolveModuleMetadata?'gradleMetadata':'ivyDescriptor'}()
+                       ${params.resolveModuleMetadata ? 'gradleMetadata' : 'ivyDescriptor'}()
                     }
                 }
                 ${externalRepo}
@@ -168,7 +168,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         }
 
         IvyModule getModule() {
-           super.module
+            super.module
         }
 
         void validate() {
@@ -188,7 +188,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 expectFailure: !expectationSpec.expectSuccess,
                 optionalFeatureCapabilities: optionalFeatureCapabilities,
             )
-            println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
+            println "Checking ${additionalArtifacts ? 'additional artifacts' : 'artifacts'} when resolving ${withModuleMetadata ? 'with' : 'without'} Gradle module metadata"
             def resolutionResult = AbstractIvyPublishIntegTest.this.doResolveArtifacts(params)
             expectationSpec.with {
                 if (expectSuccess) {

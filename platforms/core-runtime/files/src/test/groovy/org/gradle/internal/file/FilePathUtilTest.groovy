@@ -28,12 +28,12 @@ class FilePathUtilTest extends Specification {
         sizeOfCommonPrefix(commonPrefix + "/" + secondPostFix, commonPrefix + "/" + firstPostFix, 0, '/' as char) == commonPrefix.length()
 
         where:
-        commonPrefix | firstPostFix | secondPostFix
-        "some"      | "path"            | "other/some"
-        "some"      | "pather/one"      | "path/two/three"
-        "some/path" | "one"             | "two/three"
-        ""          | "one"             | "two/three"
-        ""          | "oner"            | "one"
-        "some/path" | "with/one/ending" | "without/two/different"
+        commonPrefix | firstPostFix      | secondPostFix
+        "some"       | "path"            | "other/some"
+        "some"       | "pather/one"      | "path/two/three"
+        "some/path"  | "one"             | "two/three"
+        ""           | "one"             | "two/three"
+        ""           | "oner"            | "one"
+        "some/path"  | "with/one/ending" | "without/two/different"
     }
 }

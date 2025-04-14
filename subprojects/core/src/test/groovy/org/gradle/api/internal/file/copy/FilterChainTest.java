@@ -43,6 +43,10 @@ public class FilterChainTest {
     private final FilterChain filterChain = new FilterChain();
     private final Reader originalReader = new StringReader("string");
 
+    private static Property<Boolean> escapeBackslashProperty() {
+        return TestUtil.objectFactory().property(Boolean.class).value(false);
+    }
+
     @Test
     public void usesOriginalReaderByDefault() {
         assertThat(filterChain.transform(originalReader), sameInstance(originalReader));
@@ -155,9 +159,5 @@ public class FilterChainTest {
         public void setProperty(String property) {
             this.property = property;
         }
-    }
-
-    private static Property<Boolean> escapeBackslashProperty() {
-        return TestUtil.objectFactory().property(Boolean.class).value(false);
     }
 }

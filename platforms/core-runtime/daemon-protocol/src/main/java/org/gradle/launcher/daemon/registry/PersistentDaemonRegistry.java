@@ -44,11 +44,10 @@ import static org.gradle.launcher.daemon.server.api.DaemonState.Idle;
  * Access to daemon registry files. Useful also for testing.
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
+    private static final Logger LOGGER = Logging.getLogger(PersistentDaemonRegistry.class);
     private final ObjectHolder<DaemonRegistryContent> cache;
     private final Lock lock = new ReentrantLock();
     private final File registryFile;
-
-    private static final Logger LOGGER = Logging.getLogger(PersistentDaemonRegistry.class);
 
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
@@ -136,7 +135,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     if (oldValue == null) {
                         return oldValue;
                     }
-                    oldValue.removeInfo(((InetEndpoint)address).getPort());
+                    oldValue.removeInfo(((InetEndpoint) address).getPort());
                     return oldValue;
                 }
             });
@@ -159,7 +158,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     }
                     // Else, has been removed by something else - ignore
                     return oldValue;
-                }});
+                }
+            });
         } finally {
             lock.unlock();
         }

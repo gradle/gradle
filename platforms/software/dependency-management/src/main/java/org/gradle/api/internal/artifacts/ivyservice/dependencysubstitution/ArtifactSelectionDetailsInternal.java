@@ -22,5 +22,6 @@ import java.util.List;
 
 public interface ArtifactSelectionDetailsInternal extends ArtifactSelectionDetails {
     boolean isUpdated();
+
     List<DependencyArtifactSelector> getTargetSelectors();
 }

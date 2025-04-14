@@ -54,12 +54,13 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
         RepositoriesModeInternal(boolean useProjectRepositories) {
             this.useProjectRepositories = useProjectRepositories;
         }
-        public boolean useProjectRepositories() {
-            return useProjectRepositories;
-        }
 
         public static RepositoriesModeInternal of(RepositoriesMode mode) {
             return RepositoriesModeInternal.valueOf(mode.name());
+        }
+
+        public boolean useProjectRepositories() {
+            return useProjectRepositories;
         }
     }
 
@@ -73,12 +74,13 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
         RulesModeInternal(boolean useProjectRules) {
             this.useProjectRules = useProjectRules;
         }
-        public boolean useProjectRules() {
-            return useProjectRules;
-        }
 
         public static RulesModeInternal of(RulesMode mode) {
             return RulesModeInternal.valueOf(mode.name());
+        }
+
+        public boolean useProjectRules() {
+            return useProjectRules;
         }
     }
 }

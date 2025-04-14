@@ -37,10 +37,10 @@ public interface ConsumerConnection extends Stoppable {
     String getDisplayName();
 
     <T> T run(Class<T> type, ConsumerOperationParameters operationParameters)
-            throws UnsupportedOperationException, IllegalStateException;
+        throws UnsupportedOperationException, IllegalStateException;
 
     <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters)
-            throws UnsupportedOperationException, IllegalStateException;
+        throws UnsupportedOperationException, IllegalStateException;
 
     void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters)
         throws UnsupportedOperationException, IllegalStateException;

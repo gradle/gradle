@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.projection
+
 import org.gradle.model.Managed
 
 class SetModelProjectionTest extends AbstractCollectionModelProjectionTest<String, Set<String>> {

@@ -35,6 +35,10 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
         this.right = Providers.internal(right);
     }
 
+    private static boolean isChangingValue(ProviderInternal<?> provider) {
+        return provider.calculateExecutionTimeValue().isChangingValue();
+    }
+
     @Override
     protected String toStringNoReentrance() {
         return String.format("and(%s, %s)", left, right);
@@ -59,10 +63,6 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
             }
         }
         return super.calculateExecutionTimeValue();
-    }
-
-    private static boolean isChangingValue(ProviderInternal<?> provider) {
-        return provider.calculateExecutionTimeValue().isChangingValue();
     }
 
     @Override

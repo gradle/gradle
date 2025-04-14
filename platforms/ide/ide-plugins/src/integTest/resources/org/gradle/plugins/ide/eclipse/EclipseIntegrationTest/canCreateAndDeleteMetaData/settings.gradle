@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-rootProject.name="master"
+rootProject.name = "master"
 include "api", "common", "webservice", "groovyproject", "javabaseproject", "webAppWithVars", "webAppJava6"

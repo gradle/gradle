@@ -35,7 +35,7 @@ public class ProjectDependencyFactory {
 
     public ProjectDependency createFromMap(ProjectFinder projectFinder, Map<? extends String, ?> map) {
         return NotationParserBuilder.toType(ProjectDependency.class)
-                .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory)).toComposite().parseNotation(map);
+            .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory)).toComposite().parseNotation(map);
     }
 
     static class ProjectDependencyMapNotationConverter extends MapNotationConverter<ProjectDependency> {

@@ -49,6 +49,17 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
         super(xmlTransformer);
     }
 
+    private static Node getWbModuleNode(Node xml) {
+        Node wbModule = XmlPersistableConfigurationObject.findFirstChildNamed(xml, "wb-module");
+        Preconditions.checkNotNull(wbModule);
+        return wbModule;
+    }
+
+    private static void setNodeAttribute(Node node, String key, String value) {
+        final Map<String, String> attributes = Cast.uncheckedCast(node.attributes());
+        attributes.put(key, value);
+    }
+
     @Override
     protected String getDefaultResourceName() {
         return "defaultWtpComponent.xml";
@@ -130,17 +141,6 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
                 wbModuleNode.remove(elementNode);
             }
         }
-    }
-
-    private static Node getWbModuleNode(Node xml) {
-        Node wbModule = XmlPersistableConfigurationObject.findFirstChildNamed(xml, "wb-module");
-        Preconditions.checkNotNull(wbModule);
-        return wbModule;
-    }
-
-    private static void setNodeAttribute(Node node, String key, String value) {
-        final Map<String, String> attributes = Cast.uncheckedCast(node.attributes());
-        attributes.put(key, value);
     }
 
     @Override

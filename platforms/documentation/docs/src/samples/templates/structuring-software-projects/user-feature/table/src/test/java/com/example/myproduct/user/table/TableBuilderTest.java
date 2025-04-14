@@ -12,12 +12,12 @@ public class TableBuilderTest {
     @Test
     public void testTableBuilding() {
         List<MyProductRelease> testData = Arrays.asList(
-                new MyProductRelease("1.0", "https://example.com/release1"),
-                new MyProductRelease("2.0", "https://example.com/release2"));
+            new MyProductRelease("1.0", "https://example.com/release1"),
+            new MyProductRelease("2.0", "https://example.com/release2"));
 
         assertEquals(Arrays.asList(
                 Arrays.asList("1.0", "https://example.com/release1"),
                 Arrays.asList("2.0", "https://example.com/release2")),
-                TableBuilder.build(testData));
+            TableBuilder.build(testData));
     }
 }

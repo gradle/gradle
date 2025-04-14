@@ -1,10 +1,15 @@
 // tag::type-declaration[]
-@Managed interface MyComponent extends ComponentSpec {
+@Managed
+interface MyComponent extends ComponentSpec {
     String getPublicData()
+
     void setPublicData(String data)
 }
-@Managed interface MyComponentInternal extends MyComponent {
+
+@Managed
+interface MyComponentInternal extends MyComponent {
     String getInternalData()
+
     void setInternalData(String internal)
 }
 // end::type-declaration[]

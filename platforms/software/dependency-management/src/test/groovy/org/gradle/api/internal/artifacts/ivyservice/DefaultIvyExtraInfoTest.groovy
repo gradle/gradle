@@ -22,21 +22,21 @@ import spock.lang.Specification
 import javax.xml.namespace.QName
 
 class DefaultIvyExtraInfoTest extends Specification {
-    def "can get value by name only" () {
+    def "can get value by name only"() {
         given:
-        def extraInfo = new DefaultIvyExtraInfo([ (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue' ])
+        def extraInfo = new DefaultIvyExtraInfo([(new NamespaceId('http://my.extra.info', 'foo')): 'fooValue'])
 
         expect:
         extraInfo.get('foo') == 'fooValue'
         extraInfo.get('goo') == null
     }
 
-    def "throws exception when name matches multiple keys" () {
+    def "throws exception when name matches multiple keys"() {
         given:
         def extraInfo = new DefaultIvyExtraInfo([
-                (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue',
-                (new NamespaceId('http://some.extra.info', 'foo')): 'anotherValue',
-                (new NamespaceId('http://my.extra.info', 'bar')): 'barValue'
+            (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue',
+            (new NamespaceId('http://some.extra.info', 'foo')): 'anotherValue',
+            (new NamespaceId('http://my.extra.info', 'bar')): 'barValue'
         ])
 
         when:
@@ -47,11 +47,11 @@ class DefaultIvyExtraInfoTest extends Specification {
         e.message.equals('Cannot get extra info element named \'foo\' by name since elements with this name were found from multiple namespaces (http://my.extra.info, http://some.extra.info).  Use get(String namespace, String name) instead.')
     }
 
-    def "can get by name and namespace" () {
+    def "can get by name and namespace"() {
         given:
         def extraInfo = new DefaultIvyExtraInfo([
-                (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue',
-                (new NamespaceId('http://some.extra.info', 'foo')): 'anotherValue'
+            (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue',
+            (new NamespaceId('http://some.extra.info', 'foo')): 'anotherValue'
         ])
 
         expect:
@@ -60,25 +60,25 @@ class DefaultIvyExtraInfoTest extends Specification {
         extraInfo.get('http://other', 'foo') == null
     }
 
-    def "can get extra info values as map" () {
+    def "can get extra info values as map"() {
         given:
         def extraInfo = new DefaultIvyExtraInfo([
-                (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue',
-                (new NamespaceId('http://some.extra.info', 'foo')): 'anotherValue',
-                (new NamespaceId('http://my.extra.info', 'bar')): 'barValue'
+            (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue',
+            (new NamespaceId('http://some.extra.info', 'foo')): 'anotherValue',
+            (new NamespaceId('http://my.extra.info', 'bar')): 'barValue'
         ])
 
         expect:
         extraInfo.asMap() == [
-                (new QName('http://my.extra.info', 'foo')): 'fooValue',
-                (new QName('http://some.extra.info', 'foo')): 'anotherValue',
-                (new QName('http://my.extra.info', 'bar')): 'barValue'
+            (new QName('http://my.extra.info', 'foo')): 'fooValue',
+            (new QName('http://some.extra.info', 'foo')): 'anotherValue',
+            (new QName('http://my.extra.info', 'bar')): 'barValue'
         ]
     }
 
-    def "map view is immutable" () {
+    def "map view is immutable"() {
         given:
-        def extraInfo = new DefaultIvyExtraInfo([ (new NamespaceId('http://my.extra.info', 'foo')): 'fooValue' ])
+        def extraInfo = new DefaultIvyExtraInfo([(new NamespaceId('http://my.extra.info', 'foo')): 'fooValue'])
 
         when:
         extraInfo.asMap().put(new QName('http://some.extra.info', 'bar'), 'barValue')

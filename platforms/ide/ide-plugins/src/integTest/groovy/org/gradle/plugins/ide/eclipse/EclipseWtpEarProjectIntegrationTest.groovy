@@ -39,7 +39,7 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         settingsFile << "rootProject.name = 'ear'"
 
         buildFile <<
-        """apply plugin: 'eclipse-wtp'
+            """apply plugin: 'eclipse-wtp'
            apply plugin: 'ear'
 
            repositories { $localMaven }
@@ -83,7 +83,7 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         settingsFile << "rootProject.name = 'ear'"
 
         buildFile <<
-        """apply plugin: 'eclipse-wtp'
+            """apply plugin: 'eclipse-wtp'
            apply plugin: 'ear'
 
            repositories { $localMaven }

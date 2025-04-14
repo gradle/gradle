@@ -66,6 +66,28 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         this.operationDependenciesResolver = operationDependenciesResolver;
     }
 
+    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationFinishEvent finishEvent) {
+        TaskStateInternal state = task.getState();
+        long startTime = finishEvent.getStartTime();
+        long endTime = finishEvent.getEndTime();
+        ExecuteTaskBuildOperationType.Result result = (ExecuteTaskBuildOperationType.Result) finishEvent.getResult();
+        boolean incremental = result != null && result.isIncremental();
+
+        if (state.getUpToDate()) {
+            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage(), incremental, Collections.emptyList());
+        } else if (state.getSkipped()) {
+            return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage(), incremental);
+        } else {
+            List<String> executionReasons = result != null ? result.getUpToDateMessages() : null;
+            Throwable failure = finishEvent.getFailure();
+            if (failure == null) {
+                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
+            } else {
+                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons);
+            }
+        }
+    }
+
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
         return subscriptions.isRequested(OperationType.TASK);
@@ -114,28 +136,6 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         TaskInternal task = details.getTask();
         AbstractTaskResult taskResult = operationResultPostProcessor.process(toTaskResult(task, finishEvent), task);
         return new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), descriptor, taskResult);
-    }
-
-    private static AbstractTaskResult toTaskResult(TaskInternal task, OperationFinishEvent finishEvent) {
-        TaskStateInternal state = task.getState();
-        long startTime = finishEvent.getStartTime();
-        long endTime = finishEvent.getEndTime();
-        ExecuteTaskBuildOperationType.Result result = (ExecuteTaskBuildOperationType.Result) finishEvent.getResult();
-        boolean incremental = result != null && result.isIncremental();
-
-        if (state.getUpToDate()) {
-            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage(), incremental, Collections.emptyList());
-        } else if (state.getSkipped()) {
-            return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage(), incremental);
-        } else {
-            List<String> executionReasons = result != null ? result.getUpToDateMessages() : null;
-            Throwable failure = finishEvent.getFailure();
-            if (failure == null) {
-                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
-            } else {
-                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons);
-            }
-        }
     }
 
     private static class PostProcessors implements BuildOperationTracker {

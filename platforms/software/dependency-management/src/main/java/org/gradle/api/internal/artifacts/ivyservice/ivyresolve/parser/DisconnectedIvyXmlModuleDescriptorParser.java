@@ -40,10 +40,12 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
 
-    public DisconnectedIvyXmlModuleDescriptorParser(IvyModuleDescriptorConverter moduleDescriptorConverter,
-                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                    FileResourceRepository fileResourceRepository,
-                                                    IvyMutableModuleMetadataFactory metadataFactory) {
+    public DisconnectedIvyXmlModuleDescriptorParser(
+        IvyModuleDescriptorConverter moduleDescriptorConverter,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        FileResourceRepository fileResourceRepository,
+        IvyMutableModuleMetadataFactory metadataFactory
+    ) {
         super(moduleDescriptorConverter, moduleIdentifierFactory, fileResourceRepository, metadataFactory);
         this.moduleDescriptorConverter = moduleDescriptorConverter;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -60,13 +62,15 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final IvyMutableModuleMetadataFactory metadataFactory;
 
-        public DisconnectedParser(DescriptorParseContext parseContext,
-                                  IvyModuleDescriptorConverter moduleDescriptorConverter,
-                                  ExternalResource res,
-                                  URL descriptorURL,
-                                  Map<String, String> properties,
-                                  ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                  IvyMutableModuleMetadataFactory metadataFactory) {
+        public DisconnectedParser(
+            DescriptorParseContext parseContext,
+            IvyModuleDescriptorConverter moduleDescriptorConverter,
+            ExternalResource res,
+            URL descriptorURL,
+            Map<String, String> properties,
+            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+            IvyMutableModuleMetadataFactory metadataFactory
+        ) {
             super(parseContext, moduleDescriptorConverter, res, descriptorURL, moduleIdentifierFactory, metadataFactory, properties);
             this.moduleDescriptorConverter = moduleDescriptorConverter;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -81,8 +85,10 @@ public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescri
         }
 
         @Override
-        protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
-                                                     String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
+        protected ModuleDescriptor parseOtherIvyFile(
+            String parentOrganisation,
+            String parentModule, String parentRevision
+        ) throws IOException, ParseException, SAXException {
             ModuleRevisionId parentMrid = createModuleRevisionId(parentOrganisation, parentModule, parentRevision);
             return new DefaultModuleDescriptor(parentMrid, "release", new Date());
         }

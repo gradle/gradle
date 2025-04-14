@@ -30,6 +30,53 @@ import java.util.List;
  */
 @ThreadSafe
 public interface WorkSource<T> {
+    /**
+     * Returns the current execution state of this plan.
+     *
+     * <p>Note: the caller does not need to hold a worker lease to call this method.</p>
+     *
+     * <p>The implementation of this method may prefer to return {@link State#MaybeWorkReadyToStart} in certain cases, to limit
+     * the amount of work that happens in this method, which is called many, many times and should be fast.</p>
+     */
+    State executionState();
+
+    /**
+     * Selects a work item to start, returns {@link Selection#noWorkReadyToStart()} when there are no items that are ready to start (but some are queued for execution)
+     * and {@link Selection#noMoreWorkToStart()} when there are no items remaining to start.
+     *
+     * <p>Note: the caller must hold a worker lease.</p>
+     *
+     * <p>The caller must call {@link #finishedExecuting(Object, Throwable)} when execution is complete.</p>
+     */
+    Selection<T> selectNext();
+
+    void finishedExecuting(T item, @Nullable Throwable failure);
+
+    void abortAllAndFail(Throwable t);
+
+    void cancelExecution();
+
+    /**
+     * Has all execution completed?
+     *
+     * <p>When this method returns {@code true}, there is no further work to start and no work in progress.</p>
+     *
+     * <p>When this method returns {@code false}, there is further work yet to complete.</p>
+     */
+    boolean allExecutionComplete();
+
+    /**
+     * Collects the current set of work failures into the given collection.
+     */
+    void collectFailures(Collection<? super Throwable> failures);
+
+    /**
+     * Returns some diagnostic information about the state of this plan.
+     *
+     * <p>The implementation does not need to be particularly efficient, as it is called only when a fatal problem is detected.</p>
+     */
+    Diagnostics healthDiagnostics();
+
     enum State {
         /**
          * There may be work ready to start. The worker thread should call {@link #selectNext()} to select the next item.
@@ -164,51 +211,4 @@ public interface WorkSource<T> {
             formatter.endChildren();
         }
     }
-
-    /**
-     * Returns the current execution state of this plan.
-     *
-     * <p>Note: the caller does not need to hold a worker lease to call this method.</p>
-     *
-     * <p>The implementation of this method may prefer to return {@link State#MaybeWorkReadyToStart} in certain cases, to limit
-     * the amount of work that happens in this method, which is called many, many times and should be fast.</p>
-     */
-    State executionState();
-
-    /**
-     * Selects a work item to start, returns {@link Selection#noWorkReadyToStart()} when there are no items that are ready to start (but some are queued for execution)
-     * and {@link Selection#noMoreWorkToStart()} when there are no items remaining to start.
-     *
-     * <p>Note: the caller must hold a worker lease.</p>
-     *
-     * <p>The caller must call {@link #finishedExecuting(Object, Throwable)} when execution is complete.</p>
-     */
-    Selection<T> selectNext();
-
-    void finishedExecuting(T item, @Nullable Throwable failure);
-
-    void abortAllAndFail(Throwable t);
-
-    void cancelExecution();
-
-    /**
-     * Has all execution completed?
-     *
-     * <p>When this method returns {@code true}, there is no further work to start and no work in progress.</p>
-     *
-     * <p>When this method returns {@code false}, there is further work yet to complete.</p>
-     */
-    boolean allExecutionComplete();
-
-    /**
-     * Collects the current set of work failures into the given collection.
-     */
-    void collectFailures(Collection<? super Throwable> failures);
-
-    /**
-     * Returns some diagnostic information about the state of this plan.
-     *
-     * <p>The implementation does not need to be particularly efficient, as it is called only when a fatal problem is detected.</p>
-     */
-    Diagnostics healthDiagnostics();
 }

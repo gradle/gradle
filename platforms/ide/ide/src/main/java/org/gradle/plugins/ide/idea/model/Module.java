@@ -40,7 +40,7 @@ public class Module extends XmlPersistableConfigurationObject {
     public static final String INHERITED = "inherited";
 
     private static final String CONTENT = "content";
-
+    private final PathFactory pathFactory;
     private Path contentPath;
     private Set<Path> sourceFolders = new LinkedHashSet<>();
     private Set<Path> testSourceFolders = new LinkedHashSet<>();
@@ -53,12 +53,16 @@ public class Module extends XmlPersistableConfigurationObject {
     private Path testOutputDir;
     private Set<Dependency> dependencies = new LinkedHashSet<>();
     private String jdkName;
-    private final PathFactory pathFactory;
     private String languageLevel;
 
     public Module(XmlTransformer withXmlActions, PathFactory pathFactory) {
         super(withXmlActions);
         this.pathFactory = pathFactory;
+    }
+
+    private static void setNodeAttribute(Node node, String key, Object value) {
+        final Map<String, Object> attributes = Cast.uncheckedCast(node.attributes());
+        attributes.put(key, value);
     }
 
     /**
@@ -101,6 +105,7 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories containing resources.
      * Must not be null.
+     *
      * @since 4.7
      */
     public Set<Path> getResourceFolders() {
@@ -109,6 +114,7 @@ public class Module extends XmlPersistableConfigurationObject {
 
     /**
      * Sets the directories containing resources.
+     *
      * @since 4.7
      */
     public void setResourceFolders(Set<Path> resourceFolders) {
@@ -118,6 +124,7 @@ public class Module extends XmlPersistableConfigurationObject {
     /**
      * The directories containing test resources.
      * Must not be null.
+     *
      * @since 4.7
      */
     public Set<Path> getTestResourceFolders() {
@@ -126,11 +133,13 @@ public class Module extends XmlPersistableConfigurationObject {
 
     /**
      * Sets the directories containing test resources.
+     *
      * @since 4.7
      */
     public void setTestResourceFolders(Set<Path> testResourceFolders) {
         this.testResourceFolders = testResourceFolders;
     }
+
     /**
      * The directories containing generated the production sources.
      * Must not be null.
@@ -216,13 +225,15 @@ public class Module extends XmlPersistableConfigurationObject {
         return "defaultModule.xml";
     }
 
-    protected Object configure(Path contentPath,
-                               Set<Path> sourceFolders, Set<Path> testSourceFolders,
-                               Set<Path> resourceFolders, Set<Path> testResourceFolders,
-                               Set<Path> generatedSourceFolders,
-                               Set<Path> excludeFolders,
-                               Boolean inheritOutputDirs, Path outputDir, Path testOutputDir,
-                               Set<Dependency> dependencies, String jdkName, String languageLevel) {
+    protected Object configure(
+        Path contentPath,
+        Set<Path> sourceFolders, Set<Path> testSourceFolders,
+        Set<Path> resourceFolders, Set<Path> testResourceFolders,
+        Set<Path> generatedSourceFolders,
+        Set<Path> excludeFolders,
+        Boolean inheritOutputDirs, Path outputDir, Path testOutputDir,
+        Set<Dependency> dependencies, String jdkName, String languageLevel
+    ) {
         this.languageLevel = languageLevel;
         this.contentPath = contentPath;
         this.sourceFolders.addAll(sourceFolders);
@@ -538,11 +549,6 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private List<Node> findOrderEntries() {
         return getChildren(getNewModuleRootManager(), "orderEntry");
-    }
-
-    private static void setNodeAttribute(Node node, String key, Object value) {
-        final Map<String, Object> attributes = Cast.uncheckedCast(node.attributes());
-        attributes.put(key, value);
     }
 
     @Override

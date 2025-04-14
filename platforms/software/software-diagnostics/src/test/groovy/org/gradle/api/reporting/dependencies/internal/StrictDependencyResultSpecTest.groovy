@@ -20,6 +20,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
+
 /**
  * Unit tests for <code>StrictDependencyResultSpec</code>
  */

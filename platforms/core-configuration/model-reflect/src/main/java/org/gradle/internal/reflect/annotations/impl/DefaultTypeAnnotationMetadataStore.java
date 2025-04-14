@@ -103,7 +103,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return Optional.empty();
         }
     };
-
+    private static final String REDUNDANT_GETTERS = "REDUNDANT_GETTERS";
+    private static final String IGNORED_ANNOTATIONS_ON_FIELD = "IGNORED_ANNOTATIONS_ON_FIELD";
+    private static final String PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED = "PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED";
+    private static final String PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED = "PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED";
+    private static final String MUTABLE_TYPE_WITH_SETTER = "MUTABLE_TYPE_WITH_SETTER";
+    private static final String IGNORED_ANNOTATIONS_ON_METHOD = "IGNORED_ANNOTATIONS_ON_METHOD";
+    private static final String IGNORED_ANNOTATIONS_ON_PROPERTY = "IGNORED_ANNOTATIONS_ON_PROPERTY";
     private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
     private final ImmutableSet<String> ignoredPackagePrefixes;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
@@ -214,6 +220,90 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return methods.build();
     }
 
+    private static void validateNotAnnotatedForProperty(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+        if (!annotationTypes.isEmpty()) {
+            validationContext.visitTypeProblem(problem ->
+                problem.withAnnotationType(method.getDeclaringClass())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", GradleCoreProblemGroup.validation().type())
+                    .contextualLabel(
+                        String.format(
+                            "%s '%s()' should not be annotated with: %s",
+                            methodKind.getDisplayName(), method.getName(),
+                            simpleAnnotationNames(annotationTypes.stream())
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_METHOD.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("Input/Output annotations are ignored if they are placed on something else than a getter")
+                    .solution("Remove the annotations")
+                    .solution("Rename the method")
+            );
+        }
+    }
+
+    private static void validateNotAnnotatedForPropertyGetter(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+        if (!annotationTypes.isEmpty()) {
+            validationContext.visitTypeProblem(problem ->
+                problem.withAnnotationType(method.getDeclaringClass())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .contextualLabel(
+                        String.format(
+                            "%s '%s()' should not be annotated with: %s",
+                            MethodKind.PROPERTY.getDisplayName(), method.getName(),
+                            simpleAnnotationNames(annotationTypes.stream())
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("Function annotations are ignored if they are placed on a property getter")
+                    .solution("Remove the annotations")
+                    .solution("Rename the method")
+            );
+        }
+    }
+
+    private static void validateNotAnnotatedForStaticFunction(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+        if (!annotationTypes.isEmpty()) {
+            validationContext.visitTypeProblem(problem ->
+                problem.withAnnotationType(method.getDeclaringClass())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .contextualLabel(
+                        String.format(
+                            "%s '%s()' should not be annotated with: %s",
+                            MethodKind.STATIC.getDisplayName(), method.getName(),
+                            simpleAnnotationNames(annotationTypes.stream())
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("Function annotations are ignored if they are placed on a static method")
+                    .solution("Remove the annotations")
+                    .solution("Make the method non-static")
+            );
+        }
+    }
+
+    private static String simpleAnnotationNames(Stream<Class<? extends Annotation>> annotationTypes) {
+        return annotationTypes
+            .map(annotationType -> "@" + annotationType.getSimpleName())
+            .collect(joining(", "));
+    }
+
+    private static ImmutableMap<Class<? extends Annotation>, Annotation> collectRelevantAnnotations(AnnotatedElement element, ImmutableMap<Class<? extends Annotation>, AnnotationCategory> relevantCategories) {
+        Annotation[] annotations = element.getDeclaredAnnotations();
+        if (annotations.length == 0) {
+            return ImmutableMap.of();
+        }
+        ImmutableMap.Builder<Class<? extends Annotation>, Annotation> relevantAnnotations = ImmutableMap.builderWithExpectedSize(annotations.length);
+        for (Annotation annotation : annotations) {
+            Class<? extends Annotation> annotationType = annotation.annotationType();
+            if (relevantCategories.containsKey(annotationType)) {
+                relevantAnnotations.put(annotationType, annotation);
+            }
+        }
+        return relevantAnnotations.build();
+    }
+
     @Override
     public TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type) {
         return cache.get(type, this::createTypeAnnotationMetadata);
@@ -320,8 +410,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return methodsMetadataBuilder.build();
     }
 
-    private static final String REDUNDANT_GETTERS = "REDUNDANT_GETTERS";
-
     private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders = new LinkedHashMap<>();
         List<PropertyAnnotationMetadataBuilder> metadataBuilders = Ordering.<PropertyAnnotationMetadataBuilder>from(
@@ -416,8 +504,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return fieldAnnotationsByPropertyName.build();
     }
 
-    private static final String IGNORED_ANNOTATIONS_ON_FIELD = "IGNORED_ANNOTATIONS_ON_FIELD";
-
     private ImmutableSortedSet<PropertyAnnotationMetadata> mergePropertiesAndFieldMetadata(Class<?> type, ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders, ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName, TypeValidationContext validationContext) {
         ImmutableSortedSet.Builder<PropertyAnnotationMetadata> propertiesMetadataBuilder = ImmutableSortedSet.naturalOrder();
         ImmutableSet.Builder<String> fieldsSeenBuilder = ImmutableSet.builderWithExpectedSize(fieldAnnotationsByPropertyName.size());
@@ -497,8 +583,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return generatedMethodDetector.test(method) && method.getName().contains("$");
     }
 
-    private static final String PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED = "PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED";
-
     private void processPropertyMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders, TypeValidationContext validationContext) {
         if (shouldIgnore(method)) {
             return;
@@ -560,8 +644,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
-    private static final String PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED = "PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED";
-
     private void processFunctionMethodAnnotations(Method method, Map<MethodSignature, FunctionAnnotationMetadataBuilder> functionBuilders, TypeValidationContext validationContext) {
         if (shouldIgnore(method)) {
             return;
@@ -614,8 +696,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
-    private static final String MUTABLE_TYPE_WITH_SETTER = "MUTABLE_TYPE_WITH_SETTER";
-
     private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, TypeValidationContext validationContext, String propertyName) {
         Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
         if (isSetterProhibitedForType(setterType)) {
@@ -646,97 +726,26 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
+    private enum MethodKind {
+        STATIC("static method"),
+        PROPERTY("property"),
+        FUNCTION("function"),
+        SETTER("setter");
+
+        private final String displayName;
+
+        MethodKind(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
     @FunctionalInterface
     private interface TypeAnnotationMetadataVisitor {
         void visitType(Class<?> type, TypeAnnotationMetadata metadata);
-    }
-
-    private static final String IGNORED_ANNOTATIONS_ON_METHOD = "IGNORED_ANNOTATIONS_ON_METHOD";
-
-    private static void validateNotAnnotatedForProperty(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
-        if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(problem ->
-                problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", GradleCoreProblemGroup.validation().type())
-                    .contextualLabel(
-                        String.format(
-                            "%s '%s()' should not be annotated with: %s",
-                            methodKind.getDisplayName(), method.getName(),
-                            simpleAnnotationNames(annotationTypes.stream())
-                        )
-                    )
-                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_METHOD.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
-                    .details("Input/Output annotations are ignored if they are placed on something else than a getter")
-                    .solution("Remove the annotations")
-                    .solution("Rename the method")
-            );
-        }
-    }
-
-    private static final String IGNORED_ANNOTATIONS_ON_PROPERTY = "IGNORED_ANNOTATIONS_ON_PROPERTY";
-
-    private static void validateNotAnnotatedForPropertyGetter(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
-        if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(problem ->
-                problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
-                    .contextualLabel(
-                        String.format(
-                            "%s '%s()' should not be annotated with: %s",
-                            MethodKind.PROPERTY.getDisplayName(), method.getName(),
-                            simpleAnnotationNames(annotationTypes.stream())
-                        )
-                    )
-                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
-                    .details("Function annotations are ignored if they are placed on a property getter")
-                    .solution("Remove the annotations")
-                    .solution("Rename the method")
-            );
-        }
-    }
-
-    private static void validateNotAnnotatedForStaticFunction(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
-        if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(problem ->
-                problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
-                    .contextualLabel(
-                        String.format(
-                            "%s '%s()' should not be annotated with: %s",
-                            MethodKind.STATIC.getDisplayName(), method.getName(),
-                            simpleAnnotationNames(annotationTypes.stream())
-                        )
-                    )
-                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
-                    .details("Function annotations are ignored if they are placed on a static method")
-                    .solution("Remove the annotations")
-                    .solution("Make the method non-static")
-            );
-        }
-    }
-
-    private static String simpleAnnotationNames(Stream<Class<? extends Annotation>> annotationTypes) {
-        return annotationTypes
-            .map(annotationType -> "@" + annotationType.getSimpleName())
-            .collect(joining(", "));
-    }
-
-    private static ImmutableMap<Class<? extends Annotation>, Annotation> collectRelevantAnnotations(AnnotatedElement element, ImmutableMap<Class<? extends Annotation>, AnnotationCategory> relevantCategories) {
-        Annotation[] annotations = element.getDeclaredAnnotations();
-        if (annotations.length == 0) {
-            return ImmutableMap.of();
-        }
-        ImmutableMap.Builder<Class<? extends Annotation>, Annotation> relevantAnnotations = ImmutableMap.builderWithExpectedSize(annotations.length);
-        for (Annotation annotation : annotations) {
-            Class<? extends Annotation> annotationType = annotation.annotationType();
-            if (relevantCategories.containsKey(annotationType)) {
-                relevantAnnotations.put(annotationType, annotation);
-            }
-        }
-        return relevantAnnotations.build();
     }
 
     private static abstract class HasAnnotationMetadataBuilder {
@@ -838,6 +847,40 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         abstract protected ImmutableMap<Class<? extends Annotation>, AnnotationCategory> geAnnotationCategories();
 
         abstract protected void handleConflictingAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory);
+    }
+
+    private static class MethodSignature {
+        private final String name;
+        private final Class<?>[] parameterTypes;
+
+        public MethodSignature(String name, Class<?>[] parameterTypes) {
+            this.name = name;
+            this.parameterTypes = parameterTypes;
+        }
+
+        public static MethodSignature of(Method method) {
+            return new MethodSignature(method.getName(), method.getParameterTypes());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            MethodSignature that = (MethodSignature) o;
+            return name.equals(that.name) && Arrays.equals(parameterTypes, that.parameterTypes);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name.hashCode();
+            result = 31 * result + Arrays.hashCode(parameterTypes);
+            return result;
+        }
     }
 
     private class PropertyAnnotationMetadataBuilder extends HasAnnotationMetadataBuilder implements Comparable<PropertyAnnotationMetadataBuilder> {
@@ -977,57 +1020,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         @Override
         public int compareTo(FunctionAnnotationMetadataBuilder o) {
             return getMethod().getName().compareTo(o.getMethod().getName());
-        }
-    }
-
-    private enum MethodKind {
-        STATIC("static method"),
-        PROPERTY("property"),
-        FUNCTION("function"),
-        SETTER("setter");
-
-        private final String displayName;
-
-        MethodKind(String displayName) {
-            this.displayName = displayName;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
-
-    private static class MethodSignature {
-        private final String name;
-        private final Class<?>[] parameterTypes;
-
-        public MethodSignature(String name, Class<?>[] parameterTypes) {
-            this.name = name;
-            this.parameterTypes = parameterTypes;
-        }
-
-        public static MethodSignature of(Method method) {
-            return new MethodSignature(method.getName(), method.getParameterTypes());
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            MethodSignature that = (MethodSignature) o;
-            return name.equals(that.name) && Arrays.equals(parameterTypes, that.parameterTypes);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = name.hashCode();
-            result = 31 * result + Arrays.hashCode(parameterTypes);
-            return result;
         }
     }
 }

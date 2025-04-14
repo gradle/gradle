@@ -152,9 +152,9 @@ public class ClasspathUtil {
         } catch (URISyntaxException e) {
             try {
                 return new URL(url.getProtocol(),
-                               url.getHost(),
-                               url.getPort(),
-                               url.getFile().replace(" ", "%20")).toURI();
+                    url.getHost(),
+                    url.getPort(),
+                    url.getFile().replace(" ", "%20")).toURI();
             } catch (MalformedURLException e1) {
                 throw UncheckedException.throwAsUncheckedException(e1);
             }

@@ -28,10 +28,15 @@ import static org.gradle.model.internal.typeregistration.BaseInstanceFactory.Imp
 
 class BaseInstanceFactoryTest extends Specification {
     static interface ThingSpec {}
+
     static interface ThingSpecInternal extends ThingSpec {}
+
     static abstract class BaseThingSpec implements ThingSpecInternal {}
+
     static class DefaultThingSpec extends BaseThingSpec {}
+
     static class DefaultOtherThingSpec extends DefaultThingSpec implements OtherThingSpec {}
+
     static abstract class AbstractThingSpec implements ThingSpec {}
 
     static class NoDefaultConstructorThingSpec extends BaseThingSpec {
@@ -39,17 +44,33 @@ class BaseInstanceFactoryTest extends Specification {
         NoDefaultConstructorThingSpec(String name) {
         }
     }
+
     static interface NotImplementedInternalViewSpec extends ThingSpec {}
 
     static interface OtherThingSpec extends ThingSpec {}
-    static @Managed interface ManagedThingSpec extends ThingSpec {}
-    static @Managed interface ChildManagedThingSpec extends ManagedThingSpec {}
-    static @Managed interface ManagedThingSpecInternal {}
-    static @Managed interface ManagedThingSpecInternalExtendingThingSpecInternal extends ThingSpecInternal {}
-    static @Managed interface ManagedThingSpecInternalExtendingOtherThingSpec extends OtherThingSpec {}
-    static @Managed interface MultiplePathsToRoot extends ThingSpec, ManagedThingSpecInternalExtendingOtherThingSpec {}
+
+    static @Managed
+    interface ManagedThingSpec extends ThingSpec {}
+
+    static @Managed
+    interface ChildManagedThingSpec extends ManagedThingSpec {}
+
+    static @Managed
+    interface ManagedThingSpecInternal {}
+
+    static @Managed
+    interface ManagedThingSpecInternalExtendingThingSpecInternal extends ThingSpecInternal {}
+
+    static @Managed
+    interface ManagedThingSpecInternalExtendingOtherThingSpec extends OtherThingSpec {}
+
+    static @Managed
+    interface MultiplePathsToRoot extends ThingSpec, ManagedThingSpecInternalExtendingOtherThingSpec {}
+
     static interface UnmanagedThingSpec extends ThingSpec {}
-    static @Managed interface BothThingSpec extends ThingSpec, OtherThingSpec {}
+
+    static @Managed
+    interface BothThingSpec extends ThingSpec, OtherThingSpec {}
 
     def instanceFactory = new BaseInstanceFactory<ThingSpec>(ThingSpec)
     def node = Mock(MutableModelNode)

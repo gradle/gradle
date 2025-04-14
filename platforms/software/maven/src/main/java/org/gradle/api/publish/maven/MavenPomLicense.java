@@ -21,9 +21,9 @@ import org.gradle.api.provider.Property;
 /**
  * A license of a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomLicenseSpec
+ * @since 4.8
  */
 public interface MavenPomLicense {
 

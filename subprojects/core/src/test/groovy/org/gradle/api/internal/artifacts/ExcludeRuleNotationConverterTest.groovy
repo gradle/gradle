@@ -64,7 +64,7 @@ class ExcludeRuleNotationConverterTest extends Specification {
 
     def "throw exception with a valid group but invalid second key"() {
         when:
-        parser.parseNotation([group: 'aGroup', invalidKey1:"invalidValue"]);
+        parser.parseNotation([group: 'aGroup', invalidKey1: "invalidValue"]);
         then:
         thrown(MissingPropertyException)
     }

@@ -22,7 +22,8 @@ import org.junit.Rule
 
 class HttpsToHttpsRedirectResolveIntegrationTest extends AbstractRedirectResolveIntegrationTest {
 
-    @Rule TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore
 
     @Override

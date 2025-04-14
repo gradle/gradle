@@ -43,7 +43,7 @@ class TestMainActionTest extends Specification {
         then:
         1 * processor.startProcessing(!null)
         then:
-        1* detector.run()
+        1 * detector.run()
         then:
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()

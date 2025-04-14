@@ -51,6 +51,7 @@ public interface PersistentModuleSource extends ModuleSource {
      */
     interface Codec<T extends PersistentModuleSource> {
         void encode(T moduleSource, Encoder encoder) throws IOException;
+
         T decode(Decoder decoder) throws IOException;
     }
 }

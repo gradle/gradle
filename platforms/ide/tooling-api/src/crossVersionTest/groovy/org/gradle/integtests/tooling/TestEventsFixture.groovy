@@ -112,20 +112,20 @@ class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
     DefaultTestEventsSpec(ProgressEvents events, String targetGradleVersion) {
         this.targetGradleVersion = targetGradleVersion
 
-        testEvents = events.tests.collect {(TestOperationDescriptor) it.descriptor }
+        testEvents = events.tests.collect { (TestOperationDescriptor) it.descriptor }
 
         outputByDescriptor = events.getAll()
             .findAll { it instanceof TestOutputEvent }
             .collect { (TestOutputEvent) it }
-            .groupBy {it.descriptor.parent }
+            .groupBy { it.descriptor.parent }
             .collectEntries { entry ->
                 [(entry.key): entry.value*.descriptor.message]
             }
         events.getAll()
             .findAll { it instanceof TestMetadataEvent }
             .collect { (TestMetadataEvent) it }.each {
-                metadataByDescriptor.computeIfAbsent((TestOperationDescriptor)it.descriptor.parent) { [:] }.putAll(it.values)
-            }
+            metadataByDescriptor.computeIfAbsent((TestOperationDescriptor) it.descriptor.parent) { [:] }.putAll(it.values)
+        }
     }
 
     @Override
@@ -134,7 +134,7 @@ class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
             ((TaskOperationDescriptor) it.parent)?.taskPath == path
         }
         if (task == null) {
-            throw new AssertionError((Object)"Expected to find a test task $path but none was found")
+            throw new AssertionError((Object) "Expected to find a test task $path but none was found")
         }
         DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, "Task $path", outputByDescriptor, metadataByDescriptor, targetGradleVersion, rootSpec)
     }

@@ -23,66 +23,6 @@ public class SampleIde {
         this.workingDir = workingDir;
     }
 
-    public void buildModel() {
-        try (ProjectConnection connection = createGradleConnection()) {
-            ModelBuilder<DemoModel> modelBuilder = connection.model(DemoModel.class).addArguments("--quiet");
-            ProblemListener.createAndRegister(modelBuilder);
-            modelBuilder.get();
-        }
-    }
-
-    public void runBuild(String taskPath) {
-        try (ProjectConnection connection = createGradleConnection()) {
-            // Load the project
-            BuildLauncher buildLauncher = connection.newBuild()
-                .addArguments("--quiet")
-                .setStandardOutput(System.out)
-                .setStandardError(System.err)
-                .withDetailedFailure(); // Get problem reports for build failures
-
-            // Add a problem listener
-            ProblemListener.createAndRegister(buildLauncher);
-            // Configure the task to be executed
-            BuildLauncher launcher = buildLauncher.forTasks(taskPath);
-            // Execute the task
-            launcher.run();
-        } catch (GradleConnectionException e) {
-            if (!e.getFailures().isEmpty()) {
-                prettyPrintFailures(e.getFailures()); // Print problem reports from build failures
-            } else {
-                LOGGER.error("Error connecting to Gradle.", e);
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error executing Gradle task.", e);
-        }
-    }
-
-    private ProjectConnection createGradleConnection() {
-        // Get current working directory
-        Path projectPath = Path.of(workingDir);
-        File projectDir = projectPath.toFile();
-
-        // Initialize the Tooling API
-        return GradleConnector.newConnector().useGradleVersion("8.13").forProjectDirectory(projectDir).connect();
-    }
-
-    private void prettyPrintFailures(List<? extends Failure> failures) {
-        for (Failure failure : failures) {
-            for (Problem problem : failure.getProblems()) {
-                prettyPrint(problem, "");
-            }
-            prettyPrintFailures(failure.getCauses());
-        }
-    }
-
-    // tag::problems-tapi-additional-data-type[]
-    interface SomeDataView {
-        String getName();
-
-        List<String> getNames();
-    }
-    // end::problems-tapi-additional-data-type[]
-
     static void prettyPrint(Problem problem, String prefix) {
         System.out.println(prefix + "Problem:");
         ProblemDefinition definition = problem.getDefinition();
@@ -157,6 +97,7 @@ public class SampleIde {
                 return "UNKNOWN";
         }
     }
+    // end::problems-tapi-additional-data-type[]
 
     public static void main(String[] args) {
         String workingDir = args.length > 0 ? args[0] : System.getProperty("user.dir");
@@ -172,8 +113,68 @@ public class SampleIde {
         System.out.println("=== Retrieving Gradle configuration with logic implemented in the 'reporters.model.builder' plugin ===");
         main.buildModel();
 
-        System.out.println("=== Running failing task " + failingTaskPath + " on imported project ===");;
+        System.out.println("=== Running failing task " + failingTaskPath + " on imported project ===");
+        ;
         main.runBuild(failingTaskPath);
+    }
+
+    public void buildModel() {
+        try (ProjectConnection connection = createGradleConnection()) {
+            ModelBuilder<DemoModel> modelBuilder = connection.model(DemoModel.class).addArguments("--quiet");
+            ProblemListener.createAndRegister(modelBuilder);
+            modelBuilder.get();
+        }
+    }
+
+    public void runBuild(String taskPath) {
+        try (ProjectConnection connection = createGradleConnection()) {
+            // Load the project
+            BuildLauncher buildLauncher = connection.newBuild()
+                .addArguments("--quiet")
+                .setStandardOutput(System.out)
+                .setStandardError(System.err)
+                .withDetailedFailure(); // Get problem reports for build failures
+
+            // Add a problem listener
+            ProblemListener.createAndRegister(buildLauncher);
+            // Configure the task to be executed
+            BuildLauncher launcher = buildLauncher.forTasks(taskPath);
+            // Execute the task
+            launcher.run();
+        } catch (GradleConnectionException e) {
+            if (!e.getFailures().isEmpty()) {
+                prettyPrintFailures(e.getFailures()); // Print problem reports from build failures
+            } else {
+                LOGGER.error("Error connecting to Gradle.", e);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error executing Gradle task.", e);
+        }
+    }
+
+    private ProjectConnection createGradleConnection() {
+        // Get current working directory
+        Path projectPath = Path.of(workingDir);
+        File projectDir = projectPath.toFile();
+
+        // Initialize the Tooling API
+        return GradleConnector.newConnector().useGradleVersion("8.13").forProjectDirectory(projectDir).connect();
+    }
+
+    private void prettyPrintFailures(List<? extends Failure> failures) {
+        for (Failure failure : failures) {
+            for (Problem problem : failure.getProblems()) {
+                prettyPrint(problem, "");
+            }
+            prettyPrintFailures(failure.getCauses());
+        }
+    }
+
+    // tag::problems-tapi-additional-data-type[]
+    interface SomeDataView {
+        String getName();
+
+        List<String> getNames();
     }
 
     private static class ProblemListener implements ProgressListener {
@@ -181,17 +182,6 @@ public class SampleIde {
         static void createAndRegister(LongRunningOperation operation) {
             operation.addProgressListener(new ProblemListener(), OperationType.PROBLEMS);
         }
-
-        // tag::problems-tapi-event[]
-        @Override
-        public void statusChanged(ProgressEvent progressEvent) {
-            if (progressEvent instanceof SingleProblemEvent) {
-                prettyPrint((SingleProblemEvent) progressEvent);
-            } else if (progressEvent instanceof ProblemSummariesEvent) {
-                prettyPrint((ProblemSummariesEvent) progressEvent);
-            }
-        }
-        // end::problems-tapi-event[]
 
         static void prettyPrint(ProblemSummariesEvent problemEvent) {
             System.out.println("Problem Summaries:");
@@ -203,9 +193,20 @@ public class SampleIde {
                     System.out.println();
                 });
         }
+        // end::problems-tapi-event[]
 
         static void prettyPrint(SingleProblemEvent problemEvent) {
             SampleIde.prettyPrint(problemEvent.getProblem(), "Build Failure ");
+        }
+
+        // tag::problems-tapi-event[]
+        @Override
+        public void statusChanged(ProgressEvent progressEvent) {
+            if (progressEvent instanceof SingleProblemEvent) {
+                prettyPrint((SingleProblemEvent) progressEvent);
+            } else if (progressEvent instanceof ProblemSummariesEvent) {
+                prettyPrint((ProblemSummariesEvent) progressEvent);
+            }
         }
 
     }

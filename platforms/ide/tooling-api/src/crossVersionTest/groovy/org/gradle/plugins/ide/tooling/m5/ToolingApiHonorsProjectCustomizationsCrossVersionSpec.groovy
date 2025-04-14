@@ -66,7 +66,7 @@ allprojects {
         then:
         String grandChildOne = eclipseProject.children[0].children[0].name
         String grandChildTwo = eclipseProject.children[1].children[0].name
-        assert grandChildOne != grandChildTwo : "Deduplication logic should make that project names are not the same."
+        assert grandChildOne != grandChildTwo: "Deduplication logic should make that project names are not the same."
     }
 
     def "can have overlapping source and resource directories"() {
@@ -120,7 +120,7 @@ eclipse { classpath { downloadJavadoc = true } }
 
         then:
         eclipseProject.classpath.size() == 2
-        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar' ] as Set
+        eclipseProject.classpath.collect { it.file.name } as Set == ['commons-lang-2.5.jar', 'commons-io-1.4.jar'] as Set
         eclipseProject.classpath.collect { it.source?.name } as Set == ['commons-lang-2.5-sources.jar', 'commons-io-1.4-sources.jar'] as Set
         eclipseProject.classpath.collect { it.javadoc?.name } as Set == ['commons-lang-2.5-javadoc.jar', 'commons-io-1.4-javadoc.jar'] as Set
     }

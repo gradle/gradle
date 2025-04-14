@@ -99,7 +99,7 @@ class MapNotationConverterTest extends Specification {
         protected TargetObject parseMap(@MapKey('name') String name,
                                         @MapKey('version') String version,
                                         @MapKey('optional') @Nullable optional) {
-            return new TargetObject(key1:  name, key2:  version, optional:  optional)
+            return new TargetObject(key1: name, key2: version, optional: optional)
         }
     }
 }

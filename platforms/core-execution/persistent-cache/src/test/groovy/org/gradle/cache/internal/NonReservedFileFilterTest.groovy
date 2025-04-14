@@ -21,7 +21,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class NonReservedFileFilterTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "does not accept reserved files"() {
         given:
@@ -34,7 +35,7 @@ class NonReservedFileFilterTest extends Specification {
         !filter.accept(cacheDir.file("cache.lock"))
 
         and:
-        filter.accept(cacheDir.file("0"*32))
+        filter.accept(cacheDir.file("0" * 32))
         filter.accept(cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00"))
         filter.accept(cacheDir.file("abcdefabcdefabcdefabcdefabcdef00"))
     }

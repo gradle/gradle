@@ -112,19 +112,6 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         compatible.set(0, candidates.size());
     }
 
-    public int[] getMatches() {
-        findCompatibleCandidates();
-        if (compatible.cardinality() <= 1) {
-            return getCandidates(compatible);
-        }
-        if (longestMatchIsSuperSetOfAllOthers()) {
-            T o = candidates.get(candidateWithLongestMatch);
-            explanationBuilder.candidateIsSuperSetOfAllOthers(o);
-            return new int[] {candidateWithLongestMatch};
-        }
-        return disambiguateCompatibleCandidates();
-    }
-
     private static Object[] getRequestedValues(List<Attribute<?>> requestedAttributes, ImmutableAttributes requested) {
         Object[] requestedAttributeValues = new Object[requestedAttributes.size()];
         for (int a = 0; a < requestedAttributes.size(); a++) {
@@ -141,6 +128,61 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             candidateAttributeSets[i] = ((AttributeContainerInternal) candidates.get(i).getAttributes()).asImmutable();
         }
         return candidateAttributeSets;
+    }
+
+    /**
+     * Given each compatible candidate, determine all values corresponding to some attribute, as defined by {@code candidateValueFetcher}.
+     *
+     * @param candidateValueFetcher A function which returns the candidate value for some
+     * attribute for the candidate at the provided index.
+     * @return A new set containing all compatible values for some attribute.
+     */
+    private static <E> Set<E> getCandidateValues(BitSet compatible, IntFunction<E> candidateValueFetcher) {
+        // It's often the case that all the candidate values are the same. In this case, we avoid
+        // the creation of a set, and just iterate until we find a different value. Then, only in
+        // this case, we lazily initialize a set and collect all the candidate values.
+        Set<E> candidateValues = null;
+        E compatibleValue = null;
+        boolean first = true;
+        for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
+            E candidateValue = candidateValueFetcher.apply(c);
+            if (candidateValue == null) {
+                continue;
+            }
+            if (first) {
+                // first match, just record the value. We can't use "null" as the candidate value may be null
+                compatibleValue = candidateValue;
+                first = false;
+            } else if (compatibleValue != candidateValue || candidateValues != null) {
+                // we see a different value, or the set already exists, in which case we initialize
+                // the set if it wasn't done already, and collect all values.
+                if (candidateValues == null) {
+                    candidateValues = Sets.newHashSetWithExpectedSize(compatible.cardinality());
+                    candidateValues.add(compatibleValue);
+                }
+                candidateValues.add(candidateValue);
+            }
+        }
+        if (candidateValues == null) {
+            if (compatibleValue == null) {
+                return Collections.emptySet();
+            }
+            return Collections.singleton(compatibleValue);
+        }
+        return candidateValues;
+    }
+
+    public int[] getMatches() {
+        findCompatibleCandidates();
+        if (compatible.cardinality() <= 1) {
+            return getCandidates(compatible);
+        }
+        if (longestMatchIsSuperSetOfAllOthers()) {
+            T o = candidates.get(candidateWithLongestMatch);
+            explanationBuilder.candidateIsSuperSetOfAllOthers(o);
+            return new int[]{candidateWithLongestMatch};
+        }
+        return disambiguateCompatibleCandidates();
     }
 
     private void findCompatibleCandidates() {
@@ -365,49 +407,6 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
-    /**
-     * Given each compatible candidate, determine all values corresponding to some attribute, as defined by {@code candidateValueFetcher}.
-     *
-     * @param candidateValueFetcher A function which returns the candidate value for some
-     *      attribute for the candidate at the provided index.
-     *
-     * @return A new set containing all compatible values for some attribute.
-     */
-    private static <E> Set<E> getCandidateValues(BitSet compatible, IntFunction<E> candidateValueFetcher) {
-        // It's often the case that all the candidate values are the same. In this case, we avoid
-        // the creation of a set, and just iterate until we find a different value. Then, only in
-        // this case, we lazily initialize a set and collect all the candidate values.
-        Set<E> candidateValues = null;
-        E compatibleValue = null;
-        boolean first = true;
-        for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
-            E candidateValue = candidateValueFetcher.apply(c);
-            if (candidateValue == null) {
-                continue;
-            }
-            if (first) {
-                // first match, just record the value. We can't use "null" as the candidate value may be null
-                compatibleValue = candidateValue;
-                first = false;
-            } else if (compatibleValue != candidateValue || candidateValues != null) {
-                // we see a different value, or the set already exists, in which case we initialize
-                // the set if it wasn't done already, and collect all values.
-                if (candidateValues == null) {
-                    candidateValues = Sets.newHashSetWithExpectedSize(compatible.cardinality());
-                    candidateValues.add(compatibleValue);
-                }
-                candidateValues.add(candidateValue);
-            }
-        }
-        if (candidateValues == null) {
-            if (compatibleValue == null) {
-                return Collections.emptySet();
-            }
-            return Collections.singleton(compatibleValue);
-        }
-        return candidateValues;
-    }
-
     private void disambiguateWithExtraAttributes(Attribute<?>[] extraAttributes) {
         final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(Arrays.asList(extraAttributes));
 
@@ -442,7 +441,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             return new int[0];
         }
         if (liveSet.cardinality() == 1) {
-            return new int[] {liveSet.nextSetBit(0)};
+            return new int[]{liveSet.nextSetBit(0)};
         }
 
         int i = 0;

@@ -74,8 +74,6 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     private static final String META_CLASS_FIELD = "__meta_class__";
 
-    private LegacyTypesSupport legacyTypesSupport;
-
     static {
         try {
             ClassLoader.registerAsParallelCapable();
@@ -83,6 +81,8 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             // Not supported on Java 6
         }
     }
+
+    private LegacyTypesSupport legacyTypesSupport;
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
         super("legacy-mixin-loader", parent, classPath);
@@ -215,7 +215,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         }
 
         private void addSetProperty() {
-            MethodVisitor methodVisitor = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, "setProperty",  RETURN_VOID_FROM_STRING_OBJECT, null, null);
+            MethodVisitor methodVisitor = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, "setProperty", RETURN_VOID_FROM_STRING_OBJECT, null, null);
             methodVisitor.visitCode();
 
             // this.getMetaClass()
@@ -226,7 +226,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_TYPE.getInternalName(), "setProperty",  RETURN_VOID_FROM_OBJECT_STRING_OBJECT, true);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_TYPE.getInternalName(), "setProperty", RETURN_VOID_FROM_OBJECT_STRING_OBJECT, true);
 
             methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(4, 3);
@@ -245,7 +245,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_TYPE.getInternalName(), "invokeMethod",  RETURN_OBJECT_FROM_OBJECT_STRING_OBJECT, true);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_TYPE.getInternalName(), "invokeMethod", RETURN_OBJECT_FROM_OBJECT_STRING_OBJECT, true);
 
             // return
             methodVisitor.visitInsn(Opcodes.ARETURN);

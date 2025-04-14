@@ -37,8 +37,8 @@ public class DaemonClientConnection implements Connection<Message> {
     private final RemoteConnection<Message> connection;
     private final DaemonConnectDetails daemon;
     private final StaleAddressDetector staleAddressDetector;
-    private boolean hasReceived;
     private final Lock dispatchLock = new ReentrantLock();
+    private boolean hasReceived;
     private boolean suspect;
 
     public DaemonClientConnection(RemoteConnection<Message> connection, DaemonConnectDetails daemon, StaleAddressDetector staleAddressDetector) {

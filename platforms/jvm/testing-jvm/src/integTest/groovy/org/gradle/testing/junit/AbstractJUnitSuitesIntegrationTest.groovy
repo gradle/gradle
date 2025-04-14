@@ -21,7 +21,9 @@ import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getTestFrameworkSuiteDependencies()
+
     abstract String getTestFrameworkSuiteImports()
+
     abstract String getTestFrameworkSuiteAnnotations(String classes)
 
     def "test classes can be shared by multiple suites"() {

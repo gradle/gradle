@@ -34,6 +34,10 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
     private final List<? extends ModelSchemaExtractionStrategy> strategies;
 
+    public DefaultModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
+        this.strategies = strategies;
+    }
+
     public static DefaultModelSchemaExtractor withDefaultStrategies(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
         return new DefaultModelSchemaExtractor(ImmutableList.<ModelSchemaExtractionStrategy>builder()
             .addAll(strategies)
@@ -52,10 +56,6 @@ public class DefaultModelSchemaExtractor implements ModelSchemaExtractor {
 
     public static DefaultModelSchemaExtractor withDefaultStrategies() {
         return withDefaultStrategies(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
-    }
-
-    public DefaultModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
-        this.strategies = strategies;
     }
 
     @Override

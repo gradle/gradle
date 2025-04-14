@@ -25,6 +25,12 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class ExecuteDomainObjectCollectionCallbackBuildOperationType implements BuildOperationType<ExecuteDomainObjectCollectionCallbackBuildOperationType.Details, ExecuteDomainObjectCollectionCallbackBuildOperationType.Result> {
 
+    static final ExecuteDomainObjectCollectionCallbackBuildOperationType.Result RESULT = new ExecuteDomainObjectCollectionCallbackBuildOperationType.Result() {
+    };
+
+    private ExecuteDomainObjectCollectionCallbackBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -38,12 +44,6 @@ public final class ExecuteDomainObjectCollectionCallbackBuildOperationType imple
     }
 
     public interface Result {
-    }
-
-    static final ExecuteDomainObjectCollectionCallbackBuildOperationType.Result RESULT = new ExecuteDomainObjectCollectionCallbackBuildOperationType.Result() {
-    };
-
-    private ExecuteDomainObjectCollectionCallbackBuildOperationType() {
     }
 }
 

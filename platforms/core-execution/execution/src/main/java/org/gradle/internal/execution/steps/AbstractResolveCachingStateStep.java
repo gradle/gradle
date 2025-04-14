@@ -54,6 +54,17 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
         this.emitDebugLogging = emitDebugLogging;
     }
 
+    private static void logDisabledReasons(List<CachingDisabledReason> reasons, UnitOfWork work) {
+        if (LOGGER.isInfoEnabled()) {
+            Formatter formatter = new Formatter();
+            formatter.format("Caching disabled for %s because:", work.getDisplayName());
+            for (CachingDisabledReason reason : reasons) {
+                formatter.format("%n  %s", reason.getMessage());
+            }
+            LOGGER.info(formatter.toString());
+        }
+    }
+
     @Override
     public CachingResult execute(UnitOfWork work, C context) {
         CachingState cachingState;
@@ -115,17 +126,6 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
             LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
         } else {
             LOGGER.info("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getHashCode());
-        }
-    }
-
-    private static void logDisabledReasons(List<CachingDisabledReason> reasons, UnitOfWork work) {
-        if (LOGGER.isInfoEnabled()) {
-            Formatter formatter = new Formatter();
-            formatter.format("Caching disabled for %s because:", work.getDisplayName());
-            for (CachingDisabledReason reason : reasons) {
-                formatter.format("%n  %s", reason.getMessage());
-            }
-            LOGGER.info(formatter.toString());
         }
     }
 }

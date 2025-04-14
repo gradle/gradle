@@ -40,8 +40,8 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
     private class ScriptRunnerImpl<T extends Script, M> implements ScriptRunner<T, M> {
         private final ScriptSource source;
         private final ClassLoader contextClassLoader;
-        private T script;
         private final CompiledScript<T, M> compiledScript;
+        private T script;
 
         public ScriptRunnerImpl(CompiledScript<T, M> compiledScript, ScriptSource source, ClassLoader contextClassLoader) {
             this.compiledScript = compiledScript;

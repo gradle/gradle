@@ -105,6 +105,7 @@ class IgnoredTestDescriptorProviderTest extends Specification {
         static TestSuite suite() {
             return new SuiteMethodSuite()
         }
+
         void doTest() {}
     }
 

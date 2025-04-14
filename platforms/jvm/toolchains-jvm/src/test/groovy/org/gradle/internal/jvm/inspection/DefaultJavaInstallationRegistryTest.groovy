@@ -279,7 +279,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         return new DefaultJavaInstallationRegistry(
             toolchainConfiguration,
             [],
-            [ installations ],
+            [installations],
             jvmMetadataDetector,
             logger,
             operations,

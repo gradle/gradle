@@ -46,6 +46,14 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
             .collect(Collectors.joining("_"));
     }
 
+    protected static String rootProjectName(ProjectDescriptor descriptor) {
+        ProjectDescriptor current = descriptor;
+        while (current.getParent() != null) {
+            current = current.getParent();
+        }
+        return current.getName();
+    }
+
     protected void writeHeader(String packageName) throws IOException {
         writeLn("package " + packageName + ";");
         writeLn();
@@ -60,21 +68,13 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
         writeLn();
     }
 
-    protected static String rootProjectName(ProjectDescriptor descriptor) {
-        ProjectDescriptor current = descriptor;
-        while (current.getParent() != null) {
-            current = current.getParent();
-        }
-        return current.getName();
-    }
-
     protected void writeProjectAccessor(String name, ProjectDescriptor descriptor) throws IOException {
         writeLn("    /**");
         String path = descriptor.getPath();
         writeLn("     * Creates a project dependency on the project at path \"" + path + "\"");
         writeLn("     */");
         String returnType = toClassName(path, rootProjectName(descriptor));
-        writeLn("    public " +  returnType + " get" + name + "() { return new " + returnType + "(getFactory(), create(\"" + path + "\")); }");
+        writeLn("    public " + returnType + " get" + name + "() { return new " + returnType + "(getFactory(), create(\"" + path + "\")); }");
         writeLn();
     }
 

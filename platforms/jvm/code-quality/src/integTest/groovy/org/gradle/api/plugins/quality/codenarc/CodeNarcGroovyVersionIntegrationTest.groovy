@@ -79,10 +79,10 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     static String getLatestGroovy4Version() {
-        return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll {it.major == 4 }.max()
+        return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll { it.major == 4 }.max()
     }
 
     static String getLatestGroovy3Version() {
-        return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll {it.major == 3 }.max()
+        return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll { it.major == 3 }.max()
     }
 }

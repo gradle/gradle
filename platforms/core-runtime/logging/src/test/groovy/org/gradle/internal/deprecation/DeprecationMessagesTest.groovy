@@ -403,7 +403,7 @@ class DeprecationMessagesTest extends Specification {
     }
 
     private void expectMessage(String expectedMessage) {
-        def events = outputEventListener.events.findAll {it.logLevel == LogLevel.WARN }
+        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
         events.size() == 1
         assert events[0].message == expectedMessage
     }

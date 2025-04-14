@@ -24,21 +24,23 @@ import org.gradle.internal.service.ServiceLocator;
 
 public class PluginsProjectConfigureActions implements ProjectConfigureAction, InternalAction<ProjectInternal> {
 
-    public static ProjectConfigureAction from(ServiceLocator serviceLocator) {
-        return of(ProjectConfigureAction.class, serviceLocator);
-    }
-
-    public static <T extends Action<ProjectInternal>> ProjectConfigureAction of(Class<T> serviceType,
-                                                                                ServiceLocator serviceLocator) {
-        return new PluginsProjectConfigureActions(
-            ImmutableList.copyOf(
-                serviceLocator.getAll(serviceType)));
-    }
-
     private final Iterable<Action<ProjectInternal>> actions;
 
     private PluginsProjectConfigureActions(Iterable<Action<ProjectInternal>> actions) {
         this.actions = actions;
+    }
+
+    public static ProjectConfigureAction from(ServiceLocator serviceLocator) {
+        return of(ProjectConfigureAction.class, serviceLocator);
+    }
+
+    public static <T extends Action<ProjectInternal>> ProjectConfigureAction of(
+        Class<T> serviceType,
+        ServiceLocator serviceLocator
+    ) {
+        return new PluginsProjectConfigureActions(
+            ImmutableList.copyOf(
+                serviceLocator.getAll(serviceType)));
     }
 
     @Override

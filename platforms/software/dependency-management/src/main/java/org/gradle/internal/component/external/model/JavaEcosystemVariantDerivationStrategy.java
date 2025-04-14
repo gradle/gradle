@@ -33,37 +33,6 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         return INSTANCE;
     }
 
-    @Override
-    public boolean derivesVariants() {
-        return true;
-    }
-
-    @Override
-    public ImmutableList<? extends ModuleConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata) {
-        if (metadata instanceof DefaultMavenModuleResolveMetadata) {
-            DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
-            ImmutableAttributes attributes = md.getAttributes();
-            MavenAttributesFactory attributesFactory = (MavenAttributesFactory) md.getAttributesFactory();
-            DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
-            DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
-            ModuleComponentIdentifier componentId = md.getId();
-            ImmutableCapabilities shadowedPlatformCapability = buildShadowPlatformCapability(componentId, false);
-            ImmutableCapabilities shadowedEnforcedPlatformCapability = buildShadowPlatformCapability(componentId, true);
-            return ImmutableList.of(
-                // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
-                // and there's no way to figure out what was the intent when it was published. So we derive variants for both.
-                libraryCompileScope(compileConfiguration, attributes, attributesFactory),
-                libraryRuntimeScope(runtimeConfiguration, attributes, attributesFactory),
-                libraryWithSourcesVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
-                libraryWithJavadocVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
-                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false, shadowedPlatformCapability),
-                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false, shadowedPlatformCapability),
-                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true, shadowedEnforcedPlatformCapability),
-                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true, shadowedEnforcedPlatformCapability));
-        }
-        return null;
-    }
-
     /**
      * Synthesizes a "sources" variant since maven metadata cannot represent it
      *
@@ -95,9 +64,9 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
     private static ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId, boolean enforced) {
         return ImmutableCapabilities.of(
             new ShadowedImmutableCapability(new DefaultImmutableCapability(
-                    componentId.getGroup(),
-                    componentId.getModule(),
-                    componentId.getVersion()
+                componentId.getGroup(),
+                componentId.getModule(),
+                componentId.getVersion()
             ), enforced ? "-derived-enforced-platform" : "-derived-platform")
         );
     }
@@ -122,14 +91,45 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata.Builder builder = conf.mutate()
-                .withName(prefix + conf.getName())
-                .withAttributes(attributes)
-                .withConstraintsOnly()
-                .withCapabilities(shadowedPlatformCapability);
+            .withName(prefix + conf.getName())
+            .withAttributes(attributes)
+            .withConstraintsOnly()
+            .withCapabilities(shadowedPlatformCapability);
         if (enforcedPlatform) {
             builder = builder.withForcedDependencies();
         }
         return builder.build();
+    }
+
+    @Override
+    public boolean derivesVariants() {
+        return true;
+    }
+
+    @Override
+    public ImmutableList<? extends ModuleConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata) {
+        if (metadata instanceof DefaultMavenModuleResolveMetadata) {
+            DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
+            ImmutableAttributes attributes = md.getAttributes();
+            MavenAttributesFactory attributesFactory = (MavenAttributesFactory) md.getAttributesFactory();
+            DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
+            DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
+            ModuleComponentIdentifier componentId = md.getId();
+            ImmutableCapabilities shadowedPlatformCapability = buildShadowPlatformCapability(componentId, false);
+            ImmutableCapabilities shadowedEnforcedPlatformCapability = buildShadowPlatformCapability(componentId, true);
+            return ImmutableList.of(
+                // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
+                // and there's no way to figure out what was the intent when it was published. So we derive variants for both.
+                libraryCompileScope(compileConfiguration, attributes, attributesFactory),
+                libraryRuntimeScope(runtimeConfiguration, attributes, attributesFactory),
+                libraryWithSourcesVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
+                libraryWithJavadocVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
+                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false, shadowedPlatformCapability),
+                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false, shadowedPlatformCapability),
+                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true, shadowedEnforcedPlatformCapability),
+                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true, shadowedEnforcedPlatformCapability));
+        }
+        return null;
     }
 
 }

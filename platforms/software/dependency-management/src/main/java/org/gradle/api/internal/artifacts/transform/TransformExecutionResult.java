@@ -42,6 +42,24 @@ public abstract class TransformExecutionResult {
         this.executionOutputs = executionOutputs;
     }
 
+    public static OutputTypeInferringBuilder builderFor(File inputArtifact, File outputDir) {
+        return new OutputTypeInferringBuilder(inputArtifact, outputDir);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public abstract TransformWorkspaceResult resolveForWorkspace(File workspaceDir);
+
+    public void visitOutputs(OutputVisitor visitor) {
+        executionOutputs.forEach(output -> output.visitOutput(visitor));
+    }
+
+    public int size() {
+        return executionOutputs.size();
+    }
+
     /**
      * Transform results bound to a workspace.
      */
@@ -55,22 +73,25 @@ public abstract class TransformExecutionResult {
         ImmutableList<File> resolveForInputArtifact(File inputArtifact);
     }
 
-    public abstract TransformWorkspaceResult resolveForWorkspace(File workspaceDir);
+    public interface OutputVisitor {
+        /**
+         * Called when the result is the full input artifact.
+         */
+        void visitEntireInputArtifact();
 
-    public void visitOutputs(OutputVisitor visitor) {
-        executionOutputs.forEach(output -> output.visitOutput(visitor));
-    }
+        /**
+         * Called when the result is inside the input artifact.
+         *
+         * @param relativePath the relative path from the input artifact to the selected location in the input artifact.
+         */
+        void visitPartOfInputArtifact(String relativePath);
 
-    public int size() {
-        return executionOutputs.size();
-    }
-
-    public static OutputTypeInferringBuilder builderFor(File inputArtifact, File outputDir) {
-        return new OutputTypeInferringBuilder(inputArtifact, outputDir);
-    }
-
-    public static Builder builder() {
-        return new Builder();
+        /**
+         * Called when the result is a produced output in the workspace.
+         *
+         * @param relativePath the relative path of the output in the workspace.
+         */
+        void visitProducedOutput(String relativePath);
     }
 
     public static class Builder {
@@ -96,6 +117,26 @@ public abstract class TransformExecutionResult {
             return onlyProducedOutputs
                 ? new ProducedOutputOnlyResult(transformOutputs)
                 : new MixedInputAndProducedOutputResult(transformOutputs);
+        }
+
+        /**
+         * A single output in a transform result.
+         *
+         * Can be either
+         * - the entire input artifact {@link EntireInputArtifact}
+         * - a part of the input artifact {@link PartOfInputArtifact}
+         * - a produced output in the workspace {@link ProducedExecutionOutput}
+         *
+         * Only outputs related to the input artifact need resolving.
+         */
+        protected interface TransformExecutionOutput {
+            TransformWorkspaceOutput resolveForWorkspace(File workspaceDir);
+
+            void visitOutput(OutputVisitor visitor);
+        }
+
+        protected interface TransformWorkspaceOutput {
+            File resolveForInputArtifact(File inputArtifact);
         }
 
         /**
@@ -135,26 +176,6 @@ public abstract class TransformExecutionResult {
                     .map(output -> output.resolveForInputArtifact(inputArtifact))
                     .collect(ImmutableList.toImmutableList());
             }
-        }
-
-        /**
-         * A single output in a transform result.
-         *
-         * Can be either
-         * - the entire input artifact {@link EntireInputArtifact}
-         * - a part of the input artifact {@link PartOfInputArtifact}
-         * - a produced output in the workspace {@link ProducedExecutionOutput}
-         *
-         * Only outputs related to the input artifact need resolving.
-         */
-        protected interface TransformExecutionOutput {
-            TransformWorkspaceOutput resolveForWorkspace(File workspaceDir);
-
-            void visitOutput(OutputVisitor visitor);
-        }
-
-        protected interface TransformWorkspaceOutput {
-            File resolveForInputArtifact(File inputArtifact);
         }
 
         private static class PartOfInputArtifact implements TransformExecutionOutput, TransformWorkspaceOutput {
@@ -225,27 +246,6 @@ public abstract class TransformExecutionResult {
                 visitor.visitProducedOutput(relativePath);
             }
         }
-    }
-
-    public interface OutputVisitor {
-        /**
-         * Called when the result is the full input artifact.
-         */
-        void visitEntireInputArtifact();
-
-        /**
-         * Called when the result is inside the input artifact.
-         *
-         * @param relativePath the relative path from the input artifact to the selected location in the input artifact.
-         */
-        void visitPartOfInputArtifact(String relativePath);
-
-        /**
-         * Called when the result is a produced output in the workspace.
-         *
-         * @param relativePath the relative path of the output in the workspace.
-         */
-        void visitProducedOutput(String relativePath);
     }
 
     /**

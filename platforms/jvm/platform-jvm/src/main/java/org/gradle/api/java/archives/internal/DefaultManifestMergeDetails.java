@@ -58,13 +58,13 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
         return value;
     }
 
-    public boolean isExcluded() {
-        return excluded;
-    }
-
     @Override
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public boolean isExcluded() {
+        return excluded;
     }
 
     @Override

@@ -43,9 +43,11 @@ So lines won't wrap, limit any doc-comment lines to 120 characters.
 
 ### 1.1.2 HTML
 
-Javadoc permits only a subset of HTML tags: `"a", "abbr", "acronym", "address", "area", "b", "bdo", "big", "blockquote", "br", "caption", "cite", "code", "colgroup", "dd", "del", "dfn", "div", "dl", "dt", "em", "fieldset", "font", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "ins", "kbd", "li", "ol", "p", "pre", "q", "samp", "small", "span", "strong", "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "tt", "u", "ul", "var"`.
+Javadoc permits only a subset of HTML tags:
+`"a", "abbr", "acronym", "address", "area", "b", "bdo", "big", "blockquote", "br", "caption", "cite", "code", "colgroup", "dd", "del", "dfn", "div", "dl", "dt", "em", "fieldset", "font", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "ins", "kbd", "li", "ol", "p", "pre", "q", "samp", "small", "span", "strong", "sub", "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "tt", "u", "ul", "var"`.
 
-You can view the latest and full list of accepted tags in [`doclint/HtmlTag.java`](https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/javax/swing/text/html/HTML.Tag.html) for your JDK of choice.
+You can view the latest and full list of accepted tags in [`doclint/HtmlTag.java`](https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/javax/swing/text/html/HTML.Tag.html) for your JDK of
+choice.
 
 Attempt to limit your usage of HTML to: `"a", "h1", "h2", "h3", "h4", "em", "li", "ol", "p", "ul"`.
 
@@ -75,12 +77,12 @@ Each paragraph is denoted by a `<p>` which is placed on a separate line:
 
 HTML tags for other block-level elements, such as `<ul>` or `<table>`, are not preceded with `<p>`.
 
-You don’t need to manually close `<p>` tags with `</p>`. 
+You don’t need to manually close `<p>` tags with `</p>`.
 The Javadoc tool automatically treats `<p>` as a paragraph break and including `</p>` can sometimes lead to incorrect formatting, especially when combined with other block elements.
 
 ### 1.1.4 Symbols
 
-Entities for the less than symbol (<) and the greater than symbol (>) should be written as `&lt`; and `&gt;`. 
+Entities for the less than symbol (<) and the greater than symbol (>) should be written as `&lt`; and `&gt;`.
 Similarly, the ampersand (&) should be written as `&amp;`:
 
 ```java
@@ -112,6 +114,7 @@ The `URL#value` is a relative or absolute URL:
 ### 1.1.6 Code keywords, names, and variables
 
 Use `{@code ... }` style for keywords and names including:
+
 - Java keywords
 - package names
 - class names
@@ -154,18 +157,18 @@ When a block tag doesn't fit on a single line, continuation lines are indented f
 
 Full list of tags (in order):
 
-| #  | Tag           | Usage                                                                          | Notes                                                                                                                                                                                                              |
-|----|---------------|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1  | `@param`      | Methods and constructors only                                                  | Include this if applicable                                                                                                                                                                                         |
-| 2  | `@return`     | Methods only                                                                   | Include this if applicable                                                                                                                                                                                         |
-| 3  | `@throws`     | Same as `@exception`                                                           | Include this if applicable                                                                                                                                                                                         |
-| 4  | `@see`        | Adds a "See Also" heading with a link or text entry that points to a reference | `@see string`<br>`@see <a href="URL#value">label</a>`<br>`@see package.class#member label`                                                                                                                         |
-| 5  | `@since`      | Adds a "Since" heading                                                         | Include the Gradle version if applicable                                                                                                                                                                           |
-| 6  | `@deprecated` | Adds a comment indicating that this API should no longer be used               | Make sure to have an alternative API linked                                                                                                                                                                        |
-| 7  | `@apiSpec`    | Adds a "API Requirements" heading                                              | A description that applies equally to all valid implementations of the method, including preconditions, postconditions, etc                                                                                        |
-| 8  | `@apiNote`    | Adds a "API Note" heading                                                      | A commentary, rationale, or example pertaining to the API                                                                                                                                                          |
-| 9  | `@implSpec`   | Adds a "Implementation Requirements" heading                                   | This is where the default implementation (or an overrideable implementation in a class) is specified                                                                                                               |
-| 10 | `@implNote`   | Adds a "Implementation Note" heading                                           | This section contains informative notes about the implementation, such as advice to implementors, or performance characteristics that are specific to the implementation in this class of this version of the JDK  |
+| #  | Tag           | Usage                                                                          | Notes                                                                                                                                                                                                             |
+|----|---------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1  | `@param`      | Methods and constructors only                                                  | Include this if applicable                                                                                                                                                                                        |
+| 2  | `@return`     | Methods only                                                                   | Include this if applicable                                                                                                                                                                                        |
+| 3  | `@throws`     | Same as `@exception`                                                           | Include this if applicable                                                                                                                                                                                        |
+| 4  | `@see`        | Adds a "See Also" heading with a link or text entry that points to a reference | `@see string`<br>`@see <a href="URL#value">label</a>`<br>`@see package.class#member label`                                                                                                                        |
+| 5  | `@since`      | Adds a "Since" heading                                                         | Include the Gradle version if applicable                                                                                                                                                                          |
+| 6  | `@deprecated` | Adds a comment indicating that this API should no longer be used               | Make sure to have an alternative API linked                                                                                                                                                                       |
+| 7  | `@apiSpec`    | Adds a "API Requirements" heading                                              | A description that applies equally to all valid implementations of the method, including preconditions, postconditions, etc                                                                                       |
+| 8  | `@apiNote`    | Adds a "API Note" heading                                                      | A commentary, rationale, or example pertaining to the API                                                                                                                                                         |
+| 9  | `@implSpec`   | Adds a "Implementation Requirements" heading                                   | This is where the default implementation (or an overrideable implementation in a class) is specified                                                                                                              |
+| 10 | `@implNote`   | Adds a "Implementation Note" heading                                           | This section contains informative notes about the implementation, such as advice to implementors, or performance characteristics that are specific to the implementation in this class of this version of the JDK |
 
 ## 1.2 The summary fragment
 
@@ -216,7 +219,9 @@ In order to label the coding language used in the multi-line snippet, you can us
 ```
 
 To automatically test your code blocks and multi-line snippets, you must add the `autoTested` class to the `<pre>` tag.
-Your project must have a test class that extends [`AbstractAutoTestedSamplesTest`](https://github.com/gradle/gradle/blob/master/testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/AbstractAutoTestedSamplesTest.groovy) to run them:
+Your project must have a test class that extends [
+`AbstractAutoTestedSamplesTest`](https://github.com/gradle/gradle/blob/master/testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/AbstractAutoTestedSamplesTest.groovy) to run
+them:
 
 ```java
 /**
@@ -232,7 +237,8 @@ Your project must have a test class that extends [`AbstractAutoTestedSamplesTest
 
 ## 1.4 Where Javadoc is used
 
-At the minimum, Javadoc is present for every public type (including public inner types), and every public or protected member of such a type, with a few exceptions such as overrides and self-explanatory members:
+At the minimum, Javadoc is present for every public type (including public inner types), and every public or protected member of such a type, with a few exceptions such as overrides and
+self-explanatory members:
 
 ```java
 /**

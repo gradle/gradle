@@ -45,9 +45,7 @@ public interface ResolutionFailureDescriber<FAILURE extends ResolutionFailure> {
      * for the given failure.
      *
      * @param failure the failure to describe
-     *
      * @return the exception that describes the failure
-     *
      * @implSpec Testing {@link #canDescribeFailure(ResolutionFailure)} should <strong>NOT</strong> be done by
      * implementations of this method; ensuring this is done first is the responsibility of the caller.
      */

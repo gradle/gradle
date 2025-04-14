@@ -20,6 +20,8 @@ import org.gradle.util.GradleVersion
 
 interface ToolingApiDistribution {
     GradleVersion getVersion()
+
     Collection<File> getClasspath()
+
     ClassLoader getClassLoader()
 }

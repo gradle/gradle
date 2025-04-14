@@ -34,7 +34,7 @@ class CancelExecutionStepTest extends StepSpec<Context> {
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        0 *_
+        0 * _
     }
 
     def "cancels execution when cancellation is requested"() {
@@ -50,7 +50,7 @@ class CancelExecutionStepTest extends StepSpec<Context> {
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        0 *_
+        0 * _
     }
 
     def "interrupts task worker when cancellation is requested"() {
@@ -60,13 +60,13 @@ class CancelExecutionStepTest extends StepSpec<Context> {
         then:
         thrown BuildCancelledException
 
-        1 * delegate.execute(work, context) >>  {
+        1 * delegate.execute(work, context) >> {
             cancellationToken.cancel()
             wait()
             delegateResult
         }
 
         then:
-        0 *_
+        0 * _
     }
 }

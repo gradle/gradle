@@ -5,7 +5,8 @@ import dagger.Provides;
 
 @Module
 public class Sensors {
-    @Provides static HeatSensor provideHeater() {
+    @Provides
+    static HeatSensor provideHeater() {
         return new DefaultHeatSensor();
     }
 }

@@ -156,6 +156,11 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
+        public void setRelativePath(RelativePath path) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void exclude() {
             throw new UnsupportedOperationException();
         }
@@ -171,11 +176,6 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
-        public void setRelativePath(RelativePath path) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
             throw new UnsupportedOperationException();
         }
@@ -186,12 +186,12 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
-        public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
+        public DuplicatesStrategy getDuplicatesStrategy() {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public DuplicatesStrategy getDuplicatesStrategy() {
+        public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
             throw new UnsupportedOperationException();
         }
 

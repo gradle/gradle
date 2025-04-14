@@ -24,16 +24,16 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     private final boolean changing;
     private final IvyArtifactName artifact;
 
+    private DefaultComponentOverrideMetadata(boolean changing, @Nullable IvyArtifactName artifact) {
+        this.changing = changing;
+        this.artifact = artifact;
+    }
+
     public static ComponentOverrideMetadata forDependency(boolean changing, @Nullable IvyArtifactName mainArtifact) {
         if (!changing && mainArtifact == null) {
             return EMPTY;
         }
         return new DefaultComponentOverrideMetadata(changing, mainArtifact);
-    }
-
-    private DefaultComponentOverrideMetadata(boolean changing, @Nullable IvyArtifactName artifact) {
-        this.changing = changing;
-        this.artifact = artifact;
     }
 
     @Override

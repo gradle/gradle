@@ -85,6 +85,10 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         this.moduleRegistry = moduleRegistry;
     }
 
+    private static File jarFile(PersistentCache cache) {
+        return new File(cache.getBaseDir(), "gradle-worker.jar");
+    }
+
     @Override
     public ClassPath findClassPath(String name) {
         if (name.equals("WORKER_MAIN")) {
@@ -116,10 +120,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         }
 
         return null;
-    }
-
-    private static File jarFile(PersistentCache cache) {
-        return new File(cache.getBaseDir(), "gradle-worker.jar");
     }
 
     private static class CacheInitializer implements Consumer<PersistentCache> {

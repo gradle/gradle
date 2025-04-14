@@ -44,14 +44,14 @@ public class DefaultWorkerProcess implements WorkerProcess {
     private final static Logger LOGGER = Logging.getLogger(DefaultWorkerProcess.class);
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
+    private final long connectTimeout;
+    private final JvmMemoryStatus jvmMemoryStatus;
     private ObjectConnection connection;
     private ConnectionAcceptor acceptor;
     private ExecHandle execHandle;
     private boolean running;
     private boolean aborted;
     private Throwable processFailure;
-    private final long connectTimeout;
-    private final JvmMemoryStatus jvmMemoryStatus;
 
     public DefaultWorkerProcess(int connectTimeoutValue, TimeUnit connectTimeoutUnits, @Nullable JvmMemoryStatus jvmMemoryStatus) {
         connectTimeout = connectTimeoutUnits.toMillis(connectTimeoutValue);
@@ -162,9 +162,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
     @Override
     public String toString() {
         return "DefaultWorkerProcess{"
-                + "running=" + running
-                + ", execHandle=" + execHandle
-                + '}';
+            + "running=" + running
+            + ", execHandle=" + execHandle
+            + '}';
     }
 
     @Override
@@ -200,9 +200,9 @@ public class DefaultWorkerProcess implements WorkerProcess {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
                         throw new ExecException(format("Unable to connect to the child process '%s'.\n"
-                                + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
-                                + "This exception might occur when the build machine is extremely loaded.\n"
-                                + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).", execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
+                            + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
+                            + "This exception might occur when the build machine is extremely loaded.\n"
+                            + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).", execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
                     }
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);

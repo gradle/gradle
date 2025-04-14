@@ -389,7 +389,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         when:
         def barrier = new CyclicBarrier(threads)
         async {
-            (0..<threads).each {threadIndex ->
+            (0..<threads).each { threadIndex ->
                 def listenersToAdd = listeners.toList().tap(List::shuffle)
                 start {
                     barrier.await()
@@ -403,7 +403,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
                         broadcast.add(listener)
                         Thread.sleep(1)
                     }
-               }
+                }
             }
         }
 

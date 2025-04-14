@@ -1,6 +1,7 @@
 // tag::filter-files[]
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
+
 // end::filter-files[]
 
 version = "1.1"
@@ -106,17 +107,11 @@ tasks.register<Copy>("copyWithTruncate") {
     rename { filename: String ->
         if (filename.length > 10) {
             filename.slice(0..7) + "~" + filename.length
-        }
-        else filename
+        } else filename
     }
     into(layout.buildDirectory.dir("toArchive"))
 }
 // end::truncate-names-example[]
-
-
-
-
-
 
 
 val copyTask by tasks.registering(Copy::class) {

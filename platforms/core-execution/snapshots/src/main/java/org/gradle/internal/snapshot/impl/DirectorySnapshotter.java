@@ -105,7 +105,7 @@ public class DirectorySnapshotter {
      *
      * @param absolutePath The absolute path of the directory to snapshot.
      * @param predicate A predicate that determines which files to include in the snapshot.
-     *                  {@code null} means to include everything.
+     * {@code null} means to include everything.
      * @param previouslyKnownSnapshots Snapshots already known to exist in the file system.
      * @param unfilteredSnapshotRecorder If the returned snapshot is filtered by the predicate, i.e. it doesn't have all the contents of the directory,
      * then this consumer will receive all the unfiltered snapshots within the snapshot directory.
@@ -290,6 +290,20 @@ public class DirectorySnapshotter {
             this.unfilteredSnapshotRecorder = unfilteredSnapshotRecorder;
         }
 
+        private static BasicFileAttributes readAttributesOfSymlinkTarget(Path symlink, BasicFileAttributes symlinkAttributes) {
+            try {
+                return Files.readAttributes(symlink, BasicFileAttributes.class);
+            } catch (IOException ioe) {
+                // We emulate the behavior of `Files.walkFileTree(Path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), PathVisitor)`,
+                // and return the attributes of the symlink if we can't read the attributes of the target of the symlink.
+                return symlinkAttributes;
+            }
+        }
+
+        private static boolean isNotFileSystemLoopException(@Nullable IOException e) {
+            return e != null && !(e instanceof FileSystemLoopException);
+        }
+
         private void recordUnfilteredSnapshot(FileSystemLocationSnapshot snapshot) {
             if (snapshot.getType() != FileType.Directory || !filteredDirectorySnapshots.contains(snapshot)) {
                 unfilteredSnapshotRecorder.accept(snapshot);
@@ -425,16 +439,6 @@ public class DirectorySnapshotter {
             return shouldVisit(file, internedName, false);
         }
 
-        private static BasicFileAttributes readAttributesOfSymlinkTarget(Path symlink, BasicFileAttributes symlinkAttributes) {
-            try {
-                return Files.readAttributes(symlink, BasicFileAttributes.class);
-            } catch (IOException ioe) {
-                // We emulate the behavior of `Files.walkFileTree(Path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), PathVisitor)`,
-                // and return the attributes of the symlink if we can't read the attributes of the target of the symlink.
-                return symlinkAttributes;
-            }
-        }
-
         private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
             String internedRemappedAbsoluteFilePath = intern(symbolicLinkMapping.remapAbsolutePath(absoluteFilePath));
             FileSystemLocationSnapshot previouslyKnownSnapshot = previouslyKnownSnapshots.get(internedRemappedAbsoluteFilePath);
@@ -477,10 +481,6 @@ public class DirectorySnapshotter {
             } finally {
                 pathTracker.leave();
             }
-        }
-
-        private static boolean isNotFileSystemLoopException(@Nullable IOException e) {
-            return e != null && !(e instanceof FileSystemLoopException);
         }
 
         private String intern(String string) {

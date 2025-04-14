@@ -55,6 +55,12 @@ import java.util.List;
 
 public class SettingsScopeServices implements ServiceRegistrationProvider {
 
+    private final SettingsInternal settings;
+
+    private SettingsScopeServices(SettingsInternal settings) {
+        this.settings = settings;
+    }
+
     public static CloseableServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Settings.class)
@@ -62,12 +68,6 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
             .parent(parent)
             .provider(new SettingsScopeServices(settings))
             .build();
-    }
-
-    private final SettingsInternal settings;
-
-    private SettingsScopeServices(SettingsInternal settings) {
-        this.settings = settings;
     }
 
     @Provides

@@ -46,51 +46,12 @@ class TaskDetails {
         }
         return o1.getPath().compareTo(o2.getPath());
     };
-
-    /**
-     * A read-only projection for OptionDescriptor details relevant for the help task.
-     */
-    public static class OptionDetails {
-        private final String name;
-
-        private final String description;
-
-        private final Set<String> availableValues;
-        public OptionDetails(String name, String description, Set<String> availableValues) {
-            this.name = name;
-            this.description = description;
-            this.availableValues = availableValues;
-        }
-
-        private static OptionDetails from(OptionDescriptor option) {
-            return new OptionDetails(option.getName(), option.getDescription(), option.getAvailableValues());
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public Set<String> getAvailableValues() {
-            return availableValues;
-        }
-    }
-
     private final String path;
-
     private final String taskType;
-
     private final String shortTypeName;
-
     private final String description;
-
     private final String group;
-
     private final int projectDepth;
-
     private final List<OptionDetails> options;
 
     private TaskDetails(String path, String taskType, String shortTypeName, @Nullable String description, @Nullable String group, int projectDepth, List<OptionDetails> options) {
@@ -101,6 +62,25 @@ class TaskDetails {
         this.group = group;
         this.projectDepth = projectDepth;
         this.options = options;
+    }
+
+    public static TaskDetails from(Task task, OptionReader optionReader) {
+        String path = task.getPath();
+        int projectDepth = StringUtils.countMatches(path, Project.PATH_SEPARATOR);
+        List<OptionDetails> options = TaskOptionsGenerator.generate(task, optionReader).getAll().stream().map(OptionDetails::from).collect(Collectors.toList());
+        Class<?> declaredTaskType = getDeclaredTaskType(task);
+        String taskType = declaredTaskType.getName();
+        String shortTypeName = declaredTaskType.getSimpleName();
+        return new TaskDetails(path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options);
+    }
+
+    private static Class<?> getDeclaredTaskType(Task original) {
+        Class<?> clazz = new DslObject(original).getDeclaredType();
+        if (clazz.equals(DefaultTask.class)) {
+            return org.gradle.api.Task.class;
+        } else {
+            return clazz;
+        }
     }
 
     /**
@@ -136,22 +116,36 @@ class TaskDetails {
         return options;
     }
 
-    public static TaskDetails from(Task task, OptionReader optionReader) {
-        String path = task.getPath();
-        int projectDepth = StringUtils.countMatches(path, Project.PATH_SEPARATOR);
-        List<OptionDetails> options = TaskOptionsGenerator.generate(task, optionReader).getAll().stream().map(OptionDetails::from).collect(Collectors.toList());
-        Class<?> declaredTaskType = getDeclaredTaskType(task);
-        String taskType = declaredTaskType.getName();
-        String shortTypeName = declaredTaskType.getSimpleName();
-        return new TaskDetails(path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options);
-    }
+    /**
+     * A read-only projection for OptionDescriptor details relevant for the help task.
+     */
+    public static class OptionDetails {
+        private final String name;
 
-    private static Class<?> getDeclaredTaskType(Task original) {
-        Class<?> clazz = new DslObject(original).getDeclaredType();
-        if (clazz.equals(DefaultTask.class)) {
-            return org.gradle.api.Task.class;
-        } else {
-            return clazz;
+        private final String description;
+
+        private final Set<String> availableValues;
+
+        public OptionDetails(String name, String description, Set<String> availableValues) {
+            this.name = name;
+            this.description = description;
+            this.availableValues = availableValues;
+        }
+
+        private static OptionDetails from(OptionDescriptor option) {
+            return new OptionDetails(option.getName(), option.getDescription(), option.getAvailableValues());
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Set<String> getAvailableValues() {
+            return availableValues;
         }
     }
 }

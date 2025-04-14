@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
@@ -41,7 +40,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
 
         mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
-        mavenRepo.module("org", "baz", "1.0").dependsOn('org', 'foo',  '1.0').publish()
+        mavenRepo.module("org", "baz", "1.0").dependsOn('org', 'foo', '1.0').publish()
 
         file("settings.gradle") << "rootProject.name = 'cool-project'"
 
@@ -288,7 +287,7 @@ baz:1.0 requested
         outputContains("""Module org:bar:1.0
    REQUESTED : requested
    SELECTED_BY_RULE : fix comes from component selection rule
-   CONSTRAINT : ${useReason?'This reason comes from a constraint':'constraint'}
+   CONSTRAINT : ${useReason ? 'This reason comes from a constraint' : 'constraint'}
 """)
         where:
         useReason << [true, false]
@@ -343,7 +342,7 @@ baz:1.0 requested
 
         then:
         outputContains("""Module org:bar:1.0
-   REQUESTED : ${useReason?'This is a direct dependency reason':'requested'}
+   REQUESTED : ${useReason ? 'This is a direct dependency reason' : 'requested'}
    SELECTED_BY_RULE : fix comes from component selection rule
 """)
         where:
@@ -693,7 +692,7 @@ testRuntimeClasspath
     }
 
     private void withResolutionResultDumper(String... configurations) {
-        def confCapture = configurations.collect( configuration ->
+        def confCapture = configurations.collect(configuration ->
             "def $configuration = configurations.$configuration"
         )
 
@@ -809,6 +808,7 @@ testRuntimeClasspath
         succeeds("resolve")
 
     }
+
     def "resolution result does not realize artifact tasks"() {
         settingsFile << "include 'producer'"
         file("producer/build.gradle") << """
@@ -882,7 +882,7 @@ testRuntimeClasspath
             ${mavenTestRepository()}
 
             dependencies {
-                ${hasDependencies ? 'implementation("org:foo:1.0")' : "" }
+                ${hasDependencies ? 'implementation("org:foo:1.0")' : ""}
             }
 
             task resolve {

@@ -54,14 +54,23 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
 
     @Inject
     public DefaultJavaToolchainResolverRegistry(
-            Gradle gradle,
-            Instantiator instantiator,
-            ObjectFactory objectFactory,
-            ProviderFactory providerFactory,
-            AuthenticationSchemeRegistry authenticationSchemeRegistry
+        Gradle gradle,
+        Instantiator instantiator,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory,
+        AuthenticationSchemeRegistry authenticationSchemeRegistry
     ) {
         this.sharedServices = gradle.getSharedServices();
         this.repositoryHandler = objectFactory.newInstance(DefaultJavaToolchainRepositoryHandler.class, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
+    }
+
+    private static Class<? extends JavaToolchainResolver> getResolverClass(JavaToolchainRepository repository) {
+        Property<Class<? extends JavaToolchainResolver>> resolverClassProperty = repository.getResolverClass();
+        resolverClassProperty.finalizeValueOnRead();
+        if (!resolverClassProperty.isPresent()) {
+            throw new GradleException("Java toolchain repository `" + repository.getName() + "` must have the `resolverClass` property set");
+        }
+        return resolverClassProperty.get();
     }
 
     @Override
@@ -118,15 +127,6 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
             throw new GradleException("Class " + repositoryClass.getName() + " hasn't been registered as a Java toolchain repository");
         }
         return provider;
-    }
-
-    private static Class<? extends JavaToolchainResolver> getResolverClass(JavaToolchainRepository repository) {
-        Property<Class<? extends JavaToolchainResolver>> resolverClassProperty = repository.getResolverClass();
-        resolverClassProperty.finalizeValueOnRead();
-        if (!resolverClassProperty.isPresent()) {
-            throw new GradleException("Java toolchain repository `" + repository.getName() + "` must have the `resolverClass` property set");
-        }
-        return resolverClassProperty.get();
     }
 
 }

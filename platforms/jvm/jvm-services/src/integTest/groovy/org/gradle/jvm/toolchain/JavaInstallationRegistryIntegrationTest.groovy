@@ -127,10 +127,10 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-                .withArgument("-Porg.gradle.java.installations.paths=" + relativePath(rootProject, javaHome))
-                .withTasks("show")
-                .inDirectory(new File(rootProject, subproject))
-                .run()
+            .withArgument("-Porg.gradle.java.installations.paths=" + relativePath(rootProject, javaHome))
+            .withTasks("show")
+            .inDirectory(new File(rootProject, subproject))
+            .run()
         then:
         outputContains(javaHome)
     }

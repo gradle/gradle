@@ -78,6 +78,8 @@ class DefaultComponentTypeRegistryTest extends Specification {
     }
 
     interface MyComponentType extends Component {}
+
     interface MyArtifactType extends Artifact {}
+
     interface MyOtherArtifactType extends Artifact {}
 }

@@ -1,7 +1,7 @@
 pluginManagement {
-  repositories {
-      maven(url = file("./maven-repo"))
-  }
+    repositories {
+        maven(url = file("./maven-repo"))
+    }
 }
 
 // tag::include-subprojects[]

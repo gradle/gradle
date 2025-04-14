@@ -49,7 +49,7 @@ public class TaskStatistics implements Closeable {
 
     public TaskStatistics() {
         String taskStatistics = System.getProperty(TASK_STATISTICS_PROPERTY);
-        if (taskStatistics!=null) {
+        if (taskStatistics != null) {
             collectStatistics = true;
             if (!taskStatistics.isEmpty()) {
                 try {
@@ -116,7 +116,7 @@ public class TaskStatistics implements Closeable {
             LOGGER.lifecycle("Task counts: Old API {}, New API {}, total {}", eagerTaskCount, lazyTaskCount, totalTaskCount);
 
             int createdTaskCount = lazyTaskCreatedCount + eagerTaskCount;
-            LOGGER.lifecycle("Task counts: created {}, avoided {}, %-lazy {}", createdTaskCount, lazyTaskCount-lazyTaskCreatedCount, 100-100*createdTaskCount/totalTaskCount);
+            LOGGER.lifecycle("Task counts: created {}, avoided {}, %-lazy {}", createdTaskCount, lazyTaskCount - lazyTaskCreatedCount, 100 - 100 * createdTaskCount / totalTaskCount);
 
             printTypeCounts("\nTask types that were created with the old API", typeCounts);
             printTypeCounts("\nTask types that were registered with the new API but were created anyways", realizedTypeCounts);

@@ -131,9 +131,11 @@ class ClassDoc implements DslElementDoc {
     List<ClassDoc> getSubClasses() {
         return subClasses
     }
+
     void addSubClass(ClassDoc subClass) {
         subClasses.add(subClass)
     }
+
     ClassDoc mergeContent() {
         classProperties.sort { it.name }
         classMethods.sort { it.metaData.overrideSignature }

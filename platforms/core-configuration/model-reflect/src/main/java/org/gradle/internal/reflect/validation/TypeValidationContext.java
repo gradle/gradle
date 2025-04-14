@@ -20,6 +20,14 @@ import org.gradle.api.Action;
 
 public interface TypeValidationContext {
 
+    TypeValidationContext NOOP = new TypeValidationContext() {
+        @Override
+        public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
+
+        @Override
+        public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
+    };
+
     /**
      * Visits a validation problem associated with the given type.
      * Callers are encouraged to provide as much information as they can on
@@ -37,13 +45,5 @@ public interface TypeValidationContext {
      * @param problemSpec the problem builder
      */
     void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec);
-
-    TypeValidationContext NOOP = new TypeValidationContext() {
-        @Override
-        public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
-
-        @Override
-        public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
-    };
 
 }

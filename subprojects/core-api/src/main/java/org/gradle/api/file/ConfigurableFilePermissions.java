@@ -35,6 +35,7 @@ import org.gradle.api.Action;
  *     other.execute = false
  * }
  * </pre>
+ *
  * @since 8.3
  */
 public interface ConfigurableFilePermissions extends FilePermissions {

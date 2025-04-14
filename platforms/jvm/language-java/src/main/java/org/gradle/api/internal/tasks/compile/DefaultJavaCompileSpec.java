@@ -44,6 +44,10 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
         return compileOptions;
     }
 
+    public void setCompileOptions(CompileOptions compileOptions) {
+        this.compileOptions = new MinimalJavaCompileOptions(compileOptions);
+    }
+
     @Nullable
     @Override
     public File getClassBackupDir() {
@@ -53,10 +57,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setClassBackupDir(@Nullable File classBackupDir) {
         this.backupDestinationDir = classBackupDir;
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = new MinimalJavaCompileOptions(compileOptions);
     }
 
     @Override
@@ -90,13 +90,13 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     }
 
     @Override
-    public void setClassesToCompile(Set<String> classes) {
-        this.classesToCompile = classes;
+    public Set<String> getClassesToCompile() {
+        return classesToCompile;
     }
 
     @Override
-    public Set<String> getClassesToCompile() {
-        return classesToCompile;
+    public void setClassesToCompile(Set<String> classes) {
+        this.classesToCompile = classes;
     }
 
     @Override

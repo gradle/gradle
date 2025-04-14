@@ -25,11 +25,6 @@ import java.io.PrintWriter;
 
 public class GradlePropertiesGenerator implements BuildContentGenerator {
 
-    @Override
-    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
-        generate(settings);
-    }
-
     public static void generate(InitSettings settings) {
         File file = settings.getTarget().file("gradle.properties").getAsFile();
         try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
@@ -47,5 +42,10 @@ public class GradlePropertiesGenerator implements BuildContentGenerator {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Override
+    public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
+        generate(settings);
     }
 }

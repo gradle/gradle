@@ -47,10 +47,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SecuritySupport {
-    private static final Logger LOGGER = Logging.getLogger(SecuritySupport.class);
-
-    private static final int BUFFER = 4096;
     public static final String KEYS_FILE_EXT = ".keys";
+    private static final Logger LOGGER = Logging.getLogger(SecuritySupport.class);
+    private static final int BUFFER = 4096;
 
     static {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {

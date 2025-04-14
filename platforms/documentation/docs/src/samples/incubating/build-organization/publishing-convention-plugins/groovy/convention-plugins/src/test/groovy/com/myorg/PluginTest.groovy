@@ -17,17 +17,17 @@ abstract class PluginTest extends Specification {
 
     def runTask(String task) {
         return GradleRunner.create()
-                .withProjectDir(testProjectDir)
-                .withArguments(task, '--stacktrace')
-                .withPluginClasspath()
-                .build()
+            .withProjectDir(testProjectDir)
+            .withArguments(task, '--stacktrace')
+            .withPluginClasspath()
+            .build()
     }
 
     def runTaskWithFailure(String task) {
         return GradleRunner.create()
-                .withProjectDir(testProjectDir)
-                .withArguments(task, '--stacktrace')
-                .withPluginClasspath()
-                .buildAndFail()
+            .withProjectDir(testProjectDir)
+            .withArguments(task, '--stacktrace')
+            .withPluginClasspath()
+            .buildAndFail()
     }
 }

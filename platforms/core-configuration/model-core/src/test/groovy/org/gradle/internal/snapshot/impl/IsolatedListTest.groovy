@@ -57,10 +57,10 @@ final class IsolatedListTest extends Specification {
         result == null
 
         where:
-        list                | invalidType
-        ["a", "b", "c"]     | Integer
-        ["a", "b", "c"]     | String
-        ["a", "b", "c"]     | List
-        ["a", "b", "c"]     | ImmutableList
+        list            | invalidType
+        ["a", "b", "c"] | Integer
+        ["a", "b", "c"] | String
+        ["a", "b", "c"] | List
+        ["a", "b", "c"] | ImmutableList
     }
 }

@@ -98,7 +98,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 #endif
             }
         """),
-            new SourceFile("objcpp", "sum.mm", """
+        new SourceFile("objcpp", "sum.mm", """
             #include "common.h"
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
@@ -140,7 +140,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 std::cout << "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}" << std::endl;
             }
         """),
-        sourceFile("objcpp", "sum.mm", """
+            sourceFile("objcpp", "sum.mm", """
             #include "common.h"
             int DLL_FUNC sum(int a, int b) {
                 return a + b;

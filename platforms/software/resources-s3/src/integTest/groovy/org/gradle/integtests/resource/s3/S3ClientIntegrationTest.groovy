@@ -230,7 +230,7 @@ class S3ClientIntegrationTest extends Specification {
             s3Client.getResource(uri).close()
 
             ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-                    .withBucketName(bucketName)
+                .withBucketName(bucketName)
 
             ObjectListing objects = s3Client.amazonS3Client.listObjects(listObjectsRequest)
             objects.objectSummaries.each { S3ObjectSummary summary ->

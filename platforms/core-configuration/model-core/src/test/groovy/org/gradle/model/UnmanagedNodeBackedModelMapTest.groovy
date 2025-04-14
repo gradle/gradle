@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model
+
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer

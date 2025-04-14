@@ -49,8 +49,8 @@ public interface LenientConfiguration {
      * Prefer {@link org.gradle.api.artifacts.result.ResolutionResult} for traversing the resolved graph or
      * {@link ArtifactView#getArtifacts()} for accessing the resolved artifacts.
      *
-     * @since 3.1
      * @return all resolved dependencies
+     * @since 3.1
      */
     Set<ResolvedDependency> getAllModuleDependencies();
 

@@ -29,6 +29,8 @@ import java.net.URI;
 import java.util.List;
 
 public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggingHandler implements ExternalResourceLister {
+    private final static ExternalResourceListBuildOperationType.Result LIST_RESULT = new ExternalResourceListBuildOperationType.Result() {
+    };
     private final ExternalResourceLister delegate;
     private final BuildOperationRunner buildOperationExecutor;
 
@@ -53,9 +55,6 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
             return "ExternalResourceListBuildOperationType.Details{location=" + getLocation() + ", " + '}';
         }
     }
-
-    private final static ExternalResourceListBuildOperationType.Result LIST_RESULT = new ExternalResourceListBuildOperationType.Result() {
-    };
 
     private class ListOperation implements CallableBuildOperation<List<String>> {
         private final ExternalResourceName parent;

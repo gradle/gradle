@@ -98,7 +98,7 @@ class DependencyTree {
     DependencyTree calculateClassDependencies(int project, int first, int last) {
         (first..last).each {
             classToproject.put(it, project)
-            placeNode(it, CLASSES_ON_LEVEL, classDependencyTrees.computeIfAbsent(project) {[]}, parentToChildClassIds)
+            placeNode(it, CLASSES_ON_LEVEL, classDependencyTrees.computeIfAbsent(project) { [] }, parentToChildClassIds)
         }
         this
     }
@@ -135,7 +135,7 @@ class DependencyTree {
         this
     }
 
-    private placeNode(int node,  int nodesPerGroup, List<List<Integer>> levelList, Map<Integer, List<Integer>> parentMap) {
+    private placeNode(int node, int nodesPerGroup, List<List<Integer>> levelList, Map<Integer, List<Integer>> parentMap) {
         int freeLevel = findLowestFreeLevel(nodesPerGroup, levelList)
         addToLevel(levelList, freeLevel, node)
         List<Integer> lastGroupOnLevelBelow

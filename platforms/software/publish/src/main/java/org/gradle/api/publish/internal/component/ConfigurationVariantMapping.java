@@ -42,8 +42,8 @@ import java.util.function.Consumer;
 
 public class ConfigurationVariantMapping {
     private final ConfigurationInternal outgoingConfiguration;
-    private Action<? super ConfigurationVariantDetails> action;
     private final ObjectFactory objectFactory;
+    private Action<? super ConfigurationVariantDetails> action;
 
     public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action, ObjectFactory objectFactory) {
         this.outgoingConfiguration = outgoingConfiguration;
@@ -167,6 +167,14 @@ public class ConfigurationVariantMapping {
             this.objectFactory = objectFactory;
         }
 
+        private static String assertValidScope(String scope) {
+            scope = scope.toLowerCase(Locale.ROOT);
+            if ("compile".equals(scope) || "runtime".equals(scope)) {
+                return scope;
+            }
+            throw new InvalidUserCodeException("Invalid Maven scope '" + scope + "'. You must choose between 'compile' and 'runtime'");
+        }
+
         @Override
         public ConfigurationVariant getConfigurationVariant() {
             return variant;
@@ -193,14 +201,6 @@ public class ConfigurationVariantMapping {
                 dependencyMappingDetails = objectFactory.newInstance(DefaultDependencyMappingDetails.class);
             }
             action.execute(dependencyMappingDetails);
-        }
-
-        private static String assertValidScope(String scope) {
-            scope = scope.toLowerCase(Locale.ROOT);
-            if ("compile".equals(scope) || "runtime".equals(scope)) {
-                return scope;
-            }
-            throw new InvalidUserCodeException("Invalid Maven scope '" + scope + "'. You must choose between 'compile' and 'runtime'");
         }
 
         public boolean shouldPublish() {

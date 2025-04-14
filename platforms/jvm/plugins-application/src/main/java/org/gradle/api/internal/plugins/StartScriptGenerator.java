@@ -37,6 +37,9 @@ import java.util.Set;
 
 public class StartScriptGenerator {
 
+    private final ScriptGenerator unixStartScriptGenerator;
+    private final ScriptGenerator windowsStartScriptGenerator;
+    private final UnixFileOperation unixFileOperation;
     private String applicationName;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
@@ -47,9 +50,19 @@ public class StartScriptGenerator {
     private String scriptRelPath;
     private String appNameSystemProperty;
 
-    private final ScriptGenerator unixStartScriptGenerator;
-    private final ScriptGenerator windowsStartScriptGenerator;
-    private final UnixFileOperation unixFileOperation;
+    public StartScriptGenerator() {
+        this(new UnixStartScriptGenerator(), new WindowsStartScriptGenerator());
+    }
+
+    public StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator) {
+        this(unixStartScriptGenerator, windowsStartScriptGenerator, new DefaultUnixFileOperation());
+    }
+
+    StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator, UnixFileOperation unixFileOperation) {
+        this.unixStartScriptGenerator = unixStartScriptGenerator;
+        this.windowsStartScriptGenerator = windowsStartScriptGenerator;
+        this.unixFileOperation = unixFileOperation;
+    }
 
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
@@ -107,20 +120,6 @@ public class StartScriptGenerator {
 
     public void setAppNameSystemProperty(String appNameSystemProperty) {
         this.appNameSystemProperty = appNameSystemProperty;
-    }
-
-    public StartScriptGenerator() {
-        this(new UnixStartScriptGenerator(), new WindowsStartScriptGenerator());
-    }
-
-    public StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator) {
-        this(unixStartScriptGenerator, windowsStartScriptGenerator, new DefaultUnixFileOperation());
-    }
-
-    StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator, UnixFileOperation unixFileOperation) {
-        this.unixStartScriptGenerator = unixStartScriptGenerator;
-        this.windowsStartScriptGenerator = windowsStartScriptGenerator;
-        this.unixFileOperation = unixFileOperation;
     }
 
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {

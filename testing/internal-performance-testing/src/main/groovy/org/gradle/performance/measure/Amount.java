@@ -58,6 +58,12 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         return new Amount<>(value, units);
     }
 
+    private static String formatValue(BigDecimal value) {
+        synchronized (DECIMAL_FORMAT) {
+            return DECIMAL_FORMAT.format(value);
+        }
+    }
+
     /**
      * Returns a string representation of this amount. Uses the original value and units of this amount.
      */
@@ -90,7 +96,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
     private String doFormat() {
         List<Units<Q>> allUnits = units.getUnitsForQuantity();
         BigDecimal base = normalised.abs();
-        for (int i = allUnits.size()-1; i >= 0; i--) {
+        for (int i = allUnits.size() - 1; i >= 0; i--) {
             Units<Q> candidate = allUnits.get(i);
             if (base.compareTo(candidate.getFactor()) >= 0) {
                 BigDecimal scaled = units.scaleTo(value, candidate);
@@ -98,12 +104,6 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
             }
         }
         return formatValue(value) + " " + units.format(value);
-    }
-
-    private static String formatValue(BigDecimal value) {
-        synchronized (DECIMAL_FORMAT) {
-            return DECIMAL_FORMAT.format(value);
-        }
     }
 
     /**
@@ -182,6 +182,7 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
     public Amount<Q> div(long other) {
         return div(BigDecimal.valueOf(other));
     }
+
     public Amount<Q> div(BigDecimal other) {
         return new Amount<>(value.divide(other, 6, RoundingMode.HALF_UP), units);
     }

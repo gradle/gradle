@@ -24,7 +24,6 @@ import java.util.List;
 /**
  * This interface is copied and trimmed from org.gradle.api.specs.Spec because older versions of Tooling API have issues with
  * the original due to different versions of classes loaded.
- *
  */
 interface Spec<T> {
     boolean isSatisfiedBy(T element);
@@ -42,17 +41,16 @@ class Specs {
             return true;
         }
     };
-
-    public static <T> Spec<T> satisfyAll() {
-        return Cast.uncheckedCast(SATISFIES_ALL);
-    }
-
     public static final Spec<Object> SATISFIES_NONE = new Spec<Object>() {
         @Override
         public boolean isSatisfiedBy(Object element) {
             return false;
         }
     };
+
+    public static <T> Spec<T> satisfyAll() {
+        return Cast.uncheckedCast(SATISFIES_ALL);
+    }
 
     public static <T> Spec<T> satisfyNone() {
         return Cast.uncheckedCast(SATISFIES_NONE);

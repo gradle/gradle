@@ -23,7 +23,7 @@ abstract class AbstractJUnit4IgnoreClassIntegrationTest extends AbstractJUnitIgn
     def "can handle class level ignored tests with custom runner"() {
         given:
         executer.noExtraLogging()
-        file ('src/test/java/org/gradle/CustomIgnoredTest.java') << """
+        file('src/test/java/org/gradle/CustomIgnoredTest.java') << """
             package org.gradle;
 
             ${testFrameworkImports}

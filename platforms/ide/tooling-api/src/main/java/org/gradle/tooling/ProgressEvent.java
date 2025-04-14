@@ -17,6 +17,7 @@ package org.gradle.tooling;
 
 /**
  * Some information about a piece of work of a long running operation.
+ *
  * @since 1.0-milestone-3
  */
 public interface ProgressEvent {

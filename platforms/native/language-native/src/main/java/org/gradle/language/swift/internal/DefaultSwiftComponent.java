@@ -48,7 +48,7 @@ public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends Defau
     public DefaultSwiftComponent(String name, Class<? extends SwiftBinary> binaryType, ObjectFactory objectFactory) {
         super(objectFactory);
         this.name = name;
-        this.swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
+        this.swiftSource = createSourceView("src/" + name + "/swift", Collections.singletonList("swift"));
         this.module = objectFactory.property(String.class);
         this.sourceCompatibility = objectFactory.property(SwiftVersion.class);
 

@@ -53,6 +53,10 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
         this.fileSystem = fileSystem;
     }
 
+    private static boolean isNotFileSystemLoopException(@Nullable IOException e) {
+        return e != null && !(e instanceof FileSystemLoopException);
+    }
+
     private boolean shouldVisit(FileTreeElement element) {
         return spec.isSatisfiedBy(element);
     }
@@ -106,10 +110,6 @@ class PathVisitor implements java.nio.file.FileVisitor<Path> {
             throw new GradleException(String.format("Could not read path '%s'.", file), exc);
         }
         return checkStopFlag();
-    }
-
-    private static boolean isNotFileSystemLoopException(@Nullable IOException e) {
-        return e != null && !(e instanceof FileSystemLoopException);
     }
 
     @Override

@@ -138,6 +138,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
     @Managed
     interface HasSingleCharGetter {
         String getA()
+
         void setA(String a)
     }
 
@@ -155,6 +156,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
     @Managed
     interface HasSingleCharFirstPartGetter {
         String getcCompiler()
+
         void setcCompiler(String cCompiler)
     }
 
@@ -172,6 +174,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
     @Managed
     interface HasDoubleCapsStartingGetter {
         String getCFlags()
+
         void setCFlags(String cflags)
     }
 
@@ -189,6 +192,7 @@ class DefaultModelSchemaExtractorTest extends Specification {
     @Managed
     interface HasFullCapsGetter {
         String getURL()
+
         void setURL(String url)
     }
 
@@ -330,12 +334,14 @@ class DefaultModelSchemaExtractorTest extends Specification {
     @Managed
     static interface SingleStringValueProperty {
         String getValue()
+
         void setValue(String value)
     }
 
     @Managed
     static interface SingleFloatValueProperty {
         Float getValue()
+
         void setValue(Float value)
     }
 
@@ -1005,7 +1011,8 @@ interface Managed${typeName} {
 
     @Managed
     interface ManagedTypeWithOverriddenMethodExtendingUnmanagedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
-        @Override InputStream doSomething(Object param)
+        @Override
+        InputStream doSomething(Object param)
     }
 
     def "accept non-property methods from unmanaged supertype overridden in managed type"() {
@@ -1015,7 +1022,8 @@ interface Managed${typeName} {
 
     @Managed
     interface ManagedTypeWithCovarianceOverriddenMethodExtendingUnmanagedTypeWithMethod extends UnmanagedSuperTypeWithMethod {
-        @Override ByteArrayInputStream doSomething(Object param)
+        @Override
+        ByteArrayInputStream doSomething(Object param)
     }
 
     def "accept non-property methods from unmanaged supertype with covariance overridden in managed type"() {
@@ -1025,13 +1033,17 @@ interface Managed${typeName} {
 
     interface UnmanagedSuperTypeWithOverloadedMethod {
         InputStream doSomething(Object param)
+
         InputStream doSomething(Object param, Object other)
     }
 
     @Managed
     interface ManagedTypeExtendingUnmanagedTypeWithOverloadedMethod extends UnmanagedSuperTypeWithOverloadedMethod {
-        @Override ByteArrayInputStream doSomething(Object param)
-        @Override ByteArrayInputStream doSomething(Object param, Object other)
+        @Override
+        ByteArrayInputStream doSomething(Object param)
+
+        @Override
+        ByteArrayInputStream doSomething(Object param, Object other)
     }
 
     def "accept non-property overloaded methods from unmanaged supertype overridden in managed type"() {

@@ -84,9 +84,12 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
     static abstract class AbstractPropertyRules extends RuleSource {
         @RuleInput
         abstract String getValue()
+
         abstract void setValue(String value)
+
         @RuleInput
         abstract int getNumber()
+
         abstract void setNumber(int value)
     }
 
@@ -673,9 +676,10 @@ ${fullyQualifiedNameOf(ManagedWithNonManageableParents)}
 
     static class RuleSourceWithDependencies extends RuleSource {
         @Mutate
-        void method1(Long l) { }
+        void method1(Long l) {}
+
         @Mutate
-        void method2(String s) { }
+        void method2(String s) {}
     }
 
     def "rule method can imply plugin dependency"() {

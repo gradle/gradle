@@ -33,8 +33,9 @@ import java.util.function.Supplier;
  * Allows recording and querying the input locations of a build.
  */
 public class BuildInputHierarchy {
-    private volatile ValuedVfsHierarchy<InputDeclaration> root;
+    private static final InputDeclaration ALL_CHILDREN_ARE_INPUTS = childPath -> true;
     private final SingleFileTreeElementMatcher matcher;
+    private volatile ValuedVfsHierarchy<InputDeclaration> root;
 
     public BuildInputHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
         this.root = ValuedVfsHierarchy.emptyHierarchy(caseSensitivity);
@@ -74,6 +75,10 @@ public class BuildInputHierarchy {
         root = root.recordValue(relativePath, new FilteredInputDeclaration(filter));
     }
 
+    private interface InputDeclaration {
+        boolean contains(VfsRelativePath childPath);
+    }
+
     private static class InputDeclarationVisitor implements ValueVisitor<InputDeclaration> {
         private boolean input = false;
 
@@ -106,12 +111,6 @@ public class BuildInputHierarchy {
             return input;
         }
     }
-
-    private interface InputDeclaration {
-        boolean contains(VfsRelativePath childPath);
-    }
-
-    private static final InputDeclaration ALL_CHILDREN_ARE_INPUTS = childPath -> true;
 
     private class FilteredInputDeclaration implements InputDeclaration {
         private final Spec<FileTreeElement> spec;

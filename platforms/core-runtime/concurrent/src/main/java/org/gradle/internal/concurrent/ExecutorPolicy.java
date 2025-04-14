@@ -74,7 +74,7 @@ public interface ExecutorPolicy {
             } catch (Exception exception) {
                 onFailure(String.format("Failed to execute %s.", command), exception);
                 throw exception;
-            } catch(Throwable throwable) {
+            } catch (Throwable throwable) {
                 onFailure(String.format("Failed to execute %s.", command), throwable);
                 throw new UndeclaredThrowableException(throwable);
             }

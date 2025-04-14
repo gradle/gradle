@@ -32,21 +32,6 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
-    /**
-     * List of Gradle API jar entry points. These modules and their dependencies are available for ProjectBuilder.
-     */
-    private static final List<String> GRADLE_API_ENTRY_POINTS = Arrays.asList(
-        "gradle-worker-main",
-        "gradle-launcher",
-        "gradle-workers",
-        "gradle-dependency-management",
-        "gradle-plugin-use",
-        "gradle-tooling-api-builders",
-        "gradle-configuration-cache",
-        "gradle-isolated-action-services",
-        "gradle-unit-test-fixtures"
-    );
-
     public static final Set<String> GROOVY_MODULES = ImmutableSet.of(
         "groovy",
         "groovy-ant",
@@ -61,7 +46,20 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         "groovy-templates",
         "groovy-xml"
     );
-
+    /**
+     * List of Gradle API jar entry points. These modules and their dependencies are available for ProjectBuilder.
+     */
+    private static final List<String> GRADLE_API_ENTRY_POINTS = Arrays.asList(
+        "gradle-worker-main",
+        "gradle-launcher",
+        "gradle-workers",
+        "gradle-dependency-management",
+        "gradle-plugin-use",
+        "gradle-tooling-api-builders",
+        "gradle-configuration-cache",
+        "gradle-isolated-action-services",
+        "gradle-unit-test-fixtures"
+    );
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
 

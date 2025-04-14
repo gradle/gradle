@@ -34,8 +34,8 @@ import static org.gradle.util.internal.TextUtil.endLineWithDot;
 
 public class DefaultCatalogProblemBuilder {
 
-    private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
+    private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
     public static void maybeThrowError(InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
         if (!problems.isEmpty()) {

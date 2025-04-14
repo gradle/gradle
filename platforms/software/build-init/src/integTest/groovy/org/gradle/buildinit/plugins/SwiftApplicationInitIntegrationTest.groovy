@@ -65,7 +65,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("${subprojectName()}/build/exe/main/debug/App").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/App").exec().out == "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -89,7 +89,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("${subprojectName()}/build/exe/main/debug/App").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/App").exec().out == "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -144,7 +144,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         executed(":app:test")
 
         and:
-        executable("${subprojectName()}/build/exe/main/debug/App").exec().out ==  "Hola, Mundo!\n"
+        executable("${subprojectName()}/build/exe/main/debug/App").exec().out == "Hola, Mundo!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

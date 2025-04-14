@@ -37,7 +37,7 @@ import spock.lang.Specification
 class S3ClientTest extends Specification {
     final S3ConnectionProperties s3ConnectionProperties = Mock()
 
-    def setup(){
+    def setup() {
         _ * s3ConnectionProperties.getEndpoint() >> Optional.absent()
         _ * s3ConnectionProperties.getPartSize() >> 512
         _ * s3ConnectionProperties.getMultipartThreshold() >> 1024

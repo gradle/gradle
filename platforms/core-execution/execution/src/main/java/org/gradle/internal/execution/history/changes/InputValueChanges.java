@@ -52,7 +52,7 @@ class InputValueChanges implements ChangeContainer {
             String propertyName = entry.getKey();
             String changeType = entry.getValue();
             if (!visitor.visitChange(new DescriptiveChange("%s of input property '%s' has changed for %s",
-                    changeType, propertyName, executable.getDisplayName()))) {
+                changeType, propertyName, executable.getDisplayName()))) {
                 return false;
             }
         }

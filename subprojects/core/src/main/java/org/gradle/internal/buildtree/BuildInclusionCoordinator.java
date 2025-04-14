@@ -48,30 +48,6 @@ public class BuildInclusionCoordinator {
     private final WorkerLeaseService workerLeaseService;
     private boolean registerRootSubstitutions;
 
-    private static class BuildSynchronizer {
-        final Synchronizer lock;
-        boolean isInProgress;
-
-        BuildSynchronizer(WorkerLeaseService workerLeaseService) {
-            this.lock = workerLeaseService.newResource();
-        }
-
-        void withLock(Runnable action) {
-            lock.withLock(() -> {
-                if (isInProgress) {
-                    return;
-                }
-                try {
-                    isInProgress = true;
-                    action.run();
-                } finally {
-                    isInProgress = false;
-                }
-            });
-        }
-
-    }
-
     public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry, WorkerLeaseService workerLeaseService) {
         this.substitutionRegistry = substitutionRegistry;
         this.workerLeaseService = workerLeaseService;
@@ -145,5 +121,29 @@ public class BuildInclusionCoordinator {
 
     private void withLockForBuild(BuildState build, Runnable action) {
         synchronizers.computeIfAbsent(build, b -> new BuildSynchronizer(workerLeaseService)).withLock(action);
+    }
+
+    private static class BuildSynchronizer {
+        final Synchronizer lock;
+        boolean isInProgress;
+
+        BuildSynchronizer(WorkerLeaseService workerLeaseService) {
+            this.lock = workerLeaseService.newResource();
+        }
+
+        void withLock(Runnable action) {
+            lock.withLock(() -> {
+                if (isInProgress) {
+                    return;
+                }
+                try {
+                    isInProgress = true;
+                    action.run();
+                } finally {
+                    isInProgress = false;
+                }
+            });
+        }
+
     }
 }

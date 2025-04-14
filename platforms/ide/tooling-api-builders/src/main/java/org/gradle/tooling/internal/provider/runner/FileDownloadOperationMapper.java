@@ -47,6 +47,17 @@ import java.net.URISyntaxException;
 import static java.util.Collections.singletonList;
 
 public class FileDownloadOperationMapper implements BuildOperationMapper<ExternalResourceReadBuildOperationType.Details, DefaultFileDownloadDescriptor> {
+    @NonNull
+    private static AbstractOperationResult createFileDownloadResult(ExternalResourceReadBuildOperationType.Result operationResult, Throwable failure, long startTime, long endTime) {
+        if (operationResult.isMissing()) {
+            return new NotFoundFileDownloadSuccessResult(startTime, endTime);
+        }
+        if (failure == null) {
+            return new DefaultFileDownloadSuccessResult(startTime, endTime, operationResult.getBytesRead());
+        }
+        return new DefaultFileDownloadFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), operationResult.getBytesRead());
+    }
+
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
         return subscriptions.isRequested(OperationType.FILE_DOWNLOAD);
@@ -88,16 +99,5 @@ public class FileDownloadOperationMapper implements BuildOperationMapper<Externa
         long endTime = finishEvent.getEndTime();
         AbstractOperationResult result = createFileDownloadResult(operationResult, finishEvent.getFailure(), finishEvent.getStartTime(), endTime);
         return new DefaultOperationFinishedProgressEvent(endTime, descriptor, result);
-    }
-
-    @NonNull
-    private static AbstractOperationResult createFileDownloadResult(ExternalResourceReadBuildOperationType.Result operationResult, Throwable failure, long startTime, long endTime) {
-        if (operationResult.isMissing()) {
-            return new NotFoundFileDownloadSuccessResult(startTime, endTime);
-        }
-        if (failure == null) {
-            return new DefaultFileDownloadSuccessResult(startTime, endTime, operationResult.getBytesRead());
-        }
-        return new DefaultFileDownloadFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), operationResult.getBytesRead());
     }
 }

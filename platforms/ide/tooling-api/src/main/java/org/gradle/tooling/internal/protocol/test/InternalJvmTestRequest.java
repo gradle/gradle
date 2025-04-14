@@ -27,5 +27,7 @@ import org.jspecify.annotations.Nullable;
  */
 public interface InternalJvmTestRequest {
     String getClassName();
-    @Nullable String getMethodName();
+
+    @Nullable
+    String getMethodName();
 }

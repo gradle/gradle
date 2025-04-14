@@ -23,8 +23,10 @@ import org.gradle.internal.time.Clock;
 
 public class WorkerTestClassProcessor extends SuiteTestClassProcessor {
 
-    public WorkerTestClassProcessor(TestClassProcessor processor, Object workerSuiteId, String workerDisplayName,
-                                    Clock clock) {
+    public WorkerTestClassProcessor(
+        TestClassProcessor processor, Object workerSuiteId, String workerDisplayName,
+        Clock clock
+    ) {
         super(new WorkerTestSuiteDescriptor(workerSuiteId, workerDisplayName), processor, clock);
     }
 

@@ -26,11 +26,6 @@ public class FixedClock implements Clock {
         current = startTime;
     }
 
-    @Override
-    public long getCurrentTime() {
-        return current;
-    }
-
     /**
      * Creates a clock that always returns 0 as the current time.
      *
@@ -48,5 +43,10 @@ public class FixedClock implements Clock {
      */
     public static Clock createAt(long startTime) {
         return new FixedClock(startTime);
+    }
+
+    @Override
+    public long getCurrentTime() {
+        return current;
     }
 }

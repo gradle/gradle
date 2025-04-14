@@ -28,6 +28,22 @@ import java.util.List;
 
 public class RunEclipseTasksBuilder implements ToolingModelBuilder {
 
+    private static boolean isSyncModel(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseSynchronizationTasks");
+    }
+
+    private static boolean isAutoBuildModel(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseAutoBuildTasks");
+    }
+
+    private static String placeHolderTaskName(Project project, String baseName) {
+        if (project.getTasks().findByName(baseName) == null) {
+            return baseName;
+        } else {
+            return placeHolderTaskName(project, baseName + "_");
+        }
+    }
+
     @Override
     public boolean canBuild(String modelName) {
         return isSyncModel(modelName) || isAutoBuildModel(modelName);
@@ -68,22 +84,5 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
 
         project.getGradle().getStartParameter().setTaskNames(taskPaths);
         return null;
-    }
-
-    private static boolean isSyncModel(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseSynchronizationTasks");
-    }
-
-
-    private static boolean isAutoBuildModel(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseAutoBuildTasks");
-    }
-
-    private static String placeHolderTaskName(Project project, String baseName) {
-        if (project.getTasks().findByName(baseName) == null) {
-            return baseName;
-        } else {
-            return placeHolderTaskName(project, baseName + "_");
-        }
     }
 }

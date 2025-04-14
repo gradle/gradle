@@ -42,8 +42,10 @@ public class AnnotationProcessingData {
         this(ImmutableMap.of(), ImmutableSet.of(), ImmutableSet.of(), ImmutableMap.of(), ImmutableSet.of(), null);
     }
 
-    public AnnotationProcessingData(Map<String, Set<String>> generatedTypesByOrigin, Set<String> aggregatedTypes, Set<String> generatedTypesDependingOnAllOthers, Map<String,
-        Set<GeneratedResource>> generatedResourcesByOrigin, Set<GeneratedResource> generatedResourcesDependingOnAllOthers, String fullRebuildCause) {
+    public AnnotationProcessingData(
+        Map<String, Set<String>> generatedTypesByOrigin, Set<String> aggregatedTypes, Set<String> generatedTypesDependingOnAllOthers, Map<String,
+            Set<GeneratedResource>> generatedResourcesByOrigin, Set<GeneratedResource> generatedResourcesDependingOnAllOthers, String fullRebuildCause
+    ) {
 
         this.generatedTypesByOrigin = ImmutableMap.copyOf(generatedTypesByOrigin);
         this.aggregatedTypes = ImmutableSet.copyOf(aggregatedTypes);

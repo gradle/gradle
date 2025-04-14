@@ -34,12 +34,14 @@ import org.gradle.internal.service.scopes.Scope;
 public interface TestListener {
     /**
      * Called before a test suite is started.
+     *
      * @param suite The suite whose tests are about to be executed.
      */
     void beforeSuite(TestDescriptor suite);
 
     /**
      * Called after a test suite is finished.
+     *
      * @param suite The suite whose tests have finished being executed.
      * @param result The aggregate result for the suite.
      */
@@ -47,12 +49,14 @@ public interface TestListener {
 
     /**
      * Called before an atomic test is started.
+     *
      * @param testDescriptor The test which is about to be executed.
      */
     void beforeTest(TestDescriptor testDescriptor);
 
     /**
      * Called after an atomic test is finished.
+     *
      * @param testDescriptor The test which has finished executing.
      * @param result The test result.
      */

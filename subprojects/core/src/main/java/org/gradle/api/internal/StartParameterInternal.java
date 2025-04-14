@@ -153,14 +153,14 @@ public class StartParameterInternal extends StartParameter {
         return isolatedProjects;
     }
 
+    public void setIsolatedProjects(Option.Value<Boolean> isolatedProjects) {
+        this.isolatedProjects = isolatedProjects;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public boolean isConfigurationCacheRequested() {
         return configurationCache.get();
-    }
-
-    public void setIsolatedProjects(Option.Value<Boolean> isolatedProjects) {
-        this.isolatedProjects = isolatedProjects;
     }
 
     public ConfigurationCacheProblemsOption.Value getConfigurationCacheProblems() {
@@ -236,20 +236,20 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCacheQuiet = configurationCacheQuiet;
     }
 
-    public void setConfigurationCacheIntegrityCheckEnabled(boolean configurationCacheIntegrityCheck) {
-        this.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheck;
-    }
-
     public boolean isConfigurationCacheIntegrityCheckEnabled() {
         return configurationCacheIntegrityCheckEnabled;
     }
 
-    public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
-        this.continuousBuildQuietPeriod = continuousBuildQuietPeriod;
+    public void setConfigurationCacheIntegrityCheckEnabled(boolean configurationCacheIntegrityCheck) {
+        this.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheck;
     }
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
+        this.continuousBuildQuietPeriod = continuousBuildQuietPeriod;
     }
 
     public boolean isPropertyUpgradeReportEnabled() {

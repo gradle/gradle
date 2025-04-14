@@ -37,6 +37,10 @@ import java.util.List;
  */
 public final class ExecuteTaskBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, ExecuteTaskBuildOperationType.Result> {
 
+    private ExecuteTaskBuildOperationType() {
+
+    }
+
     public interface Details {
 
         String getBuildPath();
@@ -144,10 +148,6 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          */
         @NotUsedByScanPlugin("used to report incrementality to TAPI progress listeners")
         boolean isIncremental();
-
-    }
-
-    private ExecuteTaskBuildOperationType() {
 
     }
 

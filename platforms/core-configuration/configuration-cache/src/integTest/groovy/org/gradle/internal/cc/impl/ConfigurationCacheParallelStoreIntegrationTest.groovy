@@ -22,10 +22,10 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
 
     def "failures while storing different projects are reported"() {
         given:
-        def projects = (1..5).collect  {"proj$it" }
+        def projects = (1..5).collect { "proj$it" }
         def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
-            include ${projects.collect {"'${it}'" }.join(',')}
+            include ${projects.collect { "'${it}'" }.join(',')}
         """
 
         def createBuildFile = {

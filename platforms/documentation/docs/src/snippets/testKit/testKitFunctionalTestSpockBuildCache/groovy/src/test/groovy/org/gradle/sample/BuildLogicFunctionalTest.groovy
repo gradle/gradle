@@ -9,20 +9,21 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 class BuildLogicFunctionalTest extends Specification {
 
     // tag::clean-build-cache[]
-    @TempDir File testProjectDir
+    @TempDir
+    File testProjectDir
     File buildFile
     File localBuildCacheDirectory
 
     def setup() {
         localBuildCacheDirectory = new File(testProjectDir, 'local-cache')
-        buildFile = new File(testProjectDir,'settings.gradle') << """
+        buildFile = new File(testProjectDir, 'settings.gradle') << """
             buildCache {
                 local {
                     directory = '${localBuildCacheDirectory.toURI()}'
                 }
             }
         """
-        buildFile = new File(testProjectDir,'build.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
     // end::clean-build-cache[]
 
@@ -37,7 +38,7 @@ class BuildLogicFunctionalTest extends Specification {
 
         when:
         def result = runner()
-            .withArguments( '--build-cache', 'cacheableTask')
+            .withArguments('--build-cache', 'cacheableTask')
             .build()
 
         then:
@@ -46,7 +47,7 @@ class BuildLogicFunctionalTest extends Specification {
         when:
         new File(testProjectDir, 'build').deleteDir()
         result = runner()
-            .withArguments( '--build-cache', 'cacheableTask')
+            .withArguments('--build-cache', 'cacheableTask')
             .build()
 
         then:

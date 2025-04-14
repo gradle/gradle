@@ -46,13 +46,13 @@ class DependencyResultSpec implements Spec<DependencyResult> {
         ComponentSelector requested = candidate.getRequested();
 
         if (requested instanceof ModuleComponentSelector) {
-            ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
+            ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
             String requestedCandidate = requestedModule.getGroup() + ":" + requestedModule.getModule() + ":" + requestedModule.getVersion();
             return requestedCandidate.contains(stringNotation);
         }
 
         if (requested instanceof ProjectComponentSelector) {
-            ProjectComponentSelector project = (ProjectComponentSelector)requested;
+            ProjectComponentSelector project = (ProjectComponentSelector) requested;
             String requestedCandidate = project.getProjectPath();
             return requestedCandidate.contains(stringNotation);
         }

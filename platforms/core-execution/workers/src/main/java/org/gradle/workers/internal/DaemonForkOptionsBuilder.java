@@ -59,6 +59,30 @@ public class DaemonForkOptionsBuilder {
         this.javaForkOptionsFactory = forkOptionsFactory;
     }
 
+    /**
+     * Users can add files that are held open by the worker process. This causes problems on Windows with persistent workers because
+     * we cannot delete files that are held by the worker process.
+     *
+     * @param jvmArgs JVM arguments to check
+     * @return Optional that has the value of the JVM argument that is unreliable or empty if no unreliable arguments were found
+     */
+    @VisibleForTesting
+    static Optional<String> findUnreliableArgument(List<String> jvmArgs) {
+        for (String jvmArg : jvmArgs) {
+            if (jvmArg.startsWith("-")) {
+                if (UNRELIABLE_OPTIONS.contains(jvmArg)) {
+                    return Optional.of(jvmArg);
+                }
+                for (String prefix : UNRELIABLE_OPTION_PREFIXES) {
+                    if (jvmArg.startsWith(prefix)) {
+                        return Optional.of(jvmArg);
+                    }
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     public DaemonForkOptionsBuilder keepAliveMode(KeepAliveMode keepAliveMode) {
         this.keepAliveMode = keepAliveMode;
         return this;
@@ -85,29 +109,5 @@ public class DaemonForkOptionsBuilder {
             }
         }
         return new DaemonForkOptions(forkOptions, keepAliveMode, classLoaderStructure);
-    }
-
-    /**
-     * Users can add files that are held open by the worker process. This causes problems on Windows with persistent workers because
-     * we cannot delete files that are held by the worker process.
-     *
-     * @param jvmArgs JVM arguments to check
-     * @return Optional that has the value of the JVM argument that is unreliable or empty if no unreliable arguments were found
-     */
-    @VisibleForTesting
-    static Optional<String> findUnreliableArgument(List<String> jvmArgs) {
-        for (String jvmArg : jvmArgs) {
-            if (jvmArg.startsWith("-")) {
-                if (UNRELIABLE_OPTIONS.contains(jvmArg)) {
-                    return Optional.of(jvmArg);
-                }
-                for (String prefix : UNRELIABLE_OPTION_PREFIXES) {
-                    if (jvmArg.startsWith(prefix)) {
-                        return Optional.of(jvmArg);
-                    }
-                }
-            }
-        }
-        return Optional.empty();
     }
 }

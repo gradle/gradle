@@ -35,7 +35,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ClangToolChainTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
     final FileResolver fileResolver = Mock(FileResolver)
     final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     final toolChain = new ClangToolChain("clang", Stub(BuildOperationExecutor), Stub(OperatingSystem), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), Stub(SystemLibraryDiscovery), instantiator, Stub(WorkerLeaseService))

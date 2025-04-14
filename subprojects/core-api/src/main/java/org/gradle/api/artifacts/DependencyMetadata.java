@@ -59,7 +59,6 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      * Returns the reason why this dependency should be selected.
      *
      * @return the reason, or null if no reason is found in metadata.
-     *
      * @since 4.6
      */
     @Nullable
@@ -69,7 +68,6 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      * Adjust the reason why this dependency should be selected.
      *
      * @param reason modified reason
-     *
      * @since 4.6
      */
     SELF because(String reason);
@@ -78,7 +76,6 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      * Returns the attributes of this dependency.
      *
      * @return the attributes of this dependency
-     *
      * @since 4.8
      */
     AttributeContainer getAttributes();
@@ -95,7 +92,6 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
      * as {@link #getGroup()} and {@link #getName()}.
      *
      * @return the module identifier
-     *
      * @since 4.9
      */
     ModuleIdentifier getModule();

@@ -23,15 +23,22 @@ import java.util.Set;
 @SuppressWarnings("UnusedDeclaration")
 public class JavaTestSubject {
 
+    private static String myStaticProperty;
     final IllegalStateException failure = new IllegalStateException();
+    public String myField = "myFieldValue";
+    public boolean myBooleanField = true;
+    public int publicField;
     private String myProp = "myValue";
     private String myProp2;
     private boolean myBooleanProp = true;
-    public String myField = "myFieldValue";
-    public boolean myBooleanField = true;
-    private static String myStaticProperty;
 
-    public int publicField;
+    public static String getStaticProperty() {
+        return myStaticProperty;
+    }
+
+    public static void setStaticProperty(String value) {
+        myStaticProperty = value;
+    }
 
     public String doSomeStuff(int a, Integer b) {
         return String.format("%s.%s", a, b);
@@ -65,14 +72,6 @@ public class JavaTestSubject {
         return null;
     }
 
-    public static String getStaticProperty() {
-        return myStaticProperty;
-    }
-
-    public static void setStaticProperty(String value) {
-        myStaticProperty = value;
-    }
-
     public void getVoidProperty() {
     }
 
@@ -91,12 +90,6 @@ public class JavaTestSubject {
 
     public void throwsException() {
         throw failure;
-    }
-
-    static class TestCheckedException extends Exception {
-        public TestCheckedException(Throwable cause) {
-            super(cause);
-        }
     }
 
     public void throwsCheckedException() throws TestCheckedException {
@@ -125,9 +118,13 @@ public class JavaTestSubject {
     private void setPrivateProperty(String value) {
     }
 
-    public void setMultiValue(Set<String> values) { }
+    public void setMultiValue(Set<String> values) {}
 
-    public void setMultiValue(Iterable<?> values) { }
+    public void setMultiValue(Iterable<?> values) {}
+
+    public String getMyProperty2() {
+        return myProp2;
+    }
 
     public void setMyProperty2(String value) {
         myProp2 = value;
@@ -137,11 +134,15 @@ public class JavaTestSubject {
         myProp2 = value.toString();
     }
 
-    public String getMyProperty2() {
-        return myProp2;
-    }
-
     public void setMyProperty3(CharSequence value) {}
+
     public void setMyProperty3(Collection<?> value) {}
+
     public void setMyProperty3(Object value) {}
+
+    static class TestCheckedException extends Exception {
+        public TestCheckedException(Throwable cause) {
+            super(cause);
+        }
+    }
 }

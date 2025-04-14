@@ -71,13 +71,30 @@ public class CommandLineParser {
     private boolean allowMixedOptions;
     private boolean allowUnknownOptions;
 
+    private static String join(Collection<?> things, String separator) {
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
+
+        if (separator == null) {
+            separator = "";
+        }
+
+        for (Object thing : things) {
+            if (!first) {
+                builder.append(separator);
+            }
+            builder.append(thing.toString());
+            first = false;
+        }
+        return builder.toString();
+    }
+
     /**
      * Parses the given command-line.
      *
      * @param commandLine The command-line.
      * @return The parsed command line.
-     * @throws org.gradle.cli.CommandLineArgumentException
-     *          On parse failure.
+     * @throws org.gradle.cli.CommandLineArgumentException On parse failure.
      */
     public ParsedCommandLine parse(String... commandLine) throws CommandLineArgumentException {
         return parse(Arrays.asList(commandLine));
@@ -88,8 +105,7 @@ public class CommandLineParser {
      *
      * @param commandLine The command-line.
      * @return The parsed command line.
-     * @throws org.gradle.cli.CommandLineArgumentException
-     *          On parse failure.
+     * @throws org.gradle.cli.CommandLineArgumentException On parse failure.
      */
     public ParsedCommandLine parse(Iterable<String> commandLine) throws CommandLineArgumentException {
         ParsedCommandLine parsedCommandLine = new ParsedCommandLine(new HashSet<CommandLineOption>(optionsByString.values()));
@@ -224,24 +240,6 @@ public class CommandLineParser {
         formatter.flush();
     }
 
-    private static String join(Collection<?> things, String separator) {
-        StringBuilder builder = new StringBuilder();
-        boolean first = true;
-
-        if (separator == null) {
-            separator = "";
-        }
-
-        for (Object thing : things) {
-            if (!first) {
-                builder.append(separator);
-            }
-            builder.append(thing.toString());
-            first = false;
-        }
-        return builder.toString();
-    }
-
     /**
      * Defines a new option. By default, the option takes no arguments and has no description.
      *
@@ -298,60 +296,6 @@ public class CommandLineParser {
         public abstract ParserState onNonOption(String arg);
 
         public void onCommandLineEnd() {
-        }
-    }
-
-    private abstract class OptionAwareParserState extends ParserState {
-        protected final ParsedCommandLine commandLine;
-
-        protected OptionAwareParserState(ParsedCommandLine commandLine) {
-            this.commandLine = commandLine;
-        }
-
-        @Override
-        public boolean maybeStartOption(String arg) {
-            return isOption(arg);
-        }
-
-        @Override
-        public ParserState onNonOption(String arg) {
-            commandLine.addExtraValue(arg);
-            return allowMixedOptions ? new AfterFirstSubCommand(commandLine) : new AfterOptions(commandLine);
-        }
-    }
-
-    private class BeforeFirstSubCommand extends OptionAwareParserState {
-        private BeforeFirstSubCommand(ParsedCommandLine commandLine) {
-            super(commandLine);
-        }
-
-        @Override
-        public OptionParserState onStartOption(String arg, String option) {
-            OptionString optionString = new OptionString(arg, option);
-            CommandLineOption commandLineOption = optionsByString.get(option);
-            if (commandLineOption == null) {
-                if (allowUnknownOptions) {
-                    return new UnknownOptionParserState(arg, commandLine, this);
-                } else {
-                    throw new CommandLineArgumentException(String.format("Unknown command-line option '%s'.", optionString));
-                }
-            }
-            return new KnownOptionParserState(optionString, commandLineOption, commandLine, this);
-        }
-    }
-
-    private class AfterFirstSubCommand extends OptionAwareParserState {
-        private AfterFirstSubCommand(ParsedCommandLine commandLine) {
-            super(commandLine);
-        }
-
-        @Override
-        public OptionParserState onStartOption(String arg, String option) {
-            CommandLineOption commandLineOption = optionsByString.get(option);
-            if (commandLineOption == null) {
-                return new UnknownOptionParserState(arg, commandLine, this);
-            }
-            return new KnownOptionParserState(new OptionString(arg, option), commandLineOption, commandLine, this);
         }
     }
 
@@ -546,6 +490,60 @@ public class CommandLineParser {
                 return 1;
             }
             return new CaseInsensitiveStringComparator().compare(option1, option2);
+        }
+    }
+
+    private abstract class OptionAwareParserState extends ParserState {
+        protected final ParsedCommandLine commandLine;
+
+        protected OptionAwareParserState(ParsedCommandLine commandLine) {
+            this.commandLine = commandLine;
+        }
+
+        @Override
+        public boolean maybeStartOption(String arg) {
+            return isOption(arg);
+        }
+
+        @Override
+        public ParserState onNonOption(String arg) {
+            commandLine.addExtraValue(arg);
+            return allowMixedOptions ? new AfterFirstSubCommand(commandLine) : new AfterOptions(commandLine);
+        }
+    }
+
+    private class BeforeFirstSubCommand extends OptionAwareParserState {
+        private BeforeFirstSubCommand(ParsedCommandLine commandLine) {
+            super(commandLine);
+        }
+
+        @Override
+        public OptionParserState onStartOption(String arg, String option) {
+            OptionString optionString = new OptionString(arg, option);
+            CommandLineOption commandLineOption = optionsByString.get(option);
+            if (commandLineOption == null) {
+                if (allowUnknownOptions) {
+                    return new UnknownOptionParserState(arg, commandLine, this);
+                } else {
+                    throw new CommandLineArgumentException(String.format("Unknown command-line option '%s'.", optionString));
+                }
+            }
+            return new KnownOptionParserState(optionString, commandLineOption, commandLine, this);
+        }
+    }
+
+    private class AfterFirstSubCommand extends OptionAwareParserState {
+        private AfterFirstSubCommand(ParsedCommandLine commandLine) {
+            super(commandLine);
+        }
+
+        @Override
+        public OptionParserState onStartOption(String arg, String option) {
+            CommandLineOption commandLineOption = optionsByString.get(option);
+            if (commandLineOption == null) {
+                return new UnknownOptionParserState(arg, commandLine, this);
+            }
+            return new KnownOptionParserState(new OptionString(arg, option), commandLineOption, commandLine, this);
         }
     }
 }

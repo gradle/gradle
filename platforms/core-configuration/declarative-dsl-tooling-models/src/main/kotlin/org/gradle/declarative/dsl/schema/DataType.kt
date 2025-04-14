@@ -33,41 +33,47 @@ import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
-@ToolingModelContract(subTypes = [
-    PrimitiveType::class,
+@ToolingModelContract(
+    subTypes = [
+        PrimitiveType::class,
         ConstantType::class,
-            IntDataType::class,
-            LongDataType::class,
-            StringDataType::class,
-            BooleanDataType::class,
-        NullType::class,
-        UnitType::class,
-        TypeVariableUsage::class,
-    ClassDataType::class,
-        ParameterizedTypeInstance::class,
-        DataClass::class,
-        EnumClass::class
-])
-sealed interface DataType : Serializable {
-
-    @ToolingModelContract(subTypes = [
-        ConstantType::class,
-            IntDataType::class,
-            LongDataType::class,
-            StringDataType::class,
-            BooleanDataType::class,
-        NullType::class,
-        UnitType::class,
-        TypeVariableUsage::class,
-    ])
-    sealed interface PrimitiveType : DataType
-
-    @ToolingModelContract(subTypes = [
         IntDataType::class,
         LongDataType::class,
         StringDataType::class,
         BooleanDataType::class,
-    ])
+        NullType::class,
+        UnitType::class,
+        TypeVariableUsage::class,
+        ClassDataType::class,
+        ParameterizedTypeInstance::class,
+        DataClass::class,
+        EnumClass::class
+    ]
+)
+sealed interface DataType : Serializable {
+
+    @ToolingModelContract(
+        subTypes = [
+            ConstantType::class,
+            IntDataType::class,
+            LongDataType::class,
+            StringDataType::class,
+            BooleanDataType::class,
+            NullType::class,
+            UnitType::class,
+            TypeVariableUsage::class,
+        ]
+    )
+    sealed interface PrimitiveType : DataType
+
+    @ToolingModelContract(
+        subTypes = [
+            IntDataType::class,
+            LongDataType::class,
+            StringDataType::class,
+            BooleanDataType::class,
+        ]
+    )
     sealed interface ConstantType<JvmType> : PrimitiveType {
         val constantType: Class<*>
     }
@@ -90,24 +96,28 @@ sealed interface DataType : Serializable {
         val variableId: Long
     }
 
-    @ToolingModelContract(subTypes = [
-        ClassDataType::class,
+    @ToolingModelContract(
+        subTypes = [
+            ClassDataType::class,
             ParameterizedTypeInstance::class,
             EnumClass::class,
             DataClass::class,
-        ParameterizedTypeSignature::class,
+            ParameterizedTypeSignature::class,
             VarargSignature::class,
-    ])
+        ]
+    )
     sealed interface HasTypeName {
         val name: FqName
         val javaTypeName: String
     }
 
-    @ToolingModelContract(subTypes = [
-        ParameterizedTypeInstance::class,
-        DataClass::class,
-        EnumClass::class
-    ])
+    @ToolingModelContract(
+        subTypes = [
+            ParameterizedTypeInstance::class,
+            DataClass::class,
+            EnumClass::class
+        ]
+    )
     sealed interface ClassDataType : DataType, HasTypeName
 
     /**
@@ -121,9 +131,11 @@ sealed interface DataType : Serializable {
      */
     // In the future, a type signature may become resolvable to a generic DataClass, but for now, it should not be associated with any DataClass, even if
     // a data class with the same name appears in the schema.
-    @ToolingModelContract(subTypes = [
-        VarargSignature::class
-    ])
+    @ToolingModelContract(
+        subTypes = [
+            VarargSignature::class
+        ]
+    )
     interface ParameterizedTypeSignature : HasTypeName, Serializable {
         interface TypeParameter : Serializable {
             val name: String
@@ -149,10 +161,12 @@ sealed interface DataType : Serializable {
         override val name: FqName get() = typeSignature.name
         override val javaTypeName: String get() = typeSignature.javaTypeName
 
-        @ToolingModelContract(subTypes = [
-            ConcreteTypeArgument::class,
-            StarProjection::class
-        ])
+        @ToolingModelContract(
+            subTypes = [
+                ConcreteTypeArgument::class,
+                StarProjection::class
+            ]
+        )
         sealed interface TypeArgument : Serializable {
             interface ConcreteTypeArgument : TypeArgument {
                 val type: DataTypeRef

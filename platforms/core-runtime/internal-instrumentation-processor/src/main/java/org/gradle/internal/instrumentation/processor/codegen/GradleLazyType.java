@@ -48,17 +48,6 @@ public enum GradleLazyType {
         this.className = className;
     }
 
-    public ClassName asClassName() {
-        return className;
-    }
-
-    public boolean isEqualToRawTypeOf(TypeName typeName) {
-        if (typeName instanceof ParameterizedTypeName) {
-            typeName = ((ParameterizedTypeName) typeName).rawType;
-        }
-        return className.equals(typeName);
-    }
-
     public static GradleLazyType from(TypeName typeName) {
         String binaryName;
         if (typeName instanceof ClassName) {
@@ -78,5 +67,16 @@ public enum GradleLazyType {
             }
         }
         throw new UnsupportedOperationException("Unknown Gradle lazy type: " + name);
+    }
+
+    public ClassName asClassName() {
+        return className;
+    }
+
+    public boolean isEqualToRawTypeOf(TypeName typeName) {
+        if (typeName instanceof ParameterizedTypeName) {
+            typeName = ((ParameterizedTypeName) typeName).rawType;
+        }
+        return className.equals(typeName);
     }
 }

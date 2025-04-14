@@ -99,6 +99,7 @@ class StoringInterpretationSchemaBuilder(
         override val evaluationSchemaForStep: EvaluationAndConversionSchema by lazy {
             step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
         }
+
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
         override fun whenEvaluated(target: Any, resultReceiver: R) = step.whenEvaluated(target, resultReceiver)
     }

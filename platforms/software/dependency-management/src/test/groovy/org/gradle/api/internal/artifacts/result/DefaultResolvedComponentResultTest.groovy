@@ -29,8 +29,8 @@ class DefaultResolvedComponentResultTest extends Specification {
     def "mutating dependencies or dependents is harmless"() {
         given:
         def module = newModule("a", "c", "1")
-        def dependency  = newDependency("a", "x", "1")
-        def dependent   = newDependency("a", "x2", "1")
+        def dependency = newDependency("a", "x", "1")
+        def dependent = newDependency("a", "x2", "1")
 
         when:
         module.addDependencies(ImmutableSet.of(dependency))
@@ -38,7 +38,7 @@ class DefaultResolvedComponentResultTest extends Specification {
 
         then:
         module.dependencies == [dependency] as Set
-        module.dependents   == [dependent] as Set
+        module.dependents == [dependent] as Set
 
         when:
         module.dependencies << newDependency("a", "y", "1")
@@ -46,7 +46,7 @@ class DefaultResolvedComponentResultTest extends Specification {
         thrown(UnsupportedOperationException)
 
         when:
-        module.dependents <<   newDependency("a", "y2", "1")
+        module.dependents << newDependency("a", "y2", "1")
         then:
         thrown(UnsupportedOperationException)
     }

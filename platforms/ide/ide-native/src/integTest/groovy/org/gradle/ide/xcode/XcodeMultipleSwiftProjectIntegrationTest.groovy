@@ -101,7 +101,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def app = new SwiftAppWithLibraries()
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'log', 'hello'
             rootProject.name = "${rootProjectName}"
         """
@@ -171,7 +171,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def app = new SwiftAppWithLibraries()
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'log', 'hello'
             rootProject.name = "${rootProjectName}"
         """
@@ -251,7 +251,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         app.main.greeterModule = "Hello"
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'cppGreeter', 'hello'
             rootProject.name = "${rootProjectName}"
         """
@@ -290,7 +290,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         def appSwiftIncludeDirs = toFiles(xcodeProject("app/app.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
         appSwiftIncludeDirs.size() == 3
-        appSwiftIncludeDirs[0..1] == [ file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public") ]
+        appSwiftIncludeDirs[0..1] == [file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public")]
         appSwiftIncludeDirs[2].file("module.modulemap").assertExists()
 
         def helloSwiftIncludeDirs = toFiles(xcodeProject("hello/hello.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
@@ -331,7 +331,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         app.main.greeterModule = "Hello"
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'cppGreeter', 'hello'
             rootProject.name = "${rootProjectName}"
         """
@@ -374,7 +374,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
 
         def appSwiftIncludeDirs = toFiles(xcodeProject("app/app.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
         appSwiftIncludeDirs.size() == 3
-        appSwiftIncludeDirs[0..1] == [ file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public") ]
+        appSwiftIncludeDirs[0..1] == [file("hello/build/modules/main/debug"), file("cppGreeter/src/main/public")]
         appSwiftIncludeDirs[2].file("module.modulemap").assertExists()
 
         def helloSwiftIncludeDirs = toFiles(xcodeProject("hello/hello.xcodeproj").projectFile.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS)
@@ -412,7 +412,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         def app = new SwiftAppWithLibraries()
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'log', 'hello'
             rootProject.name = "${rootProjectName}"
         """

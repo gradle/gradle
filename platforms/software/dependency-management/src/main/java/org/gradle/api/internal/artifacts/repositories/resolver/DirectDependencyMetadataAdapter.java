@@ -71,7 +71,7 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
         } else if (originalMetadata instanceof IvyDependencyMetadata) {
             IvyDependencyMetadata ivyMetadata = (IvyDependencyMetadata) originalMetadata;
             return fromIvyDescriptor(ivyMetadata.getDependencyDescriptor());
-        } else if (originalMetadata instanceof GradleDependencyMetadata){
+        } else if (originalMetadata instanceof GradleDependencyMetadata) {
             return fromGradleMetadata((GradleDependencyMetadata) originalMetadata);
         }
         return Collections.emptyList();
@@ -79,7 +79,7 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
 
     private List<IvyArtifactName> fromGradleMetadata(GradleDependencyMetadata metadata) {
         IvyArtifactName artifact = metadata.getDependencyArtifact();
-        if(artifact != null) {
+        if (artifact != null) {
             return Collections.singletonList(artifact);
         }
         return Collections.emptyList();
@@ -92,7 +92,7 @@ public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataA
 
     private List<IvyArtifactName> fromMavenDescriptor(MavenDependencyDescriptor descriptor) {
         IvyArtifactName artifact = descriptor.getDependencyArtifact();
-        if(artifact != null) {
+        if (artifact != null) {
             return Collections.singletonList(artifact);
         }
         return Collections.emptyList();

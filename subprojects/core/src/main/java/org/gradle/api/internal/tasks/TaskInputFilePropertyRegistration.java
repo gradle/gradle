@@ -23,8 +23,12 @@ import org.gradle.internal.properties.InputFilePropertyType;
 
 public interface TaskInputFilePropertyRegistration extends TaskPropertyRegistration, TaskInputFilePropertyBuilderInternal {
     FileNormalizer getNormalizer();
+
     InputFilePropertyType getFilePropertyType();
+
     boolean isSkipWhenEmpty();
+
     DirectorySensitivity getDirectorySensitivity();
+
     LineEndingSensitivity getLineEndingNormalization();
 }

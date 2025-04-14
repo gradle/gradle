@@ -28,6 +28,17 @@ import java.util.Arrays;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class Collectors {
+    private static <T> ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>> visitValue(ValueSupplier.ExecutionTimeValue<? extends T> value) {
+        if (value.isMissing()) {
+            return ValueSupplier.ExecutionTimeValue.missing();
+        } else if (value.hasFixedValue()) {
+            // transform preserving side effects
+            return ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of));
+        } else {
+            return ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of)));
+        }
+    }
+
     public interface ProvidedCollector<T> extends Collector<T> {
         boolean isProvidedBy(Provider<?> provider);
     }
@@ -152,17 +163,6 @@ public class Collectors {
         @Override
         public String toString() {
             return String.format("item(%s)", provider);
-        }
-    }
-
-    private static <T> ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>> visitValue(ValueSupplier.ExecutionTimeValue<? extends T> value) {
-        if (value.isMissing()) {
-            return ValueSupplier.ExecutionTimeValue.missing();
-        } else if (value.hasFixedValue()) {
-            // transform preserving side effects
-            return ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of));
-        } else {
-            return ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of)));
         }
     }
 
@@ -342,8 +342,8 @@ public class Collectors {
     }
 
     public static class TypedCollector<T> implements ProvidedCollector<T> {
-        private final Class<? extends T> type;
         protected final Collector<T> delegate;
+        private final Class<? extends T> type;
         private final ValueCollector<T> valueCollector;
 
         public TypedCollector(@Nullable Class<? extends T> type, Collector<T> delegate) {

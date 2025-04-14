@@ -631,6 +631,7 @@ interface TestExtendedProject extends TestProject {
 
 interface TestProjectTree extends TestProject {
     TestProjectTree getParent()
+
     TestProjectTree getChild()
 }
 
@@ -664,7 +665,9 @@ interface TestProtocolProject {
 
 interface TestProtocolProjectTree {
     String getName()
+
     TestProtocolProjectTree getParent()
+
     TestProtocolProjectTree getChild()
 }
 

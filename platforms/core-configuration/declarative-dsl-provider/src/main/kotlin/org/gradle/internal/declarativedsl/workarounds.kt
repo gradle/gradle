@@ -21,5 +21,5 @@ import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause.AssignmentW
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause.ElementWithExplicitReceiver
 
 // `rootProject.name` doesn't yet have a DCL equivalent and the plugins block uses builder style functions
-val ignoreSomeNonDeclarativeSyntaxWeCurrentlyHaveNoSolutionFor : (UnsupportedSyntax) -> Boolean =
+val ignoreSomeNonDeclarativeSyntaxWeCurrentlyHaveNoSolutionFor: (UnsupportedSyntax) -> Boolean =
     { it.cause !in setOf(AssignmentWithExplicitReceiver, ElementWithExplicitReceiver) }

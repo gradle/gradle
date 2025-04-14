@@ -36,6 +36,8 @@ import java.util.Locale;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
+
     protected AbstractInputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
         super(annotationType, Kind.INPUT, allowedModifiers);
     }
@@ -53,8 +55,6 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
             "Extract artifact files and annotate with @InputFiles"
         );
     }
-
-    private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
 
     private static void validateUnsupportedPropertyValueType(
         Class<? extends Annotation> annotationType,

@@ -75,8 +75,8 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ComponentTypeRegistry componentTypeRegistry;
 
     private final Set<ComponentIdentifier> componentIds = new LinkedHashSet<>();
-    private Class<? extends Component> componentType;
     private final Set<Class<? extends Artifact>> artifactTypes = new LinkedHashSet<>();
+    private Class<? extends Component> componentType;
 
     public DefaultArtifactResolutionQuery(
         ResolutionStrategyFactory resolutionStrategyFactory,

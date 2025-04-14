@@ -43,6 +43,12 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         this.nestedNodeToQualifiedNameMapFactory = nestedNodeToQualifiedNameMapFactory;
     }
 
+    private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
+        return parentPropertyName == null
+            ? childPropertyName
+            : parentPropertyName + "." + childPropertyName;
+    }
+
     @Override
     public void walk(T root, V visitor) {
         Class<?> nodeType = resolveType(root);
@@ -111,16 +117,28 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         return typeMetadataStore.getTypeMetadata(type);
     }
 
-    private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
-        return parentPropertyName == null
-            ? childPropertyName
-            : parentPropertyName + "." + childPropertyName;
-    }
-
     static class InstanceTypeMetadataWalker extends AbstractTypeMetadataWalker<Object, InstanceMetadataVisitor> implements InstanceMetadataWalker {
 
         public InstanceTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
             super(typeMetadataStore, nestedAnnotation, IdentityHashMap::new);
+        }
+
+        @SuppressWarnings("unchecked")
+        private static TypeToken<?> unpackType(TypeToken<?> type) {
+            while (Provider.class.isAssignableFrom(type.getRawType())) {
+                type = JavaReflectionUtil.extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
+            }
+            return type;
+        }
+
+        private static void checkNotNullNestedCollectionValue(@Nullable String parentQualifiedName, String name, @Nullable Object value) {
+            if (value == null) {
+                throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(getQualifiedName(parentQualifiedName, name)));
+            }
+        }
+
+        private static String getNullNestedCollectionValueExceptionMessage(String qualifiedName) {
+            return String.format("Null value is not allowed for the nested collection property '%s'", qualifiedName);
         }
 
         @Override
@@ -204,33 +222,21 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             visitor.visitLeaf(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata);
         }
 
-        @SuppressWarnings("unchecked")
-        private static TypeToken<?> unpackType(TypeToken<?> type) {
-            while (Provider.class.isAssignableFrom(type.getRawType())) {
-                type = JavaReflectionUtil.extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
-            }
-            return type;
-        }
-
         @Override
         protected @Nullable Object getChild(Object parent, PropertyMetadata property) {
             return property.getPropertyValue(parent);
-        }
-
-        private static void checkNotNullNestedCollectionValue(@Nullable String parentQualifiedName, String name, @Nullable Object value) {
-            if (value == null) {
-                throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(getQualifiedName(parentQualifiedName, name)));
-            }
-        }
-
-        private static String getNullNestedCollectionValueExceptionMessage(String qualifiedName) {
-            return String.format("Null value is not allowed for the nested collection property '%s'", qualifiedName);
         }
     }
 
     static class StaticTypeMetadataWalker extends AbstractTypeMetadataWalker<TypeToken<?>, StaticMetadataVisitor> implements StaticMetadataWalker {
         public StaticTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
             super(typeMetadataStore, nestedAnnotation, HashMap::new);
+        }
+
+        private static String determinePropertyName(TypeToken<?> nestedType) {
+            return Named.class.isAssignableFrom(nestedType.getRawType())
+                ? "<name>"
+                : "*";
         }
 
         @Override
@@ -276,12 +282,6 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         @Override
         protected TypeToken<?> getChild(TypeToken<?> parent, PropertyMetadata property) {
             return property.getDeclaredType();
-        }
-
-        private static String determinePropertyName(TypeToken<?> nestedType) {
-            return Named.class.isAssignableFrom(nestedType.getRawType())
-                ? "<name>"
-                : "*";
         }
     }
 }

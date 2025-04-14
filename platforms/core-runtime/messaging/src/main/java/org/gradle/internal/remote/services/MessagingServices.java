@@ -60,23 +60,23 @@ public class MessagingServices implements ServiceRegistrationProvider {
     @Provides
     protected IncomingConnector createIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new TcpIncomingConnector(
-                executorFactory,
-                inetAddressFactory,
-                idGenerator
+            executorFactory,
+            inetAddressFactory,
+            idGenerator
         );
     }
 
     @Provides
     protected MessagingClient createMessagingClient(OutgoingConnector outgoingConnector, ExecutorFactory executorFactory) {
         return new MessageHubBackedClient(
-                outgoingConnector,
-                executorFactory);
+            outgoingConnector,
+            executorFactory);
     }
 
     @Provides
     protected MessagingServer createMessagingServer(IncomingConnector incomingConnector, ExecutorFactory executorFactory) {
         return new MessageHubBackedServer(
-                incomingConnector,
-                executorFactory);
+            incomingConnector,
+            executorFactory);
     }
 }

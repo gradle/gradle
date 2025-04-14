@@ -22,6 +22,20 @@ import java.io.File;
 
 public class OnInterceptedMethodInsFormatter {
 
+    private static boolean isAnyBuildScript(String sourceFileName) {
+        switch (sourceFileName) {
+            case "init.gradle.kts":
+            case "settings.gradle.kts":
+            case "build.gradle.kts":
+            case "init.gradle":
+            case "settings.gradle":
+            case "build.gradle":
+                return true;
+            default:
+                return false;
+        }
+    }
+
     @SuppressWarnings("unused")
     public String format(@Nullable File source, String sourceFileName, String className, String methodCallOwner, String methodName, String methodDescriptor, int lineNumber) {
         String methodCallOwnerClassName = methodCallOwner.replace("/", ".");
@@ -35,19 +49,5 @@ public class OnInterceptedMethodInsFormatter {
             ? "file://" + source.getAbsolutePath()
             : sourceFileName;
         return String.format("%s.%s(): at %s(%s:%d)", methodCallOwnerClassName, methodName, className, sourceFileName, lineNumber);
-    }
-
-    private static boolean isAnyBuildScript(String sourceFileName) {
-        switch (sourceFileName) {
-            case "init.gradle.kts":
-            case "settings.gradle.kts":
-            case "build.gradle.kts":
-            case "init.gradle":
-            case "settings.gradle":
-            case "build.gradle":
-                return true;
-            default:
-                return false;
-        }
     }
 }

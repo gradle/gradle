@@ -57,8 +57,8 @@ import static org.gradle.internal.UncheckedException.uncheckedCall;
  */
 public class DefaultTaskDependency extends AbstractTaskDependency {
     private final ImmutableSet<Object> immutableValues;
-    private Set<Object> mutableValues;
     private final TaskResolver resolver;
+    private Set<Object> mutableValues;
 
     public DefaultTaskDependency() {
         this(null, null);
@@ -79,6 +79,12 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         super(taskDependencyUsageTracker);
         this.resolver = resolver;
         this.immutableValues = immutableValues;
+    }
+
+    private static void addAllFirst(Deque<Object> queue, Object[] items) {
+        for (int i = items.length - 1; i >= 0; i--) {
+            queue.addFirst(items[i]);
+        }
     }
 
     @Override
@@ -168,12 +174,6 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         }
     }
 
-    private static void addAllFirst(Deque<Object> queue, Object[] items) {
-        for (int i = items.length - 1; i >= 0; i--) {
-            queue.addFirst(items[i]);
-        }
-    }
-
     public Set<Object> getMutableValues() {
         if (mutableValues == null) {
             mutableValues = new TaskDependencySet();
@@ -212,8 +212,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     private static class TaskDependencySet implements Set<Object> {
-        private final Set<Object> delegate = new HashSet<>();
         private final static String REMOVE_ERROR = "Removing a task dependency from a task instance is not supported.";
+        private final Set<Object> delegate = new HashSet<>();
 
         @Override
         public int size() {

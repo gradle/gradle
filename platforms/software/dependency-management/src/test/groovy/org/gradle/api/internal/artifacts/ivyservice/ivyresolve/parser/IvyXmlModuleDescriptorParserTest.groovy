@@ -45,7 +45,8 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule
     public final Resources resources = new Resources()
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     FileResourceRepository fileRepository = TestFiles.fileRepository()
@@ -768,7 +769,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     void assertArtifact(String name, String extension, String type, String classifier) {
-        def artifactName = metadata.artifactDefinitions*.artifactName.find({it.name == name})
+        def artifactName = metadata.artifactDefinitions*.artifactName.find({ it.name == name })
         assert artifactName.name == name
         assert artifactName.type == type
         assert artifactName.extension == extension
@@ -811,31 +812,31 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         // conf="myconf1, myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule4")
         assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule4"), new DefaultMutableVersionConstraint("4.1"))
-        assert dd.confMappings == map(myconf1:["yourconf1", "yourconf2"], myconf2:["yourconf1", "yourconf2"])
+        assert dd.confMappings == map(myconf1: ["yourconf1", "yourconf2"], myconf2: ["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1 | myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule5")
         assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule5"), new DefaultMutableVersionConstraint("5.1"))
-        assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
+        assert dd.confMappings == map(myconf1: ["yourconf1"], myconf2: ["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="*->@"
         dd = getDependency(dependencies, "yourmodule11")
         assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule11"), new DefaultMutableVersionConstraint("11.1"))
-        assert dd.confMappings == map("*":["@"])
+        assert dd.confMappings == map("*": ["@"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as nested elements
         dd = getDependency(dependencies, "yourmodule6")
         assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule6"), new DefaultMutableVersionConstraint("latest.integration"))
-        assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
+        assert dd.confMappings == map(myconf1: ["yourconf1"], myconf2: ["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as deeply nested elements
         dd = getDependency(dependencies, "yourmodule7")
         assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule7"), new DefaultMutableVersionConstraint("7.1"))
-        assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
+        assert dd.confMappings == map(myconf1: ["yourconf1"], myconf2: ["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Dependency artifacts
@@ -877,7 +878,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     protected void assertConf(String name, String desc, boolean visible, String[] exts) {
         def conf = metadata.configurationDefinitions[name]
-        assert conf != null : "configuration not found: " + name
+        assert conf != null: "configuration not found: " + name
         assert conf.name == name
         assert conf.visible == visible
         assert conf.extendsFrom as Set == exts as Set

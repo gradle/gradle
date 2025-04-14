@@ -28,7 +28,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiSpecification {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
     GradleExecuter executer
 
     List<String> changedPaths = [file("src/main/java").absolutePath]

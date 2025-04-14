@@ -142,11 +142,11 @@ class TestCountLoggerTest extends Specification {
     }
 
     private suite(boolean root = false) {
-        [getParent: {root ? null : [:] as TestDescriptor}, getClassName: {root ? null : ''}] as TestDescriptor
+        [getParent: { root ? null : [:] as TestDescriptor }, getClassName: { root ? null : '' }] as TestDescriptor
     }
 
     private result(boolean failed = false) {
         [getTestCount: { 1L }, getFailedTestCount: { failed ? 1L : 0L }, getSkippedTestCount: { 0L },
-                getResultType: { failed ? TestResult.ResultType.FAILURE : TestResult.ResultType.SUCCESS }] as TestResult
+         getResultType: { failed ? TestResult.ResultType.FAILURE : TestResult.ResultType.SUCCESS }] as TestResult
     }
 }

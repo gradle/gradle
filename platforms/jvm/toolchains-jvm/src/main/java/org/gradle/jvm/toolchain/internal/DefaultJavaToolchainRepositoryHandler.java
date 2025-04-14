@@ -60,10 +60,10 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
 
     @Inject
     public DefaultJavaToolchainRepositoryHandler(
-            Instantiator instantiator,
-            ObjectFactory objectFactory,
-            ProviderFactory providerFactory,
-            AuthenticationSchemeRegistry authenticationSchemeRegistry
+        Instantiator instantiator,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory,
+        AuthenticationSchemeRegistry authenticationSchemeRegistry
     ) {
         this.repositories = new DefaultNamedDomainObjectList<JavaToolchainRepository>(JavaToolchainRepository.class, instantiator, new RepositoryNamer(), CollectionCallbackActionDecorator.NOOP) {
             @Override
@@ -75,13 +75,6 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
-    }
-
-    private static class RepositoryNamer implements Namer<JavaToolchainRepository> {
-        @Override
-        public String determineName(JavaToolchainRepository repository) {
-            return repository.getName();
-        }
     }
 
     @Override
@@ -106,9 +99,9 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     @Override
     public List<JavaToolchainRepository> getAsList() {
         ArrayList<JavaToolchainRepository> copy = repositories.stream()
-                .map(it -> (JavaToolchainRepositoryInternal) it)
-                .map(ImmutableJavaToolchainRepository::new)
-                .collect(Collectors.toCollection(ArrayList::new));
+            .map(it -> (JavaToolchainRepositoryInternal) it)
+            .map(ImmutableJavaToolchainRepository::new)
+            .collect(Collectors.toCollection(ArrayList::new));
         return Collections.unmodifiableList(copy);
     }
 
@@ -137,6 +130,13 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     private void assertMutable() {
         if (!mutable) {
             throw new InvalidUserCodeException("Mutation of toolchain repositories declared in settings is only allowed during settings evaluation");
+        }
+    }
+
+    private static class RepositoryNamer implements Namer<JavaToolchainRepository> {
+        @Override
+        public String determineName(JavaToolchainRepository repository) {
+            return repository.getName();
         }
     }
 

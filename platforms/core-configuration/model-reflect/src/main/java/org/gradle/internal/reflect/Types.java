@@ -78,11 +78,6 @@ public class Types {
         }
     }
 
-    @FunctionalInterface
-    public interface TypeVisitor<T> {
-        TypeVisitResult visitType(Class<? super T> type);
-    }
-
     public static enum TypeVisitResult {
         /**
          * Continue visiting.
@@ -93,5 +88,10 @@ public class Types {
          * Terminate visiting immediately.
          */
         TERMINATE
+    }
+
+    @FunctionalInterface
+    public interface TypeVisitor<T> {
+        TypeVisitResult visitType(Class<? super T> type);
     }
 }

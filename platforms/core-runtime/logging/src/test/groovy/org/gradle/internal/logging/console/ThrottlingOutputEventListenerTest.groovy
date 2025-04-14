@@ -30,7 +30,8 @@ class ThrottlingOutputEventListenerTest extends OutputSpecification {
     def clock = MockClock.create()
     def executor = new MockExecutor()
 
-    @Subject renderer = new ThrottlingOutputEventListener(listener, 100, executor, clock)
+    @Subject
+        renderer = new ThrottlingOutputEventListener(listener, 100, executor, clock)
 
     def "queues events until update event received"() {
         def event1 = event('message')

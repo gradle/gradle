@@ -45,12 +45,12 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
+    protected ProjectInternal project;
+    private CodeQualityExtension extension;
+
     protected static ConventionMapping conventionMappingOf(Object object) {
         return ((IConventionAware) object).getConventionMapping();
     }
-
-    protected ProjectInternal project;
-    private CodeQualityExtension extension;
 
     @Override
     public final void apply(ProjectInternal project) {

@@ -24,19 +24,6 @@ import java.util.Objects;
  */
 public abstract class InterceptScope {
 
-    private enum CallType {
-        METHOD("call method"),
-        GET_PROPERTY("get property"),
-        SET_PROPERTY("set property"),
-        CONSTRUCTOR("call constructor");
-
-        final String descriptorStringPrefix;
-
-        CallType(String descriptorStringPrefix) {
-            this.descriptorStringPrefix = descriptorStringPrefix;
-        }
-    }
-
     protected final CallType callType;
 
     private InterceptScope(CallType callType) {
@@ -88,11 +75,25 @@ public abstract class InterceptScope {
     }
 
     public abstract String getCallSiteName();
+
     abstract String getTargetDescription();
 
     @Override
     public String toString() {
-        return "InterceptScope{" + callType.descriptorStringPrefix + " " + getTargetDescription() +"}";
+        return "InterceptScope{" + callType.descriptorStringPrefix + " " + getTargetDescription() + "}";
+    }
+
+    private enum CallType {
+        METHOD("call method"),
+        GET_PROPERTY("get property"),
+        SET_PROPERTY("set property"),
+        CONSTRUCTOR("call constructor");
+
+        final String descriptorStringPrefix;
+
+        CallType(String descriptorStringPrefix) {
+            this.descriptorStringPrefix = descriptorStringPrefix;
+        }
     }
 
     private static class NamedMemberScope extends InterceptScope {

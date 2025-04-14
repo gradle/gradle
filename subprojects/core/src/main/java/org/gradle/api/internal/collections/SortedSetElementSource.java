@@ -39,13 +39,13 @@ import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
+    private final MutationGuard lazyGuard = new DefaultMutationGuard();
     // Note the juggling of pending is a memory optimization to save retained LinkedHashSets
     // Each DomainObjectSet has a pending set and a Configuration has several DomainObjectSets
     // And a Project has many Configurations.
     private Set<Collectors.TypedCollector<T>> pending = Collections.emptySet();
     private Action<T> addRealizedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
-    private final MutationGuard lazyGuard = new DefaultMutationGuard();
 
     public SortedSetElementSource(Comparator<T> comparator) {
         this.values = new TreeSet<T>(comparator);

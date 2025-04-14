@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyResolutionTest {
+class MultiProjectDependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
     def firstLockFileFixture = new LockfileFixture(testDirectory: testDirectory.file('first'))
 

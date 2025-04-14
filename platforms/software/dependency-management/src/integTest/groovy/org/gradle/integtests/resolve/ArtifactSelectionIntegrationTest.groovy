@@ -1047,7 +1047,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
     @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "fails when no variants match and no view attributes specified"() {
-        ivyHttpRepo.module("test","test", "1.2").publish().allowAll()
+        ivyHttpRepo.module("test", "test", "1.2").publish().allowAll()
 
         given:
         settingsFile << """

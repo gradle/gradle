@@ -27,14 +27,14 @@ public class DefaultInstalledJdk implements Serializable {
     private final File javaHome;
     private final JavaVersion javaVersion;
 
-    public static DefaultInstalledJdk current() {
-        Jvm current = Jvm.current();
-        return new DefaultInstalledJdk(current.getJavaHome(), current.getJavaVersion());
-    }
-
     public DefaultInstalledJdk(File javaHome, JavaVersion javaVersion) {
         this.javaHome = javaHome;
         this.javaVersion = javaVersion;
+    }
+
+    public static DefaultInstalledJdk current() {
+        Jvm current = Jvm.current();
+        return new DefaultInstalledJdk(current.getJavaHome(), current.getJavaVersion());
     }
 
     public JavaVersion getJavaVersion() {

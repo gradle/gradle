@@ -21,9 +21,9 @@ import org.gradle.util.internal.TextUtil;
 public class WindowsStartScriptGenerator extends DefaultTemplateBasedStartScriptGenerator {
     public WindowsStartScriptGenerator() {
         super(
-                TextUtil.getWindowsLineSeparator(),
-                StartScriptTemplateBindingFactory.windows(),
-                utf8ClassPathResource(UnixStartScriptGenerator.class, "windowsStartScript.txt")
+            TextUtil.getWindowsLineSeparator(),
+            StartScriptTemplateBindingFactory.windows(),
+            utf8ClassPathResource(UnixStartScriptGenerator.class, "windowsStartScript.txt")
         );
     }
 }

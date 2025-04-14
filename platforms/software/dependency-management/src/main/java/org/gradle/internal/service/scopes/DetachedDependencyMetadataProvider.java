@@ -46,4 +46,4 @@ public class DetachedDependencyMetadataProvider implements DependencyMetaDataPro
         return delegate.getModule();
     }
 
- }
+}

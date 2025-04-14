@@ -28,9 +28,9 @@ import java.util.jar.JarFile;
 
 public class GradleRuntimeShadedJarDetector {
 
+    public final static String MARKER_FILENAME = "META-INF/.gradle-runtime-shaded";
     private final static String FILE_PROTOCOL = "file";
     private final static String JAR_FILE_EXTENSION = ".jar";
-    public final static String MARKER_FILENAME = "META-INF/.gradle-runtime-shaded";
 
     private GradleRuntimeShadedJarDetector() {
     }

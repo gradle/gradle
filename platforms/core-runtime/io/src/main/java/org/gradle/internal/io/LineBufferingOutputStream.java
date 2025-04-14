@@ -24,12 +24,12 @@ import java.nio.charset.StandardCharsets;
  */
 public class LineBufferingOutputStream extends OutputStream {
     private final static int LINE_MAX_LENGTH = 1024 * 1024; // Split line if a single line goes over 1 MB
-    private boolean hasBeenClosed;
     private final TextStream handler;
-    private StreamByteBuffer buffer;
     private final OutputStream output;
     private final byte lastLineSeparatorByte;
     private final int lineMaxLength;
+    private boolean hasBeenClosed;
+    private StreamByteBuffer buffer;
     private int counter;
 
     public LineBufferingOutputStream(TextStream handler, String lineSeparator) {

@@ -20,5 +20,6 @@ import org.gradle.internal.logging.text.DiagnosticsVisitor;
 
 public interface BinaryBuildAbility {
     boolean isBuildable();
+
     void explain(DiagnosticsVisitor visitor);
 }

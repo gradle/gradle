@@ -32,7 +32,7 @@ class UrlValidator {
             ConcurrentTestUtil.poll(timeout) {
                 assertUrlIsAvailable(url)
             }
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             throw new RuntimeException(String.format("Timeout waiting for %s to become available at [%s].", application, theUrl), t);
         }
     }
@@ -78,7 +78,7 @@ class UrlValidator {
      * Asserts that the binary content at the specified url matches the content in the specified File
      */
     static void assertBinaryUrlContent(URL url, File file) {
-        url.withInputStream {urlInput ->
+        url.withInputStream { urlInput ->
             assert hashStream(urlInput) == hashFile(file)
         }
     }

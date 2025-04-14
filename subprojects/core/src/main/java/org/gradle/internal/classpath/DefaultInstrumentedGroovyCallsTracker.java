@@ -26,45 +26,9 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
 
     private final Stack<EntryPointCallSiteImpl> callSiteStack = new Stack<>();
 
-    @NullMarked
-    private static class EntryPointCallSiteImpl implements EntryPointCallSite {
-        private final String callableName;
-        private final String callerClassName;
-        private final CallKind kind;
-        private boolean isMatchedAtDispatchSite = false;
-
-        public EntryPointCallSiteImpl(String callableName, String callerClassName, CallKind kind) {
-            this.callableName = callableName;
-            this.callerClassName = callerClassName;
-            this.kind = kind;
-        }
-
-        public String getCallableName() {
-            return callableName;
-        }
-
-        public String getCallerClassName() {
-            return callerClassName;
-        }
-
-        public CallKind getKind() {
-            return kind;
-        }
-
-        public boolean isMatchedAtDispatchSite() {
-            return isMatchedAtDispatchSite;
-        }
-
-        public void markedAsMatchedAtDispatchSite() {
-            if (isMatchedAtDispatchSite) {
-                throw new IllegalStateException("Cannot match a single call more than once");
-            }
-            isMatchedAtDispatchSite = true;
-        }
-    }
-
     /**
      * Registers the current call in the thread-specific instrumented call stack.
+     *
      * @return an entry point call site token that must later be passed to {@link InstrumentedGroovyCallsTracker#leaveCall}
      */
     @Override
@@ -132,5 +96,42 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
             );
         }
         callSiteStack.peek().markedAsMatchedAtDispatchSite();
+    }
+
+    @NullMarked
+    private static class EntryPointCallSiteImpl implements EntryPointCallSite {
+        private final String callableName;
+        private final String callerClassName;
+        private final CallKind kind;
+        private boolean isMatchedAtDispatchSite = false;
+
+        public EntryPointCallSiteImpl(String callableName, String callerClassName, CallKind kind) {
+            this.callableName = callableName;
+            this.callerClassName = callerClassName;
+            this.kind = kind;
+        }
+
+        public String getCallableName() {
+            return callableName;
+        }
+
+        public String getCallerClassName() {
+            return callerClassName;
+        }
+
+        public CallKind getKind() {
+            return kind;
+        }
+
+        public boolean isMatchedAtDispatchSite() {
+            return isMatchedAtDispatchSite;
+        }
+
+        public void markedAsMatchedAtDispatchSite() {
+            if (isMatchedAtDispatchSite) {
+                throw new IllegalStateException("Cannot match a single call more than once");
+            }
+            isMatchedAtDispatchSite = true;
+        }
     }
 }

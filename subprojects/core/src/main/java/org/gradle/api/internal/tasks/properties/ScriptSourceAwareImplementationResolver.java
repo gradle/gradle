@@ -29,13 +29,6 @@ import java.lang.reflect.Proxy;
 
 public class ScriptSourceAwareImplementationResolver implements ImplementationResolver {
 
-    @Override
-    public ImplementationValue resolveImplementation(Object bean) {
-        Object unwrapped = unwrapBean(bean);
-        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
-        return new ImplementationValue(classIdentifier, unwrapped);
-    }
-
     @VisibleForTesting
     static Object unwrapBean(Object bean) {
         // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
@@ -59,5 +52,12 @@ public class ScriptSourceAwareImplementationResolver implements ImplementationRe
             return ((ClosureBackedAction<?>) bean).getClosure();
         }
         return bean;
+    }
+
+    @Override
+    public ImplementationValue resolveImplementation(Object bean) {
+        Object unwrapped = unwrapBean(bean);
+        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
+        return new ImplementationValue(classIdentifier, unwrapped);
     }
 }

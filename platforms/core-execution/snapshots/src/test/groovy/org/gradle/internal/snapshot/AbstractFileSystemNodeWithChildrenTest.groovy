@@ -88,7 +88,7 @@ abstract class AbstractFileSystemNodeWithChildrenTest<NODE extends FileSystemNod
     ChildMap<CHILD> childrenWithAdditionalChild(String path, CHILD newChild) {
         def targetPath = VfsRelativePath.of(path)
         def newEntries = childEntries()
-        int insertPosition = -1 - SearchUtil.<ChildMap.Entry<CHILD>>binarySearch(newEntries) { candidate ->
+        int insertPosition = -1 - SearchUtil.<ChildMap.Entry<CHILD>> binarySearch(newEntries) { candidate ->
             targetPath.compareToFirstSegment(candidate.path, CASE_SENSITIVE)
         }
         newEntries.add(insertPosition, new ChildMap.Entry<>(path, newChild))

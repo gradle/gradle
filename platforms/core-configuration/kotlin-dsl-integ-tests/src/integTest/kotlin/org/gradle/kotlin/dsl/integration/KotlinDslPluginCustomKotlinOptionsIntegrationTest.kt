@@ -44,7 +44,8 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
             assertHasErrorOutput("""The feature "multi dollar interpolation" is experimental and should be enabled explicitly""")
         }
 
-        buildSrcBuildScript.appendText("""
+        buildSrcBuildScript.appendText(
+            """
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 compilerOptions {
                     apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
@@ -52,7 +53,8 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
                     freeCompilerArgs.add("-Xmulti-dollar-interpolation")
                 }
             }
-        """)
+        """
+        )
         build("help").apply {
             assertOutputContains("${'$'}some = content")
         }

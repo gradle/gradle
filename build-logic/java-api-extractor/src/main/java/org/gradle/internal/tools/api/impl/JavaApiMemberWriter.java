@@ -48,6 +48,22 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         return JavaApiMemberWriter::new;
     }
 
+    private static Optional<Integer> calculateNonAnnotableParameterCount(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
+        if (method.getName().equals("<init>")) {
+            if ((classMember.getAccess() & ACC_ENUM) == ACC_ENUM) {
+                // Enum constructors have an implicit String and int parameter containing
+                // the name and ordinal of the value that is non-annotable.
+                return Optional.of(2);
+            } else if (declaringInnerClass != null
+                && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
+                // Non-static inner-class constructors have an implicit, non-annotable parameter
+                // pointing to the enclosing class instance
+                return Optional.of(1);
+            }
+        }
+        return Optional.empty();
+    }
+
     @Override
     public ModuleVisitor writeModule(String name, int access, String version) {
         return apiMemberAdapter.visitModule(name, access, version);
@@ -107,22 +123,6 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             av.visitEnd();
         });
         mv.visitEnd();
-    }
-
-    private static Optional<Integer> calculateNonAnnotableParameterCount(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
-        if (method.getName().equals("<init>")) {
-            if ((classMember.getAccess() & ACC_ENUM) == ACC_ENUM) {
-                // Enum constructors have an implicit String and int parameter containing
-                // the name and ordinal of the value that is non-annotable.
-                return Optional.of(2);
-            } else if (declaringInnerClass != null
-                && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
-                // Non-static inner-class constructors have an implicit, non-annotable parameter
-                // pointing to the enclosing class instance
-                return Optional.of(1);
-            }
-        }
-        return Optional.empty();
     }
 
     @Override

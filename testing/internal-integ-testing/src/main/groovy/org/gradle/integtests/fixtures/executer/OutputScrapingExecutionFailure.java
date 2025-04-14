@@ -50,21 +50,6 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private final String resolution;
     private final LogContent mainContent;
 
-    static boolean hasFailure(String error) {
-        return FAILURE_PATTERN.matcher(error).find();
-    }
-
-    /**
-     * Creates a result from the output of a <em>single</em> Gradle invocation.
-     *
-     * @param output The raw build stdout chars.
-     * @param error The raw build stderr chars.
-     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
-     */
-    public static OutputScrapingExecutionFailure from(String output, String error) {
-        return new OutputScrapingExecutionFailure(output, error, true);
-    }
-
     protected OutputScrapingExecutionFailure(String output, String error, boolean includeBuildSrc) {
         super(LogContent.of(output), LogContent.of(error), includeBuildSrc);
 
@@ -119,6 +104,21 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         } else {
             resolution = matcher.group(1).trim();
         }
+    }
+
+    static boolean hasFailure(String error) {
+        return FAILURE_PATTERN.matcher(error).find();
+    }
+
+    /**
+     * Creates a result from the output of a <em>single</em> Gradle invocation.
+     *
+     * @param output The raw build stdout chars.
+     * @param error The raw build stderr chars.
+     * @return A {@link OutputScrapingExecutionResult} for a successful build, or a {@link OutputScrapingExecutionFailure} for a failed build.
+     */
+    public static OutputScrapingExecutionFailure from(String output, String error) {
+        return new OutputScrapingExecutionFailure(output, error, true);
     }
 
     @Override

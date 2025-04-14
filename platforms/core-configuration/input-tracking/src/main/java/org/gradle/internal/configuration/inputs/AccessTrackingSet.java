@@ -32,21 +32,10 @@ import java.util.function.Function;
  * @param <E> the type of elements
  */
 class AccessTrackingSet<E> extends ForwardingSet<E> {
-    public interface Listener {
-        void onAccess(@Nullable Object o);
-
-        void onAggregatingAccess();
-
-        void onRemove(@Nullable Object object);
-
-        void onClear();
-    }
-
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of entrySet/keySet methods are currently tracked.
     private final Set<? extends E> delegate;
     private final Listener listener;
     private final Function<E, E> factory;
-
     public AccessTrackingSet(Set<? extends E> delegate, Listener listener) {
         this(delegate, listener, Function.identity());
     }
@@ -159,5 +148,15 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
 
     private void reportAggregatingAccess() {
         listener.onAggregatingAccess();
+    }
+
+    public interface Listener {
+        void onAccess(@Nullable Object o);
+
+        void onAggregatingAccess();
+
+        void onRemove(@Nullable Object object);
+
+        void onClear();
     }
 }

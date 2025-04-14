@@ -37,6 +37,13 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
         this.indexedCache = indexedCache;
     }
 
+    private static HashCode resourceHashCacheKey(HashCode contentHash, HashCode configurationHash) {
+        Hasher hasher = Hashing.newHasher();
+        hasher.putHash(configurationHash);
+        hasher.putHash(contentHash);
+        return hasher.hash();
+    }
+
     @Nullable
     @Override
     public HashCode hashFile(FileSystemLocationSnapshot snapshot, FileSystemLocationSnapshotHasher hasher, HashCode configurationHash) throws IOException {
@@ -69,12 +76,5 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
             indexedCache.put(resourceHashCacheKey, NO_HASH);
         }
         return resourceHash;
-    }
-
-    private static HashCode resourceHashCacheKey(HashCode contentHash, HashCode configurationHash) {
-        Hasher hasher = Hashing.newHasher();
-        hasher.putHash(configurationHash);
-        hasher.putHash(contentHash);
-        return hasher.hash();
     }
 }

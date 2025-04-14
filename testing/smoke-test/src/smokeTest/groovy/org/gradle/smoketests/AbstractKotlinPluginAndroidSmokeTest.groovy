@@ -31,6 +31,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 @LocalOnly(because = "Needs Android environment")
 abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest implements RunnerFactory {
     abstract String getSampleName()
+
     abstract GradleDsl getDSL()
 
     VersionNumber kotlinPluginVersion
@@ -45,10 +46,10 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         def buildFileName = getDSL().fileNameFor("build")
         [buildFileName, "app/$buildFileName"].each { sampleBuildFileName ->
             replaceVariablesInFile(
-                    file(sampleBuildFileName),
-                    kotlinVersion: kotlinPluginVersion,
-                    androidPluginVersion: androidPluginVersion,
-                    androidBuildToolsVersion: TestedVersions.androidTools)
+                file(sampleBuildFileName),
+                kotlinVersion: kotlinPluginVersion,
+                androidPluginVersion: androidPluginVersion,
+                androidBuildToolsVersion: TestedVersions.androidTools)
         }
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
 
@@ -70,9 +71,9 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 //        parallelTasksInProject = ParallelTasksInProject.FALSE
 
         [kotlinPluginVersion, androidPluginVersion, parallel] << [
-                TestedVersions.kotlin.versions,
-                TestedVersions.androidGradle.versions,
-                [true, false]
+            TestedVersions.kotlin.versions,
+            TestedVersions.androidGradle.versions,
+            [true, false]
         ].combinations()
 
         dsl = getDSL().name()

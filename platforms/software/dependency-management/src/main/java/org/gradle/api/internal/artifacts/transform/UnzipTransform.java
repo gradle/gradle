@@ -48,22 +48,6 @@ import static org.gradle.internal.file.PathTraversalChecker.safePathName;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class UnzipTransform implements TransformAction<TransformParameters.None> {
 
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputArtifact
-    public abstract Provider<FileSystemLocation> getZippedFile();
-
-    @Override
-    public void transform(TransformOutputs outputs) {
-        File zippedFile = getZippedFile().get().getAsFile();
-        String unzippedDirName = removeExtension(zippedFile.getName());
-        File unzipDir = outputs.dir(unzippedDirName);
-        try {
-            unzipTo(zippedFile, unzipDir);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
     private static void unzipTo(File headersZip, File unzipDir) throws IOException {
         try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)))) {
             ZipEntry entry;
@@ -77,6 +61,22 @@ public abstract class UnzipTransform implements TransformAction<TransformParamet
                     IOUtils.copyLarge(inputStream, outputStream);
                 }
             }
+        }
+    }
+
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @InputArtifact
+    public abstract Provider<FileSystemLocation> getZippedFile();
+
+    @Override
+    public void transform(TransformOutputs outputs) {
+        File zippedFile = getZippedFile().get().getAsFile();
+        String unzippedDirName = removeExtension(zippedFile.getName());
+        File unzipDir = outputs.dir(unzippedDirName);
+        try {
+            unzipTo(zippedFile, unzipDir);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

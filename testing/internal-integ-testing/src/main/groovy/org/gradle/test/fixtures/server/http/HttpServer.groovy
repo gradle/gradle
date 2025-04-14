@@ -523,6 +523,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             this.code = code
         }
     }
+
     private HttpServer.Action redirectTo(location, RedirectType redirectType = RedirectType.FOUND_302) {
         new ActionSupport("redirect to $location") {
             void handle(HttpServletRequest request, HttpServletResponse response) {

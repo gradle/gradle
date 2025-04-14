@@ -34,7 +34,6 @@ import org.gradle.testing.base.TestSuite;
  *
  * @apiNote This interface combines various {@link Dependencies} APIs into a DSL type that can be used to add dependencies for JVM components.
  * @implSpec The default implementation of all methods should not be overridden.
- *
  * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
  * @since 7.3
  */

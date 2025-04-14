@@ -21,6 +21,8 @@ import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class InstrumentedGroovyCallsHelper {
+    static final InstrumentedGroovyCallsTracker INSTANCE = new PerThreadInstrumentedGroovyCallsTracker(DefaultInstrumentedGroovyCallsTracker::new);
+
     /**
      * Executes the given {@code callable} in the context of an entry point produced from entering a dynamically dispatched
      * call described by the {@code callableName} and {@code kind}
@@ -41,6 +43,4 @@ public class InstrumentedGroovyCallsHelper {
         @Nullable
         T call() throws Throwable;
     }
-
-    static final InstrumentedGroovyCallsTracker INSTANCE = new PerThreadInstrumentedGroovyCallsTracker(DefaultInstrumentedGroovyCallsTracker::new);
 }

@@ -265,7 +265,7 @@ public class FileBackedBlockStore implements BlockStore {
         @Override
         public RuntimeException blockCorruptedException() {
             return new CorruptedCacheException(String.format("Corrupted %s found in %s.", this,
-                    FileBackedBlockStore.this));
+                FileBackedBlockStore.this));
         }
     }
 

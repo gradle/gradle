@@ -35,10 +35,6 @@ public enum PluginTargetType {
         this.applyTargetDescription = applyTargetDescription;
     }
 
-    public String getApplyTargetDescription() {
-        return applyTargetDescription;
-    }
-
     /**
      * Returns a recognized target type or null
      */
@@ -53,5 +49,9 @@ public enum PluginTargetType {
         } else {
             return null;
         }
+    }
+
+    public String getApplyTargetDescription() {
+        return applyTargetDescription;
     }
 }

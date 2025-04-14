@@ -240,6 +240,10 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), listener, taskDependencyFactory, patternSetFactory);
     }
 
+    private boolean isEmptyArray(Object sources) {
+        return sources.getClass().isArray() && Array.getLength(sources) == 0;
+    }
+
     private static final class FixedFileCollection extends AbstractOpaqueFileCollection {
         private final String displayName;
         private final ImmutableSet<File> files;
@@ -325,9 +329,5 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
                 formatter.node(item + " (class: " + item.getClass().getName() + ")");
             }
         }
-    }
-
-    private boolean isEmptyArray(Object sources) {
-        return sources.getClass().isArray() && Array.getLength(sources) == 0;
     }
 }

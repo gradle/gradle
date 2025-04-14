@@ -63,7 +63,7 @@ public class IncludedBuildDependencySubstitutionsBuilder implements GlobalDepend
         if (build instanceof IncludedBuildState) {
             build((IncludedBuildState) build);
         } else if (build instanceof RootBuildState) {
-            build((RootBuildState)build);
+            build((RootBuildState) build);
         } else {
             throw new IllegalArgumentException();
         }

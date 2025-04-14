@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
@@ -26,7 +25,8 @@ import spock.lang.Issue
 @FluidDependenciesResolveTest
 class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Issue("GRADLE-2477") //this is a feature on its own but also covers one of the reported issues
+    @Issue("GRADLE-2477")
+    //this is a feature on its own but also covers one of the reported issues
     def "resolving project dependency triggers configuration of the target project"() {
         settingsFile << "include 'impl'"
         buildFile << """

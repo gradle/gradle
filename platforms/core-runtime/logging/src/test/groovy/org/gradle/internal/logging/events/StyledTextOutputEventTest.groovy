@@ -45,8 +45,8 @@ class StyledTextOutputEventTest extends Specification {
     def rendersMultipleSpansToTextOutput() {
         StyledTextOutput output = Mock()
         List spans = [new StyledTextOutputEvent.Span(StyledTextOutput.Style.UserInput, 'UserInput'),
-                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Normal, 'Normal'),
-                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, 'Header')
+                      new StyledTextOutputEvent.Span(StyledTextOutput.Style.Normal, 'Normal'),
+                      new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, 'Header')
         ]
         def event = new StyledTextOutputEvent(100, 'category', LogLevel.LIFECYCLE, null, spans)
 

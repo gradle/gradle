@@ -34,7 +34,8 @@ class LineAndColumnFromRangeTest(val given: Given) {
         const val text = "line 1\nline 2\nline 3"
 
         @Parameterized.Parameters(name = "{0}")
-        @JvmStatic fun testCases(): Iterable<Given> =
+        @JvmStatic
+        fun testCases(): Iterable<Given> =
             listOf(
                 Given(0..0, 1 to 1),
                 Given(1..1, 1 to 2),

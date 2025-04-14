@@ -29,10 +29,6 @@ class ParameterMatchEntry {
         this.kind = kind;
     }
 
-    enum Kind {
-        RECEIVER_AS_CLASS, RECEIVER, PARAMETER, VARARG
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -48,5 +44,9 @@ class ParameterMatchEntry {
     @Override
     public int hashCode() {
         return Objects.hash(type, kind);
+    }
+
+    enum Kind {
+        RECEIVER_AS_CLASS, RECEIVER, PARAMETER, VARARG
     }
 }

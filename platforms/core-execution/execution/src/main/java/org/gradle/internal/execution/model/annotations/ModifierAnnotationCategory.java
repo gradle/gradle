@@ -75,11 +75,6 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
         return builder.build();
     }
 
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
     public static Map<Class<? extends Annotation>, AnnotationCategory> asMap(Collection<Class<? extends Annotation>> typeAnnotations) {
         ImmutableMap.Builder<Class<? extends Annotation>, AnnotationCategory> builder = ImmutableMap.builder();
         for (Class<? extends Annotation> typeAnnotation : typeAnnotations) {
@@ -91,5 +86,10 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
             }
         }
         return builder.build();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 }

@@ -93,7 +93,7 @@ class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIn
         targetDir = file("new-project").createDir()
 
         def args = ["init",
-                    "-D${ BuildInitSpecRegistry.BUILD_INIT_SPECS_PLUGIN_SUPPLIER}=org.example.myplugin:1.0",
+                    "-D${BuildInitSpecRegistry.BUILD_INIT_SPECS_PLUGIN_SUPPLIER}=org.example.myplugin:1.0",
                     "--overwrite",
                     "--init-script", "../init.gradle"] as String[]
 

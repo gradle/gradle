@@ -815,7 +815,7 @@ class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void executesIncrementally(Map changes) {
-        executesIncrementalTask(incremental: true, *:changes)
+        executesIncrementalTask(incremental: true, *: changes)
     }
 
     void executesNonIncrementally(List<String> rebuiltFiles = ['file0.txt', 'file1.txt', 'file2.txt']) {

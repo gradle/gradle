@@ -100,6 +100,78 @@ public class ModuleMetadataSpecBuilder {
         collectCoordinates(componentCoordinates);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
+    private static List<ModuleMetadataSpec.Capability> capabilitySelectorsFor(
+        Set<CapabilitySelector> capabilitySelectors,
+        ModuleMetadataSpec.DependencyCoordinates targetComponent
+    ) {
+        if (capabilitySelectors.isEmpty()) {
+            return emptyList();
+        }
+
+        ArrayList<ModuleMetadataSpec.Capability> metadataCapabilities = new ArrayList<>();
+        for (CapabilitySelector capabilitySelector : capabilitySelectors) {
+            metadataCapabilities.add(resolveCapability(targetComponent, capabilitySelector));
+        }
+        return metadataCapabilities;
+    }
+
+    private static ModuleMetadataSpec.Capability resolveCapability(
+        ModuleMetadataSpec.DependencyCoordinates componentCoordinates,
+        CapabilitySelector capabilitySelector
+    ) {
+        if (capabilitySelector instanceof SpecificCapabilitySelector) {
+            SpecificCapabilitySelector specificSelector = (SpecificCapabilitySelector) capabilitySelector;
+            return new ModuleMetadataSpec.Capability(
+                specificSelector.getGroup(),
+                specificSelector.getName(),
+                null
+            );
+        } else if (capabilitySelector instanceof FeatureCapabilitySelector) {
+            FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) capabilitySelector;
+            return new ModuleMetadataSpec.Capability(
+                componentCoordinates.group,
+                componentCoordinates.name + "-" + featureSelector.getFeatureName(),
+                null
+            );
+        } else {
+            throw new UnsupportedOperationException("Unsupported capability selector type: " + capabilitySelector.getClass().getName());
+        }
+    }
+
+    private static void collectOwners(
+        Collection<? extends PublicationInternal<?>> publications,
+        Map<SoftwareComponent, SoftwareComponent> owners
+    ) {
+        for (PublicationInternal<?> publication : publications) {
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (component instanceof ComponentWithVariants) {
+                ComponentWithVariants componentWithVariants = (ComponentWithVariants) component;
+                for (SoftwareComponent child : componentWithVariants.getVariants()) {
+                    owners.put(child, component);
+                }
+            }
+        }
+    }
+
+    public static String relativeUrlTo(
+        @SuppressWarnings("unused") ModuleVersionIdentifier from,
+        ModuleVersionIdentifier to
+    ) {
+        // TODO - do not assume Maven layout
+        StringBuilder path = new StringBuilder();
+        path.append("../../");
+        path.append(to.getName());
+        path.append("/");
+        path.append(to.getVersion());
+        path.append("/");
+        path.append(to.getName());
+        path.append("-");
+        path.append(to.getVersion());
+        path.append(".module");
+        return path.toString();
+    }
+
     public Provider<ModuleMetadataSpec> build() {
         return variants().map(variants -> new ModuleMetadataSpec(identity(), variants, publication.isPublishBuildId()));
     }
@@ -317,45 +389,6 @@ public class ModuleMetadataSpecBuilder {
     }
 
     @SuppressWarnings("MixedMutabilityReturnType")
-    private static List<ModuleMetadataSpec.Capability> capabilitySelectorsFor(
-        Set<CapabilitySelector> capabilitySelectors,
-        ModuleMetadataSpec.DependencyCoordinates targetComponent
-    ) {
-        if (capabilitySelectors.isEmpty()) {
-            return emptyList();
-        }
-
-        ArrayList<ModuleMetadataSpec.Capability> metadataCapabilities = new ArrayList<>();
-        for (CapabilitySelector capabilitySelector : capabilitySelectors) {
-            metadataCapabilities.add(resolveCapability(targetComponent, capabilitySelector));
-        }
-        return metadataCapabilities;
-    }
-
-    private static ModuleMetadataSpec.Capability resolveCapability(
-        ModuleMetadataSpec.DependencyCoordinates componentCoordinates,
-        CapabilitySelector capabilitySelector
-    ) {
-        if (capabilitySelector instanceof SpecificCapabilitySelector) {
-            SpecificCapabilitySelector specificSelector = (SpecificCapabilitySelector) capabilitySelector;
-            return new ModuleMetadataSpec.Capability(
-                specificSelector.getGroup(),
-                specificSelector.getName(),
-                null
-            );
-        } else if (capabilitySelector instanceof FeatureCapabilitySelector) {
-            FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) capabilitySelector;
-            return new ModuleMetadataSpec.Capability(
-                componentCoordinates.group,
-                componentCoordinates.name + "-" + featureSelector.getFeatureName(),
-                null
-            );
-        } else {
-            throw new UnsupportedOperationException("Unsupported capability selector type: " + capabilitySelector.getClass().getName());
-        }
-    }
-
-    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Attribute> attributesFor(AttributeContainer attributes) {
         if (attributes.isEmpty()) {
             return emptyList();
@@ -476,21 +509,6 @@ public class ModuleMetadataSpecBuilder {
         );
     }
 
-    private static void collectOwners(
-        Collection<? extends PublicationInternal<?>> publications,
-        Map<SoftwareComponent, SoftwareComponent> owners
-    ) {
-        for (PublicationInternal<?> publication : publications) {
-            SoftwareComponent component = publication.getComponent().getOrNull();
-            if (component instanceof ComponentWithVariants) {
-                ComponentWithVariants componentWithVariants = (ComponentWithVariants) component;
-                for (SoftwareComponent child : componentWithVariants.getVariants()) {
-                    owners.put(child, component);
-                }
-            }
-        }
-    }
-
     private void collectCoordinates(Map<SoftwareComponent, ComponentData> coordinates) {
         for (PublicationInternal<?> publication : publications) {
             SoftwareComponentInternal component = publication.getComponent().getOrNull();
@@ -538,23 +556,5 @@ public class ModuleMetadataSpecBuilder {
 
     private boolean isEmpty(ImmutableVersionConstraint versionConstraint) {
         return DefaultImmutableVersionConstraint.of().equals(versionConstraint);
-    }
-
-    public static String relativeUrlTo(
-        @SuppressWarnings("unused") ModuleVersionIdentifier from,
-        ModuleVersionIdentifier to
-    ) {
-        // TODO - do not assume Maven layout
-        StringBuilder path = new StringBuilder();
-        path.append("../../");
-        path.append(to.getName());
-        path.append("/");
-        path.append(to.getVersion());
-        path.append("/");
-        path.append(to.getName());
-        path.append("-");
-        path.append(to.getVersion());
-        path.append(".module");
-        return path.toString();
     }
 }

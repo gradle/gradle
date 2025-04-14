@@ -31,6 +31,10 @@ public final class Pair<L, R> {
         this.right = right;
     }
 
+    public static <L, R> Pair<L, R> of(@Nullable L left, @Nullable R right) {
+        return new Pair<L, R>(left, right);
+    }
+
     @Nullable
     public L getLeft() {
         return left;
@@ -49,10 +53,6 @@ public final class Pair<L, R> {
     @Nullable
     public R right() {
         return right;
-    }
-
-    public static <L, R> Pair<L, R> of(@Nullable L left, @Nullable R right) {
-        return new Pair<L, R>(left, right);
     }
 
     public <T> Pair<T, Pair<L, R>> pushLeft(T t) {

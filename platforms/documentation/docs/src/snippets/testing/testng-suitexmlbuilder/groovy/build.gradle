@@ -11,11 +11,11 @@ dependencies {
 }
 
 test {
-	useTestNG() {
+    useTestNG() {
         suiteXmlBuilder().suite(name: 'testing-testng') {
-            test (name : 'testing-testng', annotations : 'JDK', verbose:'1') {
+            test(name: 'testing-testng', annotations: 'JDK', verbose: '1') {
                 classes([:]) {
-                    'class' (name: 'org.gradle.testng.UserImplTest') {
+                    'class'(name: 'org.gradle.testng.UserImplTest') {
                         methods([:]) {
                             include(name: 'testOkFirstName')
                         }

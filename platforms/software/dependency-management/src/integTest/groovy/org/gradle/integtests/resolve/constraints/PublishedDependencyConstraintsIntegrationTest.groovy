@@ -26,7 +26,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         gradleMetadataPublished
     }
 
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     void "published dependency constraint is ignored when Gradle module metadata is not available"() {
         given:
         repository {
@@ -109,7 +109,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             'org:foo:1.0'()
             'org:foo:1.1'()
             'org:first-level:1.0' {
-                constraint(group:'org', artifact:'foo', version:'1.1', reason:'published dependency constraint')
+                constraint(group: 'org', artifact: 'foo', version: '1.1', reason: 'published dependency constraint')
             }
         }
 
@@ -155,7 +155,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                     }
                 }
                 if (available) {
-                    edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
                 } else {
                     module("org:foo:1.0")
                 }
@@ -220,7 +220,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 }
                 module("org:first-level2:1.0") {
                     if (available) {
-                        edge("org:foo:1.0","org:foo:1.1") {
+                        edge("org:foo:1.0", "org:foo:1.1") {
                             byConstraint()
                             byConflictResolution("between versions 1.1 and 1.0")
                         }
@@ -380,7 +380,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         """
 
         repositoryInteractions {
-            "org:foo:${available? '1.1' : '1.0'}" {
+            "org:foo:${available ? '1.1' : '1.0'}" {
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -413,7 +413,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
     }
 
 
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     void "deferred selector still resolved when constraint disappears"() {
         repository {
             'org:bar:1.0'()
@@ -556,7 +556,7 @@ dependencies {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24037")
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     void "duplicate constraint going back to pending not leave hanging edge"() {
         when:
         repository {

@@ -555,7 +555,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         executedAndNotSkipped ':compileMain211Java', ':compileMain212Java'
     }
 
-    def "creates main feature with main source set when java plugin not applied" () {
+    def "creates main feature with main source set when java plugin not applied"() {
         given:
         buildFile << """
             plugins {
@@ -592,7 +592,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         outputContains("mainApiElements")
     }
 
-    def "creates configurations when using main source set, non-main feature, java-library is not applied" () {
+    def "creates configurations when using main source set, non-main feature, java-library is not applied"() {
         given:
         buildFile << """
             plugins {

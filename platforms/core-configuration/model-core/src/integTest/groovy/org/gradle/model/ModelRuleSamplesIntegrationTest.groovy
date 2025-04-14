@@ -25,7 +25,8 @@ import org.junit.Rule
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(testDirectoryProvider)
+    @Rule
+    Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("modelRules/modelDsl")
     def "dsl creation example works"() {

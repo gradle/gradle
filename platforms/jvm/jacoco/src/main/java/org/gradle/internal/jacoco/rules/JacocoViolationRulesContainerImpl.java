@@ -28,21 +28,21 @@ import java.util.List;
 public class JacocoViolationRulesContainerImpl implements JacocoViolationRulesContainer {
 
     private final Instantiator instantiator;
-    private boolean failOnViolation = true;
     private final List<JacocoViolationRule> rules = new ArrayList<JacocoViolationRule>();
+    private boolean failOnViolation = true;
 
     public JacocoViolationRulesContainerImpl(Instantiator instantiator) {
         this.instantiator = instantiator;
     }
 
     @Override
-    public void setFailOnViolation(boolean failOnViolation) {
-        this.failOnViolation = failOnViolation;
+    public boolean isFailOnViolation() {
+        return failOnViolation;
     }
 
     @Override
-    public boolean isFailOnViolation() {
-        return failOnViolation;
+    public void setFailOnViolation(boolean failOnViolation) {
+        this.failOnViolation = failOnViolation;
     }
 
     @Override

@@ -54,76 +54,13 @@ public class GitVersionControlSystem implements VersionControlSystem {
 
     private static final Logger LOGGER = Logging.getLogger(GitVersionControlSystem.class);
 
-    @Override
-    public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
-        GitVersionControlSpec gitSpec = cast(spec);
-        LOGGER.info("Populating VCS workingDir {}/{} with ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
-        if (workingDir.isDirectory()) {
-            // Directory has something in it already
-            String[] contents = workingDir.list();
-            if (contents!=null && contents.length > 0) {
-                resetRepo(workingDir, gitSpec, ref);
-                return;
-            }
-        }
-
-        cloneRepo(workingDir, gitSpec, ref);
-    }
-
-    @Override
-    public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-        GitVersionControlSpec gitSpec = cast(spec);
-        Collection<Ref> refs = getRemoteRefs(gitSpec, true, false);
-        Set<VersionRef> versions = new HashSet<>();
-        for (Ref ref : refs) {
-            GitVersionRef gitRef = GitVersionRef.from(ref);
-            versions.add(gitRef);
-        }
-        return versions;
-    }
-
-    @Override
-    public VersionRef getDefaultBranch(VersionControlSpec spec) {
-        GitVersionControlSpec gitSpec = cast(spec);
-        Collection<Ref> refs = getRemoteRefs(gitSpec, false, true);
-        for (Ref ref : refs) {
-            // TODO: Default branch can be different from just master
-            if (ref.getName().equals("refs/heads/master")) {
-                return GitVersionRef.from(ref);
-            }
-        }
-        throw new UnsupportedOperationException("Git repository has no master branch");
-    }
-
-    @Nullable
-    @Override
-    public VersionRef getBranch(VersionControlSpec spec, String branch) {
-        GitVersionControlSpec gitSpec = cast(spec);
-        Collection<Ref> refs = getRemoteRefs(gitSpec, false, true);
-        String refName = "refs/heads/" + branch;
-        for (Ref ref : refs) {
-            if (ref.getName().equals(refName)) {
-                return GitVersionRef.from(ref);
-            }
-        }
-        return null;
-    }
-
-    private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
-        try {
-            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
-        } catch (URISyntaxException | GitAPIException e) {
-            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
-        }
-    }
-
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
         try {
             CloneCommand clone = configureTransport(Git.cloneRepository()).
-                    setURI(normalizeUri(gitSpec.getUrl())).
-                    setDirectory(workingDir).
-                    setCloneSubmodules(true);
+                setURI(normalizeUri(gitSpec.getUrl())).
+                setDirectory(workingDir).
+                setCloneSubmodules(true);
             git = clone.call();
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
         } catch (GitAPIException | URISyntaxException | JGitInternalException e) {
@@ -189,6 +126,69 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static <T extends TransportCommand<?, ?>> T configureTransport(T command) {
         command.setTransportConfigCallback(new DefaultTransportConfigCallback());
         return command;
+    }
+
+    @Override
+    public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        LOGGER.info("Populating VCS workingDir {}/{} with ref {}", workingDir.getParentFile().getName(), workingDir.getName(), ref);
+        if (workingDir.isDirectory()) {
+            // Directory has something in it already
+            String[] contents = workingDir.list();
+            if (contents != null && contents.length > 0) {
+                resetRepo(workingDir, gitSpec, ref);
+                return;
+            }
+        }
+
+        cloneRepo(workingDir, gitSpec, ref);
+    }
+
+    @Override
+    public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs = getRemoteRefs(gitSpec, true, false);
+        Set<VersionRef> versions = new HashSet<>();
+        for (Ref ref : refs) {
+            GitVersionRef gitRef = GitVersionRef.from(ref);
+            versions.add(gitRef);
+        }
+        return versions;
+    }
+
+    @Override
+    public VersionRef getDefaultBranch(VersionControlSpec spec) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs = getRemoteRefs(gitSpec, false, true);
+        for (Ref ref : refs) {
+            // TODO: Default branch can be different from just master
+            if (ref.getName().equals("refs/heads/master")) {
+                return GitVersionRef.from(ref);
+            }
+        }
+        throw new UnsupportedOperationException("Git repository has no master branch");
+    }
+
+    @Nullable
+    @Override
+    public VersionRef getBranch(VersionControlSpec spec, String branch) {
+        GitVersionControlSpec gitSpec = cast(spec);
+        Collection<Ref> refs = getRemoteRefs(gitSpec, false, true);
+        String refName = "refs/heads/" + branch;
+        for (Ref ref : refs) {
+            if (ref.getName().equals(refName)) {
+                return GitVersionRef.from(ref);
+            }
+        }
+        return null;
+    }
+
+    private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
+        try {
+            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
+        } catch (URISyntaxException | GitAPIException e) {
+            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+        }
     }
 
     private static class DefaultTransportConfigCallback implements TransportConfigCallback {

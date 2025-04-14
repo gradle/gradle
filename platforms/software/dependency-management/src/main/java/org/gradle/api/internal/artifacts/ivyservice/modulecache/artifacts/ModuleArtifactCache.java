@@ -37,7 +37,8 @@ public interface ModuleArtifactCache {
 
     /**
      * Record that the artifact with the given key was missing.
-     *  @param key The key to cache this resolution under in the index.
+     *
+     * @param key The key to cache this resolution under in the index.
      * @param descriptorHash The SHA1 hash of the related moduleDescriptor
      */
     void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, HashCode descriptorHash);

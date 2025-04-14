@@ -71,10 +71,10 @@ class AttachParentTestResultProcessorTest extends Specification {
     }
 
     TestDescriptorInternal test(String id) {
-        [isComposite: {false}, getId: {id}, toString: {id}] as TestDescriptorInternal
+        [isComposite: { false }, getId: { id }, toString: { id }] as TestDescriptorInternal
     }
 
     TestDescriptorInternal suite(String id) {
-        [isComposite: {true}, getId: {id}, toString: {id}] as TestDescriptorInternal
+        [isComposite: { true }, getId: { id }, toString: { id }] as TestDescriptorInternal
     }
 }

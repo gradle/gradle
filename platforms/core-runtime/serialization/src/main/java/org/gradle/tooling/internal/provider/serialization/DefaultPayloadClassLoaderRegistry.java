@@ -55,6 +55,15 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         this.classLoaderFactory = payloadClassLoaderFactory;
     }
 
+    private static Set<URI> uris(VisitableURLClassLoader classLoader) throws URISyntaxException {
+        URL[] urls = classLoader.getURLs();
+        Set<URI> uris = new HashSet<URI>(urls.length);
+        for (URL url : urls) {
+            uris.add(url.toURI());
+        }
+        return uris;
+    }
+
     @Override
     public SerializeMap newSerializeSession() {
         return new SerializeMap() {
@@ -121,15 +130,6 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
             }
         }
         return classLoader;
-    }
-
-    private static Set<URI> uris(VisitableURLClassLoader classLoader) throws URISyntaxException {
-        URL[] urls = classLoader.getURLs();
-        Set<URI> uris = new HashSet<URI>(urls.length);
-        for (URL url : urls) {
-            uris.add(url.toURI());
-        }
-        return uris;
     }
 
     private ClassLoaderDetails getDetails(ClassLoader classLoader) {

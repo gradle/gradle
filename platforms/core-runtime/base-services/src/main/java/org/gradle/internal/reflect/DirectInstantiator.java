@@ -40,14 +40,14 @@ public class DirectInstantiator implements Instantiator {
 
     private final ConstructorCache constructorCache = new ConstructorCache();
 
+    private DirectInstantiator() {
+    }
+
     /**
      * Please use {@link org.gradle.api.internal.InstantiatorFactory} instead.
      */
     public static <T> T instantiate(Class<? extends T> type, Object... params) {
         return INSTANCE.newInstance(type, params);
-    }
-
-    private DirectInstantiator() {
     }
 
     @Override

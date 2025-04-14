@@ -31,10 +31,6 @@ import java.util.Set;
  */
 public final class ConfigurationRoles {
 
-    private ConfigurationRoles() {
-        // Private to prevent instantiation.
-    }
-
     /**
      * An unrestricted configuration, which can be used for any purpose.
      *
@@ -43,17 +39,14 @@ public final class ConfigurationRoles {
      */
     @Deprecated
     public static final ConfigurationRole ALL = createNonDeprecatedRole("Legacy", true, true, true);
-
     /**
      * Meant to be used only for consumption by other projects.
      */
     public static final ConfigurationRole CONSUMABLE = createNonDeprecatedRole("Consumable", true, false, false);
-
     /**
      * Meant to be used only for resolving dependencies.
      */
     public static final ConfigurationRole RESOLVABLE = createNonDeprecatedRole("Resolvable", false, true, false);
-
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a resolvable configuration.
      *
@@ -61,7 +54,6 @@ public final class ConfigurationRoles {
      */
     @Deprecated
     public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole("Resolvable Dependency Scope", false, true, true);
-
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a consumable configuration.
      *
@@ -69,13 +61,19 @@ public final class ConfigurationRoles {
      */
     @Deprecated
     public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole("Consumable Dependency Scope", true, false, true);
-
     /**
      * Meant to be used only for declaring dependencies.
      *
      * AKA {@code DECLARABLE}.
      */
     public static final ConfigurationRole DEPENDENCY_SCOPE = createNonDeprecatedRole("Dependency Scope", false, false, true);
+    private static final Set<ConfigurationRole> ALL_ROLES = ImmutableSet.of(
+        ALL, CONSUMABLE, RESOLVABLE, RESOLVABLE_DEPENDENCY_SCOPE, CONSUMABLE_DEPENDENCY_SCOPE, DEPENDENCY_SCOPE
+    );
+
+    private ConfigurationRoles() {
+        // Private to prevent instantiation.
+    }
 
     /**
      * Creates a new role which is not deprecated for any usage.
@@ -84,17 +82,12 @@ public final class ConfigurationRoles {
         return new DefaultConfigurationRole(name, consumable, resolvable, declarable, false, false, false);
     }
 
-    private static final Set<ConfigurationRole> ALL_ROLES = ImmutableSet.of(
-        ALL, CONSUMABLE, RESOLVABLE, RESOLVABLE_DEPENDENCY_SCOPE, CONSUMABLE_DEPENDENCY_SCOPE, DEPENDENCY_SCOPE
-    );
-
     /**
      * Locates a pre-defined role allowing the given usage.
      *
      * @param consumable whether this role is consumable
      * @param resolvable whether this role is resolvable
      * @param declarable whether this role is declarable
-     *
      * @return the role enum token with matching usage characteristics, if one exists; otherwise {@link Optional#empty()}
      */
     public static Optional<ConfigurationRole> byUsage(boolean consumable, boolean resolvable, boolean declarable) {

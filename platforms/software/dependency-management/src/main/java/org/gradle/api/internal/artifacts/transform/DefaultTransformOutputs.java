@@ -42,6 +42,17 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
         this.resultBuilder = TransformExecutionResult.builderFor(inputArtifact, outputDir);
     }
 
+    private static void validateOutputExists(File outputDir, File output) {
+        if (!output.exists()) {
+            String outputAbsolutePath = output.getAbsolutePath();
+            String outputDirPrefix = outputDir.getAbsolutePath() + File.separator;
+            String reportedPath = outputAbsolutePath.startsWith(outputDirPrefix)
+                ? outputAbsolutePath.substring(outputDirPrefix.length())
+                : outputAbsolutePath;
+            throw new InvalidUserDataException("Transform output " + reportedPath + " must exist.");
+        }
+    }
+
     @Override
     public TransformExecutionResult getRegisteredOutputs() {
         TransformExecutionResult result = resultBuilder.build();
@@ -93,16 +104,5 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
         File output = resolver.resolve(path);
         resultBuilder.addOutput(output, prepareOutputLocation);
         return output;
-    }
-
-    private static void validateOutputExists(File outputDir, File output) {
-        if (!output.exists()) {
-            String outputAbsolutePath = output.getAbsolutePath();
-            String outputDirPrefix = outputDir.getAbsolutePath() + File.separator;
-            String reportedPath = outputAbsolutePath.startsWith(outputDirPrefix)
-                ? outputAbsolutePath.substring(outputDirPrefix.length())
-                : outputAbsolutePath;
-            throw new InvalidUserDataException("Transform output " + reportedPath + " must exist.");
-        }
     }
 }

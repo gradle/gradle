@@ -33,20 +33,6 @@ public interface FileWatcherRegistry extends Closeable {
 
     boolean isWatchingAnyLocations();
 
-    interface ChangeHandler {
-        void handleChange(Type type, Path path);
-
-        void stopWatchingAfterError();
-    }
-
-    enum Type {
-        CREATED,
-        MODIFIED,
-        REMOVED,
-        INVALIDATED,
-        OVERFLOW
-    }
-
     /**
      * Registers a watchable hierarchy.
      *
@@ -103,10 +89,27 @@ public interface FileWatcherRegistry extends Closeable {
     @Override
     void close() throws IOException;
 
+    enum Type {
+        CREATED,
+        MODIFIED,
+        REMOVED,
+        INVALIDATED,
+        OVERFLOW
+    }
+
+    interface ChangeHandler {
+        void handleChange(Type type, Path path);
+
+        void stopWatchingAfterError();
+    }
+
     interface FileWatchingStatistics {
         Optional<Throwable> getErrorWhileReceivingFileChanges();
+
         boolean isUnknownEventEncountered();
+
         int getNumberOfReceivedEvents();
+
         int getNumberOfWatchedHierarchies();
     }
 }

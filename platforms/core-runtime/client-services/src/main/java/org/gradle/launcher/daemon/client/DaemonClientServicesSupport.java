@@ -72,12 +72,12 @@ import java.util.UUID;
 public abstract class DaemonClientServicesSupport implements ServiceRegistrationProvider {
     private final InputStream buildStandardInput;
 
-    public void configure(ServiceRegistration registration) {
-        registration.add(GlobalCacheDir.class);
-    }
-
     public DaemonClientServicesSupport(InputStream buildStandardInput) {
         this.buildStandardInput = buildStandardInput;
+    }
+
+    public void configure(ServiceRegistration registration) {
+        registration.add(GlobalCacheDir.class);
     }
 
     protected InputStream getBuildStandardInput() {

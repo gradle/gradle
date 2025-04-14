@@ -17,7 +17,9 @@
 package org.gradle.model.dsl.internal;
 
 import groovy.lang.Closure;
+
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.api.Action;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.model.InvalidModelRuleDeclarationException;
@@ -39,6 +41,12 @@ public class TransformedModelDslBacking {
     public TransformedModelDslBacking(ModelRegistry modelRegistry, RelativeFilePathResolver relativeFilePathResolver) {
         this.modelRegistry = modelRegistry;
         this.ruleFactory = new ClosureBackedRuleFactory(relativeFilePathResolver);
+    }
+
+    public static boolean isTransformedBlock(Closure<?> closure) {
+        Class<?> closureClass = closure.getClass();
+        RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
+        return annotation != null;
     }
 
     /**
@@ -76,11 +84,5 @@ public class TransformedModelDslBacking {
                 action.execute(node, role);
             }
         }));
-    }
-
-    public static boolean isTransformedBlock(Closure<?> closure) {
-        Class<?> closureClass = closure.getClass();
-        RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
-        return annotation != null;
     }
 }

@@ -31,7 +31,8 @@ import spock.lang.Specification
 
 class MavenProjectsCreatorSpec extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     private settings = new DefaultMavenSettingsProvider({} as MavenFileLocations)
     private creator = new MavenProjectsCreator()
 

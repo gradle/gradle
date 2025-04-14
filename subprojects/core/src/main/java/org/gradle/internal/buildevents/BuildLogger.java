@@ -105,7 +105,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     public void graphPopulated(TaskExecutionGraph graph) {
         if (logger.isInfoEnabled()) {
             logger.info("Tasks to be executed: {}", graph.getAllTasks());
-            logger.info("Tasks that were excluded: {}", ((TaskExecutionGraphInternal)graph).getFilteredTasks());
+            logger.info("Tasks that were excluded: {}", ((TaskExecutionGraphInternal) graph).getFilteredTasks());
         }
     }
 

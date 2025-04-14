@@ -22,7 +22,8 @@ import spock.lang.Specification
 @CleanupTestDirectory
 abstract class WorkspaceTest extends Specification {
 
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     TestFile getTestDirectory() {
         temporaryFolder.testDirectory

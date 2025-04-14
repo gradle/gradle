@@ -24,8 +24,8 @@ import java.util.Set;
 import static java.util.Collections.emptySet;
 
 public class TasksFactory {
-    Map<Project, Set<Task>> allTasks;
     private final boolean includeTasks;
+    Map<Project, Set<Task>> allTasks;
 
     public TasksFactory(boolean includeTasks) {
         this.includeTasks = includeTasks;

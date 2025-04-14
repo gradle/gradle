@@ -59,6 +59,20 @@ public class ClassSetAnalysisData {
 
     static final String MODULE_INFO = "module-info";
     static final String PACKAGE_INFO = "package-info";
+    private final Map<String, HashCode> classHashes;
+    private final Map<String, DependentsSet> dependents;
+    private final Map<String, IntSet> classesToConstants;
+    private final String fullRebuildCause;
+    public ClassSetAnalysisData() {
+        this(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), null);
+    }
+
+    public ClassSetAnalysisData(Map<String, HashCode> classHashes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause) {
+        this.classHashes = classHashes;
+        this.dependents = dependents;
+        this.classesToConstants = classesToConstants;
+        this.fullRebuildCause = fullRebuildCause;
+    }
 
     /**
      * Merges the given class sets, applying classpath shadowing semantics. I.e. only the first occurrency of each class will be kept.
@@ -91,22 +105,6 @@ public class ClassSetAnalysisData {
             mergedDependents.put(entry.getKey(), DependentsSet.merge(entry.getValue()));
         }
         return new ClassSetAnalysisData(classHashes, mergedDependents.build(), classesToConstants, fullRebuildCause);
-    }
-
-    private final Map<String, HashCode> classHashes;
-    private final Map<String, DependentsSet> dependents;
-    private final Map<String, IntSet> classesToConstants;
-    private final String fullRebuildCause;
-
-    public ClassSetAnalysisData() {
-        this(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), null);
-    }
-
-    public ClassSetAnalysisData(Map<String, HashCode> classHashes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause) {
-        this.classHashes = classHashes;
-        this.dependents = dependents;
-        this.classesToConstants = classesToConstants;
-        this.fullRebuildCause = fullRebuildCause;
     }
 
     /**

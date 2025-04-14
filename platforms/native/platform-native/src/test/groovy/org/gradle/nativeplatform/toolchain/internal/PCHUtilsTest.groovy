@@ -25,9 +25,10 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class PCHUtilsTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
-    def "generates a prefix header file" () {
+    def "generates a prefix header file"() {
         def headers = new ArrayList<>()
         headers.add "header.h"
         headers.add "<stdio.h>"
@@ -40,13 +41,13 @@ class PCHUtilsTest extends Specification {
 
         then:
         prefixHeaderFile.text == TextUtil.toPlatformLineSeparators(
-"""#include "header.h"
+            """#include "header.h"
 #include <stdio.h>
 #include "some/path/to/another.h"
 """)
     }
 
-    def "can generate a source file for a pre-compiled header" () {
+    def "can generate a source file for a pre-compiled header"() {
         given:
         def tempDir = tmpDirProvider.createDir("temp")
         def pchSourceDir = tempDir.createDir("pchGenerated")
@@ -71,7 +72,7 @@ class PCHUtilsTest extends Specification {
         CppPCHCompileSpec | "cpp"
     }
 
-    def "generates a PCH object directory" () {
+    def "generates a PCH object directory"() {
         given:
         def tempDir = tmpDirProvider.createDir("temp")
         def objectDir = tmpDirProvider.createDir("pch")
@@ -86,12 +87,12 @@ class PCHUtilsTest extends Specification {
         then:
         generated.parentFile == objectDir
         generated.name == "preCompiledHeaders"
-        generated.listFiles().collect { it.name }.sort() == [ 'header.h', 'header.o' ]
+        generated.listFiles().collect { it.name }.sort() == ['header.h', 'header.o']
         new File(generated, "header.h").bytes == prefixFile.bytes
         new File(generated, "header.o").bytes == objectFile.bytes
     }
 
-    def "transforms pre-compiled header spec to contain generated source files" () {
+    def "transforms pre-compiled header spec to contain generated source files"() {
         given:
         def tempDir = tmpDirProvider.createDir("temp")
         def pchSourceDir = tempDir.createDir("pchGenerated")
@@ -100,7 +101,7 @@ class PCHUtilsTest extends Specification {
         Transformer<CPCHCompileSpec, CPCHCompileSpec> transformer = PCHUtils.getHeaderToSourceFileTransformer(CPCHCompileSpec)
         def spec = Mock(CPCHCompileSpec) {
             getTempDir() >> tempDir
-            getSourceFiles() >> [ sourceFile ]
+            getSourceFiles() >> [sourceFile]
         }
 
         when:

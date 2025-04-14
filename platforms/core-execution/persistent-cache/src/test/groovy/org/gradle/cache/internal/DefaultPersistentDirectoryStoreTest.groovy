@@ -57,7 +57,8 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     def lockManager = Mock(FileLockManager)
     def lock = Mock(FileLock)
 
-    @Subject @AutoCleanup
+    @Subject
+    @AutoCleanup
     def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), cacheCleanup, lockManager, Mock(ExecutorFactory))
 
     def "has useful toString() implementation"() {

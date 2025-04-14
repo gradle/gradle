@@ -68,12 +68,10 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
-
-    private ManagedExecutor cacheUpdateExecutor;
-    private ExclusiveCacheAccessingWorker cacheAccessWorker;
     private final Lock stateLock = new ReentrantLock(); // protects the following state
     private final Condition condition = stateLock.newCondition();
-
+    private ManagedExecutor cacheUpdateExecutor;
+    private ExclusiveCacheAccessingWorker cacheAccessWorker;
     private boolean open;
     private Thread owner;
     private FileLock fileLock;
@@ -112,6 +110,13 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             default:
                 throw new IllegalArgumentException();
         }
+    }
+
+    private static <T> Supplier<T> toSupplier(Runnable action) {
+        return () -> {
+            action.run();
+            return null;
+        };
     }
 
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
@@ -221,13 +226,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     @Override
     public void useCache(Runnable action) {
         useCache(toSupplier(action));
-    }
-
-    private static <T> Supplier<T> toSupplier(Runnable action) {
-        return () -> {
-            action.run();
-            return null;
-        };
     }
 
     @Override
@@ -426,6 +424,14 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         return fileLock;
     }
 
+    Thread getOwner() {
+        return owner;
+    }
+
+    FileAccess getFileAccess() {
+        return fileAccess;
+    }
+
     private static class TransparentFileAccess implements FileAccess {
         private static final FileAccess INSTANCE = new TransparentFileAccess();
 
@@ -452,36 +458,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         public void writeFile(Runnable action) throws LockTimeoutException, InsufficientLockModeException {
             action.run();
         }
-    }
-
-    private class UnitOfWorkFileAccess extends AbstractFileAccess {
-        @Override
-        public String toString() {
-            return cacheDisplayName;
-        }
-
-        @Override
-        public <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException {
-            return getFileLock().readFile(action);
-        }
-
-        @Override
-        public void updateFile(Runnable action) throws LockTimeoutException {
-            getFileLock().updateFile(action);
-        }
-
-        @Override
-        public void writeFile(Runnable action) throws LockTimeoutException {
-            getFileLock().writeFile(action);
-        }
-    }
-
-    Thread getOwner() {
-        return owner;
-    }
-
-    FileAccess getFileAccess() {
-        return fileAccess;
     }
 
     private static class IndexedCacheEntry<K, V> {
@@ -552,6 +528,28 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     static class InvalidCacheReuseException extends GradleException {
         InvalidCacheReuseException(String message) {
             super(message);
+        }
+    }
+
+    private class UnitOfWorkFileAccess extends AbstractFileAccess {
+        @Override
+        public String toString() {
+            return cacheDisplayName;
+        }
+
+        @Override
+        public <T> T readFile(Supplier<? extends T> action) throws LockTimeoutException {
+            return getFileLock().readFile(action);
+        }
+
+        @Override
+        public void updateFile(Runnable action) throws LockTimeoutException {
+            getFileLock().updateFile(action);
+        }
+
+        @Override
+        public void writeFile(Runnable action) throws LockTimeoutException {
+            getFileLock().writeFile(action);
         }
     }
 }

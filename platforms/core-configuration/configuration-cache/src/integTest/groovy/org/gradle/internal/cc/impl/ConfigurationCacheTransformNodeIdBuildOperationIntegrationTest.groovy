@@ -116,7 +116,7 @@ class ConfigurationCacheTransformNodeIdBuildOperationIntegrationTest extends Abs
         }
         def targetColors = (identities.collect { it*.targetAttributes.color }.flatten() as Set<String>)
         return targetColors.collectEntries { color ->
-            [(color): identities.collect {plannedTransformSteps ->
+            [(color): identities.collect { plannedTransformSteps ->
                 Iterables.getOnlyElement(plannedTransformSteps.findAll { it.targetAttributes.color == color }) as Map<String, ?>
             }]
         }

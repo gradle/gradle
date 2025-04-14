@@ -37,11 +37,14 @@ import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
 class DaemonRegistryServicesTest extends Specification {
     def lockManager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
     def chmod = Stub(Chmod)
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
-    def parent = new DefaultServiceRegistry() {{
-        add(FileLockManager, lockManager)
-        add(Chmod, chmod)
-    }}
+    @Rule
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
+    def parent = new DefaultServiceRegistry() {
+        {
+            add(FileLockManager, lockManager)
+            add(Chmod, chmod)
+        }
+    }
 
     def registry(baseDir) {
         new DefaultServiceRegistry(parent).addProvider(new DaemonRegistryServices(tmp.createDir(baseDir)))
@@ -53,7 +56,8 @@ class DaemonRegistryServicesTest extends Specification {
         !registry("a").get(DaemonRegistry).is(registry("b").get(DaemonRegistry))
     }
 
-    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    @Rule
+    ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def "the registry can be concurrently written to"() {
         when:
@@ -73,7 +77,7 @@ class DaemonRegistryServicesTest extends Specification {
                     [],
                     false,
                     NativeServicesMode.ENABLED,
-                        DaemonPriority.NORMAL
+                    DaemonPriority.NORMAL
                 )
                 registry.store(new DaemonInfo(
                     new SocketInetAddress(localhost, (int) (8888 + idx)), context, "foo-$idx".bytes, Idle))

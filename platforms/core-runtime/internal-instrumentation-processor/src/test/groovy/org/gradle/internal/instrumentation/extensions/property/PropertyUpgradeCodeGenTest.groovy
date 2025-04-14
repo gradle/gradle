@@ -160,7 +160,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
         given:
-        def givenSource = source"""
+        def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.*;
@@ -222,7 +222,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
     def "should auto generate adapter for Provider upgraded property #upgradedType"() {
         given:
-        def givenSource = source"""
+        def givenSource = source """
             package org.gradle.test;
 
             import java.io.*;
@@ -277,7 +277,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
     def "should correctly generate interceptor when property name contains get"() {
         given:
-        def givenSource = source"""
+        def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.*;
@@ -368,7 +368,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
     def "should generate interceptor for upgraded property with original accessors with different names"() {
         given:
-        def givenSource = source"""
+        def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.*;

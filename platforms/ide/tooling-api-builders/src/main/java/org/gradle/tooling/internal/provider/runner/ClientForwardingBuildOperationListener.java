@@ -69,6 +69,25 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         this.operationIdentifierSupplier = operationIdentifierSupplier;
     }
 
+    static AbstractOperationResult toOperationResult(OperationFinishEvent result) {
+        return toOperationResult(result, t -> ImmutableList.of());
+    }
+
+    static AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable ProblemLocator problemLocator) {
+        Throwable failure = result.getFailure();
+        long startTime = result.getStartTime();
+        long endTime = result.getEndTime();
+        if (failure != null) {
+            if (problemLocator != null) {
+                InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLocator, ProblemsProgressEventUtils::createDefaultProblemDetails);
+                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
+            } else {
+                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            }
+        }
+        return new DefaultSuccessResult(startTime, endTime);
+    }
+
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         // RunBuildBuildOperationType.Details is the type of the details object associated with the root build operation
@@ -125,24 +144,5 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         String displayName = buildOperation.getDisplayName();
         OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
         return new DefaultOperationDescriptor(id, name, displayName, parentId);
-    }
-
-    static AbstractOperationResult toOperationResult(OperationFinishEvent result) {
-        return toOperationResult(result, t -> ImmutableList.of());
-    }
-
-    static AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable ProblemLocator problemLocator) {
-        Throwable failure = result.getFailure();
-        long startTime = result.getStartTime();
-        long endTime = result.getEndTime();
-        if (failure != null) {
-            if (problemLocator != null) {
-                InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLocator, ProblemsProgressEventUtils::createDefaultProblemDetails);
-                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
-            } else {
-                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
-            }
-        }
-        return new DefaultSuccessResult(startTime, endTime);
     }
 }

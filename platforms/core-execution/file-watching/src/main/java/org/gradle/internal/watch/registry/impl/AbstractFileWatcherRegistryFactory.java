@@ -43,10 +43,6 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
         this.immutableLocationsFilter = immutableLocationsFilter;
     }
 
-    public interface FileEventFunctionsLookup {
-        <T extends AbstractNativeFileEventFunctions<?>> T getFileEventFunctions(Class<T> type);
-    }
-
     @Override
     public FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler) {
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
@@ -72,4 +68,8 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
     protected abstract W createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException;
 
     protected abstract FileWatcherUpdater createFileWatcherUpdater(W watcher, FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies);
+
+    public interface FileEventFunctionsLookup {
+        <T extends AbstractNativeFileEventFunctions<?>> T getFileEventFunctions(Class<T> type);
+    }
 }

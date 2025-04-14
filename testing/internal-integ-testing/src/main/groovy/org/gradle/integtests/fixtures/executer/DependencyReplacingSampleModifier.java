@@ -38,12 +38,11 @@ import static java.nio.file.Files.walk;
  */
 public class DependencyReplacingSampleModifier implements SampleModifier {
 
-    @Override
-    public Sample modify(Sample sample) {
-        listBuildScripts(sample.getProjectDir())
-            .forEach(DependencyReplacingSampleModifier::replaceDependencies);
-        return sample;
-    }
+    // Pattern to match the tooling API dependency
+    static Pattern toolingApiPattern = Pattern.compile("org\\.gradle:gradle-tooling-api:(\\d+(\\.\\d+)*)(-[0-9A-Za-z\\.\\+]+)?");
+    // Placeholder for the latest versions
+    static String latestNightlyVersion = PublishedVersionDeterminer.getLatestNightlyVersion();
+    static GradleVersion latestReleasedVersion = GradleVersion.version(PublishedVersionDeterminer.getLatestReleasedVersion());
 
     private static Stream<File> listBuildScripts(File projectDir) {
         try {
@@ -88,11 +87,11 @@ public class DependencyReplacingSampleModifier implements SampleModifier {
         return Optional.empty();
     }
 
-    // Pattern to match the tooling API dependency
-    static Pattern toolingApiPattern = Pattern.compile("org\\.gradle:gradle-tooling-api:(\\d+(\\.\\d+)*)(-[0-9A-Za-z\\.\\+]+)?");
-
-    // Placeholder for the latest versions
-    static String latestNightlyVersion = PublishedVersionDeterminer.getLatestNightlyVersion();
-    static GradleVersion latestReleasedVersion = GradleVersion.version(PublishedVersionDeterminer.getLatestReleasedVersion());
+    @Override
+    public Sample modify(Sample sample) {
+        listBuildScripts(sample.getProjectDir())
+            .forEach(DependencyReplacingSampleModifier::replaceDependencies);
+        return sample;
+    }
 
 }

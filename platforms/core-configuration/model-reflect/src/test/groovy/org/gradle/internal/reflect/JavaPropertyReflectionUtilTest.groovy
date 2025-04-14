@@ -353,7 +353,7 @@ class WithProperties {
     String prop1
     boolean prop2
 
-    void setWriteOnly(String s1) { }
+    void setWriteOnly(String s1) {}
 
     boolean isSomething() { return false }
 

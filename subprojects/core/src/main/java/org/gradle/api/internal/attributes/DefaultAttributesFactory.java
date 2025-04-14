@@ -54,6 +54,29 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
     }
 
+    private static @Nullable DefaultImmutableAttributesContainer findChild(
+        ImmutableList<DefaultImmutableAttributesContainer> nodeChildren,
+        Attribute<?> key,
+        Isolatable<?> value
+    ) {
+        for (DefaultImmutableAttributesContainer child : nodeChildren) {
+            if (child.attribute.equals(key) && child.value.equals(value)) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    private static ImmutableList<DefaultImmutableAttributesContainer> concatChild(
+        ImmutableList<DefaultImmutableAttributesContainer> nodeChildren,
+        DefaultImmutableAttributesContainer child
+    ) {
+        return ImmutableList.<DefaultImmutableAttributesContainer>builderWithExpectedSize(nodeChildren.size() + 1)
+            .addAll(nodeChildren)
+            .add(child)
+            .build();
+    }
+
     public int size() {
         return children.size();
     }
@@ -124,29 +147,6 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         });
 
         return Objects.requireNonNull(findChild(cachedChildren, key, value));
-    }
-
-    private static @Nullable DefaultImmutableAttributesContainer findChild(
-        ImmutableList<DefaultImmutableAttributesContainer> nodeChildren,
-        Attribute<?> key,
-        Isolatable<?> value
-    ) {
-        for (DefaultImmutableAttributesContainer child : nodeChildren) {
-            if (child.attribute.equals(key) && child.value.equals(value)) {
-                return child;
-            }
-        }
-        return null;
-    }
-
-    private static ImmutableList<DefaultImmutableAttributesContainer> concatChild(
-        ImmutableList<DefaultImmutableAttributesContainer> nodeChildren,
-        DefaultImmutableAttributesContainer child
-    ) {
-        return ImmutableList.<DefaultImmutableAttributesContainer>builderWithExpectedSize(nodeChildren.size() + 1)
-            .addAll(nodeChildren)
-            .add(child)
-            .build();
     }
 
     @SuppressWarnings("DataFlowIssue")

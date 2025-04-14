@@ -26,7 +26,11 @@
             </thead>
             <tr>
                 <td>binaryResultsDirectory</td>
-                <td><literal><replaceable>project.testResultsDir</replaceable>/binary/<replaceable>task.name</replaceable></literal></td>
+                <td>
+                    <literal><replaceable>project.testResultsDir</replaceable>/binary/
+                        <replaceable>task.name</replaceable>
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>ignoreFailures</td>

@@ -4,7 +4,8 @@ import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 
 interface Injected {
-    @Inject Problems getProblems()
+    @Inject
+    Problems getProblems()
 }
 
 def problems = project.objects.newInstance(Injected).getProblems()

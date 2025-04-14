@@ -31,8 +31,11 @@ public interface PerformanceTestExecution {
     String getTeamCityBuildId();
 
     String getVersionUnderTest();
+
     String getVcsBranch();
+
     long getStartTime();
+
     long getEndTime();
 
     List<String> getVcsCommits();

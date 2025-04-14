@@ -36,6 +36,20 @@ public class GroovyJarFile {
         this.matcher = matcher;
     }
 
+    @Nullable
+    public static GroovyJarFile parse(File file) {
+        try {
+            if (file.getName().contains("groovy")) {
+                // Resolve a symlink file to the real location
+                file = file.toPath().toRealPath().toFile();
+            }
+        } catch (IOException e) {
+            // Let the code use the original File otherwise
+        }
+        Matcher matcher = FILE_NAME_PATTERN.matcher(file.getName());
+        return matcher.matches() ? new GroovyJarFile(file, matcher) : null;
+    }
+
     public File getFile() {
         return file;
     }
@@ -58,19 +72,5 @@ public class GroovyJarFile {
 
     public String getDependencyNotation() {
         return groovyModuleDependency(getBaseName(), getVersion(), isIndy() ? "indy" : null);
-    }
-
-    @Nullable
-    public static GroovyJarFile parse(File file) {
-        try {
-            if (file.getName().contains("groovy")) {
-                // Resolve a symlink file to the real location
-                file = file.toPath().toRealPath().toFile();
-            }
-        } catch (IOException e) {
-            // Let the code use the original File otherwise
-        }
-        Matcher matcher = FILE_NAME_PATTERN.matcher(file.getName());
-        return matcher.matches() ? new GroovyJarFile(file, matcher) : null;
     }
 }

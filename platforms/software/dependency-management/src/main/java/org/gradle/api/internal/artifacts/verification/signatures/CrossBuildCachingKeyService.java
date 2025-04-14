@@ -74,7 +74,8 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         BuildOperationRunner buildOperationRunner,
         PublicKeyService delegate,
         BuildCommencedTimeProvider timeProvider,
-        boolean refreshKeys) {
+        boolean refreshKeys
+    ) {
         cache = cacheBuilderFactory
             .createCrossVersionCacheBuilder("keyrings")
             .withInitialLockMode(FileLockManager.LockMode.OnDemand)
@@ -276,26 +277,6 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         }
     }
 
-    private class LookupPublicKeyResultBuilder implements PublicKeyResultBuilder {
-        CacheEntry<PGPPublicKeyRing> entry;
-
-        @Override
-        public void keyRing(PGPPublicKeyRing keyring) {
-            entry = new CacheEntry<>(timeProvider.getCurrentTime(), keyring);
-            Iterator<PGPPublicKey> pkIt = keyring.getPublicKeys();
-            while (pkIt.hasNext()) {
-                PGPPublicKey publicKey = pkIt.next();
-                Fingerprint fingerprint = Fingerprint.of(publicKey);
-                long keyID = publicKey.getKeyID();
-                updateLongKeyIndex(fingerprint, keyID);
-            }
-        }
-
-        @Override
-        public void publicKey(PGPPublicKey publicKey) {
-        }
-    }
-
     private static class FingerprintListCacheEntrySerializer extends AbstractSerializer<CacheEntry<List<Fingerprint>>> {
         private final ListSerializer<Fingerprint> listSerializer;
 
@@ -320,6 +301,26 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
                 encoder.writeBoolean(true);
                 listSerializer.write(encoder, fingerprints);
             }
+        }
+    }
+
+    private class LookupPublicKeyResultBuilder implements PublicKeyResultBuilder {
+        CacheEntry<PGPPublicKeyRing> entry;
+
+        @Override
+        public void keyRing(PGPPublicKeyRing keyring) {
+            entry = new CacheEntry<>(timeProvider.getCurrentTime(), keyring);
+            Iterator<PGPPublicKey> pkIt = keyring.getPublicKeys();
+            while (pkIt.hasNext()) {
+                PGPPublicKey publicKey = pkIt.next();
+                Fingerprint fingerprint = Fingerprint.of(publicKey);
+                long keyID = publicKey.getKeyID();
+                updateLongKeyIndex(fingerprint, keyID);
+            }
+        }
+
+        @Override
+        public void publicKey(PGPPublicKey publicKey) {
         }
     }
 }

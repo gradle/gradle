@@ -56,7 +56,7 @@ abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specifica
                 addArtifact(ARTIFACT_WITH_CLASSIFIERS)
         }
         return result.exclude(WrapUtil.toMap("group", TEST_EXCLUDE_RULE.getGroup())).
-                setTransitive(true)
+            setTransitive(true)
     }
 
     protected static void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata, boolean withArtifacts) {

@@ -35,7 +35,8 @@ import java.util.function.Supplier
 
 class DefaultModuleArtifactCacheTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass())
 
     ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator = Mock(ArtifactCacheLockingAccessCoordinator)
     BuildCommencedTimeProvider timeProvider = Mock(BuildCommencedTimeProvider)
@@ -45,7 +46,8 @@ class DefaultModuleArtifactCacheTest extends Specification {
     String persistentCacheFile = "cacheFile"
     Path commonRootPath = folder.createDir("common").toPath()
 
-    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheAccessCoordinator, fileAccessTracker, commonRootPath)
+    @Subject
+    DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheAccessCoordinator, fileAccessTracker, commonRootPath)
 
     def "storing null artifactFile not supported"() {
         given:
@@ -165,7 +167,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def createEntryInPersistentCache() {
         1 * cacheAccessCoordinator.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        1 * cacheAccessCoordinator.useCache(_) >> { Supplier factory -> factory.get()}
+        1 * cacheAccessCoordinator.useCache(_) >> { Supplier factory -> factory.get() }
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
         1 * persistentIndexedCache.getIfPresent(key) >> cachedArtifact
         key

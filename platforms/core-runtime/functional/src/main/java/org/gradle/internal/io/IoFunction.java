@@ -27,9 +27,6 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface IoFunction<T, R> {
-    @Nullable
-    R apply(@Nullable T t) throws IOException;
-
     /**
      * Wraps an {@link IOException}-throwing {@link IoFunction} into a regular {@link Function}.
      *
@@ -44,4 +41,7 @@ public interface IoFunction<T, R> {
             }
         };
     }
+
+    @Nullable
+    R apply(@Nullable T t) throws IOException;
 }

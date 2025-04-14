@@ -22,21 +22,28 @@ import org.gradle.test.fixtures.gradle.VariantMetadataSpec
  */
 interface Module {
     Module publish()
+
     Module publishWithChangedContent()
+
     Module withModuleMetadata()
+
     Module withSignature(@DelegatesTo(value = File, strategy = Closure.DELEGATE_FIRST) Closure<?> signer)
 
     String getGroup()
+
     String getModule()
+
     String getVersion()
 
     /**
      * Returns the Gradle module metadata file of this module
      */
     ModuleArtifact getModuleMetadata()
+
     GradleModuleMetadata getParsedModuleMetadata()
 
-    Module withVariant(String name, @DelegatesTo(value=VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) groovy.lang.Closure<?> action)
+    Module withVariant(String name, @DelegatesTo(value = VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) groovy.lang.Closure<?> action)
+
     Module eachVariant(@DelegatesTo(value = VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action)
 
     Map<String, String> getAttributes()

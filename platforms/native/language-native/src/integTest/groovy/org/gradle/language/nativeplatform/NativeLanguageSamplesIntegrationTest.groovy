@@ -31,17 +31,28 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @Requires(UnitTestPreconditions.CanInstallExecutable)
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
-    @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
-    @Rule public final Sample c = sample(testDirProvider, 'c')
-    @Rule public final Sample cpp = sample(testDirProvider, 'cpp')
-    @Rule public final Sample objectiveC = sample(testDirProvider, 'objective-c')
-    @Rule public final Sample objectiveCpp = sample(testDirProvider, 'objective-cpp')
-    @Rule public final Sample customLayout = sample(testDirProvider, 'custom-layout')
-    @Rule public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
-    @Rule public final Sample idl = sample(testDirProvider, 'idl')
-    @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
-    @Rule public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
+    @Rule
+    final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    public final Sample assembler = sample(testDirProvider, 'assembler')
+    @Rule
+    public final Sample c = sample(testDirProvider, 'c')
+    @Rule
+    public final Sample cpp = sample(testDirProvider, 'cpp')
+    @Rule
+    public final Sample objectiveC = sample(testDirProvider, 'objective-c')
+    @Rule
+    public final Sample objectiveCpp = sample(testDirProvider, 'objective-cpp')
+    @Rule
+    public final Sample customLayout = sample(testDirProvider, 'custom-layout')
+    @Rule
+    public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
+    @Rule
+    public final Sample idl = sample(testDirProvider, 'idl')
+    @Rule
+    public final Sample cunit = sample(testDirProvider, 'cunit')
+    @Rule
+    public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
@@ -71,7 +82,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryHelloC", ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
+            ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation(c.dir.file("build/install/main")).exec().out == "Hello world!"
@@ -86,7 +97,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation(cpp.dir.file("build/install/main")).exec().out == "Hello world!\n"
@@ -135,8 +146,8 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":compileHelloSharedLibraryHelloRc",
-                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":linkHelloSharedLibrary", ":helloSharedLibrary",
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation(windowsResources.dir.file("build/install/main")).exec().out == "Hello world!\n"
@@ -161,7 +172,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executedAndNotSkipped ":compileHelloStaticLibraryHelloC", ":createHelloStaticLibrary", ":helloStaticLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation(customLayout.dir.file("build/install/main")).exec().out == "Hello world!"
@@ -176,7 +187,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executedAndNotSkipped ":idl", ":compileMainExecutableMainC", ":compileMainExecutableMainIdlOutput",
-                              ":linkMainExecutable", ":mainExecutable"
+            ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation(idl.dir.file("build/install/main")).exec().out == "Hello from generated source!!\n"
@@ -192,8 +203,8 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         then:
         executedAndNotSkipped ":generateHelloCppPrefixHeaderFile", ":compileHelloSharedLibraryCppPreCompiledHeader",
-                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
-                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+            ":linkHelloSharedLibrary", ":helloSharedLibrary",
+            ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation(pch.dir.file("build/install/main")).exec().out == "Hello world!\n"

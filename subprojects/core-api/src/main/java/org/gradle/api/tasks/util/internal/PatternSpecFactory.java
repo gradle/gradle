@@ -48,8 +48,8 @@ import java.util.Set;
 @ServiceScope(Scope.Global.class)
 public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
-    private Set<String> previousDefaultExcludes = new HashSet<String>();
     private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
+    private Set<String> previousDefaultExcludes = new HashSet<String>();
 
     @Override
     public void onDefaultExcludesChanged(List<String> excludes) {
@@ -109,7 +109,7 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         sortedExcludesFromSettings.sort(Comparator.naturalOrder());
         List<String> sortedNewExcludes = new ArrayList<String>(newDefaultExcludes);
         sortedNewExcludes.sort(Comparator.naturalOrder());
-        throw new InvalidUserCodeException(String.format("Cannot change default excludes during the build. They were changed from %s to %s. Configure default excludes in the settings script instead.",  sortedExcludesFromSettings, sortedNewExcludes));
+        throw new InvalidUserCodeException(String.format("Cannot change default excludes during the build. They were changed from %s to %s. Configure default excludes in the settings script instead.", sortedExcludesFromSettings, sortedNewExcludes));
     }
 
     public synchronized void setDefaultExcludesFromSettings(String[] excludesFromSettings) {
@@ -140,6 +140,8 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
         CASE_SENSITIVE(true),
         CASE_INSENSITIVE(false);
 
+        private final boolean caseSensitive;
+
         CaseSensitivity(boolean caseSensitive) {
             this.caseSensitive = caseSensitive;
         }
@@ -149,8 +151,6 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
                 ? CASE_SENSITIVE
                 : CASE_INSENSITIVE;
         }
-
-        private final boolean caseSensitive;
 
         public boolean isCaseSensitive() {
             return caseSensitive;

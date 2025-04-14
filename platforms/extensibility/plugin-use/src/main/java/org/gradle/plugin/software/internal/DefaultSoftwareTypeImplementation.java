@@ -35,10 +35,12 @@ public class DefaultSoftwareTypeImplementation<T> implements SoftwareTypeImpleme
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
 
-    public DefaultSoftwareTypeImplementation(String softwareType,
-                                             Class<? extends T> modelPublicType,
-                                             Class<? extends Plugin<Project>> pluginClass,
-                                             Class<? extends Plugin<Settings>> registeringPluginClass) {
+    public DefaultSoftwareTypeImplementation(
+        String softwareType,
+        Class<? extends T> modelPublicType,
+        Class<? extends Plugin<Project>> pluginClass,
+        Class<? extends Plugin<Settings>> registeringPluginClass
+    ) {
         this.softwareType = softwareType;
         this.modelPublicType = modelPublicType;
         this.pluginClass = pluginClass;

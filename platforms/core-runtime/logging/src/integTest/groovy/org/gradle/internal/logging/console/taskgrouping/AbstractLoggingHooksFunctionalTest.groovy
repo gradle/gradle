@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
 
-abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest{
+abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     def setup() {
         buildFile << """
             class CollectingListener implements StandardOutputListener {
@@ -169,12 +169,12 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
         then:
         lines.containsAll([
-                'info',
-                'lifecycle',
-                'warn',
-                'error',
-                'System.out',
-                'System.err'
+            'info',
+            'lifecycle',
+            'warn',
+            'error',
+            'System.out',
+            'System.err'
         ])
 
         and:
@@ -186,12 +186,12 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
         then:
         lines.containsAll([
-                ':log',
-                'lifecycle',
-                'warn',
-                'error',
-                'System.out',
-                'System.err'
+            ':log',
+            'lifecycle',
+            'warn',
+            'error',
+            'System.out',
+            'System.err'
         ])
 
         and:
@@ -205,10 +205,10 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
         then:
         lines.containsAll([
-                'warn',
-                'error',
-                'System.out',
-                'System.err'
+            'warn',
+            'error',
+            'System.out',
+            'System.err'
         ])
 
         and:
@@ -223,9 +223,9 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
 
         then:
         lines.containsAll([
-                'error',
-                'System.out',
-                'System.err'
+            'error',
+            'System.out',
+            'System.err'
         ])
 
         and:

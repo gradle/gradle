@@ -223,7 +223,7 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
     fun CompilationUnit.toVersionIncubating(sourceFile: File, node: Node) =
         Pair(
             (node as? NodeWithJavadoc<*>)?.javadoc?.orElse(null)?.let { findVersionFromJavadoc(it) }
-                // This is needed to find the JavaDoc of a package declaration in 'package-info.java'
+            // This is needed to find the JavaDoc of a package declaration in 'package-info.java'
                 ?: (node as? PackageDeclaration)?.parentNode?.get()?.childNodes?.filterIsInstance<JavadocComment>()?.singleOrNull()?.parse()?.let { findVersionFromJavadoc(it) }
                 ?: VERSION_NOT_FOUND,
             nodeName(node, this, sourceFile)

@@ -27,20 +27,19 @@ import org.gradle.platform.internal.DefaultBuildPlatform;
 @Incubating
 public class BuildPlatformFactory {
 
+    private BuildPlatformFactory() {
+        // Factory class, do not instantiate
+    }
+
     /**
      * Creates a new {@link BuildPlatform} instance with the given architecture and operating system.
      *
      * @param architecture the architecture of the platform
      * @param os the operating system of the platform
      * @return the new {@link BuildPlatform} instance
-     *
      * @since 8.13
      */
     public static BuildPlatform of(Architecture architecture, OperatingSystem os) {
         return new DefaultBuildPlatform(architecture, os);
-    }
-
-    private BuildPlatformFactory() {
-        // Factory class, do not instantiate
     }
 }

@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.fixtures.app;
 
 public interface XCTestCaseElement {
     String getContent();
+
     String getName();
+
     boolean isExpectFailure();
 }

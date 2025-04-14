@@ -49,7 +49,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformRegistrationFactory registrationFactory;
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
+    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class) TransformAction.class, TransformParameters.class, TransformParameters.None.class);
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultVariantTransformRegistry(
@@ -131,14 +131,14 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         private final AttributeContainerInternal to;
         private final T parameterObject;
 
-        @Inject
-        protected abstract DocumentationRegistry getDocumentationRegistry();
-
         public TypedRegistration(@Nullable T parameterObject, AttributesFactory attributesFactory) {
             this.parameterObject = parameterObject;
             this.from = attributesFactory.mutable();
             this.to = attributesFactory.mutable();
         }
+
+        @Inject
+        protected abstract DocumentationRegistry getDocumentationRegistry();
 
         @Override
         public AttributeContainer getFrom() {

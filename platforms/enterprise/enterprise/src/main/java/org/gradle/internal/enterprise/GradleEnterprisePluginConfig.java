@@ -25,12 +25,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildTree.class)
 public interface GradleEnterprisePluginConfig {
 
-    enum BuildScanRequest {
-        NONE, // no explicit request
-        REQUESTED, // --scan is present, but not --no-scan
-        SUPPRESSED // --no-scan is present
-    }
-
     BuildScanRequest getBuildScanRequest();
 
     boolean isTaskExecutingBuild();
@@ -41,5 +35,11 @@ public interface GradleEnterprisePluginConfig {
      * @since 8.0
      */
     boolean isAutoApplied();
+
+    enum BuildScanRequest {
+        NONE, // no explicit request
+        REQUESTED, // --scan is present, but not --no-scan
+        SUPPRESSED // --no-scan is present
+    }
 
 }

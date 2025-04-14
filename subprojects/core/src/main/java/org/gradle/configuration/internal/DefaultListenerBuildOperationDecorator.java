@@ -64,6 +64,15 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
+    private static boolean isSupported(Object listener) {
+        for (Class<?> i : SUPPORTED_INTERFACES) {
+            if (i.isInstance(listener)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public <T> Action<T> decorate(String registrationPoint, Action<T> action) {
         UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
@@ -104,15 +113,6 @@ public class DefaultListenerBuildOperationDecorator implements ListenerBuildOper
     @Override
     public Object decorateUnknownListener(String registrationPoint, Object listener) {
         return decorate(registrationPoint, Object.class, listener);
-    }
-
-    private static boolean isSupported(Object listener) {
-        for (Class<?> i : SUPPORTED_INTERFACES) {
-            if (i.isInstance(listener)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static abstract class Operation implements RunnableBuildOperation {

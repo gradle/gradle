@@ -51,23 +51,23 @@ public class DefaultConfigurableUserClassFilePermissions extends AbstractUserCla
     }
 
     @Override
-    public boolean getWrite() {
-        return write;
-    }
-
-    @Override
-    public boolean getExecute() {
-        return execute;
-    }
-
-    @Override
     public void setRead(boolean read) {
         this.read = read;
     }
 
     @Override
+    public boolean getWrite() {
+        return write;
+    }
+
+    @Override
     public void setWrite(boolean write) {
         this.write = write;
+    }
+
+    @Override
+    public boolean getExecute() {
+        return execute;
     }
 
     @Override

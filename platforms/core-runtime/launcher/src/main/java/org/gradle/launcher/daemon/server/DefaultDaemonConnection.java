@@ -168,13 +168,13 @@ public class DefaultDaemonConnection implements DaemonConnection {
     }
 
     private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
+        protected final LinkedList<C> queue = new LinkedList<C>();
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
-        protected final LinkedList<C> queue = new LinkedList<C>();
         private final String name;
+        private final ExecutorFactory executorFactory;
         private ManagedExecutor executor;
         private boolean removed;
-        private final ExecutorFactory executorFactory;
 
         private CommandQueue(ExecutorFactory executorFactory, String name) {
             this.executorFactory = executorFactory;

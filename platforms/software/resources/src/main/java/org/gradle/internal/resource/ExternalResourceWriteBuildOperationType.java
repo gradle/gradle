@@ -26,6 +26,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class ExternalResourceWriteBuildOperationType implements BuildOperationType<ExternalResourceWriteBuildOperationType.Details, ExternalResourceWriteBuildOperationType.Result> {
 
+    private ExternalResourceWriteBuildOperationType() {
+    }
+
     @UsedByScanPlugin
     public interface Details {
 
@@ -45,9 +48,6 @@ public final class ExternalResourceWriteBuildOperationType implements BuildOpera
          */
         long getBytesWritten();
 
-    }
-
-    private ExternalResourceWriteBuildOperationType() {
     }
 
 }

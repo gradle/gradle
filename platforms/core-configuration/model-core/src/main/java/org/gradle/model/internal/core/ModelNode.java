@@ -30,33 +30,6 @@ public interface ModelNode {
 
     boolean hasLink(String name, ModelType<?> type);
 
-    // Note: order is crucial here. Nodes are traversed through these states in the order defined below
-    enum State {
-        Registered(true), // Initial state. Only path and some projections are known here
-        Discovered(true), // All projections are defined
-        Created(true), // Private data has been created, initial rules discovered
-        DefaultsApplied(true), // Default values have been applied
-        Initialized(true),
-        Mutated(true),
-        Finalized(false),
-        SelfClosed(false),
-        GraphClosed(false);
-
-        public final boolean mutable;
-
-        State(boolean mutable) {
-            this.mutable = mutable;
-        }
-
-        public State previous() {
-            return ModelNode.State.values()[ordinal() - 1];
-        }
-
-        public boolean isAtLeast(State state) {
-            return this.ordinal() >= state.ordinal();
-        }
-    }
-
     ModelPath getPath();
 
     ModelRuleDescriptor getDescriptor();
@@ -110,4 +83,31 @@ public interface ModelNode {
      * Gets the rules that have been executed on this node in the order in which they were executed.
      */
     List<ModelRuleDescriptor> getExecutedRules();
+
+    // Note: order is crucial here. Nodes are traversed through these states in the order defined below
+    enum State {
+        Registered(true), // Initial state. Only path and some projections are known here
+        Discovered(true), // All projections are defined
+        Created(true), // Private data has been created, initial rules discovered
+        DefaultsApplied(true), // Default values have been applied
+        Initialized(true),
+        Mutated(true),
+        Finalized(false),
+        SelfClosed(false),
+        GraphClosed(false);
+
+        public final boolean mutable;
+
+        State(boolean mutable) {
+            this.mutable = mutable;
+        }
+
+        public State previous() {
+            return ModelNode.State.values()[ordinal() - 1];
+        }
+
+        public boolean isAtLeast(State state) {
+            return this.ordinal() >= state.ordinal();
+        }
+    }
 }

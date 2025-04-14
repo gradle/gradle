@@ -14,6 +14,7 @@ import org.gradle.plugins.ide.idea.model.Project
 
 // tag::project-with-xml[]
 import org.w3c.dom.Element
+
 // end::project-with-xml[]
 
 // tag::use-plugin[]

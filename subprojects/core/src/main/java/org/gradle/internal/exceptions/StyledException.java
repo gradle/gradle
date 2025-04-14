@@ -53,6 +53,11 @@ public class StyledException extends GradleException {
         styledMessage = message;
     }
 
+    public StyledException(String message, @Nullable Throwable cause) {
+        super(unstyled(message), cause);
+        styledMessage = message;
+    }
+
     private static String unstyled(String message) {
         Matcher matcher = STYLES_REGEX.matcher(message);
         StringBuffer buf = new StringBuffer();
@@ -63,16 +68,20 @@ public class StyledException extends GradleException {
         return buf.toString();
     }
 
-    public StyledException(String message, @Nullable Throwable cause) {
-        super(unstyled(message), cause);
-        styledMessage = message;
-    }
-
     public static String style(StyledTextOutput.Style style, String text) {
         if (text == null) {
             return null;
         }
         return "<" + style + ">" + text + "</" + style + ">";
+    }
+
+    private static StyledTextOutput.Style toStyle(String styleText) {
+        try {
+            return StyledTextOutput.Style.valueOf(StringUtils.capitalize(styleText));
+        } catch (IllegalArgumentException e) {
+            LOGGER.debug("Style '{}' doesn't exist", styleText);
+            return StyledTextOutput.Style.Normal;
+        }
     }
 
     public void render(StyledTextOutput output) {
@@ -90,15 +99,6 @@ public class StyledException extends GradleException {
         buf.setLength(0);
         matcher.appendTail(buf);
         output.text(buf.toString());
-    }
-
-    private static StyledTextOutput.Style toStyle(String styleText) {
-        try {
-            return StyledTextOutput.Style.valueOf(StringUtils.capitalize(styleText));
-        } catch (IllegalArgumentException e) {
-            LOGGER.debug("Style '{}' doesn't exist", styleText);
-            return StyledTextOutput.Style.Normal;
-        }
     }
 
 }

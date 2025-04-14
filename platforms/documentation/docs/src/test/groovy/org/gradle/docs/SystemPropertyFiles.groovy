@@ -20,9 +20,9 @@ class SystemPropertyFiles {
 
     static File get(String property) {
         def value = System.getProperty(property)
-        assert value != null : "System property '$property' is not set"
+        assert value != null: "System property '$property' is not set"
         def file = new File(value)
-        assert file.file : "File '$file' (from system property '$property') does not exist"
+        assert file.file: "File '$file' (from system property '$property') does not exist"
         file
     }
 

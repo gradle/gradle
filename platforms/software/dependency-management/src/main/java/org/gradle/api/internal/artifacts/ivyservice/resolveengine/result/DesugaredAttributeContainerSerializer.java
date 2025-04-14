@@ -36,11 +36,11 @@ import java.io.IOException;
  */
 @ServiceScope(Scope.BuildSession.class)
 public class DesugaredAttributeContainerSerializer extends AbstractSerializer<AttributeContainer> implements AttributeContainerSerializer {
-    private final AttributesFactory attributesFactory;
-    private final NamedObjectInstantiator instantiator;
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
     private static final byte INTEGER_ATTRIBUTE = 3;
+    private final AttributesFactory attributesFactory;
+    private final NamedObjectInstantiator instantiator;
 
     public DesugaredAttributeContainerSerializer(AttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;

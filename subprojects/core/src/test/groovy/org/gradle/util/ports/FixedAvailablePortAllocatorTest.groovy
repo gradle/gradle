@@ -18,7 +18,7 @@ package org.gradle.util.ports
 
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
-    def "assigns a unique fixed port range based on worker id (totalWorkers: #totalWorkers, totalAgents: #totalAgents)" () {
+    def "assigns a unique fixed port range based on worker id (totalWorkers: #totalWorkers, totalAgents: #totalAgents)"() {
         int rangeSize = FixedAvailablePortAllocator.DEFAULT_RANGE_SIZE - 1
         def portAllocators = (1..totalAgents).collect { agentNum ->
             (1..totalWorkers).collect { workerId ->
@@ -54,7 +54,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         8            | 4
     }
 
-    def "port range allocation wraps around when workerId exceeds buckets per agent (overMax: #overMax, agentNum: #agentNum, totalAgents: #totalAgents)" () {
+    def "port range allocation wraps around when workerId exceeds buckets per agent (overMax: #overMax, agentNum: #agentNum, totalAgents: #totalAgents)"() {
         int bucketsPerAgent = (PortAllocator.MAX_PRIVATE_PORT - PortAllocator.MIN_PRIVATE_PORT) / (FixedAvailablePortAllocator.DEFAULT_RANGE_SIZE * totalAgents)
         int workerId = bucketsPerAgent + overMax
         FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(workerId, agentNum, totalAgents)
@@ -69,17 +69,17 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         portAllocator.reservations[0].endPort == samePortAllocator.reservations[0].endPort
 
         where:
-        overMax  | agentNum | totalAgents
-        5        | 1        | 1
-        6        | 1        | 1
-        5        | 1        | 2
-        11       | 2        | 2
-        12       | 1        | 2
-        9        | 1        | 4
-        13       | 3        | 4
+        overMax | agentNum | totalAgents
+        5       | 1        | 1
+        6       | 1        | 1
+        5       | 1        | 2
+        11      | 2        | 2
+        12      | 1        | 2
+        9       | 1        | 4
+        13      | 3        | 4
     }
 
-    def "uses first bucket when workerId is not available" () {
+    def "uses first bucket when workerId is not available"() {
         FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(-1, 1, 1)
 
         when:
@@ -91,7 +91,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         portAllocator.reservations.get(0).endPort == PortAllocator.MIN_PRIVATE_PORT + FixedAvailablePortAllocator.DEFAULT_RANGE_SIZE - 1
     }
 
-    def "throws an exception when all ports in range are exhausted" () {
+    def "throws an exception when all ports in range are exhausted"() {
         ReservedPortRangeFactory portRangeFactory = Mock(ReservedPortRangeFactory)
         FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(1, 1, 1)
         portAllocator.portRangeFactory = portRangeFactory
@@ -102,7 +102,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         }
 
         then:
-        1 * portRangeFactory.getReservedPortRange(_, _) >> {int startPort, int endPort -> getPortRange(portsAlwaysAvailable, startPort, endPort)}
+        1 * portRangeFactory.getReservedPortRange(_, _) >> { int startPort, int endPort -> getPortRange(portsAlwaysAvailable, startPort, endPort) }
 
         when:
         portAllocator.assignPort()

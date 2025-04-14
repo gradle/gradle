@@ -50,20 +50,15 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
 
     private static final String USER_PROVIDED = "User-provided";
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractWindowsKitComponentLocator.class);
-    private final SetMultimap<File, T> foundComponents = HashMultimap.create();
-    private final Set<File> brokenComponents = new LinkedHashSet<File>();
-    private final WindowsRegistry windowsRegistry;
-    private boolean initialised;
-
-    protected enum DiscoveryType {REGISTRY, USER}
-
     private static final String[] REGISTRY_BASEPATHS = {
         "SOFTWARE\\",
         "SOFTWARE\\Wow6432Node\\"
     };
     private static final String REGISTRY_ROOTPATH_KIT = "Microsoft\\Windows Kits\\Installed Roots";
     private static final String REGISTRY_KIT_10 = "KitsRoot10";
-
+    private final SetMultimap<File, T> foundComponents = HashMultimap.create();
+    private final Set<File> brokenComponents = new LinkedHashSet<File>();
+    private final WindowsRegistry windowsRegistry;
     private final Pattern windowsKitVersionPattern = Pattern.compile("[0-9]+(\\.[0-9]+)*");
     private final FileFilter windowsKitVersionFilter = new FileFilter() {
         @Override
@@ -72,7 +67,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
             return pathname.isDirectory() && matcher.matches();
         }
     };
-
+    private boolean initialised;
     AbstractWindowsKitComponentLocator(WindowsRegistry windowsRegistry) {
         this.windowsRegistry = windowsRegistry;
     }
@@ -234,6 +229,8 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
     abstract boolean isValidComponentLibDir(File libDir);
 
     abstract T newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType);
+
+    protected enum DiscoveryType {REGISTRY, USER}
 
     private class DescendingComponentVersionComparator implements Comparator<T> {
         @Override

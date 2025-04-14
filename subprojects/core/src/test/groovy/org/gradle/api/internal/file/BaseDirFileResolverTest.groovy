@@ -41,27 +41,33 @@ class BaseDirFileResolverTest {
     File testDir
 
     BaseDirFileResolver baseDirConverter
-    @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
+    @Rule
+    public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    public PreconditionVerifier preconditions = new PreconditionVerifier()
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         baseDir = rootDir.testDirectory
         baseDirConverter = new BaseDirFileResolver(baseDir)
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }
 
-    @Test(expected = IllegalArgumentException) public void testWithNullPath() {
+    @Test(expected = IllegalArgumentException)
+    public void testWithNullPath() {
         baseDirConverter.resolve(null)
     }
 
-    @Test public void testWithNoPathValidation() {
+    @Test
+    public void testWithNoPathValidation() {
         // No exceptions means test has passed
         baseDirConverter.resolve(TEST_PATH)
         baseDirConverter.resolve(TEST_PATH, PathValidation.NONE)
     }
 
-    @Test public void testPathValidationWithNonexistentFile() {
+    @Test
+    public void testPathValidationWithNonexistentFile() {
         try {
             baseDirConverter.resolve(testFile.name, PathValidation.FILE)
             fail()
@@ -70,7 +76,8 @@ class BaseDirFileResolverTest {
         }
     }
 
-    @Test public void testPathValidationForFileWithDirectory() {
+    @Test
+    public void testPathValidationForFileWithDirectory() {
         testDir.mkdir()
         try {
             baseDirConverter.resolve(testDir.name, PathValidation.FILE)
@@ -80,12 +87,14 @@ class BaseDirFileResolverTest {
         }
     }
 
-    @Test public void testWithValidFile() {
+    @Test
+    public void testWithValidFile() {
         testFile.createNewFile()
         baseDirConverter.resolve(testFile.name, PathValidation.FILE)
     }
 
-    @Test public void testPathValidationWithNonexistentDirectory() {
+    @Test
+    public void testPathValidationWithNonexistentDirectory() {
         try {
             baseDirConverter.resolve(testDir.name, PathValidation.DIRECTORY)
             fail()
@@ -94,12 +103,14 @@ class BaseDirFileResolverTest {
         }
     }
 
-    @Test public void testPathValidationWithValidDirectory() {
+    @Test
+    public void testPathValidationWithValidDirectory() {
         testDir.mkdir()
         baseDirConverter.resolve(testDir.name, PathValidation.DIRECTORY)
     }
 
-    @Test public void testPathValidationForDirectoryWithFile() {
+    @Test
+    public void testPathValidationForDirectoryWithFile() {
         testFile.createNewFile()
         try {
             baseDirConverter.resolve(testFile.name, PathValidation.DIRECTORY)
@@ -109,14 +120,16 @@ class BaseDirFileResolverTest {
         }
     }
 
-    @Test public void testPathValidationForExistingDirAndFile() {
+    @Test
+    public void testPathValidationForExistingDirAndFile() {
         testDir.mkdir()
         testFile.createNewFile()
         baseDirConverter.resolve(testDir.name, PathValidation.EXISTS)
         baseDirConverter.resolve(testFile.name, PathValidation.EXISTS)
     }
 
-    @Test public void testExistsPathValidationWithNonexistentDir() {
+    @Test
+    public void testExistsPathValidationWithNonexistentDir() {
         try {
             baseDirConverter.resolve(testDir.name, PathValidation.EXISTS)
             fail()
@@ -125,7 +138,8 @@ class BaseDirFileResolverTest {
         }
     }
 
-    @Test public void testExistsPathValidationWithNonexistentFile() {
+    @Test
+    public void testExistsPathValidationWithNonexistentFile() {
         try {
             baseDirConverter.resolve(testFile.name, PathValidation.EXISTS)
             fail()
@@ -134,63 +148,74 @@ class BaseDirFileResolverTest {
         }
     }
 
-    @Test public void testResolveAbsolutePath() {
+    @Test
+    public void testResolveAbsolutePath() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.path))
     }
 
-    @Test public void testResolveRelativePath() {
+    @Test
+    public void testResolveRelativePath() {
         String relativeFileName = "relative"
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.resolve(relativeFileName))
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.resolve(new StringBuffer(relativeFileName)))
         assertEquals(baseDir, baseDirConverter.resolve("."))
     }
 
-    @Test public void testResolveFileWithAbsolutePath() {
+    @Test
+    public void testResolveFileWithAbsolutePath() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile))
     }
 
-    @Test public void testResolveFileWithRelativePath() {
+    @Test
+    public void testResolveFileWithRelativePath() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
     }
 
-    @Test public void testResolveRelativeFileURI() {
+    @Test
+    public void testResolveRelativeFileURI() {
         // Relative URIs were never supported when passed as a URI. They were only supported when passed as a String.
         assertInvalidURI(URI.create('file:relative'))
         assertInvalidURI(URI.create('file:../relative'))
     }
 
-    @Test public void testResolveRelativeFileURIString() {
+    @Test
+    public void testResolveRelativeFileURIString() {
         // since 9.0 we don't support relative URIs
         assertInvalidURI('file:relative')
         assertInvalidURI('file:../relative')
     }
 
-    @Test public void testResolveAbsoluteFileURIString() {
+    @Test
+    public void testResolveAbsoluteFileURIString() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toString()))
     }
 
-    @Test public void testResolveAbsoluteFileURI() {
+    @Test
+    public void testResolveAbsoluteFileURI() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
     }
 
-    @Test public void testResolveAbsoluteFileURL() {
+    @Test
+    public void testResolveAbsoluteFileURL() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
-    @Test public void testResolveFilePathWithURIEncodedAndReservedCharacters() {
+    @Test
+    public void testResolveFilePathWithURIEncodedAndReservedCharacters() {
         File absoluteFile = new File('white%20space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.absolutePath))
         absoluteFile = new File('white space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.absolutePath))
     }
 
-    @Test public void testResolveURIStringWithEncodedAndReservedCharacters() {
+    @Test
+    public void testResolveURIStringWithEncodedAndReservedCharacters() {
         // since Gradle 9.0 we don't support encoded URIs in strings
         assertInvalidURI('file:white%20space')
         assertInvalidURI('file:not%encoded')
@@ -198,18 +223,22 @@ class BaseDirFileResolverTest {
         assertInvalidURI('file:white space')
     }
 
-    @Test public void testResolveURIWithReservedCharacters() {
+    @Test
+    public void testResolveURIWithReservedCharacters() {
         File absoluteFile = new File('white space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
     }
 
-    @Test public void testResolveURLWithReservedCharacters() {
+    @Test
+    public void testResolveURLWithReservedCharacters() {
         File absoluteFile = new File('white space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
-    @Requires(UnitTestPreconditions.NotWindows) // NTFS does not support colons in file names
-    @Test public void testCanResolveNonFileURI() {
+    @Requires(UnitTestPreconditions.NotWindows)
+    // NTFS does not support colons in file names
+    @Test
+    public void testCanResolveNonFileURI() {
         // this can be a valid path
         // % mkdir https:
         // % echo "some text" > 'https://www.gradle.org'
@@ -220,62 +249,75 @@ class BaseDirFileResolverTest {
         assertEquals(absoluteFile, baseDirConverter.resolve(path))
     }
 
-    @Test public void testResolveClosure() {
-        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'}))
+    @Test
+    public void testResolveClosure() {
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({ 'relative' }))
     }
 
-    @Test public void testResolveCallable() {
-        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'} as Callable))
+    @Test
+    public void testResolveCallable() {
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({ 'relative' } as Callable))
     }
 
-    @Test public void testResolveNestedClosuresAndCallables() {
-        Callable callable = {'relative'} as Callable
-        Closure closure = {callable}
+    @Test
+    public void testResolveNestedClosuresAndCallables() {
+        Callable callable = { 'relative' } as Callable
+        Closure closure = { callable }
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(closure))
     }
 
-    @Test public void testResolveAbsolutePathToUri() {
+    @Test
+    public void testResolveAbsolutePathToUri() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile.toURI(), baseDirConverter.resolveUri(absoluteFile.path))
     }
 
-    @Test public void testResolveRelativePathToUri() {
+    @Test
+    public void testResolveRelativePathToUri() {
         assertEquals(new File(baseDir, 'relative').toURI(), baseDirConverter.resolveUri('relative'))
     }
 
-    @Test public void testResolveFileWithAbsolutePathToUri() {
+    @Test
+    public void testResolveFileWithAbsolutePathToUri() {
         File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile.toURI(), baseDirConverter.resolveUri(absoluteFile))
     }
 
-    @Test public void testResolveFileWithRelativePathToUri() {
+    @Test
+    public void testResolveFileWithRelativePathToUri() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative').toURI(), baseDirConverter.resolveUri(relativeFile))
     }
 
-    @Test public void testResolveUriStringToUri() {
+    @Test
+    public void testResolveUriStringToUri() {
         assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri("http://www.gradle.org"))
     }
 
-    @Test public void testResolveUriObjectToUri() {
+    @Test
+    public void testResolveUriObjectToUri() {
         URI uri = new URI("http://www.gradle.org")
         assertEquals(uri, baseDirConverter.resolveUri(uri))
     }
 
-    @Test public void testResolveUrlObjectToUri() {
+    @Test
+    public void testResolveUrlObjectToUri() {
         assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri(new URL("http://www.gradle.org")))
     }
 
-    @Test public void testResolveAbsolutePathWithReservedCharsToUri() {
+    @Test
+    public void testResolveAbsolutePathWithReservedCharsToUri() {
         assertEquals(new File(baseDir, 'with white%20space').toURI(), baseDirConverter.resolveUri('with white%20space'))
         assertEquals('with white%20space', baseDirConverter.resolve(baseDirConverter.resolveUri('with white%20space')).name)
     }
 
-    @Test public void testResolveUriStringWithEncodedCharsToUri() {
+    @Test
+    public void testResolveUriStringWithEncodedCharsToUri() {
         assertEquals(new URI("http://www.gradle.org/white%20space"), baseDirConverter.resolveUri("http://www.gradle.org/white%20space"))
     }
 
-    @Test public void testResolveRelativePathToRelativePath() {
+    @Test
+    public void testResolveRelativePathToRelativePath() {
         assertEquals("relative", baseDirConverter.resolveAsRelativePath("relative"))
         assertEquals("relative", baseDirConverter.resolveForDisplay("relative"))
 
@@ -283,7 +325,8 @@ class BaseDirFileResolverTest {
         assertEquals("relative${File.separator}child".toString(), baseDirConverter.resolveForDisplay("relative/child"))
     }
 
-    @Test public void testResolveAbsoluteChildPathToRelativePath() {
+    @Test
+    public void testResolveAbsoluteChildPathToRelativePath() {
         def absoluteFile = new File(baseDir, 'child').absoluteFile
         assertEquals('child', baseDirConverter.resolveAsRelativePath(absoluteFile))
         assertEquals('child', baseDirConverter.resolveAsRelativePath(absoluteFile.absolutePath))
@@ -297,7 +340,8 @@ class BaseDirFileResolverTest {
         assertEquals("child${File.separator}nested".toString(), baseDirConverter.resolveForDisplay(absoluteNestedFile))
     }
 
-    @Test public void testResolveAbsoluteSiblingPathToRelativePath() {
+    @Test
+    public void testResolveAbsoluteSiblingPathToRelativePath() {
         def absoluteFile = new File(baseDir, '../sibling').absoluteFile
         assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveAsRelativePath(absoluteFile))
         assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveAsRelativePath(absoluteFile.absolutePath))
@@ -311,7 +355,8 @@ class BaseDirFileResolverTest {
         assertEquals("..${File.separator}sibling${File.separator}nested".toString(), baseDirConverter.resolveForDisplay(absoluteNestedFile))
     }
 
-    @Test public void testResolveBaseDirToRelativePath() {
+    @Test
+    public void testResolveBaseDirToRelativePath() {
         assertEquals('.', baseDirConverter.resolveAsRelativePath(baseDir))
         assertEquals('.', baseDirConverter.resolveAsRelativePath(baseDir.absolutePath))
         assertEquals('.', baseDirConverter.resolveAsRelativePath('.'))
@@ -320,14 +365,16 @@ class BaseDirFileResolverTest {
         assertEquals('.', baseDirConverter.resolveForDisplay(baseDir))
     }
 
-    @Test public void testResolveParentDirToRelativePath() {
+    @Test
+    public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
         assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
 
         assertEquals('..', baseDirConverter.resolveForDisplay(baseDir.parentFile))
     }
 
-    @Test public void testAncestorToRelativePath() {
+    @Test
+    public void testAncestorToRelativePath() {
         def ancestor = baseDir.parentFile.parentFile
         assertEquals("..${File.separator}..".toString(), baseDirConverter.resolveAsRelativePath(ancestor))
         assertEquals(ancestor.path, baseDirConverter.resolveForDisplay(ancestor))
@@ -337,7 +384,8 @@ class BaseDirFileResolverTest {
         assertEquals(nested.path, baseDirConverter.resolveForDisplay(nested))
     }
 
-    @Test public void testCreateFileResolver() {
+    @Test
+    public void testCreateFileResolver() {
         File newBaseDir = new File(baseDir, 'subdir')
         assertEquals(new File(newBaseDir, 'file'), baseDirConverter.withBaseDir('subdir').resolve('file'))
     }

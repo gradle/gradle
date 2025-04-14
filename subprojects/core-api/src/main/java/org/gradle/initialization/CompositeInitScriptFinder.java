@@ -23,7 +23,7 @@ import java.util.List;
 public class CompositeInitScriptFinder implements InitScriptFinder {
     private final List<InitScriptFinder> finders;
 
-    public CompositeInitScriptFinder(InitScriptFinder...finders) {
+    public CompositeInitScriptFinder(InitScriptFinder... finders) {
         this.finders = Arrays.asList(finders);
     }
 

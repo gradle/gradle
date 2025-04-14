@@ -25,7 +25,7 @@ class UsageDescriberSpec extends Specification {
 
         expect:
         UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files\n" +
-                "\tDeclarable - this configuration can have dependencies added to it (but this behavior is marked deprecated)"
+            "\tDeclarable - this configuration can have dependencies added to it (but this behavior is marked deprecated)"
     }
 
     def "can describe usage for role which allows nothing"() {

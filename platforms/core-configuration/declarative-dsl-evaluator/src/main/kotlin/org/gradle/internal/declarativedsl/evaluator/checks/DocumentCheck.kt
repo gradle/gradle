@@ -82,5 +82,5 @@ sealed interface DocumentCheckFailureReason {
     data object DuplicatePluginsBlock : DocumentCheckFailureReason
     data object DuplicatePluginManagementBlock : DocumentCheckFailureReason
     data object AccessOnCurrentReceiverViolation : DocumentCheckFailureReason
-    data class UnsupportedSyntaxInDocument(val cause : UnsupportedSyntaxCause) : DocumentCheckFailureReason
+    data class UnsupportedSyntaxInDocument(val cause: UnsupportedSyntaxCause) : DocumentCheckFailureReason
 }

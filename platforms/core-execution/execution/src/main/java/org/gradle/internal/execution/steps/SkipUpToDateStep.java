@@ -41,6 +41,17 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         this.delegate = delegate;
     }
 
+    private static void logExecutionReasons(List<String> reasons, UnitOfWork work) {
+        if (LOGGER.isInfoEnabled()) {
+            Formatter formatter = new Formatter();
+            formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));
+            for (String message : reasons) {
+                formatter.format("%n  %s", message);
+            }
+            LOGGER.info(formatter.toString());
+        }
+    }
+
     @Override
     public UpToDateResult execute(UnitOfWork work, C context) {
         if (LOGGER.isDebugEnabled()) {
@@ -74,16 +85,5 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         logExecutionReasons(reasons, work);
         AfterExecutionResult result = delegate.execute(work, context);
         return new UpToDateResult(result, reasons);
-    }
-
-    private static void logExecutionReasons(List<String> reasons, UnitOfWork work) {
-        if (LOGGER.isInfoEnabled()) {
-            Formatter formatter = new Formatter();
-            formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));
-            for (String message : reasons) {
-                formatter.format("%n  %s", message);
-            }
-            LOGGER.info(formatter.toString());
-        }
     }
 }

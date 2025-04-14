@@ -40,7 +40,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
     DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, scriptPluginFactory, scriptHandlerFactory, parentCompileScope, textResourceLoaderFactory, target)
 
     def setup() {
-       textResourceLoaderFactory.create(_) >> Mock(TextUriResourceLoader)
+        textResourceLoaderFactory.create(_) >> Mock(TextUriResourceLoader)
     }
 
     void doesNothingWhenNothingSpecified() {

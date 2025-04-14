@@ -29,7 +29,7 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
-    private WarningMode warningMode =  WarningMode.Summary;
+    private WarningMode warningMode = WarningMode.Summary;
 
     @Override
     public boolean equals(Object obj) {

@@ -61,7 +61,7 @@ configure(project(':a')){
         EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
-        rootProject.projectDependencies.find {it.path == "a"}.exported ==false
+        rootProject.projectDependencies.find { it.path == "a" }.exported == false
         rootProject.classpath.find { it.file.name.contains("guava") }.exported == false
         rootProject.classpath.find { it.file.name.contains("slf4j-log4j") }.exported == false
     }
@@ -112,9 +112,9 @@ configure(project(':c')) {
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        EclipseProject aProject = rootProject.children.find { it.name == 'a'}
-        EclipseProject bProject = rootProject.children.find { it.name == 'b'}
-        EclipseProject cProject = rootProject.children.find { it.name == 'c'}
+        EclipseProject aProject = rootProject.children.find { it.name == 'a' }
+        EclipseProject bProject = rootProject.children.find { it.name == 'b' }
+        EclipseProject cProject = rootProject.children.find { it.name == 'c' }
         then:
         aProject.classpath.find { it.file.name == "someArtifact-17.0.jar" }
         bProject.classpath.find { it.file.name == "someArtifact-16.0.1.jar" }

@@ -25,14 +25,8 @@ import java.util.Collection;
 
 public final class FlatDirRepositoryDescriptor extends RepositoryDescriptor {
 
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    private enum Property {
-        DIRS,
-    }
-
     private final ImmutableList<File> dirs;
     private final IvyRepositoryDescriptor backingDescriptor;
-
     public FlatDirRepositoryDescriptor(String name, Collection<File> dirs, IvyRepositoryDescriptor backingDescriptor) {
         super(backingDescriptor.getId(), name);
         this.dirs = ImmutableList.copyOf(dirs);
@@ -55,5 +49,10 @@ public final class FlatDirRepositoryDescriptor extends RepositoryDescriptor {
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         builder.put(Property.DIRS.name(), dirs);
+    }
+
+    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    private enum Property {
+        DIRS,
     }
 }

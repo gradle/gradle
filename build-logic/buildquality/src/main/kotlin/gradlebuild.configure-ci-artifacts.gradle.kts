@@ -37,6 +37,7 @@ fun Task.customReports(): List<File> = when (this) {
         gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon").get().asFile,
         gradleInstallationForTest.daemonRegistry.get().asFile
     )
+
     else -> emptyList()
 }
 

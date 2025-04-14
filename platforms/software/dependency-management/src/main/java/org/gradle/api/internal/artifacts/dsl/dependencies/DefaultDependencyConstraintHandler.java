@@ -112,10 +112,12 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final PlatformSupport platformSupport;
     private final Category enforcedPlatform;
 
-    public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyConstraintFactoryInternal dependencyConstraintFactory,
-                                              ObjectFactory objects,
-                                              PlatformSupport platformSupport) {
+    public DefaultDependencyConstraintHandler(
+        ConfigurationContainer configurationContainer,
+        DependencyConstraintFactoryInternal dependencyConstraintFactory,
+        ObjectFactory objects,
+        PlatformSupport platformSupport
+    ) {
         this.configurationContainer = configurationContainer;
         this.dependencyConstraintFactory = dependencyConstraintFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
@@ -188,7 +190,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     }
 
     private DependencyConstraint doAdd(Configuration configuration, Object dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
-        if(dependencyNotation instanceof ProviderConvertible<?>) {
+        if (dependencyNotation instanceof ProviderConvertible<?>) {
             return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureAction);
         }
         if (dependencyNotation instanceof Provider<?>) {
@@ -233,7 +235,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         @Override
         @SuppressWarnings("rawtypes")
         public DependencyConstraint add(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
-            if(dependencyNotation instanceof ProviderConvertible<?>) {
+            if (dependencyNotation instanceof ProviderConvertible<?>) {
                 return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), ConfigureUtil.configureUsing(configureClosure));
             }
             if (dependencyNotation instanceof Provider<?>) {

@@ -113,6 +113,7 @@ public class MapPropertyMapView<K, V> extends AbstractMap<K, V> {
             Iterator<Entry<K, V>> it = new LinkedHashMap<>(MapPropertyMapView.this.delegate.get()).entrySet().iterator();
             return new Iterator<Entry<K, V>>() {
                 Entry<K, V> previousValue = null;
+
                 @Override
                 public boolean hasNext() {
                     return it.hasNext();

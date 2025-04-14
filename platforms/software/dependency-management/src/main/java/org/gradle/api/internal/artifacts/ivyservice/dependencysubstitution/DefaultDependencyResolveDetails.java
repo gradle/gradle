@@ -74,7 +74,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         useSelector = null;
         useVersion = new DefaultMutableVersionConstraint(version);
         dirty = true;
-   }
+    }
 
     @Override
     public void useTarget(Object notation) {

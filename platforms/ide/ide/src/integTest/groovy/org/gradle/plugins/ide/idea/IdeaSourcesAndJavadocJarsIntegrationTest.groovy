@@ -25,9 +25,9 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     }
 
     void ideFileContainsEntry(String jar, List<String> sources, List<String> javadocs) {
-        IdeaModuleFixture iml =  parseIml("root.iml")
+        IdeaModuleFixture iml = parseIml("root.iml")
         def libraryEntry = iml.dependencies.libraries.find { it.jarName == jar }
-        assert libraryEntry != null : "entry for jar ${jar} not found, found entries: ${iml.dependencies.libraries.collect({it.jarName})}"
+        assert libraryEntry != null: "entry for jar ${jar} not found, found entries: ${iml.dependencies.libraries.collect({ it.jarName })}"
         libraryEntry.assertHasSource(sources)
         libraryEntry.assertHasJavadoc(javadocs)
     }
@@ -39,14 +39,14 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     }
 
     IdeaModuleFixture.ImlModuleLibrary findApiLibrary(String apiJarPrefix) {
-        IdeaModuleFixture iml =  parseIml("root.iml")
+        IdeaModuleFixture iml = parseIml("root.iml")
         def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
-        assert libraryEntry != null : "gradle API jar not found"
+        assert libraryEntry != null: "gradle API jar not found"
         return libraryEntry
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {
-        IdeaModuleFixture iml =  parseIml("root.iml")
+        IdeaModuleFixture iml = parseIml("root.iml")
         iml.dependencies.libraries.size() == 1
         iml.dependencies.libraries[0].assertHasNoJavadoc()
         iml.dependencies.libraries[0].assertHasNoSource()

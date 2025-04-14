@@ -24,12 +24,12 @@ class ConfigurationRoleSpec extends Specification {
         assertDescriptionContains(role, usages)
 
         where:
-        role                                            || usages
-        ConfigurationRoles.ALL                          || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
-        ConfigurationRoles.CONSUMABLE                   || [UsageDescriber.CONSUMABLE]
-        ConfigurationRoles.RESOLVABLE                   || [UsageDescriber.RESOLVABLE]
-        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
-        ConfigurationRoles.DEPENDENCY_SCOPE             || [UsageDescriber.DECLARABLE_AGAINST]
+        role                                           || usages
+        ConfigurationRoles.ALL                         || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.CONSUMABLE                  || [UsageDescriber.CONSUMABLE]
+        ConfigurationRoles.RESOLVABLE                  || [UsageDescriber.RESOLVABLE]
+        ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.DEPENDENCY_SCOPE            || [UsageDescriber.DECLARABLE_AGAINST]
     }
 
     private void assertDescriptionContains(ConfigurationRole role, List<String> usages) {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>junit</groupId>
@@ -72,8 +73,8 @@
         <connection>scm:git:git://github.com/junit-team/junit.git</connection>
         <developerConnection>scm:git:git@github.com:junit-team/junit.git</developerConnection>
         <url>http://github.com/junit-team/junit/tree/master</url>
-      <tag>r4.12</tag>
-  </scm>
+        <tag>r4.12</tag>
+    </scm>
     <issueManagement>
         <system>github</system>
         <url>https://github.com/junit-team/junit/issues</url>
@@ -103,7 +104,7 @@
     <properties>
         <jdkVersion>1.5</jdkVersion>
         <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
-        <arguments />
+        <arguments/>
         <gpg.keyname>67893CC4</gpg.keyname>
     </properties>
 
@@ -457,7 +458,7 @@
         <profile>
             <id>generate-docs</id>
             <!--
-            Generate the documentation artifacts. 
+            Generate the documentation artifacts.
             Note: this profile is also required to be active for release
             builds due to the packaging requirements of the Central repo
             -->

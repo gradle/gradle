@@ -215,11 +215,6 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
-    public void setMustRunAfter(Iterable<?> mustRunAfterTasks) {
-        super.setMustRunAfter(mustRunAfterTasks);
-    }
-
-    @Override
     public Task mustRunAfter(Object... paths) {
         return super.mustRunAfter(paths);
     }
@@ -230,8 +225,8 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
-    public void setFinalizedBy(Iterable<?> finalizedByTasks) {
-        super.setFinalizedBy(finalizedByTasks);
+    public void setMustRunAfter(Iterable<?> mustRunAfterTasks) {
+        super.setMustRunAfter(mustRunAfterTasks);
     }
 
     @Override
@@ -245,18 +240,23 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     }
 
     @Override
+    public void setFinalizedBy(Iterable<?> finalizedByTasks) {
+        super.setFinalizedBy(finalizedByTasks);
+    }
+
+    @Override
     public TaskDependency shouldRunAfter(Object... paths) {
         return super.shouldRunAfter(paths);
     }
 
     @Override
-    public void setShouldRunAfter(Iterable<?> shouldRunAfterTasks) {
-        super.setShouldRunAfter(shouldRunAfterTasks);
+    public TaskDependency getShouldRunAfter() {
+        return super.getShouldRunAfter();
     }
 
     @Override
-    public TaskDependency getShouldRunAfter() {
-        return super.getShouldRunAfter();
+    public void setShouldRunAfter(Iterable<?> shouldRunAfterTasks) {
+        super.setShouldRunAfter(shouldRunAfterTasks);
     }
 
     @Override

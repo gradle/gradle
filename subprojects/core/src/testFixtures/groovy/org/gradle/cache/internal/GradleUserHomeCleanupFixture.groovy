@@ -179,7 +179,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     }
 
     static enum DistType {
-        RELEASED() {
+        RELEASED(){
             @Override
             String version(String baseVersion) {
                 return baseVersion
@@ -190,7 +190,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
                 throw new UnsupportedOperationException()
             }
         },
-        SNAPSHOT() {
+        SNAPSHOT(){
             def formatter = new SimpleDateFormat("yyyyMMddHHmmssZ")
             def now = Instant.now()
 
@@ -206,6 +206,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         }
 
         abstract String version(String baseVersion)
+
         abstract String alternateVersion(String baseVersion)
 
         @Override

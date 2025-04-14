@@ -292,7 +292,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         1 * repo3.content(_) >> { args ->
             args[0].execute(repo3Content)
         }
-        1 * repo3Content.excludeModule("com.mycompany","core")
+        1 * repo3Content.excludeModule("com.mycompany", "core")
         0 * _
     }
 
@@ -338,7 +338,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         1 * repo3.content(_) >> { args ->
             args[0].execute(repo3Content)
         }
-        1 * repo3Content.excludeModuleByRegex("com.mycompany","core")
+        1 * repo3Content.excludeModuleByRegex("com.mycompany", "core")
         0 * _
     }
 
@@ -384,7 +384,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         1 * repo3.content(_) >> { args ->
             args[0].execute(repo3Content)
         }
-        1 * repo3Content.excludeVersion("com.mycompany","core", "1.0")
+        1 * repo3Content.excludeVersion("com.mycompany", "core", "1.0")
         0 * _
     }
 
@@ -430,7 +430,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         1 * repo3.content(_) >> { args ->
             args[0].execute(repo3Content)
         }
-        1 * repo3Content.excludeVersionByRegex("com.mycompany","core", "1.0")
+        1 * repo3Content.excludeVersionByRegex("com.mycompany", "core", "1.0")
         0 * _
     }
 

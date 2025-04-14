@@ -27,7 +27,9 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
     }
 
     abstract setupProjectInDirectory(TestFile project)
+
     abstract String getCompilationTask()
+
     abstract String getCompiledFile()
 
     def 'compilation can be cached'() {

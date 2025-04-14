@@ -37,6 +37,23 @@ public class MethodDescription {
         this.name = name;
     }
 
+    public static MethodDescription name(String name) {
+        return new MethodDescription(name);
+    }
+
+    public static MethodDescription of(Method method) {
+        return name(method.getName())
+            .owner(method.getDeclaringClass())
+            .returns(method.getGenericReturnType())
+            .takes(method.getGenericParameterTypes());
+    }
+
+    public static MethodDescription of(Constructor<?> constructor) {
+        return name("<init>")
+            .owner(constructor.getDeclaringClass())
+            .takes(constructor.getGenericParameterTypes());
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -55,23 +72,6 @@ public class MethodDescription {
         }
 
         return sb.toString();
-    }
-
-    public static MethodDescription name(String name) {
-        return new MethodDescription(name);
-    }
-
-    public static MethodDescription of(Method method) {
-        return name(method.getName())
-                .owner(method.getDeclaringClass())
-                .returns(method.getGenericReturnType())
-                .takes(method.getGenericParameterTypes());
-    }
-
-    public static MethodDescription of(Constructor<?> constructor) {
-        return name("<init>")
-                .owner(constructor.getDeclaringClass())
-                .takes(constructor.getGenericParameterTypes());
     }
 
     private String typeName(Type type) {

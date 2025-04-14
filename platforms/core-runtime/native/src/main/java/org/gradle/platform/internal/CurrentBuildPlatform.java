@@ -50,14 +50,6 @@ public class CurrentBuildPlatform {
         this.operatingSystem = getOperatingSystem(operatingSystem);
     }
 
-    public OperatingSystem getOperatingSystem() {
-        return operatingSystem;
-    }
-
-    public Architecture getArchitecture() {
-        return architecture.get();
-    }
-
     private static Architecture getArchitecture(SystemInfo systemInfo) {
         SystemInfo.Architecture architecture = systemInfo.getArchitecture();
         switch (architecture) {
@@ -87,6 +79,14 @@ public class CurrentBuildPlatform {
         } else {
             throw new GradleException("Unhandled operating system: " + operatingSystem.getName());
         }
+    }
+
+    public OperatingSystem getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    public Architecture getArchitecture() {
+        return architecture.get();
     }
 
     public BuildPlatform toBuildPlatform() {

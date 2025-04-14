@@ -227,6 +227,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
             }
         }
     }
+
     String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
         """
            ($threshold).times {

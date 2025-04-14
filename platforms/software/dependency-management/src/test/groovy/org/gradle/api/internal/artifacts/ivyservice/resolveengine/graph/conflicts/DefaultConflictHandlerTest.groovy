@@ -30,7 +30,8 @@ class DefaultConflictHandlerTest extends Specification {
 
     def resolver = Mock(ModuleConflictResolver)
     def replacements = Mock(ImmutableModuleReplacements)
-    @Subject handler = new DefaultConflictHandler(resolver, replacements)
+    @Subject
+        handler = new DefaultConflictHandler(resolver, replacements)
     def details = Mock(ConflictResolverDetails)
 
     def "registers unconflicted modules"() {
@@ -78,7 +79,7 @@ class DefaultConflictHandlerTest extends Specification {
         handler.registerCandidate(a)
 
         when:
-        details.getCandidates() >> { a.versions.findAll { it.id.version in ['1', '2']} }
+        details.getCandidates() >> { a.versions.findAll { it.id.version in ['1', '2'] } }
         handler.resolveNextConflict { ConflictResolutionResult r ->
             assert r.selected.id == newId("org", "a", "2")
         }
@@ -96,7 +97,7 @@ class DefaultConflictHandlerTest extends Specification {
         !handler.hasConflicts()
     }
 
-    private CandidateModule candidate(String group, String name, String ... versions) {
+    private CandidateModule candidate(String group, String name, String... versions) {
         def candidate = Stub(CandidateModule)
         candidate.getId() >> DefaultModuleIdentifier.newId(group, name)
         candidate.getVersions() >> versions.collect { String version ->

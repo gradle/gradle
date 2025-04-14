@@ -48,9 +48,9 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     private final List<RequestOutcome> outcomes = new ArrayList<RequestOutcome>();
     private final Clock clock = Time.clock();
     private final Lock lock;
+    private final Condition condition;
     private WaitPrecondition last;
     private boolean completed;
-    private final Condition condition;
     private int requestsStarted;
 
     ChainingHttpHandler(Lock lock, int timeoutMs, AtomicInteger counter, WaitPrecondition first) {
@@ -244,6 +244,10 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
         }
     }
 
+    interface HandlerFactory<T extends TrackingHttpHandler> {
+        T create(WaitPrecondition previous);
+    }
+
     private static class RequestOutcome {
         final Lock lock;
         final Condition condition;
@@ -294,9 +298,5 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
                 failures.add(new AssertionError(String.format("Request %s has not yet completed.", getDisplayName())));
             }
         }
-    }
-
-    interface HandlerFactory<T extends TrackingHttpHandler> {
-        T create(WaitPrecondition previous);
     }
 }

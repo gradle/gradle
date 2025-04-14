@@ -30,13 +30,13 @@ import java.util.Random;
 @State(Scope.Benchmark)
 public class CachedConstructorsBenchmark {
 
+    public static final Class<?>[] EMPTY = new Class<?>[0];
     private final static Class<?>[] CLAZZ_ARRAY = new Class<?>[]{ArrayList.class, LinkedList.class, String.class, HashMap.class};
     private final static int ARR_LEN = 1024;
     private final static Random RANDOM = new Random();
-    public static final Class<?>[] EMPTY = new Class<?>[0];
-
     private final DirectInstantiator.ConstructorCache cache = new DirectInstantiator.ConstructorCache();
     private Class<?>[] randomClasses;
+    private int i;
 
     @Setup(Level.Iteration)
     public void configClasses() {
@@ -45,8 +45,6 @@ public class CachedConstructorsBenchmark {
             randomClasses[i] = CLAZZ_ARRAY[RANDOM.nextInt(CLAZZ_ARRAY.length)];
         }
     }
-
-    private int i;
 
     @Benchmark
     public void uncached(Blackhole bh) {

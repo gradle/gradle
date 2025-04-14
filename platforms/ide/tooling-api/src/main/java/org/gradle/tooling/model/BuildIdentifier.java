@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * Identifies a Gradle build.
  * <p>
- *     A Gradle Build is a collection of one or more projects.
+ * A Gradle Build is a collection of one or more projects.
  * </p>
  *
  * @since 2.13

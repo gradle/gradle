@@ -64,15 +64,15 @@ import java.util.Map;
 public abstract class AbstractNativeCompileTask extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
-    private boolean positionIndependentCode;
-    private boolean debug;
-    private boolean optimize;
     private final DirectoryProperty objectFileDir;
     private final ConfigurableFileCollection includes;
     private final ConfigurableFileCollection systemIncludes;
     private final ConfigurableFileCollection source;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
     private final ListProperty<String> compilerArgs;
+    private boolean positionIndependentCode;
+    private boolean debug;
+    private boolean optimize;
     // Don't serialize the compiler. It holds state that is mostly only required at execution time and that can be calculated from the other fields of this task
     // after being deserialized. However, it is also required to calculate the producers of the header files to calculate the work graph.
     // It would be better to provide some way for a task to express these things separately.

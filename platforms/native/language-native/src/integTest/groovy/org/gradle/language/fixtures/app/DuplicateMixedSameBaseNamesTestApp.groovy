@@ -33,7 +33,7 @@ public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
 
     def plugins = ["assembler", "c", "cpp"]
 
-    def functionalSourceSets = [asm:'**/*.s', c:'**/*.c', cpp:'**/*.cpp']
+    def functionalSourceSets = [asm: '**/*.s', c: '**/*.c', cpp: '**/*.cpp']
 
     @Override
     public List<SourceFile> getSourceFiles() {
@@ -55,7 +55,7 @@ public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
                 return 0;
             }"""),
 
-                sourceFile("c", "foo.c", """
+         sourceFile("c", "foo.c", """
             #include <stdio.h>
             #include "hello.h"
 
@@ -63,7 +63,7 @@ public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
                 printf("fooFromC\\n");
             }
         """),
-           sourceFile("cpp", "foo.cpp", """
+         sourceFile("cpp", "foo.cpp", """
             #include "hello.h"
             #include <iostream>
             using namespace std;
@@ -73,7 +73,7 @@ public class DuplicateMixedSameBaseNamesTestApp extends TestNativeComponent {
             }
 
         """),
-                sourceFile("asm", "foo.s", asmSource())
+         sourceFile("asm", "foo.s", asmSource())
         ]
     }
 

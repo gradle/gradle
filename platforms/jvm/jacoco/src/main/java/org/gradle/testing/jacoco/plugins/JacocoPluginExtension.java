@@ -61,9 +61,8 @@ public abstract class JacocoPluginExtension {
     private final ProjectLayout layout;
     private final FileSystemOperations fs;
     private final JacocoAgentJar agent;
-
-    private String toolVersion;
     private final DirectoryProperty reportsDirectory;
+    private String toolVersion;
 
     /**
      * Creates a Jacoco plugin extension.
@@ -134,6 +133,16 @@ public abstract class JacocoPluginExtension {
         );
     }
 
+    /**
+     * Applies Jacoco to all of the given tasks.
+     *
+     * @param tasks the tasks to apply Jacoco to
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {
+        ((TaskCollection) tasks).withType(JavaForkOptions.class, (Action<T>) this::applyTo);
+    }
+
     private static class JacocoOutputCleanupTestTaskAction implements Action<Task> {
         private final FileSystemOperations fs;
         private final Provider<Boolean> hasFileOutput;
@@ -185,15 +194,5 @@ public abstract class JacocoPluginExtension {
         public String getName() {
             return "jacocoAgent";
         }
-    }
-
-    /**
-     * Applies Jacoco to all of the given tasks.
-     *
-     * @param tasks the tasks to apply Jacoco to
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {
-        ((TaskCollection) tasks).withType(JavaForkOptions.class, (Action<T>) this::applyTo);
     }
 }

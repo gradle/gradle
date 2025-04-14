@@ -24,13 +24,14 @@ import org.gradle.internal.hash.FileHasher
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
-class ReuseArchiveIntegrationTest  extends AbstractIntegrationSpec {
+class ReuseArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     /*
      * This is a pre-existing issue: What do you do if creating a cache using a pre-existing directory
      * happens to contain content with the same name as content you're trying to cache?  The content used
      * by the cache no longer agrees with the content coming from the zip itself.
      */
+
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "pre-existing content in cache dir with same hash is okay"() {
         file("contents/hello.txt") << "hello"

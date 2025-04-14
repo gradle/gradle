@@ -20,9 +20,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class SystemPropertiesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<SystemPropertiesPrefixedByValueSource.Parameters> {
-    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
-    }
-
     @Override
     protected Stream<Map.Entry<String, String>> itemsToFilter() {
         return System.getProperties().entrySet().stream()
@@ -33,5 +30,8 @@ public abstract class SystemPropertiesPrefixedByValueSource extends MapWithPrefi
                 Map.Entry<String, String> stringEntry = (Map.Entry<String, String>) untypedEntry;
                 return stringEntry;
             });
+    }
+
+    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
     }
 }

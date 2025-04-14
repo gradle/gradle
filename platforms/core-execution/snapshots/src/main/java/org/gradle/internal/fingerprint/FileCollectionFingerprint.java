@@ -27,18 +27,6 @@ import java.util.Map;
  */
 public interface FileCollectionFingerprint {
 
-    /**
-     * The underlying fingerprints indexed by absolute path.
-     */
-    Map<String, FileSystemLocationFingerprint> getFingerprints();
-
-    /**
-     * The Merkle hashes of the roots which make up this file collection fingerprint.
-     */
-    ImmutableMultimap<String, HashCode> getRootHashes();
-
-    boolean wasCreatedWithStrategy(FingerprintingStrategy strategy);
-
     FileCollectionFingerprint EMPTY = new FileCollectionFingerprint() {
         @Override
         public Map<String, FileSystemLocationFingerprint> getFingerprints() {
@@ -60,4 +48,16 @@ public interface FileCollectionFingerprint {
             return "EMPTY";
         }
     };
+
+    /**
+     * The underlying fingerprints indexed by absolute path.
+     */
+    Map<String, FileSystemLocationFingerprint> getFingerprints();
+
+    /**
+     * The Merkle hashes of the roots which make up this file collection fingerprint.
+     */
+    ImmutableMultimap<String, HashCode> getRootHashes();
+
+    boolean wasCreatedWithStrategy(FingerprintingStrategy strategy);
 }

@@ -18,15 +18,18 @@ sealed interface FunctionArgument : LanguageTreeElement {
     data class Positional(override val expr: Expr, override val sourceData: SourceData) : SingleValueArgument {
         override fun toString() = "$expr"
     }
+
     data class Named(val name: String, override val expr: Expr, override val sourceData: SourceData) : SingleValueArgument {
         override fun toString() = "$name = $expr"
     }
-    data class GroupedVarargs(val elementArgs: List<SingleValueArgument>): ValueLikeArgument {
+
+    data class GroupedVarargs(val elementArgs: List<SingleValueArgument>) : ValueLikeArgument {
         override val sourceData: SourceData
             get() = elementArgs.firstOrNull()?.sourceData ?: SyntheticallyProduced
 
         override fun toString(): String = "[${elementArgs.joinToString()}]"
     }
+
     data class Lambda(val block: Block, override val sourceData: SourceData) : FunctionArgument {
         override fun toString() = "{ ... }"
     }
@@ -122,6 +125,7 @@ sealed interface Literal<T : Any> : Expr {
     ) : Literal<Int> {
         override val type: DataType.IntDataType
             get() = DataTypeInternal.DefaultIntDataType
+
         override fun toString() = value.toString()
     }
 
@@ -131,6 +135,7 @@ sealed interface Literal<T : Any> : Expr {
     ) : Literal<Long> {
         override val type: DataType.LongDataType
             get() = DataTypeInternal.DefaultLongDataType
+
         override fun toString() = value.toString()
     }
 
@@ -140,6 +145,7 @@ sealed interface Literal<T : Any> : Expr {
     ) : Literal<Boolean> {
         override val type: DataType.BooleanDataType
             get() = DataTypeInternal.DefaultBooleanDataType
+
         override fun toString() = value.toString()
     }
 }

@@ -56,9 +56,9 @@ public class GrammarMetadata {
     public boolean extendsStandardGrammar() {
         final String superGrammarClassName = getSuperGrammarDelegate().getClassName();
         return Parser.class.getName().equals(superGrammarClassName) || Parser.class.getSimpleName().equals(
-                superGrammarClassName) || TreeParser.class.getName().equals(superGrammarClassName)
-                || TreeParser.class.getSimpleName().equals(superGrammarClassName) || "Lexer".equals(
-                superGrammarClassName);
+            superGrammarClassName) || TreeParser.class.getName().equals(superGrammarClassName)
+            || TreeParser.class.getSimpleName().equals(superGrammarClassName) || "Lexer".equals(
+            superGrammarClassName);
     }
 
     public String getImportVocab() {

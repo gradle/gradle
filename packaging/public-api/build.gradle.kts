@@ -57,7 +57,7 @@ publishing {
             }
 
             pom {
-                name = moduleIdentity.baseName.map { "${project.group}:$it"}
+                name = moduleIdentity.baseName.map { "${project.group}:$it" }
             }
         }
     }
@@ -97,7 +97,7 @@ configurations {
 
 val testRepoElements = configurations.consumable("testRepoElements") {
     outgoing.artifact(testRepoLocation) {
-        builtBy( "publishMavenPublicationToTestRepository")
+        builtBy("publishMavenPublicationToTestRepository")
     }
     // TODO: De-duplicate this. See publish-public-libraries
     attributes {

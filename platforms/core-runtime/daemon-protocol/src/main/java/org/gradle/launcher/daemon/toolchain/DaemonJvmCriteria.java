@@ -57,30 +57,8 @@ public interface DaemonJvmCriteria {
      * Selects the specified Java home.
      */
     final class JavaHome implements DaemonJvmCriteria {
-        public enum Source {
-            /**
-             * The Java home was specified by the user using the system property `org.gradle.java.home`.
-             */
-            ORG_GRADLE_JAVA_HOME("org.gradle.java.home"),
-            /**
-             * The Java home was specified by a Tooling API client.
-             */
-            TOOLING_API_CLIENT("Tooling API client"),
-            /**
-             * The Java home comes from an existing daemon.
-             */
-            EXISTING_DAEMON("existing daemon");
-
-            private final String description;
-
-            Source(String description) {
-                this.description = description;
-            }
-        }
-
         private final Source source;
         private final File javaHome;
-
         public JavaHome(Source source, File javaHome) {
             // Sanity check the Java home
             if (!javaHome.isDirectory()) {
@@ -103,6 +81,27 @@ public interface DaemonJvmCriteria {
         @Override
         public String toString() {
             return String.format("%s (from %s)", getJavaHome().getAbsolutePath(), source.description);
+        }
+
+        public enum Source {
+            /**
+             * The Java home was specified by the user using the system property `org.gradle.java.home`.
+             */
+            ORG_GRADLE_JAVA_HOME("org.gradle.java.home"),
+            /**
+             * The Java home was specified by a Tooling API client.
+             */
+            TOOLING_API_CLIENT("Tooling API client"),
+            /**
+             * The Java home comes from an existing daemon.
+             */
+            EXISTING_DAEMON("existing daemon");
+
+            private final String description;
+
+            Source(String description) {
+                this.description = description;
+            }
         }
     }
 

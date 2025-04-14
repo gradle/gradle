@@ -54,7 +54,7 @@ class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec {
         """
 
         expect:
-        fails'compileGroovy'
+        fails 'compileGroovy'
     }
 
     def "Groovy compilation ignores @Grab annotation transformation by default"() {

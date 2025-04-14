@@ -25,10 +25,13 @@ import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 
 public interface JacocoCoverageParameters extends AntWorkParameters {
     Property<String> getProjectName();
+
     Property<String> getEncoding();
 
     ConfigurableFileCollection getAllClassesDirs();
+
     ConfigurableFileCollection getAllSourcesDirs();
+
     ConfigurableFileCollection getExecutionData();
 
     Property<Boolean> getFailOnViolation();

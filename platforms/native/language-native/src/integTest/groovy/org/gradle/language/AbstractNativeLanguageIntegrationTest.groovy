@@ -243,7 +243,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     def "link order is stable across project directories for the same sources"() {
         def firstCopy = file("firstDir")
         def secondCopy = file("secondDir")
-        [ firstCopy, secondCopy ].each { projectDir ->
+        [firstCopy, secondCopy].each { projectDir ->
             projectDir.file("settings.gradle").touch()
             def buildFile = projectDir.file("build.gradle")
             buildFile << helloWorldApp.pluginScript

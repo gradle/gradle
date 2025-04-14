@@ -43,7 +43,7 @@ class ToolingApiEclipseModelSourceDirectoryExcludeIncludePatternCrossVersionSpec
         def includePatterns = includes.collect { "include '$it'" }.join('\n')
         settingsFile << 'rootProject.name = "root"'
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            sourceSets {
                main {
                    java {

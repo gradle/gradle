@@ -41,7 +41,7 @@ class TwoStageModuleVersionsCacheTest extends Specification {
 
     def "reading aggregates read and write caches"() {
         def r1 = new ModuleVersionsCacheEntry(["1.0", "1.1"] as Set, 0L)
-        def r2 = new ModuleVersionsCacheEntry(["1.2", "1.3"]  as Set, 123L)
+        def r2 = new ModuleVersionsCacheEntry(["1.2", "1.3"] as Set, 123L)
 
         when:
         def result = twoStageCache.get(key)

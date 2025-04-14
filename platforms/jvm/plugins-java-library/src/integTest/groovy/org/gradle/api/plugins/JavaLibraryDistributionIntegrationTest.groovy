@@ -55,10 +55,10 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         def expandDir = file('expanded')
         file('build/distributions/DefaultJavaDistribution.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'DefaultJavaDistribution/lib/commons-collections-3.2.2.jar',
-                'DefaultJavaDistribution/lib/commons-cli-1.2.jar',
-                'DefaultJavaDistribution/lib/commons-lang-2.6.jar',
-                'DefaultJavaDistribution/DefaultJavaDistribution.jar')
+            'DefaultJavaDistribution/lib/commons-collections-3.2.2.jar',
+            'DefaultJavaDistribution/lib/commons-cli-1.2.jar',
+            'DefaultJavaDistribution/lib/commons-lang-2.6.jar',
+            'DefaultJavaDistribution/DefaultJavaDistribution.jar')
         expandDir.file('DefaultJavaDistribution/DefaultJavaDistribution.jar').assertIsCopyOf(file('build/libs/DefaultJavaDistribution.jar'))
     }
 
@@ -114,14 +114,14 @@ class JavaLibraryDistributionIntegrationTest extends WellBehavedPluginTest {
         def expandDir = file('expanded')
         file('build/distributions/SuperApp-1.2.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
-                'SuperApp-1.2/lib/commons-lang-2.6.jar',
-                'SuperApp-1.2/file1.txt',
-                'SuperApp-1.2/dist1.txt',
-                'SuperApp-1.2/other1.txt',
-                'SuperApp-1.2/dir2/file2.txt',
-                'SuperApp-1.2/dir2/dist2.txt',
-                'SuperApp-1.2/dir2/other2.txt',
-                'SuperApp-1.2/canCreateADistributionWithSrcDistRuntime-1.2.jar')
+            'SuperApp-1.2/lib/commons-lang-2.6.jar',
+            'SuperApp-1.2/file1.txt',
+            'SuperApp-1.2/dist1.txt',
+            'SuperApp-1.2/other1.txt',
+            'SuperApp-1.2/dir2/file2.txt',
+            'SuperApp-1.2/dir2/dist2.txt',
+            'SuperApp-1.2/dir2/other2.txt',
+            'SuperApp-1.2/canCreateADistributionWithSrcDistRuntime-1.2.jar')
     }
 
     def "fails when distribution baseName is null"() {

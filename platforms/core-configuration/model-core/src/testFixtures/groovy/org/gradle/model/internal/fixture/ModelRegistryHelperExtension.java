@@ -238,15 +238,15 @@ public class ModelRegistryHelperExtension {
 
     public static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, final ModelType<C> modelType, String inputPath, String inputDescriptor, final Transformer<? extends C, Object> action) {
         return builder.action(
-            ModelActionRole.Create,
-            ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor),
-            new BiAction<MutableModelNode, Object>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode, Object input) {
-                    mutableModelNode.setPrivateData(modelType, action.transform(input));
+                ModelActionRole.Create,
+                ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor),
+                new BiAction<MutableModelNode, Object>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode, Object input) {
+                        mutableModelNode.setPrivateData(modelType, action.transform(input));
+                    }
                 }
-            }
-        )
+            )
             .withProjection(new UnmanagedModelProjection<C>(modelType))
             .build();
     }
@@ -257,14 +257,14 @@ public class ModelRegistryHelperExtension {
 
     public static <C, I> ModelRegistration unmanaged(ModelRegistrations.Builder builder, final ModelType<C> modelType, ModelType<I> inputModelType, final Transformer<? extends C, ? super I> action) {
         return builder.action(
-            ModelActionRole.Create,
-            ModelReference.of(inputModelType),
-            new BiAction<MutableModelNode, I>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode, I input) {
-                    mutableModelNode.setPrivateData(modelType, action.transform(input));
-                }
-            })
+                ModelActionRole.Create,
+                ModelReference.of(inputModelType),
+                new BiAction<MutableModelNode, I>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode, I input) {
+                        mutableModelNode.setPrivateData(modelType, action.transform(input));
+                    }
+                })
             .withProjection(new UnmanagedModelProjection<C>(modelType))
             .build();
     }
@@ -279,12 +279,12 @@ public class ModelRegistryHelperExtension {
 
     private static <C> ModelRegistration unmanaged(ModelRegistrations.Builder builder, final ModelType<C> modelType, final Factory<? extends C> initializer) {
         return builder.action(ModelActionRole.Create,
-            new Action<MutableModelNode>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode) {
-                    mutableModelNode.setPrivateData(modelType, initializer.create());
-                }
-            })
+                new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode) {
+                        mutableModelNode.setPrivateData(modelType, initializer.create());
+                    }
+                })
             .withProjection(UnmanagedModelProjection.of(modelType))
             .build();
     }
@@ -322,15 +322,15 @@ public class ModelRegistryHelperExtension {
 
         ModelType<I> modelType = ModelType.of(itemType);
         return builder.action(ModelActionRole.Create,
-            new Action<MutableModelNode>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode) {
-                    RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
-                        new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
-                    );
-                    mutableModelNode.setPrivateData(instantiatorType, instantiator);
-                }
-            })
+                new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode) {
+                        RuleAwarePolymorphicNamedEntityInstantiator<I> instantiator = new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
+                            new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
+                        );
+                        mutableModelNode.setPrivateData(instantiatorType, instantiator);
+                    }
+                })
             .withProjection(ModelMapModelProjection.unmanaged(
                 modelType,
                 ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(modelType)))

@@ -130,7 +130,7 @@ task verify {
         ${createComponentResultVerificationCode()}
 """
 
-        if(expectedComponentResult == UnresolvedComponentResult) {
+        if (expectedComponentResult == UnresolvedComponentResult) {
             buildFile << createUnresolvedComponentResultVerificationCode()
         }
 
@@ -187,7 +187,7 @@ task verify {
         assert unresolvedComponentResult.failure instanceof ${expectedException.getClass().name}
         assert unresolvedComponentResult.failure.message == "$expectedException.message"
 """
-}
+    }
 
     void createVerifyTaskForProjectComponentIdentifier() {
         buildFile << """
@@ -209,7 +209,7 @@ task verify {
         assert componentResult instanceof $expectedComponentResult.name
 """
 
-        if(expectedComponentResult == UnresolvedComponentResult) {
+        if (expectedComponentResult == UnresolvedComponentResult) {
             buildFile << createUnresolvedComponentResultVerificationCode()
         }
 

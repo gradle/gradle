@@ -54,14 +54,14 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
-    private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
-    private boolean storeInCache = true;
     private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
     private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
-    private FileCollection previousOutputFiles;
     private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
+    private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
+    private boolean storeInCache = true;
+    private FileCollection previousOutputFiles;
 
     public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
@@ -69,6 +69,11 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
         this.allOutputFiles = new TaskOutputUnionFileCollection(taskDependencyFactory, task);
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
+    }
+
+    @Nullable
+    private static Object resolveSingleArray(@Nullable Object[] paths) {
+        return (paths != null && paths.length == 1) ? paths[0] : paths;
     }
 
     @Override
@@ -200,22 +205,17 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
         });
     }
 
-    @Nullable
-    private static Object resolveSingleArray(@Nullable Object[] paths) {
-        return (paths != null && paths.length == 1) ? paths[0] : paths;
-    }
-
-    @Override
-    public void setPreviousOutputFiles(FileCollection previousOutputFiles) {
-        this.previousOutputFiles = previousOutputFiles;
-    }
-
     @Override
     public Set<File> getPreviousOutputFiles() {
         if (previousOutputFiles == null) {
             throw new IllegalStateException("Task history is currently not available for this task.");
         }
         return previousOutputFiles.getFiles();
+    }
+
+    @Override
+    public void setPreviousOutputFiles(FileCollection previousOutputFiles) {
+        this.previousOutputFiles = previousOutputFiles;
     }
 
     private static class HasDeclaredOutputsVisitor implements PropertyVisitor {

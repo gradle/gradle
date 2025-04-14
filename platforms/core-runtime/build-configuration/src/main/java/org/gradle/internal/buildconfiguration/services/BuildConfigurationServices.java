@@ -24,15 +24,15 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class BuildConfigurationServices extends AbstractGradleModuleServices {
 
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ProjectScopeServices());
+    }
+
     protected static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         DaemonJvmPropertiesModifier createDaemonJvmPropertiesModifier() {
             return new DaemonJvmPropertiesModifier();
         }
-    }
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-        registration.addProvider(new ProjectScopeServices());
     }
 }

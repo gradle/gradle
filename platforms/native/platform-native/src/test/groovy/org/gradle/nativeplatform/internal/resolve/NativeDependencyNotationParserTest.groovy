@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.internal.resolve
+
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.NativeLibraryRequirement

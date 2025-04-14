@@ -27,7 +27,9 @@ import spock.lang.Specification
 
 @UsesNativeServices
 class SingleIncludePatternFileTreeSpec extends Specification {
-    @Shared @ClassRule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(SingleIncludePatternFileTreeSpec)
+    @Shared
+    @ClassRule
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(SingleIncludePatternFileTreeSpec)
 
     def visitor = Mock(FileVisitor)
 

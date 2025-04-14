@@ -27,7 +27,8 @@ import org.gradle.util.internal.TextUtil
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+// Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "TestKit dependency artifacts contain Gradle API artifact"() {

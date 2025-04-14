@@ -68,7 +68,7 @@ class DescribingAndSpecTest extends Specification {
         when:
         Spec<Object> condition2 = { false }
         spec = spec.and(condition2, "condition2 must be true")
-                   .and({ true }, "closure must be true")
+            .and({ true }, "closure must be true")
 
         then:
         !spec.isEmpty()

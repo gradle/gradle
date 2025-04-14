@@ -100,7 +100,8 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         javaToolOptions << ["-Xms513m", "-Xmx255m", "-Xms128m -Xmx256m"]
     }
 
-    @Requires(UnitTestPreconditions.Jdk16OrEarlier) // TraceClassLoading option has been deprecated and is removed in JDK17
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier)
+    // TraceClassLoading option has been deprecated and is removed in JDK17
     def 'can start the daemon with ClassLoading tracing enabled'() {
         given:
         file('build.gradle') << """

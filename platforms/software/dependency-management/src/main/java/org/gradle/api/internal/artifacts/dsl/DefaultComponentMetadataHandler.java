@@ -79,14 +79,16 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     private final ComponentMetadataRuleExecutor ruleExecutor;
     private final PlatformSupport platformSupport;
 
-    DefaultComponentMetadataHandler(Instantiator instantiator,
-                                    RuleActionAdapter ruleActionAdapter,
-                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                    Interner<String> stringInterner,
-                                    AttributesFactory attributesFactory,
-                                    IsolatableFactory isolatableFactory,
-                                    ComponentMetadataRuleExecutor ruleExecutor,
-                                    PlatformSupport platformSupport) {
+    DefaultComponentMetadataHandler(
+        Instantiator instantiator,
+        RuleActionAdapter ruleActionAdapter,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        Interner<String> stringInterner,
+        AttributesFactory attributesFactory,
+        IsolatableFactory isolatableFactory,
+        ComponentMetadataRuleExecutor ruleExecutor,
+        PlatformSupport platformSupport
+    ) {
         this.instantiator = instantiator;
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
@@ -107,16 +109,18 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory, isolatableFactory, ruleExecutor, platformSupport);
     }
 
-    private DefaultComponentMetadataHandler(Instantiator instantiator,
-                                            RuleActionAdapter ruleActionAdapter,
-                                            NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser,
-                                            NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
-                                            NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
-                                            NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
-                                            AttributesFactory attributesFactory,
-                                            IsolatableFactory isolatableFactory,
-                                            ComponentMetadataRuleExecutor ruleExecutor,
-                                            PlatformSupport platformSupport) {
+    private DefaultComponentMetadataHandler(
+        Instantiator instantiator,
+        RuleActionAdapter ruleActionAdapter,
+        NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser,
+        NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
+        NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
+        NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
+        AttributesFactory attributesFactory,
+        IsolatableFactory isolatableFactory,
+        ComponentMetadataRuleExecutor ruleExecutor,
+        PlatformSupport platformSupport
+    ) {
         this.instantiator = instantiator;
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = moduleIdentifierNotationParser;
@@ -235,13 +239,13 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     @Override
-    public void setVariantDerivationStrategy(VariantDerivationStrategy strategy) {
-        metadataRuleContainer.setVariantDerivationStrategy(strategy);
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return metadataRuleContainer.getVariantDerivationStrategy();
     }
 
     @Override
-    public VariantDerivationStrategy getVariantDerivationStrategy() {
-        return metadataRuleContainer.getVariantDerivationStrategy();
+    public void setVariantDerivationStrategy(VariantDerivationStrategy strategy) {
+        metadataRuleContainer.setVariantDerivationStrategy(strategy);
     }
 
     @Override

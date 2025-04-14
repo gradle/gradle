@@ -54,6 +54,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         managedExecutors.put(BuildOperationConstraint.UNCONSTRAINED, executorFactory.create("Unconstrained build operations", workerLimits.getMaxWorkerCount() * 10));
     }
 
+    private static String formatMultipleFailureMessage(List<GradleException> failures) {
+        return failures.stream()
+            .map(Throwable::getMessage)
+            .collect(Collectors.joining(LINE_SEPARATOR + "AND" + LINE_SEPARATOR));
+    }
+
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
@@ -112,12 +118,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         } else if (failures.size() > 1) {
             throw new DefaultMultiCauseException(formatMultipleFailureMessage(failures), failures);
         }
-    }
-
-    private static String formatMultipleFailureMessage(List<GradleException> failures) {
-        return failures.stream()
-            .map(Throwable::getMessage)
-            .collect(Collectors.joining(LINE_SEPARATOR + "AND" + LINE_SEPARATOR));
     }
 
     @Override

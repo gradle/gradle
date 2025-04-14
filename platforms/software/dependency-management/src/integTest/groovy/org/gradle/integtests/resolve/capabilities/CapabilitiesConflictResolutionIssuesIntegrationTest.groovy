@@ -260,10 +260,10 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         where:
-        rule                                                            | winner
-        [[group: "org", module: "A"]]                                   | "A"
-        [[group: "org", module: "B"], [group: "org", module: "A"]]      | "B"
-        [[group: "org", module: "C"]]                                   | "C"
+        rule                                                       | winner
+        [[group: "org", module: "A"]]                              | "A"
+        [[group: "org", module: "B"], [group: "org", module: "A"]] | "B"
+        [[group: "org", module: "C"]]                              | "C"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14770")

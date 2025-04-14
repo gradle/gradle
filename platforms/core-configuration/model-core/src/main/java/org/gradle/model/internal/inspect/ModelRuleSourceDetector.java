@@ -52,48 +52,48 @@ public class ModelRuleSourceDetector {
     };
 
     final LoadingCache<Class<?>, Collection<Reference<Class<? extends RuleSource>>>> cache = CacheBuilder.newBuilder()
-            .weakKeys()
-            .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends RuleSource>>>>() {
-                @Override
-                public Collection<Reference<Class<? extends RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) throws Exception {
-                    if (isRuleSource(container)) {
-                        Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
-                        return ImmutableSet.<Reference<Class<? extends RuleSource>>>of(new WeakReference<Class<? extends RuleSource>>(castClass));
-                    }
-
-                    Class<?>[] declaredClasses = container.getDeclaredClasses();
-
-                    if (declaredClasses.length == 0) {
-                        return Collections.emptySet();
-                    } else {
-                        Class<?>[] sortedDeclaredClasses = new Class<?>[declaredClasses.length];
-                        System.arraycopy(declaredClasses, 0, sortedDeclaredClasses, 0, declaredClasses.length);
-                        Arrays.sort(sortedDeclaredClasses, COMPARE_BY_CLASS_NAME);
-
-                        ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
-                        for (Class<?> declaredClass : sortedDeclaredClasses) {
-                            if (isRuleSource(declaredClass)) {
-                                Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
-                                found.add(new WeakReference<Class<? extends RuleSource>>(castClass));
-                            }
-                        }
-
-                        return found.build();
-                    }
+        .weakKeys()
+        .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends RuleSource>>>>() {
+            @Override
+            public Collection<Reference<Class<? extends RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) throws Exception {
+                if (isRuleSource(container)) {
+                    Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
+                    return ImmutableSet.<Reference<Class<? extends RuleSource>>>of(new WeakReference<Class<? extends RuleSource>>(castClass));
                 }
-            });
+
+                Class<?>[] declaredClasses = container.getDeclaredClasses();
+
+                if (declaredClasses.length == 0) {
+                    return Collections.emptySet();
+                } else {
+                    Class<?>[] sortedDeclaredClasses = new Class<?>[declaredClasses.length];
+                    System.arraycopy(declaredClasses, 0, sortedDeclaredClasses, 0, declaredClasses.length);
+                    Arrays.sort(sortedDeclaredClasses, COMPARE_BY_CLASS_NAME);
+
+                    ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
+                    for (Class<?> declaredClass : sortedDeclaredClasses) {
+                        if (isRuleSource(declaredClass)) {
+                            Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
+                            found.add(new WeakReference<Class<? extends RuleSource>>(castClass));
+                        }
+                    }
+
+                    return found.build();
+                }
+            }
+        });
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Iterable<Class<? extends RuleSource>> getDeclaredSources(Class<?> container) {
         try {
             return FluentIterable.from(cache.get(container))
-                    .transform(new Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>() {
-                        @Override
-                        public Class<? extends RuleSource> apply(Reference<Class<? extends RuleSource>> input) {
-                            return input.get();
-                        }
-                    })
-                    .filter(Predicates.notNull());
+                .transform(new Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>() {
+                    @Override
+                    public Class<? extends RuleSource> apply(Reference<Class<? extends RuleSource>> input) {
+                        return input.get();
+                    }
+                })
+                .filter(Predicates.notNull());
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

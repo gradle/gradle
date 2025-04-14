@@ -61,6 +61,49 @@ import java.util.Set;
  */
 public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
 
+    private final ImmutableMap<String, Configuration> configurationDefinitions;
+    private final ImmutableList<IvyDependencyDescriptor> dependencies;
+    private final ImmutableList<Artifact> artifactDefinitions;
+    private final ImmutableList<Exclude> excludes;
+    private final ImmutableMap<NamespaceId, String> extraAttributes;
+    private final DefaultIvyModuleResolveMetadata metadata;
+    private final String branch;
+    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> derivedVariants;
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ModuleConfigurationMetadata> transformedConfigurations) {
+        super(metadata, metadata.getVariants(), transformedConfigurations);
+        this.configurationDefinitions = metadata.getConfigurationDefinitions();
+        this.branch = metadata.getBranch();
+        this.artifactDefinitions = metadata.getArtifactDefinitions();
+        this.dependencies = ImmutableList.copyOf(dependencies);
+        this.excludes = metadata.getExcludes();
+        this.extraAttributes = metadata.getExtraAttributes();
+        this.metadata = metadata.metadata;
+    }
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
+        super(metadata, sources, derivationStrategy);
+        this.configurationDefinitions = metadata.configurationDefinitions;
+        this.branch = metadata.branch;
+        this.artifactDefinitions = metadata.artifactDefinitions;
+        this.dependencies = metadata.dependencies;
+        this.excludes = metadata.excludes;
+        this.extraAttributes = metadata.extraAttributes;
+        this.metadata = metadata.metadata;
+    }
+    RealisedIvyModuleResolveMetadata(
+        DefaultIvyModuleResolveMetadata metadata,
+        ImmutableList<? extends ComponentVariant> variants,
+        Map<String, ModuleConfigurationMetadata> configurations
+    ) {
+        super(metadata, variants, configurations);
+        this.configurationDefinitions = metadata.getConfigurationDefinitions();
+        this.branch = metadata.getBranch();
+        this.artifactDefinitions = metadata.getArtifactDefinitions();
+        this.dependencies = metadata.getDependencies();
+        this.excludes = metadata.getExcludes();
+        this.extraAttributes = metadata.getExtraAttributes();
+        this.metadata = metadata;
+    }
+
     public static RealisedIvyModuleResolveMetadata transform(DefaultIvyModuleResolveMetadata metadata) {
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
 
@@ -158,53 +201,6 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifactsMetadata = variantMetadataRules.applyVariantFilesMetadataRulesToArtifacts(variant, artifacts, id);
         return createConfiguration(id, configurationName, transitive, visible, hierarchy,
             artifactsMetadata, excludes, variantAttributes, variantCapabilities, variantMetadataRules, configurationHelper, dependenciesOverride, addedByRule, isExternalVariant);
-    }
-
-    private final ImmutableMap<String, Configuration> configurationDefinitions;
-    private final ImmutableList<IvyDependencyDescriptor> dependencies;
-    private final ImmutableList<Artifact> artifactDefinitions;
-    private final ImmutableList<Exclude> excludes;
-    private final ImmutableMap<NamespaceId, String> extraAttributes;
-    private final DefaultIvyModuleResolveMetadata metadata;
-    private final String branch;
-
-    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> derivedVariants;
-
-    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ModuleConfigurationMetadata> transformedConfigurations) {
-        super(metadata, metadata.getVariants(), transformedConfigurations);
-        this.configurationDefinitions = metadata.getConfigurationDefinitions();
-        this.branch = metadata.getBranch();
-        this.artifactDefinitions = metadata.getArtifactDefinitions();
-        this.dependencies = ImmutableList.copyOf(dependencies);
-        this.excludes = metadata.getExcludes();
-        this.extraAttributes = metadata.getExtraAttributes();
-        this.metadata = metadata.metadata;
-    }
-
-    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
-        super(metadata, sources, derivationStrategy);
-        this.configurationDefinitions = metadata.configurationDefinitions;
-        this.branch = metadata.branch;
-        this.artifactDefinitions = metadata.artifactDefinitions;
-        this.dependencies = metadata.dependencies;
-        this.excludes = metadata.excludes;
-        this.extraAttributes = metadata.extraAttributes;
-        this.metadata = metadata.metadata;
-    }
-
-    RealisedIvyModuleResolveMetadata(
-        DefaultIvyModuleResolveMetadata metadata,
-        ImmutableList<? extends ComponentVariant> variants,
-        Map<String, ModuleConfigurationMetadata> configurations
-    ) {
-        super(metadata, variants, configurations);
-        this.configurationDefinitions = metadata.getConfigurationDefinitions();
-        this.branch = metadata.getBranch();
-        this.artifactDefinitions = metadata.getArtifactDefinitions();
-        this.dependencies = metadata.getDependencies();
-        this.excludes = metadata.getExcludes();
-        this.extraAttributes = metadata.getExtraAttributes();
-        this.metadata = metadata;
     }
 
     private static RealisedConfigurationMetadata createConfiguration(

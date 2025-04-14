@@ -25,6 +25,7 @@ interface NodeDataContainer<out DNode, out DElement : DNode, out DProperty : DNo
         is DeclarativeDocument.DocumentNode.PropertyNode -> data(node)
         is DeclarativeDocument.DocumentNode.ErrorNode -> data(node)
     }
+
     fun data(node: DeclarativeDocument.DocumentNode.ElementNode): DElement
     fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): DProperty
     fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): DError

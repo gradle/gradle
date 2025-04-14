@@ -38,8 +38,6 @@ public abstract class IncludedBuildSpec {
         this.rootDir = rootDir;
     }
 
-    public abstract BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator);
-
     public static IncludedBuildSpec includedPluginBuild(File rootDir, Action<? super ConfigurableIncludedPluginBuild> configurer) {
         return new IncludedPluginBuildSpec(rootDir, configurer);
     }
@@ -47,6 +45,8 @@ public abstract class IncludedBuildSpec {
     public static IncludedBuildSpec includedBuild(File rootDir, Action<ConfigurableIncludedBuild> configurer) {
         return new IncludedLibraryBuildSpec(rootDir, configurer);
     }
+
+    public abstract BuildDefinition toBuildDefinition(StartParameterInternal startParameter, PublicBuildPath publicBuildPath, Instantiator instantiator);
 
     private static class IncludedLibraryBuildSpec extends IncludedBuildSpec {
 

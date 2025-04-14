@@ -38,17 +38,17 @@ class LockEntryFilterFactoryTest extends Specification {
         }
 
         where:
-        filters                 | filteredValues                    | acceptedValues
-        ['org:foo,com*:bar']    | ['org:foo:2.1', 'com:bar:1.1']    | ['org:baz:1.1']
-        ['org:foo']             | ['org:foo:2.1']                   | ['com:bar:1.1']
-        ['org:foo,']            | ['org:foo:2.1']                   | ['com:bar:1.1'] // Simply shows a trailing comma is ignored
-        ['co*:ba*']             | ['com:bar:2.1']                   | ['org:foo:1.1']
-        ['*:ba*']               | ['org:bar:2.1']                   | ['com:foo:1.1']
-        ['*:bar']               | ['org:bar:2.1']                   | ['com:foo:1.1']
-        ['org:f*']              | ['org:foo:1.1']                   | ['com:bar:2.1']
-        ['org:*']               | ['org:foo:1.1']                   | ['com:bar:2.1']
-        ['or*:*']               | ['org:foo:1.1']                   | ['com:bar:2.1']
-        ['*:*']                 | ['org:foo:1.1', 'com:bar:2.1']    | []
+        filters              | filteredValues                 | acceptedValues
+        ['org:foo,com*:bar'] | ['org:foo:2.1', 'com:bar:1.1'] | ['org:baz:1.1']
+        ['org:foo']          | ['org:foo:2.1']                | ['com:bar:1.1']
+        ['org:foo,']         | ['org:foo:2.1']                | ['com:bar:1.1'] // Simply shows a trailing comma is ignored
+        ['co*:ba*']          | ['com:bar:2.1']                | ['org:foo:1.1']
+        ['*:ba*']            | ['org:bar:2.1']                | ['com:foo:1.1']
+        ['*:bar']            | ['org:bar:2.1']                | ['com:foo:1.1']
+        ['org:f*']           | ['org:foo:1.1']                | ['com:bar:2.1']
+        ['org:*']            | ['org:foo:1.1']                | ['com:bar:2.1']
+        ['or*:*']            | ['org:foo:1.1']                | ['com:bar:2.1']
+        ['*:*']              | ['org:foo:1.1', 'com:bar:2.1'] | []
     }
 
     private static ModuleComponentIdentifier id(String notation) {

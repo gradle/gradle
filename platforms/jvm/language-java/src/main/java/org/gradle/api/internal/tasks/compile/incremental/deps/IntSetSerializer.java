@@ -49,7 +49,7 @@ public class IntSetSerializer implements Serializer<IntSet> {
     public void write(Encoder encoder, IntSet value) throws Exception {
         encoder.writeInt(value.size());
         IntIterator iterator = value.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             encoder.writeInt(iterator.nextInt());
         }
     }

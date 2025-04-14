@@ -31,7 +31,8 @@
 
         <para>First, Gradle scripts are <firstterm>configuration scripts</firstterm>. As the script executes, it
             configures an object of a particular type. For example, as a build script executes, it configures an
-            object of type <apilink class="org.gradle.api.Project"/>. This object is called the <firstterm>delegate object</firstterm>
+            object of type<apilink class="org.gradle.api.Project"/>. This object is called the
+            <firstterm>delegate object</firstterm>
             of the script. The following table shows the delegate for each type of Gradle script.
         </para>
 
@@ -65,7 +66,9 @@
 
         <para>The properties and methods of the delegate object are available for you to use in the script.</para>
 
-        <para>Second, each Gradle script implements the <apilink class="org.gradle.api.Script"/> interface. This
+        <para>Second, each Gradle script implements the
+            <apilink class="org.gradle.api.Script"/>
+            interface. This
             interface defines a number of properties and methods which you can use in the script.
         </para>
     </section>
@@ -88,7 +91,8 @@
         <para>A build script is made up of zero or more statements and script blocks. Statements can include method calls,
             property assignments, and local variable definitions. A script block is a method call which takes a closure
             as a parameter. The closure is treated as a <firstterm>configuration closure</firstterm> which configures
-            some delegate object as it executes. The top level script blocks are listed below.</para>
+            some delegate object as it executes. The top level script blocks are listed below.
+        </para>
         <table>
             <title>Build script blocks</title>
             <tr>

@@ -19,8 +19,8 @@ package org.gradle.testkit.runner;
 /**
  * Thrown when executing a build that was expected to fail, but succeeded.
  *
- * @since 2.6
  * @see GradleRunner#buildAndFail()
+ * @since 2.6
  */
 public class UnexpectedBuildSuccess extends UnexpectedBuildResultException {
     public UnexpectedBuildSuccess(String message, BuildResult buildResult) {

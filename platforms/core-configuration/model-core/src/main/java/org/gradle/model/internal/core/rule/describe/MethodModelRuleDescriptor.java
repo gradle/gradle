@@ -20,7 +20,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
+
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.api.UncheckedIOException;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
@@ -52,6 +54,14 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         this.method = method;
     }
 
+    private static String toParameterList(List<ModelType<?>> genericParameterTypes) {
+        return PARAM_JOINER.join(Iterables.transform(genericParameterTypes, TYPE_DISPLAYNAME_FUNCTION));
+    }
+
+    public static <T, R> ModelRuleDescriptor of(WeaklyTypeReferencingMethod<T, R> method) {
+        return DESCRIPTOR_CACHE.get(method);
+    }
+
     @Override
     public void describeTo(Appendable appendable) {
         try {
@@ -70,10 +80,6 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String createDescription() {
         return getClassName() + "#" + method.getName() + "(" + toParameterList(method.getGenericParameterTypes()) + ")";
-    }
-
-    private static String toParameterList(List<ModelType<?>> genericParameterTypes) {
-        return PARAM_JOINER.join(Iterables.transform(genericParameterTypes, TYPE_DISPLAYNAME_FUNCTION));
     }
 
     private String getClassName() {
@@ -101,10 +107,6 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         result = Objects.hashCode(method);
         hashCode = result;
         return result;
-    }
-
-    public static <T, R> ModelRuleDescriptor of(WeaklyTypeReferencingMethod<T, R> method) {
-        return DESCRIPTOR_CACHE.get(method);
     }
 
     private static class Cache {

@@ -98,6 +98,9 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         return delegate.getComponentMetadataSupplier();
     }
 
+    private static class SignatureFileDefaultBuildableArtifactResolveResult extends DefaultBuildableArtifactFileResolveResult {
+    }
+
     private class VerifyingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
         private final boolean verifySignatures;
@@ -285,8 +288,5 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 return new DefaultTaskDependency();
             }
         }
-    }
-
-    private static class SignatureFileDefaultBuildableArtifactResolveResult extends DefaultBuildableArtifactFileResolveResult {
     }
 }

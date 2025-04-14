@@ -24,14 +24,6 @@ public abstract class FileLockOutcome {
     public static final FileLockOutcome LOCKED_BY_THIS_PROCESS = new FileLockOutcome() {
     };
 
-    public boolean isLockWasAcquired() {
-        return false;
-    }
-
-    public FileLock getFileLock() {
-        throw new IllegalStateException("Lock was not acquired");
-    }
-
     static FileLockOutcome acquired(FileLock fileLock) {
         return new FileLockOutcome() {
             @Override
@@ -44,5 +36,13 @@ public abstract class FileLockOutcome {
                 return fileLock;
             }
         };
+    }
+
+    public boolean isLockWasAcquired() {
+        return false;
+    }
+
+    public FileLock getFileLock() {
+        throw new IllegalStateException("Lock was not acquired");
     }
 }

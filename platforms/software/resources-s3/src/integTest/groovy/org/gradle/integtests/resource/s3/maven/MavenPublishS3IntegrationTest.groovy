@@ -66,7 +66,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.parsedPom.scopes.isEmpty()
 
         where:
-        bucket << ["tests3Bucket", "tests-3-Bucket-1.2.3" ]
+        bucket << ["tests3Bucket", "tests-3-Bucket-1.2.3"]
     }
 
     def "can publish to a S3 Maven repository using provided access and secret keys"() {

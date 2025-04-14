@@ -29,8 +29,9 @@ trait SnapshotterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
 
     final FileCollectionSnapshotter snapshotter = TestFiles.fileCollectionSnapshotter()
+
     ImmutableSortedMap<String, FileSystemSnapshot> snapshotsOf(Map<String, Object> properties) {
-        def builder = ImmutableSortedMap.<String, FileSystemSnapshot>naturalOrder()
+        def builder = ImmutableSortedMap.<String, FileSystemSnapshot> naturalOrder()
         properties.each { propertyName, value ->
             def values = (value instanceof Collection) ? (Collection<?>) value : [value]
             def files = values.collect {

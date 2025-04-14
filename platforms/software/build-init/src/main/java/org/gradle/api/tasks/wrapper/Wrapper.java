@@ -68,44 +68,30 @@ import java.util.Properties;
 @DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
 public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = WrapperDefaults.DISTRIBUTION_PATH;
-
-    /**
-     * Specifies the Gradle distribution type.
-     */
-    public enum DistributionType {
-        /**
-         * binary-only Gradle distribution without sources and documentation
-         */
-        BIN,
-        /**
-         * complete Gradle distribution with binaries, sources and documentation
-         */
-        ALL
-    }
-
-    /**
-     * Specifies how the wrapper path should be interpreted.
-     */
-    public enum PathBase {
-        PROJECT, GRADLE_USER_HOME
-    }
-
+    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
+    private final GradleVersionResolver gradleVersionResolver = new GradleVersionResolver();
+    private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
+    private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
     private Object scriptFile = WrapperDefaults.SCRIPT_PATH;
     private Object jarFile = WrapperDefaults.JAR_FILE_PATH;
     private String distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
     private PathBase distributionBase = WrapperDefaults.DISTRIBUTION_BASE;
     private String distributionUrl;
     private String distributionSha256Sum;
-    private final GradleVersionResolver gradleVersionResolver = new GradleVersionResolver();
     private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
-    private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
-    private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
-
     public Wrapper() {
         getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
+    }
+
+    private static URI getDistributionUri(File uriRoot, String url) {
+        try {
+            return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
+        } catch (URISyntaxException e) {
+            throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
+        }
     }
 
     @TaskAction
@@ -145,8 +131,6 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
-    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
-
     private void validateDistributionUrl(File uriRoot) {
         if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
             String url = getDistributionUrl();
@@ -162,14 +146,6 @@ public abstract class Wrapper extends DefaultTask {
                     throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
                 }
             }
-        }
-    }
-
-    private static URI getDistributionUri(File uriRoot, String url) {
-        try {
-            return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
-        } catch (URISyntaxException e) {
-            throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
         }
     }
 
@@ -507,5 +483,26 @@ public abstract class Wrapper extends DefaultTask {
     @Inject
     protected FileLookup getFileLookup() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Specifies the Gradle distribution type.
+     */
+    public enum DistributionType {
+        /**
+         * binary-only Gradle distribution without sources and documentation
+         */
+        BIN,
+        /**
+         * complete Gradle distribution with binaries, sources and documentation
+         */
+        ALL
+    }
+
+    /**
+     * Specifies how the wrapper path should be interpreted.
+     */
+    public enum PathBase {
+        PROJECT, GRADLE_USER_HOME
     }
 }

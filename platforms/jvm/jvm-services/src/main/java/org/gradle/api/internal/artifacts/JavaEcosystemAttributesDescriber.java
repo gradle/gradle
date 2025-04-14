@@ -56,76 +56,6 @@ import java.util.stream.Collectors;
         STATUS_ATTRIBUTE
     );
 
-    /**
-     * Checks if the given attribute is describable by this describer.
-     *
-     * @param attribute the attribute to check
-     * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
-     */
-    public boolean isDescribable(Attribute<?> attribute) {
-        return describableAttributes.stream().anyMatch(describableAttribute -> haveSameName(attribute, describableAttribute));
-    }
-
-    @Override
-    public ImmutableSet<Attribute<?>> getDescribableAttributes() {
-        return describableAttributes;
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
-        Object category = extractAttributeValue(attributes, Category.CATEGORY_ATTRIBUTE);
-        Object usage = extractAttributeValue(attributes, Usage.USAGE_ATTRIBUTE);
-        Object le = extractAttributeValue(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        Object bundling = extractAttributeValue(attributes, Bundling.BUNDLING_ATTRIBUTE);
-        Object targetJvmEnvironment = extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
-        Object targetJvm = extractAttributeValue(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-        Object docsType = extractAttributeValue(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
-        Object status = extractAttributeValue(attributes, STATUS_ATTRIBUTE);
-
-        StringBuilder sb = new StringBuilder();
-
-        if (category != null) {
-            if (docsType != null && toName(category).equals(Category.DOCUMENTATION)) {
-                describeDocsType(docsType, sb);
-            } else {
-                describeCategory(category, sb);
-            }
-        } else {
-            if (docsType != null && category == null) {
-                describeDocsType(docsType, sb);
-            } else {
-                sb.append("a component");
-            }
-        }
-        if (usage != null) {
-            sb.append(" for use during ");
-            describeUsage(usage, sb);
-        }
-        if (status != null) {
-            sb.append(", with a ");
-            describeStatus(status, sb);
-        }
-        if (targetJvm != null) {
-            sb.append(", compatible with ");
-            describeTargetJvm(targetJvm, sb);
-        }
-        if (le != null) {
-            sb.append(", ");
-            describeLibraryElements(le, sb);
-        }
-        if (targetJvmEnvironment != null) {
-            sb.append(", preferably optimized for ");
-            describeTargetJvmEnvironment(targetJvmEnvironment, sb);
-        }
-        if (bundling != null) {
-            sb.append(", and ");
-            describeBundling(bundling, sb);
-        }
-        processExtraAttributes(attributes, sb);
-        return sb.toString();
-    }
-
     private static void describeStatus(Object status, StringBuilder sb) {
         sb.append(toName(status)).append(" status");
     }
@@ -139,94 +69,8 @@ import java.util.stream.Collectors;
             .orElse(null);
     }
 
-    private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
-        List<Attribute<?>> describableAttributes = attributes.keySet().stream()
-            .filter(a -> !isDescribable(a))
-            .sorted(Comparator.comparing(Attribute::getName))
-            .collect(Collectors.toList());
-
-        if (!describableAttributes.isEmpty()) {
-            sb.append(", as well as ");
-            boolean comma = false;
-            for (Attribute<?> attribute : describableAttributes) {
-                if (comma) {
-                    sb.append(", ");
-                }
-                describeGenericAttribute(sb, attribute, extractAttributeValue(attributes, attribute));
-                comma = true;
-            }
-        }
-    }
-
-    @Override
-    @Nullable
-    public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
-        StringBuilder sb = new StringBuilder();
-        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
-            sb.append("its usage (required ");
-            describeUsage(consumerValue, sb);
-            sb.append(")");
-        } else if (haveSameName(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, attribute)) {
-            sb.append("its target Java environment (preferred optimized for ");
-            describeTargetJvmEnvironment(consumerValue, sb);
-            sb.append(")");
-        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
-            sb.append("its target Java version (required compatibility with ");
-            describeTargetJvm(consumerValue, sb);
-            sb.append(")");
-        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
-            sb.append("its component category (required ");
-            describeCategory(consumerValue, sb);
-            sb.append(")");
-        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
-            sb.append("how its dependencies are found (required ");
-            describeBundling(consumerValue, sb);
-            sb.append(")");
-        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
-            sb.append("its elements (required them ");
-            describeLibraryElements(consumerValue, sb);
-            sb.append(")");
-        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
-            sb.append("the documentation type (required ");
-            describeDocsType(consumerValue, sb);
-            sb.append(")");
-        } else if (haveSameName(STATUS_ATTRIBUTE, attribute)) {
-            sb.append("its status (required ");
-            describeStatus(consumerValue, sb);
-            sb.append(")");
-        } else {
-            return null;
-        }
-        return sb.toString();
-    }
-
     private static void describeGenericAttribute(StringBuilder sb, Attribute<?> attribute, @Nullable Object value) {
         sb.append("attribute '").append(attribute.getName()).append("' with value '").append(value).append("'");
-    }
-
-    @Override
-    public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
-        StringBuilder sb = new StringBuilder();
-        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
-            describeUsage(producerValue, sb);
-        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
-            sb.append("compatibility with ");
-            describeTargetJvm(producerValue, sb);
-        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
-            describeCategory(producerValue, sb);
-        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
-            describeDocsType(producerValue, sb);
-        } else if (haveSameName(STATUS_ATTRIBUTE, attribute)) {
-            describeStatus(producerValue, sb);
-        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
-            describeBundling(producerValue, sb);
-        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
-            sb.append("its elements ");
-            describeLibraryElements(producerValue, sb);
-        } else {
-            describeGenericAttribute(sb, attribute, producerValue);
-        }
-        return sb.toString();
     }
 
     private static void describeBundling(Object bundling, StringBuilder sb) {
@@ -363,5 +207,161 @@ import java.util.stream.Collectors;
      */
     private static boolean haveSameName(Attribute<?> a, Attribute<?> b) {
         return Objects.equals(a.getName(), b.getName());
+    }
+
+    /**
+     * Checks if the given attribute is describable by this describer.
+     *
+     * @param attribute the attribute to check
+     * @return {@code true} if the given attribute is describable by this describer; {@code false} otherwise
+     */
+    public boolean isDescribable(Attribute<?> attribute) {
+        return describableAttributes.stream().anyMatch(describableAttribute -> haveSameName(attribute, describableAttribute));
+    }
+
+    @Override
+    public ImmutableSet<Attribute<?>> getDescribableAttributes() {
+        return describableAttributes;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
+        Object category = extractAttributeValue(attributes, Category.CATEGORY_ATTRIBUTE);
+        Object usage = extractAttributeValue(attributes, Usage.USAGE_ATTRIBUTE);
+        Object le = extractAttributeValue(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        Object bundling = extractAttributeValue(attributes, Bundling.BUNDLING_ATTRIBUTE);
+        Object targetJvmEnvironment = extractAttributeValue(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
+        Object targetJvm = extractAttributeValue(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        Object docsType = extractAttributeValue(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
+        Object status = extractAttributeValue(attributes, STATUS_ATTRIBUTE);
+
+        StringBuilder sb = new StringBuilder();
+
+        if (category != null) {
+            if (docsType != null && toName(category).equals(Category.DOCUMENTATION)) {
+                describeDocsType(docsType, sb);
+            } else {
+                describeCategory(category, sb);
+            }
+        } else {
+            if (docsType != null && category == null) {
+                describeDocsType(docsType, sb);
+            } else {
+                sb.append("a component");
+            }
+        }
+        if (usage != null) {
+            sb.append(" for use during ");
+            describeUsage(usage, sb);
+        }
+        if (status != null) {
+            sb.append(", with a ");
+            describeStatus(status, sb);
+        }
+        if (targetJvm != null) {
+            sb.append(", compatible with ");
+            describeTargetJvm(targetJvm, sb);
+        }
+        if (le != null) {
+            sb.append(", ");
+            describeLibraryElements(le, sb);
+        }
+        if (targetJvmEnvironment != null) {
+            sb.append(", preferably optimized for ");
+            describeTargetJvmEnvironment(targetJvmEnvironment, sb);
+        }
+        if (bundling != null) {
+            sb.append(", and ");
+            describeBundling(bundling, sb);
+        }
+        processExtraAttributes(attributes, sb);
+        return sb.toString();
+    }
+
+    private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
+        List<Attribute<?>> describableAttributes = attributes.keySet().stream()
+            .filter(a -> !isDescribable(a))
+            .sorted(Comparator.comparing(Attribute::getName))
+            .collect(Collectors.toList());
+
+        if (!describableAttributes.isEmpty()) {
+            sb.append(", as well as ");
+            boolean comma = false;
+            for (Attribute<?> attribute : describableAttributes) {
+                if (comma) {
+                    sb.append(", ");
+                }
+                describeGenericAttribute(sb, attribute, extractAttributeValue(attributes, attribute));
+                comma = true;
+            }
+        }
+    }
+
+    @Override
+    @Nullable
+    public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
+        StringBuilder sb = new StringBuilder();
+        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
+            sb.append("its usage (required ");
+            describeUsage(consumerValue, sb);
+            sb.append(")");
+        } else if (haveSameName(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, attribute)) {
+            sb.append("its target Java environment (preferred optimized for ");
+            describeTargetJvmEnvironment(consumerValue, sb);
+            sb.append(")");
+        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
+            sb.append("its target Java version (required compatibility with ");
+            describeTargetJvm(consumerValue, sb);
+            sb.append(")");
+        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
+            sb.append("its component category (required ");
+            describeCategory(consumerValue, sb);
+            sb.append(")");
+        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
+            sb.append("how its dependencies are found (required ");
+            describeBundling(consumerValue, sb);
+            sb.append(")");
+        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
+            sb.append("its elements (required them ");
+            describeLibraryElements(consumerValue, sb);
+            sb.append(")");
+        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
+            sb.append("the documentation type (required ");
+            describeDocsType(consumerValue, sb);
+            sb.append(")");
+        } else if (haveSameName(STATUS_ATTRIBUTE, attribute)) {
+            sb.append("its status (required ");
+            describeStatus(consumerValue, sb);
+            sb.append(")");
+        } else {
+            return null;
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
+        StringBuilder sb = new StringBuilder();
+        if (haveSameName(Usage.USAGE_ATTRIBUTE, attribute)) {
+            describeUsage(producerValue, sb);
+        } else if (haveSameName(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
+            sb.append("compatibility with ");
+            describeTargetJvm(producerValue, sb);
+        } else if (haveSameName(Category.CATEGORY_ATTRIBUTE, attribute)) {
+            describeCategory(producerValue, sb);
+        } else if (haveSameName(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
+            describeDocsType(producerValue, sb);
+        } else if (haveSameName(STATUS_ATTRIBUTE, attribute)) {
+            describeStatus(producerValue, sb);
+        } else if (haveSameName(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
+            describeBundling(producerValue, sb);
+        } else if (haveSameName(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
+            sb.append("its elements ");
+            describeLibraryElements(producerValue, sb);
+        } else {
+            describeGenericAttribute(sb, attribute, producerValue);
+        }
+        return sb.toString();
     }
 }

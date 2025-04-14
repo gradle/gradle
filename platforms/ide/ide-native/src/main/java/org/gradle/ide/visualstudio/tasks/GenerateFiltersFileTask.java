@@ -61,13 +61,13 @@ public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStu
         return true;
     }
 
-    public void setVisualStudioProject(VisualStudioProject vsProject) {
-        this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
-    }
-
     @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
+    }
+
+    public void setVisualStudioProject(VisualStudioProject vsProject) {
+        this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
     /**

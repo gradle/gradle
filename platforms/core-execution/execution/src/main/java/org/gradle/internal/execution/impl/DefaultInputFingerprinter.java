@@ -112,7 +112,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 throw new InputFingerprintingException(
                     propertyName,
                     String.format("value '%s' cannot be serialized",
-                    value.getValue()),
+                        value.getValue()),
                     e);
             }
         }
@@ -173,6 +173,19 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             this.propertiesRequiringIsEmptyCheck = propertiesRequiringIsEmptyCheck;
         }
 
+        private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(ImmutableSortedMap<K, V> a, ImmutableSortedMap<K, V> b) {
+            if (a.isEmpty()) {
+                return b;
+            } else if (b.isEmpty()) {
+                return a;
+            } else {
+                return ImmutableSortedMap.<K, V>naturalOrder()
+                    .putAll(a)
+                    .putAll(b)
+                    .build();
+            }
+        }
+
         @Override
         public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
             return valueSnapshots;
@@ -196,19 +209,6 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         @Override
         public ImmutableSet<String> getPropertiesRequiringIsEmptyCheck() {
             return propertiesRequiringIsEmptyCheck;
-        }
-
-        private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(ImmutableSortedMap<K, V> a, ImmutableSortedMap<K, V> b) {
-            if (a.isEmpty()) {
-                return b;
-            } else if (b.isEmpty()) {
-                return a;
-            } else {
-                return ImmutableSortedMap.<K, V>naturalOrder()
-                    .putAll(a)
-                    .putAll(b)
-                    .build();
-            }
         }
     }
 }

@@ -32,7 +32,7 @@ class DefaultIvyModuleDescriptorTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    def "getBranch returns branch" () {
+    def "getBranch returns branch"() {
         given:
         def ivyModuleDescriptor = new DefaultIvyModuleDescriptor([:], 'someBranch', null)
 

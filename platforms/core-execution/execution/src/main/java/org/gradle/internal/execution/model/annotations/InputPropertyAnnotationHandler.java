@@ -45,9 +45,28 @@ import static org.gradle.internal.execution.model.annotations.ModifierAnnotation
 public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
     public static final String VALIDATION_PROBLEMS = "validation_problems";
+    private static final String CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES = "CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES";
+    private static final String INCORRECT_USE_OF_INPUT_ANNOTATION = "INCORRECT_USE_OF_INPUT_ANNOTATION";
+    private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
 
     public InputPropertyAnnotationHandler() {
         super(Input.class, ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
+    }
+
+    private static void validateNotUrlType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        List<Class<?>> valueTypes = unpackValueTypesOf(propertyMetadata);
+        if (valueTypes.stream().anyMatch(URL.class::isAssignableFrom)) {
+            validationContext.visitPropertyProblem(problem ->
+                problem
+                    .forProperty(propertyMetadata.getPropertyName())
+                    .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE) + "-for-input", "Unsupported value type for @Input annotation", GradleCoreProblemGroup.validation().property())
+                    .contextualLabel(String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
+                    .documentedAt(userManual(VALIDATION_PROBLEMS, UNSUPPORTED_VALUE_TYPE.toLowerCase(Locale.ROOT)))
+                    .severity(WARNING)
+                    .details(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
+                    .solution("Use type 'java.net.URI' instead")
+            );
+        }
     }
 
     @Override
@@ -70,8 +89,6 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         validateNotUrlType(propertyMetadata, validationContext);
     }
 
-    private static final String CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES = "CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES";
-
     private void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
@@ -87,8 +104,6 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             );
         }
     }
-
-    private static final String INCORRECT_USE_OF_INPUT_ANNOTATION = "INCORRECT_USE_OF_INPUT_ANNOTATION";
 
     private void validateNotFileType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (File.class.isAssignableFrom(valueType)
@@ -123,25 +138,6 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
                     .severity(Severity.ERROR)
                     .details("A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                     .solution("Annotate with @InputDirectory for directories")
-            );
-        }
-    }
-
-
-    private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
-
-    private static void validateNotUrlType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        List<Class<?>> valueTypes = unpackValueTypesOf(propertyMetadata);
-        if (valueTypes.stream().anyMatch(URL.class::isAssignableFrom)) {
-            validationContext.visitPropertyProblem(problem ->
-                problem
-                    .forProperty(propertyMetadata.getPropertyName())
-                    .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE) + "-for-input", "Unsupported value type for @Input annotation", GradleCoreProblemGroup.validation().property())
-                    .contextualLabel(String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
-                    .documentedAt(userManual(VALIDATION_PROBLEMS, UNSUPPORTED_VALUE_TYPE.toLowerCase(Locale.ROOT)))
-                    .severity(WARNING)
-                    .details(String.format("Type '%s' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type", URL.class.getName()))
-                    .solution("Use type 'java.net.URI' instead")
             );
         }
     }

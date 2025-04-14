@@ -120,7 +120,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
             Thread.sleep(50)
             return false
         }
-        1 * contentionHandler3.maybePingOwner(port2, _, _, _, _)  >> { int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
+        1 * contentionHandler3.maybePingOwner(port2, _, _, _, _) >> { int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
             assert timeElapsed < 20
             lock2.close()
             return false

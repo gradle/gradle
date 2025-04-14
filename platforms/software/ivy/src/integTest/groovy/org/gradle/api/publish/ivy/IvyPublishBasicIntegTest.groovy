@@ -70,7 +70,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         module.assertArtifactsPublished("ivy-1.0.xml")
 
         and:
-        with (module.parsedIvy) {
+        with(module.parsedIvy) {
             configurations.isEmpty()
             artifacts.isEmpty()
             dependencies.isEmpty()

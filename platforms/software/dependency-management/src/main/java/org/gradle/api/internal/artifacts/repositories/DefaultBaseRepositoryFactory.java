@@ -83,29 +83,30 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final ProviderFactory providerFactory;
     private final VersionParser versionParser;
 
-    public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
-                                        FileResolver fileResolver,
-                                        FileCollectionFactory fileCollectionFactory,
-                                        RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                        FileStore<String> externalResourcesFileStore,
-                                        MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                        GradleModuleMetadataParser metadataParser,
-                                        AuthenticationSchemeRegistry authenticationSchemeRegistry,
-                                        IvyContextManager ivyContextManager,
-                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                        InstantiatorFactory instantiatorFactory,
-                                        FileResourceRepository fileResourceRepository,
-                                        MavenMutableModuleMetadataFactory mavenMetadataFactory,
-                                        IvyMutableModuleMetadataFactory ivyMetadataFactory,
-                                        IsolatableFactory isolatableFactory,
-                                        ObjectFactory objectFactory,
-                                        CollectionCallbackActionDecorator callbackActionDecorator,
-                                        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                        ChecksumService checksumService,
-                                        ProviderFactory providerFactory,
-                                        VersionParser versionParser
+    public DefaultBaseRepositoryFactory(
+        LocalMavenRepositoryLocator localMavenRepositoryLocator,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        RepositoryTransportFactory transportFactory,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        FileStore<String> externalResourcesFileStore,
+        MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
+        GradleModuleMetadataParser metadataParser,
+        AuthenticationSchemeRegistry authenticationSchemeRegistry,
+        IvyContextManager ivyContextManager,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        InstantiatorFactory instantiatorFactory,
+        FileResourceRepository fileResourceRepository,
+        MavenMutableModuleMetadataFactory mavenMetadataFactory,
+        IvyMutableModuleMetadataFactory ivyMetadataFactory,
+        IsolatableFactory isolatableFactory,
+        ObjectFactory objectFactory,
+        CollectionCallbackActionDecorator callbackActionDecorator,
+        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+        ChecksumService checksumService,
+        ProviderFactory providerFactory,
+        VersionParser versionParser
     ) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;

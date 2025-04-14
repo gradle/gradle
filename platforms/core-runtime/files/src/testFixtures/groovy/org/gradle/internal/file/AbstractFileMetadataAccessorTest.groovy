@@ -32,6 +32,7 @@ import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 abstract class AbstractFileMetadataAccessorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     abstract FileMetadataAccessor getAccessor()
 
     abstract void assertSameLastModified(FileMetadata fileMetadata, File file)

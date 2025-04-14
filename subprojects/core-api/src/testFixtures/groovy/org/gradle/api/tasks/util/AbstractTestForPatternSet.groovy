@@ -48,7 +48,7 @@ abstract class AbstractTestForPatternSet extends Specification {
         assert patternSet."$methodName"(TEST_PATTERN_3).is(patternSet)
         assert patternSet."$propertyName" == [TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3] as Set
 
-        patternSet."$propertyName" = {[TEST_PATTERN_2].iterator()} as Iterable
+        patternSet."$propertyName" = { [TEST_PATTERN_2].iterator() } as Iterable
         assert patternSet."$propertyName" == [TEST_PATTERN_2] as Set
 
         assert patternSet."$methodName"([TEST_PATTERN_3]).is(patternSet)

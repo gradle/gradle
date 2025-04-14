@@ -55,14 +55,6 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
     protected final BuildOperationRunner buildOperationRunner;
     protected final OriginMetadataFactory originMetadataFactory;
 
-    public enum BuildCacheMode {
-        ENABLED, DISABLED
-    }
-
-    public enum RemoteAccessMode {
-        ONLINE, OFFLINE
-    }
-
     public AbstractBuildCacheControllerFactory(
         StartParameter startParameter,
         BuildOperationRunner buildOperationRunner,
@@ -73,68 +65,6 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         this.buildOperationRunner = buildOperationRunner;
         this.originMetadataFactory = originMetadataFactory;
         this.stringInterner = stringInterner;
-    }
-
-    abstract protected BuildCacheController doCreateController(
-        Path buildIdentityPath,
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
-    );
-
-    @Override
-    public BuildCacheController createController(Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, InstanceGenerator instanceGenerator) {
-        BuildCacheMode buildCacheState = startParameter.isBuildCacheEnabled() ? AbstractBuildCacheControllerFactory.BuildCacheMode.ENABLED : AbstractBuildCacheControllerFactory.BuildCacheMode.DISABLED;
-        RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? AbstractBuildCacheControllerFactory.RemoteAccessMode.OFFLINE : AbstractBuildCacheControllerFactory.RemoteAccessMode.ONLINE;
-
-        return buildOperationRunner.call(new CallableBuildOperation<BuildCacheController>() {
-            @Override
-            public BuildCacheController call(BuildOperationContext context) {
-                if (buildCacheState == BuildCacheMode.DISABLED) {
-                    context.setResult(ResultImpl.disabled());
-                    return NoOpBuildCacheController.INSTANCE;
-                }
-
-                DirectoryBuildCache local = buildCacheConfiguration.getLocal();
-                BuildCache remote = buildCacheConfiguration.getRemote();
-
-                boolean localEnabled = local.isEnabled();
-                boolean remoteEnabled = remote != null && remote.isEnabled();
-
-                if (remoteEnabled && remoteAccessMode == RemoteAccessMode.OFFLINE) {
-                    remoteEnabled = false;
-                    LOGGER.warn("Remote build cache is disabled when running with --offline.");
-                }
-
-                DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService = localEnabled
-                    ? createBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
-                    : null;
-
-                DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService = remoteEnabled
-                    ? createBuildCacheService(remote, BuildCacheServiceRole.REMOTE, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
-                    : null;
-
-                context.setResult(new ResultImpl(
-                    true,
-                    local.isEnabled(),
-                    remote != null && remote.isEnabled() && remoteAccessMode == RemoteAccessMode.ONLINE,
-                    localDescribedService == null ? null : localDescribedService.description,
-                    remoteDescribedService == null ? null : remoteDescribedService.description
-                ));
-
-                if (!localEnabled && !remoteEnabled) {
-                    LOGGER.warn("Using the build cache is enabled, but no build caches are configured or enabled.");
-                    return NoOpBuildCacheController.INSTANCE;
-                } else {
-                    return doCreateController(buildIdentityPath, localDescribedService, remoteDescribedService);
-                }
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(new DetailsImpl(buildIdentityPath.getPath()));
-            }
-        });
     }
 
     private static <C extends BuildCache, S> DescribedBuildCacheService<C, S> createBuildCacheService(
@@ -200,6 +130,76 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
         }
     }
 
+    abstract protected BuildCacheController doCreateController(
+        Path buildIdentityPath,
+        @Nullable DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService,
+        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
+    );
+
+    @Override
+    public BuildCacheController createController(Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, InstanceGenerator instanceGenerator) {
+        BuildCacheMode buildCacheState = startParameter.isBuildCacheEnabled() ? AbstractBuildCacheControllerFactory.BuildCacheMode.ENABLED : AbstractBuildCacheControllerFactory.BuildCacheMode.DISABLED;
+        RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? AbstractBuildCacheControllerFactory.RemoteAccessMode.OFFLINE : AbstractBuildCacheControllerFactory.RemoteAccessMode.ONLINE;
+
+        return buildOperationRunner.call(new CallableBuildOperation<BuildCacheController>() {
+            @Override
+            public BuildCacheController call(BuildOperationContext context) {
+                if (buildCacheState == BuildCacheMode.DISABLED) {
+                    context.setResult(ResultImpl.disabled());
+                    return NoOpBuildCacheController.INSTANCE;
+                }
+
+                DirectoryBuildCache local = buildCacheConfiguration.getLocal();
+                BuildCache remote = buildCacheConfiguration.getRemote();
+
+                boolean localEnabled = local.isEnabled();
+                boolean remoteEnabled = remote != null && remote.isEnabled();
+
+                if (remoteEnabled && remoteAccessMode == RemoteAccessMode.OFFLINE) {
+                    remoteEnabled = false;
+                    LOGGER.warn("Remote build cache is disabled when running with --offline.");
+                }
+
+                DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService = localEnabled
+                    ? createBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
+                    : null;
+
+                DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService = remoteEnabled
+                    ? createBuildCacheService(remote, BuildCacheServiceRole.REMOTE, buildIdentityPath, buildCacheConfiguration, instanceGenerator)
+                    : null;
+
+                context.setResult(new ResultImpl(
+                    true,
+                    local.isEnabled(),
+                    remote != null && remote.isEnabled() && remoteAccessMode == RemoteAccessMode.ONLINE,
+                    localDescribedService == null ? null : localDescribedService.description,
+                    remoteDescribedService == null ? null : remoteDescribedService.description
+                ));
+
+                if (!localEnabled && !remoteEnabled) {
+                    LOGGER.warn("Using the build cache is enabled, but no build caches are configured or enabled.");
+                    return NoOpBuildCacheController.INSTANCE;
+                } else {
+                    return doCreateController(buildIdentityPath, localDescribedService, remoteDescribedService);
+                }
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Finalize build cache configuration")
+                    .details(new DetailsImpl(buildIdentityPath.getPath()));
+            }
+        });
+    }
+
+    public enum BuildCacheMode {
+        ENABLED, DISABLED
+    }
+
+    public enum RemoteAccessMode {
+        ONLINE, OFFLINE
+    }
+
     private static final class BuildCacheDescriptionImpl implements FinalizeBuildCacheConfigurationBuildOperationType.Result.BuildCacheDescription {
 
         private final String className;
@@ -237,8 +237,8 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
 
     private static class Describer implements BuildCacheServiceFactory.Describer {
 
-        private String type;
         private final Map<String, String> configParams = new HashMap<>();
+        private String type;
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {

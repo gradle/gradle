@@ -29,15 +29,21 @@ import org.testng.annotations.Test
 
 public class FailSkippedTestsListener implements ITestListener {
     void onTestStart(ITestResult result) {}
+
     void onTestSuccess(ITestResult result) {
         result.setStatus(ITestResult.FAILURE)
     }
+
     void onTestFailure(ITestResult result) {}
+
     void onTestSkipped(ITestResult result) {
 
     }
+
     void onTestFailedButWithinSuccessPercentage(ITestResult result) {}
+
     void onStart(ITestContext context) {}
+
     void onFinish(ITestContext context) {}
 }
 
@@ -47,20 +53,40 @@ public class ATestNGClassWithSkippedTest {
 }
 
 public class ATestNGClass {
-    @BeforeClass public void beforeClass() {}
-    @AfterClass public void afterClass() {}
-    @BeforeMethod public void beforeMethod() {}
-    @AfterMethod public void afterMethod() {}
-    @Test public void ok() {}
-    @Test(enabled = false) public void skipped() {}
+    @BeforeClass
+    public void beforeClass() {}
+
+    @AfterClass
+    public void afterClass() {}
+
+    @BeforeMethod
+    public void beforeMethod() {}
+
+    @AfterMethod
+    public void afterMethod() {}
+
+    @Test
+    public void ok() {}
+
+    @Test(enabled = false)
+    public void skipped() {}
 }
 
 public class ATestNGClassWithBeforeAndAfter {
-    @BeforeClass public void beforeClass() { assert false }
-    @AfterClass public void afterClass() { assert false }
-    @BeforeMethod public void beforeMethod() { assert false }
-    @AfterMethod public void afterMethod() { assert false }
-    @Test public void ok() {}
+    @BeforeClass
+    public void beforeClass() { assert false }
+
+    @AfterClass
+    public void afterClass() { assert false }
+
+    @BeforeMethod
+    public void beforeMethod() { assert false }
+
+    @AfterMethod
+    public void afterMethod() { assert false }
+
+    @Test
+    public void ok() {}
 }
 
 public class ATestNGClassWithExpectedException {
@@ -71,17 +97,31 @@ public class ATestNGClassWithExpectedException {
 }
 
 public class ATestNGClassWithManyMethods {
-    @Test public void ok() {}
-    @Test public void ok2() {}
-    @Test public void another() {}
-    @Test public void yetAnother() {}
+    @Test
+    public void ok() {}
+
+    @Test
+    public void ok2() {}
+
+    @Test
+    public void another() {}
+
+    @Test
+    public void yetAnother() {}
 }
 
 public class ATestNGClassWithGroups {
-    @Test(groups="group1") public void group1() {}
-    @Test(groups="group2") public void group2() {}
-    @Test(groups="group2,group3") public void excluded() {}
-    @Test(groups="group4") public void ignored() {}
+    @Test(groups = "group1")
+    public void group1() {}
+
+    @Test(groups = "group2")
+    public void group2() {}
+
+    @Test(groups = "group2,group3")
+    public void excluded() {}
+
+    @Test(groups = "group4")
+    public void ignored() {}
 }
 
 public class ATestNGFactoryClass {
@@ -92,16 +132,24 @@ public class ATestNGFactoryClass {
 }
 
 public class ATestNGClassWithBrokenConstructor {
-    def ATestNGClassWithBrokenConstructor() { throw new RuntimeException("broken")}
-    @Test public void test() {}
+    def ATestNGClassWithBrokenConstructor() { throw new RuntimeException("broken") }
+
+    @Test
+    public void test() {}
 }
 
 public class ATestNGClassWithBrokenSetupMethod {
-    @BeforeMethod public void beforeMethod() { throw new RuntimeException("broken") }
-    @Test public void test() {}
+    @BeforeMethod
+    public void beforeMethod() { throw new RuntimeException("broken") }
+
+    @Test
+    public void test() {}
 }
 
 public class ATestNGClassWithBrokenDependencyMethod {
-    @Test public void beforeMethod() { throw new RuntimeException("broken") }
-    @Test(dependsOnMethods = 'beforeMethod') public void test() {}
+    @Test
+    public void beforeMethod() { throw new RuntimeException("broken") }
+
+    @Test(dependsOnMethods = 'beforeMethod')
+    public void test() {}
 }

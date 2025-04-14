@@ -41,8 +41,11 @@ import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 abstract class NodeBackedModelMapSpec<T extends Named, S extends Special & T> extends ProjectRegistrySpec {
     abstract Class<T> getItemClass()
+
     abstract Class<S> getSpecialItemClass()
+
     ModelType<T> getItemType() { ModelType.of(itemClass) }
+
     ModelType<S> getSpecialItemType() { ModelType.of(specialItemClass) }
     ModelPath path = ModelPath.path("map")
 
@@ -238,7 +241,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends Special & T> ex
         def map = realizeAsModelMap()
 
         expect:
-        with (map.withType(itemClass)) {
+        with(map.withType(itemClass)) {
             it*.name == ["item", "specialItem"]
             it.keySet() as List == ["item", "specialItem"]
             it.size() == 2
@@ -247,7 +250,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends Special & T> ex
             this.specialItemClass.isInstance it.get("specialItem")
         }
 
-        with (map.withType(specialItemClass).withType(Named)) {
+        with(map.withType(specialItemClass).withType(Named)) {
             it*.name == ["specialItem"]
             it.keySet() as List == ["specialItem"]
             it.size() == 1
@@ -256,7 +259,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends Special & T> ex
             this.specialItemClass.isInstance it.get("specialItem")
         }
 
-        with (map.withType(specialItemClass).withType(itemClass)) {
+        with(map.withType(specialItemClass).withType(itemClass)) {
             it*.name == ["specialItem"]
             it.keySet() as List == ["specialItem"]
             it.size() == 1
@@ -265,7 +268,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends Special & T> ex
             this.specialItemClass.isInstance it.get("specialItem")
         }
 
-        with (map.withType(String).withType(itemClass)) {
+        with(map.withType(String).withType(itemClass)) {
             it*.name == []
             it.keySet().isEmpty()
             it.size() == 0
@@ -997,7 +1000,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
                 }
             }
             .registerModelMap("beans", Bean) { it.registerFactory(Bean) { new Bean(name: it) } }
-                .mutate {
+            .mutate {
                 it.path "beans" type mmType action { c ->
                     c.create("element")
                 }

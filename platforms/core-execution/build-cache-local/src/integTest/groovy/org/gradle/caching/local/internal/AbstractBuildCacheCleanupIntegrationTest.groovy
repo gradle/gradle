@@ -36,8 +36,11 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     def hashStringLength = Hashing.defaultFunction().hexDigits
 
     abstract String getBuildCacheName();
+
     abstract void createBuildCacheEntry(String key, File value, long timestamp);
+
     abstract boolean existsBuildCacheEntry(String key);
+
     abstract AbstractIntegrationSpec withEnabledBuildCache();
 
     def setup() {

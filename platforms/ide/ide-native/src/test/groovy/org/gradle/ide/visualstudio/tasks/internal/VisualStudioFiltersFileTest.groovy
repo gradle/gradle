@@ -36,13 +36,13 @@ class VisualStudioFiltersFileTest extends Specification {
         filtersFile.loadDefaults()
 
         then:
-        Node sourceFiles = itemGroup('Filters').Filter.find({it.'@Include' == 'Source Files'}) as Node
+        Node sourceFiles = itemGroup('Filters').Filter.find({ it.'@Include' == 'Source Files' }) as Node
         sourceFiles.Extensions[0].text() == 'cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx'
 
-        Node headerFiles = itemGroup('Filters').Filter.find({it.'@Include' == 'Header Files'}) as Node
+        Node headerFiles = itemGroup('Filters').Filter.find({ it.'@Include' == 'Header Files' }) as Node
         headerFiles.Extensions[0].text() == 'h;hpp;h++;hxx;hm;inl;inc;xsd'
 
-        Node resourceFiles = itemGroup('Filters').Filter.find({it.'@Include' == 'Resource Files'}) as Node
+        Node resourceFiles = itemGroup('Filters').Filter.find({ it.'@Include' == 'Resource Files' }) as Node
         resourceFiles.Extensions[0].text() == 'rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav'
 
         and:
@@ -82,7 +82,7 @@ class VisualStudioFiltersFileTest extends Specification {
     }
 
     private Node itemGroup(String label) {
-        return filtersXml.ItemGroup.find({it.'@Label' == label}) as Node
+        return filtersXml.ItemGroup.find({ it.'@Label' == label }) as Node
     }
 
     private def getFiltersXml() {

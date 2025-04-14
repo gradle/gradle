@@ -34,8 +34,8 @@ import static org.gradle.util.internal.CollectionUtils.sort;
 
 public abstract class AbstractCompatibilityTestInterceptor extends AbstractContextualMultiVersionTestInterceptor<GradleDistributionTool> {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
-    final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
     protected final GradleDistribution current = new UnderDevelopmentGradleDistribution(buildContext);
+    final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions(buildContext);
 
     protected AbstractCompatibilityTestInterceptor(Class<?> target) {
         super(target);

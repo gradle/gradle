@@ -31,6 +31,9 @@ public abstract class LazilyInitializedFileCollection extends CompositeFileColle
     // Used in a third-party plugin Freefair AspectJ:
     //https://github.com/freefair/gradle-plugins/blob/fe992e9e8a3ed812c941aae02a594c8094da053c/aspectj-plugin/src/main/java/io/freefair/gradle/plugins/aspectj/internal/AspectJRuntime.java#L49
     // TODO Remove once the third-party usage is considered obsolete.
+
+    private FileCollectionInternal delegate;
+
     /**
      * @deprecated Use the overload accepting the TaskDependencyFactory
      */
@@ -42,8 +45,6 @@ public abstract class LazilyInitializedFileCollection extends CompositeFileColle
     public LazilyInitializedFileCollection(TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
     }
-
-    private FileCollectionInternal delegate;
 
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {

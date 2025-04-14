@@ -45,8 +45,8 @@ public class DefaultPolymorphicNamedEntityInstantiator<T> implements Polymorphic
         NamedDomainObjectFactory<S> factory = (NamedDomainObjectFactory<S>) factories.get(type);
         if (factory == null) {
             throw new InvalidUserDataException(
-                    String.format("Cannot create a %s because this type is not known to %s. Known types are: %s", type.getSimpleName(), displayName, getSupportedTypeNames()),
-                    new NoFactoryRegisteredForTypeException());
+                String.format("Cannot create a %s because this type is not known to %s. Known types are: %s", type.getSimpleName(), displayName, getSupportedTypeNames()),
+                new NoFactoryRegisteredForTypeException());
         }
         return factory.create(name);
     }

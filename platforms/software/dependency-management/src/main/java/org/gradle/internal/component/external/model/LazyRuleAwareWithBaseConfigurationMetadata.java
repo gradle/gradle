@@ -54,14 +54,16 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private ImmutableCapabilities computedCapabilities;
     private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
 
-    LazyRuleAwareWithBaseConfigurationMetadata(String name,
-                                               @Nullable ModuleConfigurationMetadata base,
-                                               ModuleComponentIdentifier componentId,
-                                               AttributesFactory attributesFactory,
-                                               ImmutableAttributes componentLevelAttributes,
-                                               VariantMetadataRules variantMetadataRules,
-                                               ImmutableList<ExcludeMetadata> excludes,
-                                               boolean externalVariant) {
+    LazyRuleAwareWithBaseConfigurationMetadata(
+        String name,
+        @Nullable ModuleConfigurationMetadata base,
+        ModuleComponentIdentifier componentId,
+        AttributesFactory attributesFactory,
+        ImmutableAttributes componentLevelAttributes,
+        VariantMetadataRules variantMetadataRules,
+        ImmutableList<ExcludeMetadata> excludes,
+        boolean externalVariant
+    ) {
         this.name = name;
         this.base = base;
         this.componentId = componentId;

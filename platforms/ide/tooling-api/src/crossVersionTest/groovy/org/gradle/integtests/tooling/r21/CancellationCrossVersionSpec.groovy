@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.integtests.tooling.r21
 
 import org.gradle.integtests.tooling.fixture.TestResultHandler

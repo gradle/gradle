@@ -25,7 +25,8 @@ import spock.lang.Shared
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
-    @Shared String version = buildContext.distZipVersion.version
+    @Shared
+    String version = buildContext.distZipVersion.version
 
     @Override
     String getDistributionLabel() {
@@ -42,7 +43,8 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
         0
     }
 
-    @Requires([UnitTestPreconditions.NotWindows, UnitTestPreconditions.StableGroovy]) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
+    @Requires([UnitTestPreconditions.NotWindows, UnitTestPreconditions.StableGroovy])
+    // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
     def docsZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()

@@ -44,10 +44,10 @@ public class GarbageCollectionStats {
             return noData();
         } else {
             return new GarbageCollectionStats(
-                    calculateRate(events),
-                    calculateAverageUsage(events),
-                    findMaxSize(events),
-                    events.size()
+                calculateRate(events),
+                calculateAverageUsage(events),
+                findMaxSize(events),
+                events.size()
             );
         }
     }
@@ -57,10 +57,10 @@ public class GarbageCollectionStats {
             return noData();
         } else {
             return new GarbageCollectionStats(
-                    0, // non-heap spaces are not garbage collected
-                    calculateAverageUsage(events),
-                    findMaxSize(events),
-                    events.size()
+                0, // non-heap spaces are not garbage collected
+                calculateAverageUsage(events),
+                findMaxSize(events),
+                events.size()
             );
         }
     }
@@ -83,7 +83,7 @@ public class GarbageCollectionStats {
         long gcCountDelta = last.getCount() - first.getCount();
         // Time interval between the first event in the window and the last
         long timeDelta = TimeUnit.MILLISECONDS.toSeconds(last.getTimestamp() - first.getTimestamp());
-        return (double)gcCountDelta / timeDelta;
+        return (double) gcCountDelta / timeDelta;
     }
 
     private static long calculateAverageUsage(Collection<GarbageCollectionEvent> events) {

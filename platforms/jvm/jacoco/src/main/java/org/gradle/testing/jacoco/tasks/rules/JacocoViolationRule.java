@@ -30,8 +30,6 @@ import java.util.List;
  */
 public interface JacocoViolationRule extends Serializable {
 
-    void setEnabled(boolean enabled);
-
     /**
      * Indicates if the rule should be used when checking generated coverage metrics. Defaults to true.
      */
@@ -39,12 +37,7 @@ public interface JacocoViolationRule extends Serializable {
     @ToBeReplacedByLazyProperty
     boolean isEnabled();
 
-    /**
-     * Sets element for the rule.
-     *
-     * @param element Element
-     */
-    void setElement(String element);
+    void setEnabled(boolean enabled);
 
     /**
      * Gets the element for the rule as defined by
@@ -56,11 +49,11 @@ public interface JacocoViolationRule extends Serializable {
     String getElement();
 
     /**
-     * Sets list of elements that should be included in check.
+     * Sets element for the rule.
      *
-     * @param includes Inclusions
+     * @param element Element
      */
-    void setIncludes(List<String> includes);
+    void setElement(String element);
 
     /**
      * List of elements that should be included in check. Names can use wildcards (* and ?).
@@ -71,11 +64,11 @@ public interface JacocoViolationRule extends Serializable {
     List<String> getIncludes();
 
     /**
-     * Sets list of elements that should be excluded from check.
+     * Sets list of elements that should be included in check.
      *
-     * @param excludes Exclusions
+     * @param includes Inclusions
      */
-    void setExcludes(List<String> excludes);
+    void setIncludes(List<String> includes);
 
     /**
      * List of elements that should be excluded from check. Names can use wildcards (* and ?).
@@ -84,6 +77,13 @@ public interface JacocoViolationRule extends Serializable {
     @Input
     @ToBeReplacedByLazyProperty
     List<String> getExcludes();
+
+    /**
+     * Sets list of elements that should be excluded from check.
+     *
+     * @param excludes Exclusions
+     */
+    void setExcludes(List<String> excludes);
 
     /**
      * Gets all limits defined for this rule. Defaults to an empty list.

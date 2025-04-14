@@ -33,17 +33,17 @@ import java.util.stream.Stream;
 
 public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
-    private final CaseSensitivity caseSensitivity;
     @VisibleForTesting
     final FileSystemNode rootNode;
-
-    public static SnapshotHierarchy from(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
-        return new DefaultSnapshotHierarchy(rootNode, caseSensitivity);
-    }
+    private final CaseSensitivity caseSensitivity;
 
     private DefaultSnapshotHierarchy(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
         this.caseSensitivity = caseSensitivity;
         this.rootNode = rootNode;
+    }
+
+    public static SnapshotHierarchy from(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
+        return new DefaultSnapshotHierarchy(rootNode, caseSensitivity);
     }
 
     public static SnapshotHierarchy empty(CaseSensitivity caseSensitivity) {

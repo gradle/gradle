@@ -41,14 +41,14 @@ import java.util.Set;
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
     private final ModuleVersionIdentifier moduleVersion;
-    private ImmutableSet<DependencyResult> dependencies = ImmutableSet.of();
-    private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
     private final ImmutableList<ResolvedVariantResult> selectedVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final ImmutableList<ResolvedVariantResult> allVariants;
     private final String repositoryName;
+    private ImmutableSet<DependencyResult> dependencies = ImmutableSet.of();
+    private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private ImmutableSetMultimap<ResolvedVariantResult, DependencyResult> variantDependencies = ImmutableSetMultimap.of();
 
     public DefaultResolvedComponentResult(
@@ -66,6 +66,33 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         this.selectedVariants = ImmutableList.copyOf(selectedVariants.values());
         this.allVariants = allVariants.isEmpty() ? this.selectedVariants : allVariants;
         this.repositoryName = repositoryName;
+    }
+
+    /**
+     * A recursive function that traverses the dependency graph of a given module and acts on each node and edge encountered.
+     *
+     * @param start A ResolvedComponentResult node, which represents the entry point into the sub-section of the dependency
+     * graph to be traversed
+     * @param moduleAction an action to be performed on each node (module) in the graph
+     * @param dependencyAction an action to be performed on each edge (dependency) in the graph
+     * @param visited tracks the visited nodes during the recursive traversal
+     */
+    public static void eachElement(
+        ResolvedComponentResult start,
+        Action<? super ResolvedComponentResult> moduleAction,
+        Action<? super DependencyResult> dependencyAction,
+        Set<ResolvedComponentResult> visited
+    ) {
+        if (!visited.add(start)) {
+            return;
+        }
+        moduleAction.execute(start);
+        for (DependencyResult d : start.getDependencies()) {
+            dependencyAction.execute(d);
+            if (d instanceof ResolvedDependencyResult) {
+                eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);
+            }
+        }
     }
 
     @Override
@@ -165,37 +192,10 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         if (this.variantDependencies.isEmpty()) {
             this.variantDependencies = variantDependencies;
         } else {
-            this.variantDependencies =  ImmutableSetMultimap.<ResolvedVariantResult, DependencyResult>builder()
+            this.variantDependencies = ImmutableSetMultimap.<ResolvedVariantResult, DependencyResult>builder()
                 .putAll(this.variantDependencies)
                 .putAll(variantDependencies)
                 .build();
-        }
-    }
-
-    /**
-     * A recursive function that traverses the dependency graph of a given module and acts on each node and edge encountered.
-     *
-     * @param start A ResolvedComponentResult node, which represents the entry point into the sub-section of the dependency
-     * graph to be traversed
-     * @param moduleAction an action to be performed on each node (module) in the graph
-     * @param dependencyAction an action to be performed on each edge (dependency) in the graph
-     * @param visited tracks the visited nodes during the recursive traversal
-     */
-    public static void eachElement(
-        ResolvedComponentResult start,
-        Action<? super ResolvedComponentResult> moduleAction,
-        Action<? super DependencyResult> dependencyAction,
-        Set<ResolvedComponentResult> visited
-    ) {
-        if (!visited.add(start)) {
-            return;
-        }
-        moduleAction.execute(start);
-        for (DependencyResult d : start.getDependencies()) {
-            dependencyAction.execute(d);
-            if (d instanceof ResolvedDependencyResult) {
-                eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);
-            }
         }
     }
 

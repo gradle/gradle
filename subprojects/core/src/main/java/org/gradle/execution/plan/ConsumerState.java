@@ -21,8 +21,8 @@ import java.util.Set;
 
 public final class ConsumerState {
 
-    private boolean outputProduced = false;
     private final Set<Node> nodesYetToConsumeOutput = new HashSet<>();
+    private boolean outputProduced = false;
 
     public void started() {
         outputProduced = true;

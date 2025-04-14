@@ -36,9 +36,8 @@ import java.util.Locale;
  */
 public class VersionNumber implements Comparable<VersionNumber> {
     private static final DefaultScheme DEFAULT_SCHEME = new DefaultScheme();
-    private static final SchemeWithPatchVersion PATCH_SCHEME = new SchemeWithPatchVersion();
     public static final VersionNumber UNKNOWN = version(0);
-
+    private static final SchemeWithPatchVersion PATCH_SCHEME = new SchemeWithPatchVersion();
     private final int major;
     private final int minor;
     private final int micro;
@@ -61,6 +60,37 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.patch = patch;
         this.qualifier = qualifier;
         this.scheme = scheme;
+    }
+
+    public static VersionNumber version(int major) {
+        return version(major, 0);
+    }
+
+    public static VersionNumber version(int major, int minor) {
+        return new VersionNumber(major, minor, 0, 0, null, DEFAULT_SCHEME);
+    }
+
+    /**
+     * Returns the default MAJOR.MINOR.MICRO-QUALIFIER scheme.
+     */
+    public static Scheme scheme() {
+        return DEFAULT_SCHEME;
+    }
+
+    /**
+     * Returns the MAJOR.MINOR.MICRO.PATCH-QUALIFIER scheme.
+     */
+    public static Scheme withPatchNumber() {
+        return PATCH_SCHEME;
+    }
+
+    public static VersionNumber parse(String versionString) {
+        return DEFAULT_SCHEME.parse(versionString);
+    }
+
+    @Nullable
+    private static String toLowerCase(@Nullable String string) {
+        return string == null ? null : string.toLowerCase(Locale.ROOT);
     }
 
     public int getMajor() {
@@ -125,37 +155,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return scheme.format(this);
     }
 
-    public static VersionNumber version(int major) {
-        return version(major, 0);
-    }
-
-    public static VersionNumber version(int major, int minor) {
-        return new VersionNumber(major, minor, 0, 0, null, DEFAULT_SCHEME);
-    }
-
-    /**
-     * Returns the default MAJOR.MINOR.MICRO-QUALIFIER scheme.
-     */
-    public static Scheme scheme() {
-        return DEFAULT_SCHEME;
-    }
-
-    /**
-     * Returns the MAJOR.MINOR.MICRO.PATCH-QUALIFIER scheme.
-     */
-    public static Scheme withPatchNumber() {
-        return PATCH_SCHEME;
-    }
-
-    public static VersionNumber parse(String versionString) {
-        return DEFAULT_SCHEME.parse(versionString);
-    }
-
-    @Nullable
-    private static String toLowerCase(@Nullable String string) {
-        return string == null ? null : string.toLowerCase(Locale.ROOT);
-    }
-
     public interface Scheme {
         VersionNumber parse(String value);
 
@@ -210,8 +209,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
         }
 
         private static class Scanner {
-            int pos;
             final String str;
+            int pos;
 
             private Scanner(String string) {
                 this.str = string;

@@ -1,4 +1,3 @@
-
 // tag::init-script-plugin[]
 
 apply plugin: EnterpriseRepositoryPlugin
@@ -15,7 +14,7 @@ class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
                 // Remove all repositories not pointing to the enterprise repository url
                 all { ArtifactRepository repo ->
                     if (!(repo instanceof MavenArtifactRepository) ||
-                          repo.url.toString() != ENTERPRISE_REPOSITORY_URL) {
+                        repo.url.toString() != ENTERPRISE_REPOSITORY_URL) {
                         project.logger.lifecycle "Repository ${repo.url} removed. Only $ENTERPRISE_REPOSITORY_URL is allowed"
                         remove repo
                     }

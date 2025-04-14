@@ -77,6 +77,12 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         this.clock = clock;
     }
 
+    private static boolean isNotEmpty(TestFilterSpec filter) {
+        return !filter.getIncludedTests().isEmpty()
+            || !filter.getIncludedTestsCommandLine().isEmpty()
+            || !filter.getExcludedTests().isEmpty();
+    }
+
     @Override
     protected TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor) {
         return resultProcessor;
@@ -96,36 +102,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         testClassExecutor.processAllTestClasses();
         launcherSession.close();
         super.stop();
-    }
-
-    private class CollectAllTestClassesExecutor implements Action<String> {
-        private final List<Class<?>> testClasses = new ArrayList<>();
-        private final TestResultProcessor resultProcessor;
-
-        CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
-            this.resultProcessor = resultProcessor;
-        }
-
-        @Override
-        public void execute(@NonNull String testClassName) {
-            Class<?> klass = loadClass(testClassName);
-            if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
-                return;
-            }
-            testClasses.add(klass);
-        }
-
-        private void processAllTestClasses() {
-            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
-            TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
-            Launcher launcher = launcherSession.getLauncher();
-            if (spec.isDryRun()) {
-                TestPlan testPlan = launcher.discover(discoveryRequest);
-                executeDryRun(testPlan, executionListener);
-            } else {
-                launcher.execute(discoveryRequest, executionListener);
-            }
-        }
     }
 
     private void executeDryRun(TestPlan testPlan, TestExecutionListener listener) {
@@ -222,12 +198,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private static boolean isNotEmpty(TestFilterSpec filter) {
-        return !filter.getIncludedTests().isEmpty()
-            || !filter.getIncludedTestsCommandLine().isEmpty()
-            || !filter.getExcludedTests().isEmpty();
-    }
-
     private static class ClassMethodNameFilter implements PostDiscoveryFilter {
         private final TestSelectionMatcher matcher;
 
@@ -320,14 +290,25 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     private static class BackwardsCompatibleLauncherSession implements AutoCloseable {
 
+        private final Launcher launcher;
+        private final Runnable onClose;
+        BackwardsCompatibleLauncherSession(@WillCloseWhenClosed LauncherSession session) {
+            this(session.getLauncher(), session::close);
+        }
+
+        BackwardsCompatibleLauncherSession(Launcher launcher, Runnable onClose) {
+            this.launcher = launcher;
+            this.onClose = onClose;
+        }
+
         static BackwardsCompatibleLauncherSession open() {
             try {
                 Class.forName("org.junit.platform.launcher.core.LauncherFactory");
             } catch (ClassNotFoundException e) {
                 throw new InvalidUserCodeException(
                     "Failed to load JUnit Platform. " +
-                    "Please ensure that the JUnit Platform is available on the test runtime classpath. " +
-                    "See the user guide for more details: " + new DocumentationRegistry().getDocumentationFor("java_testing", "using_junit5")
+                        "Please ensure that the JUnit Platform is available on the test runtime classpath. " +
+                        "See the user guide for more details: " + new DocumentationRegistry().getDocumentationFor("java_testing", "using_junit5")
                 );
             }
 
@@ -340,18 +321,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             }
         }
 
-        private final Launcher launcher;
-        private final Runnable onClose;
-
-        BackwardsCompatibleLauncherSession(@WillCloseWhenClosed LauncherSession session) {
-            this(session.getLauncher(), session::close);
-        }
-
-        BackwardsCompatibleLauncherSession(Launcher launcher, Runnable onClose) {
-            this.launcher = launcher;
-            this.onClose = onClose;
-        }
-
         Launcher getLauncher() {
             return launcher;
         }
@@ -359,6 +328,36 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         @Override
         public void close() {
             onClose.run();
+        }
+    }
+
+    private class CollectAllTestClassesExecutor implements Action<String> {
+        private final List<Class<?>> testClasses = new ArrayList<>();
+        private final TestResultProcessor resultProcessor;
+
+        CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
+            this.resultProcessor = resultProcessor;
+        }
+
+        @Override
+        public void execute(@NonNull String testClassName) {
+            Class<?> klass = loadClass(testClassName);
+            if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
+                return;
+            }
+            testClasses.add(klass);
+        }
+
+        private void processAllTestClasses() {
+            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
+            TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
+            Launcher launcher = launcherSession.getLauncher();
+            if (spec.isDryRun()) {
+                TestPlan testPlan = launcher.discover(discoveryRequest);
+                executeDryRun(testPlan, executionListener);
+            } else {
+                launcher.execute(discoveryRequest, executionListener);
+            }
         }
     }
 

@@ -39,11 +39,13 @@ class DefaultReportContainerTest extends Specification {
     DefaultReportContainer container
 
     def setup() {
-        container = createContainer { factory -> [
-            factory.instantiateReport(TestReport, "a", Describables.of("a"), Report.OutputType.FILE),
-            factory.instantiateReport(TestReport, "b", Describables.of("b"), Report.OutputType.FILE),
-            factory.instantiateReport(TestReport, "c", Describables.of("c"), Report.OutputType.FILE)
-        ]}
+        container = createContainer { factory ->
+            [
+                factory.instantiateReport(TestReport, "a", Describables.of("a"), Report.OutputType.FILE),
+                factory.instantiateReport(TestReport, "b", Describables.of("b"), Report.OutputType.FILE),
+                factory.instantiateReport(TestReport, "c", Describables.of("c"), Report.OutputType.FILE)
+            ]
+        }
     }
 
     def "reports given at construction are available"() {
@@ -92,9 +94,11 @@ class DefaultReportContainerTest extends Specification {
 
     def "cannot add report named 'enabled'"() {
         when:
-        createContainer { factory -> [
-            factory.instantiateReport(TestReport, "enabled", Describables.of("enabled"), Report.OutputType.FILE)
-        ]}
+        createContainer { factory ->
+            [
+                factory.instantiateReport(TestReport, "enabled", Describables.of("enabled"), Report.OutputType.FILE)
+            ]
+        }
 
         then:
         def e = thrown(ObjectInstantiationException)

@@ -46,8 +46,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * Adds configurations to for resolving variants containing test execution results, which may span multiple subprojects.  Reacts to the presence of the jvm-test-suite plugin and creates
  * tasks to collect test results for each named test-suite.
  *
- * @since 7.4
  * @see <a href="https://docs.gradle.org/current/userguide/test_report_aggregation_plugin.html">Test Report Aggregation Plugin reference</a>
+ * @since 7.4
  */
 @Incubating
 public abstract class TestReportAggregationPlugin implements Plugin<Project> {

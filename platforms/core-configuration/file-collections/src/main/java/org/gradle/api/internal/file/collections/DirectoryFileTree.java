@@ -68,6 +68,10 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
         this.postfix = postfix;
     }
 
+    static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {
+        return spec.isSatisfiedBy(element);
+    }
+
     @Override
     public String getDisplayName() {
         Set<String> includesSet = patternSet.getIncludesView();
@@ -148,10 +152,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
             directoryWalker = DEFAULT_DIRECTORY_WALKER;
         }
         directoryWalker.walkDir(file.toPath(), path, visitor, spec, stopFlag, postfix);
-    }
-
-    static boolean isAllowed(FileTreeElement element, Spec<? super FileTreeElement> spec) {
-        return spec.isSatisfiedBy(element);
     }
 
     /**

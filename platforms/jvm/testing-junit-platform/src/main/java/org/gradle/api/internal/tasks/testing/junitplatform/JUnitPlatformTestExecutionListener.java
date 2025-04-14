@@ -91,6 +91,39 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         this.idGenerator = idGenerator;
     }
 
+    private static String className(@Nullable TestIdentifier testClassIdentifier) {
+        if (testClassIdentifier != null) {
+            Optional<ClassSource> classSource = getClassSource(testClassIdentifier);
+            if (classSource.isPresent()) {
+                return classSource.get().getClassName();
+            }
+        }
+        return JUnitSupport.UNKNOWN_CLASS;
+    }
+
+    private static String classDisplayName(@Nullable TestIdentifier testClassIdentifier) {
+        if (testClassIdentifier != null) {
+            return testClassIdentifier.getDisplayName();
+        }
+        return JUnitSupport.UNKNOWN_CLASS;
+    }
+
+    private static boolean hasClassSource(TestIdentifier testIdentifier) {
+        return getClassSource(testIdentifier).isPresent();
+    }
+
+    private static Optional<ClassSource> getClassSource(TestIdentifier testIdentifier) {
+        return testIdentifier.getSource()
+            .filter(source -> source instanceof ClassSource)
+            .map(source -> (ClassSource) source);
+    }
+
+    private static Optional<MethodSource> getMethodSource(TestIdentifier testIdentifier) {
+        return testIdentifier.getSource()
+            .filter(source -> source instanceof MethodSource)
+            .map(source -> (MethodSource) source);
+    }
+
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
         this.currentTestPlan = testPlan;
@@ -288,39 +321,6 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private boolean isTestClassIdentifier(TestIdentifier testIdentifier) {
         return hasClassSource(testIdentifier) && hasDifferentSourceThanAncestor(testIdentifier);
-    }
-
-    private static String className(@Nullable TestIdentifier testClassIdentifier) {
-        if (testClassIdentifier != null) {
-            Optional<ClassSource> classSource = getClassSource(testClassIdentifier);
-            if (classSource.isPresent()) {
-                return classSource.get().getClassName();
-            }
-        }
-        return JUnitSupport.UNKNOWN_CLASS;
-    }
-
-    private static String classDisplayName(@Nullable TestIdentifier testClassIdentifier) {
-        if (testClassIdentifier != null) {
-            return testClassIdentifier.getDisplayName();
-        }
-        return JUnitSupport.UNKNOWN_CLASS;
-    }
-
-    private static boolean hasClassSource(TestIdentifier testIdentifier) {
-        return getClassSource(testIdentifier).isPresent();
-    }
-
-    private static Optional<ClassSource> getClassSource(TestIdentifier testIdentifier) {
-        return testIdentifier.getSource()
-            .filter(source -> source instanceof ClassSource)
-            .map(source -> (ClassSource) source);
-    }
-
-    private static Optional<MethodSource> getMethodSource(TestIdentifier testIdentifier) {
-        return testIdentifier.getSource()
-            .filter(source -> source instanceof MethodSource)
-            .map(source -> (MethodSource) source);
     }
 
     private boolean hasDifferentSourceThanAncestor(TestIdentifier testIdentifier) {

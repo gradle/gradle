@@ -267,6 +267,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
     static Collection<Map<String, ?>> filteredProblemDetails(BuildOperationsFixture buildOperations) {
         List<Map<String, ?>> details = buildOperations.progress(ProblemUsageProgressDetails).details
         details
-            .findAll { it.definition.name != 'executing-gradle-on-jvm-versions-and-lower'}
+            .findAll { it.definition.name != 'executing-gradle-on-jvm-versions-and-lower' }
     }
 }

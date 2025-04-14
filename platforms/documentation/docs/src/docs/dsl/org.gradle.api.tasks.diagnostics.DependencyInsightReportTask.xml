@@ -21,12 +21,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>configuration</td>
-                <td><literal>compileClasspath</literal> configuration</td>
+                <td>
+                    <literal>compileClasspath</literal>
+                    configuration
+                </td>
             </tr>
             <tr>
                 <td>dependencySpec</td>

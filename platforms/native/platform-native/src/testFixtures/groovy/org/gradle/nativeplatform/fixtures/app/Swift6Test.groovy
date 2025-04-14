@@ -25,7 +25,7 @@ class Swift6Test extends XCTestSourceFileElement {
     List<XCTestCaseElement> getTestCases() {
         return [
             testCase("testDrinking",
-            '''XCTAssertEqual(doDrinking(), "Drinking coffee and Drinking water")'''),
+                '''XCTAssertEqual(doDrinking(), "Drinking coffee and Drinking water")'''),
             testCase("testCodeWasCompiledWithSwift6Compiler",
                 """#if swift(>=7.0)
                         XCTFail("Compilation unit compiled with Swift 7+ instead of Swift 6.x");

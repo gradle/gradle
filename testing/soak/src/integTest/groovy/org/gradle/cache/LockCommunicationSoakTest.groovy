@@ -119,6 +119,7 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
             tasks.register("lock", LockTask)
         """
     }
+
     def cleanup() {
         blockingServer.stop()
     }

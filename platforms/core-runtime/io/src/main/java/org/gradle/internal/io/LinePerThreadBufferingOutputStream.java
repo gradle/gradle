@@ -25,6 +25,7 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<PrintStream> stream = new ThreadLocal<PrintStream>();
     private final String lineSeparator = System.getProperty("line.separator");
+
     public LinePerThreadBufferingOutputStream(TextStream handler) {
         super(NullOutputStream.INSTANCE, true);
         this.handler = handler;

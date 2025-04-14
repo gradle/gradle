@@ -26,9 +26,9 @@ public abstract class DefaultToolchainManagement implements ToolchainManagementI
     public void preventFromFurtherMutation() {
         ExtensionContainerInternal extensions = (ExtensionContainerInternal) getExtensions();
         extensions.getAsMap().values().stream()
-                .filter(ext -> ext instanceof FinalizableValue)
-                .map(ext -> (FinalizableValue) ext)
-                .forEach(FinalizableValue::preventFromFurtherMutation);
+            .filter(ext -> ext instanceof FinalizableValue)
+            .map(ext -> (FinalizableValue) ext)
+            .forEach(FinalizableValue::preventFromFurtherMutation);
     }
 
 }

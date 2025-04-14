@@ -48,7 +48,8 @@ public class BuildDefinition {
         Action<? super DependencySubstitutions> dependencySubstitutions,
         @Nullable
         PublicBuildPath fromBuild,
-        boolean pluginBuild) {
+        boolean pluginBuild
+    ) {
         this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
@@ -56,6 +57,45 @@ public class BuildDefinition {
         this.dependencySubstitutions = dependencySubstitutions;
         this.fromBuild = fromBuild;
         this.pluginBuild = pluginBuild;
+    }
+
+    public static BuildDefinition fromStartParameterForBuild(
+        StartParameterInternal startParameter,
+        @Nullable
+        String name,
+        @Nullable
+        File buildRootDir,
+        PluginRequests pluginRequests,
+        Action<? super DependencySubstitutions> dependencySubstitutions,
+        @Nullable
+        PublicBuildPath fromBuild,
+        boolean pluginBuild
+    ) {
+        return new BuildDefinition(
+            name,
+            buildRootDir,
+            startParameterForIncludedBuildFrom(startParameter, buildRootDir),
+            pluginRequests,
+            dependencySubstitutions,
+            fromBuild,
+            pluginBuild);
+    }
+
+    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable PublicBuildPath fromBuild) {
+        return fromStartParameter(startParameter, null, fromBuild);
+    }
+
+    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable File rootBuildDir, @Nullable PublicBuildPath fromBuild) {
+        return new BuildDefinition(null, rootBuildDir, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
+    }
+
+    private static StartParameterInternal startParameterForIncludedBuildFrom(StartParameterInternal startParameter, @Nullable File buildRootDir) {
+        StartParameterInternal includedBuildStartParam = startParameter.newBuild();
+        includedBuildStartParam.setCurrentDir(buildRootDir);
+        includedBuildStartParam.doNotSearchUpwards();
+        includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
+        includedBuildStartParam.setExcludedTaskNames(startParameter.getExcludedTaskNames());
+        return includedBuildStartParam;
     }
 
     /**
@@ -100,45 +140,6 @@ public class BuildDefinition {
 
     public boolean isPluginBuild() {
         return pluginBuild;
-    }
-
-    public static BuildDefinition fromStartParameterForBuild(
-        StartParameterInternal startParameter,
-        @Nullable
-        String name,
-        @Nullable
-        File buildRootDir,
-        PluginRequests pluginRequests,
-        Action<? super DependencySubstitutions> dependencySubstitutions,
-        @Nullable
-        PublicBuildPath fromBuild,
-        boolean pluginBuild
-    ) {
-        return new BuildDefinition(
-            name,
-            buildRootDir,
-            startParameterForIncludedBuildFrom(startParameter, buildRootDir),
-            pluginRequests,
-            dependencySubstitutions,
-            fromBuild,
-            pluginBuild);
-    }
-
-    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable PublicBuildPath fromBuild) {
-        return fromStartParameter(startParameter, null, fromBuild);
-    }
-
-    public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable File rootBuildDir, @Nullable PublicBuildPath fromBuild) {
-        return new BuildDefinition(null, rootBuildDir, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
-    }
-
-    private static StartParameterInternal startParameterForIncludedBuildFrom(StartParameterInternal startParameter, @Nullable File buildRootDir) {
-        StartParameterInternal includedBuildStartParam = startParameter.newBuild();
-        includedBuildStartParam.setCurrentDir(buildRootDir);
-        includedBuildStartParam.doNotSearchUpwards();
-        includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
-        includedBuildStartParam.setExcludedTaskNames(startParameter.getExcludedTaskNames());
-        return includedBuildStartParam;
     }
 
     /**

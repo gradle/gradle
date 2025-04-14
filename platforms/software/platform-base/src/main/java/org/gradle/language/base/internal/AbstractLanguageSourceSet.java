@@ -39,10 +39,6 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
         super.builtBy(source.getBuildDependencies());
     }
 
-    protected String getLanguageName() {
-        return guessLanguageName(getTypeName());
-    }
-
     private static synchronized String guessLanguageName(String typeName) {
         String language = LANGUAGES.get(typeName);
         if (language != null) {
@@ -51,6 +47,10 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
         language = typeName.replaceAll("LanguageSourceSet$", "").replaceAll("SourceSet$", "").replaceAll("Source$", "").replaceAll("Set$", "");
         LANGUAGES.put(typeName, language);
         return language;
+    }
+
+    protected String getLanguageName() {
+        return guessLanguageName(getTypeName());
     }
 
     @Override

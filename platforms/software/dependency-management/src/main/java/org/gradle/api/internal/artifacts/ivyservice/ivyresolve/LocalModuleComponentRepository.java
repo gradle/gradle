@@ -54,50 +54,6 @@ public class LocalModuleComponentRepository<T> extends BaseModuleComponentReposi
         return remoteAccess;
     }
 
-    private class LocalAccess implements ModuleComponentRepositoryAccess<T> {
-        @Override
-        public String toString() {
-            return "local adapter > " + delegate;
-        }
-
-        @Override
-        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
-            delegate.getLocalAccess().listModuleVersions(selector, overrideMetadata, result);
-            if (!result.hasResult()) {
-                delegate.getRemoteAccess().listModuleVersions(selector, overrideMetadata, result);
-            }
-        }
-
-        @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
-            delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
-            if (!result.hasResult()) {
-                delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
-            }
-        }
-
-        @Override
-        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            delegate.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
-            if(!result.hasResult()) {
-                delegate.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
-            }
-        }
-
-        @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
-            delegate.getLocalAccess().resolveArtifact(artifact, moduleSources, result);
-            if(!result.hasResult()) {
-                delegate.getRemoteAccess().resolveArtifact(artifact, moduleSources, result);
-            }
-        }
-
-        @Override
-        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return delegate.getRemoteAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
-        }
-    }
-
     private static class RemoteAccess<T> implements ModuleComponentRepositoryAccess<T> {
         @Override
         public String toString() {
@@ -123,6 +79,50 @@ public class LocalModuleComponentRepository<T> extends BaseModuleComponentReposi
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
             return MetadataFetchingCost.EXPENSIVE;
+        }
+    }
+
+    private class LocalAccess implements ModuleComponentRepositoryAccess<T> {
+        @Override
+        public String toString() {
+            return "local adapter > " + delegate;
+        }
+
+        @Override
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+            delegate.getLocalAccess().listModuleVersions(selector, overrideMetadata, result);
+            if (!result.hasResult()) {
+                delegate.getRemoteAccess().listModuleVersions(selector, overrideMetadata, result);
+            }
+        }
+
+        @Override
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<T> result) {
+            delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
+            if (!result.hasResult()) {
+                delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
+            }
+        }
+
+        @Override
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+            delegate.getLocalAccess().resolveArtifactsWithType(component, artifactType, result);
+            if (!result.hasResult()) {
+                delegate.getRemoteAccess().resolveArtifactsWithType(component, artifactType, result);
+            }
+        }
+
+        @Override
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
+            delegate.getLocalAccess().resolveArtifact(artifact, moduleSources, result);
+            if (!result.hasResult()) {
+                delegate.getRemoteAccess().resolveArtifact(artifact, moduleSources, result);
+            }
+        }
+
+        @Override
+        public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
+            return delegate.getRemoteAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
     }
 }

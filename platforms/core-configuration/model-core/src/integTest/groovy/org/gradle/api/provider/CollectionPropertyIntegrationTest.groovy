@@ -547,7 +547,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
 
         where:
         collection | initializer
-        "list" | "listProperty"
-        "set" | "setProperty"
+        "list"     | "listProperty"
+        "set"      | "setProperty"
     }
 }

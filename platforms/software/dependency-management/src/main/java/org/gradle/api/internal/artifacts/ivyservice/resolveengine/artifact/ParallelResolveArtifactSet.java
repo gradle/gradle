@@ -35,14 +35,14 @@ import java.util.List;
 public abstract class ParallelResolveArtifactSet {
     private static final EmptySet EMPTY = new EmptySet();
 
-    public abstract void visit(ArtifactVisitor visitor);
-
     public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
         if (artifacts == ResolvedArtifactSet.EMPTY) {
             return EMPTY;
         }
         return new VisitingSet(artifacts, buildOperationProcessor);
     }
+
+    public abstract void visit(ArtifactVisitor visitor);
 
     private static class EmptySet extends ParallelResolveArtifactSet {
         @Override

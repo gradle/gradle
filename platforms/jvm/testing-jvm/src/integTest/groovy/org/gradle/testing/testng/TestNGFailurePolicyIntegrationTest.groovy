@@ -28,7 +28,8 @@ import static org.junit.Assume.assumeTrue
 
 class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegrationTest {
 
-    @Rule public TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule
+    public TestResources resources = new TestResources(testDirectoryProvider)
 
     TestClassExecutionResult getTestResults() {
         new TestNGExecutionResult(testDirectory).testClass("org.gradle.failurepolicy.TestWithFailureInConfigMethod")

@@ -27,18 +27,18 @@ class PartialTrigger<T : BaseGradleBuildType>(
     model: CIBuildModel,
     dependencies: Iterable<T>,
 ) : BaseGradleBuildType(init = {
-        id("${model.projectId}_${triggerId}_Trigger")
-        uuid = "${DslContext.uuidPrefix}_${model.projectId}_${triggerId}_Trigger"
-        name = "$triggerName (Trigger)"
-        type = Type.COMPOSITE
+    id("${model.projectId}_${triggerId}_Trigger")
+    uuid = "${DslContext.uuidPrefix}_${model.projectId}_${triggerId}_Trigger"
+    name = "$triggerName (Trigger)"
+    type = Type.COMPOSITE
 
-        applyDefaultSettings()
+    applyDefaultSettings()
 
-        features {
-            publishBuildStatusToGithub(model)
-        }
+    features {
+        publishBuildStatusToGithub(model)
+    }
 
-        dependencies {
-            snapshotDependencies(dependencies)
-        }
-    })
+    dependencies {
+        snapshotDependencies(dependencies)
+    }
+})

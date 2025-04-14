@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.HttpRepository
 
 abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
     abstract HttpRepository getRepo()
+
     abstract String getRepoDeclaration()
 
     def moduleA = getRepo().module('org.test', 'moduleA', '1.0')
@@ -32,7 +33,7 @@ abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends Abst
 
     def "changing dependency doesn't affect changing flag"() {
         buildFile <<
-"""
+            """
 $repoDeclaration
 configurations {
     modules
@@ -66,7 +67,7 @@ task resolve {
 
     def "static and dynamic dependencies have changing flag initialized to false"() {
         buildFile <<
-"""
+            """
 $repoDeclaration
 configurations {
     modules
@@ -103,7 +104,7 @@ task resolve {
 
     def "rule can make a component changing"() {
         buildFile <<
-"""
+            """
 $repoDeclaration
 configurations {
     modules {
@@ -163,7 +164,7 @@ dependencies.components.all(ChangingFalseRule)
 
     def "rule cannot make a dependency non-changing"() {
         buildFile <<
-"""
+            """
 $repoDeclaration
 configurations {
     modules {

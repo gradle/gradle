@@ -139,7 +139,7 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
     }
 
     void generateGradleProperties() {
-        project.copy{
+        project.copy {
             from(new File(resolveTemplate("gradle-properties"), "gradle.properties"))
             into(destDir)
             expand([
@@ -168,18 +168,18 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
                     // Each "layer" of libraries depends on the layer before it.
                     // This should generate a deep and wide dependency tree
                     if (libraryGroupIdx > 0) {
-                        dependentProjects.addAll(allLibraries.get(libraryGroupIdx-1))
+                        dependentProjects.addAll(allLibraries.get(libraryGroupIdx - 1))
                     }
                 }
 
                 // Depend on all projects after this one.
                 // With the number of projects we generate, this gives us a ~7-layer deep dependency graph
                 // within a group of libraries
-                dependentProjects.addAll(libraries.drop(idx+1))
+                dependentProjects.addAll(libraries.drop(idx + 1))
 
                 generateLibrarySubproject(subprojectName,
-                        new File(projectTemplate, "lib.cpp"), new File(projectTemplate, "header.h"), new File(projectTemplate, "test_main.cpp"),
-                        dependentProjects)
+                    new File(projectTemplate, "lib.cpp"), new File(projectTemplate, "header.h"), new File(projectTemplate, "test_main.cpp"),
+                    dependentProjects)
             }
         }
 
@@ -194,11 +194,11 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
     }
 
     void generateLibrarySubproject(String generatedProjectName,
-                                    File sourceFile, File headerFile, File testFile,
-                                    List dependentProjects) {
+                                   File sourceFile, File headerFile, File testFile,
+                                   List dependentProjects) {
         def buildFileProperties = [:]
         buildFileProperties.components = []
-        for (int i=0; i<numberOfComponents; i++) {
+        for (int i = 0; i < numberOfComponents; i++) {
             def generatedId = generatedProjectName + i
             def sourceProperties = [:]
             def includes = []
@@ -232,10 +232,10 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
 
     void generateExecutableSubproject(String generatedProjectName,
                                       File sourceFile,
-                                   List dependentProjects) {
+                                      List dependentProjects) {
         def buildFileProperties = [:]
         buildFileProperties.components = []
-        for (int i=0; i<numberOfComponents; i++) {
+        for (int i = 0; i < numberOfComponents; i++) {
             def generatedId = generatedProjectName + i
             def sourceProperties = [:]
             def includes = []

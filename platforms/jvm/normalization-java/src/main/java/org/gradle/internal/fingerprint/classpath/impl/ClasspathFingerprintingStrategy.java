@@ -164,6 +164,11 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         return builder.build();
     }
 
+    @Override
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.KEEP_ORDER;
+    }
+
     public enum NonJarFingerprintingStrategy {
         IGNORE {
             @Nullable
@@ -253,10 +258,5 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         private String failedToNormalize(RegularFileSnapshot snapshot) {
             return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
         }
-    }
-
-    @Override
-    public FingerprintHashingStrategy getHashingStrategy() {
-        return FingerprintHashingStrategy.KEEP_ORDER;
     }
 }

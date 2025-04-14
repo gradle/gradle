@@ -36,7 +36,7 @@ class DefaultScriptRunnerFactoryTest extends Specification {
     private final Object target = new Object()
     private final ServiceRegistry scriptServices = Mock(ServiceRegistry.class)
     private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptExecutionListenerMock, instantiatorMock)
-    
+
     def doesNotLoadScriptWhenScriptRunnerCreated() {
         when:
         ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy)

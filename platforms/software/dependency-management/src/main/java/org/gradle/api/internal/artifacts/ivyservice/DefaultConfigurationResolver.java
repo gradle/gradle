@@ -77,6 +77,58 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.attributeSchemaServices = attributeSchemaServices;
     }
 
+    /**
+     * Determines if the repository should not be used to resolve this configuration.
+     */
+    private static boolean shouldSkipRepository(
+        ResolutionAwareRepository repository,
+        String configurationName,
+        AttributeContainer consumerAttributes
+    ) {
+        if (!(repository instanceof ContentFilteringRepository)) {
+            return false;
+        }
+
+        ContentFilteringRepository cfr = (ContentFilteringRepository) repository;
+
+        Set<String> includedConfigurations = cfr.getIncludedConfigurations();
+        Set<String> excludedConfigurations = cfr.getExcludedConfigurations();
+
+        if ((includedConfigurations != null && !includedConfigurations.contains(configurationName)) ||
+            (excludedConfigurations != null && excludedConfigurations.contains(configurationName))
+        ) {
+            return true;
+        }
+
+        Map<Attribute<Object>, Set<Object>> requiredAttributes = cfr.getRequiredAttributes();
+        return hasNonRequiredAttribute(requiredAttributes, consumerAttributes);
+    }
+
+    /**
+     * Accepts a map of attribute types to the set of values that are allowed for that attribute type.
+     * If the request attributes of the resolve context being resolved do not match the allowed values,
+     * then the repository is skipped.
+     */
+    private static boolean hasNonRequiredAttribute(
+        @Nullable Map<Attribute<Object>, Set<Object>> requiredAttributes,
+        AttributeContainer consumerAttributes
+    ) {
+        if (requiredAttributes == null) {
+            return false;
+        }
+
+        for (Map.Entry<Attribute<Object>, Set<Object>> entry : requiredAttributes.entrySet()) {
+            Attribute<Object> key = entry.getKey();
+            Set<Object> allowedValues = entry.getValue();
+            Object value = consumerAttributes.getAttribute(key);
+            if (!allowedValues.contains(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public ResolverResults resolveBuildDependencies(ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults) {
         RootComponentMetadataBuilder.RootComponentState root = configuration.toRootComponent();
@@ -192,58 +244,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             ));
         }
 
-    }
-
-    /**
-     * Determines if the repository should not be used to resolve this configuration.
-     */
-    private static boolean shouldSkipRepository(
-        ResolutionAwareRepository repository,
-        String configurationName,
-        AttributeContainer consumerAttributes
-    ) {
-        if (!(repository instanceof ContentFilteringRepository)) {
-            return false;
-        }
-
-        ContentFilteringRepository cfr = (ContentFilteringRepository) repository;
-
-        Set<String> includedConfigurations = cfr.getIncludedConfigurations();
-        Set<String> excludedConfigurations = cfr.getExcludedConfigurations();
-
-        if ((includedConfigurations != null && !includedConfigurations.contains(configurationName)) ||
-            (excludedConfigurations != null && excludedConfigurations.contains(configurationName))
-        ) {
-            return true;
-        }
-
-        Map<Attribute<Object>, Set<Object>> requiredAttributes = cfr.getRequiredAttributes();
-        return hasNonRequiredAttribute(requiredAttributes, consumerAttributes);
-    }
-
-    /**
-     * Accepts a map of attribute types to the set of values that are allowed for that attribute type.
-     * If the request attributes of the resolve context being resolved do not match the allowed values,
-     * then the repository is skipped.
-     */
-    private static boolean hasNonRequiredAttribute(
-        @Nullable Map<Attribute<Object>, Set<Object>> requiredAttributes,
-        AttributeContainer consumerAttributes
-    ) {
-        if (requiredAttributes == null) {
-            return false;
-        }
-
-        for (Map.Entry<Attribute<Object>, Set<Object>> entry : requiredAttributes.entrySet()) {
-            Attribute<Object> key = entry.getKey();
-            Set<Object> allowedValues = entry.getValue();
-            Object value = consumerAttributes.getAttribute(key);
-            if (!allowedValues.contains(value)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
 }

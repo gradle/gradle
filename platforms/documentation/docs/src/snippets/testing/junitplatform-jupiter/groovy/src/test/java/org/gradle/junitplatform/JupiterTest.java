@@ -5,6 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.*;
 
 public class JupiterTest {
+    @BeforeAll
+    public static void beforeAll() {
+        System.out.println("This will be called before all methods!");
+    }
+
     @Test
     public void ok() {
         System.out.println("Hello from JUnit Jupiter!");
@@ -18,11 +23,6 @@ public class JupiterTest {
     @BeforeEach
     public void beforeEach() {
         System.out.println("This will be called before each method!");
-    }
-
-    @BeforeAll
-    public static void beforeAll() {
-        System.out.println("This will be called before all methods!");
     }
 
     @Disabled

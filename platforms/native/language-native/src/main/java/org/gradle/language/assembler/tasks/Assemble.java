@@ -56,10 +56,10 @@ import java.util.concurrent.Callable;
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class Assemble extends DefaultTask {
-    private ConfigurableFileCollection source;
-    private ConfigurableFileCollection includes;
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
+    private ConfigurableFileCollection source;
+    private ConfigurableFileCollection includes;
     private File objectFileDir;
     private List<String> assemblerArgs;
 

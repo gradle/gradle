@@ -28,9 +28,8 @@ import java.util.Set;
 
 abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRenderer<T> {
     private static final URL STYLE_URL = PageRenderer.class.getResource("style.css");
-
-    private T results;
     private final TabsRenderer<T> tabsRenderer = new TabsRenderer<T>();
+    private T results;
 
     protected T getResults() {
         return results;

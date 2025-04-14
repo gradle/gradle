@@ -342,12 +342,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         }
 
         where:
-        consumer                     | producer                     | compatible
-        Usage.JAVA_API               | Usage.JAVA_API               | true
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
+        consumer           | producer           | compatible
+        Usage.JAVA_API     | Usage.JAVA_API     | true
+        Usage.JAVA_API     | Usage.JAVA_RUNTIME | true
 
-        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME | Usage.JAVA_API     | false
+        Usage.JAVA_RUNTIME | Usage.JAVA_RUNTIME | true
     }
 
     def "configures destinationDirectory for jar tasks"() {
@@ -369,7 +369,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
             usage(Usage.JAVA_RUNTIME),
             usage(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS)
         )
-        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
+        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it) } as Set)
 
         when:
         rules.execute(details)
@@ -382,9 +382,9 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         details
 
         where: // not exhaustive, tests pathological cases
-        consumer                | candidates                                     | preferred
-        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
+        consumer           | candidates                           | preferred
+        Usage.JAVA_API     | [Usage.JAVA_API, Usage.JAVA_RUNTIME] | Usage.JAVA_API
+        Usage.JAVA_RUNTIME | [Usage.JAVA_RUNTIME, Usage.JAVA_API] | Usage.JAVA_RUNTIME
     }
 
     private Usage usage(String value) {

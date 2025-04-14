@@ -174,12 +174,12 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ':test'
 
         where:
-        property              | modification
-        'excludeGroups'       | '= ["group to exclude"]'
-        'includeGroups'       | '= ["group to include"]'
-        'outputDirectory'     | '= file("$buildDir/my-out")'
-        'suiteXmlFiles'       | '= [file("suite.xml")]'
-        'suiteXmlBuilder()'   | '''
+        property            | modification
+        'excludeGroups'     | '= ["group to exclude"]'
+        'includeGroups'     | '= ["group to include"]'
+        'outputDirectory'   | '= file("$buildDir/my-out")'
+        'suiteXmlFiles'     | '= [file("suite.xml")]'
+        'suiteXmlBuilder()' | '''
                                 .suite(name: 'MySuite') {
                                     test(name: 'MyTest') {
                                         classes([:]) {

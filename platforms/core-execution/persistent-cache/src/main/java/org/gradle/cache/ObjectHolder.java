@@ -38,10 +38,6 @@ public interface ObjectHolder<T> {
      */
     T update(UpdateAction<T> updateAction);
 
-    interface UpdateAction<T> {
-        T update(T oldValue);
-    }
-
     /**
      * Potentially replaces the value for this cache
      *
@@ -52,5 +48,9 @@ public interface ObjectHolder<T> {
      * The result of the update is returned, which may not be the object returned by the update action.
      */
     T maybeUpdate(UpdateAction<T> updateAction);
+
+    interface UpdateAction<T> {
+        T update(T oldValue);
+    }
 
 }

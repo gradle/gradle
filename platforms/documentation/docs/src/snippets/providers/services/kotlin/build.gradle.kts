@@ -108,6 +108,7 @@ abstract class MyWorkerTask
 @Inject constructor(private var workerExecutor: WorkerExecutor) : DefaultTask() {
     @get:Input
     abstract val booleanFlag: Property<Boolean>
+
     @TaskAction
     fun doThings() {
         workerExecutor.noIsolation().submit(MyWorkAction::class.java) {}
@@ -135,7 +136,8 @@ tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask:
 
 // tag::file-system-adhoc[]
 interface InjectedFsOps {
-    @get:Inject val fs: FileSystemOperations
+    @get:Inject
+    val fs: FileSystemOperations
 }
 
 tasks.register("myAdHocFileSystemOperationsTask") {
@@ -170,7 +172,8 @@ tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class
 
 // tag::archive-op-adhoc[]
 interface InjectedArcOps {
-    @get:Inject val arcOps: ArchiveOperations
+    @get:Inject
+    val arcOps: ArchiveOperations
 }
 
 tasks.register("myAdHocArchiveOperationsTask") {
@@ -199,7 +202,8 @@ tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class)
 
 // tag::exec-op-adhoc[]
 interface InjectedExecOps {
-    @get:Inject val execOps: ExecOperations
+    @get:Inject
+    val execOps: ExecOperations
 }
 
 tasks.register("myAdHocExecOperationsTask") {

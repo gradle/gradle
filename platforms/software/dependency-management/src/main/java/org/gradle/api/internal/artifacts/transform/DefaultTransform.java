@@ -101,6 +101,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class DefaultTransform implements Transform {
 
+    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
+    private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
     private final Class<? extends TransformAction<?>> implementationClass;
     private final ImmutableAttributes fromAttributes;
     private final ImmutableAttributes toAttributes;
@@ -202,8 +204,6 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
-    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
-
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
@@ -219,82 +219,6 @@ public class DefaultTransform implements Transform {
             }
         }
     }
-
-    @Override
-    public FileNormalizer getInputArtifactNormalizer() {
-        return fileNormalizer;
-    }
-
-    @Override
-    public FileNormalizer getInputArtifactDependenciesNormalizer() {
-        return dependenciesNormalizer;
-    }
-
-    @Override
-    public boolean isIsolated() {
-        return isolatedParameters.isFinalized();
-    }
-
-    @Override
-    public boolean requiresDependencies() {
-        return requiresDependencies;
-    }
-
-    @Override
-    public boolean requiresInputChanges() {
-        return requiresInputChanges;
-    }
-
-    @Override
-    public boolean isCacheable() {
-        return cacheable;
-    }
-
-    @Override
-    public DirectorySensitivity getInputArtifactDirectorySensitivity() {
-        return artifactDirectorySensitivity;
-    }
-
-    @Override
-    public DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
-        return dependenciesDirectorySensitivity;
-    }
-
-    @Override
-    public LineEndingSensitivity getInputArtifactLineEndingNormalization() {
-        return artifactLineEndingSensitivity;
-    }
-
-    @Override
-    public LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization() {
-        return dependenciesLineEndingSensitivity;
-    }
-
-    @Override
-    public HashCode getSecondaryInputHash() {
-        return isolatedParameters.get().getSecondaryInputsHash();
-    }
-
-    @Override
-    public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges) {
-        TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
-        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
-        transformAction.transform(transformOutputs);
-        return transformOutputs.getRegisteredOutputs();
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(isolatedParameters);
-    }
-
-    @Override
-    public void isolateParametersIfNotAlready() {
-        isolatedParameters.finalizeIfNotAlready();
-    }
-
-
-    private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
 
     private static void fingerprintParameters(
         InputFingerprinter inputFingerprinter,
@@ -410,6 +334,79 @@ public class DefaultTransform implements Transform {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
+    @Override
+    public FileNormalizer getInputArtifactNormalizer() {
+        return fileNormalizer;
+    }
+
+    @Override
+    public FileNormalizer getInputArtifactDependenciesNormalizer() {
+        return dependenciesNormalizer;
+    }
+
+    @Override
+    public boolean isIsolated() {
+        return isolatedParameters.isFinalized();
+    }
+
+    @Override
+    public boolean requiresDependencies() {
+        return requiresDependencies;
+    }
+
+    @Override
+    public boolean requiresInputChanges() {
+        return requiresInputChanges;
+    }
+
+    @Override
+    public boolean isCacheable() {
+        return cacheable;
+    }
+
+    @Override
+    public DirectorySensitivity getInputArtifactDirectorySensitivity() {
+        return artifactDirectorySensitivity;
+    }
+
+    @Override
+    public DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
+        return dependenciesDirectorySensitivity;
+    }
+
+    @Override
+    public LineEndingSensitivity getInputArtifactLineEndingNormalization() {
+        return artifactLineEndingSensitivity;
+    }
+
+    @Override
+    public LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization() {
+        return dependenciesLineEndingSensitivity;
+    }
+
+    @Override
+    public HashCode getSecondaryInputHash() {
+        return isolatedParameters.get().getSecondaryInputsHash();
+    }
+
+    @Override
+    public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+        TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
+        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
+        transformAction.transform(transformOutputs);
+        return transformOutputs.getRegisteredOutputs();
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(isolatedParameters);
+    }
+
+    @Override
+    public void isolateParametersIfNotAlready() {
+        isolatedParameters.finalizeIfNotAlready();
+    }
+
     private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
         ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices);
@@ -439,6 +436,21 @@ public class DefaultTransform implements Transform {
     @Override
     public String getDisplayName() {
         return implementationClass.getSimpleName();
+    }
+
+    /*
+     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
+     */
+    public interface FingerprintTransformInputsOperation extends BuildOperationType<FingerprintTransformInputsOperation.Details, FingerprintTransformInputsOperation.Result> {
+        interface Details {
+            Details INSTANCE = new Details() {
+            };
+        }
+
+        interface Result {
+            Result INSTANCE = new Result() {
+            };
+        }
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
@@ -505,6 +517,12 @@ public class DefaultTransform implements Transform {
             private final Type injectedType;
             private final Supplier<Object> valueToInject;
 
+            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
+                this.annotation = annotation;
+                this.injectedType = injectedType;
+                this.valueToInject = valueToInject;
+            }
+
             public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Supplier<Object> valueToInject) {
                 return new InjectionPoint(annotation, determineTypeFromAnnotation(annotation), valueToInject);
             }
@@ -515,12 +533,6 @@ public class DefaultTransform implements Transform {
 
             public static InjectionPoint injectedByType(Class<?> injectedType, Supplier<Object> valueToInject) {
                 return new InjectionPoint(null, injectedType, valueToInject);
-            }
-
-            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
-                this.annotation = annotation;
-                this.injectedType = injectedType;
-                this.valueToInject = valueToInject;
             }
 
             private static Class<?> determineTypeFromAnnotation(Class<? extends Annotation> annotation) {
@@ -723,21 +735,6 @@ public class DefaultTransform implements Transform {
             }
             HashCode secondaryInputsHash = hasher.hash();
             return new IsolatedParameters(isolatedParameterObject, secondaryInputsHash);
-        }
-    }
-
-    /*
-     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
-     */
-    public interface FingerprintTransformInputsOperation extends BuildOperationType<FingerprintTransformInputsOperation.Details, FingerprintTransformInputsOperation.Result> {
-        interface Details {
-            Details INSTANCE = new Details() {
-            };
-        }
-
-        interface Result {
-            Result INSTANCE = new Result() {
-            };
         }
     }
 }

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.result
+
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ArtifactResult
 import org.gradle.api.component.Artifact
@@ -39,5 +40,6 @@ class DefaultComponentArtifactsResultTest extends Specification {
     }
 
     interface ArtifactOne extends Artifact {}
+
     interface ArtifactTwo extends Artifact {}
 }

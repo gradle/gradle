@@ -748,8 +748,8 @@ task someTask(type: SomeTask) {
                 'Annotate \'output\' with @OutputDirectory instead of @OutputFiles',
             ]
             additionalData.asMap == [
-                'typeName' : 'org.gradle.api.DefaultTask',
-                'propertyName' : 'output',
+                'typeName': 'org.gradle.api.DefaultTask',
+                'propertyName': 'output',
             ]
         }
         where:
@@ -783,10 +783,10 @@ task someTask(type: SomeTask) {
             fqid == 'validation:property-validation:cannot-write-output'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
-            solutions == [ 'Make sure that the \'output\' is configured to a directory' ]
+            solutions == ['Make sure that the \'output\' is configured to a directory']
             additionalData.asMap == [
-                'typeName' : 'org.gradle.api.DefaultTask',
-                'propertyName' : 'output',
+                'typeName': 'org.gradle.api.DefaultTask',
+                'propertyName': 'output',
             ]
         }
         where:
@@ -826,10 +826,10 @@ task someTask(type: SomeTask) {
             fqid == 'validation:property-validation:cannot-write-output'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected the root of the file tree \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
-            solutions == [ 'Make sure that the root of the file tree \'output\' is configured to a directory' ]
+            solutions == ['Make sure that the root of the file tree \'output\' is configured to a directory']
             additionalData.asMap == [
-                'typeName' : 'org.gradle.api.DefaultTask',
-                'propertyName' : 'output',
+                'typeName': 'org.gradle.api.DefaultTask',
+                'propertyName': 'output',
             ]
         }
     }

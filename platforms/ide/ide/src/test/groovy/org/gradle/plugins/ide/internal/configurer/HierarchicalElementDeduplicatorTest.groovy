@@ -197,8 +197,8 @@ class HierarchicalElementDeduplicatorTest extends Specification {
 
     def "removes duplicate words from element dedup prefix"() {
         given:
-        element("root"){
-            element("api"){
+        element("root") {
+            element("api") {
                 element("myelement") {
                     element("myelement-foo") {
                         element("app") {}
@@ -206,7 +206,7 @@ class HierarchicalElementDeduplicatorTest extends Specification {
                 }
 
             }
-            element("impl"){
+            element("impl") {
                 element("myelement") {
                     element("myelement-foo") {
                         element("app") {}
@@ -233,7 +233,7 @@ class HierarchicalElementDeduplicatorTest extends Specification {
 
     def "Names are not simplified if that would create a name clash"() {
         given:
-        element("root"){
+        element("root") {
             element("root-myelement") {
                 element("myelement-foo") {
                 }

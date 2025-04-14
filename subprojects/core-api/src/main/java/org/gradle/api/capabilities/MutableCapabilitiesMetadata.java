@@ -36,6 +36,7 @@ public interface MutableCapabilitiesMetadata extends CapabilitiesMetadata {
 
     /**
      * Removes a capability.
+     *
      * @param group the group of the capability
      * @param name the name of the capability
      */
@@ -43,6 +44,7 @@ public interface MutableCapabilitiesMetadata extends CapabilitiesMetadata {
 
     /**
      * Returns an immutable vew of the capabilities.
+     *
      * @return an immutable view of the capabilities
      */
     CapabilitiesMetadata asImmutable();

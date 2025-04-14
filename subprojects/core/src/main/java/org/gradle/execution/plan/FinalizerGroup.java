@@ -56,6 +56,10 @@ public class FinalizerGroup extends HasFinalizers {
         this.ordinal = ordinal;
     }
 
+    private static boolean memberCanStartAtAnyTime(Node node) {
+        return node.getGroup().isReachableFromEntryPoint();
+    }
+
     @Override
     public String toString() {
         return "finalizer " + node + " ordinal: " + ordinal + ", delegate: " + delegate;
@@ -108,10 +112,6 @@ public class FinalizerGroup extends HasFinalizers {
     @Override
     public FinalizerGroup asFinalizer() {
         return this;
-    }
-
-    private static boolean memberCanStartAtAnyTime(Node node) {
-        return node.getGroup().isReachableFromEntryPoint();
     }
 
     @Override

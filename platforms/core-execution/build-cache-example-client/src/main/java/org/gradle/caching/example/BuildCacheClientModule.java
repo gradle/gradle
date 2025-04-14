@@ -202,43 +202,6 @@ class BuildCacheClientModule extends AbstractModule {
         return new DefaultCacheFactory(fileLockManager, executorFactory);
     }
 
-    private static class LocalBuildCacheModule extends PrivateModule {
-        @Override
-        protected void configure() {
-        }
-
-        @Provides
-        @Exposed
-        LocalBuildCacheService createLocalBuildCacheService(FileAccessTracker fileAccessTracker, PersistentCache persistentCache) {
-            return new DirectoryBuildCacheService(
-                persistentCache,
-                fileAccessTracker,
-                ".failed"
-            );
-        }
-
-        @Provides
-        PersistentCache createPersistentCache(File buildCacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
-            return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
-                .withCleanupStrategy(cacheCleanupStrategy)
-                .withDisplayName("Build cache")
-                .withInitialLockMode(OnDemand)
-                .open();
-        }
-
-        @Provides
-        FileAccessTracker createFileAccessTracker(File buildCacheDir, FileAccessTimeJournal fileAccessTimeJournal) {
-            return new SingleDepthFileAccessTracker(fileAccessTimeJournal, buildCacheDir, 1);
-        }
-
-        @Provides
-        File createBuildCacheDir() throws IOException {
-            File target = Files.createTempDirectory("build-cache").toFile();
-            FileUtils.forceMkdir(target);
-            return target;
-        }
-    }
-
     @Provides
     CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, CacheCleanupStrategyFactory factory) {
         SingleDepthFilesFinder filesFinder = new SingleDepthFilesFinder(1);
@@ -463,19 +426,6 @@ class BuildCacheClientModule extends AbstractModule {
         return new CustomVirtualFileSystem(root);
     }
 
-    // TODO Make AbstractVirtualFileSystem into DefaultVirtualFileSystem, and wrap it with the
-    //      watching/non-watching implementations so DefaultVirtualFileSystem can be reused here
-    private static class CustomVirtualFileSystem extends AbstractVirtualFileSystem {
-        protected CustomVirtualFileSystem(SnapshotHierarchy root) {
-            super(root);
-        }
-
-        @Override
-        protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
-            return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
-        }
-    }
-
     @Provides
     Interner<String> createStringInterner() {
         return Interners.newWeakInterner();
@@ -507,5 +457,55 @@ class BuildCacheClientModule extends AbstractModule {
             locations -> locations.forEach(System.out::println),
             statisticsCollector
         );
+    }
+
+    private static class LocalBuildCacheModule extends PrivateModule {
+        @Override
+        protected void configure() {
+        }
+
+        @Provides
+        @Exposed
+        LocalBuildCacheService createLocalBuildCacheService(FileAccessTracker fileAccessTracker, PersistentCache persistentCache) {
+            return new DirectoryBuildCacheService(
+                persistentCache,
+                fileAccessTracker,
+                ".failed"
+            );
+        }
+
+        @Provides
+        PersistentCache createPersistentCache(File buildCacheDir, CacheCleanupStrategy cacheCleanupStrategy, CacheFactory cacheFactory) {
+            return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
+                .withCleanupStrategy(cacheCleanupStrategy)
+                .withDisplayName("Build cache")
+                .withInitialLockMode(OnDemand)
+                .open();
+        }
+
+        @Provides
+        FileAccessTracker createFileAccessTracker(File buildCacheDir, FileAccessTimeJournal fileAccessTimeJournal) {
+            return new SingleDepthFileAccessTracker(fileAccessTimeJournal, buildCacheDir, 1);
+        }
+
+        @Provides
+        File createBuildCacheDir() throws IOException {
+            File target = Files.createTempDirectory("build-cache").toFile();
+            FileUtils.forceMkdir(target);
+            return target;
+        }
+    }
+
+    // TODO Make AbstractVirtualFileSystem into DefaultVirtualFileSystem, and wrap it with the
+    //      watching/non-watching implementations so DefaultVirtualFileSystem can be reused here
+    private static class CustomVirtualFileSystem extends AbstractVirtualFileSystem {
+        protected CustomVirtualFileSystem(SnapshotHierarchy root) {
+            super(root);
+        }
+
+        @Override
+        protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
+            return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
+        }
     }
 }

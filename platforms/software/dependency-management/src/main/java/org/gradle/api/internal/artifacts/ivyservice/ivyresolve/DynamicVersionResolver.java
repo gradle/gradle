@@ -397,10 +397,10 @@ public class DynamicVersionResolver {
         private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
         private final AttributesFactory attributesFactory;
         private final ComponentMetadataSupplierRuleExecutor supplierRuleExecutor;
-        private boolean searchedLocally;
-        private boolean searchedRemotely;
         private final DefaultBuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
         private final CacheExpirationControl cacheExpirationControl;
+        private boolean searchedLocally;
+        private boolean searchedRemotely;
 
         public CandidateResult(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, String version, ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository, AttemptCollector attemptCollector, VersionParser versionParser, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, AttributesFactory attributesFactory, ComponentMetadataSupplierRuleExecutor supplierRuleExecutor, CacheExpirationControl cacheExpirationControl) {
             this.overrideMetadata = overrideMetadata;

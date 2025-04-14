@@ -27,7 +27,7 @@ class VisitableURLClassLoaderSpecSerializerTest extends Specification {
     def encoder = new KryoBackedEncoder(outputStream)
 
     def "can serialize and deserialize a spec"() {
-        def urls = [ new URL("file://some/path"), new URL("file://some/other/path") ]
+        def urls = [new URL("file://some/path"), new URL("file://some/other/path")]
         def spec = new VisitableURLClassLoader.Spec("test", urls)
 
         when:

@@ -176,7 +176,7 @@ public class JvmPluginsHelper {
      * @param compile The compile task to configure
      * @param javaExtension The java extension containing the raw source and target compatibility values
      * @param compatibilityComputer A function to compute the compatibility version to use as the convention
-     *      given the raw version values and the current version property values set on the extension
+     * given the raw version values and the current version property values set on the extension
      */
     public static void configureCompileDefaults(AbstractCompile compile, DefaultJavaPluginExtension javaExtension, BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
         ConventionMapping conventionMapping = compile.getConventionMapping();

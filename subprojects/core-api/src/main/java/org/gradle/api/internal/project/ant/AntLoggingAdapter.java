@@ -99,16 +99,16 @@ public class AntLoggingAdapter implements BuildLogger {
         }
     }
 
+    public AntMessagePriority getLifecycleLogLevel() {
+        return lifecycleLogLevel;
+    }
+
     public void setLifecycleLogLevel(String lifecycleLogLevel) {
         setLifecycleLogLevel(lifecycleLogLevel == null ? null : AntMessagePriority.valueOf(lifecycleLogLevel));
     }
 
     public void setLifecycleLogLevel(AntMessagePriority lifecycleLogLevel) {
         this.lifecycleLogLevel = lifecycleLogLevel;
-    }
-
-    public AntMessagePriority getLifecycleLogLevel() {
-        return lifecycleLogLevel;
     }
 
     private LogLevel getLogLevelForMessagePriority(int messagePriority) {

@@ -77,7 +77,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         project.version >> "dep-version"
 
         then:
-        with (resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
+        with(resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
             group == "dep-group"
             name == "project-name"
             version == "dep-version"
@@ -89,7 +89,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         registry.register(project.identityPath, pub("mock", "pub-group", "pub-name", "pub-version"))
 
         then:
-        with (resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
+        with(resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
             group == "pub-group"
             name == "pub-name"
             version == "pub-version"
@@ -104,7 +104,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         registry.register(project.identityPath, publication, publication2)
 
         then:
-        with (resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
+        with(resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
             group == "pub-group"
             name == "pub-name"
             version == "pub-version"
@@ -116,7 +116,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         configureMultiCoordinatePublication()
 
         then:
-        with (resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
+        with(resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
             group == "pub-group"
             name == "pub-name"
             version == "pub-version"
@@ -246,7 +246,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
         registry.register(project.identityPath, publication, publication2, publication3)
 
         then:
-        with (resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
+        with(resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
             group == "pub-group"
             name == "pub-name"
             version == "pub-version"
@@ -310,7 +310,7 @@ Found the following publications in <project>:
         registry.register(project.identityPath, publication, publication2, publication3)
 
         then:
-        with (resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
+        with(resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)) {
             group == "pub-group"
             name == "pub-name"
             version == "pub-version"

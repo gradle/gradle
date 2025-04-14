@@ -34,6 +34,11 @@ public class NamespaceId implements Serializable {
     private String namespace;
     private String name;
 
+    public NamespaceId(String namespace, String name) {
+        this.namespace = namespace;
+        this.name = name;
+    }
+
     public static NamespaceId decode(String encoding) {
         byte[] data = Base64.getDecoder().decode(encoding);
         try (ByteArrayInputStream bais = new ByteArrayInputStream(data); DataInputStream dis = new DataInputStream(bais)) {
@@ -43,11 +48,6 @@ public class NamespaceId implements Serializable {
         } catch (Exception e) {
             throw new RuntimeException("Failed decoding namespace ID");
         }
-    }
-
-    public NamespaceId(String namespace, String name) {
-        this.namespace = namespace;
-        this.name = name;
     }
 
     public String encode() {
@@ -118,8 +118,8 @@ public class NamespaceId implements Serializable {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 31)
-                .append(namespace)
-                .append(name)
-                .toHashCode();
+            .append(namespace)
+            .append(name)
+            .toHashCode();
     }
 }

@@ -94,7 +94,7 @@ public abstract class GroupedWorkOutputFixture {
      * the entire expected input is not present.
      *
      * @param expectedText the expected sequence of lines
-     * @param searcher      the searcher to use to find the expected sequence of lines in the actual output
+     * @param searcher the searcher to use to find the expected sequence of lines in the actual output
      * @return this fixture
      */
     private GroupedWorkOutputFixture assertOutputContainsUsingSearcher(String expectedText, ExhaustiveLinesSearcher searcher) {

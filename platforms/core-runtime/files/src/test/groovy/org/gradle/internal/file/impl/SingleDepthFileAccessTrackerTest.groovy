@@ -23,7 +23,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class SingleDepthFileAccessTrackerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile baseDir = tmpDir.file("base")
     FileAccessTimeJournal journal = Mock(FileAccessTimeJournal)
 

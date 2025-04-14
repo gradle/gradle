@@ -432,7 +432,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         variants.each {
             it.artifacts.findAll { it.name }.each {
                 def variantArtifact = moduleDir.file(it.name)
-                publish (variantArtifact) { Writer writer ->
+                publish(variantArtifact) { Writer writer ->
                     writer << "${it.name} : Variant artifact $it.name"
                 }
             }
@@ -457,7 +457,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     private void publishModuleMetadata() {
-        def defaultArtifacts = artifacts.findAll {!it.undeclared}.collect { moduleArtifact(it) }.collect {
+        def defaultArtifacts = artifacts.findAll { !it.undeclared }.collect { moduleArtifact(it) }.collect {
             new FileSpec(it.file.name, it.file.name)
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(organisation, module, revision, revision,
@@ -470,7 +470,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.collect { d ->
-                        new DependencySpec(d.organisation, d.module, d.revision, d.prefers, d.strictly,d.rejects, d.exclusions, d.endorseStrictVersions, d.reason, d.attributes,
+                        new DependencySpec(d.organisation, d.module, d.revision, d.prefers, d.strictly, d.rejects, d.exclusions, d.endorseStrictVersions, d.reason, d.attributes,
                             d.classifier ? new ArtifactSelectorSpec(d.module, 'jar', 'jar', d.classifier) : null, d.requireCapability)
                     },
                     v.dependencyConstraints + dependencyConstraints.collect { d ->
@@ -578,8 +578,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 }
                 ivyFileWriter << "/>"
             }
-            def compileDependencies = variants.find{ it.name == 'api' }?.dependencies
-            def runtimeDependencies = variants.find{ it.name == 'runtime' }?.dependencies
+            def compileDependencies = variants.find { it.name == 'api' }?.dependencies
+            def runtimeDependencies = variants.find { it.name == 'runtime' }?.dependencies
             if (compileDependencies) {
                 compileDependencies.each { dep ->
                     def depAttrs = [org: dep.group, name: dep.module, rev: dep.version, conf: 'compile->default']

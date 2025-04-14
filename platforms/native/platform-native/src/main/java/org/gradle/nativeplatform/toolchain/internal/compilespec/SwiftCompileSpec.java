@@ -24,14 +24,18 @@ import java.util.Collection;
 
 public interface SwiftCompileSpec extends NativeCompileSpec {
     String getModuleName();
+
     void setModuleName(String moduleName);
 
     File getModuleFile();
+
     void setModuleFile(File file);
 
     SwiftVersion getSourceCompatibility();
+
     void setSourceCompatibility(SwiftVersion sourceCompatibility);
 
     Collection<File> getChangedFiles();
+
     void setChangedFiles(Collection<File> changedFiles);
 }

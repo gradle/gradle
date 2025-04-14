@@ -62,6 +62,16 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         this.resource = workerLeaseService.newResource();
     }
 
+    private static List<TaskIdentifier.TaskBasedTaskIdentifier> removeExecuted(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
+        return tasks.stream()
+            .filter(identifier -> !identifier.getTask().getState().getExecuted())
+            .collect(Collectors.toList());
+    }
+
+    private static String nameOf(BuildState build) {
+        return build.getDisplayName().getDisplayName();
+    }
+
     @Override
     public <T> T build(BuildState requester, List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
         if (tasks.isEmpty()) {
@@ -132,15 +142,5 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
             mode(FileLockManager.LockMode.Exclusive),
             "build logic queue"
         );
-    }
-
-    private static List<TaskIdentifier.TaskBasedTaskIdentifier> removeExecuted(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
-        return tasks.stream()
-            .filter(identifier -> !identifier.getTask().getState().getExecuted())
-            .collect(Collectors.toList());
-    }
-
-    private static String nameOf(BuildState build) {
-        return build.getDisplayName().getDisplayName();
     }
 }

@@ -47,7 +47,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     }
 
     String defaultEmptySourcePathRefFolder() {
-       return tempDir.testDirectory.file(JavaCompilerArgumentsBuilder.EMPTY_SOURCE_PATH_REF_DIR).absolutePath
+        return tempDir.testDirectory.file(JavaCompilerArgumentsBuilder.EMPTY_SOURCE_PATH_REF_DIR).absolutePath
     }
 
     def createCompileSpec(numFiles) {

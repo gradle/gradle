@@ -140,15 +140,19 @@ class DefaultMetadataProvider implements MetadataProvider {
      */
     private static class SimpleComponentMetadataBuilder implements ComponentMetadataBuilder {
         private final ModuleVersionIdentifier id;
-        private boolean mutated; // used internally to determine if a rule effectively did something
-
-        private List<String> statusScheme = ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
         private final AttributeContainerInternal attributes;
+        private boolean mutated; // used internally to determine if a rule effectively did something
+        private List<String> statusScheme = ExternalComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
         private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, AttributesFactory attributesFactory) {
             this.id = id;
             this.attributes = attributesFactory.mutable();
             this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, MavenVersionUtils.inferStatusFromEffectiveVersion(id.getVersion()));
+        }
+
+        private static boolean isValidType(Attribute<?> attribute) {
+            Class<?> type = attribute.getType();
+            return type == String.class || type == Boolean.class || type == Boolean.TYPE;
         }
 
         @Override
@@ -202,15 +206,31 @@ class DefaultMetadataProvider implements MetadataProvider {
             }
         }
 
-        private static boolean isValidType(Attribute<?> attribute) {
-            Class<?> type = attribute.getType();
-            return type == String.class || type == Boolean.class || type == Boolean.TYPE;
-        }
-
         ComponentMetadata build() {
             return new UserProvidedMetadata(id, statusScheme, validateAttributeTypes(attributes));
         }
 
+    }
+
+    private static class DefaultMetadataResolutionContext implements MetadataResolutionContext {
+
+        private final CacheExpirationControl cacheExpirationControl;
+        private final Instantiator instantiator;
+
+        private DefaultMetadataResolutionContext(CacheExpirationControl cacheExpirationControl, Instantiator instantiator) {
+            this.cacheExpirationControl = cacheExpirationControl;
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public CacheExpirationControl getCacheExpirationControl() {
+            return cacheExpirationControl;
+        }
+
+        @Override
+        public Instantiator getInjectingInstantiator() {
+            return instantiator;
+        }
     }
 
     private class BuildableComponentMetadataSupplierDetails implements ComponentMetadataSupplierDetails {
@@ -238,26 +258,5 @@ class DefaultMetadataProvider implements MetadataProvider {
             return null;
         }
 
-    }
-
-    private static class DefaultMetadataResolutionContext implements MetadataResolutionContext {
-
-        private final CacheExpirationControl cacheExpirationControl;
-        private final Instantiator instantiator;
-
-        private DefaultMetadataResolutionContext(CacheExpirationControl cacheExpirationControl, Instantiator instantiator) {
-            this.cacheExpirationControl = cacheExpirationControl;
-            this.instantiator = instantiator;
-        }
-
-        @Override
-        public CacheExpirationControl getCacheExpirationControl() {
-            return cacheExpirationControl;
-        }
-
-        @Override
-        public Instantiator getInjectingInstantiator() {
-            return instantiator;
-        }
     }
 }

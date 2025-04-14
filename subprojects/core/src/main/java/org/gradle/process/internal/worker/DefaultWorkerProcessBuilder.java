@@ -205,13 +205,13 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     }
 
     @Override
-    public void setNativeServicesMode(NativeServicesMode nativeServicesMode) {
-        this.nativeServicesMode = nativeServicesMode;
+    public NativeServicesMode getNativeServicesMode() {
+        return nativeServicesMode;
     }
 
     @Override
-    public NativeServicesMode getNativeServicesMode() {
-        return nativeServicesMode;
+    public void setNativeServicesMode(NativeServicesMode nativeServicesMode) {
+        this.nativeServicesMode = nativeServicesMode;
     }
 
     @Override

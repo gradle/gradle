@@ -29,44 +29,44 @@ public class JavadocSpec implements CompileSpec {
     private File optionsFile;
     private String executable;
 
-    public void setOptions(MinimalJavadocOptions options) {
-        this.options = options;
-    }
-
     public MinimalJavadocOptions getOptions() {
         return options;
     }
 
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
+    public void setOptions(MinimalJavadocOptions options) {
+        this.options = options;
     }
 
     public boolean isIgnoreFailures() {
         return ignoreFailures;
     }
 
-    public void setWorkingDir(File workingDir) {
-        this.workingDir = workingDir;
+    public void setIgnoreFailures(boolean ignoreFailures) {
+        this.ignoreFailures = ignoreFailures;
     }
 
     public File getWorkingDir() {
         return workingDir;
     }
 
-    public void setOptionsFile(File optionsFile) {
-        this.optionsFile = optionsFile;
+    public void setWorkingDir(File workingDir) {
+        this.workingDir = workingDir;
     }
 
     public File getOptionsFile() {
         return optionsFile;
     }
 
-    public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
+    public void setOptionsFile(File optionsFile) {
+        this.optionsFile = optionsFile;
     }
 
     @Nullable
     public String getExecutable() {
         return executable;
+    }
+
+    public void setExecutable(@Nullable String executable) {
+        this.executable = executable;
     }
 }

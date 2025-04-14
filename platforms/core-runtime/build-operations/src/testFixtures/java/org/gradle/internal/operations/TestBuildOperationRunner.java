@@ -39,6 +39,22 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
 
     public final Log log = new Log();
 
+    private static RuntimeException throwAsUncheckedException(Throwable t) {
+        if (t instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+        }
+        if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+        }
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        if (t instanceof IOException) {
+            throw new UncheckedIOException((IOException) t);
+        }
+        throw new RuntimeException(t);
+    }
+
     public List<BuildOperationDescriptor> getOperations() {
         return log.getDescriptors();
     }
@@ -77,6 +93,10 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 return null;
             }
         };
+    }
+
+    public void reset() {
+        log.records.clear();
     }
 
     private static class TestBuildOperationContext implements BuildOperationContext {
@@ -169,62 +189,6 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
             return records.toString();
         }
 
-        public static class Record {
-
-            public final BuildOperationDescriptor descriptor;
-
-            @Nullable
-            public Object result;
-            @Nullable
-            public Throwable failure;
-
-            private Record(BuildOperationDescriptor descriptor) {
-                this.descriptor = descriptor;
-            }
-
-            @Override
-            public String toString() {
-                return descriptor.getDisplayName();
-            }
-
-            private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> asTyped(Class<? extends T> buildOperationType) {
-                if (descriptor.getDetails() == null) {
-                    throw new IllegalStateException("operation has null details");
-                }
-
-                return new TypedRecord<D, R>(
-                    descriptor,
-                    BuildOperationTypes.detailsType(buildOperationType).cast(descriptor.getDetails()),
-                    BuildOperationTypes.resultType(buildOperationType).cast(result),
-                    failure
-                );
-            }
-
-        }
-
-        public static class TypedRecord<D, R> {
-
-            public final BuildOperationDescriptor descriptor;
-            public final D details;
-            @Nullable
-            public final R result;
-            @Nullable
-            public final Throwable failure;
-
-            private TypedRecord(BuildOperationDescriptor descriptor, D details, @Nullable R result, @Nullable Throwable failure) {
-                this.descriptor = descriptor;
-                this.details = details;
-                this.result = result;
-                this.failure = failure;
-            }
-
-            @Override
-            public String toString() {
-                return descriptor.getDisplayName();
-            }
-        }
-
-
         private void run(RunnableBuildOperation buildOperation) {
             Record record = new Record(buildOperation.description().build());
             records.add(record);
@@ -300,25 +264,60 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
                 }
             };
         }
-    }
 
-    public void reset() {
-        log.records.clear();
-    }
+        public static class Record {
 
-    private static RuntimeException throwAsUncheckedException(Throwable t) {
-        if (t instanceof InterruptedException) {
-            Thread.currentThread().interrupt();
+            public final BuildOperationDescriptor descriptor;
+
+            @Nullable
+            public Object result;
+            @Nullable
+            public Throwable failure;
+
+            private Record(BuildOperationDescriptor descriptor) {
+                this.descriptor = descriptor;
+            }
+
+            @Override
+            public String toString() {
+                return descriptor.getDisplayName();
+            }
+
+            private <D, R, T extends BuildOperationType<D, R>> TypedRecord<D, R> asTyped(Class<? extends T> buildOperationType) {
+                if (descriptor.getDetails() == null) {
+                    throw new IllegalStateException("operation has null details");
+                }
+
+                return new TypedRecord<D, R>(
+                    descriptor,
+                    BuildOperationTypes.detailsType(buildOperationType).cast(descriptor.getDetails()),
+                    BuildOperationTypes.resultType(buildOperationType).cast(result),
+                    failure
+                );
+            }
+
         }
-        if (t instanceof RuntimeException) {
-            throw (RuntimeException) t;
+
+        public static class TypedRecord<D, R> {
+
+            public final BuildOperationDescriptor descriptor;
+            public final D details;
+            @Nullable
+            public final R result;
+            @Nullable
+            public final Throwable failure;
+
+            private TypedRecord(BuildOperationDescriptor descriptor, D details, @Nullable R result, @Nullable Throwable failure) {
+                this.descriptor = descriptor;
+                this.details = details;
+                this.result = result;
+                this.failure = failure;
+            }
+
+            @Override
+            public String toString() {
+                return descriptor.getDisplayName();
+            }
         }
-        if (t instanceof Error) {
-            throw (Error) t;
-        }
-        if (t instanceof IOException) {
-            throw new UncheckedIOException((IOException) t);
-        }
-        throw new RuntimeException(t);
     }
 }

@@ -28,7 +28,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
         file('web/src/main/webapp').mkdirs()
 
         buildFile <<
-        """subprojects {
+            """subprojects {
                apply plugin: 'eclipse-wtp'
 
                ${mavenCentralRepository()}

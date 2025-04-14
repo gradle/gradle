@@ -100,7 +100,6 @@ public interface DependencyConstraintHandler {
      *
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency constraint notation provider, in one of the notations described above.
-     *
      * @since 8.12
      */
     <T> void addProvider(String configurationName, Provider<T> dependencyNotation);
@@ -111,7 +110,6 @@ public interface DependencyConstraintHandler {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency constraint notation provider, in one of the notations described above.
      * @param configureAction The action to use to configure the dependency constraint.
-     *
      * @since 8.12
      */
     <T> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super DependencyConstraint> configureAction);
@@ -121,7 +119,6 @@ public interface DependencyConstraintHandler {
      *
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency constraint notation provider, in one of the notations described above.
-     *
      * @since 8.12
      */
     <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation);
@@ -132,7 +129,6 @@ public interface DependencyConstraintHandler {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency constraint notation provider, in one of the notations described above.
      * @param configureAction The action to use to configure the dependency constraint.
-     *
      * @since 8.12
      */
     <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super DependencyConstraint> configureAction);
@@ -160,7 +156,6 @@ public interface DependencyConstraintHandler {
      * that they would override any other version found in the graph.
      *
      * @param notation the coordinates of the platform
-     *
      * @since 5.0
      */
     DependencyConstraint enforcedPlatform(Object notation);
@@ -173,7 +168,6 @@ public interface DependencyConstraintHandler {
      *
      * @param notation the coordinates of the platform
      * @param configureAction the dependency configuration block
-     *
      * @since 5.0
      */
     DependencyConstraint enforcedPlatform(Object notation, Action<? super DependencyConstraint> configureAction);

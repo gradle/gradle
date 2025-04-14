@@ -36,12 +36,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
     public static final AbiExtractingClasspathResourceHasher DEFAULT = withFallback(
         ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())
             .includePackagePrivateMembers()
             .build());
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
     private final ApiClassExtractor extractor;
     private final FallbackStrategy fallbackStrategy;
 
@@ -56,6 +55,10 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
     public static AbiExtractingClasspathResourceHasher withoutFallback(ApiClassExtractor extractor) {
         return new AbiExtractingClasspathResourceHasher(extractor, FallbackStrategy.NONE);
+    }
+
+    private static boolean isNotClassFile(String name) {
+        return !name.endsWith(".class");
     }
 
     @Nullable
@@ -99,24 +102,10 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         return fallbackStrategy.handle(new ZipEntryContent(zipEntry.getName(), content), entry -> hashClassBytes(content));
     }
 
-    private static boolean isNotClassFile(String name) {
-        return !name.endsWith(".class");
-    }
-
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
         hasher.putString(extractor.getClass().getName());
-    }
-
-    private static class ZipEntryContent {
-        final String name;
-        final byte[] content;
-
-        ZipEntryContent(String name, byte[] content) {
-            this.name = name;
-            this.content = content;
-        }
     }
 
     enum FallbackStrategy {
@@ -162,5 +151,15 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
         @Nullable
         abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException;
+    }
+
+    private static class ZipEntryContent {
+        final String name;
+        final byte[] content;
+
+        ZipEntryContent(String name, byte[] content) {
+            this.name = name;
+            this.content = content;
+        }
     }
 }

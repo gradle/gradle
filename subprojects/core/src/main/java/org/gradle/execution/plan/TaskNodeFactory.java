@@ -101,6 +101,18 @@ public class TaskNodeFactory {
         private final Map<Project, ProjectScopedTypeOriginInspector> projectToInspector = new ConcurrentHashMap<>();
         private final Map<Class<?>, File> clazzToFile = new ConcurrentHashMap<>();
 
+        @Nullable
+        private static File toFile(@Nullable URL url) {
+            if (url == null) {
+                return null;
+            }
+            try {
+                return new File(url.toURI());
+            } catch (URISyntaxException e) {
+                return null;
+            }
+        }
+
         public ProjectScopedTypeOriginInspector forTask(Task task) {
             return projectToInspector.computeIfAbsent(task.getProject(), ProjectScopedTypeOriginInspector::new);
         }
@@ -112,18 +124,6 @@ public class TaskNodeFactory {
         @Nullable
         private File jarFileFor(Class<?> pluginClass) {
             return clazzToFile.computeIfAbsent(pluginClass, clazz -> toFile(pluginClass.getProtectionDomain().getCodeSource().getLocation()));
-        }
-
-        @Nullable
-        private static File toFile(@Nullable URL url) {
-            if (url == null) {
-                return null;
-            }
-            try {
-                return new File(url.toURI());
-            } catch (URISyntaxException e) {
-                return null;
-            }
         }
 
         private class ProjectScopedTypeOriginInspector implements WorkValidationContext.TypeOriginInspector {

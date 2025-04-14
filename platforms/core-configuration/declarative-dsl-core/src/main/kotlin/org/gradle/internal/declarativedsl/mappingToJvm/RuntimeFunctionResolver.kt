@@ -134,7 +134,8 @@ class DefaultRuntimeFunctionResolver(
     ): Boolean = FunctionBinding.convertBinding(kFunction, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null
 
     private fun parametersMatch(function: KFunction<*>, schemaFunction: SchemaFunction): Boolean {
-        val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size).filter { configureLambdaHandler.getTypeConfiguredByLambda(it.type) == null }
+        val actualParameters =
+            function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size).filter { configureLambdaHandler.getTypeConfiguredByLambda(it.type) == null }
         return if (actualParameters.size == schemaFunction.parameters.size) {
             actualParameters.zip(schemaFunction.parameters).all { (kp, dp) ->
                 when (val classifier = kp.type.classifier) {

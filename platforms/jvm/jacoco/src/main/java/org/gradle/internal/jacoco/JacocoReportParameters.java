@@ -24,18 +24,24 @@ import org.gradle.api.provider.Property;
 
 public interface JacocoReportParameters extends AntWorkParameters {
     Property<String> getProjectName();
+
     Property<String> getEncoding();
 
     ConfigurableFileCollection getAllClassesDirs();
+
     ConfigurableFileCollection getAllSourcesDirs();
+
     ConfigurableFileCollection getExecutionData();
 
     Property<Boolean> getGenerateHtml();
+
     DirectoryProperty getHtmlDestination();
 
     Property<Boolean> getGenerateXml();
+
     RegularFileProperty getXmlDestination();
 
     Property<Boolean> getGenerateCsv();
+
     RegularFileProperty getCsvDestination();
 }

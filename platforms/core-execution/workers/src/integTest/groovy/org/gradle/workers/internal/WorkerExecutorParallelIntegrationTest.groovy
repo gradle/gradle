@@ -40,7 +40,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         blockingHttpServer.start()
 
         parallelParameterType = fixture.workParameterClass("ParallelParameter", "org.gradle.test").withFields([
-                "itemName": "String"
+            "itemName": "String"
         ])
 
         parallelWorkAction = fixture.workActionClass("ParallelWorkAction", "org.gradle.test", parallelParameterType)
@@ -101,13 +101,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         where:
-        isolationMode           | waitForResults
-        'noIsolation'           | true
-        'noIsolation'           | false
-        'processIsolation'      | true
-        'processIsolation'      | false
-        'classLoaderIsolation'  | true
-        'classLoaderIsolation'  | false
+        isolationMode          | waitForResults
+        'noIsolation'          | true
+        'noIsolation'          | false
+        'processIsolation'     | true
+        'processIsolation'     | false
+        'classLoaderIsolation' | true
+        'classLoaderIsolation' | false
     }
 
     def "multiple work items with different requirements can be executed in parallel in #isolationMode"() {
@@ -129,7 +129,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         where:
-        isolationMode << [ 'processIsolation', 'classLoaderIsolation' ]
+        isolationMode << ['processIsolation', 'classLoaderIsolation']
     }
 
     def "multiple work items with different actions can be executed in parallel in #isolationMode"() {
@@ -461,9 +461,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         when:
         args("--max-workers=${maxWorkers}")
         def gradle = executer.withTasks("parallelWorkTask")
-                        .requireIsolatedDaemons()
-                        .withWorkerDaemonsExpirationDisabled()
-                        .start()
+            .requireIsolatedDaemons()
+            .withWorkerDaemonsExpirationDisabled()
+            .start()
 
         then:
         handler.waitForAllPendingCalls()
@@ -815,8 +815,8 @@ See https://github.com/gradle/gradle/pull/25540 for details."""
 
     def "cannot mutate worker parameters when using noIsolation"() {
         def verifyingParameterType = fixture.workParameterClass("VerifyingParameter", "org.gradle.test").withFields([
-                "itemName": "String",
-                "list": "List<String>"
+            "itemName": "String",
+            "list": "List<String>"
         ])
         def verifyingWorkAction = fixture.workActionClass("VerifyingWorkAction", "org.gradle.test", verifyingParameterType)
         verifyingWorkAction.imports += ["java.net.URI"]

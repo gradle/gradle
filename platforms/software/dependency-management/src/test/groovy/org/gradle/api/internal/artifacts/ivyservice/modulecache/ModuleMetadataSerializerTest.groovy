@@ -71,7 +71,7 @@ class ModuleMetadataSerializerTest extends Specification {
         then:
         println "Checking that all ${metadata.size()} samples are different"
         serializedMetadata.each { key, value ->
-            println "$key : ${value.toString() }"
+            println "$key : ${value.toString()}"
         }
         def unique = serializedMetadata.values() as Set
         unique.size() == metadata.size()

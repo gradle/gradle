@@ -83,19 +83,6 @@ public enum PropertyAccessorType {
         this.prefixLength = prefixLength;
     }
 
-    public String propertyNameFor(Method method) {
-        return propertyNameFor(method.getName());
-    }
-
-    public String propertyNameFor(String methodName) {
-        String methodNamePrefixRemoved = methodName.substring(prefixLength);
-        return Introspector.decapitalize(methodNamePrefixRemoved);
-    }
-
-    public abstract Class<?> propertyTypeFor(Method method);
-
-    public abstract Type genericPropertyTypeFor(Method method);
-
     @Nullable
     public static PropertyAccessorType of(Method method) {
         if (isStatic(method)) {
@@ -119,6 +106,7 @@ public enum PropertyAccessorType {
 
     /**
      * Convenience method org.gradle.util.internal.VersionNumber#parse(String) is not available, therefore check {@link GroovySystem#getVersion()} directly.
+     *
      * @return true if Groovy 3 is bundled, false otherwise
      */
     private static boolean isGroovy3() {
@@ -173,4 +161,17 @@ public enum PropertyAccessorType {
     public static boolean hasSetter(Collection<PropertyAccessorType> accessorTypes) {
         return accessorTypes.contains(SETTER);
     }
+
+    public String propertyNameFor(Method method) {
+        return propertyNameFor(method.getName());
+    }
+
+    public String propertyNameFor(String methodName) {
+        String methodNamePrefixRemoved = methodName.substring(prefixLength);
+        return Introspector.decapitalize(methodNamePrefixRemoved);
+    }
+
+    public abstract Class<?> propertyTypeFor(Method method);
+
+    public abstract Type genericPropertyTypeFor(Method method);
 }

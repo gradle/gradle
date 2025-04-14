@@ -94,7 +94,6 @@ public interface MutableVersionConstraint extends VersionConstraint {
      * be selected. This term supports dynamic versions.
      *
      * @param versions the rejected versions
-     *
      * @since 4.5
      */
     void reject(String... versions);

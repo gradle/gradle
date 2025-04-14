@@ -232,7 +232,7 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public T variant(String variant, Map<String, String> attributes, @DelegatesTo(value=VariantMetadataSpec.class, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
+    public T variant(String variant, Map<String, String> attributes, @DelegatesTo(value = VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
         backingModule.variant(variant, attributes, variantConfiguration);
         return t();
     }

@@ -41,6 +41,10 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         return new EmptyDispatch<T>(type);
     }
 
+    private static boolean sameOrEquals(Object x, Object y) {
+        return x == y || x.equals(y);
+    }
+
     public Class<T> getType() {
         return type;
     }
@@ -381,9 +385,5 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         public void dispatch(MethodInvocation message) {
             dispatch(message, dispatchers);
         }
-    }
-
-    private static boolean sameOrEquals(Object x, Object y) {
-        return x == y || x.equals(y);
     }
 }

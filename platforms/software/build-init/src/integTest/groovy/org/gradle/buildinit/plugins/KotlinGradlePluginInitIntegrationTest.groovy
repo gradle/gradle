@@ -35,13 +35,13 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
     def "defaults to kotlin build scripts"() {
         when:
-        run ('init', '--type', 'kotlin-gradle-plugin')
+        run('init', '--type', 'kotlin-gradle-plugin')
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON )
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 

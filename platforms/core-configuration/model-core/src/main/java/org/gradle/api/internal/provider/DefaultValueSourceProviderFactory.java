@@ -272,6 +272,71 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
+    private static class ObtainedValueHolder<T> {
+        private final Try<T> obtained;
+        @Nullable
+        private final DisplayName displayName;
+
+        private ObtainedValueHolder(Try<T> obtained, @Nullable DisplayName displayName) {
+            this.obtained = obtained;
+            this.displayName = displayName;
+        }
+
+        public ObtainedValueHolder(Try<T> obtained) {
+            this(obtained, null);
+        }
+
+        public Value<T> asNullableValue() {
+            return Value.ofNullable(obtained.get()).pushWhenMissing(displayName);
+        }
+
+        public ExecutionTimeValue<T> asExecutionTimeValue() {
+            return ExecutionTimeValue.ofNullable(obtained.get());
+        }
+    }
+
+    private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements ValueListener.ObtainedValue<T, P> {
+
+        private final Try<@Nullable T> value;
+        private final Class<? extends ValueSource<T, P>> valueSourceType;
+        private final Class<P> parametersType;
+        @Nullable
+        private final P parameters;
+
+        public DefaultObtainedValue(
+            Try<@Nullable T> value,
+            Class<? extends ValueSource<T, P>> valueSourceType,
+            @Nullable Class<P> parametersType,
+            @Nullable P parameters
+        ) {
+            this.value = value;
+            this.valueSourceType = valueSourceType;
+            this.parametersType = parametersType;
+            this.parameters = parameters;
+        }
+
+        @Override
+        public Try<@Nullable T> getValue() {
+            return value;
+        }
+
+        @Override
+        public Class<? extends ValueSource<T, P>> getValueSourceType() {
+            return valueSourceType;
+        }
+
+        @Override
+        @Nullable
+        public Class<P> getValueSourceParametersType() {
+            return parametersType;
+        }
+
+        @Override
+        public P getValueSourceParameters() {
+            return parameters;
+        }
+    }
+
     private class LazilyObtainedValue<T, P extends ValueSourceParameters> {
 
         public final Class<? extends ValueSource<T, P>> sourceType;
@@ -352,71 +417,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                 parametersType,
                 parameters
             );
-        }
-    }
-
-    private static class ObtainedValueHolder<T> {
-        private final Try<T> obtained;
-        @Nullable
-        private final DisplayName displayName;
-
-        private ObtainedValueHolder(Try<T> obtained, @Nullable DisplayName displayName) {
-            this.obtained = obtained;
-            this.displayName = displayName;
-        }
-
-        public ObtainedValueHolder(Try<T> obtained) {
-            this(obtained, null);
-        }
-
-        public Value<T> asNullableValue() {
-            return Value.ofNullable(obtained.get()).pushWhenMissing(displayName);
-        }
-
-        public ExecutionTimeValue<T> asExecutionTimeValue() {
-            return ExecutionTimeValue.ofNullable(obtained.get());
-        }
-    }
-
-    private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements ValueListener.ObtainedValue<T, P> {
-
-        private final Try<@Nullable T> value;
-        private final Class<? extends ValueSource<T, P>> valueSourceType;
-        private final Class<P> parametersType;
-        @Nullable
-        private final P parameters;
-
-        public DefaultObtainedValue(
-            Try<@Nullable T> value,
-            Class<? extends ValueSource<T, P>> valueSourceType,
-            @Nullable Class<P> parametersType,
-            @Nullable P parameters
-        ) {
-            this.value = value;
-            this.valueSourceType = valueSourceType;
-            this.parametersType = parametersType;
-            this.parameters = parameters;
-        }
-
-        @Override
-        public Try<@Nullable T> getValue() {
-            return value;
-        }
-
-        @Override
-        public Class<? extends ValueSource<T, P>> getValueSourceType() {
-            return valueSourceType;
-        }
-
-        @Override
-        @Nullable
-        public Class<P> getValueSourceParametersType() {
-            return parametersType;
-        }
-
-        @Override
-        public P getValueSourceParameters() {
-            return parameters;
         }
     }
 }

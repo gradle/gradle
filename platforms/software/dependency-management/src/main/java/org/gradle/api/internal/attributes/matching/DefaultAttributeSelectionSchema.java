@@ -52,6 +52,19 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
         this.schema = schema;
     }
 
+    private static void removeSameAttributes(ImmutableAttributes requested, Set<Attribute<?>> extraAttributes) {
+        for (Attribute<?> attribute : requested.keySet()) {
+            Iterator<Attribute<?>> it = extraAttributes.iterator();
+            while (it.hasNext()) {
+                Attribute<?> next = it.next();
+                if (next.getName().equals(attribute.getName())) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
     @Override
     public boolean hasAttribute(Attribute<?> attribute) {
         return schema.getAttributes().contains(attribute);
@@ -113,19 +126,6 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
             extraAttributesArray[i] = tryRehydrate(extraAttributesArray[i]);
         }
         return extraAttributesArray;
-    }
-
-    private static void removeSameAttributes(ImmutableAttributes requested, Set<Attribute<?>> extraAttributes) {
-        for (Attribute<?> attribute : requested.keySet()) {
-            Iterator<Attribute<?>> it = extraAttributes.iterator();
-            while (it.hasNext()) {
-                Attribute<?> next = it.next();
-                if (next.getName().equals(attribute.getName())) {
-                    it.remove();
-                    break;
-                }
-            }
-        }
     }
 
     @Override

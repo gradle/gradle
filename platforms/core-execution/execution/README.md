@@ -1,11 +1,13 @@
 # Execution Engine
 
 The execution engine is the main component of the execution platform.
-Its purpose is to provide a simple, unified way of declaring _units of work_ that the engine can execute, producing their outputs safely and efficiently in a concurrent environment.[^concurrent-environment]
+Its purpose is to provide a simple, unified way of declaring _units of work_ that the engine can execute, producing their outputs safely and efficiently in a concurrent
+environment.[^concurrent-environment]
 To achieve this goal, the engine utilizes a host of safeguards and optimizations.
 Notably, the execution engine is not responsible for deciding which units of work require output production, nor is it concerned with scheduling executions (see the scheduler about that).
 
-[^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work simultaneously.
+[^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work
+simultaneously.
 
 Any action with well-defined inputs and outputs, where safe execution or output reuse is required, can be implemented using the execution engine.
 Indeed, it is our aspiration in Gradle for all such work to be executed via the execution engine.
@@ -59,7 +61,8 @@ Each unit has two identifiers:
 
 _Hashing_ is widely used in generating these identifiers.
 We use cryptographic hashing to generate universally unique identifiers for units of work (currently using the MD5 algorithm[^md5-safety][^other-crypto-hashes]).
-While non-cryptographic hash algorithms like [xxHash](https://xxhash.com) or [MurmurHash](https://en.wikipedia.org/wiki/MurmurHash) are significantly faster, they lack the astronomical collision resistance we require.
+While non-cryptographic hash algorithms like [xxHash](https://xxhash.com) or [MurmurHash](https://en.wikipedia.org/wiki/MurmurHash) are significantly faster, they lack the astronomical collision
+resistance we require.
 
 [^md5-safety]: MD5 has long been compromised from a security standpoint, but our goal is not to protect against malicious intent.
 To avoid accidental collisions, MD5 is still sufficiently strong.

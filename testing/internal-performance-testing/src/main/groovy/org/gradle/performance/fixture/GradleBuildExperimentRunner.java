@@ -85,6 +85,55 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         }
     }
 
+    private static File determineGradleUserHome(GradleInvocationSpec invocationSpec) {
+        File projectDirectory = invocationSpec.getWorkingDirectory();
+        // do not add the Gradle user home in the project directory, so it is not watched
+        return new File(projectDirectory.getParent(), projectDirectory.getName() + "-" + GRADLE_USER_HOME_NAME);
+    }
+
+    private static GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
+        GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
+        List<String> cleanTasks = invocationSpec.getCleanTasks();
+        File gradlePropertiesFile = new File(invocationSettings.getProjectDir(), "gradle.properties");
+        Properties gradleProperties = new Properties();
+        try (InputStream inputStream = Files.newInputStream(gradlePropertiesFile.toPath())) {
+            gradleProperties.load(inputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        String[] jvmOptsFromGradleProperties = gradleProperties.getProperty("org.gradle.jvmargs").split(" ");
+        final ImmutableList<String> actualJvmArgs = ImmutableList.<String>builder()
+            .add(jvmOptsFromGradleProperties)
+            .addAll(invocationSpec.getJvmArguments())
+            .build();
+        return new GradleScenarioDefinition(
+            OutputDirSelectorUtil.fileSafeNameFor(experimentSpec.getDisplayName()),
+            experimentSpec.getDisplayName(),
+            (GradleBuildInvoker) invocationSettings.getInvoker(),
+            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),
+            experimentSpec.getInvocation().getBuildAction(),
+            cleanTasks.isEmpty()
+                ? BuildAction.NO_OP
+                : new RunTasksAction(cleanTasks),
+            invocationSpec.getArgs(),
+            invocationSettings.getSystemProperties(),
+            collectMutators(invocationSettings, experimentSpec),
+            invocationSettings.getWarmUpCount(),
+            invocationSettings.getBuildCount(),
+            invocationSettings.getOutputDir(),
+            actualJvmArgs,
+            invocationSettings.getMeasuredBuildOperations()
+        );
+    }
+
+    private static List<BuildMutator> collectMutators(InvocationSettings invocationSettings, GradleBuildExperimentSpec experimentSpec) {
+        return Stream.concat(
+            experimentSpec.getBuildMutators().stream()
+                .map(mutatorFunction -> mutatorFunction.apply(invocationSettings)),
+            Stream.of(new DelayBeforeBuildMutator(500, MILLISECONDS))
+        ).collect(Collectors.toList());
+    }
+
     @Override
     public void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results) {
         InvocationSpec invocationSpec = experiment.getInvocation();
@@ -200,55 +249,6 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setStudioInstallDir(invocationSpec.getStudioInstallDir())
             .setStudioSandboxDir(invocationSpec.getStudioSandboxDir())
             .build();
-    }
-
-    private static File determineGradleUserHome(GradleInvocationSpec invocationSpec) {
-        File projectDirectory = invocationSpec.getWorkingDirectory();
-        // do not add the Gradle user home in the project directory, so it is not watched
-        return new File(projectDirectory.getParent(), projectDirectory.getName() + "-" + GRADLE_USER_HOME_NAME);
-    }
-
-    private static GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
-        GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
-        List<String> cleanTasks = invocationSpec.getCleanTasks();
-        File gradlePropertiesFile = new File(invocationSettings.getProjectDir(), "gradle.properties");
-        Properties gradleProperties = new Properties();
-        try (InputStream inputStream = Files.newInputStream(gradlePropertiesFile.toPath())) {
-            gradleProperties.load(inputStream);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        String[] jvmOptsFromGradleProperties = gradleProperties.getProperty("org.gradle.jvmargs").split(" ");
-        final ImmutableList<String> actualJvmArgs = ImmutableList.<String>builder()
-            .add(jvmOptsFromGradleProperties)
-            .addAll(invocationSpec.getJvmArguments())
-            .build();
-        return new GradleScenarioDefinition(
-            OutputDirSelectorUtil.fileSafeNameFor(experimentSpec.getDisplayName()),
-            experimentSpec.getDisplayName(),
-            (GradleBuildInvoker) invocationSettings.getInvoker(),
-            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),
-            experimentSpec.getInvocation().getBuildAction(),
-            cleanTasks.isEmpty()
-                ? BuildAction.NO_OP
-                : new RunTasksAction(cleanTasks),
-            invocationSpec.getArgs(),
-            invocationSettings.getSystemProperties(),
-            collectMutators(invocationSettings, experimentSpec),
-            invocationSettings.getWarmUpCount(),
-            invocationSettings.getBuildCount(),
-            invocationSettings.getOutputDir(),
-            actualJvmArgs,
-            invocationSettings.getMeasuredBuildOperations()
-        );
-    }
-
-    private static List<BuildMutator> collectMutators(InvocationSettings invocationSettings, GradleBuildExperimentSpec experimentSpec) {
-        return Stream.concat(
-            experimentSpec.getBuildMutators().stream()
-                .map(mutatorFunction -> mutatorFunction.apply(invocationSettings)),
-            Stream.of(new DelayBeforeBuildMutator(500, MILLISECONDS))
-        ).collect(Collectors.toList());
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.internal.rules
+
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import spock.lang.Specification
@@ -29,7 +30,7 @@ class DefaultRuleActionAdapterTest extends Specification {
         }
     }
 
-    def "can adapt from closure" () {
+    def "can adapt from closure"() {
         ruleActionAdapter = new DefaultRuleActionAdapter(noopValidator, "context")
         def closureCalled = ""
 
@@ -74,7 +75,7 @@ class DefaultRuleActionAdapterTest extends Specification {
         closureCalled == "foo3"
     }
 
-    def "can adapt from action" () {
+    def "can adapt from action"() {
         ruleActionAdapter = new DefaultRuleActionAdapter(noopValidator, "context")
         def actionCalled = false
 
@@ -88,11 +89,11 @@ class DefaultRuleActionAdapterTest extends Specification {
         actionCalled
     }
 
-    def "fails to adapt closure with invalid subject" () {
+    def "fails to adapt closure with invalid subject"() {
         ruleActionAdapter = new DefaultRuleActionAdapter(noopValidator, "context")
 
         when:
-        ruleActionAdapter.createFromClosure(String, {List subject -> })
+        ruleActionAdapter.createFromClosure(String, { List subject -> })
 
         then:
         def failure = thrown(InvalidUserCodeException)
@@ -101,7 +102,7 @@ class DefaultRuleActionAdapterTest extends Specification {
         failure.cause.message == "First parameter of rule action closure must be of type 'String'."
     }
 
-    def "fails to adapt closure when validation fails" () {
+    def "fails to adapt closure when validation fails"() {
         def RuleActionValidator ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> throw new RuleActionValidationException("FAILED") }
         }
@@ -117,7 +118,7 @@ class DefaultRuleActionAdapterTest extends Specification {
         failure.cause.message == "FAILED"
     }
 
-    def "fails to adapt action when validation fails" () {
+    def "fails to adapt action when validation fails"() {
         def RuleActionValidator ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> throw new RuleActionValidationException("FAILED") }
         }

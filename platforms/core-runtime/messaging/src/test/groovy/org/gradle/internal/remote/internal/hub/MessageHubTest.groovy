@@ -163,7 +163,7 @@ class MessageHubTest extends ConcurrentSpec {
         1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == "message1" })
         1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == "message2" })
         1 * outgoing.dispatch({ it instanceof ChannelMessage && it.payload == 12 })
-        1 * outgoing.dispatch({ it instanceof EndOfStream}) >> { connection.stop() }
+        1 * outgoing.dispatch({ it instanceof EndOfStream }) >> { connection.stop() }
         (1.._) * outgoing.flush()
         0 * _._
     }

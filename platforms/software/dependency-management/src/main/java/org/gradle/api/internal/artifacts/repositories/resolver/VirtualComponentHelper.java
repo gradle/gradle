@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 public class VirtualComponentHelper {
     /**
      * Decorates a component identifier, marking it as virtual.
+     *
      * @param id the original component identifier
      * @return a virtual component identifier
      */

@@ -24,7 +24,6 @@ import java.time.Duration;
 
 public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSettings {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSystemPropertiesHttpTimeoutSettings.class);
     public static final String CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.connectionTimeout";
     public static final String SOCKET_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.socketTimeout";
     public static final String IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.internal.http.idleConnectionTimeout";
@@ -36,7 +35,7 @@ public class JavaSystemPropertiesHttpTimeoutSettings implements HttpTimeoutSetti
      * so we set our default to be below that.
      */
     public static final int DEFAULT_IDLE_CONNECTION_TIMEOUT = (int) Duration.ofMinutes(3).toMillis();
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSystemPropertiesHttpTimeoutSettings.class);
     private final int connectionTimeoutMs;
     private final int socketTimeoutMs;
     private final int idleConnectionTimeoutMs;

@@ -113,7 +113,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         0 * _
 
         when:
-        buildFinished(Integer.MAX_VALUE,  [unsupportedFileSystemMountPoint])
+        buildFinished(Integer.MAX_VALUE, [unsupportedFileSystemMountPoint])
         then:
         vfsHasSnapshotsAt(watchableContent)
         !vfsHasSnapshotsAt(unwatchableContent)

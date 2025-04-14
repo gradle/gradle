@@ -29,6 +29,23 @@ public class XcodePropertyAdapter {
         this.project = project;
     }
 
+    public static List<String> getAdapterCommandLine() {
+        return Arrays.asList(
+            toGradleProperty("ACTION"),
+            toGradleProperty("PRODUCT_NAME"),
+            toGradleProperty("CONFIGURATION"),
+            toGradleProperty("BUILT_PRODUCTS_DIR")
+        );
+    }
+
+    private static String toGradleProperty(String source) {
+        return "-P" + prefixName(source) + "=\"${" + source + "}\"";
+    }
+
+    private static String prefixName(String source) {
+        return "org.gradle.internal.xcode.bridge." + source;
+    }
+
     public String getAction() {
         return getXcodeProperty("ACTION");
     }
@@ -47,22 +64,5 @@ public class XcodePropertyAdapter {
 
     private String getXcodeProperty(String name) {
         return String.valueOf(GUtil.elvis(project.findProperty(prefixName(name)), ""));
-    }
-
-    public static List<String> getAdapterCommandLine() {
-        return Arrays.asList(
-            toGradleProperty("ACTION"),
-            toGradleProperty("PRODUCT_NAME"),
-            toGradleProperty("CONFIGURATION"),
-            toGradleProperty("BUILT_PRODUCTS_DIR")
-        );
-    }
-
-    private static String toGradleProperty(String source) {
-        return "-P" + prefixName(source) + "=\"${" + source + "}\"";
-    }
-
-    private static String prefixName(String source) {
-        return "org.gradle.internal.xcode.bridge." + source;
     }
 }

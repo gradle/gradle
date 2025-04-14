@@ -63,7 +63,7 @@ public class DefaultTextArea extends AbstractLineChoppingStyledTextOutput implem
                             int next = textStr.indexOf('\t', pos);
                             if (next == pos) {
                                 int charsToNextStop = CHARS_PER_TAB_STOP - (writePos.col % CHARS_PER_TAB_STOP);
-                                for(int i = 0; i < charsToNextStop; i++) {
+                                for (int i = 0; i < charsToNextStop; i++) {
                                     ansi.a(" ");
                                 }
                                 pos++;

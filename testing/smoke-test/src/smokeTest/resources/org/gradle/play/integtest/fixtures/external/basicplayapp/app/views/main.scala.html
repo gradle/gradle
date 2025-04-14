@@ -1,13 +1,16 @@
 @(title: String)(content: Html)
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script src="@routes.Assets.at("javascripts/hello.js")" type="text/javascript"></script>
-    </head>
-    <body>
+<head>
+    <title>@title</title>
+    <link href="@routes.Assets.at(" media="screen" rel="stylesheet" stylesheets
+    /main.css")">
+    <link href="@routes.Assets.at(" images rel="shortcut icon" type="image/png"
+    /favicon.png")">
+    <script javascripts src="@routes.Assets.at("
+    /hello.js")" type="text/javascript"></script>
+</head>
+<body>
 @content
-    </body>
+</body>
 </html>

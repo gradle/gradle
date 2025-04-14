@@ -150,7 +150,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         when:
         graph.withNewWorkGraph { g ->
-            def f= g.scheduleWork {
+            def f = g.scheduleWork {
             }
             f.runWork()
             graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()

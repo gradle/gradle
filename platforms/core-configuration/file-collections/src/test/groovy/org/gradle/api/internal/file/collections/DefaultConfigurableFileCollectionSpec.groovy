@@ -49,7 +49,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     AbstractFileCollection containing(File... files) {
         def resolver = Stub(FileResolver)
         _ * resolver.resolve(_) >> { File f -> f }
-            return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, host).from(files)
+        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, host).from(files)
     }
 
     def "resolves specified files using file resolver"() {
@@ -2029,21 +2029,21 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         }
 
         when:
-        operations.each {operation -> operation.call(collection) }
+        operations.each { operation -> operation.call(collection) }
 
         then:
         collection.from.flatten() as List == expected
 
         where:
-        expected        | explicit      | convention        | label                                         | operations
-        []              | _             | _                 | "no elements by default"                      | { }
-        ["src1"]        | ["src1"]      | _                 | "explicit value when set"                     | { }
-        ["src1"]        | _             | ["src1"]          | "convention used when no explicit value"      | { }
-        ["src3"]        | ["src3"]      | ["src1"]          | "explicit value overrides convention"         | { }
-        ["src1"]        | ["src3"]      | ["src1"]          | "convention used when explicit unset"         | { it.unset() }
-        ["src1", "src2"]| _             | _                 | "from() after convention honors it"           | { it.convention("src1"); it.from("src2") }
-        ["src2"]        | _             | _                 | "from() before convention prevents it"        | { it.from("src2"); it.convention("src1") }
-        ["src1", "src2"]| _             | ["src1"]          | "from() commits convention"                   | { it.from("src2"); it.unsetConvention() }
-        ["src1"]        | _             | ["src1"]          | "from() does not modify convention"           | { it.from("src2"); it.unset() }
+        expected         | explicit | convention | label                                    | operations
+        []               | _        | _          | "no elements by default"                 | {}
+        ["src1"]         | ["src1"] | _          | "explicit value when set"                | {}
+        ["src1"]         | _        | ["src1"]   | "convention used when no explicit value" | {}
+        ["src3"]         | ["src3"] | ["src1"]   | "explicit value overrides convention"    | {}
+        ["src1"]         | ["src3"] | ["src1"]   | "convention used when explicit unset"    | { it.unset() }
+        ["src1", "src2"] | _        | _          | "from() after convention honors it"      | { it.convention("src1"); it.from("src2") }
+        ["src2"]         | _        | _          | "from() before convention prevents it"   | { it.from("src2"); it.convention("src1") }
+        ["src1", "src2"] | _        | ["src1"]   | "from() commits convention"              | { it.from("src2"); it.unsetConvention() }
+        ["src1"]         | _        | ["src1"]   | "from() does not modify convention"      | { it.from("src2"); it.unset() }
     }
 }

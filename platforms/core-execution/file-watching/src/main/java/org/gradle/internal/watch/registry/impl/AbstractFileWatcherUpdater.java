@@ -55,6 +55,24 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         this.movedDirectoryHandler = movedDirectoryHandler;
     }
 
+    @VisibleForTesting
+    static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
+        return watchableHierarchies.stream()
+            .map(File::getPath)
+            .filter(watchableHierarchy -> hasWatchableContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
+            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
+    }
+
+    private static boolean hasWatchableContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {
+        return snapshots
+            .anyMatch(snapshot -> !isMissing(snapshot) && !watchableHierarchies.ignoredForWatching(snapshot));
+    }
+
+    private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
+        // Missing accessed indirectly means we have a dangling symlink in the directory, and that's content we cannot ignore
+        return snapshot.getType() == FileType.Missing && snapshot.getAccessType() == FileMetadata.AccessType.DIRECT;
+    }
+
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
@@ -176,24 +194,6 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract void startWatchingProbeDirectory(File probeDirectory);
 
     protected abstract void stopWatchingProbeDirectory(File probeDirectory);
-
-    @VisibleForTesting
-    static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
-        return watchableHierarchies.stream()
-            .map(File::getPath)
-            .filter(watchableHierarchy -> hasWatchableContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
-            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
-    }
-
-    private static boolean hasWatchableContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {
-        return snapshots
-            .anyMatch(snapshot -> !isMissing(snapshot) && !watchableHierarchies.ignoredForWatching(snapshot));
-    }
-
-    private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
-        // Missing accessed indirectly means we have a dangling symlink in the directory, and that's content we cannot ignore
-        return snapshot.getType() == FileType.Missing && snapshot.getAccessType() == FileMetadata.AccessType.DIRECT;
-    }
 
     public interface MovedDirectoryHandler {
         /**

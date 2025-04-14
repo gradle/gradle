@@ -198,48 +198,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
-    @Override
-    public TransformUpstreamDependencies dependenciesFor(ComponentIdentifier componentId, TransformStep transformStep) {
-        if (!transformStep.requiresDependencies()) {
-            return NO_DEPENDENCIES;
-        }
-        return new TransformUpstreamDependenciesImpl(componentId, configurationIdentity, transformStep, calculatedValueContainerFactory, initialVisitedGraph, initialVisitedArtifacts);
-    }
-
-    private FileCollectionInternal getCompleteTransformDependencies(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
-        completeGraphResults.finalizeIfNotAlready();
-        completeArtifactResults.finalizeIfNotAlready();
-
-        SelectedArtifactSet selectedArtifacts = selectDependencyArtifacts(
-            componentId,
-            fromAttributes,
-            completeGraphResults.get(),
-            completeArtifactResults.get()
-        );
-
-        return new ResolutionBackedFileCollection(
-            selectedArtifacts,
-            false,
-            resolutionHost,
-            taskDependencyFactory
-        );
-    }
-
-    private SelectedArtifactSet selectDependencyArtifacts(
-        ComponentIdentifier componentId,
-        ImmutableAttributes fromAttributes,
-        VisitedGraphResults visitedGraph,
-        VisitedArtifactSet visitedArtifacts
-    ) {
-        Set<ComponentIdentifier> dependencyComponents = computeDependencies(componentId, visitedGraph);
-        Spec<ComponentIdentifier> filter = SerializableLambdas.spec(dependencyComponents::contains);
-
-        ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
-        return visitedArtifacts.select(new ArtifactSelectionSpec(
-            fullAttributes, filter, false, false, artifactDependencySortOrder
-        ));
-    }
-
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, VisitedGraphResults visitedGraph) {
         ResolvedComponentResult root = visitedGraph.getResolutionResult().getRootSource().get();
         ResolvedComponentResult targetComponent = findComponent(root, componentId);
@@ -299,6 +257,66 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     }
 
+    @Override
+    public TransformUpstreamDependencies dependenciesFor(ComponentIdentifier componentId, TransformStep transformStep) {
+        if (!transformStep.requiresDependencies()) {
+            return NO_DEPENDENCIES;
+        }
+        return new TransformUpstreamDependenciesImpl(componentId, configurationIdentity, transformStep, calculatedValueContainerFactory, initialVisitedGraph, initialVisitedArtifacts);
+    }
+
+    private FileCollectionInternal getCompleteTransformDependencies(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
+        completeGraphResults.finalizeIfNotAlready();
+        completeArtifactResults.finalizeIfNotAlready();
+
+        SelectedArtifactSet selectedArtifacts = selectDependencyArtifacts(
+            componentId,
+            fromAttributes,
+            completeGraphResults.get(),
+            completeArtifactResults.get()
+        );
+
+        return new ResolutionBackedFileCollection(
+            selectedArtifacts,
+            false,
+            resolutionHost,
+            taskDependencyFactory
+        );
+    }
+
+    private SelectedArtifactSet selectDependencyArtifacts(
+        ComponentIdentifier componentId,
+        ImmutableAttributes fromAttributes,
+        VisitedGraphResults visitedGraph,
+        VisitedArtifactSet visitedArtifacts
+    ) {
+        Set<ComponentIdentifier> dependencyComponents = computeDependencies(componentId, visitedGraph);
+        Spec<ComponentIdentifier> filter = SerializableLambdas.spec(dependencyComponents::contains);
+
+        ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
+        return visitedArtifacts.select(new ArtifactSelectionSpec(
+            fullAttributes, filter, false, false, artifactDependencySortOrder
+        ));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultTransformUpstreamDependenciesResolver that = (DefaultTransformUpstreamDependenciesResolver) o;
+        return resolutionHost.equals(that.resolutionHost);
+    }
+
+    @Override
+    public int hashCode() {
+        return resolutionHost.hashCode();
+    }
+
     /**
      * Represents a work node that prepares the upstream dependencies of a particular transform applied to a particular artifact.
      * This is a separate node so that this work can access project state to do the resolution and to discover additional dependencies for the transform
@@ -313,6 +331,33 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             // Trigger resolution, including any failures
             files.getFiles();
             return new DefaultTransformDependencies(files);
+        }
+    }
+
+    private static class CollectingTaskDependencyResolveContext implements TaskDependencyResolveContext {
+        private final TaskNodeFactory taskNodeFactory;
+        private final Collection<TaskNode> tasks;
+
+        public CollectingTaskDependencyResolveContext(Collection<TaskNode> tasks, TaskNodeFactory taskNodeFactory) {
+            this.tasks = tasks;
+            this.taskNodeFactory = taskNodeFactory;
+        }
+
+        @Override
+        public void add(Object dependency) {
+            if (dependency instanceof Task) {
+                tasks.add(taskNodeFactory.getNode((Task) dependency));
+            }
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+        }
+
+        @Nullable
+        @Override
+        public Task getTask() {
+            return null;
         }
     }
 
@@ -406,33 +451,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     }
 
-    private static class CollectingTaskDependencyResolveContext implements TaskDependencyResolveContext {
-        private final TaskNodeFactory taskNodeFactory;
-        private final Collection<TaskNode> tasks;
-
-        public CollectingTaskDependencyResolveContext(Collection<TaskNode> tasks, TaskNodeFactory taskNodeFactory) {
-            this.tasks = tasks;
-            this.taskNodeFactory = taskNodeFactory;
-        }
-
-        @Override
-        public void add(Object dependency) {
-            if (dependency instanceof Task) {
-                tasks.add(taskNodeFactory.getNode((Task) dependency));
-            }
-        }
-
-        @Override
-        public void visitFailure(Throwable failure) {
-        }
-
-        @Nullable
-        @Override
-        public Task getTask() {
-            return null;
-        }
-    }
-
     private class TransformUpstreamDependenciesImpl implements TransformUpstreamDependencies {
         private final ComponentIdentifier componentId;
         private final ConfigurationIdentity configurationIdentity;
@@ -479,23 +497,5 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         public void finalizeIfNotAlready() {
             transformDependencies.finalizeIfNotAlready();
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultTransformUpstreamDependenciesResolver that = (DefaultTransformUpstreamDependenciesResolver) o;
-        return resolutionHost.equals(that.resolutionHost);
-    }
-
-    @Override
-    public int hashCode() {
-        return resolutionHost.hashCode();
     }
 }

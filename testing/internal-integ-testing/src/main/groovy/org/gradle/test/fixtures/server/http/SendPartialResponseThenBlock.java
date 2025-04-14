@@ -35,9 +35,9 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
     private final Duration timeout;
     private final Condition condition;
     private final WaitPrecondition precondition;
+    private final Clock clock = Time.clock();
     private boolean requestStarted;
     private boolean released;
-    private final Clock clock = Time.clock();
     private long mostRecentEvent;
     private AssertionError failure;
 

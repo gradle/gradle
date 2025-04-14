@@ -63,6 +63,10 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         return new OutputCapturer(durationMeasurement == null ? stream : NullOutputStream.INSTANCE, outputEncoding);
     }
 
+    private static void println(String s) {
+        System.out.println(s);
+    }
+
     @Override
     public PipedOutputStream getStdinPipe() {
         return stdinPipe;
@@ -123,10 +127,6 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         if (roCache != null) {
             println(format("    %s: %s", ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, roCache));
         }
-    }
-
-    private static void println(String s) {
-        System.out.println(s);
     }
 
     @Override

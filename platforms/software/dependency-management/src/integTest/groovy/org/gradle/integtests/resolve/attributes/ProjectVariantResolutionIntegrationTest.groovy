@@ -124,9 +124,9 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
         failure.assertHasCause("broken")
 
         where:
-        registerExpression                                                         | _
-        "artifacts.implementation(p.flatMap { it.output })"                        | _
+        registerExpression                                                   | _
+        "artifacts.implementation(p.flatMap { it.output })"                  | _
         "configurations.outgoing.outgoing.artifact(p.flatMap { it.output })" | _
-        "artifacts.parent(p.flatMap { it.output })"                                | _
+        "artifacts.parent(p.flatMap { it.output })"                          | _
     }
 }

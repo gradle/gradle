@@ -127,6 +127,10 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             this.initialBackOff = initialBackOff;
         }
 
+        private static String buildDisabledRepositoryErrorMessage(String repositoryName) {
+            return String.format("Repository %s is disabled due to earlier error below:", repositoryName);
+        }
+
         @Override
         public String toString() {
             return "error handling > " + delegate.toString();
@@ -176,24 +180,24 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 cause -> new ArtifactResolveException(artifact.getId(), cause));
         }
 
-        private static String buildDisabledRepositoryErrorMessage(String repositoryName) {
-            return String.format("Repository %s is disabled due to earlier error below:", repositoryName);
-        }
-
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
-                                                                                                           Callable<E> operation,
-                                                                                                           Transformer<E, Throwable> onDisabled,
-                                                                                                           Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(
+            R result,
+            Callable<E> operation,
+            Transformer<E, Throwable> onDisabled,
+            Transformer<E, Throwable> onError
+        ) {
             if (checkToHandleDisabledRepository(result, onDisabled)) {
                 return;
             }
             tryResolveAndMaybeDisable(result, operation, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
-                                                                                                           Runnable operation,
-                                                                                                           Transformer<E, Throwable> onDisabled,
-                                                                                                           Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(
+            R result,
+            Runnable operation,
+            Transformer<E, Throwable> onDisabled,
+            Transformer<E, Throwable> onError
+        ) {
             if (checkToHandleDisabledRepository(result, onDisabled)) {
                 return;
             }
@@ -210,18 +214,22 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             return false;
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(R result,
-                                                                                                         Runnable operation,
-                                                                                                         Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(
+            R result,
+            Runnable operation,
+            Transformer<E, Throwable> onError
+        ) {
             tryResolveAndMaybeDisable(result, () -> {
                 operation.run();
                 return null;
             }, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(R result,
-                                                                                                         Callable<E> operation,
-                                                                                                         Transformer<E, Throwable> onError) {
+        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(
+            R result,
+            Callable<E> operation,
+            Transformer<E, Throwable> onError
+        ) {
             int retries = 0;
             int backoff = initialBackOff;
 

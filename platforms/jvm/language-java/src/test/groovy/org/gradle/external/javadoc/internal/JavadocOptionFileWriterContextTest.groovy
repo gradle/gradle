@@ -24,34 +24,43 @@ import spock.lang.Subject
 public class JavadocOptionFileWriterContextTest extends Specification {
 
     def writer = new StringWriter()
-    @Subject context = new JavadocOptionFileWriterContext(writer)
+    @Subject
+        context = new JavadocOptionFileWriterContext(writer)
 
     def "writes"() {
-        when: context.write("dummy")
-        then: writer.toString() == "dummy"
+        when:
+        context.write("dummy")
+        then:
+        writer.toString() == "dummy"
     }
 
     def "writes new line"() {
-        when: context.write("a").newLine().write("b")
-        then: writer.toString() == "a${SystemProperties.instance.getLineSeparator()}b"
+        when:
+        context.write("a").newLine().write("b")
+        then:
+        writer.toString() == "a${SystemProperties.instance.getLineSeparator()}b"
     }
 
     def "quotes and escapes"() {
-        when: context.writeValueOption("key", "1\\2\\")
-        then: writer.toString() == "-key '1\\\\2\\\\'${SystemProperties.instance.getLineSeparator()}"
+        when:
+        context.writeValueOption("key", "1\\2\\")
+        then:
+        writer.toString() == "-key '1\\\\2\\\\'${SystemProperties.instance.getLineSeparator()}"
     }
 
     def "quotes and escapes multiple values"() {
         when:
         context.writeValuesOption("key", WrapUtil.toList("a\\b", "c"), ":")
 
-        then: writer.toString() == "-key 'a\\\\b:c'${SystemProperties.instance.getLineSeparator()}"
+        then:
+        writer.toString() == "-key 'a\\\\b:c'${SystemProperties.instance.getLineSeparator()}"
     }
 
     def "writes multiline value"() {
         when:
         context.writeValueOption("key", "Hey${SystemProperties.instance.getLineSeparator()}Joe!")
 
-        then: writer.toString() == "-key 'Hey\\${SystemProperties.instance.getLineSeparator()}Joe!'${SystemProperties.instance.getLineSeparator()}"
+        then:
+        writer.toString() == "-key 'Hey\\${SystemProperties.instance.getLineSeparator()}Joe!'${SystemProperties.instance.getLineSeparator()}"
     }
 }

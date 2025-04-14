@@ -48,7 +48,7 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run"compileJava"
+        run "compileJava"
         def metadata = readMetadata()
 
         then:

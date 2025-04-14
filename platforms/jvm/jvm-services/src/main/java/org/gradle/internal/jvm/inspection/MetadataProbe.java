@@ -46,21 +46,6 @@ class MetadataProbe {
 
     private final Supplier<byte[]> probeClass = Suppliers.memoize(() -> createProbeClass());
 
-    public File writeClass(File outputDirectory) {
-        File probeFile = new File(outputDirectory, "JavaProbe.class");
-        try {
-            IoActions.withResource(new FileOutputStream(probeFile), new ErroringAction<FileOutputStream>() {
-                @Override
-                protected void doExecute(FileOutputStream thing) throws Exception {
-                    thing.write(probeClass.get());
-                }
-            });
-        } catch (FileNotFoundException e) {
-            throw new GradleException("Unable to write Java probe file", e);
-        }
-        return probeFile;
-    }
-
     private static byte[] createProbeClass() {
         ClassWriter cw = new ClassWriter(0);
         createClassHeader(cw);
@@ -117,6 +102,21 @@ class MetadataProbe {
         mv.visitLocalVariable("this", "LJavaProbe;", null, l0, l1, 0);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
+    }
+
+    public File writeClass(File outputDirectory) {
+        File probeFile = new File(outputDirectory, "JavaProbe.class");
+        try {
+            IoActions.withResource(new FileOutputStream(probeFile), new ErroringAction<FileOutputStream>() {
+                @Override
+                protected void doExecute(FileOutputStream thing) throws Exception {
+                    thing.write(probeClass.get());
+                }
+            });
+        } catch (FileNotFoundException e) {
+            throw new GradleException("Unable to write Java probe file", e);
+        }
+        return probeFile;
     }
 
 }

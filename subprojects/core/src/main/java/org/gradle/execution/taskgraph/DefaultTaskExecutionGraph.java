@@ -297,6 +297,28 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         allTasks = Collections.emptyList();
     }
 
+    @Override
+    public Set<Task> getFilteredTasks() {
+        /*
+            Note: we currently extract this information from the execution plan because it's
+            buried under functions in #filter. This could be detangled/simplified by introducing
+            excludeTasks(Iterable<Task>) as an analog to addEntryTasks(Iterable<Task>).
+
+            This is too drastic a change for the stage in the release cycle were exposing this information
+            was necessary, therefore the minimal change solution was implemented.
+         */
+        return executionPlan.getContents().getFilteredTasks();
+    }
+
+    private void fireWhenReady() {
+        // We know that we're running single-threaded here, so we can use coarse grained project locks
+        gradleInternal.getOwner().getProjects().withMutableStateOfAllProjects(
+            () -> buildOperationRunner.run(
+                new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)
+            )
+        );
+    }
+
     /**
      * This action wraps the execution of a node into a build operation.
      */
@@ -334,28 +356,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             }
             throw new IllegalStateException("Unknown type of node: " + node);
         }
-    }
-
-    @Override
-    public Set<Task> getFilteredTasks() {
-        /*
-            Note: we currently extract this information from the execution plan because it's
-            buried under functions in #filter. This could be detangled/simplified by introducing
-            excludeTasks(Iterable<Task>) as an analog to addEntryTasks(Iterable<Task>).
-
-            This is too drastic a change for the stage in the release cycle were exposing this information
-            was necessary, therefore the minimal change solution was implemented.
-         */
-        return executionPlan.getContents().getFilteredTasks();
-    }
-
-    private void fireWhenReady() {
-        // We know that we're running single-threaded here, so we can use coarse grained project locks
-        gradleInternal.getOwner().getProjects().withMutableStateOfAllProjects(
-            () -> buildOperationRunner.run(
-                new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)
-            )
-        );
     }
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {

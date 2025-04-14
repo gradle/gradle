@@ -23,12 +23,8 @@ import org.jspecify.annotations.Nullable;
  */
 public abstract class Transient<T> implements java.io.Serializable {
 
-    /**
-     * A mutable variable that gets discarded during serialization.
-     */
-    public static abstract class Var<T> extends Transient<T> {
-        public abstract void set(T value);
-    }
+    @SuppressWarnings("ClassInitializationDeadlock")
+    private static final Transient<Object> DISCARDED = new Discarded<>();
 
     public static <T> Transient<T> of(T value) {
         return new ImmutableTransient<>(value);
@@ -47,6 +43,13 @@ public abstract class Transient<T> implements java.io.Serializable {
 
     public boolean isPresent() {
         return true;
+    }
+
+    /**
+     * A mutable variable that gets discarded during serialization.
+     */
+    public static abstract class Var<T> extends Transient<T> {
+        public abstract void set(T value);
     }
 
     private static class ImmutableTransient<T> extends Transient<T> {
@@ -112,7 +115,4 @@ public abstract class Transient<T> implements java.io.Serializable {
             return DISCARDED;
         }
     }
-
-    @SuppressWarnings("ClassInitializationDeadlock")
-    private static final Transient<Object> DISCARDED = new Discarded<>();
 }

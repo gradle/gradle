@@ -40,10 +40,13 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 class DependencyResolutionStressTest extends Specification {
-    @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider(getClass())
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
-    @Rule StressHttpServer server = new StressHttpServer()
-    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    @Rule
+    StressHttpServer server = new StressHttpServer()
+    @Rule
+    ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def setup() {
         concurrent.shortTimeout = 180000
@@ -92,8 +95,8 @@ task check {
         """
 
                 GradleExecuter executer = distribution.executer(workspace, IntegrationTestBuildContext.INSTANCE).
-                        requireDaemon().requireIsolatedDaemons().
-                        withGradleUserHomeDir(workspace.file("user-home"))
+                    requireDaemon().requireIsolatedDaemons().
+                    withGradleUserHomeDir(workspace.file("user-home"))
                 8.times {
                     executer.inDirectory(buildDir).withArgument("--refresh-dependencies").withTasks('check').run()
                 }

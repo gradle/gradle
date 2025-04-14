@@ -52,21 +52,6 @@ public class WtpComponentFactory {
         currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
     }
 
-    public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
-        List<WbModuleEntry> entries = new ArrayList<>();
-        entries.addAll(getEntriesFromSourceDirs(wtp));
-        for (WbResource element : wtp.getResources()) {
-            if (wtp.getProject().file(element.getSourcePath()).isDirectory()) {
-                entries.add(element);
-            }
-        }
-        entries.addAll(wtp.getProperties());
-        Project project = wtp.getProject();
-        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getRootConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, "/"));
-        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getLibConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, wtp.getLibDeployPath()));
-        component.configure(wtp.getDeployName(), wtp.getContextPath(), entries);
-    }
-
     private static Set<Configuration> configOrEmptySet(Set<Configuration> configuration) {
         if (configuration == null) {
             return Collections.emptySet();
@@ -85,6 +70,21 @@ public class WtpComponentFactory {
             }
         }
         return result;
+    }
+
+    public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
+        List<WbModuleEntry> entries = new ArrayList<>();
+        entries.addAll(getEntriesFromSourceDirs(wtp));
+        for (WbResource element : wtp.getResources()) {
+            if (wtp.getProject().file(element.getSourcePath()).isDirectory()) {
+                entries.add(element);
+            }
+        }
+        entries.addAll(wtp.getProperties());
+        Project project = wtp.getProject();
+        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getRootConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, "/"));
+        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getLibConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, wtp.getLibDeployPath()));
+        component.configure(wtp.getDeployName(), wtp.getContextPath(), entries);
     }
 
     private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {

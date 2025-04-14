@@ -222,12 +222,12 @@ class AmountTest extends Specification {
         Amount.valueOf(a, Fruit.apples) * b == Amount.valueOf(c, Fruit.apples)
 
         where:
-        a     | b   | c
-        0     | 200 | 0
-        2     | 1   | 2
-        5     | 10  | 50
-        10    | -2  | -20
-        0.25  | 8   | 2
+        a    | b   | c
+        0    | 200 | 0
+        2    | 1   | 2
+        5    | 10  | 50
+        10   | -2  | -20
+        0.25 | 8   | 2
     }
 
     def "can convert to absolute value"() {

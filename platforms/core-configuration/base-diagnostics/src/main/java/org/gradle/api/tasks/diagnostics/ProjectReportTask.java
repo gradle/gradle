@@ -71,50 +71,6 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     @Inject
     protected abstract SoftwareTypeRegistry getSoftwareTypeRegistry();
 
-    /**
-     * Report model.
-     *
-     * @since 7.6
-     */
-    @Incubating
-    public static final class ProjectReportModel {
-        private final ProjectDetails project;
-        private final List<ProjectReportModel> children;
-        private final List<SoftwareTypeImplementation<?>> softwareTypes;
-        private final boolean isRootProject;
-        private final String tasksTaskPath;
-        private final String rootProjectProjectsTaskPath;
-        private final List<Path> includedBuildIdentityPaths;
-
-        private ProjectReportModel(
-            ProjectDetails project,
-            List<ProjectReportModel> children,
-            List<SoftwareTypeImplementation<?>> softwareTypes,
-            boolean isRootProject,
-            String tasksTaskPath,
-            String rootProjectProjectsTaskPath,
-            List<Path> includedBuildIdentityPaths
-        ) {
-            this.project = project;
-            this.children = children;
-            this.softwareTypes = softwareTypes;
-            this.isRootProject = isRootProject;
-            this.tasksTaskPath = tasksTaskPath;
-            this.rootProjectProjectsTaskPath = rootProjectProjectsTaskPath;
-            this.includedBuildIdentityPaths = includedBuildIdentityPaths;
-        }
-
-        /**
-         * Investigates this project and all it's children to return the combined set
-         * of all {@link SoftwareTypeImplementation}s registered by plugins used by them.
-         */
-        private Set<SoftwareTypeImplementation<?>> getAllSoftwareTypes() {
-            Set<SoftwareTypeImplementation<?>> allSoftwareTypes = new HashSet<>(softwareTypes);
-            children.forEach(p -> allSoftwareTypes.addAll(p.getAllSoftwareTypes()));
-            return allSoftwareTypes;
-        }
-    }
-
     @Override
     protected ProjectReportModel calculateReportModelFor(Project project) {
         return new ProjectReportModel(
@@ -295,6 +251,50 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
                 model.rootProjectProjectsTaskPath
             );
             textOutput.println();
+        }
+    }
+
+    /**
+     * Report model.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public static final class ProjectReportModel {
+        private final ProjectDetails project;
+        private final List<ProjectReportModel> children;
+        private final List<SoftwareTypeImplementation<?>> softwareTypes;
+        private final boolean isRootProject;
+        private final String tasksTaskPath;
+        private final String rootProjectProjectsTaskPath;
+        private final List<Path> includedBuildIdentityPaths;
+
+        private ProjectReportModel(
+            ProjectDetails project,
+            List<ProjectReportModel> children,
+            List<SoftwareTypeImplementation<?>> softwareTypes,
+            boolean isRootProject,
+            String tasksTaskPath,
+            String rootProjectProjectsTaskPath,
+            List<Path> includedBuildIdentityPaths
+        ) {
+            this.project = project;
+            this.children = children;
+            this.softwareTypes = softwareTypes;
+            this.isRootProject = isRootProject;
+            this.tasksTaskPath = tasksTaskPath;
+            this.rootProjectProjectsTaskPath = rootProjectProjectsTaskPath;
+            this.includedBuildIdentityPaths = includedBuildIdentityPaths;
+        }
+
+        /**
+         * Investigates this project and all it's children to return the combined set
+         * of all {@link SoftwareTypeImplementation}s registered by plugins used by them.
+         */
+        private Set<SoftwareTypeImplementation<?>> getAllSoftwareTypes() {
+            Set<SoftwareTypeImplementation<?>> allSoftwareTypes = new HashSet<>(softwareTypes);
+            children.forEach(p -> allSoftwareTypes.addAll(p.getAllSoftwareTypes()));
+            return allSoftwareTypes;
         }
     }
 }

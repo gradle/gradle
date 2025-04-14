@@ -156,6 +156,28 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
     @VisibleForTesting
     static class GradleUserHomeServices implements ServiceRegistrationProvider {
 
+        private static Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
+            OperatingSystem operatingSystem,
+            NativeCapabilities nativeCapabilities,
+            NativeServices.FileEventFunctionsProvider fileEvents,
+            Predicate<String> immutableLocationsFilter
+        ) {
+            if (nativeCapabilities.useFileSystemWatching()) {
+                try {
+                    if (operatingSystem.isMacOsX()) {
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
+                    } else if (operatingSystem.isWindows()) {
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
+                    } else if (operatingSystem.isLinux()) {
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
+                    }
+                } catch (NativeIntegrationUnavailableException e) {
+                    NativeServices.logFileSystemWatchingUnavailable(e);
+                }
+            }
+            return Optional.empty();
+        }
+
         @Provides
         @PrivateService
         CrossBuildFileHashCache createCrossBuildFileHashCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -258,28 +280,6 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             listenerManager.addListener(defaultFileSystemAccess);
 
             return defaultFileSystemAccess;
-        }
-
-        private static Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
-            OperatingSystem operatingSystem,
-            NativeCapabilities nativeCapabilities,
-            NativeServices.FileEventFunctionsProvider fileEvents,
-            Predicate<String> immutableLocationsFilter
-        ) {
-            if (nativeCapabilities.useFileSystemWatching()) {
-                try {
-                    if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
-                    } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
-                    } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory(fileEvents::getFunctions, immutableLocationsFilter));
-                    }
-                } catch (NativeIntegrationUnavailableException e) {
-                    NativeServices.logFileSystemWatchingUnavailable(e);
-                }
-            }
-            return Optional.empty();
         }
 
         @Provides

@@ -46,10 +46,12 @@ sealed class CompactTree {
                         is Label -> Label(
                             label + subTree.label
                         )
+
                         is Branch -> Edge(
                             Label(label),
                             subTree
                         )
+
                         is Edge -> Edge(
                             Label(label + subTree.label),
                             subTree.tree

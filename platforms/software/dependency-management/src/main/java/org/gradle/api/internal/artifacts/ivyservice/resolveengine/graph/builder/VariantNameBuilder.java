@@ -34,6 +34,13 @@ import java.util.Map;
 public class VariantNameBuilder {
     private final Map<List<String>, DisplayName> names = new HashMap<>();
 
+    private static DisplayName variantName(List<String> parts) {
+        if (parts.size() == 1) {
+            return Describables.of(parts.get(0));
+        }
+        return new MultipleVariantName(parts);
+    }
+
     @Nullable
     public DisplayName getVariantName(@Nullable List<String> parts) {
         if (parts == null) {
@@ -47,13 +54,6 @@ public class VariantNameBuilder {
         }
 
         return displayName;
-    }
-
-    private static DisplayName variantName(List<String> parts) {
-        if (parts.size() == 1) {
-            return Describables.of(parts.get(0));
-        }
-        return new MultipleVariantName(parts);
     }
 
     private static class MultipleVariantName implements DisplayName {

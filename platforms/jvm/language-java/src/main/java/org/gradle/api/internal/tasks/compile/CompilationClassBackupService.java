@@ -60,6 +60,14 @@ public class CompilationClassBackupService {
         this.uniqueIndex = new AtomicLong();
     }
 
+    private static void copy(Path from, Path to) {
+        try {
+            Files.copy(from, to, StandardCopyOption.COPY_ATTRIBUTES);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void maybeBackupClassFile(String classFqName) {
         // Classes to compile are stashed before the compilation, so there is nothing to backup
         if (shouldBackupFiles && !classesToCompile.contains(classFqName)) {
@@ -78,14 +86,6 @@ public class CompilationClassBackupService {
             File backupFile = new File(classBackupDir, classFile.getName() + uniqueIndex.incrementAndGet());
             copy(classFile.toPath(), backupFile.toPath());
             result.getBackupClassFiles().put(classFile.getAbsolutePath(), backupFile.getAbsolutePath());
-        }
-    }
-
-    private static void copy(Path from, Path to) {
-        try {
-            Files.copy(from, to, StandardCopyOption.COPY_ATTRIBUTES);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 }

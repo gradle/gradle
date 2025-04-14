@@ -35,7 +35,7 @@ class DuplicateCBaseNamesTestApp extends TestNativeComponent {
             }
         """),
 
-        sourceFile("c/foo1", "foo.c", """
+         sourceFile("c/foo1", "foo.c", """
             #include <stdio.h>
             #include "foo.h"
 
@@ -44,7 +44,7 @@ class DuplicateCBaseNamesTestApp extends TestNativeComponent {
             }
         """),
 
-        sourceFile("c/foo2", "foo.c", """
+         sourceFile("c/foo2", "foo.c", """
             #include <stdio.h>
             #include "foo.h"
 

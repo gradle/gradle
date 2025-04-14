@@ -18,26 +18,26 @@ dependencies {
 
 if (project.hasProperty("useBom")) {
 // tag::use_bom_rule[]
-dependencies {
-    components.all<JacksonBomAlignmentRule>()
-}
+    dependencies {
+        components.all<JacksonBomAlignmentRule>()
+    }
 // end::use_bom_rule[]
 } else {
 // tag::use_rule[]
-dependencies {
-    components.all<JacksonAlignmentRule>()
-}
+    dependencies {
+        components.all<JacksonAlignmentRule>()
+    }
 // end::use_rule[]
 // tag::enforced_platform[]
-dependencies {
-    // Forcefully downgrade the virtual Jackson platform to 2.8.9
-    implementation(enforcedPlatform("com.fasterxml.jackson:jackson-virtual-platform:2.8.9"))
-}
+    dependencies {
+        // Forcefully downgrade the virtual Jackson platform to 2.8.9
+        implementation(enforcedPlatform("com.fasterxml.jackson:jackson-virtual-platform:2.8.9"))
+    }
 // end::enforced_platform[]
 }
 
 // tag::bom-alignment-rule[]
-abstract class JacksonBomAlignmentRule: ComponentMetadataRule {
+abstract class JacksonBomAlignmentRule : ComponentMetadataRule {
     override fun execute(ctx: ComponentMetadataContext) {
         ctx.details.run {
             if (id.group.startsWith("com.fasterxml.jackson")) {
@@ -50,7 +50,7 @@ abstract class JacksonBomAlignmentRule: ComponentMetadataRule {
 // end::bom-alignment-rule[]
 
 // tag::alignment-rule[]
-abstract class JacksonAlignmentRule: ComponentMetadataRule {
+abstract class JacksonAlignmentRule : ComponentMetadataRule {
     override fun execute(ctx: ComponentMetadataContext) {
         ctx.details.run {
             if (id.group.startsWith("com.fasterxml.jackson")) {

@@ -239,22 +239,22 @@ class NameMatcherTest extends Specification {
 
     def "does not select map entry when no matches"() {
         expect:
-        matcher.find("soNa", ["does not match" : 9]) == null
+        matcher.find("soNa", ["does not match": 9]) == null
     }
 
     def "selects map entry when exact match"() {
         expect:
-        matcher.find("name", ["name" : 9]) == 9
+        matcher.find("name", ["name": 9]) == 9
     }
 
     def "selects map entry when one partial match"() {
         expect:
-        matcher.find("soNa", ["someName" : 9]) == 9
+        matcher.find("soNa", ["someName": 9]) == 9
     }
 
     def "does not select map entry when multiple partial matches"() {
         setup:
-        Map items = ["someName" : 9, "soName" : 10]
+        Map items = ["someName": 9, "soName": 10]
 
         expect:
         matcher.find("soNa", items) == null

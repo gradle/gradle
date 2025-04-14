@@ -60,7 +60,7 @@ tasks.register('artifactWithAttributeAndVariantReselectionView') {
     def artifactView = configuration.incoming.artifactView {
         withVariantReselection()
         attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category,'production'))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'production'))
         }
     }
     println "- Attributes:"

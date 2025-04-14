@@ -22,7 +22,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class InitialPropertiesConverterTest extends Specification {
-    @Rule final SetSystemProperties systemProperties = new SetSystemProperties([
+    @Rule
+    final SetSystemProperties systemProperties = new SetSystemProperties([
         "file.encoding": "UTF-8"
     ])
 

@@ -1,6 +1,7 @@
 package org.gradle.sample;
 
 // tag::functional-test-junit[]
+
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BuildLogicFunctionalTest {
 
-    @TempDir File testProjectDir;
+    @TempDir
+    File testProjectDir;
     private File settingsFile;
     private File buildFile;
 
@@ -32,10 +34,10 @@ public class BuildLogicFunctionalTest {
     public void testHelloWorldTask() throws IOException {
         writeFile(settingsFile, "rootProject.name = 'hello-world'");
         String buildFileContent = "task helloWorld {" +
-                                  "    doLast {" +
-                                  "        println 'Hello world!'" +
-                                  "    }" +
-                                  "}";
+            "    doLast {" +
+            "        println 'Hello world!'" +
+            "    }" +
+            "}";
         writeFile(buildFile, buildFileContent);
 
         BuildResult result = GradleRunner.create()

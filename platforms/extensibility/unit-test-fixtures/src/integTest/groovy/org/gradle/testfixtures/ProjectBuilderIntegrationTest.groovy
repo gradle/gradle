@@ -28,8 +28,10 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
-    @Rule SetSystemProperties systemProperties
-    @Rule HttpServer server
+    @Rule
+    SetSystemProperties systemProperties
+    @Rule
+    HttpServer server
 
     Project project
 

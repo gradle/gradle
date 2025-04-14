@@ -81,18 +81,20 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
 
-    public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
-                                    DependencyFactoryInternal dependencyFactory,
-                                    ProjectFinder projectFinder,
-                                    DependencyConstraintHandler dependencyConstraintHandler,
-                                    ComponentMetadataHandler componentMetadataHandler,
-                                    ComponentModuleMetadataHandler componentModuleMetadataHandler,
-                                    ArtifactResolutionQueryFactory resolutionQueryFactory,
-                                    AttributesSchema attributesSchema,
-                                    VariantTransformRegistry transforms,
-                                    ArtifactTypeRegistry artifactTypeContainer,
-                                    ObjectFactory objects,
-                                    PlatformSupport platformSupport) {
+    public DefaultDependencyHandler(
+        ConfigurationContainer configurationContainer,
+        DependencyFactoryInternal dependencyFactory,
+        ProjectFinder projectFinder,
+        DependencyConstraintHandler dependencyConstraintHandler,
+        ComponentMetadataHandler componentMetadataHandler,
+        ComponentModuleMetadataHandler componentModuleMetadataHandler,
+        ArtifactResolutionQueryFactory resolutionQueryFactory,
+        AttributesSchema attributesSchema,
+        VariantTransformRegistry transforms,
+        ArtifactTypeRegistry artifactTypeContainer,
+        ObjectFactory objects,
+        PlatformSupport platformSupport
+    ) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
         this.projectFinder = projectFinder;
@@ -178,7 +180,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         } else if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
-            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
                 ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
                 for (MinimalExternalModuleDependency dependency : bundle) {
                     doAddRegularDependency(configuration, dependency, configureClosure);
@@ -413,15 +415,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         return objects.named(Category.class, category);
     }
 
-    private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
-
-        @Override
-        @SuppressWarnings("rawtypes")
-        public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {
-            return doAdd(configuration, dependencyNotation, configureAction);
-        }
-    }
-
     public static class DefaultExternalModuleDependencyVariantSpec implements ExternalModuleDependencyVariantSpec {
 
         private final ObjectFactory objects;
@@ -456,6 +449,15 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         @Override
         public void artifactType(String artifactType) {
             this.artifactType = artifactType;
+        }
+    }
+
+    private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
+
+        @Override
+        @SuppressWarnings("rawtypes")
+        public Dependency add(Configuration configuration, Object dependencyNotation, @Nullable Closure configureAction) {
+            return doAdd(configuration, dependencyNotation, configureAction);
         }
     }
 }

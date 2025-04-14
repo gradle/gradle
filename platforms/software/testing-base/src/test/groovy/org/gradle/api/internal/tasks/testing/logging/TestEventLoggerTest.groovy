@@ -88,7 +88,7 @@ class TestEventLoggerTest extends Specification {
         textOutputFactory.output.count("PASSED") == 0
 
         where:
-        descriptor << [rootDescriptor, workerDescriptor,methodDescriptor]
+        descriptor << [rootDescriptor, workerDescriptor, methodDescriptor]
     }
 
     def "shows exceptions by default"() {

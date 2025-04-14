@@ -145,7 +145,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         // See how this is done in SmokeTestGradleRunner
         if (enableProblemsApiCheck) {
             collectedProblems.each {
-                if(!ignoreCleanupAssertions) {
+                if (!ignoreCleanupAssertions) {
                     KnownProblemIds.assertIsKnown(it)
                 }
             }

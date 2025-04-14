@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.platform.base.internal
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractBuildableComponentSpec

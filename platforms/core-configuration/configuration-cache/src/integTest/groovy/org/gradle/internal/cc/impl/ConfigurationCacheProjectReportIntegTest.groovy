@@ -41,11 +41,11 @@ class ConfigurationCacheProjectReportIntegTest extends AbstractConfigurationCach
         firstRunOutput == secondRunOutput
 
         where:
-        task                    | options
-        "dependencyReport"      | []
-        "taskReport"            | []
-        "propertyReport"        | []
-        "htmlDependencyReport"  | []
+        task                   | options
+        "dependencyReport"     | []
+        "taskReport"           | []
+        "propertyReport"       | []
+        "htmlDependencyReport" | []
         // projectReport depends on the other ones, and task order may not be preserved,
         // causing equality comparison between first and second outputs to fail
         //"projectReport"         | []

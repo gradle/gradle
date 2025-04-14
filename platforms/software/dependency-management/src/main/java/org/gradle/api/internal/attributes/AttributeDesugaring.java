@@ -41,13 +41,14 @@ public class AttributeDesugaring {
     /**
      * Desugars attributes so that what we're going to serialize consists only of String or Boolean attributes,
      * and not their original types.
+     *
      * @return desugared attributes
      */
     public ImmutableAttributes desugar(ImmutableAttributes attributes) {
         if (attributes.isEmpty()) {
             return attributes;
         }
-        return desugared.computeIfAbsent(attributes,  key -> {
+        return desugared.computeIfAbsent(attributes, key -> {
             AttributeContainerInternal mutable = attributesFactory.mutable();
             Set<Attribute<?>> keySet = key.keySet();
             for (Attribute<?> attribute : keySet) {

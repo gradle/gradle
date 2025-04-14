@@ -21,9 +21,9 @@ import java.util.stream.Stream;
 
 public abstract class ListResolvedArtifacts extends DefaultTask {
 
-// tag::inputs[]
-@Input
-public abstract ListProperty<ComponentArtifactIdentifier> getArtifactIds();
+    // tag::inputs[]
+    @Input
+    public abstract ListProperty<ComponentArtifactIdentifier> getArtifactIds();
 // end::inputs[]
 
     @Input

@@ -30,13 +30,13 @@ public class UserAgentMatcher extends BaseMatcher {
         this.version = version;
     }
 
+    public static UserAgentMatcher matchesNameAndVersion(String applicationName, String version) {
+        return new UserAgentMatcher(applicationName, version);
+    }
+
     @Override
     public void describeTo(Description description) {
         description.appendValue(expectedUserAgentString());
-    }
-
-    public static UserAgentMatcher matchesNameAndVersion(String applicationName, String version) {
-        return new UserAgentMatcher(applicationName, version);
     }
 
     @Override

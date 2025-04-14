@@ -67,7 +67,7 @@ class DefaultSwiftBinaryTest extends Specification {
         1 * incoming.artifacts >> Stub(ArtifactCollection)
     }
 
-    def "creates configurations for the binary" () {
+    def "creates configurations for the binary"() {
         expect:
         binary.linkLibraries == link
         binary.runtimeLibraries == runtime

@@ -41,10 +41,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class BTreeIndexedCacheTest {
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private final Serializer<String> stringSerializer = new DefaultSerializer<String>();
     private final Serializer<Integer> integerSerializer = new DefaultSerializer<Integer>();
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private BTreePersistentIndexedCache<String, Integer> cache;
     private TestFile cacheFile;
 
@@ -250,7 +250,7 @@ public class BTreeIndexedCacheTest {
         checkAddsAndRemoves(Collections.reverseOrder(), values);
 
         // need to make this better
-        assertTrue(cacheFile.length() < (long)(1.4 * len));
+        assertTrue(cacheFile.length() < (long) (1.4 * len));
 
         checkAdds(values);
 

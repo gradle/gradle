@@ -25,6 +25,11 @@ import java.util.Arrays;
 public final class CacheVersion implements Comparable<CacheVersion> {
 
     public static final String COMPONENT_SEPARATOR = ".";
+    private final int[] components;
+
+    private CacheVersion(int[] components) {
+        this.components = components;
+    }
 
     public static CacheVersion parse(String version) {
         String[] parts = StringUtils.split(version, COMPONENT_SEPARATOR);
@@ -40,17 +45,11 @@ public final class CacheVersion implements Comparable<CacheVersion> {
     }
 
     public static CacheVersion of(int component) {
-        return new CacheVersion(new int[] {component});
+        return new CacheVersion(new int[]{component});
     }
 
     public static CacheVersion of(int... components) {
         return new CacheVersion(ArrayUtils.clone(components));
-    }
-
-    private final int[] components;
-
-    private CacheVersion(int[] components) {
-        this.components = components;
     }
 
     public CacheVersion append(int additionalComponent) {

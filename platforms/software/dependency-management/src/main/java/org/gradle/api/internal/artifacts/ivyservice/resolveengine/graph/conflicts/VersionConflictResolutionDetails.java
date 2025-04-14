@@ -38,6 +38,63 @@ public class VersionConflictResolutionDetails implements Describable {
         this.hashCode = candidates.hashCode();
     }
 
+    /**
+     * For a single module, conflict resolution can happen several times. However, we want to keep only one version
+     * conflict resolution cause, listing all modules which participated in resolution. So this method is going to iterate
+     * over all causes, and if it finds that version conflict resolution kicked in several times, will merge all candidates
+     * in order to report it once with all candidates.
+     *
+     * This method tries its best not to create new lists if not required.
+     *
+     * @param descriptors all selection descriptors
+     * @return a filtered descriptors list, with merged conflict version resolution
+     */
+    public static List<ComponentSelectionDescriptorInternal> mergeCauses(List<ComponentSelectionDescriptorInternal> descriptors) {
+        List<VersionConflictResolutionDetails> byVersionConflictResolution = collectVersionConflictCandidates(descriptors);
+        if (byVersionConflictResolution != null && byVersionConflictResolution.size() > 1) {
+            Set<ComponentResolutionState> allCandidates = mergeAllCandidates(byVersionConflictResolution);
+            List<ComponentSelectionDescriptorInternal> merged = new ArrayList<>(descriptors.size() - 1);
+            boolean added = false;
+            for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
+                if (isByVersionConflict(descriptor)) {
+                    if (!added) {
+                        merged.add(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(new VersionConflictResolutionDetails(allCandidates)));
+                    }
+                    added = true;
+                } else {
+                    merged.add(descriptor);
+                }
+            }
+            return merged;
+        }
+        return descriptors;
+    }
+
+    private static Set<ComponentResolutionState> mergeAllCandidates(List<VersionConflictResolutionDetails> byVersionConflictResolution) {
+        Set<ComponentResolutionState> allCandidates = new LinkedHashSet<>();
+        for (VersionConflictResolutionDetails versionConflictResolutionDetails : byVersionConflictResolution) {
+            allCandidates.addAll(versionConflictResolutionDetails.getCandidates());
+        }
+        return allCandidates;
+    }
+
+    private static List<VersionConflictResolutionDetails> collectVersionConflictCandidates(List<ComponentSelectionDescriptorInternal> descriptors) {
+        List<VersionConflictResolutionDetails> byVersionConflictResolution = null;
+        for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
+            if (isByVersionConflict(descriptor)) {
+                if (byVersionConflictResolution == null) {
+                    byVersionConflictResolution = new ArrayList<>(descriptors.size());
+                }
+                byVersionConflictResolution.add((VersionConflictResolutionDetails) descriptor.getDescribable());
+            }
+        }
+        return byVersionConflictResolution;
+    }
+
+    private static boolean isByVersionConflict(ComponentSelectionDescriptorInternal descriptor) {
+        return descriptor.getCause() == ComponentSelectionCause.CONFLICT_RESOLUTION && descriptor.getDescribable() instanceof VersionConflictResolutionDetails;
+    }
+
     public Collection<? extends ComponentResolutionState> getCandidates() {
         return candidates;
     }
@@ -78,63 +135,6 @@ public class VersionConflictResolutionDetails implements Describable {
     @Override
     public int hashCode() {
         return hashCode;
-    }
-
-    /**
-     * For a single module, conflict resolution can happen several times. However, we want to keep only one version
-     * conflict resolution cause, listing all modules which participated in resolution. So this method is going to iterate
-     * over all causes, and if it finds that version conflict resolution kicked in several times, will merge all candidates
-     * in order to report it once with all candidates.
-     *
-     * This method tries its best not to create new lists if not required.
-     *
-     * @param descriptors all selection descriptors
-     * @return a filtered descriptors list, with merged conflict version resolution
-     */
-    public static List<ComponentSelectionDescriptorInternal> mergeCauses(List<ComponentSelectionDescriptorInternal> descriptors) {
-        List<VersionConflictResolutionDetails> byVersionConflictResolution = collectVersionConflictCandidates(descriptors);
-        if (byVersionConflictResolution != null && byVersionConflictResolution.size()>1) {
-            Set<ComponentResolutionState> allCandidates = mergeAllCandidates(byVersionConflictResolution);
-            List<ComponentSelectionDescriptorInternal> merged = new ArrayList<>(descriptors.size()-1);
-            boolean added = false;
-            for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
-                if (isByVersionConflict(descriptor)) {
-                    if (!added) {
-                        merged.add(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(new VersionConflictResolutionDetails(allCandidates)));
-                    }
-                    added = true;
-                } else {
-                    merged.add(descriptor);
-                }
-            }
-            return merged;
-        }
-        return descriptors;
-    }
-
-    private static Set<ComponentResolutionState> mergeAllCandidates(List<VersionConflictResolutionDetails> byVersionConflictResolution) {
-        Set<ComponentResolutionState> allCandidates = new LinkedHashSet<>();
-        for (VersionConflictResolutionDetails versionConflictResolutionDetails : byVersionConflictResolution) {
-            allCandidates.addAll(versionConflictResolutionDetails.getCandidates());
-        }
-        return allCandidates;
-    }
-
-    private static List<VersionConflictResolutionDetails> collectVersionConflictCandidates(List<ComponentSelectionDescriptorInternal> descriptors) {
-        List<VersionConflictResolutionDetails> byVersionConflictResolution = null;
-        for (ComponentSelectionDescriptorInternal descriptor : descriptors) {
-            if (isByVersionConflict(descriptor)) {
-                if (byVersionConflictResolution == null) {
-                    byVersionConflictResolution = new ArrayList<>(descriptors.size());
-                }
-                byVersionConflictResolution.add((VersionConflictResolutionDetails) descriptor.getDescribable());
-            }
-        }
-        return byVersionConflictResolution;
-    }
-
-    private static boolean isByVersionConflict(ComponentSelectionDescriptorInternal descriptor) {
-        return descriptor.getCause() == ComponentSelectionCause.CONFLICT_RESOLUTION && descriptor.getDescribable() instanceof VersionConflictResolutionDetails;
     }
 
 }

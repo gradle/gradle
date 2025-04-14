@@ -120,13 +120,13 @@ method() {failure}FAILED{normal}
         where:
         totalCount | successes | failures | summary
         // render nothing when there are no failures
-        0         | 0         | 0        | ""
-        1         | 1         | 0        | ""
-        1         | 0         | 0        | ""
+        0          | 0         | 0        | ""
+        1          | 1         | 0        | ""
+        1          | 0         | 0        | ""
         // render only when there are >0 in a category
-        1         | 0         | 1        | "\n1 test completed, 1 failed\n"
-        2         | 1         | 1        | "\n2 tests completed, 1 succeeded, 1 failed\n"
-        3         | 1         | 1        | "\n3 tests completed, 1 succeeded, 1 failed, 1 skipped\n"
+        1          | 0         | 1        | "\n1 test completed, 1 failed\n"
+        2          | 1         | 1        | "\n2 tests completed, 1 succeeded, 1 failed\n"
+        3          | 1         | 1        | "\n3 tests completed, 1 succeeded, 1 failed, 1 skipped\n"
     }
 
     def "does not render intermediate groups"() {

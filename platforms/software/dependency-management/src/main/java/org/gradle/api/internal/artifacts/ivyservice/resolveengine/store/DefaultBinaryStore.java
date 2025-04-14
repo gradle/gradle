@@ -52,7 +52,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
             offset = encoder.getWritePosition();
             if (offset == Integer.MAX_VALUE) {
                 throw new IllegalStateException("Unable to write to binary store. "
-                        + "The bytes offset has reached a point where using it is unsafe. Please report this error.");
+                    + "The bytes offset has reached a point where using it is unsafe. Please report this error.");
             }
         }
         try {

@@ -5,7 +5,7 @@ on:
     tags:
       - 'v*.*.*-RC1'
 
-permissions: {}
+permissions: { }
 
 jobs:
   send-slack-notification:

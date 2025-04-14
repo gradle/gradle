@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.invocation.DefaultGradle
 
@@ -36,9 +37,9 @@ public class InitScriptErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating initialization script.")
-                .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on build of type ${DefaultGradle.name}.")
-                .assertHasFileName("Initialization script '$initScript'")
-                .assertHasLineNumber(2)
+            .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on build of type ${DefaultGradle.name}.")
+            .assertHasFileName("Initialization script '$initScript'")
+            .assertHasLineNumber(2)
     }
 
     def "produces reasonable error message when init script compilation fails"() {
@@ -52,8 +53,8 @@ public class InitScriptErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Could not compile initialization script '$initScript'.")
-                .assertThatCause(containsString("initialization script '$initScript': 3: unable to resolve class org.gradle.unknown.Unknown"))
-                .assertHasFileName("Initialization script '$initScript'")
-                .assertHasLineNumber(3)
+            .assertThatCause(containsString("initialization script '$initScript': 3: unable to resolve class org.gradle.unknown.Unknown"))
+            .assertHasFileName("Initialization script '$initScript'")
+            .assertHasLineNumber(3)
     }
 }

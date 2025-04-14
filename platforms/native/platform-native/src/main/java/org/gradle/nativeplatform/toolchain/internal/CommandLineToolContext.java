@@ -31,6 +31,7 @@ public interface CommandLineToolContext {
     Action<List<String>> getArgAction();
 
     CommandLineToolInvocation createInvocation(String description, File workingDirectory, Iterable<String> args, BuildOperationLogger oplogger);
+
     CommandLineToolInvocation createInvocation(String description, Iterable<String> args, BuildOperationLogger oplogger);
 
 }

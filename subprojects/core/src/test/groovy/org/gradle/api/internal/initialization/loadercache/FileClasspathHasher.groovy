@@ -20,6 +20,7 @@ import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+
 /**
  * Creates snapshot based on file paths.
  */

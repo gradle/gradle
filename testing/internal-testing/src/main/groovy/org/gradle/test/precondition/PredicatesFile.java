@@ -28,8 +28,8 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class PredicatesFile {
-    public static final Set<Set<String>> DEFAULT_ACCEPTED_COMBINATIONS = readAllowedCombinations("/valid-precondition-combinations.csv");
     public static final String PREDICATE_PACKAGE_PREFIX = "org.gradle.test.preconditions.";
+    public static final Set<Set<String>> DEFAULT_ACCEPTED_COMBINATIONS = readAllowedCombinations("/valid-precondition-combinations.csv");
 
     /**
      * Streams a quasi-csv file containing comma-separated values.

@@ -43,34 +43,35 @@ public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCa
     private final PersistentCache cache;
 
     public WritableArtifactCacheLockingAccessCoordinator(
-            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
-            ArtifactCacheMetadata cacheMetaData,
-            FileAccessTimeJournal fileAccessTimeJournal,
-            UsedGradleVersions usedGradleVersions,
-            CacheConfigurationsInternal cacheConfigurations,
-            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+        ArtifactCacheMetadata cacheMetaData,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        UsedGradleVersions usedGradleVersions,
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+    ) {
         cache = unscopedCacheBuilderFactory
-                .cache(cacheMetaData.getCacheDir())
-                .withDisplayName("artifact cache")
-                .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
-                .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
-                .open();
+            .cache(cacheMetaData.getCacheDir())
+            .withDisplayName("artifact cache")
+            .withInitialLockMode(FileLockManager.LockMode.OnDemand) // Don't need to lock anything until we use the caches
+            .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
+            .open();
     }
 
     private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
         return CompositeCleanupAction.builder()
-                .add(UnusedVersionsCacheCleanup.create(CacheLayout.MODULES.getName(), CacheLayout.MODULES.getVersionMapping(), usedGradleVersions))
-                .add(cacheMetaData.getExternalResourcesStoreDirectory(),
-                    UnusedVersionsCacheCleanup.create(CacheLayout.RESOURCES.getName(), CacheLayout.RESOURCES.getVersionMapping(), usedGradleVersions),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, getMaxAgeTimestamp(cacheConfigurations)))
-                .add(cacheMetaData.getFileStoreDirectory(),
-                    UnusedVersionsCacheCleanup.create(CacheLayout.FILE_STORE.getName(), CacheLayout.FILE_STORE.getVersionMapping(), usedGradleVersions),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, getMaxAgeTimestamp(cacheConfigurations)))
-                .add(cacheMetaData.getMetaDataStoreDirectory().getParentFile(),
-                    UnusedVersionsCacheCleanup.create(CacheLayout.META_DATA.getName(), CacheLayout.META_DATA.getVersionMapping(), usedGradleVersions))
-                // Cleanup old unused 'transforms-X' directories too. Transforms are now cached in 'caches/<gradle-version>/transforms'.
-                .add(UnusedVersionsCacheCleanup.create(CacheLayout.TRANSFORMS.getName(), CacheLayout.TRANSFORMS.getVersionMapping(), usedGradleVersions))
-                .build();
+            .add(UnusedVersionsCacheCleanup.create(CacheLayout.MODULES.getName(), CacheLayout.MODULES.getVersionMapping(), usedGradleVersions))
+            .add(cacheMetaData.getExternalResourcesStoreDirectory(),
+                UnusedVersionsCacheCleanup.create(CacheLayout.RESOURCES.getName(), CacheLayout.RESOURCES.getVersionMapping(), usedGradleVersions),
+                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, getMaxAgeTimestamp(cacheConfigurations)))
+            .add(cacheMetaData.getFileStoreDirectory(),
+                UnusedVersionsCacheCleanup.create(CacheLayout.FILE_STORE.getName(), CacheLayout.FILE_STORE.getVersionMapping(), usedGradleVersions),
+                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, getMaxAgeTimestamp(cacheConfigurations)))
+            .add(cacheMetaData.getMetaDataStoreDirectory().getParentFile(),
+                UnusedVersionsCacheCleanup.create(CacheLayout.META_DATA.getName(), CacheLayout.META_DATA.getVersionMapping(), usedGradleVersions))
+            // Cleanup old unused 'transforms-X' directories too. Transforms are now cached in 'caches/<gradle-version>/transforms'.
+            .add(UnusedVersionsCacheCleanup.create(CacheLayout.TRANSFORMS.getName(), CacheLayout.TRANSFORMS.getVersionMapping(), usedGradleVersions))
+            .build();
     }
 
     private Supplier<Long> getMaxAgeTimestamp(CacheConfigurationsInternal cacheConfigurations) {

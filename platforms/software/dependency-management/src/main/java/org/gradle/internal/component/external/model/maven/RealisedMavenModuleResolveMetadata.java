@@ -64,6 +64,36 @@ import static org.gradle.internal.component.external.model.maven.DefaultMavenMod
  */
 public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
 
+    private final NamedObjectInstantiator objectInstantiator;
+    private final ImmutableList<MavenDependencyDescriptor> dependencies;
+    private final String packaging;
+    private final boolean relocated;
+    private final String snapshotTimestamp;
+    private final ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
+
+    RealisedMavenModuleResolveMetadata(
+        DefaultMavenModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
+        List<ModuleConfigurationMetadata> derivedVariants, Map<String, ModuleConfigurationMetadata> configurations
+    ) {
+        super(metadata, variants, configurations);
+        this.objectInstantiator = metadata.getObjectInstantiator();
+        packaging = metadata.getPackaging();
+        relocated = metadata.isRelocated();
+        snapshotTimestamp = metadata.getSnapshotTimestamp();
+        dependencies = metadata.getDependencies();
+        this.derivedVariants = ImmutableList.copyOf(derivedVariants);
+    }
+
+    private RealisedMavenModuleResolveMetadata(RealisedMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
+        super(metadata, sources, derivationStrategy);
+        this.objectInstantiator = metadata.objectInstantiator;
+        packaging = metadata.packaging;
+        relocated = metadata.relocated;
+        snapshotTimestamp = metadata.snapshotTimestamp;
+        dependencies = metadata.dependencies;
+        this.derivedVariants = metadata.derivedVariants;
+    }
+
     /**
      * Factory method to transform a {@link DefaultMavenModuleResolveMetadata}, which is lazy, into a realised version.
      *
@@ -221,38 +251,6 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                     metadata.artifact("jar", "jar", null)));
             }
         }
-    }
-
-    private final NamedObjectInstantiator objectInstantiator;
-
-    private final ImmutableList<MavenDependencyDescriptor> dependencies;
-    private final String packaging;
-    private final boolean relocated;
-    private final String snapshotTimestamp;
-
-    private final ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
-
-    RealisedMavenModuleResolveMetadata(
-        DefaultMavenModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
-        List<ModuleConfigurationMetadata> derivedVariants, Map<String, ModuleConfigurationMetadata> configurations
-    ) {
-        super(metadata, variants, configurations);
-        this.objectInstantiator = metadata.getObjectInstantiator();
-        packaging = metadata.getPackaging();
-        relocated = metadata.isRelocated();
-        snapshotTimestamp = metadata.getSnapshotTimestamp();
-        dependencies = metadata.getDependencies();
-        this.derivedVariants = ImmutableList.copyOf(derivedVariants);
-    }
-
-    private RealisedMavenModuleResolveMetadata(RealisedMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
-        super(metadata, sources, derivationStrategy);
-        this.objectInstantiator = metadata.objectInstantiator;
-        packaging = metadata.packaging;
-        relocated = metadata.relocated;
-        snapshotTimestamp = metadata.snapshotTimestamp;
-        dependencies = metadata.dependencies;
-        this.derivedVariants = metadata.derivedVariants;
     }
 
     @Override

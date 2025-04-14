@@ -56,6 +56,7 @@ public interface BuildOperationQueue<T extends BuildOperation> {
 
     interface QueueWorker<O extends BuildOperation> {
         void execute(O buildOperation);
+
         String getDisplayName();
     }
 }

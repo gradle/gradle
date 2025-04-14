@@ -27,7 +27,8 @@ public class RegExpPatternStepTest {
         assertEquals(expected, RegExpPatternStep.getRegExPattern(pattern));
     }
 
-    @Test public void testGetRegExpPattern() {
+    @Test
+    public void testGetRegExpPattern() {
         testPatternEscape("literal", "literal");
         testPatternEscape("dotq.", "dotq?");
         testPatternEscape("star.*stuff", "star*stuff");
@@ -35,13 +36,15 @@ public class RegExpPatternStepTest {
         testPatternEscape("\\$\\&time", "$&time");
     }
 
-    @Test public void testEscapeSet() {
+    @Test
+    public void testEscapeSet() {
         String testChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\"<>,/";
         RegExpPatternStep step = new RegExpPatternStep(testChars, true);
         assertTrue(step.matches(testChars));
     }
 
-    @Test public void testLiteralMatches() {
+    @Test
+    public void testLiteralMatches() {
         RegExpPatternStep step = new RegExpPatternStep("literal", true);
         assertTrue(step.matches("literal"));
         assertFalse(step.matches("Literal"));
@@ -49,7 +52,8 @@ public class RegExpPatternStepTest {
         assertFalse(step.matches("aliteral"));
     }
 
-    @Test public void testSingleCharWildcard() {
+    @Test
+    public void testSingleCharWildcard() {
         RegExpPatternStep step = new RegExpPatternStep("a?c", true);
         assertTrue(step.matches("abc"));
         assertTrue(step.matches("a$c"));
@@ -61,7 +65,8 @@ public class RegExpPatternStepTest {
         assertFalse(step.matches("a"));
     }
 
-    @Test public void testMultiCharWildcard() {
+    @Test
+    public void testMultiCharWildcard() {
         RegExpPatternStep step = new RegExpPatternStep("a*c", true);
         assertTrue(step.matches("abc"));
         assertTrue(step.matches("abrac"));
@@ -74,7 +79,8 @@ public class RegExpPatternStepTest {
         assertTrue(step.matches(""));
     }
 
-    @Test public void testCase() {
+    @Test
+    public void testCase() {
         RegExpPatternStep step = new RegExpPatternStep("MiXeD", true);
         assertTrue(step.matches("MiXeD"));
         assertFalse(step.matches("mixed"));

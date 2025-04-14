@@ -31,9 +31,9 @@ import java.util.Set;
  * Only the packages specified in the set of shared packages are visible to the worker action ClassLoader.</p>
  */
 public interface WorkerProcessSettings {
-    WorkerProcessSettings setBaseName(String baseName);
-
     String getBaseName();
+
+    WorkerProcessSettings setBaseName(String baseName);
 
     WorkerProcessSettings applicationClasspath(Iterable<File> files);
 

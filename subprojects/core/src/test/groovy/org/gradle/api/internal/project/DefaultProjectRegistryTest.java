@@ -44,14 +44,12 @@ import static org.junit.Assert.fail;
 public class DefaultProjectRegistryTest {
     public static final String CHILD_NAME = "child";
     public static final String CHILD_CHILD_NAME = "childchild";
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     private ProjectInternal rootMock;
     private ProjectInternal childMock;
     private ProjectInternal childChildMock;
-
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
-
-    @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
 
     @Before
     public void setUp() {
@@ -72,13 +70,15 @@ public class DefaultProjectRegistryTest {
     @Test
     public void addProject() {
         checkAccessMethods(rootMock, toSortedSet(rootMock, childMock, childChildMock), toSortedSet(childMock,
-                childChildMock), rootMock);
+            childChildMock), rootMock);
         checkAccessMethods(childMock, toSortedSet(childMock, childChildMock), toSortedSet(childChildMock), childMock);
         checkAccessMethods(childChildMock, toSortedSet(childChildMock), new TreeSet(), childChildMock);
     }
 
-    private void checkAccessMethods(Project project, SortedSet<ProjectInternal> expectedAllProjects,
-                                    SortedSet<ProjectInternal> expectedSubProjects, Project expectedGetProject) {
+    private void checkAccessMethods(
+        Project project, SortedSet<ProjectInternal> expectedAllProjects,
+        SortedSet<ProjectInternal> expectedSubProjects, Project expectedGetProject
+    ) {
         assertSame(expectedGetProject, projectRegistry.getProject(project.getPath()));
         assertEquals(expectedAllProjects, projectRegistry.getAllProjects(project.getPath()));
         assertEquals(expectedSubProjects, projectRegistry.getSubProjects(project.getPath()));
@@ -112,7 +112,7 @@ public class DefaultProjectRegistryTest {
     @Test
     public void canLocalAllProjects() {
         assertThat(projectRegistry.getAllProjects(), equalTo(toSet((ProjectInternal) rootMock, childMock,
-                childChildMock)));
+            childChildMock)));
     }
 
     @Test

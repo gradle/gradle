@@ -8,7 +8,8 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
-    @TempDir File testProjectDir
+    @TempDir
+    File testProjectDir
     File buildFile
 
     def setup() {

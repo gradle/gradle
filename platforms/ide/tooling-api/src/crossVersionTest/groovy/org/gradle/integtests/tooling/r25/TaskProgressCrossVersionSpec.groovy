@@ -34,7 +34,8 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "receive task progress events when requesting a model"() {
         given:

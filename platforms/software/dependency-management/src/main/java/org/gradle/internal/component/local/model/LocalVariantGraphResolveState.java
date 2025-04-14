@@ -40,7 +40,6 @@ public interface LocalVariantGraphResolveState extends VariantGraphResolveState 
      * Returns a copy of this variant, except with the given component identifier.
      *
      * @param overrideComponentId The new owning component identifier.
-     *
      * @return A copy of this variant, with the given owning component identifier.
      */
     LocalVariantGraphResolveState copyWithComponentId(ComponentIdentifier overrideComponentId);

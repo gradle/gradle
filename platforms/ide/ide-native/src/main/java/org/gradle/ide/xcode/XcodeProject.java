@@ -19,8 +19,8 @@ package org.gradle.ide.xcode;
 /**
  * A xcode project, created from C++ or Swift capable project.
  *
- * @since 4.2
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Projects.html">XCode Project Concept</a>
+ * @since 4.2
  */
 public interface XcodeProject {
 }

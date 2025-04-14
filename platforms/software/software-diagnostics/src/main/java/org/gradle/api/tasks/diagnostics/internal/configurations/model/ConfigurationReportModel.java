@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
- /**
+/**
  * Lightweight, immutable model of all the data in a project necessary for configuration reporting.
-  *
-  * The intended use is that this data model can be populated with the complete information of a project prior to any
-  * report logic running.  This enables the reporting logic to remain completely independent of the actual project classes.
+ *
+ * The intended use is that this data model can be populated with the complete information of a project prior to any
+ * report logic running.  This enables the reporting logic to remain completely independent of the actual project classes.
  */
 public final class ConfigurationReportModel {
     private final String projectName;
@@ -34,10 +34,12 @@ public final class ConfigurationReportModel {
     private final ImmutableList<ReportAttribute> attributesWithCompatibilityRules;
     private final ImmutableList<ReportAttribute> attributesWithDisambiguationRules;
 
-    ConfigurationReportModel(String projectName,
-                             List<ReportConfiguration> allConfigs,
-                             List<ReportAttribute> attributesWithCompatibilityRules,
-                             List<ReportAttribute> attributesWithDisambiguationRules) {
+    ConfigurationReportModel(
+        String projectName,
+        List<ReportConfiguration> allConfigs,
+        List<ReportAttribute> attributesWithCompatibilityRules,
+        List<ReportAttribute> attributesWithDisambiguationRules
+    ) {
         this.projectName = projectName;
         this.allConfigs = allConfigs;
         this.attributesWithCompatibilityRules = ImmutableList.copyOf(attributesWithCompatibilityRules);

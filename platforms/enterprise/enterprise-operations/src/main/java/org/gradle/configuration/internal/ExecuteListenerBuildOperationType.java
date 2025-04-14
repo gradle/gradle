@@ -28,6 +28,12 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class ExecuteListenerBuildOperationType implements BuildOperationType<ExecuteListenerBuildOperationType.Details, ExecuteListenerBuildOperationType.Result> {
 
+    static final Result RESULT = new Result() {
+    };
+
+    private ExecuteListenerBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -48,11 +54,5 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
     }
 
     public interface Result {
-    }
-
-    static final Result RESULT = new Result() {
-    };
-
-    private ExecuteListenerBuildOperationType() {
     }
 }

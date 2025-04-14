@@ -24,20 +24,24 @@ import java.util.List;
 public class GradleVersionSpec {
     private GradleVersion lowestTestedVersion = getLowestTestedVersion();
 
-    private static GradleVersion getLowestTestedVersion() {
-        String property = System.getProperty("org.gradle.integtest.crossVersion.lowestTestedVersion");
-        if(property == null) {
-            return GradleVersion.version("0.0");
-        }
-        return GradleVersion.version(property);
-    }
-
     public GradleVersionSpec() {
         this.lowestTestedVersion = getLowestTestedVersion();
     }
 
     public GradleVersionSpec(String lowestTestedVersion) {
         this.lowestTestedVersion = GradleVersion.version(lowestTestedVersion);
+    }
+
+    private static GradleVersion getLowestTestedVersion() {
+        String property = System.getProperty("org.gradle.integtest.crossVersion.lowestTestedVersion");
+        if (property == null) {
+            return GradleVersion.version("0.0");
+        }
+        return GradleVersion.version(property);
+    }
+
+    private static GradleVersion getVersion(String value, int beginIndex) {
+        return GradleVersion.version(value.substring(beginIndex));
     }
 
     public Spec<GradleVersion> toSpec(String constraint) {
@@ -128,14 +132,10 @@ public class GradleVersionSpec {
 
     private void validateLowestTestedVersion(String constraint, String value, GradleVersion minVersion) {
         // The cross-version tests should fail if the specified version range is outside the supported set of versions
-        if(minVersion.getBaseVersion().compareTo(lowestTestedVersion) < 0) {
+        if (minVersion.getBaseVersion().compareTo(lowestTestedVersion) < 0) {
             throw new RuntimeException(String.format("Unsupported version range '%s' specified in constraint '%s'. " +
                 "The minimum version that can be provided is '%s'", value, constraint, lowestTestedVersion.getVersion()));
         }
-    }
-
-    private static GradleVersion getVersion(String value, int beginIndex) {
-        return GradleVersion.version(value.substring(beginIndex));
     }
 
 }

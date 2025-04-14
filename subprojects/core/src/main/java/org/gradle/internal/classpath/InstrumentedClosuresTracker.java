@@ -30,6 +30,8 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public interface InstrumentedClosuresTracker {
     void enterClosure(InstrumentableClosure thisClosure);
+
     void leaveClosure(InstrumentableClosure thisClosure);
+
     void hitInstrumentedDynamicCall();
 }

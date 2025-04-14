@@ -24,6 +24,10 @@ import java.net.URI;
 
 final class ResourceMapper {
 
+    private ResourceMapper() {
+        throw new AssertionError("No instances");
+    }
+
     static ExternalResourceMetaData toExternalResourceMetaData(URI uri, StorageObject storageObject) {
         return new DefaultExternalResourceMetaData(
             uri,
@@ -33,9 +37,5 @@ final class ResourceMapper {
             storageObject.getEtag(),
             null // we cannot use md5 instead of sha1 here because cache will get corrupted due to its expectation of sha1 hashes
         );
-    }
-
-    private ResourceMapper() {
-        throw new AssertionError("No instances");
     }
 }

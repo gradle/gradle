@@ -60,6 +60,10 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
         this.gradle = new GradleContextualExecuter(distribution, new TestNameTestDirectoryProvider(IntegrationTestSamplesExecutor.class), IntegrationTestBuildContext.INSTANCE);
     }
 
+    private static String capitalize(String s) {
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
     @Override
     protected int run(String executable, List<String> args, List<String> flags, OutputStream outputStream) {
         try {
@@ -117,9 +121,5 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .map(File::getAbsolutePath)
             .collect(Collectors.joining(","));
         return "-Porg.gradle.java.installations.paths=" + allJdkPaths;
-    }
-
-    private static String capitalize(String s) {
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 }

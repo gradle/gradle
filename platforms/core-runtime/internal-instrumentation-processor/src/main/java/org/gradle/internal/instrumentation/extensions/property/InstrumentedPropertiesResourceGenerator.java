@@ -47,40 +47,6 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    @Override
-    public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
-        return interceptionRequests.stream()
-            .filter(request -> request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).isPresent())
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public GenerationResult generateResourceForRequests(Collection<CallInterceptionRequest> filteredRequests) {
-        return new GenerationResult.CanGenerateResource() {
-            @Override
-            public String getPackageName() {
-                return "";
-            }
-
-            @Override
-            public String getName() {
-                return "META-INF/gradle/instrumentation/upgraded-properties.json";
-            }
-
-            @Override
-            public void write(OutputStream outputStream) {
-                Map<String, List<CallInterceptionRequest>> requests = filteredRequests.stream()
-                    .collect(groupingBy(InstrumentedPropertiesResourceGenerator::getFqName));
-                List<UpgradedProperty> entries = toPropertyEntries(requests);
-                try (Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
-                    writer.write(mapper.writeValueAsString(entries));
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        };
-    }
-
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static String getFqName(CallInterceptionRequest request) {
         String propertyName = request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).get().getPropertyName();
@@ -116,6 +82,40 @@ public class InstrumentedPropertiesResourceGenerator implements InstrumentationR
             .sorted(Comparator.comparing((ReplacedAccessor o) -> o.name).thenComparing(o -> o.descriptor))
             .collect(Collectors.toList());
         return new UpgradedProperty(containingType, propertyName, methodName, methodDescriptor, upgradedAccessors);
+    }
+
+    @Override
+    public Collection<CallInterceptionRequest> filterRequestsForResource(Collection<CallInterceptionRequest> interceptionRequests) {
+        return interceptionRequests.stream()
+            .filter(request -> request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class).isPresent())
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public GenerationResult generateResourceForRequests(Collection<CallInterceptionRequest> filteredRequests) {
+        return new GenerationResult.CanGenerateResource() {
+            @Override
+            public String getPackageName() {
+                return "";
+            }
+
+            @Override
+            public String getName() {
+                return "META-INF/gradle/instrumentation/upgraded-properties.json";
+            }
+
+            @Override
+            public void write(OutputStream outputStream) {
+                Map<String, List<CallInterceptionRequest>> requests = filteredRequests.stream()
+                    .collect(groupingBy(InstrumentedPropertiesResourceGenerator::getFqName));
+                List<UpgradedProperty> entries = toPropertyEntries(requests);
+                try (Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
+                    writer.write(mapper.writeValueAsString(entries));
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        };
     }
 
     @JsonPropertyOrder(alphabetic = true)

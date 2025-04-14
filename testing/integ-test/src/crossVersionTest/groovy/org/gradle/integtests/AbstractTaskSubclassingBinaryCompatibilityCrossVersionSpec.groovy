@@ -124,12 +124,12 @@ abstract class AbstractTaskSubclassingBinaryCompatibilityCrossVersionSpec extend
             import org.gradle.api.Project
 
             class SomePlugin implements Plugin<Project> {
-                void apply(Project p) { """ <<      \
-                 subclasses.collect { "p.tasks.create('${it.key}', ${it.key})" }.join("\n") << """
+                void apply(Project p) { """ <<       \
+                  subclasses.collect { "p.tasks.create('${it.key}', ${it.key})" }.join("\n") << """
                 }
             }
-            """ <<      \
-                 subclasses.collect {
+            """ <<       \
+                  subclasses.collect {
             def className = it.key
             """${declareTaskClass(targetVersion)} class ${className} extends ${it.value} {
     ${className}() {

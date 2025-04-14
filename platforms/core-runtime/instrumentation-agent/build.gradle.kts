@@ -12,8 +12,10 @@ gradlebuildJava {
 
 tasks.named<Jar>("jar") {
     manifest {
-        attributes(mapOf(
-            "Premain-Class" to "org.gradle.instrumentation.agent.Agent",
-        ))
+        attributes(
+            mapOf(
+                "Premain-Class" to "org.gradle.instrumentation.agent.Agent",
+            )
+        )
     }
 }

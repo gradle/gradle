@@ -24,7 +24,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultColorMapTest extends Specification {
-    @Rule public final SetSystemProperties sysProps = new SetSystemProperties()
+    @Rule
+    public final SetSystemProperties sysProps = new SetSystemProperties()
     private DefaultColorMap map = new DefaultColorMap()
 
     def canSetColorForAStyleUsingSystemProperty() {

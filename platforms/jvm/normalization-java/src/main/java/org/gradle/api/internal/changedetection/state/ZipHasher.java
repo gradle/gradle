@@ -51,15 +51,9 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
     private static final HashCode EMPTY_HASH_MARKER = Hashing.signature(ZipHasher.class);
-
-    public static boolean isZipFile(final String name) {
-        return KNOWN_ZIP_EXTENSIONS.contains(FilenameUtils.getExtension(name).toLowerCase(Locale.ROOT));
-    }
-
     private final ResourceHasher resourceHasher;
     private final ZipHasher fallbackZipHasher;
     private final HashingExceptionReporter hashingExceptionReporter;
-
     public ZipHasher(ResourceHasher resourceHasher) {
         this(
             resourceHasher,
@@ -72,6 +66,10 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
         this.resourceHasher = resourceHasher;
         this.fallbackZipHasher = fallbackZipHasher;
         this.hashingExceptionReporter = hashingExceptionReporter;
+    }
+
+    public static boolean isZipFile(final String name) {
+        return KNOWN_ZIP_EXTENSIONS.contains(FilenameUtils.getExtension(name).toLowerCase(Locale.ROOT));
     }
 
     @Nullable

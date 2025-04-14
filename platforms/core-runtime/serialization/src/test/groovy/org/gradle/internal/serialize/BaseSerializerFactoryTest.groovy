@@ -74,7 +74,7 @@ class BaseSerializerFactoryTest extends SerializerSpec {
 
         where:
         map << [
-                [:], ["foo": "bar"], [a: "a", "b": "b"]
+            [:], ["foo": "bar"], [a: "a", "b": "b"]
         ]
     }
 

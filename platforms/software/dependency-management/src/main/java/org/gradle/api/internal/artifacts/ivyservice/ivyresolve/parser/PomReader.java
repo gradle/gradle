@@ -92,6 +92,17 @@ public class PomReader implements PomParent {
     private static final String PROFILE_ACTIVATION_PROPERTY = "property";
     private static final byte[] M2_ENTITIES_RESOURCE;
     private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
+    private static final EntityResolver M2_ENTITY_RESOLVER = new EntityResolver() {
+        @Override
+        public InputSource resolveEntity(String publicId, String systemId) {
+            if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
+                return new InputSource(new ByteArrayInputStream(M2_ENTITIES_RESOURCE));
+            }
+            return null;
+        }
+    };
+    // Copied from IvyPatternHelper
+    private static final Pattern VAR_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");
 
     static {
         byte[] bytes;
@@ -114,28 +125,17 @@ public class PomReader implements PomParent {
         }
     }
 
-    private static final EntityResolver M2_ENTITY_RESOLVER = new EntityResolver() {
-        @Override
-        public InputSource resolveEntity(String publicId, String systemId) {
-            if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
-                return new InputSource(new ByteArrayInputStream(M2_ENTITIES_RESOURCE));
-            }
-            return null;
-        }
-    };
-
-    private PomParent pomParent = new RootPomParent();
     private final Map<String, String> pomProperties = new HashMap<>();
     private final Map<String, String> effectiveProperties = new HashMap<>();
+    private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<>();
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final Element projectElement;
+    private final Element parentElement;
+    private PomParent pomParent = new RootPomParent();
     private List<PomDependencyMgt> declaredDependencyMgts;
     private List<PomProfile> declaredActivePomProfiles;
     private Map<MavenDependencyKey, PomDependencyMgt> resolvedDependencyMgts;
-    private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<>();
     private Map<MavenDependencyKey, PomDependencyData> resolvedDependencies;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-
-    private final Element projectElement;
-    private final Element parentElement;
 
     public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Map<String, String> childPomProperties) throws SAXException {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -161,6 +161,41 @@ public class PomReader implements PomParent {
 
     public PomReader(final LocallyAvailableExternalResource resource, ImmutableModuleIdentifierFactory moduleIdentifierFactory) throws SAXException {
         this(resource, moduleIdentifierFactory, Collections.emptyMap());
+    }
+
+    private static DocumentBuilder getDocBuilder(EntityResolver entityResolver) {
+        try {
+            DocumentBuilder docBuilder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
+            if (entityResolver != null) {
+                docBuilder.setEntityResolver(entityResolver);
+            }
+            return docBuilder;
+        } catch (ParserConfigurationException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
+        // Set the context classloader the bootstrap classloader, to work around the way that JAXP locates implementation classes
+        // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
+        ClassLoader original = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
+        try {
+            InputStream dtdStream = new AddDTDFilterInputStream(stream);
+            return getDocBuilder(M2_ENTITY_RESOLVER).parse(dtdStream, systemId);
+        } finally {
+            Thread.currentThread().setContextClassLoader(original);
+        }
+    }
+
+    /**
+     * Checks if the given value contains variable substitutions.
+     *
+     * @param value value to check
+     * @return true if the value contains substitutions, false otherwise.
+     */
+    public static boolean hasUnresolvedSubstitutions(String value) {
+        return value.contains("$") && PomReader.VAR_PATTERN.matcher(value).matches();
     }
 
     public void setPomParent(PomParent pomParent) {
@@ -213,53 +248,9 @@ public class PomReader implements PomParent {
         }
     }
 
-    private enum GavProperty {
-        PARENT_GROUP_ID("parent.groupId", "project.parent.groupId"),
-        PARENT_ARTIFACT_ID("parent.artifactId", "project.parent.artifactId"),
-        PARENT_VERSION("parent.version", "project.parent.version"),
-        GROUP_ID("project.groupId", "pom.groupId", "groupId"),
-        ARTIFACT_ID("project.artifactId", "pom.artifactId", "artifactId"),
-        VERSION("project.version", "pom.version", "version");
-
-        private final ImmutableList<String> names;
-
-        GavProperty(String... names) {
-            this.names = ImmutableList.copyOf(names);
-        }
-
-        public ImmutableList<String> getNames() {
-            return names;
-        }
-    }
-
     @Override
     public String toString() {
         return projectElement.getOwnerDocument().getDocumentURI();
-    }
-
-    private static DocumentBuilder getDocBuilder(EntityResolver entityResolver) {
-        try {
-            DocumentBuilder docBuilder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-            if (entityResolver != null) {
-                docBuilder.setEntityResolver(entityResolver);
-            }
-            return docBuilder;
-        } catch (ParserConfigurationException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
-        // Set the context classloader the bootstrap classloader, to work around the way that JAXP locates implementation classes
-        // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
-        ClassLoader original = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
-        try {
-            InputStream dtdStream = new AddDTDFilterInputStream(stream);
-            return getDocBuilder(M2_ENTITY_RESOLVER).parse(dtdStream, systemId);
-        } finally {
-            Thread.currentThread().setContextClassLoader(original);
-        }
     }
 
     public boolean hasParent() {
@@ -505,6 +496,117 @@ public class PomReader implements PomParent {
         }
     }
 
+    /**
+     * Parses all active profiles that can be found in POM.
+     *
+     * @return Active POM profiles
+     */
+    private List<PomProfile> parseActivePomProfiles() {
+        if (declaredActivePomProfiles == null) {
+            List<PomProfile> activeByDefaultPomProfiles = new ArrayList<>();
+            List<PomProfile> activeByAbsenceOfPropertyPomProfiles = new ArrayList<>();
+            Element profilesElement = getFirstChildElement(projectElement, PROFILES);
+
+            if (profilesElement != null) {
+                for (Element profileElement : getAllChilds(profilesElement)) {
+                    if (PROFILE.equals(profileElement.getNodeName())) {
+                        Element activationElement = getFirstChildElement(profileElement, PROFILE_ACTIVATION);
+
+                        if (activationElement != null) {
+                            String activeByDefault = getFirstChildText(activationElement, PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
+
+                            if ("true".equals(activeByDefault)) {
+                                activeByDefaultPomProfiles.add(new PomProfileElement(profileElement));
+                            } else {
+                                Element propertyElement = getFirstChildElement(activationElement, PROFILE_ACTIVATION_PROPERTY);
+
+                                if (propertyElement != null) {
+                                    if (isActivationPropertyActivated(propertyElement)) {
+                                        activeByAbsenceOfPropertyPomProfiles.add(new PomProfileElement(profileElement));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            declaredActivePomProfiles = determineActiveProfiles(activeByDefaultPomProfiles, activeByAbsenceOfPropertyPomProfiles);
+        }
+
+        return declaredActivePomProfiles;
+    }
+
+    /**
+     * If a profile is identified as active through any other activation method than activeByDefault, none of the existing
+     * profiles marked as activeByDefault apply.
+     *
+     * @param activeByDefaultPomProfiles Parsed profiles that are active by default
+     * @param activeByAbsenceOfPropertyPomProfiles Parsed profiles that are activated by absence of property
+     * @return List of active profiles that are not activeByDefault
+     */
+    private List<PomProfile> determineActiveProfiles(List<PomProfile> activeByDefaultPomProfiles, List<PomProfile> activeByAbsenceOfPropertyPomProfiles) {
+        return !activeByAbsenceOfPropertyPomProfiles.isEmpty() ? activeByAbsenceOfPropertyPomProfiles : activeByDefaultPomProfiles;
+    }
+
+    /**
+     * Checks if activation property is active through absence of system property.
+     *
+     * @param propertyElement Property element
+     * @return Activation indicator
+     * @see <a href="http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html#profiles-sect-activation-config">Maven documentation</a>
+     */
+    private boolean isActivationPropertyActivated(Element propertyElement) {
+        String propertyName = getFirstChildText(propertyElement, "name");
+        return propertyName.startsWith("!");
+    }
+
+    /**
+     * @return properties of both current and children poms.
+     */
+    Map<String, String> getAllPomProperties() {
+        return pomProperties;
+    }
+
+    private Map<String, String> parseProperties(Element parentElement) {
+        Map<String, String> pomProperties = new HashMap<>();
+        Element propsEl = getFirstChildElement(parentElement, PROPERTIES);
+        if (propsEl != null) {
+            propsEl.normalize();
+        }
+        for (Element prop : getAllChilds(propsEl)) {
+            pomProperties.put(prop.getNodeName(), getTextContent(prop));
+        }
+        return pomProperties;
+    }
+
+    private String replaceProps(String val) {
+        if (val == null) {
+            return null;
+        } else {
+            return IvyPatternHelper.substituteVariables(val, effectiveProperties).trim();
+        }
+    }
+
+    private enum GavProperty {
+        PARENT_GROUP_ID("parent.groupId", "project.parent.groupId"),
+        PARENT_ARTIFACT_ID("parent.artifactId", "project.parent.artifactId"),
+        PARENT_VERSION("parent.version", "project.parent.version"),
+        GROUP_ID("project.groupId", "pom.groupId", "groupId"),
+        ARTIFACT_ID("project.artifactId", "pom.artifactId", "artifactId"),
+        VERSION("project.version", "pom.version", "version");
+
+        private final ImmutableList<String> names;
+
+        GavProperty(String... names) {
+            this.names = ImmutableList.copyOf(names);
+        }
+
+        public ImmutableList<String> getNames() {
+            return names;
+        }
+    }
+
     public class PomDependencyMgtElement implements PomDependencyMgt {
         private final Element depElement;
 
@@ -646,109 +748,4 @@ public class PomReader implements PomParent {
             return declaredDependencies;
         }
     }
-
-    /**
-     * Parses all active profiles that can be found in POM.
-     *
-     * @return Active POM profiles
-     */
-    private List<PomProfile> parseActivePomProfiles() {
-        if (declaredActivePomProfiles == null) {
-            List<PomProfile> activeByDefaultPomProfiles = new ArrayList<>();
-            List<PomProfile> activeByAbsenceOfPropertyPomProfiles = new ArrayList<>();
-            Element profilesElement = getFirstChildElement(projectElement, PROFILES);
-
-            if (profilesElement != null) {
-                for (Element profileElement : getAllChilds(profilesElement)) {
-                    if (PROFILE.equals(profileElement.getNodeName())) {
-                        Element activationElement = getFirstChildElement(profileElement, PROFILE_ACTIVATION);
-
-                        if (activationElement != null) {
-                            String activeByDefault = getFirstChildText(activationElement, PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT);
-
-                            if ("true".equals(activeByDefault)) {
-                                activeByDefaultPomProfiles.add(new PomProfileElement(profileElement));
-                            } else {
-                                Element propertyElement = getFirstChildElement(activationElement, PROFILE_ACTIVATION_PROPERTY);
-
-                                if (propertyElement != null) {
-                                    if (isActivationPropertyActivated(propertyElement)) {
-                                        activeByAbsenceOfPropertyPomProfiles.add(new PomProfileElement(profileElement));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            declaredActivePomProfiles = determineActiveProfiles(activeByDefaultPomProfiles, activeByAbsenceOfPropertyPomProfiles);
-        }
-
-        return declaredActivePomProfiles;
-    }
-
-    /**
-     * If a profile is identified as active through any other activation method than activeByDefault, none of the existing
-     * profiles marked as activeByDefault apply.
-     *
-     * @param activeByDefaultPomProfiles Parsed profiles that are active by default
-     * @param activeByAbsenceOfPropertyPomProfiles Parsed profiles that are activated by absence of property
-     * @return List of active profiles that are not activeByDefault
-     */
-    private List<PomProfile> determineActiveProfiles(List<PomProfile> activeByDefaultPomProfiles, List<PomProfile> activeByAbsenceOfPropertyPomProfiles) {
-        return !activeByAbsenceOfPropertyPomProfiles.isEmpty() ? activeByAbsenceOfPropertyPomProfiles : activeByDefaultPomProfiles;
-    }
-
-    /**
-     * Checks if activation property is active through absence of system property.
-     *
-     * @param propertyElement Property element
-     * @return Activation indicator
-     * @see <a href="http://books.sonatype.com/mvnref-book/reference/profiles-sect-activation.html#profiles-sect-activation-config">Maven documentation</a>
-     */
-    private boolean isActivationPropertyActivated(Element propertyElement) {
-        String propertyName = getFirstChildText(propertyElement, "name");
-        return propertyName.startsWith("!");
-    }
-
-    /**
-     * @return properties of both current and children poms.
-     */
-    Map<String, String> getAllPomProperties() {
-        return pomProperties;
-    }
-
-    private Map<String, String> parseProperties(Element parentElement) {
-        Map<String, String> pomProperties = new HashMap<>();
-        Element propsEl = getFirstChildElement(parentElement, PROPERTIES);
-        if (propsEl != null) {
-            propsEl.normalize();
-        }
-        for (Element prop : getAllChilds(propsEl)) {
-            pomProperties.put(prop.getNodeName(), getTextContent(prop));
-        }
-        return pomProperties;
-    }
-
-    private String replaceProps(String val) {
-        if (val == null) {
-            return null;
-        } else {
-            return IvyPatternHelper.substituteVariables(val, effectiveProperties).trim();
-        }
-    }
-
-    /**
-     * Checks if the given value contains variable substitutions.
-     *
-     * @param value value to check
-     * @return true if the value contains substitutions, false otherwise.
-     */
-    public static boolean hasUnresolvedSubstitutions(String value) {
-        return value.contains("$") && PomReader.VAR_PATTERN.matcher(value).matches();
-    }
-
-    // Copied from IvyPatternHelper
-    private static final Pattern VAR_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");
 }

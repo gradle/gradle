@@ -25,7 +25,7 @@ import spock.lang.Specification
 /**
  * Contract test for dynamic extension implementations.
  *
- * @param <T> The concrete implementation type
+ * @param <T>  The concrete implementation type
  */
 abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> extends Specification {
 

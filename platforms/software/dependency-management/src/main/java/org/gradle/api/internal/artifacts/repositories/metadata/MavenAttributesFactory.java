@@ -35,8 +35,12 @@ public interface MavenAttributesFactory extends AttributesFactory {
     Attribute<String> CATEGORY_ATTRIBUTE = Attribute.of(Category.CATEGORY_ATTRIBUTE.getName(), String.class);
 
     ImmutableAttributes compileScope(ImmutableAttributes original);
+
     ImmutableAttributes runtimeScope(ImmutableAttributes original);
+
     ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced);
+
     ImmutableAttributes sourcesVariant(ImmutableAttributes original);
+
     ImmutableAttributes javadocVariant(ImmutableAttributes original);
 }

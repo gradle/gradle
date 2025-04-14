@@ -199,7 +199,6 @@ class HtmlTestResultsFixture {
     }
 
 
-
     class AggregateDetails {
         private final Element tableElement
 
@@ -279,7 +278,7 @@ class HtmlTestResultsFixture {
 
         boolean failed() {
             return tableElement.select("tr > td:eq(2)").listIterator().any { Element it -> it.text() == 'failed' } &&
-              tableElement.select("tr > td:eq(2)").hasClass('failures')
+                tableElement.select("tr > td:eq(2)").hasClass('failures')
         }
     }
 }

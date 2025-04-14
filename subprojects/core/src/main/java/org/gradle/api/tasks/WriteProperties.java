@@ -65,6 +65,10 @@ public abstract class WriteProperties extends DefaultTask {
     private String comment;
     private String encoding = "ISO_8859_1";
 
+    private static void checkForNullValue(String key, Object value) {
+        Preconditions.checkNotNull(value, "Property '%s' is not allowed to have a null value.", key);
+    }
+
     /**
      * Returns an immutable view of properties to be written to the properties file.
      *
@@ -205,19 +209,11 @@ public abstract class WriteProperties extends DefaultTask {
         return getDestinationFile().getAsFile().getOrNull();
     }
 
-    private void deprecationWarning() {
-        DeprecationLogger.deprecateProperty(WriteProperties.class, "outputFile").replaceWith("destinationFile")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-    }
-
     /**
      * Sets the output file to write the properties to.
      *
-     * @deprecated Use {@link #getDestinationFile()} instead.
-     *
      * @since 4.0
+     * @deprecated Use {@link #getDestinationFile()} instead.
      */
     @Deprecated
     public void setOutputFile(File outputFile) {
@@ -234,6 +230,13 @@ public abstract class WriteProperties extends DefaultTask {
     public void setOutputFile(Object outputFile) {
         deprecationWarning();
         getDestinationFile().set(getServices().get(FileOperations.class).file(outputFile));
+    }
+
+    private void deprecationWarning() {
+        DeprecationLogger.deprecateProperty(WriteProperties.class, "outputFile").replaceWith("destinationFile")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
     }
 
     /**
@@ -256,9 +259,5 @@ public abstract class WriteProperties extends DefaultTask {
         } finally {
             IoActions.closeQuietly(out);
         }
-    }
-
-    private static void checkForNullValue(String key, Object value) {
-        Preconditions.checkNotNull(value, "Property '%s' is not allowed to have a null value.", key);
     }
 }

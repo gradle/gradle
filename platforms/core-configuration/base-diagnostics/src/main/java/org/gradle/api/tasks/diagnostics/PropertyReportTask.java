@@ -44,8 +44,8 @@ import java.util.TreeMap;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
-    private PropertyReportRenderer renderer = new PropertyReportRenderer();
     private final Property<String> property = getProject().getObjects().property(String.class);
+    private PropertyReportRenderer renderer = new PropertyReportRenderer();
 
     /**
      * Defines a specific property to report. If not set then all properties will appear in the report.
@@ -119,11 +119,10 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     @Incubating
     public static final class PropertyReportModel {
 
-        private PropertyReportModel() {
-        }
-
         private final List<PropertyWarning> warnings = new ArrayList<>();
         private final List<Pair<String, String>> properties = new ArrayList<>();
+        private PropertyReportModel() {
+        }
 
         private void putProperty(String name, @Nullable Object value) {
             String strValue;

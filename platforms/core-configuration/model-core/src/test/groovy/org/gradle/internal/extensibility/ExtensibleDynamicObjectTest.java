@@ -798,11 +798,11 @@ public class ExtensibleDynamicObjectTest {
     }
 
     public static class Bean extends GroovyObjectSupport implements DynamicObjectAware {
+        final ExtensibleDynamicObject extensibleDynamicObject;
         private String readWriteProperty;
         private String _readOnlyProperty;
         private String writeOnlyProperty;
         private Integer differentTypesProperty;
-        final ExtensibleDynamicObject extensibleDynamicObject;
 
         public Bean() {
             extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, TestUtil.instantiatorFactory().decorateLenient());

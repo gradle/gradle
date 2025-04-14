@@ -75,7 +75,7 @@ class CompositeBuildModuleCycleCrossVersionSpec extends ToolingApiSpecification 
         compositeWithDirectIncludeCycle()
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['module-root', 'module-a', 'module-b']
@@ -87,7 +87,7 @@ class CompositeBuildModuleCycleCrossVersionSpec extends ToolingApiSpecification 
         compositeWithIndirectIncludeCycle()
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['module-root', 'module-a', 'module-b', 'module-c']
@@ -99,7 +99,7 @@ class CompositeBuildModuleCycleCrossVersionSpec extends ToolingApiSpecification 
         compositeWithRootInvolvingIncludeCycle()
 
         when:
-        def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
+        def allProjects = withConnection { c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
 
         then:
         allProjects.allIdeaProjects.collect { it.name } == ['module-root', 'module-a']

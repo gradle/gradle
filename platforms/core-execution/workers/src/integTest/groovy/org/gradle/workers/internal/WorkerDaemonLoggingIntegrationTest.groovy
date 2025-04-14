@@ -24,7 +24,8 @@ import org.junit.Rule
 import spock.lang.Issue
 
 class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def workActionThatProducesLotsOfOutput = fixture.getWorkActionThatCreatesFiles("LotsOfOutputWorkAction")
 
@@ -58,7 +59,7 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         and:
         def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
         operation.displayName == "LotsOfOutputWorkAction"
-        with (operation.details) {
+        with(operation.details) {
             className == "LotsOfOutputWorkAction"
             displayName == "LotsOfOutputWorkAction"
         }
@@ -133,7 +134,7 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
             buildOperations.parentsOf(it).reverse().find { parent -> buildOperations.isType(parent, ExecuteTaskBuildOperationType) }
         }.unique()
         taskOperations.size() == 2
-        taskOperations.collect {it.displayName }.containsAll(['Task :runInWorker', 'Task :runInWorker2'])
+        taskOperations.collect { it.displayName }.containsAll(['Task :runInWorker', 'Task :runInWorker2'])
 
         and:
         logOperations.every { operation -> operation.progress.size() == 1000 }

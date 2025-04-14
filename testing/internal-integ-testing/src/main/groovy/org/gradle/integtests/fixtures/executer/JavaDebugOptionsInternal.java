@@ -79,7 +79,7 @@ public class JavaDebugOptionsInternal {
         this.suspend = suspend;
     }
 
-    public String getAddress(){
+    public String getAddress() {
         String port = Integer.toString(this.port);
         return isNullOrEmpty(host) ? port : host + ":" + port;
     }

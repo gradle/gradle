@@ -56,10 +56,13 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
     interface Parameters : TransformParameters {
         @get:Input
         val shadowPackage: Property<String>
+
         @get:Input
         val keepPackages: SetProperty<String>
+
         @get:Input
         val unshadedPackages: SetProperty<String>
+
         @get:Input
         val ignoredPackages: SetProperty<String>
     }
@@ -75,7 +78,12 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
         val manifestFile = outputDirectory.resolve(MANIFEST_FILE_NAME)
         val buildReceiptFile = outputDirectory.resolve(BuildReceipt.buildReceiptFileName)
 
-        val classGraph = JarAnalyzer(parameters.shadowPackage.get(), parameters.keepPackages.get(), parameters.unshadedPackages.get(), parameters.ignoredPackages.get()).analyze(input.get().asFile, classesDir, manifestFile, buildReceiptFile)
+        val classGraph = JarAnalyzer(parameters.shadowPackage.get(), parameters.keepPackages.get(), parameters.unshadedPackages.get(), parameters.ignoredPackages.get()).analyze(
+            input.get().asFile,
+            classesDir,
+            manifestFile,
+            buildReceiptFile
+        )
 
         outputDirectory.resolve(CLASS_TREE_FILE_NAME).bufferedWriter().use {
             Gson().toJson(classGraph.getDependencies(), it)

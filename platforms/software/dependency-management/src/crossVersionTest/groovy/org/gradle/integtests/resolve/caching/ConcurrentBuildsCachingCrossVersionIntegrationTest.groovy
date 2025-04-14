@@ -25,7 +25,8 @@ import org.junit.Rule
 
 @IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
 class ConcurrentBuildsCachingCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
-    @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         blockingServer.start()

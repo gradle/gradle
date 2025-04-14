@@ -53,6 +53,15 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
         listenerManager.add(this);
     }
 
+    private static int getStartPosWithLocation(Failure failure) {
+        int startPos = -1;
+        List<StackTraceElement> stackTrace = failure.getStackTrace();
+        do {
+            startPos = failure.indexOfStackFrame(startPos + 1, StackFramePredicate.USER_CODE);
+        } while (startPos >= 0 && stackTrace.get(startPos).getLineNumber() < 0);
+        return startPos;
+    }
+
     @Override
     public void close() throws IOException {
         listenerManager.remove(this);
@@ -115,15 +124,6 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
         } finally {
             lock.unlock();
         }
-    }
-
-    private static int getStartPosWithLocation(Failure failure) {
-        int startPos = -1;
-        List<StackTraceElement> stackTrace = failure.getStackTrace();
-        do {
-            startPos = failure.indexOfStackFrame(startPos + 1, StackFramePredicate.USER_CODE);
-        } while (startPos >= 0 && stackTrace.get(startPos).getLineNumber() < 0);
-        return startPos;
     }
 
     @Nullable

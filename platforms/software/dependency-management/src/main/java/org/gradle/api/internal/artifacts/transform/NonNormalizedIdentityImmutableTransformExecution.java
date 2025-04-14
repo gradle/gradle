@@ -31,7 +31,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import java.io.File;
 import java.util.Map;
 
-class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution implements ImmutableUnitOfWork  {
+class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransformExecution implements ImmutableUnitOfWork {
     private final FileSystemAccess fileSystemAccess;
     private final ImmutableWorkspaceProvider workspaceProvider;
 

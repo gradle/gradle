@@ -54,6 +54,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class CppModelBuilder implements ToolingModelBuilder {
+    private static LaunchableGradleTask buildLaunchableTask(DefaultProjectIdentifier projectIdentifier, Task task) {
+        return ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, task);
+    }
+
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals(CppProject.class.getName());
@@ -96,7 +100,7 @@ public class CppModelBuilder implements ToolingModelBuilder {
             CommandLineToolSearchResult compilerLookup = platformToolProvider.locateTool(ToolType.CPP_COMPILER);
             File compilerExe = compilerLookup.isAvailable() ? compilerLookup.getTool() : null;
             LaunchableGradleTask compileTaskModel = buildLaunchableTask(projectIdentifier, compileTask);
-            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(compileTaskModel, compilerExe, compileTask.getObjectFileDir().get().getAsFile(), sourceFiles, headerDirsCopy,  systemIncludes, userIncludes, macroDefines, additionalArgs);
+            DefaultCompilationDetails compilationDetails = new DefaultCompilationDetails(compileTaskModel, compilerExe, compileTask.getObjectFileDir().get().getAsFile(), sourceFiles, headerDirsCopy, systemIncludes, userIncludes, macroDefines, additionalArgs);
             if (binary instanceof CppExecutable || binary instanceof CppTestExecutable) {
                 ComponentWithExecutable componentWithExecutable = (ComponentWithExecutable) binary;
                 LinkExecutable linkTask = componentWithExecutable.getLinkTask().get();
@@ -117,10 +121,6 @@ public class CppModelBuilder implements ToolingModelBuilder {
             }
         }
         return binaries;
-    }
-
-    private static LaunchableGradleTask buildLaunchableTask(DefaultProjectIdentifier projectIdentifier, Task task) {
-        return ToolingModelBuilderSupport.buildFromTask(new LaunchableGradleTask(), projectIdentifier, task);
     }
 
     private List<DefaultSourceFile> sourceFiles(CompilerOutputFileNamingSchemeFactory namingSchemeFactory, PlatformToolProvider platformToolProvider, File objDir, Set<File> files) {

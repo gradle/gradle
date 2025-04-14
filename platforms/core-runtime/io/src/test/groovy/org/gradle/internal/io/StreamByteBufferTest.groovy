@@ -141,7 +141,7 @@ class StreamByteBufferTest extends Specification {
         def byteBuffer = createTestInstance()
         def input = byteBuffer.getInputStream()
         def bytesOut = new ByteArrayOutputStream(byteBuffer
-                .totalBytesUnread())
+            .totalBytesUnread())
 
         when:
         copy(input, bytesOut, 2048)

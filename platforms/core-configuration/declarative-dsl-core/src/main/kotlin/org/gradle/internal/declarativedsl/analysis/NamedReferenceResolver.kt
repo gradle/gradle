@@ -81,7 +81,7 @@ class NamedReferenceResolverImpl(
             // A named reference with a type expected by a property assignment might be an enum entry reference.
             val dataType = resolveRef(expectedType.type)
             if (dataType is EnumClass) {
-                val matchingNamedReference = dataType.entryNames.firstOrNull { it ==  namedReference.name}
+                val matchingNamedReference = dataType.entryNames.firstOrNull { it == namedReference.name }
                 if (matchingNamedReference != null) {
                     return TypedOrigin(ObjectOrigin.EnumConstantOrigin(dataType, namedReference), dataType)
                 }

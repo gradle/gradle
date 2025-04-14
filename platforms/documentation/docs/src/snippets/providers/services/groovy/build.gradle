@@ -29,7 +29,8 @@ tasks.register("myObjectFactoryTask") {
 abstract class MyObjectFactoryTask extends DefaultTask {
     private ObjectFactory objectFactory
 
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     MyObjectFactoryTask(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory
     }
@@ -42,7 +43,7 @@ abstract class MyObjectFactoryTask extends DefaultTask {
     }
 }
 
-tasks.register("myInjectedObjectFactoryTask",MyObjectFactoryTask) {}
+tasks.register("myInjectedObjectFactoryTask", MyObjectFactoryTask) {}
 // end::object-factory-inject[]
 
 // tag::project-layout[]
@@ -59,7 +60,8 @@ tasks.register('showLayout') {
 abstract class MyProjectLayoutTask extends DefaultTask {
     private ProjectLayout projectLayout
 
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     MyProjectLayoutTask(ProjectLayout projectLayout) {
         this.projectLayout = projectLayout
     }
@@ -71,7 +73,7 @@ abstract class MyProjectLayoutTask extends DefaultTask {
     }
 }
 
-tasks.register("myInjectedProjectLayoutTask",MyProjectLayoutTask) {}
+tasks.register("myInjectedProjectLayoutTask", MyProjectLayoutTask) {}
 // end::project-layout-inject[]
 
 // tag::provider-factory[]
@@ -88,7 +90,8 @@ tasks.register('printMessage') {
 abstract class MyProviderFactoryTask extends DefaultTask {
     private ProviderFactory providerFactory
 
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     MyProviderFactoryTask(ProviderFactory providerFactory) {
         this.providerFactory = providerFactory
     }
@@ -100,7 +103,7 @@ abstract class MyProviderFactoryTask extends DefaultTask {
     }
 }
 
-tasks.register("myInjectedProviderFactoryTask",MyProviderFactoryTask) {}
+tasks.register("myInjectedProviderFactoryTask", MyProviderFactoryTask) {}
 // end::provider-factory-inject[]
 
 // tag::worker-executor[]
@@ -138,7 +141,8 @@ tasks.register("myWorkTask", MyWorkerTask) {}
 abstract class MyFileSystemOperationsTask extends DefaultTask {
     private FileSystemOperations fileSystemOperations
 
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     MyFileSystemOperationsTask(FileSystemOperations fileSystemOperations) {
         this.fileSystemOperations = fileSystemOperations
     }
@@ -157,7 +161,8 @@ tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask)
 
 // tag::file-system-adhoc[]
 interface InjectedFsOps {
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     FileSystemOperations getFs()
 }
 
@@ -199,7 +204,8 @@ tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask)
 
 // tag::archive-op-adhoc[]
 interface InjectedArcOps {
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     ArchiveOperations getArcOps()
 }
 
@@ -217,7 +223,8 @@ tasks.register('myAdHocArchiveOperationsTask') {
 abstract class MyExecOperationsTask extends DefaultTask {
     private ExecOperations execOperations
 
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     MyExecOperationsTask(ExecOperations execOperations) {
         this.execOperations = execOperations
     }
@@ -235,7 +242,8 @@ tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask)
 
 // tag::exec-op-adhoc[]
 interface InjectedExecOps {
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     ExecOperations getExecOps()
 }
 

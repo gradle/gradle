@@ -24,7 +24,7 @@ class MavenComponentMetadataRulesStatusIntegrationTest extends ComponentMetadata
     }
 
     String getRepoDeclaration() {
-"""
+        """
 repositories {
     maven {
         url = "$repo.uri"
@@ -41,7 +41,7 @@ repositories {
 
         and:
         buildFile.text =
-"""
+            """
 $repoDeclaration
 configurations { compile }
 class StatusRule implements ComponentMetadataRule {

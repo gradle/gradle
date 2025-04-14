@@ -22,6 +22,10 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.Nullable;
 
 public interface ContextAwareTaskLogger extends Logger {
+    void setMessageRewriter(MessageRewriter messageRewriter);
+
+    void setFallbackBuildOperationId(OperationIdentifier operationIdentifier);
+
     interface MessageRewriter {
 
         /**
@@ -34,8 +38,4 @@ public interface ContextAwareTaskLogger extends Logger {
         @Nullable
         String rewrite(LogLevel logLevel, String message);
     }
-
-    void setMessageRewriter(MessageRewriter messageRewriter);
-
-    void setFallbackBuildOperationId(OperationIdentifier operationIdentifier);
 }

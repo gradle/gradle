@@ -40,6 +40,11 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
         this.incrementalInputProperties = incrementalInputProperties;
     }
 
+    private static Stream<FileChange> getAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint) {
+        return currentFileCollectionFingerprint.getFingerprints().entrySet().stream()
+            .map(entry -> new RebuildFileChange(entry.getKey(), entry.getValue().getNormalizedPath(), entry.getValue().getType()));
+    }
+
     @Override
     public boolean isIncremental() {
         return false;
@@ -64,11 +69,6 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     public Iterable<InputFileDetails> getAllFileChanges() {
         Iterable<FileChange> changes = () -> currentInputs.values().stream().flatMap(NonIncrementalInputChanges::getAllFileChanges).iterator();
         return Cast.uncheckedNonnullCast(changes);
-    }
-
-    private static Stream<FileChange> getAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint) {
-        return currentFileCollectionFingerprint.getFingerprints().entrySet().stream()
-            .map(entry -> new RebuildFileChange(entry.getKey(), entry.getValue().getNormalizedPath(), entry.getValue().getType()));
     }
 
     private static class RebuildFileChange implements FileChange, InputFileDetails {

@@ -49,8 +49,16 @@ public class XCTestSelection {
         includeAllTestIfEmpty();
     }
 
+    private static boolean isIncludedTestCase(String includedTest) {
+        return includedTest.contains("/");
+    }
+
+    private static String getTestSuiteName(String includedTestCase) {
+        return StringUtils.split(includedTestCase, '/')[0];
+    }
+
     private void removeLogicalDuplication(Set<String> testSuiteCache) {
-        for (Iterator<String> it = includedTests.iterator(); it.hasNext();) {
+        for (Iterator<String> it = includedTests.iterator(); it.hasNext(); ) {
             String includedTest = it.next();
             if (isIncludedTestCase(includedTest)) {
                 if (testSuiteCache.contains(getTestSuiteName(includedTest))) {
@@ -58,14 +66,6 @@ public class XCTestSelection {
                 }
             }
         }
-    }
-
-    private static boolean isIncludedTestCase(String includedTest) {
-        return includedTest.contains("/");
-    }
-
-    private static String getTestSuiteName(String includedTestCase) {
-        return StringUtils.split(includedTestCase, '/')[0];
     }
 
     private void includeAllTestIfEmpty() {

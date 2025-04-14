@@ -7,8 +7,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>destination</td></tr>
-            <tr><td>descriptor</td></tr>
+            <tr>
+                <td>destination</td>
+            </tr>
+            <tr>
+                <td>descriptor</td>
+            </tr>
         </table>
     </section>
     <section>

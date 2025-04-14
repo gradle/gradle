@@ -24,8 +24,8 @@ import java.util.List;
 
 public class DefaultProblemAggregation implements ProblemAggregation {
 
-    ProblemDefinition problemDefinition;
     private final List<ProblemContext> problemContextDetails;
+    ProblemDefinition problemDefinition;
 
     public DefaultProblemAggregation(
         ProblemDefinition problemDefinition,

@@ -33,9 +33,49 @@ import java.util.regex.Pattern;
  * Selects a single item from a collection based on a camel case pattern.
  */
 public class NameMatcher {
+    private static final String CAMEL_CASE_TRAILING_PATTERN = "[\\p{javaLowerCase}]*";
+    private static final String KEBAB_CASE_TRAILING_PATTERN = "[\\p{javaLowerCase}\\p{Digit}]*";
+    private static final String KEBAB_CASE_PREFIX_TRAILING_PATTERN = "[\\p{javaLowerCase}\\p{Digit}-]*";
+    private static final Pattern CAMEL_CASE_BOUNDARY_PATTERN = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|((\\p{javaUpperCase}|\\p{Digit})\\p{javaLowerCase}*)");
+    private static final Pattern KEBAB_BOUNDARY_PATTERN = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|(\\p{javaUpperCase}\\p{javaLowerCase}*)");
     private final SortedSet<String> matches = new TreeSet<>();
     private final Set<String> candidates = new TreeSet<>();
     private String pattern;
+
+    private static String getCamelCasePatternForName(String name) {
+        return getPatternForName(name, CAMEL_CASE_BOUNDARY_PATTERN, (builder, pos, part) -> {
+            builder.append(Pattern.quote(part));
+            builder.append(CAMEL_CASE_TRAILING_PATTERN);
+        });
+    }
+
+    private static String getKebabCasePatternForName(String name) {
+        return getPatternForName(name, KEBAB_BOUNDARY_PATTERN, (builder, pos, part) -> {
+            if (pos > 0) {
+                builder.append('-');
+            }
+            builder.append(Pattern.quote(part.toLowerCase(Locale.ROOT)));
+            builder.append(KEBAB_CASE_TRAILING_PATTERN);
+        });
+    }
+
+    private static String getPatternForName(String name, Pattern boundaryPattern, TriConsumer<StringBuilder, Integer, String> addPattern) {
+        Matcher matcher = boundaryPattern.matcher(name);
+        int pos = 0;
+        StringBuilder builder = new StringBuilder();
+        while (matcher.find()) {
+            String prefix = name.substring(pos, matcher.start());
+            if (!prefix.isEmpty()) {
+                builder.append(Pattern.quote(prefix));
+            }
+            addPattern.accept(builder, pos, matcher.group());
+            pos = matcher.end();
+        }
+        if (pos < name.length()) {
+            builder.append(Pattern.quote(name.substring(pos)));
+        }
+        return builder.toString();
+    }
 
     /**
      * Locates the best match for a camel case pattern in a key set of a map and returns the corresponding value.
@@ -146,48 +186,6 @@ public class NameMatcher {
         }
 
         return null;
-    }
-
-    private static final String CAMEL_CASE_TRAILING_PATTERN = "[\\p{javaLowerCase}]*";
-    private static final String KEBAB_CASE_TRAILING_PATTERN = "[\\p{javaLowerCase}\\p{Digit}]*";
-    private static final String KEBAB_CASE_PREFIX_TRAILING_PATTERN = "[\\p{javaLowerCase}\\p{Digit}-]*";
-
-    private static final Pattern CAMEL_CASE_BOUNDARY_PATTERN = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|((\\p{javaUpperCase}|\\p{Digit})\\p{javaLowerCase}*)");
-    private static final Pattern KEBAB_BOUNDARY_PATTERN = Pattern.compile("((^|\\p{Punct})\\p{javaLowerCase}+)|(\\p{javaUpperCase}\\p{javaLowerCase}*)");
-
-    private static String getCamelCasePatternForName(String name) {
-        return getPatternForName(name, CAMEL_CASE_BOUNDARY_PATTERN, (builder, pos, part) -> {
-            builder.append(Pattern.quote(part));
-            builder.append(CAMEL_CASE_TRAILING_PATTERN);
-        });
-    }
-
-    private static String getKebabCasePatternForName(String name) {
-        return getPatternForName(name, KEBAB_BOUNDARY_PATTERN, (builder, pos, part) -> {
-            if (pos > 0) {
-                builder.append('-');
-            }
-            builder.append(Pattern.quote(part.toLowerCase(Locale.ROOT)));
-            builder.append(KEBAB_CASE_TRAILING_PATTERN);
-        });
-    }
-
-    private static String getPatternForName(String name, Pattern boundaryPattern, TriConsumer<StringBuilder, Integer, String> addPattern) {
-        Matcher matcher = boundaryPattern.matcher(name);
-        int pos = 0;
-        StringBuilder builder = new StringBuilder();
-        while (matcher.find()) {
-            String prefix = name.substring(pos, matcher.start());
-            if (!prefix.isEmpty()) {
-                builder.append(Pattern.quote(prefix));
-            }
-            addPattern.accept(builder, pos, matcher.group());
-            pos = matcher.end();
-        }
-        if (pos < name.length()) {
-            builder.append(Pattern.quote(name.substring(pos)));
-        }
-        return builder.toString();
     }
 
     /**

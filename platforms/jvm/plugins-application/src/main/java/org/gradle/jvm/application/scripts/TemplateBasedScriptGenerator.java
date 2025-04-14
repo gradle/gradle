@@ -25,18 +25,18 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 public interface TemplateBasedScriptGenerator extends ScriptGenerator {
 
     /**
-     * Sets the template text resource used for generating script.
-     *
-     * @param template Template text resource
-     */
-    void setTemplate(TextResource template);
-
-    /**
      * Gets the template reader used for generating script.
      *
      * @return Template reader
      */
     @ToBeReplacedByLazyProperty
     TextResource getTemplate();
+
+    /**
+     * Sets the template text resource used for generating script.
+     *
+     * @param template Template text resource
+     */
+    void setTemplate(TextResource template);
 
 }

@@ -70,6 +70,11 @@ class CallInterceptorSpecs {
                 this.interceptorType = interceptorType;
             }
 
+            public static NamedCallableInterceptorSpec of(String implementationName, String name, BytecodeInterceptorType interceptorType) {
+                String className = NameUtil.capitalize(name) + "CallInterceptor";
+                String fullClassName = implementationName + "$" + className;
+                return new NamedCallableInterceptorSpec(name, className, fullClassName, new ArrayList<>(), interceptorType);
+            }
 
             public String getName() {
                 return name;
@@ -94,12 +99,6 @@ class CallInterceptorSpecs {
             public List<CallInterceptionRequest> getRequests() {
                 return requests;
             }
-
-            public static NamedCallableInterceptorSpec of(String implementationName, String name, BytecodeInterceptorType interceptorType) {
-                String className = NameUtil.capitalize(name) + "CallInterceptor";
-                String fullClassName = implementationName + "$" + className;
-                return new NamedCallableInterceptorSpec(name, className, fullClassName, new ArrayList<>(), interceptorType);
-            }
         }
 
         class ConstructorInterceptorSpec implements CallInterceptorSpec {
@@ -116,6 +115,12 @@ class CallInterceptorSpecs {
                 this.fullClassName = fullClassName;
                 this.requests = requests;
                 this.interceptorType = interceptorType;
+            }
+
+            public static ConstructorInterceptorSpec of(String implementationName, Type constructedType, BytecodeInterceptorType interceptorType) {
+                String className = ClassName.bestGuess(constructedType.getClassName()).simpleName() + "ConstructorCallInterceptor";
+                String fullClassName = implementationName + "$" + className;
+                return new ConstructorInterceptorSpec(constructedType, className, fullClassName, new ArrayList<>(), interceptorType);
             }
 
             public Type getConstructorType() {
@@ -140,12 +145,6 @@ class CallInterceptorSpecs {
             @Override
             public List<CallInterceptionRequest> getRequests() {
                 return requests;
-            }
-
-            public static ConstructorInterceptorSpec of(String implementationName, Type constructedType, BytecodeInterceptorType interceptorType) {
-                String className = ClassName.bestGuess(constructedType.getClassName()).simpleName() + "ConstructorCallInterceptor";
-                String fullClassName = implementationName + "$" + className;
-                return new ConstructorInterceptorSpec(constructedType, className, fullClassName, new ArrayList<>(), interceptorType);
             }
         }
     }

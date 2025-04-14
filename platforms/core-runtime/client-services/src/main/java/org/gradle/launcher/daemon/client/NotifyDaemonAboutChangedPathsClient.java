@@ -47,19 +47,6 @@ public class NotifyDaemonAboutChangedPathsClient {
         this.daemonRegistry = daemonRegistry;
     }
 
-    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
-        for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
-            DaemonState state = daemonInfo.getState();
-            if (state == Idle || state == Busy || state == Canceled) {
-                DaemonClientConnection connection = connector.maybeConnect(daemonInfo);
-                if (connection == null) {
-                    continue;
-                }
-                dispatch(connection, new InvalidateVirtualFileSystemAfterChange(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
-            }
-        }
-    }
-
     private static void dispatch(Connection<Message> connection, Command command) {
         Throwable failure = null;
         try {
@@ -74,6 +61,19 @@ public class NotifyDaemonAboutChangedPathsClient {
         }
         if (failure != null) {
             throw UncheckedException.throwAsUncheckedException(failure);
+        }
+    }
+
+    public void notifyDaemonsAboutChangedPaths(List<String> changedPaths) {
+        for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
+            DaemonState state = daemonInfo.getState();
+            if (state == Idle || state == Busy || state == Canceled) {
+                DaemonClientConnection connection = connector.maybeConnect(daemonInfo);
+                if (connection == null) {
+                    continue;
+                }
+                dispatch(connection, new InvalidateVirtualFileSystemAfterChange(changedPaths, idGenerator.generateId(), connection.getDaemon().getToken()));
+            }
         }
     }
 }

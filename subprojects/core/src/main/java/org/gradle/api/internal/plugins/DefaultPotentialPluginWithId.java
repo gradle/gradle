@@ -25,13 +25,13 @@ public class DefaultPotentialPluginWithId<T> implements PluginImplementation<T> 
     private final PluginId pluginId;
     private final PotentialPlugin<? extends T> potentialPlugin;
 
-    public static <T> DefaultPotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
-        return new DefaultPotentialPluginWithId<T>(pluginId, potentialPlugin);
-    }
-
     protected DefaultPotentialPluginWithId(PluginId pluginId, PotentialPlugin<? extends T> potentialPlugin) {
         this.pluginId = pluginId;
         this.potentialPlugin = potentialPlugin;
+    }
+
+    public static <T> DefaultPotentialPluginWithId<T> of(PluginId pluginId, PotentialPlugin<T> potentialPlugin) {
+        return new DefaultPotentialPluginWithId<T>(pluginId, potentialPlugin);
     }
 
     @Override

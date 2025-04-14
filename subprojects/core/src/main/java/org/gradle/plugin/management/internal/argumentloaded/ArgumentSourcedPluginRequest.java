@@ -40,17 +40,17 @@ public final class ArgumentSourcedPluginRequest implements PluginRequestInternal
     private final PluginId id;
     private final String version;
 
+    public ArgumentSourcedPluginRequest(String pluginId, String pluginVersion) {
+        this.id = DefaultPluginId.of(pluginId);
+        this.version = pluginVersion;
+    }
+
     public static ArgumentSourcedPluginRequest parsePluginRequest(String pluginCoords) {
         String[] parts = pluginCoords.split(":");
         if (parts.length != 2 || Strings.isNullOrEmpty(parts[0]) || Strings.isNullOrEmpty(parts[1])) {
             throw new IllegalArgumentException(String.format("Invalid plugin format: '%s'. Expected format is 'id:version'.", pluginCoords));
         }
         return new ArgumentSourcedPluginRequest(parts[PLUGIN_ID_INDEX], parts[PLUGIN_VERSION_INDEX]);
-    }
-
-    public ArgumentSourcedPluginRequest(String pluginId, String pluginVersion) {
-        this.id = DefaultPluginId.of(pluginId);
-        this.version = pluginVersion;
     }
 
     @Override

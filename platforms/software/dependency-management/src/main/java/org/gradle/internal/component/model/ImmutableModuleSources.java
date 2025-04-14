@@ -32,6 +32,16 @@ public class ImmutableModuleSources implements ModuleSources {
     private final int hashCode;
     private final int size;
 
+    private ImmutableModuleSources(@Nullable ImmutableModuleSources previous, @Nullable ModuleSource value) {
+        if (previous != null && value == null) {
+            throw new AssertionError("value must not be null");
+        }
+        this.previous = previous;
+        this.value = value;
+        this.hashCode = 31 * (previous == null ? 0 : previous.hashCode) + (value == null ? 0 : value.hashCode());
+        this.size = previous == null ? 0 : 1 + previous.size;
+    }
+
     public static ImmutableModuleSources of() {
         return EMPTY;
     }
@@ -42,16 +52,6 @@ public class ImmutableModuleSources implements ModuleSources {
             cur = new ImmutableModuleSources(cur, source);
         }
         return cur;
-    }
-
-    private ImmutableModuleSources(@Nullable ImmutableModuleSources previous, @Nullable ModuleSource value) {
-        if (previous != null && value == null) {
-            throw new AssertionError("value must not be null");
-        }
-        this.previous = previous;
-        this.value = value;
-        this.hashCode = 31 * (previous == null ? 0 : previous.hashCode) + (value == null ? 0 : value.hashCode());
-        this.size = previous == null ? 0 : 1 + previous.size;
     }
 
     public static ImmutableModuleSources of(ModuleSources sources, ModuleSource source) {

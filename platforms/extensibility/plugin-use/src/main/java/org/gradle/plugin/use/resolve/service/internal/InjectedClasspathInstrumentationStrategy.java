@@ -21,10 +21,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface InjectedClasspathInstrumentationStrategy {
+    TransformMode getTransform();
+
     enum TransformMode {
         NONE,
         BUILD_LOGIC
     }
-
-    TransformMode getTransform();
 }

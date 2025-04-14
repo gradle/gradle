@@ -79,38 +79,38 @@ class ForceRealizedMetadataIntegrationTest extends AbstractHttpDependencyResolut
 
     def "can resolve derived variants"() {
         transitive.adhocVariants().variant("jar", [
-                "org.gradle.category": "library",
-                "org.gradle.dependency.bundling": "external",
-                "org.gradle.usage": "java-runtime"
+            "org.gradle.category": "library",
+            "org.gradle.dependency.bundling": "external",
+            "org.gradle.usage": "java-runtime"
         ]) {
             artifact("transitive-1.0.jar")
         }
-                .variant("sources", [
-                        "org.gradle.category": "documentation",
-                        "org.gradle.dependency.bundling": "external",
-                        "org.gradle.docstype": "sources",
-                        "org.gradle.usage": "java-runtime"
-                ]) {
-                    artifact("transitive-1.0-sources.jar")
-                }
+            .variant("sources", [
+                "org.gradle.category": "documentation",
+                "org.gradle.dependency.bundling": "external",
+                "org.gradle.docstype": "sources",
+                "org.gradle.usage": "java-runtime"
+            ]) {
+                artifact("transitive-1.0-sources.jar")
+            }
         transitive.withModuleMetadata()
         transitive.publish()
 
         direct.adhocVariants().variant("jar", [
-                "org.gradle.category": "library",
-                "org.gradle.dependency.bundling": "external",
-                "org.gradle.usage": "java-runtime"
+            "org.gradle.category": "library",
+            "org.gradle.dependency.bundling": "external",
+            "org.gradle.usage": "java-runtime"
         ]) {
             artifact("direct-1.0.jar")
         }
-                .variant("sources", [
-                        "org.gradle.category": "documentation",
-                        "org.gradle.dependency.bundling": "external",
-                        "org.gradle.docstype": "sources",
-                        "org.gradle.usage": "java-runtime"
-                ]) {
-                    artifact("direct-1.0-sources.jar")
-                }
+            .variant("sources", [
+                "org.gradle.category": "documentation",
+                "org.gradle.dependency.bundling": "external",
+                "org.gradle.docstype": "sources",
+                "org.gradle.usage": "java-runtime"
+            ]) {
+                artifact("direct-1.0-sources.jar")
+            }
         direct.withModuleMetadata()
         direct.publish()
 
@@ -127,6 +127,6 @@ class ForceRealizedMetadataIntegrationTest extends AbstractHttpDependencyResolut
         direct.artifact(classifier: "sources").expectGet()
         transitive.artifact(classifier: "sources").expectGet()
 
-        succeeds( "resolveSources")
+        succeeds("resolveSources")
     }
 }

@@ -55,10 +55,14 @@ class InstallTest extends Specification {
     @Shared
     @ClassRule
     TestNameTestDirectoryProvider sharedTemporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-    @Shared TestFile templateZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-gradle.zip")
-    @Shared TestFile templateEvalZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-eval-gradle.zip")
-    @Shared String templateZipHash
-    @Shared String templateEvalZipHash
+    @Shared
+    TestFile templateZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-gradle.zip")
+    @Shared
+    TestFile templateEvalZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-eval-gradle.zip")
+    @Shared
+    String templateZipHash
+    @Shared
+    String templateEvalZipHash
 
     void setupSpec() {
         createTestZip(templateZipFile)
@@ -204,11 +208,11 @@ class InstallTest extends Specification {
         0 * download._
 
         where:
-        content                         | name
-        BAD_ARCHIVE_CONTENT.getBytes()  | "bad archive"
-        RANDOM_ARCHIVE_CONTENT          | "random content"
-        new byte[0]                     | "empty file"
-        getEvilTarData()                | "evil tar"
+        content                        | name
+        BAD_ARCHIVE_CONTENT.getBytes() | "bad archive"
+        RANDOM_ARCHIVE_CONTENT         | "random content"
+        new byte[0]                    | "empty file"
+        getEvilTarData()               | "evil tar"
     }
 
     private calcHash(byte[] bytes) {
@@ -257,7 +261,7 @@ class InstallTest extends Specification {
 
     static void createEvilZip(File zipDestination) {
         zipDestination.withOutputStream {
-            new ZipOutputStream(it).withCloseable {  zos ->
+            new ZipOutputStream(it).withCloseable { zos ->
                 zos.putNextEntry(new ZipEntry('../../tmp/evil.sh'))
                 zos.write("evil".getBytes('utf-8'))
                 zos.closeEntry()
@@ -267,14 +271,14 @@ class InstallTest extends Specification {
 
     static byte[] getEvilTarData() {
         def outputStream = new ByteArrayOutputStream()
-            new TarOutputStream(outputStream).withCloseable {  zos ->
-                def bytes = "evil".getBytes('utf-8')
-                def entry = new TarEntry('../../tmp/evil.sh')
-                entry.size = bytes.length
-                zos.putNextEntry(entry)
-                zos.write(bytes)
-                zos.closeEntry()
-            }
+        new TarOutputStream(outputStream).withCloseable { zos ->
+            def bytes = "evil".getBytes('utf-8')
+            def entry = new TarEntry('../../tmp/evil.sh')
+            entry.size = bytes.length
+            zos.putNextEntry(entry)
+            zos.write(bytes)
+            zos.closeEntry()
+        }
         return outputStream.toByteArray()
     }
 

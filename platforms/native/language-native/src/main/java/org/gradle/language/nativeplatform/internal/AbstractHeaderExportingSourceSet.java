@@ -24,7 +24,7 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
  * A convenience base class for implementing language source sets with dependencies and exported headers.
  */
 public abstract class AbstractHeaderExportingSourceSet extends BaseLanguageSourceSet
-        implements HeaderExportingSourceSet, LanguageSourceSet {
+    implements HeaderExportingSourceSet, LanguageSourceSet {
 
     private final SourceDirectorySet exportedHeaders;
     private final SourceDirectorySet implicitHeaders;

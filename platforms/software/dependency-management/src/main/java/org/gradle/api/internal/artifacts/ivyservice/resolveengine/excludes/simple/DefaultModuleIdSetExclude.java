@@ -26,13 +26,13 @@ final class DefaultModuleIdSetExclude implements ModuleIdSetExclude {
     private final Set<ModuleIdentifier> moduleIds;
     private final int hashCode;
 
-    static ModuleIdSetExclude of(Set<ModuleIdentifier> ids) {
-        return new DefaultModuleIdSetExclude(ImmutableSet.copyOf(ids));
-    }
-
     private DefaultModuleIdSetExclude(ImmutableSet<ModuleIdentifier> moduleIds) {
         this.moduleIds = moduleIds;
         this.hashCode = moduleIds.hashCode();
+    }
+
+    static ModuleIdSetExclude of(Set<ModuleIdentifier> ids) {
+        return new DefaultModuleIdSetExclude(ImmutableSet.copyOf(ids));
     }
 
     @Override

@@ -259,7 +259,6 @@ public class ResolutionFailureHandler {
      *
      * @param failureType The type of failure to describe
      * @param describerType A describer that can potentially describe failures of the given type
-     *
      * @param <FAILURE> The type of failure to describe
      */
     public <FAILURE extends ResolutionFailure> void addFailureDescriber(Class<FAILURE> failureType, Class<? extends ResolutionFailureDescriber<FAILURE>> describerType) {

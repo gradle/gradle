@@ -19,9 +19,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
 
 public interface DependencyConstraintInternal extends DependencyConstraint {
-    void setForce(boolean force);
-
     boolean isForce();
+
+    void setForce(boolean force);
 
     void addMutationValidator(Action<? super DependencyConstraint> action);
 

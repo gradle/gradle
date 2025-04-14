@@ -271,9 +271,11 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
-    MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class)
-                                  @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.repositories.MavenArtifactRepository")
-                                  Closure closure);
+    MavenArtifactRepository maven(
+        @DelegatesTo(MavenArtifactRepository.class)
+        @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.repositories.MavenArtifactRepository")
+        Closure closure
+    );
 
     /**
      * Adds and configures a Maven repository.
@@ -307,7 +309,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * exclusively match it.
      *
      * @param action the configuration of the repositories
-     *
      * @since 6.2
      */
     void exclusiveContent(Action<? super ExclusiveContentRepository> action);

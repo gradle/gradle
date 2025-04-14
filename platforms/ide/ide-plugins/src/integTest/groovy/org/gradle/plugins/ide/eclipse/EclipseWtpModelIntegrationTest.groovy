@@ -98,7 +98,7 @@ eclipse {
         def component = getWtpComponent()
         component.resources[0].assertAttributes('deploy-path': '/WEB-INF/classes', 'source-path': 'someExtraSourceDir')
         component.resources[1].assertAttributes('deploy-path': './deploy/foo/bar', 'source-path': './src/foo/bar')
-        assert component.deployName =='someBetterDeployName'
+        assert component.deployName == 'someBetterDeployName'
         assert component.moduleProperties.'wbPropertyOne' == 'New York!'
         assert component.moduleProperties.'context-root' == 'killerApp'
         //contains('userHomeVariable') //TODO don't know how to test it at the moment
@@ -537,7 +537,7 @@ project(':contrib') {
         file('settings.gradle') << "include 'someLib'"
 
         file("build.gradle") <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse-wtp'
 
            ${mavenCentralRepository()}
@@ -570,7 +570,7 @@ project(':contrib') {
         file('settings.gradle') << "include 'someLib'"
 
         file("build.gradle") <<
-        """apply plugin: 'war'
+            """apply plugin: 'war'
            apply plugin: 'eclipse-wtp'
 
            ${mavenCentralRepository()}
@@ -593,7 +593,7 @@ project(':contrib') {
         classpath.lib('myFoo.jar').assertIsDeployedTo('/WEB-INF/lib')
     }
 
-    protected def contains(String ... contents) {
-        contents.each { assert component.contains(it)}
+    protected def contains(String... contents) {
+        contents.each { assert component.contains(it) }
     }
 }

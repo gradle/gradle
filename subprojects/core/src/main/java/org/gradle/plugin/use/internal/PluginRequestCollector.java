@@ -50,12 +50,11 @@ public class PluginRequestCollector {
     public static final String EMPTY_VALUE = "cannot be null or empty";
 
     private final ScriptSource scriptSource;
+    private final List<PluginDependencySpecImpl> specs = new LinkedList<PluginDependencySpecImpl>();
 
     public PluginRequestCollector(ScriptSource scriptSource) {
         this.scriptSource = scriptSource;
     }
-
-    private final List<PluginDependencySpecImpl> specs = new LinkedList<PluginDependencySpecImpl>();
 
     public PluginDependenciesSpec createSpec(final int pluginsBlockLineNumber) {
         return new PluginDependenciesSpecImpl(pluginsBlockLineNumber);
@@ -91,30 +90,11 @@ public class PluginRequestCollector {
         return pluginRequests;
     }
 
-    private class PluginDependenciesSpecImpl implements PluginDependenciesSpec {
-        private final int blockLineNumber;
-
-        public PluginDependenciesSpecImpl(int blockLineNumber) {
-            this.blockLineNumber = blockLineNumber;
-        }
-
-        @Override
-        public PluginDependencySpec id(String id) {
-            return id(id, blockLineNumber);
-        }
-
-        public PluginDependencySpec id(String id, int requestLineNumber) {
-            PluginDependencySpecImpl spec = new PluginDependencySpecImpl(id, requestLineNumber);
-            specs.add(spec);
-            return spec;
-        }
-    }
-
     private static class PluginDependencySpecImpl implements PluginDependencySpec {
         private final PluginId id;
+        private final int lineNumber;
         private String version;
         private boolean apply;
-        private final int lineNumber;
 
         private PluginDependencySpecImpl(String id, int lineNumber) {
             if (Strings.isNullOrEmpty(id)) {
@@ -138,6 +118,25 @@ public class PluginRequestCollector {
         public PluginDependencySpec apply(boolean apply) {
             this.apply = apply;
             return this;
+        }
+    }
+
+    private class PluginDependenciesSpecImpl implements PluginDependenciesSpec {
+        private final int blockLineNumber;
+
+        public PluginDependenciesSpecImpl(int blockLineNumber) {
+            this.blockLineNumber = blockLineNumber;
+        }
+
+        @Override
+        public PluginDependencySpec id(String id) {
+            return id(id, blockLineNumber);
+        }
+
+        public PluginDependencySpec id(String id, int requestLineNumber) {
+            PluginDependencySpecImpl spec = new PluginDependencySpecImpl(id, requestLineNumber);
+            specs.add(spec);
+            return spec;
         }
     }
 

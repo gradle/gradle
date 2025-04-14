@@ -121,6 +121,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
             new URI("hkp://keys.openpgp.org")
         ]
     }
+
     def "parses trusted artifacts"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

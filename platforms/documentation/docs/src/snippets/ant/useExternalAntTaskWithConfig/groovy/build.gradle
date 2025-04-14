@@ -16,11 +16,11 @@ dependencies {
 tasks.register('check') {
     doLast {
         ant.taskdef(name: 'pmd',
-                    classname: 'net.sourceforge.pmd.ant.PMDTask',
-                    classpath: configurations.pmd.asPath)
+            classname: 'net.sourceforge.pmd.ant.PMDTask',
+            classpath: configurations.pmd.asPath)
         ant.pmd(shortFilenames: 'true',
-                failonruleviolation: 'true',
-                rulesetfiles: file('pmd-rules.xml').toURI().toString()) {
+            failonruleviolation: 'true',
+            rulesetfiles: file('pmd-rules.xml').toURI().toString()) {
             formatter(type: 'text', toConsole: 'true')
             fileset(dir: 'src')
         }

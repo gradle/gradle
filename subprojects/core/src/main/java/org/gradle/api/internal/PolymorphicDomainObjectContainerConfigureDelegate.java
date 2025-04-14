@@ -41,7 +41,7 @@ public class PolymorphicDomainObjectContainerConfigureDelegate<T> extends Config
             return DynamicInvokeResult.found(_container.create(name, (Closure<?>) params[0]));
         } else if (params.length == 1 && params[0] instanceof Class) {
             return DynamicInvokeResult.found(_container.create(name, Cast.<Class<T>>uncheckedCast(params[0])));
-        } else if (params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure){
+        } else if (params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure) {
             return DynamicInvokeResult.found(_container.create(name, Cast.uncheckedCast(params[0]), ConfigureUtil.configureUsing((Closure<?>) params[1])));
         }
         return DynamicInvokeResult.notFound();

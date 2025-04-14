@@ -28,7 +28,7 @@ class CodeNarcCoverage {
     }
 
     private static final List<String> CURRENT_GROOVY_SUPPORTED = isAtLeastGroovy4() ? [CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
-                                                               : ALL
+        : ALL
 
     private static final List<String> JDK11_SUPPORTED = versionsAboveInclusive(CURRENT_GROOVY_SUPPORTED, "0.23")
     private static final List<String> JDK14_SUPPORTED = JDK11_SUPPORTED - ['1.6.1', '1.0']

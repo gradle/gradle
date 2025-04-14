@@ -37,14 +37,13 @@ import static java.util.stream.Collectors.toMap;
  * Common superclass for all {@link ClasspathEntry} instances.
  */
 public abstract class AbstractClasspathEntry implements ClasspathEntry {
-    private static final String NATIVE_LIBRARY_ATTRIBUTE = "org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY";
     public static final String COMPONENT_NON_DEPENDENCY_ATTRIBUTE = "org.eclipse.jst.component.nondependency";
     public static final String COMPONENT_DEPENDENCY_ATTRIBUTE = "org.eclipse.jst.component.dependency";
-
+    private static final String NATIVE_LIBRARY_ATTRIBUTE = "org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY";
+    protected final Map<String, Object> entryAttributes;
     protected String path;
     protected boolean exported;
     protected Set<AccessRule> accessRules;
-    protected final Map<String, Object> entryAttributes;
 
     public AbstractClasspathEntry(Node node) {
         path = normalizePath((String) node.attribute("path"));
@@ -53,6 +52,22 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         entryAttributes = readEntryAttributes(node);
         Preconditions.checkNotNull(path);
         Preconditions.checkNotNull(accessRules);
+    }
+
+    public AbstractClasspathEntry(String path) {
+        Preconditions.checkNotNull(path);
+        this.path = normalizePath(path);
+        this.exported = false;
+        this.accessRules = new LinkedHashSet<>();
+        this.entryAttributes = new LinkedHashMap<>();
+    }
+
+    private static Node getAttributesNode(Node node, String attributes) {
+        NodeList attributesNodes = (NodeList) node.get(attributes);
+        if (attributesNodes.isEmpty()) {
+            return node.appendNode(attributes);
+        }
+        return (Node) attributesNodes.get(0);
     }
 
     private boolean isNodeExported(Node node) {
@@ -64,14 +79,6 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         } else {
             return Boolean.parseBoolean((String) value);
         }
-    }
-
-    public AbstractClasspathEntry(String path) {
-        Preconditions.checkNotNull(path);
-        this.path = normalizePath(path);
-        this.exported = false;
-        this.accessRules = new LinkedHashSet<>();
-        this.entryAttributes = new LinkedHashMap<>();
     }
 
     public String getPath() {
@@ -213,14 +220,6 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         return entryAttributes.entrySet().stream()
             .filter(entry -> entry.getValue() != null)
             .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (existing, replacement) -> existing, LinkedHashMap::new));
-    }
-
-    private static Node getAttributesNode(Node node, String attributes) {
-        NodeList attributesNodes = (NodeList) node.get(attributes);
-        if (attributesNodes.isEmpty()) {
-            return node.appendNode(attributes);
-        }
-        return (Node) attributesNodes.get(0);
     }
 
     @Override

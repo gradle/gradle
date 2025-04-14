@@ -58,5 +58,7 @@ public class RuleExtractorUtils {
         public boolean matches(MutableModelNode node) {
             return !(node instanceof ModelReferenceNode);
         }
-    };
+    }
+
+    ;
 }

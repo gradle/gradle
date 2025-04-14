@@ -1,9 +1,9 @@
 name: 'Auto Assign PR to Author'
 on:
   pull_request:
-    types: [opened]
+    types: [ opened ]
 
-permissions: {}
+permissions: { }
 
 jobs:
   add-reviews:

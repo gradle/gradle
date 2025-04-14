@@ -32,10 +32,6 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
     private final boolean isArtifactExclude;
     private final int hashCode;
 
-    public static ExcludeSpec of(ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
-        return new DefaultIvyPatternMatcherExcludeRuleSpec(moduleId, artifact, matcher);
-    }
-
     private DefaultIvyPatternMatcherExcludeRuleSpec(ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
         this.moduleId = moduleId;
         this.ivyArtifactName = artifact;
@@ -44,9 +40,13 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
         this.hashCode = Objects.hashCode(moduleId, ivyArtifactName, matcher, isArtifactExclude);
     }
 
+    public static ExcludeSpec of(ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
+        return new DefaultIvyPatternMatcherExcludeRuleSpec(moduleId, artifact, matcher);
+    }
+
     @Override
     public String toString() {
-        return "{ \"exclude-rule\" : { \"moduleId\": \""  + moduleId + "\", \"artifact\" : \"" + ivyArtifactName.getDisplayName() + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
+        return "{ \"exclude-rule\" : { \"moduleId\": \"" + moduleId + "\", \"artifact\" : \"" + ivyArtifactName.getDisplayName() + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
     }
 
     @Override

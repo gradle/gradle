@@ -47,8 +47,8 @@ public interface ArtifactRepository {
 
     /**
      * Configures the content of this repository.
-     * @param configureAction the configuration action
      *
+     * @param configureAction the configuration action
      * @since 5.1
      */
     void content(Action<? super RepositoryContentDescriptor> configureAction);

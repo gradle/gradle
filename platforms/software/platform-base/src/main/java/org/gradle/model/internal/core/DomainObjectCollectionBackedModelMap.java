@@ -55,6 +55,10 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
         this.onCreateAction = onCreateAction;
     }
 
+    public static <T> DomainObjectCollectionBackedModelMap<T> wrap(String name, Class<T> elementType, DomainObjectCollection<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, org.gradle.api.Namer<? super T> namer, Action<? super T> onCreate) {
+        return new DomainObjectCollectionBackedModelMap<T>(name, elementType, domainObjectSet, instantiator, namer, onCreate);
+    }
+
     @Override
     public String getName() {
         return name;
@@ -94,38 +98,6 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     @Override
     public <S> void withType(Class<S> type, Action<? super S> configAction) {
         toNonSubtype(type).all(configAction);
-    }
-
-    private static class HasNamePredicate<T> implements Predicate<T> {
-        private final String name;
-        private final org.gradle.api.Namer<? super T> namer;
-
-        public HasNamePredicate(String name, org.gradle.api.Namer<? super T> namer) {
-            this.name = name;
-            this.namer = namer;
-        }
-
-        @Override
-        public boolean apply(@Nullable T input) {
-            return namer.determineName(input).equals(name);
-        }
-    }
-
-    private static class ToName<T> implements Function<T, String> {
-        private final org.gradle.api.Namer<? super T> namer;
-
-        public ToName(org.gradle.api.Namer<? super T> namer) {
-            this.namer = namer;
-        }
-
-        @Override
-        public String apply(@Nullable T input) {
-            return namer.determineName(input);
-        }
-    }
-
-    public static <T> DomainObjectCollectionBackedModelMap<T> wrap(String name, Class<T> elementType, DomainObjectCollection<T> domainObjectSet, NamedEntityInstantiator<T> instantiator, org.gradle.api.Namer<? super T> namer, Action<? super T> onCreate) {
-        return new DomainObjectCollectionBackedModelMap<T>(name, elementType, domainObjectSet, instantiator, namer, onCreate);
     }
 
     @Override
@@ -254,6 +226,34 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
         }
 
         return toNonSubtypeMap(type);
+    }
+
+    private static class HasNamePredicate<T> implements Predicate<T> {
+        private final String name;
+        private final org.gradle.api.Namer<? super T> namer;
+
+        public HasNamePredicate(String name, org.gradle.api.Namer<? super T> namer) {
+            this.name = name;
+            this.namer = namer;
+        }
+
+        @Override
+        public boolean apply(@Nullable T input) {
+            return namer.determineName(input).equals(name);
+        }
+    }
+
+    private static class ToName<T> implements Function<T, String> {
+        private final org.gradle.api.Namer<? super T> namer;
+
+        public ToName(org.gradle.api.Namer<? super T> namer) {
+            this.namer = namer;
+        }
+
+        @Override
+        public String apply(@Nullable T input) {
+            return namer.determineName(input);
+        }
     }
 
 }

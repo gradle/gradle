@@ -69,15 +69,15 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
                                'com.android.internal.version-check']) { alwaysPasses() }
                 }
                 if (testedPluginId == 'org.jetbrains.kotlin.jvm'
-                        || testedPluginId == 'org.jetbrains.kotlin.multiplatform'
-                        || testedPluginId == 'org.jetbrains.kotlin.kapt'
-                        || testedPluginId == 'org.jetbrains.kotlin.plugin.scripting') {
+                    || testedPluginId == 'org.jetbrains.kotlin.multiplatform'
+                    || testedPluginId == 'org.jetbrains.kotlin.kapt'
+                    || testedPluginId == 'org.jetbrains.kotlin.plugin.scripting') {
                     onPlugins(['org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin',
                                'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin',
                     ]) { registerValidationFailure(delegate) }
                 }
                 if (testedPluginId == 'org.jetbrains.kotlin.js'
-                        || testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
+                    || testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
                     onPlugins(['org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin',
                                'org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin',
                                'org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin'
@@ -109,10 +109,10 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
     protected registerValidationFailure(org.gradle.smoketests.WithPluginValidation.PluginValidation pluginValidation) {
         pluginValidation.failsWith(nestedTypeUnsupported {
             type('org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest')
-                    .property('environment')
-                    .annotatedType('java.lang.String')
-                    .reason("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types.")
-                    .includeLink()
+                .property('environment')
+                .annotatedType('java.lang.String')
+                .reason("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types.")
+                .includeLink()
         }, Severity.WARNING)
     }
 

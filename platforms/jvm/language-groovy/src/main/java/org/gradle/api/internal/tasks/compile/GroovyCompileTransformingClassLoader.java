@@ -104,7 +104,7 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
             @Override
             public AnnotationVisitor visitArray(String name) {
                 if (name.equals("classes")) {
-                    return new AnnotationVisitor(AsmConstants.ASM_LEVEL){
+                    return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
                         @Override
                         public void visit(String name, Object value) {
                             Type type = (Type) value;

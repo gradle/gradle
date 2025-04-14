@@ -76,7 +76,7 @@ class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
     @Override
     List<SourceFile> getLibrarySources() {
         return [
-                sourceFile("objc", "objclib.c", """
+            sourceFile("objc", "objclib.c", """
             #import <Foundation/Foundation.h>
             #include <stdio.h>
             #include "hello.h"
@@ -99,7 +99,7 @@ class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
                 [stdout writeData: strData];
             }"""),
 
-                sourceFile("c", "clib.c", """
+            sourceFile("c", "clib.c", """
             #include <stdio.h>
             #include "hello.h"
 
@@ -107,7 +107,7 @@ class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
                 printf("Bonjour, Monde!\\n");
             }
         """),
-                sourceFile("cpp", "cpplib.cpp", """
+            sourceFile("cpp", "cpplib.cpp", """
             #include "hello.h"
             #include <iostream>
             using namespace std;
@@ -116,7 +116,7 @@ class MixedObjectiveCHelloWorldApp extends HelloWorldApp {
                 cout << ", World!" << std::endl;
             }
         """),
-                sourceFile("objcpp", "sum.mm", """
+            sourceFile("objcpp", "sum.mm", """
             #import "hello.h"
             int sum(int a, int b) {
                 return a + b;

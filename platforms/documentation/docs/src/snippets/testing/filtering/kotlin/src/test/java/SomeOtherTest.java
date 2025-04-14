@@ -1,6 +1,9 @@
 import org.junit.*;
 
 public class SomeOtherTest {
-    @Test public void quickUiCheck() {}
-    @Test public void quickServerCheck() {}
+    @Test
+    public void quickUiCheck() {}
+
+    @Test
+    public void quickServerCheck() {}
 }

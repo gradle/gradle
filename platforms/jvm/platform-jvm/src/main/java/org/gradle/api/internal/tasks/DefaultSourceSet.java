@@ -35,15 +35,15 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class DefaultSourceSet implements SourceSet {
     private final String name;
     private final String baseName;
-    private FileCollection compileClasspath;
-    private FileCollection annotationProcessorPath;
-    private FileCollection runtimeClasspath;
     private final SourceDirectorySet javaSource;
     private final SourceDirectorySet allJavaSource;
     private final SourceDirectorySet resources;
     private final String displayName;
     private final SourceDirectorySet allSource;
     private final ClassDirectoryBinaryNamingScheme namingScheme;
+    private FileCollection compileClasspath;
+    private FileCollection annotationProcessorPath;
+    private FileCollection runtimeClasspath;
     private DefaultSourceSetOutput output;
 
     @Inject
@@ -232,23 +232,23 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
-    public FileCollection getAnnotationProcessorPath() {
-        return annotationProcessorPath;
-    }
-
-    @Override
-    public FileCollection getRuntimeClasspath() {
-        return runtimeClasspath;
-    }
-
-    @Override
     public void setCompileClasspath(FileCollection classpath) {
         compileClasspath = classpath;
     }
 
     @Override
+    public FileCollection getAnnotationProcessorPath() {
+        return annotationProcessorPath;
+    }
+
+    @Override
     public void setAnnotationProcessorPath(FileCollection annotationProcessorPath) {
         this.annotationProcessorPath = annotationProcessorPath;
+    }
+
+    @Override
+    public FileCollection getRuntimeClasspath() {
+        return runtimeClasspath;
     }
 
     @Override

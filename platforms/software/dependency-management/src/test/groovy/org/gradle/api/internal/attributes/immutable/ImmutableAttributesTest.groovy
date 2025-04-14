@@ -32,7 +32,7 @@ import static org.gradle.api.internal.attributes.immutable.TestAttributes.FOO
 /**
  * Unit tests for {@link ImmutableAttributes}.
  */
-class ImmutableAttributesTest extends Specification  {
+class ImmutableAttributesTest extends Specification {
 
     static AttributesFactory factory = AttributeTestUtil.attributesFactory()
 

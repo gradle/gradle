@@ -4,6 +4,11 @@ import com.sun.javadoc.*;
 import java.util.Map;
 
 public class CustomTaglet implements Taglet {
+    public static void register(Map tagletMap) {
+        CustomTaglet taglet = new CustomTaglet();
+        tagletMap.put(taglet.getName(), taglet);
+    }
+
     public boolean inField() {
         return false;
     }
@@ -42,10 +47,5 @@ public class CustomTaglet implements Taglet {
 
     public String toString(Tag[] tags) {
         return toString(tags[0]);
-    }
-
-    public static void register(Map tagletMap) {
-        CustomTaglet taglet = new CustomTaglet();
-        tagletMap.put(taglet.getName(), taglet);
     }
 }

@@ -39,21 +39,14 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
-    private BuildFailedProgressAdapter buildFailedProgressAdapter = new BuildFailedProgressAdapter();
     protected final ConnectionParameters connectionParameters;
     protected final ConsumerOperationParameters.Builder operationParamsBuilder;
+    private BuildFailedProgressAdapter buildFailedProgressAdapter = new BuildFailedProgressAdapter();
 
     protected AbstractLongRunningOperation(ConnectionParameters parameters) {
         connectionParameters = parameters;
         operationParamsBuilder = ConsumerOperationParameters.builder();
         operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
-    }
-
-    protected abstract T getThis();
-
-    protected final ConsumerOperationParameters getConsumerOperationParameters() {
-        ConnectionParameters connectionParameters = this.connectionParameters;
-        return operationParamsBuilder.setParameters(connectionParameters).build();
     }
 
     protected static @Nullable <T> List<T> rationalizeInput(@Nullable T[] arguments) {
@@ -62,6 +55,13 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     protected static @Nullable <T> List<T> rationalizeInput(@Nullable Iterable<? extends T> arguments) {
         return arguments != null && arguments.iterator().hasNext() ? CollectionUtils.toList(arguments) : null;
+    }
+
+    protected abstract T getThis();
+
+    protected final ConsumerOperationParameters getConsumerOperationParameters() {
+        ConnectionParameters connectionParameters = this.connectionParameters;
+        return operationParamsBuilder.setParameters(connectionParameters).build();
     }
 
     @Override

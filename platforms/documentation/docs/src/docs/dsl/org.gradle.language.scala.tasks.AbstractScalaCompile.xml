@@ -21,7 +21,10 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>scala</literal> plugin <overrides>Default with <literal>java</literal> plugin</overrides></td>
+                    <td>Default with <literal>scala</literal> plugin
+                        <overrides>Default with <literal>java</literal> plugin
+                        </overrides>
+                    </td>
                 </tr>
             </thead>
             <tr>
@@ -34,11 +37,16 @@
             </tr>
             <tr>
                 <td>source</td>
-                <td><literal><replaceable>sourceSet</replaceable>.scala</literal></td>
+                <td>
+                    <literal><replaceable>sourceSet</replaceable>.scala
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>javaLauncher</td>
-                <td><literal>java.toolchain</literal></td>
+                <td>
+                    <literal>java.toolchain</literal>
+                </td>
             </tr>
         </table>
     </section>

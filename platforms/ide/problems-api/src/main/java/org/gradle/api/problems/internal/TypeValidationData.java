@@ -23,8 +23,12 @@ import org.gradle.api.problems.AdditionalData;
  */
 public interface TypeValidationData extends AdditionalData {
     String getPluginId();
+
     String getPropertyName();
+
     String getFunctionName();
+
     String getParentPropertyName();
+
     String getTypeName();
 }

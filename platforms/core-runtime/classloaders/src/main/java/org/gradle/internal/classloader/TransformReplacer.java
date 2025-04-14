@@ -53,13 +53,45 @@ public class TransformReplacer implements Closeable {
         this.classPath = classPath;
     }
 
+    @Nullable
+    private static File getOriginalFile(ProtectionDomain protectionDomain) {
+        // CodeSource is null for dynamically defined classes, or if the ClassLoader doesn't set them properly.
+        CodeSource cs = protectionDomain.getCodeSource();
+        URL originalUrl = cs != null ? cs.getLocation() : null;
+        if (originalUrl == null || !"file".equals(originalUrl.getProtocol())) {
+            // Cannot transform classes from anything but files
+            return null;
+        }
+        try {
+            return new File(originalUrl.toURI());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Cannot parse file URL " + originalUrl, e);
+        }
+    }
+
+    private static boolean isTransformed(JarFile jarFile) throws IOException {
+        JarEntry entry = jarFile.getJarEntry(MarkerResource.RESOURCE_NAME);
+        if (entry != null) {
+            InputStream in = jarFile.getInputStream(entry);
+            try {
+                return MarkerResource.TRANSFORMED.equals(MarkerResource.readFromStream(in));
+            } finally {
+                in.close();
+            }
+        }
+        return false;
+    }
+
+    private static String classNameToPath(String className) {
+        return className + ".class";
+    }
+
     /**
      * Returns the transformed bytecode for the {@code className} loaded from {@code protectionDomain} if it is available in the classpath or {@code null} otherwise.
      *
      * @param className the name of the class (in internal binary format, e.g. {@code java/util/List}
      * @param protectionDomain the protection domain of the class
      * @return transformed bytes or {@code null} if there is no transformation for this class
-     *
      * @see InstrumentingClassLoader#instrumentClass(String, ProtectionDomain, byte[])
      */
     public byte @Nullable [] getInstrumentedClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain) {
@@ -137,19 +169,47 @@ public class TransformReplacer implements Closeable {
         }
     }
 
-    @Nullable
-    private static File getOriginalFile(ProtectionDomain protectionDomain) {
-        // CodeSource is null for dynamically defined classes, or if the ClassLoader doesn't set them properly.
-        CodeSource cs = protectionDomain.getCodeSource();
-        URL originalUrl = cs != null ? cs.getLocation() : null;
-        if (originalUrl == null || !"file".equals(originalUrl.getProtocol())) {
-            // Cannot transform classes from anything but files
-            return null;
+    /**
+     * Transformed Multi-Release JARs intended for loading with the TransformReplacer must contain a special resource file named {@code RESOURCE_NAME} and with the body {@code TRANSFORMED.asBytes()}.
+     * If some versioned directories of the JAR haven't been processed, then these directories must contain presiding (overriding) resource with the same name but with
+     * {@code NOT_TRANSFORMED.asBytes()} as body.
+     * <p>
+     * TransformReplacer throws upon opening a JAR file if the current JVM loads the NOT_TRANSFORMED marker resource from the JAR.
+     * TransformReplacer throws upon opening a multi-release JAR without the marker resource.
+     */
+    public enum MarkerResource {
+        // The transformed marker resource is an empty file to reduce archive size in the most common case.
+        TRANSFORMED(new byte[0]),
+        // Not transformed marker resource is a 1-byte file with a single "N" symbol.
+        NOT_TRANSFORMED(new byte[]{'N'});
+
+        public static final String RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
+
+        @SuppressWarnings("ImmutableEnumChecker")
+        private final byte[] markerBody;
+
+        MarkerResource(byte[] markerBody) {
+            this.markerBody = markerBody;
         }
-        try {
-            return new File(originalUrl.toURI());
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Cannot parse file URL " + originalUrl, e);
+
+        /**
+         * Reads the contents of the MarkerResource and returns the appropriate constant.
+         *
+         * @param in the stream to read from
+         * @return the corresponding marker resource
+         * @throws IOException if reading fails
+         */
+        public static MarkerResource readFromStream(InputStream in) throws IOException {
+            int readByte = in.read();
+            if (readByte < 0) {
+                return TRANSFORMED;
+            }
+            // Be lenient - any non-empty file means the JAR isn't transformed.
+            return NOT_TRANSFORMED;
+        }
+
+        public byte[] asBytes() {
+            return markerBody;
         }
     }
 
@@ -160,6 +220,32 @@ public class TransformReplacer implements Closeable {
 
         @Override
         public void close() {}
+    }
+
+    private static class DirectoryLoader extends Loader {
+        private final File transformedPath;
+
+        public DirectoryLoader(File transformedDirPath) {
+            this.transformedPath = transformedDirPath;
+        }
+
+        @Override
+        public byte @Nullable [] loadTransformedClass(String className) throws IOException {
+            File classFile = new File(transformedPath, classNameToPath(className));
+            if (!classFile.exists()) {
+                // This can happen if the class was "injected" into the classloader, e.g. when decorated class is generated by the ObjectFactory.
+                // Injected classes reuse the protection domain. See ClassLoaderUtils.define and defineDecorator.
+                // TODO(mlopatkin) we don't do any kind of integrity checks for the directory. If the user deletes transformed classes but not the receipt
+                //  file, we're going to use originals silently.
+                return null;
+            }
+            InputStream classBytes = new FileInputStream(classFile);
+            try {
+                return StreamByteBuffer.of(classBytes).readAsByteArray();
+            } finally {
+                classBytes.close();
+            }
+        }
     }
 
     private class JarLoader extends Loader {
@@ -209,93 +295,6 @@ public class TransformReplacer implements Closeable {
                 }
             }
             return jarFile.getJarFile();
-        }
-    }
-
-    private static boolean isTransformed(JarFile jarFile) throws IOException {
-        JarEntry entry = jarFile.getJarEntry(MarkerResource.RESOURCE_NAME);
-        if (entry != null) {
-            InputStream in = jarFile.getInputStream(entry);
-            try {
-                return MarkerResource.TRANSFORMED.equals(MarkerResource.readFromStream(in));
-            } finally {
-                in.close();
-            }
-        }
-        return false;
-    }
-
-    private static class DirectoryLoader extends Loader {
-        private final File transformedPath;
-
-        public DirectoryLoader(File transformedDirPath) {
-            this.transformedPath = transformedDirPath;
-        }
-
-        @Override
-        public byte @Nullable [] loadTransformedClass(String className) throws IOException {
-            File classFile = new File(transformedPath, classNameToPath(className));
-            if (!classFile.exists()) {
-                // This can happen if the class was "injected" into the classloader, e.g. when decorated class is generated by the ObjectFactory.
-                // Injected classes reuse the protection domain. See ClassLoaderUtils.define and defineDecorator.
-                // TODO(mlopatkin) we don't do any kind of integrity checks for the directory. If the user deletes transformed classes but not the receipt
-                //  file, we're going to use originals silently.
-                return null;
-            }
-            InputStream classBytes = new FileInputStream(classFile);
-            try {
-                return StreamByteBuffer.of(classBytes).readAsByteArray();
-            } finally {
-                classBytes.close();
-            }
-        }
-    }
-
-    private static String classNameToPath(String className) {
-        return className + ".class";
-    }
-
-    /**
-     * Transformed Multi-Release JARs intended for loading with the TransformReplacer must contain a special resource file named {@code RESOURCE_NAME} and with the body {@code TRANSFORMED.asBytes()}.
-     * If some versioned directories of the JAR haven't been processed, then these directories must contain presiding (overriding) resource with the same name but with
-     * {@code NOT_TRANSFORMED.asBytes()} as body.
-     * <p>
-     * TransformReplacer throws upon opening a JAR file if the current JVM loads the NOT_TRANSFORMED marker resource from the JAR.
-     * TransformReplacer throws upon opening a multi-release JAR without the marker resource.
-     */
-    public enum MarkerResource {
-        // The transformed marker resource is an empty file to reduce archive size in the most common case.
-        TRANSFORMED(new byte[0]),
-        // Not transformed marker resource is a 1-byte file with a single "N" symbol.
-        NOT_TRANSFORMED(new byte[]{'N'});
-
-        public static final String RESOURCE_NAME = TransformReplacer.class.getName() + ".transformed";
-
-        @SuppressWarnings("ImmutableEnumChecker")
-        private final byte[] markerBody;
-
-        MarkerResource(byte[] markerBody) {
-            this.markerBody = markerBody;
-        }
-
-        /**
-         * Reads the contents of the MarkerResource and returns the appropriate constant.
-         *
-         * @param in the stream to read from
-         * @return the corresponding marker resource
-         * @throws IOException if reading fails
-         */
-        public static MarkerResource readFromStream(InputStream in) throws IOException {
-            int readByte = in.read();
-            if (readByte < 0) {
-                return TRANSFORMED;
-            }
-            // Be lenient - any non-empty file means the JAR isn't transformed.
-            return NOT_TRANSFORMED;
-        }
-
-        public byte[] asBytes() {
-            return markerBody;
         }
     }
 }

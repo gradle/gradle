@@ -22,7 +22,7 @@ import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 
 class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-    def "reuses #service across continuous builds" () {
+    def "reuses #service across continuous builds"() {
         def triggerFileName = "trigger"
         def triggerFile = file(triggerFileName).createFile()
         def idFileName = "build/${service}.id"

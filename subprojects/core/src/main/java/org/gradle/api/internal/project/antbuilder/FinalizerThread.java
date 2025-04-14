@@ -77,7 +77,7 @@ class FinalizerThread extends Thread {
             entry.clear();
             entry.cleanup(mode);
         } catch (Exception ex) {
-            LOG.error("Unable to perform cleanup of classloader for classpath: "+key, ex);
+            LOG.error("Unable to perform cleanup of classloader for classpath: " + key, ex);
         }
     }
 

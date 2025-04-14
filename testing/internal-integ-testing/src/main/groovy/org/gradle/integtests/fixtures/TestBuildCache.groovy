@@ -97,11 +97,17 @@ class TestBuildCache {
 
     interface TestCacheEntry {
         String getKey()
+
         String getMd5Hash()
+
         String getText()
+
         void setText(String text)
+
         byte[] getBytes()
+
         void setBytes(byte[] bytes)
+
         void copyBytesTo(TestFile file)
     }
 

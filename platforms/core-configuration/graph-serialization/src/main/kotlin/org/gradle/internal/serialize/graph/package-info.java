@@ -19,15 +19,15 @@
  * <h2>Key abstractions</h2>
  *
  * <h3>Encoders and Decoders</h3>
- *  <p>
- *  Serialization of an object that is supported by the configuration cache is performed by an {@link org.gradle.internal.serialize.graph.EncodingProvider}.
- *  Deserialization, on the other hand, is performed by a {@link org.gradle.internal.serialize.graph.DecodingProvider}.
- *  </p>
- *  <p>Both protocols are highly specialized and, as such, they are specified as Single Abstract Method interfaces.</p>
+ * <p>
+ * Serialization of an object that is supported by the configuration cache is performed by an {@link org.gradle.internal.serialize.graph.EncodingProvider}.
+ * Deserialization, on the other hand, is performed by a {@link org.gradle.internal.serialize.graph.DecodingProvider}.
+ * </p>
+ * <p>Both protocols are highly specialized and, as such, they are specified as Single Abstract Method interfaces.</p>
  *
- *  <h3>Codecs</h3>
- *  <p>A {@link org.gradle.internal.serialize.graph.Codec Codec} is an object that is both an <code>EncodingProvider</code> and a <code>DecodingProvider</code>.</p>
- *  <p>Codecs may be implemented:
+ * <h3>Codecs</h3>
+ * <p>A {@link org.gradle.internal.serialize.graph.Codec Codec} is an object that is both an <code>EncodingProvider</code> and a <code>DecodingProvider</code>.</p>
+ * <p>Codecs may be implemented:
  *  <ul>
  *  <li>as a custom class that implements both encoding and decoding protocols in the same class
  *  <li>based on the combination of arbitrary encoder and decoder functions, as done via {@link org.gradle.internal.serialize.graph.CombinatorsKt#codec(kotlin.jvm.functions.Function3, kotlin.jvm.functions.Function2) codec(...)}

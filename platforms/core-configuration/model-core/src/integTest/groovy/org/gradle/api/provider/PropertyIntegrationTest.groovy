@@ -1020,8 +1020,8 @@ project.extensions.create("some", SomeExtension)
                 'Mark property \'strings\' as optional',
             ]
             additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'strings',
+                'typeName': 'MyTask',
+                'propertyName': 'strings',
             ]
         }
     }

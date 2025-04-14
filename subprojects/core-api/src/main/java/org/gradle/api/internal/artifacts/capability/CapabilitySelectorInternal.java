@@ -30,7 +30,6 @@ public interface CapabilitySelectorInternal extends CapabilitySelector {
      * @param capabilityGroup The group of the capability to match against
      * @param capabilityName The name of the capability to match against
      * @param implicitCapability The implicit capability of the target component
-     *
      * @return {@code true} iff the capability satisfies this selector.
      */
     boolean matches(String capabilityGroup, String capabilityName, ImmutableCapability implicitCapability);

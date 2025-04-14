@@ -96,16 +96,16 @@ class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest
         }
 
         where:
-        snippetsFactory             | file                           | location
-        exec().groovy               | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
-        javaexec().groovy           | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
-        processBuilder().groovy     | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
-        stringArrayExecute().groovy | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
-        runtimeExec().groovy        | "settings.gradle"              | "Settings file 'settings.gradle': line 6"
-        exec().kotlin               | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
-        javaexec().kotlin           | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
-        processBuilder().kotlin     | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
-        stringArrayExecute().kotlin | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
-        runtimeExec().kotlin        | "settings.gradle.kts"          | "Settings file 'settings.gradle.kts'"
+        snippetsFactory             | file                  | location
+        exec().groovy               | "settings.gradle"     | "Settings file 'settings.gradle': line 6"
+        javaexec().groovy           | "settings.gradle"     | "Settings file 'settings.gradle': line 6"
+        processBuilder().groovy     | "settings.gradle"     | "Settings file 'settings.gradle': line 6"
+        stringArrayExecute().groovy | "settings.gradle"     | "Settings file 'settings.gradle': line 6"
+        runtimeExec().groovy        | "settings.gradle"     | "Settings file 'settings.gradle': line 6"
+        exec().kotlin               | "settings.gradle.kts" | "Settings file 'settings.gradle.kts'"
+        javaexec().kotlin           | "settings.gradle.kts" | "Settings file 'settings.gradle.kts'"
+        processBuilder().kotlin     | "settings.gradle.kts" | "Settings file 'settings.gradle.kts'"
+        stringArrayExecute().kotlin | "settings.gradle.kts" | "Settings file 'settings.gradle.kts'"
+        runtimeExec().kotlin        | "settings.gradle.kts" | "Settings file 'settings.gradle.kts'"
     }
 }

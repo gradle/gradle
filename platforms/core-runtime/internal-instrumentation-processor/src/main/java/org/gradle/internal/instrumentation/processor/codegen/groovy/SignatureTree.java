@@ -47,6 +47,26 @@ class SignatureTree {
     private CallInterceptionRequest leaf = null;
     private LinkedHashMap<ParameterMatchEntry, SignatureTree> childrenByMatchEntry = null;
 
+    @NonNull
+    private static List<ParameterMatchEntry> parameterMatchEntries(CallableInfo callable) {
+        Optional<ParameterInfo> varargParameter = callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER).findAny();
+        CallableKindInfo kind = callable.getKind();
+        return Stream.of(
+            // Match the `Class<?>` in `receiver` for static methods and constructors
+            kind == STATIC_METHOD || kind == AFTER_CONSTRUCTOR
+                ? Stream.of(new ParameterMatchEntry(callable.getOwner().getType(), RECEIVER_AS_CLASS))
+                : Stream.<ParameterMatchEntry>empty(),
+            // Or match the receiver in the first parameter
+            kind == INSTANCE_METHOD || kind == GROOVY_PROPERTY_GETTER || kind == GROOVY_PROPERTY_SETTER
+                ? Stream.of(new ParameterMatchEntry(callable.getParameters().get(0).getParameterType(), RECEIVER))
+                : Stream.<ParameterMatchEntry>empty(),
+            // Then match the "normal" method parameters
+            callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.METHOD_PARAMETER).map(it -> new ParameterMatchEntry(it.getParameterType(), PARAMETER)),
+            // In the end, match the vararg parameter, if it is there:
+            varargParameter.map(parameterInfo -> Stream.of(new ParameterMatchEntry(parameterInfo.getParameterType().getElementType(), VARARG))).orElseGet(Stream::empty)
+        ).flatMap(Function.identity()).collect(Collectors.toList());
+    }
+
     @Nullable
     public CallInterceptionRequest getLeafOrNull() {
         return leaf;
@@ -76,25 +96,5 @@ class SignatureTree {
             throw new IllegalStateException("duplicate request");
         }
         current.leaf = request;
-    }
-
-    @NonNull
-    private static List<ParameterMatchEntry> parameterMatchEntries(CallableInfo callable) {
-        Optional<ParameterInfo> varargParameter = callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER).findAny();
-        CallableKindInfo kind = callable.getKind();
-        return Stream.of(
-            // Match the `Class<?>` in `receiver` for static methods and constructors
-            kind == STATIC_METHOD || kind == AFTER_CONSTRUCTOR
-                ? Stream.of(new ParameterMatchEntry(callable.getOwner().getType(), RECEIVER_AS_CLASS))
-                : Stream.<ParameterMatchEntry>empty(),
-            // Or match the receiver in the first parameter
-            kind == INSTANCE_METHOD || kind == GROOVY_PROPERTY_GETTER || kind == GROOVY_PROPERTY_SETTER
-                ? Stream.of(new ParameterMatchEntry(callable.getParameters().get(0).getParameterType(), RECEIVER))
-                : Stream.<ParameterMatchEntry>empty(),
-            // Then match the "normal" method parameters
-            callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.METHOD_PARAMETER).map(it -> new ParameterMatchEntry(it.getParameterType(), PARAMETER)),
-            // In the end, match the vararg parameter, if it is there:
-            varargParameter.map(parameterInfo -> Stream.of(new ParameterMatchEntry(parameterInfo.getParameterType().getElementType(), VARARG))).orElseGet(Stream::empty)
-        ).flatMap(Function.identity()).collect(Collectors.toList());
     }
 }

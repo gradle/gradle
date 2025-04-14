@@ -40,8 +40,10 @@ import org.jspecify.annotations.Nullable;
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
-    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory,
-                                final CollectionCallbackActionDecorator collectionCallbackActionDecorator, final DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public ComponentSpecFactory(
+        final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory,
+        final CollectionCallbackActionDecorator collectionCallbackActionDecorator, final DomainObjectCollectionFactory domainObjectCollectionFactory
+    ) {
         super(ComponentSpec.class);
         this.projectIdentifier = projectIdentifier;
         registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {

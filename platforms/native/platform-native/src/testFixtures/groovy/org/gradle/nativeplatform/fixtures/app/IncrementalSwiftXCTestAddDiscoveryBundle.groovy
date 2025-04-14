@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
 
-class IncrementalSwiftXCTestAddDiscoveryBundle extends IncrementalSwiftXCTestElement  {
+class IncrementalSwiftXCTestAddDiscoveryBundle extends IncrementalSwiftXCTestElement {
     String moduleName = "App"
 
     final XCTestSourceFileElement fooTestSuite = new XCTestSourceFileElement("FooTestSuite") {

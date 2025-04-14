@@ -42,16 +42,25 @@ import static java.util.stream.Collectors.toList;
 
 public abstract class PerformanceExecutionDataProvider {
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 7;
-    protected TreeSet<PerformanceReportScenario> scenarioExecutions;
     protected final ResultsStore resultsStore;
     protected final Set<String> performanceTestBuildIds;
-    private final List<File> resultJsons;
     protected final String commitId = Git.current().getCommitId();
+    private final List<File> resultJsons;
+    protected TreeSet<PerformanceReportScenario> scenarioExecutions;
 
     public PerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
         this.resultJsons = resultJsons;
         this.resultsStore = resultsStore;
         this.performanceTestBuildIds = performanceTestBuildIds;
+    }
+
+    private static Stream<PerformanceTestExecutionResult> parseResultsJson(File resultsJson) {
+        try {
+            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<PerformanceTestExecutionResult>>() {
+            }).stream();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public TreeSet<PerformanceReportScenario> getReportScenarios() {
@@ -73,15 +82,6 @@ public abstract class PerformanceExecutionDataProvider {
             .flatMap(PerformanceExecutionDataProvider::parseResultsJson)
             .collect(toList());
         return queryExecutionData(buildResultData);
-    }
-
-    private static Stream<PerformanceTestExecutionResult> parseResultsJson(File resultsJson) {
-        try {
-            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<PerformanceTestExecutionResult>>() {
-            }).stream();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     protected <T> Collector<T, ?, TreeSet<T>> treeSetCollector(Comparator<T> scenarioComparator) {

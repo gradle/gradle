@@ -70,9 +70,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class GradleModuleMetadataParser {
-    private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
-
     public static final String FORMAT_VERSION = "1.1";
+    private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
     private final AttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private final ExcludeRuleConverter excludeRuleConverter;
@@ -142,10 +141,10 @@ public class GradleModuleMetadataParser {
 
     private Capability buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
         return new ShadowedImmutableCapability(new DefaultImmutableCapability(
-                componentId.getGroup(),
-                componentId.getModule(),
-                componentId.getVersion()
-            ), "-derived-enforced-platform");
+            componentId.getGroup(),
+            componentId.getModule(),
+            componentId.getVersion()
+        ), "-derived-enforced-platform");
     }
 
     private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {

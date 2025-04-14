@@ -25,11 +25,6 @@ import java.util.Arrays;
  */
 public class ClassLoaderIds {
 
-    public enum Type {
-        SCRIPT,
-        TEST_TASK_CLASSPATH
-    }
-
     private static ClassLoaderId of(Type type, String... attributes) {
         return new DefaultClassLoaderId(type, attributes);
     }
@@ -40,6 +35,11 @@ public class ClassLoaderIds {
 
     public static ClassLoaderId testTaskClasspath(String testTaskPath) {
         return of(Type.TEST_TASK_CLASSPATH, testTaskPath);
+    }
+
+    public enum Type {
+        SCRIPT,
+        TEST_TASK_CLASSPATH
     }
 
     private static class DefaultClassLoaderId implements ClassLoaderId {

@@ -39,6 +39,21 @@ class CategoryFilter extends Filter {
         this.applicationClassLoader = applicationClassLoader;
     }
 
+    // Can be replaced with String.join when workers are updated to run in JDK 8.
+    private static String join(Set<String> strings, String delimiter) {
+        StringBuilder result = new StringBuilder();
+        Iterator<String> iterator = strings.iterator();
+
+        while (iterator.hasNext()) {
+            result.append(iterator.next());
+            if (iterator.hasNext()) {
+                result.append(delimiter);
+            }
+        }
+
+        return result.toString();
+    }
+
     @Override
     public boolean shouldRun(final Description description) {
         Class<?> testClass = description.getTestClass();
@@ -146,20 +161,5 @@ class CategoryFilter extends Filter {
         }
 
         return sb.toString();
-    }
-
-    // Can be replaced with String.join when workers are updated to run in JDK 8.
-    private static String join(Set<String> strings, String delimiter) {
-        StringBuilder result = new StringBuilder();
-        Iterator<String> iterator = strings.iterator();
-
-        while (iterator.hasNext()) {
-            result.append(iterator.next());
-            if (iterator.hasNext()) {
-                result.append(delimiter);
-            }
-        }
-
-        return result.toString();
     }
 }

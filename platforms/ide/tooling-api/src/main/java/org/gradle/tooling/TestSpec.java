@@ -58,9 +58,9 @@ public interface TestSpec {
     /**
      * Adds all tests declared in the target packages to the test execution.
      *
-     * @see #includePackage(String)
      * @param packages The target packages.
      * @return this
+     * @see #includePackage(String)
      */
     TestSpec includePackages(Collection<String> packages);
 
@@ -77,11 +77,11 @@ public interface TestSpec {
     /**
      * Adds the target test classes to the test execution.
      *
-     * @see #includeClass(String)
      * @param classes The fully-qualified name of the target classes.
      * @return this
+     * @see #includeClass(String)
      */
-    TestSpec includeClasses(Collection<String>  classes);
+    TestSpec includeClasses(Collection<String> classes);
 
     /**
      * Adds the target test method to the test execution.
@@ -97,10 +97,10 @@ public interface TestSpec {
     /**
      * Adds the target test methods to the test execution.
      *
-     * @see #includeMethod(String, String)
      * @param cls The fully-qualified name of the class containing the method.
      * @param methods The name of the target methods.
      * @return this
+     * @see #includeMethod(String, String)
      */
     TestSpec includeMethods(String cls, Collection<String> methods);
 
@@ -118,9 +118,9 @@ public interface TestSpec {
     /**
      * Adds all test classes and methods to the test execution that matches the target patterns.
      *
-     * @see #includePattern(String)
      * @param patterns the patterns to select tests.
      * @return this
+     * @see #includePattern(String)
      */
     TestSpec includePatterns(Collection<String> patterns);
 }

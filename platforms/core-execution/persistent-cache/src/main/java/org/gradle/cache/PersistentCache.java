@@ -45,7 +45,6 @@ public interface PersistentCache extends ExclusiveCacheAccessCoordinator, Closea
      *
      * <p>The returned cache may only be used by an action being run from {@link #useCache(java.util.function.Supplier)}.
      * In this instance, an exclusive lock will be held on the cache.
-     *
      */
     <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters);
 
@@ -54,7 +53,6 @@ public interface PersistentCache extends ExclusiveCacheAccessCoordinator, Closea
      *
      * <p>The returned cache may only be used by an action being run from {@link #useCache(java.util.function.Supplier)}.
      * In this instance, an exclusive lock will be held on the cache.
-     *
      */
     <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 

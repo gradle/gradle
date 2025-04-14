@@ -28,7 +28,8 @@ import spock.lang.Issue
 class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
     def currentGradle = GradleVersion.current().version
 
-    @Requires(UnitTestPreconditions.Jdk15OrEarlier) // older Gradle version 6.7.1 is used in test
+    @Requires(UnitTestPreconditions.Jdk15OrEarlier)
+    // older Gradle version 6.7.1 is used in test
     def "can publish and use Gradle plugin with multiple variants"() {
         given:
         def producer = file('producer')

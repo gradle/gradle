@@ -5,12 +5,15 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>compression</td>
-                <td><literal>Compression.NONE</literal></td>
+                <td>
+                    <literal>Compression.NONE</literal>
+                </td>
             </tr>
         </table>
     </section>

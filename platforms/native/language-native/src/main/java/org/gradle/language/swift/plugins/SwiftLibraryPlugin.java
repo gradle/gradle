@@ -103,9 +103,9 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
             @Override
             public SwiftBinary call() throws Exception {
                 return getDebugSharedHostStream().findFirst().orElseGet(
-                        () -> getDebugStaticHostStream().findFirst().orElseGet(
-                                () -> getDebugSharedStream().findFirst().orElseGet(
-                                        () -> getDebugStaticStream().findFirst().orElse(null))));
+                    () -> getDebugStaticHostStream().findFirst().orElseGet(
+                        () -> getDebugSharedStream().findFirst().orElseGet(
+                            () -> getDebugStaticStream().findFirst().orElse(null))));
             }
 
             private Stream<SwiftBinary> getDebugStream() {
@@ -132,19 +132,19 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
             Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
-                    providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
-                    variantIdentity -> {
-                        if (tryToBuildOnHost(variantIdentity)) {
-                            library.getSourceCompatibility().finalizeValue();
-                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), library.getSourceCompatibility().getOrNull()));
+                providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
+                variantIdentity -> {
+                    if (tryToBuildOnHost(variantIdentity)) {
+                        library.getSourceCompatibility().finalizeValue();
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), library.getSourceCompatibility().getOrNull()));
 
-                            if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
-                                library.addSharedLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                            } else {
-                                library.addStaticLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                            }
+                        if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
+                            library.addSharedLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                        } else {
+                            library.addStaticLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                         }
-                    });
+                    }
+                });
 
             library.getBinaries().whenElementKnown(SwiftSharedLibrary.class, sharedLibrary -> {
                 Names names = ((ComponentWithNames) sharedLibrary).getNames();

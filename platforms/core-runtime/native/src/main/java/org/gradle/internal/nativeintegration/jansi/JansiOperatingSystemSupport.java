@@ -25,23 +25,24 @@ public enum JansiOperatingSystemSupport {
     WINDOWS("windows");
 
     private final static Map<String, JansiOperatingSystemSupport> MAPPING = new HashMap<String, JansiOperatingSystemSupport>();
-    private final String identifier;
 
     static {
-        for(JansiOperatingSystemSupport osSupport : values()) {
+        for (JansiOperatingSystemSupport osSupport : values()) {
             MAPPING.put(osSupport.identifier, osSupport);
         }
     }
+
+    private final String identifier;
 
     JansiOperatingSystemSupport(String identifier) {
         this.identifier = identifier;
     }
 
-    public String getIdentifier() {
-        return identifier;
-    }
-
     public static JansiOperatingSystemSupport forIdentifier(String identifier) {
         return MAPPING.get(identifier);
+    }
+
+    public String getIdentifier() {
+        return identifier;
     }
 }

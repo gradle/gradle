@@ -113,7 +113,7 @@ class CachingClassLoaderTest extends Specification {
         classLoader.visit(visitor)
 
         then:
-        1 * visitor.visitSpec({it instanceof CachingClassLoader.Spec})
+        1 * visitor.visitSpec({ it instanceof CachingClassLoader.Spec })
         1 * visitor.visitParent(parent)
         0 * visitor._
     }

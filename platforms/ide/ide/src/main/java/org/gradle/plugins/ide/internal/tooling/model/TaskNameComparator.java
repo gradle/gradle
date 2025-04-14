@@ -25,6 +25,10 @@ import java.util.Comparator;
  * Compares task names to create ordering for selector launching.
  */
 public class TaskNameComparator implements Comparator<String>, Serializable {
+    static int getDepth(String taskName) {
+        return StringUtils.countMatches(taskName, ":");
+    }
+
     @Override
     public int compare(String taskName1, String taskName2) {
         int depthDiff = getDepth(taskName1) - getDepth(taskName2);
@@ -44,9 +48,5 @@ public class TaskNameComparator implements Comparator<String>, Serializable {
             }
         }
         return colon1 == -1 ? taskName1.compareTo(taskName2) : compareSegments(taskName1.substring(colon1 + 1), taskName2.substring(colon2 + 1));
-    }
-
-    static int getDepth(String taskName) {
-        return StringUtils.countMatches(taskName, ":");
     }
 }

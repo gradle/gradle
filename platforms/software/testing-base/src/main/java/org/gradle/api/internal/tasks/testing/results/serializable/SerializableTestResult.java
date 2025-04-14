@@ -35,19 +35,72 @@ import java.io.IOException;
  */
 @NullMarked
 public final class SerializableTestResult {
+    private final String name;
+    private final String displayName;
+    private final TestResult.ResultType resultType;
+    private final long startTime;
+    private final long endTime;
+    private final ImmutableList<SerializableFailure> failures;
+    private final ImmutableList<SerializedMetadata> metadatas;
+    public SerializableTestResult(
+        String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime,
+        ImmutableList<SerializableFailure> failures,
+        ImmutableList<SerializedMetadata> metadatas
+    ) {
+        this.name = name;
+        this.displayName = displayName;
+        this.resultType = resultType;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.failures = failures;
+        this.metadatas = metadatas;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public TestResult.ResultType getResultType() {
+        return resultType;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public long getDuration() {
+        return endTime - startTime;
+    }
+
+    public ImmutableList<SerializableFailure> getFailures() {
+        return failures;
+    }
+
+    public ImmutableList<SerializedMetadata> getMetadatas() {
+        return metadatas;
+    }
+
     @NullMarked
     public static final class Builder {
+        private final ImmutableList.Builder<SerializableFailure> failures = ImmutableList.builder();
+        private final ImmutableList.Builder<SerializedMetadata> metadatas = ImmutableList.builder();
         private String name;
         private String displayName;
         private TestResult.ResultType resultType;
         private Long startTime;
         private Long endTime;
-        private final ImmutableList.Builder<SerializableFailure> failures = ImmutableList.builder();
-        private final ImmutableList.Builder<SerializedMetadata> metadatas = ImmutableList.builder();
 
         public Builder name(String name) {
             this.name = name;
@@ -185,57 +238,5 @@ public final class SerializableTestResult {
             }
             return metadatas.build();
         }
-    }
-
-    private final String name;
-    private final String displayName;
-    private final TestResult.ResultType resultType;
-    private final long startTime;
-    private final long endTime;
-    private final ImmutableList<SerializableFailure> failures;
-    private final ImmutableList<SerializedMetadata> metadatas;
-
-    public SerializableTestResult(String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime,
-                                  ImmutableList<SerializableFailure> failures,
-                                  ImmutableList<SerializedMetadata> metadatas) {
-        this.name = name;
-        this.displayName = displayName;
-        this.resultType = resultType;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.failures = failures;
-        this.metadatas = metadatas;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public TestResult.ResultType getResultType() {
-        return resultType;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public long getEndTime() {
-        return endTime;
-    }
-
-    public long getDuration() {
-        return endTime - startTime;
-    }
-
-    public ImmutableList<SerializableFailure> getFailures() {
-        return failures;
-    }
-
-    public ImmutableList<SerializedMetadata> getMetadatas() {
-        return metadatas;
     }
 }

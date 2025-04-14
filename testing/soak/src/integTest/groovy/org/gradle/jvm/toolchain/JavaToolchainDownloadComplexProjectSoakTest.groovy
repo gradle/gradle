@@ -69,8 +69,8 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
         when:
         result = executer
-                .withTasks("compileJava")
-                .run()
+            .withTasks("compileJava")
+            .run()
 
         then:
         !result.plainTextOutput.matches("(?s).*The existing installation will be replaced by the new download.*")
@@ -93,9 +93,9 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
         when:
         result = executer
-                .withTasks("compileJava")
-                .withArgument("--info")
-                .run()
+            .withTasks("compileJava")
+            .withArgument("--info")
+            .run()
 
 
         then:
@@ -149,9 +149,9 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
         when:
         result = executer
-                .withTasks("compileJava")
-                .withArgument("--info")
-                .run()
+            .withTasks("compileJava")
+            .withArgument("--info")
+            .run()
 
         then:
         result.plainTextOutput.matches("(?s).*Compiling with toolchain.*")
@@ -200,7 +200,8 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
             )}
 
             rootProject.name = 'plugin1'
-        """*/ //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
+        """*/
+        //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
         file("plugin1/settings.gradle") << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
 

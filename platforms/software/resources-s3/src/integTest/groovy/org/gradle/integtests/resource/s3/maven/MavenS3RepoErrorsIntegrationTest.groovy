@@ -64,9 +64,9 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-                .assertHasCause('Could not resolve org.gradle:test:1.85')
-                .assertHasCause("Could not get resource '${module.pom.uri}'.")
-                .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
+            .assertHasCause('Could not resolve org.gradle:test:1.85')
+            .assertHasCause("Could not get resource '${module.pom.uri}'.")
+            .assertHasCause("The AWS Access Key Id you provided does not exist in our records.")
     }
 
     @ToBeFixedForConfigurationCache
@@ -90,7 +90,7 @@ repositories {
         //TODO would be good to have a reference of the wrong configured repository in the error message
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
+            .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
     }
 
     @ToBeFixedForConfigurationCache
@@ -109,7 +109,7 @@ repositories {
         then:
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.")
+            .assertHasCause("S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.")
 
     }
 
@@ -126,7 +126,7 @@ repositories {
         failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause(
-                """Could not find org.gradle:test:1.85.
+            """Could not find org.gradle:test:1.85.
 Searched in the following locations:
   - ${module.pom.uri}
 Required by:

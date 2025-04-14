@@ -44,7 +44,9 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
 
     protected TestFile getFile(Map options, String filename) {
         def file = options?.project ? file(options.project, filename) : file(filename)
-        if (options?.print) { println file.text }
+        if (options?.print) {
+            println file.text
+        }
         file
     }
 

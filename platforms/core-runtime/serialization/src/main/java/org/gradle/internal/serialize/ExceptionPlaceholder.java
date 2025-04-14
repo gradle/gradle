@@ -55,13 +55,13 @@ class ExceptionPlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionPlaceholder.class);
     private final String type;
-    private byte[] serializedException;
-    private String message;
-    private String toString;
     private final boolean contextual;
     private final boolean assertionError;
     private final List<ExceptionPlaceholder> causes;
     private final List<ExceptionPlaceholder> suppressed;
+    private byte[] serializedException;
+    private String message;
+    private String toString;
     private List<StackTraceElementPlaceholder> stackTrace;
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
@@ -145,22 +145,6 @@ class ExceptionPlaceholder implements Serializable {
 
     }
 
-    private List<StackTraceElementPlaceholder> convertStackTrace(StackTraceElement[] stackTrace) {
-        List<StackTraceElementPlaceholder> placeholders = new ArrayList<StackTraceElementPlaceholder>(stackTrace.length);
-        for (StackTraceElement stackTraceElement : stackTrace) {
-            placeholders.add(new StackTraceElementPlaceholder(stackTraceElement));
-        }
-        return placeholders;
-    }
-
-    private StackTraceElement[] convertStackTrace(List<StackTraceElementPlaceholder> placeholders) {
-        StackTraceElement[] stackTrace = new StackTraceElement[placeholders.size()];
-        for (int i = 0; i < placeholders.size(); i++) {
-            stackTrace[i] = placeholders.get(i).toStackTraceElement();
-        }
-        return stackTrace;
-    }
-
     @SuppressWarnings("Since15")
     private static List<? extends Throwable> extractSuppressed(Throwable throwable) {
         if (isJava7()) {
@@ -191,80 +175,6 @@ class ExceptionPlaceholder implements Serializable {
 
     private static boolean isJava14() {
         return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14);
-    }
-
-    public Throwable read(InternalTransformer<Class<?>, String> classNameTransformer, InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
-        final List<Throwable> causes = recreateExceptions(this.causes, classNameTransformer, objectInputStreamCreator);
-        final List<Throwable> suppressed = recreateExceptions(this.suppressed, classNameTransformer, objectInputStreamCreator);
-
-        if (serializedException != null) {
-            // try to deserialize the original exception
-            final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.transform(new ByteArrayInputStream(serializedException));
-            ois.setObjectTransformer(new InternalTransformer<Object, Object>() {
-                @Override
-                public Object transform(Object obj) {
-                    if (obj instanceof NestedExceptionPlaceholder) {
-                        NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
-                        int index = placeholder.getIndex();
-                        switch (placeholder.getKind()) {
-                            case cause:
-                                return causes.get(index);
-                            case suppressed:
-                                return suppressed.get(index);
-                        }
-                    }
-                    return obj;
-                }
-            });
-
-            try {
-                return (Throwable) ois.readObject();
-            } catch (ClassNotFoundException ignored) {
-                // Don't log
-            } catch (Throwable failure) {
-                LOGGER.debug("Ignoring failure to de-serialize throwable.", failure);
-            }
-        }
-
-        try {
-            // try to reconstruct the exception
-            Class<?> clazz = classNameTransformer.transform(type);
-            if (clazz != null && causes.size() <= 1) {
-                Constructor<?> constructor = clazz.getConstructor(String.class);
-                Throwable reconstructed = (Throwable) constructor.newInstance(message);
-                if (!causes.isEmpty()) {
-                    reconstructed.initCause(causes.get(0));
-                }
-                reconstructed.setStackTrace(convertStackTrace(stackTrace));
-                registerSuppressedExceptions(suppressed, reconstructed);
-                return reconstructed;
-            }
-        } catch (UncheckedException ignore) {
-            // Don't log
-        } catch (NoSuchMethodException ignored) {
-            // Don't log
-        } catch (Throwable ignored) {
-            LOGGER.debug("Ignoring failure to recreate throwable.", ignored);
-        }
-
-        Throwable placeholder;
-        if (causes.size() <= 1) {
-            if (contextual) {
-                // there are no @Contextual assertion errors in Gradle so we're safe to use this type only
-                placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
-            } else {
-                if (assertionError) {
-                    placeholder = new PlaceholderAssertionError(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
-                } else {
-                    placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
-                }
-            }
-        } else {
-            placeholder = new DefaultMultiCauseException(message, causes);
-        }
-        placeholder.setStackTrace(convertStackTrace(stackTrace));
-        registerSuppressedExceptions(suppressed, placeholder);
-        return placeholder;
     }
 
     private static void registerSuppressedExceptions(List<Throwable> suppressed, Throwable reconstructed) {
@@ -356,6 +266,96 @@ class ExceptionPlaceholder implements Serializable {
             result.add(placeholder.read(classNameTransformer, objectInputStreamCreator));
         }
         return result;
+    }
+
+    private List<StackTraceElementPlaceholder> convertStackTrace(StackTraceElement[] stackTrace) {
+        List<StackTraceElementPlaceholder> placeholders = new ArrayList<StackTraceElementPlaceholder>(stackTrace.length);
+        for (StackTraceElement stackTraceElement : stackTrace) {
+            placeholders.add(new StackTraceElementPlaceholder(stackTraceElement));
+        }
+        return placeholders;
+    }
+
+    private StackTraceElement[] convertStackTrace(List<StackTraceElementPlaceholder> placeholders) {
+        StackTraceElement[] stackTrace = new StackTraceElement[placeholders.size()];
+        for (int i = 0; i < placeholders.size(); i++) {
+            stackTrace[i] = placeholders.get(i).toStackTraceElement();
+        }
+        return stackTrace;
+    }
+
+    public Throwable read(InternalTransformer<Class<?>, String> classNameTransformer, InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+        final List<Throwable> causes = recreateExceptions(this.causes, classNameTransformer, objectInputStreamCreator);
+        final List<Throwable> suppressed = recreateExceptions(this.suppressed, classNameTransformer, objectInputStreamCreator);
+
+        if (serializedException != null) {
+            // try to deserialize the original exception
+            final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.transform(new ByteArrayInputStream(serializedException));
+            ois.setObjectTransformer(new InternalTransformer<Object, Object>() {
+                @Override
+                public Object transform(Object obj) {
+                    if (obj instanceof NestedExceptionPlaceholder) {
+                        NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
+                        int index = placeholder.getIndex();
+                        switch (placeholder.getKind()) {
+                            case cause:
+                                return causes.get(index);
+                            case suppressed:
+                                return suppressed.get(index);
+                        }
+                    }
+                    return obj;
+                }
+            });
+
+            try {
+                return (Throwable) ois.readObject();
+            } catch (ClassNotFoundException ignored) {
+                // Don't log
+            } catch (Throwable failure) {
+                LOGGER.debug("Ignoring failure to de-serialize throwable.", failure);
+            }
+        }
+
+        try {
+            // try to reconstruct the exception
+            Class<?> clazz = classNameTransformer.transform(type);
+            if (clazz != null && causes.size() <= 1) {
+                Constructor<?> constructor = clazz.getConstructor(String.class);
+                Throwable reconstructed = (Throwable) constructor.newInstance(message);
+                if (!causes.isEmpty()) {
+                    reconstructed.initCause(causes.get(0));
+                }
+                reconstructed.setStackTrace(convertStackTrace(stackTrace));
+                registerSuppressedExceptions(suppressed, reconstructed);
+                return reconstructed;
+            }
+        } catch (UncheckedException ignore) {
+            // Don't log
+        } catch (NoSuchMethodException ignored) {
+            // Don't log
+        } catch (Throwable ignored) {
+            LOGGER.debug("Ignoring failure to recreate throwable.", ignored);
+        }
+
+        Throwable placeholder;
+        if (causes.size() <= 1) {
+            if (contextual) {
+                // there are no @Contextual assertion errors in Gradle so we're safe to use this type only
+                placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+            } else {
+                if (assertionError) {
+                    placeholder = new PlaceholderAssertionError(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+                } else {
+                    placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
+                }
+            }
+        } else {
+            placeholder = new DefaultMultiCauseException(message, causes);
+        }
+        placeholder.setStackTrace(convertStackTrace(stackTrace));
+        registerSuppressedExceptions(suppressed, placeholder);
+        return placeholder;
     }
 
     /**

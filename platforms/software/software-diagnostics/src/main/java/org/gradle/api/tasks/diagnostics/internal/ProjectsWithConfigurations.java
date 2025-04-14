@@ -36,11 +36,7 @@ import java.util.stream.Stream;
  */
 public interface ProjectsWithConfigurations<P extends ProjectDetails, C extends ConfigurationDetails> {
 
-    Set<P> getProjects();
-
-    Iterable<C> getConfigurationsFor(P project);
-
-    static <P extends ProjectDetails, C extends ConfigurationDetails> ProjectsWithConfigurations<P, C> from(Iterable<Project> projects, Function<Project, P> projectProjector,  Function<Project, Stream<? extends C>> configurationProjector) {
+    static <P extends ProjectDetails, C extends ConfigurationDetails> ProjectsWithConfigurations<P, C> from(Iterable<Project> projects, Function<Project, P> projectProjector, Function<Project, Stream<? extends C>> configurationProjector) {
         Map<P, Iterable<C>> details = new LinkedHashMap<>();
         projects.forEach(p -> {
             P projectDetails = projectProjector.apply(p);
@@ -59,4 +55,8 @@ public interface ProjectsWithConfigurations<P extends ProjectDetails, C extends 
             }
         };
     }
+
+    Set<P> getProjects();
+
+    Iterable<C> getConfigurationsFor(P project);
 }

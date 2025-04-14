@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class JavaVersionParser {
 
-    public static int parseCurrentMajorVersion()  {
+    public static int parseCurrentMajorVersion() {
         return parseMajorVersion(System.getProperty("java.version"));
     }
 

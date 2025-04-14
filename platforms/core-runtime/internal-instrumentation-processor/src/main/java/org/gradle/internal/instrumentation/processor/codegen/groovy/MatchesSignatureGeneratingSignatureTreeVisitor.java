@@ -44,6 +44,14 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
         this.result = result;
     }
 
+    private static CodeBlock argClassesExpression(CallInterceptionRequest leafInCurrent) {
+        return leafInCurrent.getInterceptedCallable().getParameters()
+            .stream()
+            .filter(it -> it.getKind().isSourceParameter())
+            .map(it -> CodeBlock.of("$T.class", TypeUtils.typeName(it.getParameterType())))
+            .collect(CodeBlock.joining(", ", "new Class<?>[] {", "}"));
+    }
+
     /**
      * @param paramIndex index of the parameter in the signatures, -1 stands for the receiver
      */
@@ -133,13 +141,5 @@ class MatchesSignatureGeneratingSignatureTreeVisitor {
         result.add("/** Matched $L */\n", JavadocUtils.interceptedCallableLink(leafInCurrent));
         result.addStatement("return new $T(false, $L)", SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH, argClasses);
         result.endControlFlow();
-    }
-
-    private static CodeBlock argClassesExpression(CallInterceptionRequest leafInCurrent) {
-        return leafInCurrent.getInterceptedCallable().getParameters()
-            .stream()
-            .filter(it -> it.getKind().isSourceParameter())
-            .map(it -> CodeBlock.of("$T.class", TypeUtils.typeName(it.getParameterType())))
-            .collect(CodeBlock.joining(", ", "new Class<?>[] {", "}"));
     }
 }

@@ -60,7 +60,7 @@ public class SftpResourceAccessor extends AbstractExternalResourceAccessor imple
         long contentLength = -1;
 
         if ((attributes.getFlags() & SftpATTRS.SSH_FILEXFER_ATTR_ACMODTIME) != 0) {
-            lastModified = (long)attributes.getMTime() * 1000;
+            lastModified = (long) attributes.getMTime() * 1000;
         }
         if ((attributes.getFlags() & SftpATTRS.SSH_FILEXFER_ATTR_SIZE) != 0) {
             contentLength = attributes.getSize();

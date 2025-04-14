@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;

@@ -28,8 +28,10 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     private final TestDescriptorInternal suiteDescriptor;
     private TestResultProcessor resultProcessor;
 
-    public SuiteTestClassProcessor(TestDescriptorInternal suiteDescriptor, TestClassProcessor processor,
-                                   Clock clock) {
+    public SuiteTestClassProcessor(
+        TestDescriptorInternal suiteDescriptor, TestClassProcessor processor,
+        Clock clock
+    ) {
         this.suiteDescriptor = suiteDescriptor;
         this.processor = processor;
         this.clock = clock;

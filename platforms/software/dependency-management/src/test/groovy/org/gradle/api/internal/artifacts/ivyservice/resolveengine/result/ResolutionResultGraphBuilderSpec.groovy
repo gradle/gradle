@@ -156,8 +156,8 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         def a = builder.getRoot(id("a"))
 
         then:
-        def b  = first(a.dependencies).selected
-        def c  = first(b.dependencies).selected
+        def b = first(a.dependencies).selected
+        def c = first(b.dependencies).selected
         def a2 = first(c.dependencies).selected
 
         a2.is(a)

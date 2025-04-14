@@ -52,6 +52,18 @@ public abstract class ShowToolchainsTask extends DefaultTask {
         getOutputs().upToDateWhen(spec(element -> false));
     }
 
+    private static List<JvmToolchainMetadata> invalidToolchains(List<JvmToolchainMetadata> toolchains) {
+        return toolchains.stream().filter(t -> !isValidToolchain(t)).collect(Collectors.toList());
+    }
+
+    private static List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
+        return toolchains.stream().filter(ShowToolchainsTask::isValidToolchain).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
+    }
+
+    private static boolean isValidToolchain(JvmToolchainMetadata t) {
+        return t.metadata.isValidInstallation();
+    }
+
     @TaskAction
     public void showToolchains() {
         StyledTextOutput output = getTextOutputFactory().create(getClass());
@@ -74,18 +86,6 @@ public abstract class ShowToolchainsTask extends DefaultTask {
         output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-download:", 20, ' '));
         output.withStyle(Description).println(downloadEnabled ? "Enabled" : "Disabled");
         output.println();
-    }
-
-    private static List<JvmToolchainMetadata> invalidToolchains(List<JvmToolchainMetadata> toolchains) {
-        return toolchains.stream().filter(t -> !isValidToolchain(t)).collect(Collectors.toList());
-    }
-
-    private static List<JvmToolchainMetadata> validToolchains(Collection<JvmToolchainMetadata> toolchains) {
-        return toolchains.stream().filter(ShowToolchainsTask::isValidToolchain).sorted(TOOLCHAIN_COMPARATOR).collect(Collectors.toList());
-    }
-
-    private static boolean isValidToolchain(JvmToolchainMetadata t) {
-        return t.metadata.isValidInstallation();
     }
 
     private List<JvmToolchainMetadata> allReportableToolchains() {

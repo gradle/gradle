@@ -56,24 +56,6 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         this.parameters = parameters;
     }
 
-    @Override
-    public void execute(AntBuilderDelegate ant) {
-        FileCollection pmdClasspath = parameters.getPmdClasspath().filter(new FileExistFilter());
-
-        // PMD uses java.class.path to determine it's implementation classpath for incremental analysis
-        // Since we run PMD inside the Gradle daemon, this pulls in all of Gradle's runtime.
-        // To hide this from PMD, we override the java.class.path to just the PMD classpath from Gradle's POV.
-        if (parameters.getIncrementalAnalysis().get()) {
-            // TODO: Can we get rid of this now that we're running in a worker?
-            SystemProperties.getInstance().withSystemProperty("java.class.path", GUtil.asPath(pmdClasspath), (Factory<Void>) () -> {
-                runPmd(ant, parameters);
-                return null;
-            });
-        } else {
-            runPmd(ant, parameters);
-        }
-    }
-
     private static void runPmd(AntBuilderDelegate ant, PmdActionParameters parameters) {
         VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader());
 
@@ -203,6 +185,24 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
 
     private static void assertUnsupportedIncrementalAnalysis(VersionNumber version) {
         throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD " + version + " or disable incremental analysis.");
+    }
+
+    @Override
+    public void execute(AntBuilderDelegate ant) {
+        FileCollection pmdClasspath = parameters.getPmdClasspath().filter(new FileExistFilter());
+
+        // PMD uses java.class.path to determine it's implementation classpath for incremental analysis
+        // Since we run PMD inside the Gradle daemon, this pulls in all of Gradle's runtime.
+        // To hide this from PMD, we override the java.class.path to just the PMD classpath from Gradle's POV.
+        if (parameters.getIncrementalAnalysis().get()) {
+            // TODO: Can we get rid of this now that we're running in a worker?
+            SystemProperties.getInstance().withSystemProperty("java.class.path", GUtil.asPath(pmdClasspath), (Factory<Void>) () -> {
+                runPmd(ant, parameters);
+                return null;
+            });
+        } else {
+            runPmd(ant, parameters);
+        }
     }
 
     private static class FileExistFilter implements Spec<File> {

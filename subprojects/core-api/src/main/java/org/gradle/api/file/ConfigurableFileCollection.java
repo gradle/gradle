@@ -62,7 +62,6 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param paths The paths. {@code null} values are ignored.
      * @return this collection
-     *
      * @since 8.8
      */
     @Incubating
@@ -77,7 +76,6 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param paths The paths. {@code null} values are ignored.
      * @return this collection
-     *
      * @since 8.8
      */
     @Incubating

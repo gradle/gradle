@@ -50,17 +50,17 @@ class GradlePluginVariantsSupportTest extends Specification {
         accepts == matcher.isMatchingCandidate(producer, consumer)
 
         where:
-        currentGradleVersion       | acceptsOrRejects
-        '7.0'                      | 'accepts'
-        '7.0-20210211230048+0000'  | 'accepts'
-        '7.0-milestone-1'          | 'accepts'
-        '7.0-rc-2'                 | 'accepts'
-        '7.2'                      | 'accepts'
-        '8.0'                      | 'accepts'
+        currentGradleVersion      | acceptsOrRejects
+        '7.0'                     | 'accepts'
+        '7.0-20210211230048+0000' | 'accepts'
+        '7.0-milestone-1'         | 'accepts'
+        '7.0-rc-2'                | 'accepts'
+        '7.2'                     | 'accepts'
+        '8.0'                     | 'accepts'
 
-        '6.8.3'                    | 'rejects'
-        '6.8-rc-2'                 | 'rejects'
-        '5.0'                      | 'rejects'
+        '6.8.3'                   | 'rejects'
+        '6.8-rc-2'                | 'rejects'
+        '5.0'                     | 'rejects'
     }
 
     def "chooses exact match API if available"() {

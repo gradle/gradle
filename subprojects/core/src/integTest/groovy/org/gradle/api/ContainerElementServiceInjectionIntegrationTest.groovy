@@ -27,7 +27,7 @@ import org.gradle.process.ExecOperations
 class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
     def "container element can receive services through constructor and is not annotated with @Inject"() {
-        buildFile  """
+        buildFile """
             class Bean {
                 String name
 

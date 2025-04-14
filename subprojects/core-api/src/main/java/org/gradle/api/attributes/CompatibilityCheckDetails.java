@@ -24,7 +24,6 @@ import org.jspecify.annotations.Nullable;
  * A compatibility check will <em>never</em> be performed when the consumer and producer values are equal.
  *
  * @param <T> the concrete type of the attribute
- *
  * @since 3.3
  */
 public interface CompatibilityCheckDetails<T> {

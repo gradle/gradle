@@ -137,7 +137,7 @@ private fun splitBucketsByScenarios(
                                 scenario.scenario
                         }
                     }.firstOrNull()
-                    // Fallback for new performance tests (don't use 0 to avoid division by zero)
+                // Fallback for new performance tests (don't use 0 to avoid division by zero)
                     ?: PerformanceTestDuration(scenario.scenario, 1)
             })
             .entries
@@ -221,8 +221,8 @@ data class TestProjectDuration(
                 PerformanceTestDuration,
                 Int,
             ) -> List<List<PerformanceTestDuration>> = {
-                performanceTestDuration: PerformanceTestDuration,
-                _: Int,
+                    performanceTestDuration: PerformanceTestDuration,
+                    _: Int,
                 ->
                 listOf(listOf(performanceTestDuration))
             }
@@ -245,7 +245,7 @@ data class TestProjectDuration(
         }
 
     override fun toString(): String =
-        "TestProjectTime(testProject=$testProject, totalTime=$totalTime, scenarios = ${scenarioDurations.map { it.scenario } }"
+        "TestProjectTime(testProject=$testProject, totalTime=$totalTime, scenarios = ${scenarioDurations.map { it.scenario }}"
 }
 
 data class Scenario(

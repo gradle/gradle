@@ -113,8 +113,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final PropertyRoleAnnotationHandler roleHandler = new PropertyRoleAnnotationHandler() {
         @Override
         public Set<Class<? extends Annotation>> getAnnotationTypes() {
@@ -126,6 +124,8 @@ public class AsmBackedClassGeneratorTest {
         }
     };
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), roleHandler, Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
@@ -435,7 +435,7 @@ public class AsmBackedClassGeneratorTest {
         Constructor<?> constructor = generatedClass.getDeclaredConstructors()[0];
 
         assertThat(constructor.getAnnotation(Inject.class), notNullValue());
-        assertThat(constructor.getParameterTypes(), equalTo(new Class<?>[] {String.class}));
+        assertThat(constructor.getParameterTypes(), equalTo(new Class<?>[]{String.class}));
     }
 
     @Test
@@ -1203,6 +1203,195 @@ public class AsmBackedClassGeneratorTest {
         assertTrue(returnType instanceof TypeVariable<?>);
     }
 
+    public enum AnnotationEnum {
+        A, B
+    }
+
+    public interface SomeType {
+        String getInterfaceProperty();
+    }
+
+    public interface SomeNamedType extends SomeType, Named {
+    }
+
+    public interface GetterBeanInterface {
+        String getThing();
+    }
+
+    public interface GetterBeanGenericInterface {
+        Provider<String> getThing();
+    }
+
+    public interface SetterBeanInterface {
+        void setThing(String value);
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public static @interface NestedBeanAnnotation {
+        String value();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public static @interface BeanAnnotation {
+        String value();
+
+        String[] values();
+
+        AnnotationEnum enumValue();
+
+        AnnotationEnum[] enumValues();
+
+        int number();
+
+        int[] numbers();
+
+        Class<?> clazz();
+
+        Class<?>[] classes();
+
+        NestedBeanAnnotation annotation();
+
+        NestedBeanAnnotation[] annotations();
+    }
+
+    public interface WithProperties {
+        Number getNumber();
+    }
+
+    public interface InterfaceBean {
+        String getName();
+
+        void setName(String value);
+
+        Set<Number> getNumbers();
+
+        void setNumbers(Set<Number> values);
+    }
+
+    public interface InterfaceBeanWithReadOnlyName {
+
+        String getName();
+    }
+
+    public interface InterfacePrimitiveBean {
+        boolean isProp1();
+
+        void setProp1(boolean value);
+
+        int getProp2();
+
+        void setProp2(int value);
+
+        byte getProp3();
+
+        void setProp3(byte value);
+
+        short getProp4();
+
+        void setProp4(short value);
+
+        long getProp5();
+
+        void setProp5(long value);
+
+        double getProp6();
+
+        void setProp6(double value);
+
+        float getProp7();
+
+        void setProp7(float value);
+
+        char getProp8();
+
+        void setProp8(char value);
+    }
+
+    public interface InterfaceFileCollectionBean {
+        ConfigurableFileCollection getProp();
+    }
+
+    public interface InterfaceFileTreeBean {
+        ConfigurableFileTree getProp();
+    }
+
+    public interface InterfaceNestedBean {
+        @Nested
+        InterfaceFileCollectionBean getFilesBean();
+
+        @Nested
+        InterfacePropertyBean getPropBean();
+    }
+
+    public interface InterfaceUsesToStringBean {
+        @Nested
+        UsesToStringInConstructor getBean();
+    }
+
+    public interface InterfacePropertyBean {
+        Property<String> getProp();
+    }
+
+    public interface InterfacePropertyWithParamTypeBean {
+        Property<Param<Param<Number>>> getProp();
+    }
+
+    public interface InterfacePropertyWithTypeParamBean<T> {
+        Property<T> getProp();
+    }
+
+    public interface InterfaceFilePropertyBean {
+        RegularFileProperty getProp();
+    }
+
+    public interface InterfaceDirectoryPropertyBean {
+        DirectoryProperty getProp();
+    }
+
+    public interface InterfaceListPropertyBean {
+        ListProperty<String> getProp();
+    }
+
+    public interface InterfaceSetPropertyBean {
+        SetProperty<String> getProp();
+    }
+
+    public interface InterfaceMapPropertyBean {
+        MapProperty<String, Number> getProp();
+    }
+
+    public interface InterfaceProviderBean {
+        Provider<? extends Number> getProp();
+    }
+
+    public interface InterfaceCovariantReadOnlyPropertyBean extends InterfaceProviderBean {
+        Property<Long> getProp();
+    }
+
+    public interface InterfaceContainerPropertyBean {
+        NamedDomainObjectContainer<NamedBean> getProp();
+    }
+
+    public interface InterfaceDomainSetPropertyBean {
+        DomainObjectSet<NamedBean> getProp();
+    }
+
+    public interface InterfaceWithDefaultMethods {
+        default String getName() {
+            return "name";
+        }
+
+        default void thing() {
+        }
+    }
+
+    interface InterfaceWithTypeParameter<T> {
+        @Inject
+        T getThing();
+    }
+
     public static class Bean {
         private String prop;
 
@@ -1446,6 +1635,7 @@ public class AsmBackedClassGeneratorTest {
             this.prop = String.format("<%s%s>", part1, part2);
             return this;
         }
+
         public BeanWithMultiArgDslMethods prop(String part1, String part2, String part3) {
             this.prop = String.format("[%s%s%s]", part1, part2, part3);
             return this;
@@ -1563,6 +1753,10 @@ public class AsmBackedClassGeneratorTest {
             return b;
         }
 
+        public void setBooleanProperty(boolean b) {
+            this.b = b;
+        }
+
         public long getLongProperty() {
             return 12L;
         }
@@ -1577,10 +1771,6 @@ public class AsmBackedClassGeneratorTest {
 
         public BeanWithVariousPropertyTypes setReturnValueProperty(String val) {
             return this;
-        }
-
-        public void setBooleanProperty(boolean b) {
-            this.b = b;
         }
     }
 
@@ -1634,13 +1824,6 @@ public class AsmBackedClassGeneratorTest {
         public void setOverloaded(Object overloaded) {
             this.overloaded = String.format("object = %s", overloaded);
         }
-    }
-
-    public interface SomeType {
-        String getInterfaceProperty();
-    }
-
-    public interface SomeNamedType extends SomeType, Named {
     }
 
     @NonExtensible
@@ -1759,52 +1942,6 @@ public class AsmBackedClassGeneratorTest {
         abstract void thing(String value);
     }
 
-    public interface GetterBeanInterface {
-        String getThing();
-    }
-
-    public interface GetterBeanGenericInterface {
-        Provider<String> getThing();
-    }
-
-    public interface SetterBeanInterface {
-        void setThing(String value);
-    }
-
-    public enum AnnotationEnum {
-        A, B
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
-    public static @interface NestedBeanAnnotation {
-        String value();
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
-    public static @interface BeanAnnotation {
-        String value();
-
-        String[] values();
-
-        AnnotationEnum enumValue();
-
-        AnnotationEnum[] enumValues();
-
-        int number();
-
-        int[] numbers();
-
-        Class<?> clazz();
-
-        Class<?>[] classes();
-
-        NestedBeanAnnotation annotation();
-
-        NestedBeanAnnotation[] annotations();
-    }
-
     @BeanAnnotation(
         value = "test",
         values = {"1", "2"},
@@ -1850,10 +1987,6 @@ public class AsmBackedClassGeneratorTest {
         public Property<String> getaProp() {
             return aProp;
         }
-    }
-
-    public interface WithProperties {
-        Number getNumber();
     }
 
     public static abstract class AbstractWithProperties<T> {
@@ -1905,71 +2038,6 @@ public class AsmBackedClassGeneratorTest {
         public final Long getTypedProp() {
             return 12L;
         }
-    }
-
-    public interface InterfaceBean {
-        String getName();
-
-        void setName(String value);
-
-        Set<Number> getNumbers();
-
-        void setNumbers(Set<Number> values);
-    }
-
-    public interface InterfaceBeanWithReadOnlyName {
-
-        String getName();
-    }
-
-    public interface InterfacePrimitiveBean {
-        boolean isProp1();
-
-        void setProp1(boolean value);
-
-        int getProp2();
-
-        void setProp2(int value);
-
-        byte getProp3();
-
-        void setProp3(byte value);
-
-        short getProp4();
-
-        void setProp4(short value);
-
-        long getProp5();
-
-        void setProp5(long value);
-
-        double getProp6();
-
-        void setProp6(double value);
-
-        float getProp7();
-
-        void setProp7(float value);
-
-        char getProp8();
-
-        void setProp8(char value);
-    }
-
-    public interface InterfaceFileCollectionBean {
-        ConfigurableFileCollection getProp();
-    }
-
-    public interface InterfaceFileTreeBean {
-        ConfigurableFileTree getProp();
-    }
-
-    public interface InterfaceNestedBean {
-        @Nested
-        InterfaceFileCollectionBean getFilesBean();
-
-        @Nested
-        InterfacePropertyBean getPropBean();
     }
 
     public static abstract class NestedBeanClassWithToString {
@@ -2032,15 +2100,6 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public interface InterfaceUsesToStringBean {
-        @Nested
-        UsesToStringInConstructor getBean();
-    }
-
-    public interface InterfacePropertyBean {
-        Property<String> getProp();
-    }
-
     static class Param<T> {
         private final T value;
 
@@ -2048,46 +2107,14 @@ public class AsmBackedClassGeneratorTest {
             this.value = value;
         }
 
+        static <S> Param<S> of(S value) {
+            return new Param<>(value);
+        }
+
         @Override
         public String toString() {
             return value.toString();
         }
-
-        static <S> Param<S> of(S value) {
-            return new Param<>(value);
-        }
-    }
-
-    public interface InterfacePropertyWithParamTypeBean {
-        Property<Param<Param<Number>>> getProp();
-    }
-
-    public interface InterfacePropertyWithTypeParamBean<T> {
-        Property<T> getProp();
-    }
-
-    public interface InterfaceFilePropertyBean {
-        RegularFileProperty getProp();
-    }
-
-    public interface InterfaceDirectoryPropertyBean {
-        DirectoryProperty getProp();
-    }
-
-    public interface InterfaceListPropertyBean {
-        ListProperty<String> getProp();
-    }
-
-    public interface InterfaceSetPropertyBean {
-        SetProperty<String> getProp();
-    }
-
-    public interface InterfaceMapPropertyBean {
-        MapProperty<String, Number> getProp();
-    }
-
-    public interface InterfaceProviderBean {
-        Provider<? extends Number> getProp();
     }
 
     public abstract static class AbstractProviderBean implements InterfaceProviderBean {
@@ -2096,32 +2123,11 @@ public class AsmBackedClassGeneratorTest {
         public abstract Provider<Long> getProp();
     }
 
-    public interface InterfaceCovariantReadOnlyPropertyBean extends InterfaceProviderBean {
-        Property<Long> getProp();
-    }
-
     public abstract static class AbstractCovariantReadOnlyPropertyBean extends AbstractProviderBean implements InterfaceCovariantReadOnlyPropertyBean {
     }
 
     public static abstract class NamedBean {
         public NamedBean(String name) {
-        }
-    }
-
-    public interface InterfaceContainerPropertyBean {
-        NamedDomainObjectContainer<NamedBean> getProp();
-    }
-
-    public interface InterfaceDomainSetPropertyBean {
-        DomainObjectSet<NamedBean> getProp();
-    }
-
-    public interface InterfaceWithDefaultMethods {
-        default String getName() {
-            return "name";
-        }
-
-        default void thing() {
         }
     }
 
@@ -2133,11 +2139,6 @@ public class AsmBackedClassGeneratorTest {
         void thing() {
             setName("thing");
         }
-    }
-
-    interface InterfaceWithTypeParameter<T> {
-        @Inject
-        T getThing();
     }
 
     public static abstract class AbstractClassWithConcreteTypeParameter implements InterfaceWithTypeParameter<Number> {

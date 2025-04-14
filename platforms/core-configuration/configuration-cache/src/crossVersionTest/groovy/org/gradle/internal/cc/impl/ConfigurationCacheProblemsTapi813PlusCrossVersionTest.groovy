@@ -88,8 +88,7 @@ class ConfigurationCacheProblemsTapi813PlusCrossVersionTest extends ToolingApiSp
             if (targetVersion.baseVersion < GradleVersion.version("8.14")) {
                 originLocations.size() == 2
                 (originLocations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
-            }
-            else {
+            } else {
                 originLocations.size() == 1
             }
             additionalData instanceof DefaultAdditionalData

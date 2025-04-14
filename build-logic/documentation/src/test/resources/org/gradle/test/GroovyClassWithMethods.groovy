@@ -36,7 +36,7 @@ class GroovyClassWithMethods {
     /**
      * A method that returns an array
      */
-    String[][] arrayMethod(String[]... strings) {
+    String[][] arrayMethod(String[] ... strings) {
         null
     }
 
@@ -52,6 +52,6 @@ class GroovyClassWithMethods {
 
     int getIntProp() { 5 }
 
-    void setIntProp(int prop) { }
+    void setIntProp(int prop) {}
 }
 

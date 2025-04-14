@@ -122,6 +122,13 @@ import java.util.List;
  */
 public class ProjectScopeServices implements ServiceRegistrationProvider {
 
+    private final ProjectInternal project;
+    private final LoggingManagerFactory loggingManagerInternalFactory;
+    public ProjectScopeServices(ProjectInternal project, LoggingManagerFactory loggingManagerInternalFactory) {
+        this.project = project;
+        this.loggingManagerInternalFactory = loggingManagerInternalFactory;
+    }
+
     public static CloseableServiceRegistry create(
         ServiceRegistry buildServices,
         ProjectInternal project,
@@ -134,15 +141,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
             .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
             .build();
-    }
-
-    private final ProjectInternal project;
-    private final LoggingManagerFactory loggingManagerInternalFactory;
-
-
-    public ProjectScopeServices(ProjectInternal project, LoggingManagerFactory loggingManagerInternalFactory) {
-        this.project = project;
-        this.loggingManagerInternalFactory = loggingManagerInternalFactory;
     }
 
     @Provides

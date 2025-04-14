@@ -61,6 +61,12 @@ public class InstrumentationCodeGeneratorHost {
         this.resourceGenerators = resourceGenerators;
     }
 
+    private static Set<ExecutableElement> getOriginatingElements(Collection<CallInterceptionRequest> coveredRequests) {
+        return coveredRequests.stream().map(requests ->
+            requests.getRequestExtras().getByType(OriginatingElement.class).map(OriginatingElement::getElement).orElse(null)
+        ).filter(Objects::nonNull).collect(Collectors.toSet());
+    }
+
     public void generateCodeForRequestedInterceptors(
         Collection<CallInterceptionRequest> interceptionRequests
     ) {
@@ -117,19 +123,13 @@ public class InstrumentationCodeGeneratorHost {
     private void printFailures(HasFailures failure) {
         failure.getFailureDetails().forEach(details -> {
             Optional<ExecutableElement> maybeOriginatingElement =
-                    Optional.ofNullable(details.request)
-                            .flatMap(presentRequest -> presentRequest.getRequestExtras().getByType(OriginatingElement.class).map(OriginatingElement::getElement));
+                Optional.ofNullable(details.request)
+                    .flatMap(presentRequest -> presentRequest.getRequestExtras().getByType(OriginatingElement.class).map(OriginatingElement::getElement));
             if (maybeOriginatingElement.isPresent()) {
                 messager.printMessage(Diagnostic.Kind.ERROR, details.reason, maybeOriginatingElement.get());
             } else {
                 messager.printMessage(Diagnostic.Kind.ERROR, details.reason);
             }
         });
-    }
-
-    private static Set<ExecutableElement> getOriginatingElements(Collection<CallInterceptionRequest> coveredRequests) {
-        return coveredRequests.stream().map(requests ->
-            requests.getRequestExtras().getByType(OriginatingElement.class).map(OriginatingElement::getElement).orElse(null)
-        ).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 }

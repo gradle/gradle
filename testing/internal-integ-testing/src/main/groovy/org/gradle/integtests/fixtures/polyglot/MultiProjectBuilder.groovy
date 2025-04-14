@@ -70,7 +70,7 @@ class MultiProjectBuilder {
         this
     }
 
-    MultiProjectBuilder includedBuild(String includedBuildName, @DelegatesTo(value=MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    MultiProjectBuilder includedBuild(String includedBuildName, @DelegatesTo(value = MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def b = includedBuilds[includedBuildName]
         if (b == null) {
             b = new MultiProjectBuilder(dsl, rootProjectDirectory.createDir(includedBuildName))

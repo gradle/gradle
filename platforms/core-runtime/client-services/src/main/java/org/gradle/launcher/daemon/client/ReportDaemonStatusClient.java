@@ -35,14 +35,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class ReportDaemonStatusClient {
+    public static final String STATUS_FOOTER = "Only Daemons for the current Gradle version are displayed.";
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
+    private static final String STATUS_FORMAT = "%1$6s %2$-8s %3$s";
     private final DaemonRegistry daemonRegistry;
     private final DaemonConnector connector;
     private final IdGenerator<UUID> idGenerator;
     private final ReportStatusDispatcher reportStatusDispatcher;
     private final DocumentationRegistry documentationRegistry;
-    public static final String STATUS_FOOTER = "Only Daemons for the current Gradle version are displayed.";
-    private static final String STATUS_FORMAT = "%1$6s %2$-8s %3$s";
 
     public ReportDaemonStatusClient(DaemonRegistry daemonRegistry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
         Preconditions.checkNotNull(daemonRegistry, "DaemonRegistry must not be null");
@@ -96,7 +96,7 @@ public class ReportDaemonStatusClient {
     @VisibleForTesting
     void printRunningDaemons(final List<Status> statuses) {
         if (!statuses.isEmpty()) {
-            for(Status status : statuses) {
+            for (Status status : statuses) {
                 Long pid = status.getPid();
                 LOGGER.quiet(String.format(STATUS_FORMAT, pid == null ? "PID unknown" : pid, status.getStatus(), status.getVersion()));
             }
@@ -106,7 +106,7 @@ public class ReportDaemonStatusClient {
     @VisibleForTesting
     void printStoppedDaemons(final List<DaemonStopEvent> stopEvents) {
         if (!stopEvents.isEmpty()) {
-            for(DaemonStopEvent event : stopEvents) {
+            for (DaemonStopEvent event : stopEvents) {
                 Long pid = event.getPid();
                 LOGGER.quiet(String.format(STATUS_FORMAT, pid == null ? "PID unknown" : pid, "STOPPED", "(" + event.getReason() + ")"));
             }

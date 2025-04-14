@@ -109,6 +109,7 @@ class ConfigureByMapActionTest extends Specification {
 
 class Bean {
     String prop
+
     def method(String value) {
         prop = value
     }

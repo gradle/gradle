@@ -39,7 +39,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withClassJar("utils.jar", JavaClassUtil::class.java)
 
-        withBuildScript("""
+        withBuildScript(
+            """
             buildscript {
                 dependencies {
                     classpath(files("utils.jar"))
@@ -47,7 +48,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             $printScriptJavaClassFileMajorVersion
-        """)
+        """
+        )
 
         assertThat(build("help").output, containsString(outputFor(supportedKotlinJavaVersion())))
     }
@@ -58,11 +60,13 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
         withDefaultSettingsIn("buildSrc")
-        withKotlinDslPluginIn("buildSrc").appendText("""
+        withKotlinDslPluginIn("buildSrc").appendText(
+            """
             dependencies {
                 implementation(files("utils.jar"))
             }
-        """)
+        """
+        )
 
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
@@ -89,7 +93,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .publish()
 
         withDefaultSettingsIn("plugin")
-        withBuildScriptIn("plugin", """
+        withBuildScriptIn(
+            "plugin", """
             plugins {
                 `kotlin-dsl`
                 `maven-publish`
@@ -113,7 +118,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                     maven(url = "${mavenRepo.uri}")
                 }
             }
-        """)
+        """
+        )
         withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
         gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
@@ -121,7 +127,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
 
-        withSettingsIn("consumer", """
+        withSettingsIn(
+            "consumer", """
             pluginManagement {
                 repositories {
                     maven(url = "${mavenRepo.uri}")
@@ -134,7 +141,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """)
+        """
+        )
         withBuildScriptIn("consumer", """plugins { id("some") }""")
 
         val helpResult = gradleExecuterFor(arrayOf("help"), rootDir = file("consumer"))
@@ -163,7 +171,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .publish()
 
         withDefaultSettingsIn("plugin")
-        withBuildScriptIn("plugin", """
+        withBuildScriptIn(
+            "plugin", """
             plugins {
                 `kotlin-dsl`
                 `maven-publish`
@@ -187,7 +196,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                     maven(url = "${mavenRepo.uri}")
                 }
             }
-        """)
+        """
+        )
         withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
         val pluginCompile = gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
@@ -196,7 +206,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .run()
         assertThat(pluginCompile.output, containsString("Inconsistent JVM-target compatibility detected for tasks 'compileJava' (24) and 'compileKotlin' (23)."))
 
-        withSettingsIn("consumer", """
+        withSettingsIn(
+            "consumer", """
             pluginManagement {
                 repositories {
                     maven(url = "${mavenRepo.uri}")
@@ -209,7 +220,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """)
+        """
+        )
         withBuildScriptIn("consumer", """plugins { id("some") }""")
 
         val helpResult = gradleExecuterFor(arrayOf("help"), rootDir = file("consumer"))

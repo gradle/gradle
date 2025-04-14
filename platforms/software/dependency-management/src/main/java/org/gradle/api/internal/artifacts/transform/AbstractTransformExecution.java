@@ -62,31 +62,27 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTransformExecution.class);
-    private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
-    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property ('org.gradle.internal.transform-caching-disabled')");
-
     protected static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
-    private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
-    private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
     protected static final String INPUT_ARTIFACT_PATH_PROPERTY_NAME = "inputArtifactPath";
     protected static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
     protected static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTransformExecution.class);
+    private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
+    private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property ('org.gradle.internal.transform-caching-disabled')");
+    private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
+    private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
     private static final SnapshotTransformInputsBuildOperationType.Details SNAPSHOT_TRANSFORM_INPUTS_DETAILS = new SnapshotTransformInputsBuildOperationType.Details() {};
 
     protected final Transform transform;
     protected final File inputArtifact;
+    protected final InputFingerprinter inputFingerprinter;
     private final TransformDependencies dependencies;
     private final TransformStepSubject subject;
-
     private final TransformExecutionListener transformExecutionListener;
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationProgressEventEmitter progressEventEmitter;
     private final FileCollectionFactory fileCollectionFactory;
-
     private final Provider<FileSystemLocation> inputArtifactProvider;
-    protected final InputFingerprinter inputFingerprinter;
     private final boolean disableCachingByProperty;
 
     private BuildOperationContext operationContext;
@@ -115,6 +111,14 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
         this.disableCachingByProperty = disableCachingByProperty;
+    }
+
+    private static File getOutputDir(File workspace) {
+        return new File(workspace, "transformed");
+    }
+
+    private static File getResultsFile(File workspace) {
+        return new File(workspace, "results.bin");
     }
 
     @Override
@@ -192,14 +196,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     @Override
     public InputFingerprinter getInputFingerprinter() {
         return inputFingerprinter;
-    }
-
-    private static File getOutputDir(File workspace) {
-        return new File(workspace, "transformed");
-    }
-
-    private static File getResultsFile(File workspace) {
-        return new File(workspace, "results.bin");
     }
 
     @Override

@@ -24,7 +24,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class LocationListInstallationSupplierTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final buildOptions = Mock(ToolchainConfiguration)
 
     @Subject
@@ -61,6 +62,6 @@ class LocationListInstallationSupplierTest extends Specification {
         then:
         directories.size() == 2
         directories*.location.containsAll(expectedFile1, expectedFile2)
-        directories*.source.unique() == [ "Gradle property 'org.gradle.java.installations.paths'" ]
+        directories*.source.unique() == ["Gradle property 'org.gradle.java.installations.paths'"]
     }
 }

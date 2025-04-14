@@ -60,7 +60,7 @@ public class ProviderTestUtil {
         final Iterator<T> values;
         final Task producer;
 
-        TestProvider(Class<T> type, List<T> values, @Nullable  Task producer) {
+        TestProvider(Class<T> type, List<T> values, @Nullable Task producer) {
             this.producer = producer;
             this.values = values.iterator();
             this.type = type;

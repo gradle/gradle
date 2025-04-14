@@ -102,6 +102,7 @@ public abstract class AvailableJavaHomes {
     public static Jvm getJdk17() {
         return getJdk(JavaVersion.VERSION_17);
     }
+
     @Nullable
     public static Jvm getJdk21() {
         return getJdk(JavaVersion.VERSION_21);
@@ -160,9 +161,9 @@ public abstract class AvailableJavaHomes {
     @Nullable
     public static Jvm getDeprecatedDaemonJdk() {
         return getAvailableJdk(element -> {
-            int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
-            return majorVersion >= SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION &&
-                majorVersion < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION;
+                int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
+                return majorVersion >= SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION &&
+                    majorVersion < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION;
             }
         );
     }
@@ -239,7 +240,7 @@ public abstract class AvailableJavaHomes {
         return getAvailableJdksWithVersion()
             .entrySet()
             .stream()
-            .filter(entry -> entry.getKey().getJavacExecutable()!=null && entry.getValue().isJava8Compatible())
+            .filter(entry -> entry.getKey().getJavacExecutable() != null && entry.getValue().isJava8Compatible())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 

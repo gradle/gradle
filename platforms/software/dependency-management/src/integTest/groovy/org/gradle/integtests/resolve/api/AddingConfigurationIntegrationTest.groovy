@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
-    def "can add configurations" () {
+    def "can add configurations"() {
         buildFile << """
             def file1 = file('file1')
             def file2 = file('file2')
@@ -49,7 +49,7 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "addConfigs"
     }
 
-    def "can subtract configurations" () {
+    def "can subtract configurations"() {
         buildFile << """
             def file1 = file('file1')
             def file2 = file('file2')

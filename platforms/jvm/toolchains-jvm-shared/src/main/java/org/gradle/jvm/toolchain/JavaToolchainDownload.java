@@ -34,10 +34,10 @@ import java.net.URI;
 @Incubating
 public interface JavaToolchainDownload {
 
-    URI getUri();
-
     static JavaToolchainDownload fromUri(URI uri) {
         return DefaultJavaToolchainDownload.fromUri(uri);
     }
+
+    URI getUri();
 
 }

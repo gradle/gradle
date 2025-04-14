@@ -28,7 +28,8 @@ public class DependencyConstraintsMetadataAdapter extends AbstractDependenciesMe
     public DependencyConstraintsMetadataAdapter(
         AttributesFactory attributesFactory,
         Instantiator instantiator,
-        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintsNotationParser) {
+        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintsNotationParser
+    ) {
         super(attributesFactory, instantiator, dependencyConstraintsNotationParser);
     }
 

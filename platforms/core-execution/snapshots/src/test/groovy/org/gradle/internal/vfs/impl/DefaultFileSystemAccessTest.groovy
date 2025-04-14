@@ -180,7 +180,7 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
         when:
         allowFileSystemAccess(true)
-        def snapshot = read(d, new FileNameFilter({ name -> name.endsWith('1')}))
+        def snapshot = read(d, new FileNameFilter({ name -> name.endsWith('1') }))
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         assertIsDirectorySnapshot(snapshot, d)

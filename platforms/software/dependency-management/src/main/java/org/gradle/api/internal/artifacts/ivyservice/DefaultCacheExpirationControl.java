@@ -143,7 +143,7 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
     }
 
     private CachedModuleResolutionControl mustRefreshModule(ModuleVersionIdentifier moduleVersionId, ResolvedModuleVersion version, Duration age, boolean changingModule) {
-        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(moduleVersionId, version, changingModule, age.toMillis(), changingModule ? keepChangingModulesFor: Long.MAX_VALUE);
+        CachedModuleResolutionControl moduleResolutionControl = new CachedModuleResolutionControl(moduleVersionId, version, changingModule, age.toMillis(), changingModule ? keepChangingModulesFor : Long.MAX_VALUE);
 
         if (applyOfflineRule(moduleResolutionControl) || applyRefreshRule(moduleResolutionControl)) {
             return moduleResolutionControl;
@@ -235,11 +235,6 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
             setMustCheck(true);
         }
 
-        private void setMustCheck(boolean val) {
-            ruleMatch = true;
-            mustCheck = val;
-        }
-
         public boolean ruleMatch() {
             return ruleMatch;
         }
@@ -259,6 +254,11 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
         @Override
         public boolean isMustCheck() {
             return mustCheck && ageMillis > 0;
+        }
+
+        private void setMustCheck(boolean val) {
+            ruleMatch = true;
+            mustCheck = val;
         }
 
     }

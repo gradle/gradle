@@ -54,7 +54,6 @@ public interface ComponentSelector {
      * selector specific attributes. This means it typically doesn't include any consumer specific attribute.
      *
      * @return the attributes
-     *
      * @since 4.9
      */
     AttributeContainer getAttributes();
@@ -65,7 +64,6 @@ public interface ComponentSelector {
      * Prefer {@link #getCapabilitySelectors()}.
      *
      * @return the explicitly requested capabilities.
-     *
      * @since 5.3
      */
     List<Capability> getRequestedCapabilities();
@@ -74,7 +72,6 @@ public interface ComponentSelector {
      * Returns the set of capabilities that are requested for this component.
      *
      * @return All capability selectors. If empty, the default capability will be selected.
-     *
      * @since 8.11
      */
     @Incubating

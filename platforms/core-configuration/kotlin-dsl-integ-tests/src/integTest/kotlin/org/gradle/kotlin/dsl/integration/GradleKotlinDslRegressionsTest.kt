@@ -60,9 +60,11 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
     fun `kotlin ir backend issue kt-55068`() {
 
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             data class Container(val property: Property<String> = objects.property())
-        """)
+        """
+        )
         withBuildScript("""plugins { id("my-plugin") }""")
 
         build("help")
@@ -73,11 +75,13 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
     fun `kotlin ir backend issue kt-55065`() {
 
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             tasks.withType<DefaultTask>().configureEach {
                 val p: String by project
             }
-        """)
+        """
+        )
         withBuildScript("""plugins { id("my-plugin") }""")
 
         build("help")
@@ -86,7 +90,8 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
     @Test
     @Issue("https://youtrack.jetbrains.com/issue/KT-55542")
     fun `nullable type parameters on non-nullable member works without disabling Koltlin type enhancement improvements in strict mode`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
             plugins { `embedded-kotlin` }
@@ -99,9 +104,11 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
                 jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
                 compilerOptions.freeCompilerArgs.addAll("-Xjsr305=strict", "-Xjspecify-annotations=strict")
             }
-        """)
+        """
+        )
 
-        withFile("src/main/kotlin/code.kt", """
+        withFile(
+            "src/main/kotlin/code.kt", """
             import org.gradle.api.*
 
             class MyPlugin : Plugin<Project> {
@@ -109,7 +116,8 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
                     provider { "thing" }.map { null }
                 }
             }
-        """)
+        """
+        )
 
         build("classes")
     }
@@ -117,7 +125,8 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
     @Test
     @Issue("https://github.com/gradle/gradle/issues/8423")
     fun `non-static inner class for component metadata rule fails with a reasonable error message`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 id("java")
             }
@@ -137,7 +146,8 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
                   }
                }
             }
-        """)
+        """
+        )
         withFile("src/main/java/Main.java", "public class Main {}")
 
         buildAndFail("compileJava").apply {
@@ -159,23 +169,29 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
     @Test
     @Issue("https://github.com/gradle/gradle/issues/24481")
     fun `applied project scripts don't have project accessors`() {
-        withFile("applied.gradle.kts", """
+        withFile(
+            "applied.gradle.kts", """
             println(java.sourceCompatibility)
-        """)
-        withBuildScript("""
+        """
+        )
+        withBuildScript(
+            """
             plugins { java }
             apply(from = "applied.gradle.kts")
-        """)
+        """
+        )
         buildAndFail("help").apply {
             assertHasErrorOutput("Unresolved reference 'sourceCompatibility'.")
         }
 
-        withFile("applied.gradle.kts", """
+        withFile(
+            "applied.gradle.kts", """
             buildscript {
                 dependencies {}
             }
             println(java.sourceCompatibility)
-        """)
+        """
+        )
         buildAndFail("help").apply {
             assertHasErrorOutput("Unresolved reference 'sourceCompatibility'.")
         }

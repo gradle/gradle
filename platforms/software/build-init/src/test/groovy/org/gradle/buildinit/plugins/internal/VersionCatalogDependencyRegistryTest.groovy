@@ -85,20 +85,20 @@ class VersionCatalogDependencyRegistryTest extends Specification {
         new VersionCatalogDependencyRegistry(true).registerLibrary(module, "42") == alias
 
         where:
-        module || alias
-        "bundles:a" | "libs.mybundles.a"
-        "bundles-a:a" | "libs.mybundles.a.a"
-        "versions:b" | "libs.myversions.b"
-        "versions-b:b" | "libs.myversions.b.b"
-        "plugins:c" | "libs.myplugins.c"
-        "plugins-c:c" | "libs.myplugins.c.c"
-        "some:extensions" | "libs.some.myextensions"
-        "another:class" | "libs.another.myclass"
-        "the:convention" | "libs.the.myconvention"
-        "some.class.embedded:d" | "libs.some.myclass.embedded.d"
-        "Capitalized:Library" | "libs.capitalized.library"
+        module                    || alias
+        "bundles:a"                | "libs.mybundles.a"
+        "bundles-a:a"              | "libs.mybundles.a.a"
+        "versions:b"               | "libs.myversions.b"
+        "versions-b:b"             | "libs.myversions.b.b"
+        "plugins:c"                | "libs.myplugins.c"
+        "plugins-c:c"              | "libs.myplugins.c.c"
+        "some:extensions"          | "libs.some.myextensions"
+        "another:class"            | "libs.another.myclass"
+        "the:convention"           | "libs.the.myconvention"
+        "some.class.embedded:d"    | "libs.some.myclass.embedded.d"
+        "Capitalized:Library"      | "libs.capitalized.library"
         "UPPERCASE:ALL-THE-THINGS" | "libs.uppercase.all.the.things"
-        "embedded-42:numbers" | "libs.embedded.v42.numbers"
+        "embedded-42:numbers"      | "libs.embedded.v42.numbers"
     }
 
     @Unroll
@@ -107,11 +107,11 @@ class VersionCatalogDependencyRegistryTest extends Specification {
         new VersionCatalogDependencyRegistry(fullyQualify).registerLibrary(module, "42") == alias
 
         where:
-        fullyQualify | module || alias
-        true | "bundles:a" | "libs.mybundles.a"
-        false | "bundles:a" | "libs.a"
-        true | "com.example.group:artifact" | "libs.com.example.group.artifact"
-        false | "com.example.group:artifact" | "libs.artifact"
+        fullyQualify | module                      || alias
+        true         | "bundles:a"                  | "libs.mybundles.a"
+        false        | "bundles:a"                  | "libs.a"
+        true         | "com.example.group:artifact" | "libs.com.example.group.artifact"
+        false        | "com.example.group:artifact" | "libs.artifact"
     }
 
     @Unroll
@@ -120,10 +120,10 @@ class VersionCatalogDependencyRegistryTest extends Specification {
         new VersionCatalogDependencyRegistry(fullyQualify).registerPlugin(module, "42", null) == alias
 
         where:
-        fullyQualify | module || alias
-        true | "bundles.a" | "libs.plugins.bundles.a"
-        false | "bundles.a" | "libs.plugins.a"
-        true | "com.example.group.artifact" | "libs.plugins.com.example.group.artifact"
-        false | "com.example.group.artifact" | "libs.plugins.artifact"
+        fullyQualify | module                      || alias
+        true         | "bundles.a"                  | "libs.plugins.bundles.a"
+        false        | "bundles.a"                  | "libs.plugins.a"
+        true         | "com.example.group.artifact" | "libs.plugins.com.example.group.artifact"
+        false        | "com.example.group.artifact" | "libs.plugins.artifact"
     }
 }

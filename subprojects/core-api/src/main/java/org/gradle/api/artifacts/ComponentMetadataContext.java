@@ -31,9 +31,7 @@ public interface ComponentMetadataContext {
      *
      * @param descriptorClass the descriptor class
      * @param <T> the descriptor type
-     *
      * @return a descriptor, or {@code null} if there was none of the requested type.
-     *
      * @see org.gradle.api.artifacts.ivy.IvyModuleDescriptor
      * @see org.gradle.api.artifacts.maven.PomModuleDescriptor
      */

@@ -17,34 +17,37 @@ If you need to debug something other than the Daemon, follow the steps below.
 
 For most cases, use [listening debugger](https://www.jetbrains.com/help/idea/attaching-to-local-process.html#attach-to-remote]).
 
-The build should create debugging run configurations for you [automatically](../build-logic/idea/src/main/kotlin/gradlebuild.ide.gradle.kts#L82). 
+The build should create debugging run configurations for you [automatically](../build-logic/idea/src/main/kotlin/gradlebuild.ide.gradle.kts#L82).
 However, make sure to enable the automatic restart of the debugging session once the debuggee is gone.
 Unfortunately, this setup is [not fully automated yet](https://github.com/JetBrains/gradle-idea-ext-plugin/issues/84).
 
 ![](./images/auto-restart-debugger.png)
 
-Before you start debugging, start the "Daemon debug" or "Debug Launcher" configuration. 
+Before you start debugging, start the "Daemon debug" or "Debug Launcher" configuration.
 It will be automatically reused for subsequent test runs.
 
 Be careful when stopping the test — ensure you stop the test itself, not the debugger.
 
 ### Gradle test executors
 
-There are [several executors](../testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/executer/GradleContextualExecuter.java) available for running integration tests configured in Gradle.
+There are [several executors](../testing/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/executer/GradleContextualExecuter.java) available for running integration tests
+configured in Gradle.
 
 Most of them are forking, and you should be able to debug a test with any of them by running the test in debug mode.
 The test detects that it is running in debug mode and provides all necessary information to the forked daemon to connect to the debugger.
 
 There is also an embedded executor that runs the test within the same JVM as the test runner.
-While this can be convenient for debugging and may offer faster execution, it's generally not recommended due to potential classloader issues, which may lead to different behavior in certain edge cases.
+While this can be convenient for debugging and may offer faster execution, it's generally not recommended due to potential classloader issues, which may lead to different behavior in certain edge
+cases.
 
 In test code, you can access the current executer via `executer` and modify its options.
 
 ### Gradle debug options
 
 You may find these resources helpful for debugging Gradle builds in general:
+
 * [Gradle Troubleshooting](https://docs.gradle.org/current/userguide/troubleshooting.html)
-* [Debugging Options](https://docs.gradle.org/current/userguide/command_line_interface.html#sec:command_line_debugging) 
+* [Debugging Options](https://docs.gradle.org/current/userguide/command_line_interface.html#sec:command_line_debugging)
 
 Our [blog series](https://blog.gradle.org/how-gradle-works-1) about how Gradle works can help understand why multiple JVMs are involved in the build process.
 
@@ -52,7 +55,8 @@ Our [blog series](https://blog.gradle.org/how-gradle-works-1) about how Gradle w
 
 Simply starting the test in debug mode in the IDE with the "Debug Daemon" configuration running should suffice.
 
-Alternatively, you can explicitly enable debugging for the daemon by setting the `debugDaemon` Gradle property to any value or by modifying the test code with the `executer.startBuildProcessInDebugger` method.
+Alternatively, you can explicitly enable debugging for the daemon by setting the `debugDaemon` Gradle property to any value or by modifying the test code with the
+`executer.startBuildProcessInDebugger` method.
 
 ## Debugging launcher
 
@@ -62,7 +66,7 @@ Note that by default, port 5006 is used for debugging the launcher, so you'll al
 
 ## Debugging wrapper
 
-The main obstacle to wrapper debugging is the minification of the wrapper jar. 
+The main obstacle to wrapper debugging is the minification of the wrapper jar.
 To mitigate this, minifying is disabled when the `debugLauncher` property is present.
 Keep in mind that this may not be exactly the same as the production environment and could behave differently in some corner cases.
 
@@ -166,5 +170,5 @@ We can trigger a sync by doing any of the following:
 
 ![](./images/trigger-sync.jpg)
 
-1. Stop the Gradle daemon before doing a repeated sync if you disconnected the debugger. 
+1. Stop the Gradle daemon before doing a repeated sync if you disconnected the debugger.
 2. Keep the current debugging session connected by letting the program run past finishing the current sync iteration you were debugging.

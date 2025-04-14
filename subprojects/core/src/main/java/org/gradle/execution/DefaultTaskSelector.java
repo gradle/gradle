@@ -47,6 +47,20 @@ public class DefaultTaskSelector implements TaskSelector {
         this.configurer = configurer;
     }
 
+    private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
+        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
+        spec.severity(Severity.ERROR);
+        return spec;
+    }
+
+    @NonNull
+    private static String getSearchContext(ProjectState targetProject, boolean includeSubprojects) {
+        if (includeSubprojects && !targetProject.getChildProjects().isEmpty()) {
+            return targetProject.getDisplayName() + " and its subprojects";
+        }
+        return targetProject.getDisplayName().getDisplayName();
+    }
+
     @Inject
     protected InternalProblems getProblemsService() {
         throw new UnsupportedOperationException();
@@ -107,22 +121,8 @@ public class DefaultTaskSelector implements TaskSelector {
 
         throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
             configureProblem(spec, context)
-              .contextualLabel(message)
+                .contextualLabel(message)
         );
-    }
-
-    private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
-        spec.severity(Severity.ERROR);
-        return spec;
-    }
-
-    @NonNull
-    private static String getSearchContext(ProjectState targetProject, boolean includeSubprojects) {
-        if (includeSubprojects && !targetProject.getChildProjects().isEmpty()) {
-            return targetProject.getDisplayName() + " and its subprojects";
-        }
-        return targetProject.getDisplayName().getDisplayName();
     }
 
     private static class TaskPathSpec implements Spec<Task> {

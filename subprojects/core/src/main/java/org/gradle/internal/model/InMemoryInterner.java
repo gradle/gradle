@@ -29,7 +29,6 @@ public interface InMemoryInterner<T> {
      * Returned values may be compared with instance equality ({@code ==})
      *
      * @param value The value to intern.
-     *
      * @return An instance equal to {@code value}.
      */
     T intern(T value);

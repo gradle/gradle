@@ -25,6 +25,7 @@ import spock.lang.Specification
 
 class MissingLocalArtifactMetadataTest extends Specification {
     def file = new File(".")
+
     def "has useful string representation"() {
         def componentId = Stub(ComponentIdentifier)
         componentId.displayName >> "<comp>"

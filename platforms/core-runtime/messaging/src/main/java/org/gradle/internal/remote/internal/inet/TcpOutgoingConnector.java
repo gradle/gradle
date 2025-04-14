@@ -71,12 +71,12 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 return new SocketConnectCompletion(socketChannel);
             }
             throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationAddress, candidateAddresses), lastFailure);
+                destinationAddress, candidateAddresses), lastFailure);
         } catch (ConnectException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
-                    destinationAddress, candidateAddresses), e);
+                destinationAddress, candidateAddresses), e);
         }
     }
 

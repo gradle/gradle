@@ -23,9 +23,6 @@ import java.util.Map;
 
 public final class LogLevelMapping {
 
-    private LogLevelMapping() {
-    }
-
     @SuppressWarnings("DoubleBraceInitialization")
     public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J = new HashMap<Integer, LogLevel>() {
         {
@@ -35,5 +32,9 @@ public final class LogLevelMapping {
             put(2 /* Project.MSG_INFO */, LogLevel.INFO);
             put(4 /* Project.MSG_DEBUG */, LogLevel.DEBUG);
             put(3 /* Project.MSG_VERBOSE */, LogLevel.DEBUG);
-        }};
+        }
+    };
+
+    private LogLevelMapping() {
+    }
 }

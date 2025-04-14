@@ -43,9 +43,9 @@ final class IsolatedArrayTest extends Specification {
         result == array
 
         where:
-        arrayType   | array
-        String[]    | ["a", "b", "c"] as String[]
-        Integer[]   | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[] // Note that Integer is necessary here, as primitive ints isolate to a different type
+        arrayType | array
+        String[]  | ["a", "b", "c"] as String[]
+        Integer[] | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[] // Note that Integer is necessary here, as primitive ints isolate to a different type
     }
 
     def "can't coerce array to invalid type #arrayType -> #invalidType"() {
@@ -60,12 +60,12 @@ final class IsolatedArrayTest extends Specification {
         result == null
 
         where:
-        arrayType   | invalidType   | array
-        String[]    | String        | ["a", "b", "c"] as String[]
-        String[]    | Integer       | ["a", "b", "c"] as String[]
-        String[]    | Integer[]     | ["a", "b", "c"] as String[]
-        String[]    | ArrayList     | ["a", "b", "c"] as String[]
-        Integer[]   | List          | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[]
-        Integer[]   | String[]      | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[]
+        arrayType | invalidType | array
+        String[]  | String      | ["a", "b", "c"] as String[]
+        String[]  | Integer     | ["a", "b", "c"] as String[]
+        String[]  | Integer[]   | ["a", "b", "c"] as String[]
+        String[]  | ArrayList   | ["a", "b", "c"] as String[]
+        Integer[] | List        | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[]
+        Integer[] | String[]    | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[]
     }
 }

@@ -40,7 +40,7 @@ public interface TaskExecutionResult extends TaskOperationResult {
      * Returns the reasons why this task was executed.
      *
      * @return the reasons why this task was executed; an empty list indicates the task was up-to-date;
-     *         {@code null} that it failed before up-to-date checks had been performed.
+     * {@code null} that it failed before up-to-date checks had been performed.
      * @throws UnsupportedMethodException For Gradle versions older than 5.1, where this method is not supported.
      */
     @Nullable

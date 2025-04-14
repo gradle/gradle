@@ -151,9 +151,9 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     public IvyModuleResolveMetadata withDynamicConstraintVersions() {
         List<IvyDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), dependency -> {
             ModuleComponentSelector selector = dependency.getSelector();
-                String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
-                ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
-                return dependency.withRequested(newSelector);
+            String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
+            return dependency.withRequested(newSelector);
         });
         return this.withDependencies(transformed);
     }

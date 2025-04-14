@@ -70,8 +70,10 @@ public class CompileServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        ClassSetAnalyzer createClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer classAnalyzer,
-                                                       FileOperations fileOperations, FileSystemAccess fileSystemAccess, GeneralCompileCaches cache) {
+        ClassSetAnalyzer createClassSetAnalyzer(
+            FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer classAnalyzer,
+            FileOperations fileOperations, FileSystemAccess fileSystemAccess, GeneralCompileCaches cache
+        ) {
             return new CachingClassSetAnalyzer(
                 new DefaultClassSetAnalyzer(fileHasher, streamHasher, classAnalyzer, fileOperations),
                 fileSystemAccess,

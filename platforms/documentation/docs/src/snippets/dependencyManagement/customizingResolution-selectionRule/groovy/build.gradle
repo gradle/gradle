@@ -20,6 +20,7 @@ class StatusRule implements ComponentMetadataRule {
         }
     }
 }
+
 dependencies {
     components {
         all(StatusRule)

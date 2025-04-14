@@ -76,10 +76,30 @@ public class KotlinCompatibilityTest {
         return methods.stream().map(Accessor::from).filter(Objects::nonNull).collect(groupingBy(Accessor::getPropertyName));
     }
 
+    private static boolean isGetter(JavaMethod m, PropertyAccessorType accessorType) {
+        // We avoid using reflect, since that leads to class loading exceptions
+        return !m.getModifiers().contains(JavaModifier.STATIC)
+            && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
+            && m.getRawParameterTypes().isEmpty()
+            && (accessorType != PropertyAccessorType.IS_GETTER || m.getRawReturnType().isEquivalentTo(Boolean.TYPE) || m.getRawReturnType().isEquivalentTo(Boolean.class));
+    }
+
+    private static boolean isSetter(JavaMethod m, PropertyAccessorType accessorType) {
+        return !m.getModifiers().contains(JavaModifier.STATIC)
+            && accessorType == PropertyAccessorType.SETTER
+            && m.getRawParameterTypes().size() == 1;
+    }
+
     private static class Accessor {
         private final PropertyAccessorType accessorType;
         private final JavaMethod method;
         private final boolean isGetter;
+
+        private Accessor(PropertyAccessorType accessorType, JavaMethod method) {
+            this.accessorType = accessorType;
+            this.method = method;
+            this.isGetter = accessorType == PropertyAccessorType.IS_GETTER || accessorType == PropertyAccessorType.GET_GETTER;
+        }
 
         @Nullable
         public static Accessor from(JavaMethod method) {
@@ -88,12 +108,6 @@ public class KotlinCompatibilityTest {
                 return new Accessor(propertyAccessorType, method);
             }
             return null;
-        }
-
-        private Accessor(PropertyAccessorType accessorType, JavaMethod method) {
-            this.accessorType = accessorType;
-            this.method = method;
-            this.isGetter = accessorType == PropertyAccessorType.IS_GETTER || accessorType == PropertyAccessorType.GET_GETTER;
         }
 
         public String getPropertyName() {
@@ -118,6 +132,13 @@ public class KotlinCompatibilityTest {
         private final String propertyName;
         private final Set<JavaMethod> getters;
         private final Set<JavaMethod> setters;
+
+        private Accessors(JavaClass owningClass, String propertyName, Set<JavaMethod> getters, Set<JavaMethod> setters) {
+            this.getters = getters;
+            this.setters = setters;
+            this.owningClass = owningClass;
+            this.propertyName = propertyName;
+        }
 
         @Nullable
         public static Accessors from(String propertyName, List<Accessor> accessors) {
@@ -146,11 +167,19 @@ public class KotlinCompatibilityTest {
             return null;
         }
 
-        private Accessors(JavaClass owningClass, String propertyName, Set<JavaMethod> getters, Set<JavaMethod> setters) {
-            this.getters = getters;
-            this.setters = setters;
-            this.owningClass = owningClass;
-            this.propertyName = propertyName;
+        private static boolean getterAnnotatedWithNullable(JavaMethod getter) {
+            try {
+                Method method = getter.reflect();
+                return method.getAnnotatedReturnType().getAnnotation(Nullable.class) != null;
+            } catch (NoClassDefFoundError e) {
+                return getter.isAnnotatedWith(Nullable.class);
+            }
+        }
+
+        private static boolean setterAnnotatedWithNullable(JavaMethod setter) {
+            return Arrays.stream(setter.reflect().getAnnotatedParameterTypes()[0].getAnnotations()).anyMatch(a ->
+                a instanceof Nullable
+            );
         }
 
         public boolean nullableIsSymmetric() {
@@ -169,38 +198,9 @@ public class KotlinCompatibilityTest {
             return nonNullGetters == nonNullSetters;
         }
 
-        private static boolean getterAnnotatedWithNullable(JavaMethod getter) {
-            try {
-                Method method = getter.reflect();
-                return method.getAnnotatedReturnType().getAnnotation(Nullable.class) != null;
-            } catch (NoClassDefFoundError e) {
-                return getter.isAnnotatedWith(Nullable.class);
-            }
-        }
-
-        private static boolean setterAnnotatedWithNullable(JavaMethod setter) {
-            return Arrays.stream(setter.reflect().getAnnotatedParameterTypes()[0].getAnnotations()).anyMatch(a ->
-                a instanceof Nullable
-            );
-        }
-
         @Override
         public String toString() {
             return owningClass.getName() + "." + propertyName;
         }
-    }
-
-    private static boolean isGetter(JavaMethod m, PropertyAccessorType accessorType) {
-        // We avoid using reflect, since that leads to class loading exceptions
-        return !m.getModifiers().contains(JavaModifier.STATIC)
-            && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
-            && m.getRawParameterTypes().isEmpty()
-            && (accessorType != PropertyAccessorType.IS_GETTER || m.getRawReturnType().isEquivalentTo(Boolean.TYPE) || m.getRawReturnType().isEquivalentTo(Boolean.class));
-    }
-
-    private static boolean isSetter(JavaMethod m, PropertyAccessorType accessorType) {
-        return !m.getModifiers().contains(JavaModifier.STATIC)
-            && accessorType == PropertyAccessorType.SETTER
-            && m.getRawParameterTypes().size() == 1;
     }
 }

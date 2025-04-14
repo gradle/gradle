@@ -33,6 +33,10 @@ public class ExternalModuleDependencyMetadataConverter extends AbstractDependenc
         super(excludeRuleConverter);
     }
 
+    private static String nullToEmpty(@Nullable String input) {
+        return input == null ? "" : input;
+    }
+
     @Override
     public LocalOriginDependencyMetadata createDependencyMetadata(ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
@@ -66,10 +70,6 @@ public class ExternalModuleDependencyMetadataConverter extends AbstractDependenc
             dependency.isEndorsingStrictVersions(),
             dependency.getReason()
         );
-    }
-
-    private static String nullToEmpty(@Nullable String input) {
-        return input == null ? "" : input;
     }
 
     @Override

@@ -31,9 +31,9 @@ import java.lang.reflect.Type;
 public class TreeFormatter implements DiagnosticsVisitor {
     private final StringBuilder buffer = new StringBuilder();
     private final AbstractStyledTextOutput original;
+    private final boolean alwaysChildrenOnNewlines;
     private Node current;
     private Prefixer prefixer = new DefaultPrefixer();
-    private final boolean alwaysChildrenOnNewlines;
 
     public TreeFormatter() {
         this(false);
@@ -331,13 +331,16 @@ public class TreeFormatter implements DiagnosticsVisitor {
         Colon(false, ": "),
         ColonNewLine(true, ":" + TextUtil.getPlatformLineSeparator());
 
+        final boolean newLine;
+        final String text;
         Separator(boolean newLine, String text) {
             this.newLine = newLine;
             this.text = text;
         }
+    }
 
-        final boolean newLine;
-        final String text;
+    private interface Prefixer {
+        String nextPrefix();
     }
 
     private static class Node {
@@ -404,10 +407,6 @@ public class TreeFormatter implements DiagnosticsVisitor {
         boolean isTopLevelNode() {
             return parent.parent == null;
         }
-    }
-
-    private interface Prefixer {
-        String nextPrefix();
     }
 
     private static class DefaultPrefixer implements Prefixer {

@@ -95,17 +95,28 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSyst
     FileMetadata.AccessType getAccessType();
 
     void accept(FileSystemLocationSnapshotVisitor visitor);
+
     <T> T accept(FileSystemLocationSnapshotTransformer<T> transformer);
 
     interface FileSystemLocationSnapshotVisitor {
-        default void visitDirectory(DirectorySnapshot directorySnapshot) {};
-        default void visitRegularFile(RegularFileSnapshot fileSnapshot) {};
-        default void visitMissing(MissingFileSnapshot missingSnapshot) {};
+        default void visitDirectory(DirectorySnapshot directorySnapshot) {}
+
+        ;
+
+        default void visitRegularFile(RegularFileSnapshot fileSnapshot) {}
+
+        ;
+
+        default void visitMissing(MissingFileSnapshot missingSnapshot) {}
+
+        ;
     }
 
     interface FileSystemLocationSnapshotTransformer<T> {
         T visitDirectory(DirectorySnapshot directorySnapshot);
+
         T visitRegularFile(RegularFileSnapshot fileSnapshot);
+
         T visitMissing(MissingFileSnapshot missingSnapshot);
     }
 }

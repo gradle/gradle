@@ -69,7 +69,7 @@ class TypedDomainObjectContainerWrapperTest extends Specification {
 
         then:
         containerHas container, "created1", "created2", "created3"
-        parent.collect({it.name}).containsAll(["created1", "created2", "created3"])
+        parent.collect({ it.name }).containsAll(["created1", "created2", "created3"])
 
         and:
         container.getByName("created1").value == "original"
@@ -91,7 +91,7 @@ class TypedDomainObjectContainerWrapperTest extends Specification {
 
         then:
         containerHas container, "createdOne", "createdTwo"
-        parent.collect({it.name}).containsAll(["createdOne", "createdTwo"])
+        parent.collect({ it.name }).containsAll(["createdOne", "createdTwo"])
 
         and:
         container.getByName("createdOne").value == "original"
@@ -135,7 +135,7 @@ class TypedDomainObjectContainerWrapperTest extends Specification {
     }
 
     def containerHas(def container, String... names) {
-        assert container.toList().collect {it.name} == names as List
+        assert container.toList().collect { it.name } == names as List
         true
     }
 
@@ -156,11 +156,16 @@ class TypedDomainObjectContainerWrapperTest extends Specification {
             getName() >> name
         }
     }
+
     interface Type extends Named {}
+
     interface SubType extends Type {}
+
     interface OtherSubType extends Type {}
+
     interface CreatedSubType extends Type {
         String getValue()
+
         void setValue(String value)
     }
 

@@ -35,15 +35,16 @@ import java.io.IOException;
 public class DefaultOutputFilesRepository implements OutputFilesRepository, Closeable {
 
     private final PersistentCache cacheAccess;
-    enum OutputKind {
-        OUTPUT,
-        PARENT_OF_OUTPUT
-    }
     private final IndexedCache<String, OutputKind> outputFiles;
 
     public DefaultOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;
         this.outputFiles = cacheAccess.createIndexedCache(cacheParameters(inMemoryCacheDecoratorFactory));
+    }
+
+    private static IndexedCacheParameters<String, OutputKind> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return IndexedCacheParameters.of("outputFiles", String.class, OutputKind.class)
+            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
     }
 
     @Override
@@ -102,13 +103,13 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
         }
     }
 
-    private static IndexedCacheParameters<String, OutputKind> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return IndexedCacheParameters.of("outputFiles", String.class, OutputKind.class)
-            .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
-    }
-
     @Override
     public void close() throws IOException {
         cacheAccess.close();
+    }
+
+    enum OutputKind {
+        OUTPUT,
+        PARENT_OF_OUTPUT
     }
 }

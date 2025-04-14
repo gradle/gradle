@@ -33,7 +33,7 @@ class ModuleSpec {
         artifactId = name
     }
 
-    void version(String version, @DelegatesTo(value=ModuleVersionSpec, strategy = Closure.DELEGATE_ONLY) Closure<Void> versionSpec = {}) {
+    void version(String version, @DelegatesTo(value = ModuleVersionSpec, strategy = Closure.DELEGATE_ONLY) Closure<Void> versionSpec = {}) {
         versionSpec.delegate = versions[version]
         versionSpec.resolveStrategy = Closure.DELEGATE_ONLY
         versionSpec()

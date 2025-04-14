@@ -24,10 +24,10 @@ import java.util.Set;
 
 public class ProgressOperation {
 
-    private String status;
     private final String category;
     private final OperationIdentifier operationId;
     private final ProgressOperation parent;
+    private String status;
     private Set<ProgressOperation> children;
 
     public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {

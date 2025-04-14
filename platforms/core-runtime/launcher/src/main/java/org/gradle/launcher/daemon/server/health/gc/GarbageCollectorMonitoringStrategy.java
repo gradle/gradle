@@ -71,6 +71,26 @@ public class GarbageCollectorMonitoringStrategy {
         this.thrashingThreshold = thrashingThreshold;
     }
 
+    public static GarbageCollectorMonitoringStrategy determineGcStrategy() {
+        List<String> garbageCollectors = CollectionUtils.collect(ManagementFactory.getGarbageCollectorMXBeans(), MemoryManagerMXBean::getName);
+        GarbageCollectorMonitoringStrategy gcStrategy = CollectionUtils.findFirst(STRATEGIES, strategy -> garbageCollectors.contains(strategy.getGarbageCollectorName()));
+
+        // TODO: These messages we print below are not actionable. Ideally, we would instruct the user to file an issue
+        // noting the GC parameters they are using so that we can add that GC to our STRATEGIES.
+        if (gcStrategy == null) {
+            LOGGER.info("Unable to determine a garbage collection monitoring strategy for {}", Jvm.current());
+            return GarbageCollectorMonitoringStrategy.UNKNOWN;
+        }
+
+        List<String> memoryPools = CollectionUtils.collect(ManagementFactory.getMemoryPoolMXBeans(), MemoryPoolMXBean::getName);
+        if (!memoryPools.contains(gcStrategy.heapPoolName) || !memoryPools.contains(gcStrategy.nonHeapPoolName)) {
+            LOGGER.info("Unable to determine which memory pools to monitor for {}", Jvm.current());
+            return GarbageCollectorMonitoringStrategy.UNKNOWN;
+        }
+
+        return gcStrategy;
+    }
+
     public String getHeapPoolName() {
         return heapPoolName;
     }
@@ -113,25 +133,5 @@ public class GarbageCollectorMonitoringStrategy {
 
     public boolean isAboveGcThrashingThreshold(double gcEventsPerSec) {
         return thrashingThreshold != -1 && gcEventsPerSec >= thrashingThreshold;
-    }
-
-    public static GarbageCollectorMonitoringStrategy determineGcStrategy() {
-        List<String> garbageCollectors = CollectionUtils.collect(ManagementFactory.getGarbageCollectorMXBeans(), MemoryManagerMXBean::getName);
-        GarbageCollectorMonitoringStrategy gcStrategy = CollectionUtils.findFirst(STRATEGIES, strategy -> garbageCollectors.contains(strategy.getGarbageCollectorName()));
-
-        // TODO: These messages we print below are not actionable. Ideally, we would instruct the user to file an issue
-        // noting the GC parameters they are using so that we can add that GC to our STRATEGIES.
-        if (gcStrategy == null) {
-            LOGGER.info("Unable to determine a garbage collection monitoring strategy for {}", Jvm.current());
-            return GarbageCollectorMonitoringStrategy.UNKNOWN;
-        }
-
-        List<String> memoryPools = CollectionUtils.collect(ManagementFactory.getMemoryPoolMXBeans(), MemoryPoolMXBean::getName);
-        if (!memoryPools.contains(gcStrategy.heapPoolName) || !memoryPools.contains(gcStrategy.nonHeapPoolName)) {
-            LOGGER.info("Unable to determine which memory pools to monitor for {}", Jvm.current());
-            return GarbageCollectorMonitoringStrategy.UNKNOWN;
-        }
-
-        return gcStrategy;
     }
 }

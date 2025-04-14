@@ -27,7 +27,6 @@ public interface ProjectDependencySpecBuilder extends DependencySpecBuilder {
      * Narrows this dependency specification down to a specific project.
      *
      * @param path the project path
-     *
      * @return this instance
      */
     ProjectDependencySpecBuilder project(String path);
@@ -36,7 +35,6 @@ public interface ProjectDependencySpecBuilder extends DependencySpecBuilder {
      * Narrows this dependency specification down to a specific library.
      *
      * @param name the library name
-     *
      * @return this instance
      */
     ProjectDependencySpecBuilder library(String name);

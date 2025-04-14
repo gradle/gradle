@@ -40,6 +40,8 @@ public final class EvaluationContext {
 
     private final ThreadLocal<PerThreadContext> threadLocalContext = ThreadLocal.withInitial(() -> new PerThreadContext(null));
 
+    private EvaluationContext() {}
+
     /**
      * Returns the current instance of EvaluationContext for this thread.
      *
@@ -48,8 +50,6 @@ public final class EvaluationContext {
     public static EvaluationContext current() {
         return INSTANCE;
     }
-
-    private EvaluationContext() {}
 
     /**
      * Adds the owner to the set of "evaluating" objects and returns the context instance to remove it from there upon closing.

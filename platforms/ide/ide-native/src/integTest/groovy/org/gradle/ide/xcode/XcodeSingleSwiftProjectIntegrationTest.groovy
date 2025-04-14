@@ -488,10 +488,10 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("DebugMacos")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("DebugMacos")
+            .succeeds()
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
@@ -502,10 +502,10 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("ReleaseMacos")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("ReleaseMacos")
+            .succeeds()
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
@@ -634,10 +634,10 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("DebugMacos")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("DebugMacos")
+            .succeeds()
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
@@ -648,10 +648,10 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         when:
         releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("ReleaseMacos")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("ReleaseMacos")
+            .succeeds()
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')

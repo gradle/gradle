@@ -74,9 +74,9 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             fileSystemAccess.read(
-                root.getAbsolutePath(),
-                new PatternSetSnapshottingFilter(patterns, stat)
-            )
+                    root.getAbsolutePath(),
+                    new PatternSetSnapshottingFilter(patterns, stat)
+                )
                 .ifPresent(roots::add);
         }
 

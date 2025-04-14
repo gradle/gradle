@@ -24,12 +24,13 @@ import spock.lang.Subject
 
 class DefaultWorkInProgressFormatterTest extends Specification {
     def consoleMetaData = Mock(ConsoleMetaData)
-    @Subject statusBarFormatter = new DefaultWorkInProgressFormatter(consoleMetaData)
+    @Subject
+        statusBarFormatter = new DefaultWorkInProgressFormatter(consoleMetaData)
 
     def "formats operations"() {
         given:
         def op1 = new ProgressOperation("STATUS_1", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
-        def op2 = new ProgressOperation(null,  null, new OperationIdentifier(2), op1)
+        def op2 = new ProgressOperation(null, null, new OperationIdentifier(2), op1)
         def op3 = new ProgressOperation("STATUS_2", "VARIANT_CATEGORY", new OperationIdentifier(3), op2)
 
         expect:

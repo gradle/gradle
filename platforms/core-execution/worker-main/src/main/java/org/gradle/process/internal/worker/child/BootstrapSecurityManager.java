@@ -30,8 +30,8 @@ import java.security.Permission;
  * Used to bootstrap the system classpath.
  */
 public class BootstrapSecurityManager extends SecurityManager {
-    private boolean initialised;
     private final URLClassLoader target;
+    private boolean initialised;
 
     public BootstrapSecurityManager() {
         this(null);

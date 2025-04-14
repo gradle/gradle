@@ -62,7 +62,6 @@ public interface ResolutionResult {
      * All outgoing dependencies of this variant represent first-level declared dependencies of the resolution.
      *
      * @return a provider for the root variant of the dependency graph.
-     *
      * @since 8.11
      */
     @Incubating

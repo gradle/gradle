@@ -73,7 +73,7 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
 
     def "uses cache retention set to absolute timestamp"() {
         when:
-        def timestamp = ZonedDateTime.of(2024, 11, 10, 9,35, 44, 0, ZoneId.of("UTC")).toInstant().toEpochMilli()
+        def timestamp = ZonedDateTime.of(2024, 11, 10, 9, 35, 44, 0, ZoneId.of("UTC")).toInstant().toEpochMilli()
         cacheConfigurations.buildCache.removeUnusedEntriesOlderThan = timestamp
 
         and:

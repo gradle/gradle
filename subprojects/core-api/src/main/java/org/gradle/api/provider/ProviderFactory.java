@@ -179,10 +179,8 @@ public interface ProviderFactory {
      *
      * @param file the file whose contents to read.
      * @return an interface that allows lazy access to the contents of the given file.
-     *
      * @see FileContents#getAsText()
      * @see FileContents#getAsBytes()
-     *
      * @since 6.1
      */
     FileContents fileContents(RegularFile file);
@@ -195,10 +193,8 @@ public interface ProviderFactory {
      *
      * @param file provider of the file whose contents to read.
      * @return an interface that allows lazy access to the contents of the given file.
-     *
      * @see FileContents#getAsText()
      * @see FileContents#getAsBytes()
-     *
      * @since 6.1
      */
     FileContents fileContents(Provider<RegularFile> file);
@@ -217,7 +213,6 @@ public interface ProviderFactory {
      * @param action the configuration of the external process with the output stream
      * pre-configured.
      * @return an interface that allows lazy access to the process' output.
-     *
      * @since 7.5
      */
     ExecOutput exec(Action<? super ExecSpec> action);
@@ -236,7 +231,6 @@ public interface ProviderFactory {
      * @param action the configuration of the external process with the output stream
      * pre-configured.
      * @return an interface that allows lazy access to the process' output.
-     *
      * @since 7.5
      */
     ExecOutput javaexec(Action<? super JavaExecSpec> action);
@@ -273,7 +267,6 @@ public interface ProviderFactory {
      * @param credentialsType type of credentials to be provided.
      * @param identity identity to be associated with the credentials.
      * @return The provider. Never returns null.
-     *
      * @since 6.6
      */
     <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, String identity);
@@ -296,7 +289,6 @@ public interface ProviderFactory {
      * @param credentialsType type of credentials to be provided.
      * @param identity a provider returning the identity to be associated with the credentials.
      * @return The provider. Never returns null.
-     *
      * @since 6.6
      */
     <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, Provider<String> identity);

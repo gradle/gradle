@@ -60,12 +60,74 @@ import static org.objectweb.asm.commons.InstructionAdapter.OBJECT_TYPE;
 public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisitor {
 
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
-
+    private static final Type CLOSURE_TYPE = getType(Closure.class);
+    private static final String CLOSURE_INTERNAL_NAME = CLOSURE_TYPE.getInternalName();
+    private static final String IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME = "$isEffectivelyInstrumented";
     private final BytecodeInterceptorFilter interceptorFilter;
-
+    boolean inClosureImplementation = false;
+    String className = null;
+    EnumSet<MethodInstrumentationStrategy> usedStrategies = EnumSet.noneOf(MethodInstrumentationStrategy.class);
     public CallInterceptionClosureInstrumentingClassVisitor(ClassVisitor delegate, BytecodeInterceptorFilter interceptorFilter) {
         super(ASM_LEVEL, delegate);
         this.interceptorFilter = interceptorFilter;
+    }
+
+    @NonNull
+    private static String[] interfacesWithInstrumentableClosure(String[] interfaces, boolean isClosureImplementation) {
+        String[] modifiedInterfaces = isClosureImplementation ? Arrays.copyOf(interfaces, interfaces.length + 1) : interfaces;
+        if (isClosureImplementation) {
+            modifiedInterfaces[modifiedInterfaces.length - 1] = Type.getInternalName(InstrumentableClosure.class);
+        }
+        return modifiedInterfaces;
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        boolean isClosureImplementation = CLOSURE_INTERNAL_NAME.equals(superName);
+        enterClass(name, isClosureImplementation);
+        String[] modifiedInterfaces = interfacesWithInstrumentableClosure(interfaces, isClosureImplementation);
+        super.visit(version, access, name, signature, superName, modifiedInterfaces);
+    }
+
+    @Override
+    public MethodVisitor visitMethod(int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
+        if (!inClosureImplementation) {
+            return super.visitMethod(access, name, descriptor, signature, exceptions);
+        }
+        Optional<MethodInstrumentationStrategy> matchingStrategy =
+            Arrays.stream(MethodInstrumentationStrategy.values()).filter(it -> name.equals(it.methodName) && (it.descriptor == null || descriptor.equals(it.descriptor))).findAny();
+        matchingStrategy.ifPresent(usedStrategies::add);
+        MethodInstrumentationStrategy strategy = matchingStrategy.orElse(MethodInstrumentationStrategy.DEFAULT);
+        return strategy.methodVisitorFactory.apply(
+            new MethodInstrumentationStrategy.ClassData(cv, className, interceptorFilter),
+            new MethodInstrumentationStrategy.MethodData(access, name, descriptor, signature, exceptions)
+        );
+    }
+
+    private void enterClass(String className, boolean isClosureSubtype) {
+        this.className = className;
+        inClosureImplementation = isClosureSubtype;
+        usedStrategies.clear();
+    }
+
+    @Override
+    public void visitEnd() {
+        if (inClosureImplementation) {
+            for (MethodInstrumentationStrategy methodInstrumentationStrategy : MethodInstrumentationStrategy.values()) {
+                if (methodInstrumentationStrategy.generateIfNotPresent && !usedStrategies.contains(methodInstrumentationStrategy)) {
+                    assert methodInstrumentationStrategy.methodName != null;
+                    assert methodInstrumentationStrategy.descriptor != null;
+                    MethodVisitor visitor = visitMethod(Opcodes.ACC_PUBLIC, methodInstrumentationStrategy.methodName, methodInstrumentationStrategy.descriptor, null, null);
+                    visitor.visitCode();
+                    visitor.visitInsn(Opcodes.RETURN);
+                    visitor.visitMaxs(4, 4);
+                    visitor.visitEnd();
+                }
+            }
+
+            visitField(Opcodes.ACC_PRIVATE, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z", null, null);
+        }
+        super.visitEnd();
     }
 
     @NullMarked
@@ -217,6 +279,18 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         public final boolean generateIfNotPresent;
         private final BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory;
 
+        MethodInstrumentationStrategy(
+            @Nullable String methodName,
+            @Nullable String descriptor,
+            boolean generateIfNotPresent,
+            BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory
+        ) {
+            this.methodName = methodName;
+            this.descriptor = descriptor;
+            this.generateIfNotPresent = generateIfNotPresent;
+            this.methodVisitorFactory = methodVisitorFactory;
+        }
+
         @NullMarked
         static final class MethodData {
             public final int access;
@@ -250,85 +324,6 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                 this.interceptorFilter = interceptorFilter;
             }
         }
-
-        MethodInstrumentationStrategy(
-            @Nullable String methodName,
-            @Nullable String descriptor,
-            boolean generateIfNotPresent,
-            BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory
-        ) {
-            this.methodName = methodName;
-            this.descriptor = descriptor;
-            this.generateIfNotPresent = generateIfNotPresent;
-            this.methodVisitorFactory = methodVisitorFactory;
-        }
     }
-
-    boolean inClosureImplementation = false;
-    String className = null;
-    EnumSet<MethodInstrumentationStrategy> usedStrategies = EnumSet.noneOf(MethodInstrumentationStrategy.class);
-
-    private static final Type CLOSURE_TYPE = getType(Closure.class);
-    private static final String CLOSURE_INTERNAL_NAME = CLOSURE_TYPE.getInternalName();
-
-    @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        boolean isClosureImplementation = CLOSURE_INTERNAL_NAME.equals(superName);
-        enterClass(name, isClosureImplementation);
-        String[] modifiedInterfaces = interfacesWithInstrumentableClosure(interfaces, isClosureImplementation);
-        super.visit(version, access, name, signature, superName, modifiedInterfaces);
-    }
-
-    @NonNull
-    private static String[] interfacesWithInstrumentableClosure(String[] interfaces, boolean isClosureImplementation) {
-        String[] modifiedInterfaces = isClosureImplementation ? Arrays.copyOf(interfaces, interfaces.length + 1) : interfaces;
-        if (isClosureImplementation) {
-            modifiedInterfaces[modifiedInterfaces.length - 1] = Type.getInternalName(InstrumentableClosure.class);
-        }
-        return modifiedInterfaces;
-    }
-
-    @Override
-    public MethodVisitor visitMethod(int access, String name, String descriptor, @Nullable String signature, @Nullable String[] exceptions) {
-        if (!inClosureImplementation) {
-            return super.visitMethod(access, name, descriptor, signature, exceptions);
-        }
-        Optional<MethodInstrumentationStrategy> matchingStrategy =
-            Arrays.stream(MethodInstrumentationStrategy.values()).filter(it -> name.equals(it.methodName) && (it.descriptor == null || descriptor.equals(it.descriptor))).findAny();
-        matchingStrategy.ifPresent(usedStrategies::add);
-        MethodInstrumentationStrategy strategy = matchingStrategy.orElse(MethodInstrumentationStrategy.DEFAULT);
-        return strategy.methodVisitorFactory.apply(
-            new MethodInstrumentationStrategy.ClassData(cv, className, interceptorFilter),
-            new MethodInstrumentationStrategy.MethodData(access, name, descriptor, signature, exceptions)
-        );
-    }
-
-    private void enterClass(String className, boolean isClosureSubtype) {
-        this.className = className;
-        inClosureImplementation = isClosureSubtype;
-        usedStrategies.clear();
-    }
-
-    @Override
-    public void visitEnd() {
-        if (inClosureImplementation) {
-            for (MethodInstrumentationStrategy methodInstrumentationStrategy : MethodInstrumentationStrategy.values()) {
-                if (methodInstrumentationStrategy.generateIfNotPresent && !usedStrategies.contains(methodInstrumentationStrategy)) {
-                    assert methodInstrumentationStrategy.methodName != null;
-                    assert methodInstrumentationStrategy.descriptor != null;
-                    MethodVisitor visitor = visitMethod(Opcodes.ACC_PUBLIC, methodInstrumentationStrategy.methodName, methodInstrumentationStrategy.descriptor, null, null);
-                    visitor.visitCode();
-                    visitor.visitInsn(Opcodes.RETURN);
-                    visitor.visitMaxs(4, 4);
-                    visitor.visitEnd();
-                }
-            }
-
-            visitField(Opcodes.ACC_PRIVATE, IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME, "Z", null, null);
-        }
-        super.visitEnd();
-    }
-
-    private static final String IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME = "$isEffectivelyInstrumented";
 }
 

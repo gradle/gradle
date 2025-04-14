@@ -108,7 +108,9 @@ public interface DeprecatableConfiguration extends Configuration {
     }
 
     boolean isDeprecatedForConsumption();
+
     boolean isDeprecatedForResolution();
+
     boolean isDeprecatedForDeclarationAgainst();
 
     default boolean canSafelyBeResolved() {

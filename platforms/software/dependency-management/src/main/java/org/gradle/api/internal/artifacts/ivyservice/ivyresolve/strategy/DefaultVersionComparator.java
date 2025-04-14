@@ -21,6 +21,7 @@ import java.util.Comparator;
 
 /**
  * This comparator considers `1.1.1 == 1-1-1`.
+ *
  * @see StaticVersionComparator
  */
 public class DefaultVersionComparator implements VersionComparator {

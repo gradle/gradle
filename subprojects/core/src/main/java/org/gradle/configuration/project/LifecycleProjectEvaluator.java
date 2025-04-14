@@ -63,16 +63,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         this.cancellationToken = cancellationToken;
     }
 
-    @Override
-    public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
-        if (state.isUnconfigured()) {
-            if (cancellationToken.isCancellationRequested()) {
-                throw new BuildCancelledException();
-            }
-            buildOperationRunner.run(new EvaluateProject(project, state));
-        }
-    }
-
     private static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
         ProjectConfigurationException exception = wrapException(project, e);
         ctx.failed(exception);
@@ -83,53 +73,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         return new ProjectConfigurationException(
             String.format("A problem occurred configuring %s.", project.getDisplayName()), e
         );
-    }
-
-    private class EvaluateProject implements RunnableBuildOperation {
-
-        private final ProjectInternal project;
-        private final ProjectStateInternal state;
-
-        private EvaluateProject(ProjectInternal project, ProjectStateInternal state) {
-            this.project = project;
-            this.state = state;
-        }
-
-        @Override
-        public void run(final BuildOperationContext context) {
-            project.getOwner().applyToMutableState(p -> {
-                // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
-                try {
-                    state.toBeforeEvaluate();
-                    buildOperationRunner.run(new NotifyBeforeEvaluate(project, state));
-
-                    if (!state.hasFailure()) {
-                        state.toEvaluate();
-                        try {
-                            delegate.evaluate(project, state);
-                        } catch (Exception e) {
-                            addConfigurationFailure(project, state, e, context);
-                        } finally {
-                            state.toAfterEvaluate();
-                            buildOperationRunner.run(new NotifyAfterEvaluate(project, state));
-                        }
-                    }
-
-                    if (state.hasFailure()) {
-                        state.rethrowFailure();
-                    } else {
-                        context.setResult(ConfigureProjectBuildOperationType.RESULT);
-                    }
-                } finally {
-                    state.configured();
-                }
-            });
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return configureProjectBuildOperationBuilderFor(this.project);
-        }
     }
 
     private static BuildOperationDescriptor.Builder configureProjectBuildOperationBuilderFor(ProjectInternal projectInternal) {
@@ -145,6 +88,16 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
             .progressDisplayName(progressDisplayName)
             .details(new ConfigureProjectDetails(projectInternal.getProjectPath(), projectInternal.getGradle().getIdentityPath(), projectInternal.getRootDir()));
+    }
+
+    @Override
+    public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
+        if (state.isUnconfigured()) {
+            if (cancellationToken.isCancellationRequested()) {
+                throw new BuildCancelledException();
+            }
+            buildOperationRunner.run(new EvaluateProject(project, state));
+        }
     }
 
     private static class ConfigureProjectDetails implements ConfigureProjectBuildOperationType.Details {
@@ -290,5 +243,52 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             return buildPath.getPath();
         }
 
+    }
+
+    private class EvaluateProject implements RunnableBuildOperation {
+
+        private final ProjectInternal project;
+        private final ProjectStateInternal state;
+
+        private EvaluateProject(ProjectInternal project, ProjectStateInternal state) {
+            this.project = project;
+            this.state = state;
+        }
+
+        @Override
+        public void run(final BuildOperationContext context) {
+            project.getOwner().applyToMutableState(p -> {
+                // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
+                try {
+                    state.toBeforeEvaluate();
+                    buildOperationRunner.run(new NotifyBeforeEvaluate(project, state));
+
+                    if (!state.hasFailure()) {
+                        state.toEvaluate();
+                        try {
+                            delegate.evaluate(project, state);
+                        } catch (Exception e) {
+                            addConfigurationFailure(project, state, e, context);
+                        } finally {
+                            state.toAfterEvaluate();
+                            buildOperationRunner.run(new NotifyAfterEvaluate(project, state));
+                        }
+                    }
+
+                    if (state.hasFailure()) {
+                        state.rethrowFailure();
+                    } else {
+                        context.setResult(ConfigureProjectBuildOperationType.RESULT);
+                    }
+                } finally {
+                    state.configured();
+                }
+            });
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return configureProjectBuildOperationBuilderFor(this.project);
+        }
     }
 }

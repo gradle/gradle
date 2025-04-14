@@ -46,11 +46,11 @@ import static java.util.Comparator.comparingInt;
 public class WorkerDaemonClientsManager implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);
-
+    private static final Consumer<WorkerDaemonClient> STOP_CLIENT = WorkerDaemonClient::stop;
+    private static final Consumer<WorkerDaemonClient> KILL_CLIENT = WorkerDaemonClient::kill;
     private final Object lock = new Object();
     private final List<WorkerDaemonClient> allClients = new ArrayList<WorkerDaemonClient>();
     private final List<WorkerDaemonClient> idleClients = new ArrayList<WorkerDaemonClient>();
-
     private final WorkerDaemonStarter workerDaemonStarter;
     private final ListenerManager listenerManager;
     private final LoggingManagerInternal loggingManager;
@@ -74,6 +74,17 @@ public class WorkerDaemonClientsManager implements Stoppable {
         this.memoryManager = memoryManager;
         this.workerDaemonExpiration = new WorkerDaemonExpiration(this, getTotalPhysicalMemory());
         memoryManager.addMemoryHolder(workerDaemonExpiration);
+    }
+
+    private static void emitUnexpectedWorkerFailureWarning(WorkerDaemonClient candidate) {
+        if (candidate.getExitCode().isPresent()) {
+            int exitCode = candidate.getExitCode().get();
+            if (OperatingSystem.current().isUnix() && exitCode > 127) {
+                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly after being killed with signal " + (exitCode - 128) + ".  This is likely because an external process has killed the worker.");
+            } else {
+                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly with exit code " + exitCode + ".");
+            }
+        }
     }
 
     // TODO - should supply and check for the same parameters as passed to reserveNewClient()
@@ -103,17 +114,6 @@ public class WorkerDaemonClientsManager implements Stoppable {
                 }
             }
             return null;
-        }
-    }
-
-    private static void emitUnexpectedWorkerFailureWarning(WorkerDaemonClient candidate) {
-        if (candidate.getExitCode().isPresent()) {
-            int exitCode = candidate.getExitCode().get();
-            if (OperatingSystem.current().isUnix() && exitCode > 127) {
-                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly after being killed with signal " + (exitCode - 128) + ".  This is likely because an external process has killed the worker.");
-            } else {
-                LOGGER.warn("Worker daemon '" + candidate.getDisplayName() + "' exited unexpectedly with exit code " + exitCode + ".");
-            }
         }
     }
 
@@ -235,7 +235,4 @@ public class WorkerDaemonClientsManager implements Stoppable {
             }
         }
     }
-
-    private static final Consumer<WorkerDaemonClient> STOP_CLIENT = WorkerDaemonClient::stop;
-    private static final Consumer<WorkerDaemonClient> KILL_CLIENT = WorkerDaemonClient::kill;
 }

@@ -27,13 +27,13 @@ import javax.inject.Inject;
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
  * the API and implementation dependencies of a library.</p>
  *
- * @since 3.4
  * @see <a href="https://docs.gradle.org/current/userguide/java_library_plugin.html">Java Library plugin reference</a>
+ * @since 3.4
  */
 public abstract class JavaLibraryPlugin implements Plugin<Project> {
 
     @Inject
-    public JavaLibraryPlugin() { }
+    public JavaLibraryPlugin() {}
 
     @Override
     public void apply(Project project) {

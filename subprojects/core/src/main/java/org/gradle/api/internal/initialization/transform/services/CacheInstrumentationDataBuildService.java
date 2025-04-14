@@ -131,6 +131,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
     public interface ResolutionScope extends AutoCloseable {
 
         void setTypeHierarchyAnalysisResult(FileCollection analysisResult);
+
         void setOriginalClasspath(FileCollection originalClasspath);
 
         @Override
@@ -187,6 +188,7 @@ public abstract class CacheInstrumentationDataBuildService implements BuildServi
         }
 
         abstract ConfigurableFileCollection getTypeHierarchyAnalysisResult();
+
         abstract ConfigurableFileCollection getOriginalClasspath();
 
         private InstrumentationTypeRegistry getInstrumentationTypeRegistry() {

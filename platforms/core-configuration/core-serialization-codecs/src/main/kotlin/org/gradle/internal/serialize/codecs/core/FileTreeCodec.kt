@@ -120,10 +120,12 @@ class FileTreeCodec(
                     false
                 } ?: true
             }
+
             fileCollection is FileCollectionBackedFileTree -> {
                 roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
                 false
             }
+
             fileCollection is FilteredFileTree -> {
                 when {
                     // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used,
@@ -132,12 +134,14 @@ class FileTreeCodec(
                     fileCollection.patterns.isEmpty -> {
                         fileCollection.tree.visitStructure(this)
                     }
+
                     else -> {
                         roots.add(FilteredFileTreeSpec(fileCollection.tree, fileCollection.patterns))
                     }
                 }
                 false
             }
+
             else -> {
                 true
             }
@@ -165,6 +169,7 @@ class FileTreeCodec(
         is GeneratedTreeSpec -> spec.spec.run {
             fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
         }
+
         is ZipTreeSpec -> fileOperations.zipTree(spec.file) as FileTreeInternal
         is TarTreeSpec -> fileOperations.tarTree(spec.file) as FileTreeInternal
     }

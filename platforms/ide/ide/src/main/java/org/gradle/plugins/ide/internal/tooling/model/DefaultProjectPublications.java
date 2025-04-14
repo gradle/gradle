@@ -40,6 +40,11 @@ public class DefaultProjectPublications implements Serializable, GradleProjectId
         return projectIdentifier;
     }
 
+    public DefaultProjectPublications setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
+        return this;
+    }
+
     @Override
     public String getProjectPath() {
         return projectIdentifier.getProjectPath();
@@ -48,10 +53,5 @@ public class DefaultProjectPublications implements Serializable, GradleProjectId
     @Override
     public File getRootDir() {
         return projectIdentifier.getBuildIdentifier().getRootDir();
-    }
-
-    public DefaultProjectPublications setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
-        this.projectIdentifier = projectIdentifier;
-        return this;
     }
 }

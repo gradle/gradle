@@ -43,6 +43,10 @@ public class DaemonStartupCommunication {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonStartupCommunication.class);
 
+    private static String daemonGreeting() {
+        return DaemonMessages.ABOUT_TO_CLOSE_STREAMS;
+    }
+
     @SuppressWarnings("DefaultCharset")
     public void printDaemonStarted(PrintStream target, Long pid, String uid, Address address, File daemonLog) {
 
@@ -95,9 +99,5 @@ public class DaemonStartupCommunication {
             throw new IllegalArgumentException("Unable to detect the daemon greeting because the input message is null!");
         }
         return message.contains(daemonGreeting());
-    }
-
-    private static String daemonGreeting() {
-        return DaemonMessages.ABOUT_TO_CLOSE_STREAMS;
     }
 }

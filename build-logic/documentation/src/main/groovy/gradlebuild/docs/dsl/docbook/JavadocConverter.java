@@ -85,8 +85,8 @@ public class JavadocConverter {
                 return parse(rawCommentText, ownerClass, commentSource, listener);
             } catch (Exception e) {
                 throw new GradleException(String.format(
-                        "Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s",
-                        ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
+                    "Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s",
+                    ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
             }
         } finally {
             listener.finish();
@@ -113,8 +113,10 @@ public class JavadocConverter {
         }
     }
 
-    private DocCommentImpl parse(String rawCommentText, ClassMetaData classMetaData,
-                                 CommentSource inheritedCommentSource, GenerationListener listener) {
+    private DocCommentImpl parse(
+        String rawCommentText, ClassMetaData classMetaData,
+        CommentSource inheritedCommentSource, GenerationListener listener
+    ) {
         JavadocLexer lexer = new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner(rawCommentText)));
         DocBookBuilder nodes = new DocBookBuilder(document);
         final HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes, document);
@@ -139,6 +141,22 @@ public class JavadocConverter {
         return new DocCommentImpl(nodes.getElements());
     }
 
+    private interface JavadocTagHandler {
+        boolean onJavadocTag(String tag, String value);
+    }
+
+    private interface HtmlElementHandler {
+        boolean onStartElement(String element, Map<String, String> attributes);
+
+        void onText(String text);
+
+        void onEndElement(String element);
+    }
+
+    private interface CommentSource {
+        Iterable<? extends Node> getCommentText();
+    }
+
     private static class DocCommentImpl implements DocComment {
         private final List<Element> nodes;
 
@@ -159,8 +177,8 @@ public class JavadocConverter {
         final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<HtmlElementHandler>();
         final LinkedList<String> tagStack = new LinkedList<String>();
         final Map<String, String> attributes = new HashMap<String, String>();
-        StringBuilder tagValue;
         final Document document;
+        StringBuilder tagValue;
 
         public HtmlGeneratingTokenHandler(DocBookBuilder nodes, Document document) {
             this.nodes = nodes;
@@ -235,18 +253,6 @@ public class JavadocConverter {
             }
             throw new UnsupportedOperationException();
         }
-    }
-
-    private interface JavadocTagHandler {
-        boolean onJavadocTag(String tag, String value);
-    }
-
-    private interface HtmlElementHandler {
-        boolean onStartElement(String element, Map<String, String> attributes);
-
-        void onText(String text);
-
-        void onEndElement(String element);
     }
 
     private static class UnknownJavadocTagHandler implements JavadocTagHandler {
@@ -683,8 +689,10 @@ public class JavadocConverter {
         private final DocBookBuilder nodes;
         private final GenerationListener listener;
 
-        public ValueTagHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
-                               GenerationListener listener) {
+        public ValueTagHandler(
+            DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
+            GenerationListener listener
+        ) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;
@@ -724,8 +732,10 @@ public class JavadocConverter {
         private final ClassMetaData classMetaData;
         private final GenerationListener listener;
 
-        private LinkHandler(DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
-                            GenerationListener listener) {
+        private LinkHandler(
+            DocBookBuilder nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
+            GenerationListener listener
+        ) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;
@@ -761,10 +771,6 @@ public class JavadocConverter {
             }
             return true;
         }
-    }
-
-    private interface CommentSource {
-        Iterable<? extends Node> getCommentText();
     }
 
     private static class NoOpCommentSource implements CommentSource {

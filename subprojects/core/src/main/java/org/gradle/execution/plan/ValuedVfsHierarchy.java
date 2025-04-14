@@ -39,14 +39,18 @@ public final class ValuedVfsHierarchy<T> {
     private final ChildMap<ValuedVfsHierarchy<T>> children;
     private final CaseSensitivity caseSensitivity;
 
-    public static <T> ValuedVfsHierarchy<T> emptyHierarchy(CaseSensitivity caseSensitivity) {
-        return new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
-    }
-
     private ValuedVfsHierarchy(PersistentList<T> values, ChildMap<ValuedVfsHierarchy<T>> children, CaseSensitivity caseSensitivity) {
         this.values = values;
         this.children = children;
         this.caseSensitivity = caseSensitivity;
+    }
+
+    public static <T> ValuedVfsHierarchy<T> emptyHierarchy(CaseSensitivity caseSensitivity) {
+        return new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
+    }
+
+    private static String joinRelativePaths(String first, String second) {
+        return first + "/" + second;
     }
 
     public boolean isEmpty() {
@@ -121,25 +125,6 @@ public final class ValuedVfsHierarchy<T> {
         visitAllChildren(valueVisitor::visitChildren);
     }
 
-    public interface ValueVisitor<T> {
-        /**
-         * The visited value is attached to the given location.
-         */
-        void visitExact(T value);
-
-        /**
-         * The visited value is an ancestor of the visited location
-         */
-        void visitAncestor(T value, VfsRelativePath pathToVisitedLocation);
-
-        /**
-         * The visited value is a child of the visited location.
-         *
-         * @param relativePathSupplier provides the relative path from the visited location to the path with the attached values.
-         */
-        void visitChildren(PersistentList<T> values, Supplier<String> relativePathSupplier);
-    }
-
     /**
      * Returns a new {@link ValuedVfsHierarchy} with the value attached to the location.
      */
@@ -203,7 +188,22 @@ public final class ValuedVfsHierarchy<T> {
         return children;
     }
 
-    private static String joinRelativePaths(String first, String second) {
-        return first + "/" + second;
+    public interface ValueVisitor<T> {
+        /**
+         * The visited value is attached to the given location.
+         */
+        void visitExact(T value);
+
+        /**
+         * The visited value is an ancestor of the visited location
+         */
+        void visitAncestor(T value, VfsRelativePath pathToVisitedLocation);
+
+        /**
+         * The visited value is a child of the visited location.
+         *
+         * @param relativePathSupplier provides the relative path from the visited location to the path with the attached values.
+         */
+        void visitChildren(PersistentList<T> values, Supplier<String> relativePathSupplier);
     }
 }

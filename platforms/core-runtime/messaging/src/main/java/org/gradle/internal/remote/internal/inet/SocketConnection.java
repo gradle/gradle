@@ -72,6 +72,27 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         objectWriter = messageSerializer.newWriter(encoder);
     }
 
+    private static boolean isEndOfStream(Exception e) {
+        if (e instanceof EOFException) {
+            return true;
+        }
+        if (e instanceof IOException) {
+            if (Objects.equal(e.getMessage(), "An existing connection was forcibly closed by the remote host")) {
+                return true;
+            }
+            if (Objects.equal(e.getMessage(), "An established connection was aborted by the software in your host machine")) {
+                return true;
+            }
+            if (Objects.equal(e.getMessage(), "Connection reset by peer")) {
+                return true;
+            }
+            if (Objects.equal(e.getMessage(), "Connection reset")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         return "socket connection from " + localAddress + " to " + remoteAddress;
@@ -95,27 +116,6 @@ public class SocketConnection<T> implements RemoteConnection<T> {
         } catch (Throwable e) {
             throw new MessageIOException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
-    }
-
-    private static boolean isEndOfStream(Exception e) {
-        if (e instanceof EOFException) {
-            return true;
-        }
-        if (e instanceof IOException) {
-            if (Objects.equal(e.getMessage(), "An existing connection was forcibly closed by the remote host")) {
-                return true;
-            }
-            if (Objects.equal(e.getMessage(), "An established connection was aborted by the software in your host machine")) {
-                return true;
-            }
-            if (Objects.equal(e.getMessage(), "Connection reset by peer")) {
-                return true;
-            }
-            if (Objects.equal(e.getMessage(), "Connection reset")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -224,10 +224,10 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     private static class SocketOutputStream extends OutputStream {
         private static final int RETRIES_WHEN_BUFFER_FULL = 2;
-        private Selector selector;
         private final SocketChannel socket;
         private final ByteBuffer buffer;
         private final byte[] writeBuffer = new byte[1];
+        private Selector selector;
 
         public SocketOutputStream(SocketChannel socket) throws IOException {
             this.socket = socket;

@@ -77,13 +77,13 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         succeeds("resolve")
 
         where:
-        expression                                                                          | _
-        "configurations.compile"                                                            | _
-        "configurations.compile.files"                                                      | _
-        "configurations.compile.incoming.files"                                             | _
-        "configurations.compile.incoming.artifacts.artifactFiles"                           | _
-        "configurations.compile.incoming.artifactView {}.files"                             | _
-        "configurations.compile.incoming.artifactView { componentFilter { true } }.files"   | _
+        expression                                                                        | _
+        "configurations.compile"                                                          | _
+        "configurations.compile.files"                                                    | _
+        "configurations.compile.incoming.files"                                           | _
+        "configurations.compile.incoming.artifacts.artifactFiles"                         | _
+        "configurations.compile.incoming.artifactView {}.files"                           | _
+        "configurations.compile.incoming.artifactView { componentFilter { true } }.files" | _
     }
 
     def "downloads artifacts in parallel from an Ivy repo"() {

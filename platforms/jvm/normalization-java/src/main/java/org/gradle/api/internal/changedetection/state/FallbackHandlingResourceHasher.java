@@ -35,12 +35,24 @@ import java.util.function.Supplier;
 
 abstract class FallbackHandlingResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(FallbackHandlingResourceHasher.class);
-    private static final int MAX_FALLBACK_CONTENT_SIZE = 1024*1024*10;
+    private static final int MAX_FALLBACK_CONTENT_SIZE = 1024 * 1024 * 10;
 
     private final ResourceHasher delegate;
 
     public FallbackHandlingResourceHasher(ResourceHasher delegate) {
         this.delegate = delegate;
+    }
+
+    private static Optional<ZipEntryContext> withFallbackSafety(ZipEntryContext zipEntryContext) {
+        ZipEntry entry = zipEntryContext.getEntry();
+        if (entry.canReopen()) {
+            return Optional.of(zipEntryContext);
+        } else if (entry.size() > MAX_FALLBACK_CONTENT_SIZE) {
+            LOGGER.debug(zipEntryContext.getFullName() + " is too large (" + entry.size() + ") for safe fallback - skipping.");
+            return Optional.empty();
+        } else {
+            return Optional.of(new DefaultZipEntryContext(new CachingZipEntry(entry), zipEntryContext.getFullName(), zipEntryContext.getRootParentName()));
+        }
     }
 
     @Override
@@ -80,18 +92,6 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
 
     private Supplier<HashCode> hashWithDelegate(ZipEntryContext context) {
         return IoSupplier.wrap(() -> delegate.hash(context));
-    }
-
-    private static Optional<ZipEntryContext> withFallbackSafety(ZipEntryContext zipEntryContext) {
-        ZipEntry entry = zipEntryContext.getEntry();
-        if (entry.canReopen()) {
-            return Optional.of(zipEntryContext);
-        } else if (entry.size() > MAX_FALLBACK_CONTENT_SIZE) {
-            LOGGER.debug(zipEntryContext.getFullName() + " is too large (" + entry.size() + ") for safe fallback - skipping.");
-            return Optional.empty();
-        } else {
-            return Optional.of(new DefaultZipEntryContext(new CachingZipEntry(entry), zipEntryContext.getFullName(), zipEntryContext.getRootParentName()));
-        }
     }
 
     /**

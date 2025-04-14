@@ -82,6 +82,58 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
+    /**
+     * Perform any final mutating actions for this configuration and its parents.
+     * Then, lock this configuration and its parents from mutation.
+     * After we observe a configuration (by building its metadata), its state should not change.
+     */
+    private static void finalize(ConfigurationInternal configuration, String reason) {
+        // Perform any final mutating actions for this configuration and its parents.
+        // Then, lock this configuration and its parents from mutation.
+        // After we observe a configuration (by building its metadata), its state should not change.
+        configuration.runDependencyActions();
+        configuration.markAsObserved(reason);
+    }
+
+    private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getVariantArtifacts(
+        DisplayName displayName,
+        ComponentIdentifier componentId,
+        Collection<? extends PublishArtifact> sourceArtifacts,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
+        return calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
+            if (sourceArtifacts.isEmpty()) {
+                return ImmutableList.of();
+            } else {
+                return model.fromMutableState(m -> {
+                    ImmutableList.Builder<LocalComponentArtifactMetadata> result = ImmutableList.builderWithExpectedSize(sourceArtifacts.size());
+                    for (PublishArtifact sourceArtifact : sourceArtifacts) {
+                        result.add(new PublishArtifactLocalArtifactMetadata(componentId, sourceArtifact));
+                    }
+                    return result.build();
+                });
+            }
+        });
+    }
+
+    private static ImmutableList<LocalOriginDependencyMetadata> maybeForceDependencies(
+        ImmutableList<LocalOriginDependencyMetadata> dependencies,
+        ImmutableAttributes attributes
+    ) {
+        AttributeValue<Category> attributeValue = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
+        if (!attributeValue.isPresent() || !attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
+            return dependencies;
+        }
+
+        // Need to wrap all dependencies to force them.
+        ImmutableList.Builder<LocalOriginDependencyMetadata> forcedDependencies = ImmutableList.builder();
+        for (LocalOriginDependencyMetadata rawDependency : dependencies) {
+            forcedDependencies.add(rawDependency.forced());
+        }
+        return forcedDependencies.build();
+    }
+
     @Override
     public LocalVariantGraphResolveState createRootVariantState(
         ConfigurationInternal configuration,
@@ -187,41 +239,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
     }
 
     /**
-     * Perform any final mutating actions for this configuration and its parents.
-     * Then, lock this configuration and its parents from mutation.
-     * After we observe a configuration (by building its metadata), its state should not change.
-     */
-    private static void finalize(ConfigurationInternal configuration, String reason) {
-        // Perform any final mutating actions for this configuration and its parents.
-        // Then, lock this configuration and its parents from mutation.
-        // After we observe a configuration (by building its metadata), its state should not change.
-        configuration.runDependencyActions();
-        configuration.markAsObserved(reason);
-    }
-
-    private static CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> getVariantArtifacts(
-        DisplayName displayName,
-        ComponentIdentifier componentId,
-        Collection<? extends PublishArtifact> sourceArtifacts,
-        ModelContainer<?> model,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        return calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
-            if (sourceArtifacts.isEmpty()) {
-                return ImmutableList.of();
-            } else {
-                return model.fromMutableState(m -> {
-                    ImmutableList.Builder<LocalComponentArtifactMetadata> result = ImmutableList.builderWithExpectedSize(sourceArtifacts.size());
-                    for (PublishArtifact sourceArtifact : sourceArtifacts) {
-                        result.add(new PublishArtifactLocalArtifactMetadata(componentId, sourceArtifact));
-                    }
-                    return result.build();
-                });
-            }
-        });
-    }
-
-    /**
      * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
     private CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> getConfigurationDependencyState(
@@ -306,23 +323,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         return new DependencyState(dependencyBuilder.build(), fileBuilder.build(), excludeBuilder.build());
     }
 
-    private static ImmutableList<LocalOriginDependencyMetadata> maybeForceDependencies(
-        ImmutableList<LocalOriginDependencyMetadata> dependencies,
-        ImmutableAttributes attributes
-    ) {
-        AttributeValue<Category> attributeValue = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
-        if (!attributeValue.isPresent() || !attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
-            return dependencies;
-        }
-
-        // Need to wrap all dependencies to force them.
-        ImmutableList.Builder<LocalOriginDependencyMetadata> forcedDependencies = ImmutableList.builder();
-        for (LocalOriginDependencyMetadata rawDependency : dependencies) {
-            forcedDependencies.add(rawDependency.forced());
-        }
-        return forcedDependencies.build();
-    }
-
     /**
      * Identifier for non-implicit artifact variants of a local graph variant.
      */
@@ -376,7 +376,8 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             return fileDependency;
         }
 
-        @Override @Nullable
+        @Override
+        @Nullable
         public ComponentIdentifier getComponentId() {
             return ((SelfResolvingDependencyInternal) fileDependency).getTargetComponentId();
         }

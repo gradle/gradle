@@ -21,7 +21,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Compares version selectors against candidate versions, indicating whether they match or not.
- *
  */
 @ServiceScope(Scope.Build.class)
 public interface VersionSelectorScheme {
@@ -42,6 +41,7 @@ public interface VersionSelectorScheme {
      * Creates another version selector which complements the provided one, but also makes sense to use
      * in a rejection rule. It will therefore fail when computing a complement for this use case doesn't
      * make sense.
+     *
      * @param selector the selector to create a complement for
      * @return a selector that complements the provided one and can be used in a reject rule
      */

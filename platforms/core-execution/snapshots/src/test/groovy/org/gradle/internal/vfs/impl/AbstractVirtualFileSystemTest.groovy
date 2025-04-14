@@ -52,7 +52,7 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
         !vfs.findSnapshot(location).present
     }
 
-     def "only stores non-invalidated children when using store action"() {
+    def "only stores non-invalidated children when using store action"() {
         def location = '/my/location/new'
         when:
         start {

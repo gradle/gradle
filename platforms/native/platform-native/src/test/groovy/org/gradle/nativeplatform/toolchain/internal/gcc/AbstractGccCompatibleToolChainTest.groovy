@@ -437,7 +437,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def argsFor(GccCommandLineToolConfiguration tool) {
-        assert tool instanceof GccCommandLineToolConfigurationInternal : "Expected argument to be an instance of GccCommandLineToolConfigurationInternal"
+        assert tool instanceof GccCommandLineToolConfigurationInternal: "Expected argument to be an instance of GccCommandLineToolConfigurationInternal"
         def args = []
         tool.getArgAction().execute(args)
         args

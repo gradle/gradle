@@ -30,7 +30,8 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
 
     def "reference #reference is instrumented in java"() {
         given:
-        def classTemplate = { ownerKind, ownerName -> """
+        def classTemplate = { ownerKind, ownerName ->
+            """
                 import java.io.*;
                 import java.nio.file.*;
                 import java.util.*;
@@ -98,7 +99,8 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
     def "instruments bound method reference when receiver is a subtype"() {
         given:
         def input = fileEntry()
-        def classTemplate = { ownerKind, ownerName -> """
+        def classTemplate = { ownerKind, ownerName ->
+            """
                 import java.io.*;
                 import java.nio.file.*;
                 import java.util.*;
@@ -154,7 +156,8 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
     def "does not instrument bound method reference when receiver is a subtype that overrides the method"() {
         given:
         def input = fileEntry()
-        def classTemplate = { ownerKind, ownerName -> """
+        def classTemplate = { ownerKind, ownerName ->
+            """
                 import java.io.*;
                 import java.nio.file.*;
                 import java.util.*;
@@ -213,7 +216,8 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
     def "does not instrument bound method reference when receiver overrides the method but is declared as base type"() {
         given:
         def input = fileEntry()
-        def classTemplate = { ownerKind, ownerName -> """
+        def classTemplate = { ownerKind, ownerName ->
+            """
                 import java.io.*;
                 import java.nio.file.*;
                 import java.util.*;

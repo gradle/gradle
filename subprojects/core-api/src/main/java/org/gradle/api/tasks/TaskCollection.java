@@ -97,7 +97,6 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
     /**
      * Locates a task by name, without triggering its creation or configuration, failing if there is no such object.
      *
-     *
      * @param name The task name
      * @return A {@link Provider} that will return the task when queried. The task may be created and configured at this point, if not already.
      * @throws UnknownTaskException If a task with the given name is not defined.

@@ -18,6 +18,15 @@ package org.gradle.internal.operations;
 
 public class CurrentBuildOperationPreservingRunnable implements Runnable {
 
+    private final Runnable delegate;
+    private final CurrentBuildOperationRef ref;
+    private final BuildOperationRef buildOperation;
+    private CurrentBuildOperationPreservingRunnable(Runnable delegate, CurrentBuildOperationRef ref, BuildOperationRef buildOperation) {
+        this.delegate = delegate;
+        this.ref = ref;
+        this.buildOperation = buildOperation;
+    }
+
     public static Runnable wrapIfNeeded(Runnable delegate) {
         return wrapIfNeeded(delegate, CurrentBuildOperationRef.instance());
     }
@@ -34,16 +43,6 @@ public class CurrentBuildOperationPreservingRunnable implements Runnable {
             return delegate;
         }
         return new CurrentBuildOperationPreservingRunnable(delegate, ref, buildOperation);
-    }
-
-    private final Runnable delegate;
-    private final CurrentBuildOperationRef ref;
-    private final BuildOperationRef buildOperation;
-
-    private CurrentBuildOperationPreservingRunnable(Runnable delegate, CurrentBuildOperationRef ref, BuildOperationRef buildOperation) {
-        this.delegate = delegate;
-        this.ref = ref;
-        this.buildOperation = buildOperation;
     }
 
     @Override

@@ -41,25 +41,6 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext & Cachin
         this.delegate = delegate;
     }
 
-    @Override
-    public R execute(UnitOfWork work, C context) {
-        R result = delegate.execute(work, context);
-        context.getHistory()
-            .ifPresent(history -> context.getCachingState().getCacheKeyCalculatedState()
-                .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
-                    .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
-                    .map(executionOutputState -> new DefaultAfterExecutionState(
-                        ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
-                        cacheKeyCalculatedState.getBeforeExecutionState(),
-                        executionOutputState
-                    )))
-                .ifPresent(afterExecutionState -> history.store(
-                    context.getIdentity().getUniqueId(),
-                    // TODO: Encode the "no cache key available" case in the context type hierarchy
-                    afterExecutionState)));
-        return result;
-    }
-
     private static <C extends PreviousExecutionContext> boolean shouldPreserveFailedState(C context, ExecutionOutputState afterExecutionOutputState) {
         // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
@@ -83,6 +64,25 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext & Cachin
         OutputFileChanges changes = new OutputFileChanges(previous, current);
         changes.accept(visitor);
         return visitor.hasAnyChanges();
+    }
+
+    @Override
+    public R execute(UnitOfWork work, C context) {
+        R result = delegate.execute(work, context);
+        context.getHistory()
+            .ifPresent(history -> context.getCachingState().getCacheKeyCalculatedState()
+                .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
+                    .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
+                    .map(executionOutputState -> new DefaultAfterExecutionState(
+                        ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
+                        cacheKeyCalculatedState.getBeforeExecutionState(),
+                        executionOutputState
+                    )))
+                .ifPresent(afterExecutionState -> history.store(
+                    context.getIdentity().getUniqueId(),
+                    // TODO: Encode the "no cache key available" case in the context type hierarchy
+                    afterExecutionState)));
+        return result;
     }
 
     private static class DefaultAfterExecutionState implements AfterExecutionState {

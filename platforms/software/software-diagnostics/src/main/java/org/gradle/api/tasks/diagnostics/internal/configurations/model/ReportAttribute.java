@@ -27,9 +27,11 @@ import java.util.Optional;
  */
 public final class ReportAttribute {
     private final String name;
-    @Nullable private final Object value;
+    @Nullable
+    private final Object value;
     private final boolean isIncubating;
-    @Nullable private final Integer disambiguationPrecedence;
+    @Nullable
+    private final Integer disambiguationPrecedence;
 
     ReportAttribute(Attribute<Object> key, @Nullable Object value, @Nullable Integer disambiguationPrecedence) {
         this.name = key.getName();

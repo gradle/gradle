@@ -24,6 +24,7 @@ class JavadocCachingIntegrationTest extends AbstractIntegrationSpec implements D
     def setup() {
         setupProjectInDirectory(temporaryFolder.testDirectory)
     }
+
     def setupProjectInDirectory(TestFile projectDir) {
         projectDir.file('settings.gradle') << localCacheConfiguration()
         projectDir.file('settings.gradle') << "rootProject.name = 'test-project'"

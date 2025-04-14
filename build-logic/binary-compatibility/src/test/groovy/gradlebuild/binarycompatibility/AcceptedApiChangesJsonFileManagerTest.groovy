@@ -25,7 +25,8 @@ class AcceptedApiChangesJsonFileManagerTest extends Specification {
     @TempDir
     File temporaryFolder
 
-    @Subject AcceptedApiChangesJsonFileManager jsonFileManager = new AcceptedApiChangesJsonFileManager()
+    @Subject
+    AcceptedApiChangesJsonFileManager jsonFileManager = new AcceptedApiChangesJsonFileManager()
 
     def jsonFile
 

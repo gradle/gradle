@@ -37,7 +37,8 @@ abstract class PlatformBaseSpecification extends Specification {
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     final def project = TestUtil.create(testDir).rootProject()
-    @Rule SetRuleContext setContext = new SetRuleContext()
+    @Rule
+    SetRuleContext setContext = new SetRuleContext()
 
     def realize(String name) {
         project.modelRegistry.find(name, ModelType.UNTYPED)

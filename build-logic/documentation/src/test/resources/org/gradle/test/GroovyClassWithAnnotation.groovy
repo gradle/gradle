@@ -1,10 +1,13 @@
 package org.gradle.test
 
-@Deprecated @JavaAnnotation
+@Deprecated
+@JavaAnnotation
 class GroovyClassWithAnnotation {
-    @Deprecated @JavaAnnotation
+    @Deprecated
+    @JavaAnnotation
     String annotatedProperty
 
-    @Deprecated @JavaAnnotation
-    void annotatedMethod() { }
+    @Deprecated
+    @JavaAnnotation
+    void annotatedMethod() {}
 }

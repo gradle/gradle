@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
     ExtraPropertiesExtension extension = new DefaultExtraPropertiesExtension()
-    ExtraPropertiesDynamicObjectAdapter adapter =  new ExtraPropertiesDynamicObjectAdapter(String.class, extension)
+    ExtraPropertiesDynamicObjectAdapter adapter = new ExtraPropertiesDynamicObjectAdapter(String.class, extension)
 
     def "can get and set properties"() {
         given:
@@ -56,7 +56,7 @@ public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
 
     def "has no methods"() {
         given:
-        extension.set("foo") { }
+        extension.set("foo") {}
 
         expect:
         !adapter.hasMethod("foo", "anything")

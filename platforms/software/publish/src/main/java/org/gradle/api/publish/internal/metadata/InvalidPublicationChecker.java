@@ -40,7 +40,8 @@ import java.util.Set;
 @NotThreadSafe
 public class InvalidPublicationChecker {
 
-    private static final String DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION = "dependencies-without-versions";;
+    private static final String DEPENDENCIES_WITHOUT_VERSION_SUPPRESSION = "dependencies-without-versions";
+    ;
 
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 

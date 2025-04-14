@@ -27,6 +27,7 @@ public interface ProjectSpec {
 
     /**
      * Returns the single project in the given registry which meets this spec.
+     *
      * @return the project.
      * @throws InvalidUserDataException When project cannot be selected due to some user input mismatch, or when there are no matching projects
      * or multiple matching projects.

@@ -182,6 +182,7 @@ sealed class PropertyTrace {
     ) : PropertyTrace() {
         constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)
         constructor(userCodeSource: UserCodeSource) : this(userCodeSource.displayName)
+
         override fun toString(): String = asString()
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {
@@ -226,6 +227,7 @@ sealed class PropertyTrace {
     ) : PropertyTrace() {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
+
         override fun toString(): String = asString()
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {
@@ -242,6 +244,7 @@ sealed class PropertyTrace {
     ) : PropertyTrace() {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
+
         override fun toString(): String = asString()
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {
@@ -258,6 +261,7 @@ sealed class PropertyTrace {
     ) : PropertyTrace() {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
+
         override fun toString(): String = asString()
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {
@@ -274,6 +278,7 @@ sealed class PropertyTrace {
     ) : PropertyTrace() {
         override val containingUserCodeMessage: StructuredMessage
             get() = trace.containingUserCodeMessage
+
         override fun toString(): String = asString()
         override fun describe(builder: StructuredMessage.Builder) {
             with(builder) {

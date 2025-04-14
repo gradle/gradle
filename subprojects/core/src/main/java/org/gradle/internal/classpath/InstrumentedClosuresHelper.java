@@ -20,6 +20,8 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class InstrumentedClosuresHelper {
+    public static final InstrumentedClosuresTracker INSTANCE = new PerThreadInstrumentedClosuresTracker(DefaultInstrumentedClosuresTracker::new);
+
     private InstrumentedClosuresHelper() {
     }
 
@@ -32,6 +34,4 @@ public class InstrumentedClosuresHelper {
     public static void leaveInstrumentedClosure(InstrumentableClosure thisClosure) {
         INSTANCE.leaveClosure(thisClosure);
     }
-
-    public static final InstrumentedClosuresTracker INSTANCE = new PerThreadInstrumentedClosuresTracker(DefaultInstrumentedClosuresTracker::new);
 }

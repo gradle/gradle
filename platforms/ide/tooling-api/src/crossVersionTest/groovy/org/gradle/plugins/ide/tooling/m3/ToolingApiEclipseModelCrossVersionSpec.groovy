@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
-    def shouldCheckForDeprecationWarnings(){
+    def shouldCheckForDeprecationWarnings() {
         false
     }
 

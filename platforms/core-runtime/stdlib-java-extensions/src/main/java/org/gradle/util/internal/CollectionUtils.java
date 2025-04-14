@@ -457,18 +457,6 @@ public abstract class CollectionUtils {
     }
 
     /**
-     * The result of diffing two sets.
-     *
-     * @param <T> The type of element the sets contain
-     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, InternalTransformer)
-     */
-    public static class SetDiff<T> {
-        public Set<T> leftOnly = new HashSet<T>();
-        public Set<Pair<T, T>> common = new HashSet<Pair<T, T>>();
-        public Set<T> rightOnly = new HashSet<T>();
-    }
-
-    /**
      * Provides a "diff report" of how the two sets are similar and how they are different, comparing the entries by some aspect.
      *
      * The transformer is used to generate the value to use to compare the entries by. That is, the entries are not compared by equals by an attribute or characteristic.
@@ -638,5 +626,17 @@ public abstract class CollectionUtils {
                 };
             }
         };
+    }
+
+    /**
+     * The result of diffing two sets.
+     *
+     * @param <T> The type of element the sets contain
+     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, InternalTransformer)
+     */
+    public static class SetDiff<T> {
+        public Set<T> leftOnly = new HashSet<T>();
+        public Set<Pair<T, T>> common = new HashSet<Pair<T, T>>();
+        public Set<T> rightOnly = new HashSet<T>();
     }
 }

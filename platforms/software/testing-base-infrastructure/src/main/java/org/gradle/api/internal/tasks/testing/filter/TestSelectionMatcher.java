@@ -50,6 +50,26 @@ public class TestSelectionMatcher {
         commandLineIncludePatterns = preparePatternList(filter.getIncludedTestsCommandLine());
     }
 
+    private static String getSimpleName(String fullQualifiedName) {
+        String simpleName = substringAfterLast(fullQualifiedName, ".");
+        if ("".equals(simpleName)) {
+            return fullQualifiedName;
+        }
+        return simpleName;
+    }
+
+    // Foo can match both Foo and Foo$NestedClass
+    // https://github.com/gradle/gradle/issues/5763
+    private static boolean classNameMatch(String simpleClassName, String patternSimpleClassName) {
+        if (simpleClassName.equals(patternSimpleClassName)) {
+            return true;
+        } else if (patternSimpleClassName.contains("$")) {
+            return simpleClassName.equals(patternSimpleClassName.substring(0, patternSimpleClassName.indexOf('$')));
+        } else {
+            return false;
+        }
+    }
+
     private List<TestPattern> preparePatternList(Collection<String> includedTests) {
         List<TestPattern> includePatterns = new ArrayList<TestPattern>(includedTests.size());
         for (String includedTest : includedTests) {
@@ -102,8 +122,10 @@ public class TestSelectionMatcher {
         return false;
     }
 
-    private boolean matchesPattern(List<TestPattern> includePatterns, String className,
-        String methodName) {
+    private boolean matchesPattern(
+        List<TestPattern> includePatterns, String className,
+        String methodName
+    ) {
         if (includePatterns.isEmpty()) {
             return true;
         }
@@ -124,8 +146,10 @@ public class TestSelectionMatcher {
         return matchesClassAndMethod(buildScriptExcludePatterns, className, methodName);
     }
 
-    private boolean matchesClassAndMethod(List<TestPattern> patterns, String className,
-        String methodName) {
+    private boolean matchesClassAndMethod(
+        List<TestPattern> patterns, String className,
+        String methodName
+    ) {
         for (TestPattern pattern : patterns) {
             if (pattern.matchesClassAndMethod(className, methodName)) {
                 return true;
@@ -135,6 +159,14 @@ public class TestSelectionMatcher {
             }
         }
         return false;
+    }
+
+    private interface LastElementMatcher {
+        boolean match(String classElement, String patternElement);
+    }
+
+    private interface ClassNameSelector {
+        String determineTargetClassName(String fullQualifiedName);
     }
 
     private static class TestPattern {
@@ -152,11 +184,11 @@ public class TestSelectionMatcher {
             int firstParametrizeIndex = pattern.indexOf('[');
             if (firstWildcardIndex == -1) {
                 segments = splitPreserveAllTokens(pattern, '.');
-                if(firstParametrizeIndex == -1){
+                if (firstParametrizeIndex == -1) {
                     lastElementMatcher = new NoWildcardMatcher();
-                }else{
+                } else {
                     segments = splitPreserveAllTokens(pattern.substring(0, firstParametrizeIndex), '.');
-                    segments[segments.length-1] += pattern.substring(firstParametrizeIndex);
+                    segments[segments.length - 1] += pattern.substring(firstParametrizeIndex);
                 }
             } else {
                 segments = splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
@@ -216,8 +248,10 @@ public class TestSelectionMatcher {
             return index == segments.length - 2 && index == className.length - 1 && classNameMatch(className[index], segments[index]);
         }
 
-        private boolean lastClassNameElementMatchesLastPatternElement(String[] className,
-            int index) {
+        private boolean lastClassNameElementMatchesLastPatternElement(
+            String[] className,
+            int index
+        ) {
             return index == segments.length - 1 && lastElementMatcher.match(className[index],
                 segments[index]);
         }
@@ -235,30 +269,6 @@ public class TestSelectionMatcher {
         }
     }
 
-    private static String getSimpleName(String fullQualifiedName) {
-        String simpleName = substringAfterLast(fullQualifiedName, ".");
-        if ("".equals(simpleName)) {
-            return fullQualifiedName;
-        }
-        return simpleName;
-    }
-
-    // Foo can match both Foo and Foo$NestedClass
-    // https://github.com/gradle/gradle/issues/5763
-    private static boolean classNameMatch(String simpleClassName, String patternSimpleClassName) {
-        if (simpleClassName.equals(patternSimpleClassName)) {
-            return true;
-        } else if (patternSimpleClassName.contains("$")) {
-            return simpleClassName.equals(patternSimpleClassName.substring(0, patternSimpleClassName.indexOf('$')));
-        } else {
-            return false;
-        }
-    }
-
-    private interface LastElementMatcher {
-        boolean match(String classElement, String patternElement);
-    }
-
     private static class NoWildcardMatcher implements LastElementMatcher {
         @Override
         public boolean match(String classElement, String patternElement) {
@@ -271,10 +281,6 @@ public class TestSelectionMatcher {
         public boolean match(String classElement, String patternElement) {
             return classElement.startsWith(patternElement) || classNameMatch(classElement, patternElement);
         }
-    }
-
-    private interface ClassNameSelector {
-        String determineTargetClassName(String fullQualifiedName);
     }
 
     private static class FullQualifiedClassNameSelector implements ClassNameSelector {

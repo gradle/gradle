@@ -108,6 +108,7 @@ public class OutputEventTransformer implements OutputEventListener {
             invokeListener(event);
         }
     }
+
     private void invokeListener(OutputEvent event) {
         synchronized (lock) {
             listener.onOutput(event);

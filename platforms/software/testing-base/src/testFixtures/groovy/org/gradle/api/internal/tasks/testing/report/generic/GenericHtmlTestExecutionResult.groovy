@@ -236,7 +236,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         @Override
         TestPathRootExecutionResult assertMetadata(LinkedHashMap<String, String> expectedMetadata) {
             def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
-            def metadataRenderedValues = html.select('.metadata td.value').collect { it.html()}
+            def metadataRenderedValues = html.select('.metadata td.value').collect { it.html() }
             def metadata = [metadataKeys, metadataRenderedValues].transpose().collectEntries { key, value -> [key, value] }
             assertThat(metadata, equalTo(expectedMetadata))
             return this

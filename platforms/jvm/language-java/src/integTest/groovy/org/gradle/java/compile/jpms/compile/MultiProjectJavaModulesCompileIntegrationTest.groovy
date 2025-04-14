@@ -51,7 +51,7 @@ class MultiProjectJavaModulesCompileIntegrationTest extends AbstractMultipleLoca
 
     @Override
     protected producingModuleInfo(String... statements) {
-        file('producer/src/main/java/module-info.java').text = "module producer { ${statements.collect { it + ';' }.join(' ') } }"
+        file('producer/src/main/java/module-info.java').text = "module producer { ${statements.collect { it + ';' }.join(' ')} }"
     }
 
     @Override

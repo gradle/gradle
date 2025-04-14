@@ -24,7 +24,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultVisualCppMetadataProviderTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def windowsRegistry = Mock(WindowsRegistry)
     def metadataProvider = new DefaultVisualCppMetadataProvider(windowsRegistry)

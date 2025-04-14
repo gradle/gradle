@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.test.fixtures.maven
 
 import org.apache.commons.lang.StringUtils

@@ -41,8 +41,10 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
     @Nullable
     private final IvyArtifactName dependencyArtifact;
 
-    public MavenDependencyDescriptor(MavenScope scope, MavenDependencyType type, ModuleComponentSelector selector,
-                                     @Nullable IvyArtifactName dependencyArtifact, List<ExcludeMetadata> excludes) {
+    public MavenDependencyDescriptor(
+        MavenScope scope, MavenDependencyType type, ModuleComponentSelector selector,
+        @Nullable IvyArtifactName dependencyArtifact, List<ExcludeMetadata> excludes
+    ) {
         this.scope = scope;
         this.selector = selector;
         this.type = type;

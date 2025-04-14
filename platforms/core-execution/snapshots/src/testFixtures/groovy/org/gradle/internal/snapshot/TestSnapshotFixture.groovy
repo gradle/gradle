@@ -74,7 +74,7 @@ trait TestSnapshotFixture {
 
     static SnapshotHierarchy buildHierarchy(CaseSensitivity caseSensitivity = CaseSensitivity.CASE_INSENSITIVE, List<FileSystemLocationSnapshot> snapshots) {
         SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(caseSensitivity)
-        snapshots.each { snapshot -> root = root.store(snapshot.absolutePath, snapshot, SnapshotHierarchy.NodeDiffListener.NOOP)}
+        snapshots.each { snapshot -> root = root.store(snapshot.absolutePath, snapshot, SnapshotHierarchy.NodeDiffListener.NOOP) }
         return root
     }
 }

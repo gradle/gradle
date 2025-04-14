@@ -21,7 +21,7 @@ class CompositeInitScriptFinderTest extends Specification {
     final InitScriptFinder target1 = Mock()
     final InitScriptFinder target2 = Mock()
     final CompositeInitScriptFinder finder = new CompositeInitScriptFinder(target1, target2)
-    
+
     def "collects up scripts from all finders"() {
         def result = []
 

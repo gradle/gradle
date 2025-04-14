@@ -164,15 +164,20 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can access settings extensions`() {
         withKotlinDslPluginIn("build-logic")
-        withFile("build-logic/src/main/kotlin/MyExtension.kt", """
+        withFile(
+            "build-logic/src/main/kotlin/MyExtension.kt", """
             interface MyExtension {
                 fun some(message: String) { println(message) }
             }
-        """)
-        withFile("build-logic/src/main/kotlin/my-plugin.settings.gradle.kts", """
+        """
+        )
+        withFile(
+            "build-logic/src/main/kotlin/my-plugin.settings.gradle.kts", """
             extensions.create<MyExtension>("my")
-        """)
-        withSettings("""
+        """
+        )
+        withSettings(
+            """
             pluginManagement {
                 includeBuild("build-logic")
             }
@@ -182,7 +187,8 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             extensions.configure<MyExtension> { some("api.configure") }
             the<MyExtension>().some("kotlin.get")
             configure<MyExtension> { some("kotlin.configure") }
-        """)
+        """
+        )
         withBuildScript("""tasks.register("noop")""")
 
         assertThat(
@@ -200,10 +206,12 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `enableSettingsPreview is available`() {
-        withSettings("""
+        withSettings(
+            """
             rootProject.name = "under-test"
             enableFeaturePreview("${FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS.name}")
-        """)
+        """
+        )
         build("help")
     }
 }

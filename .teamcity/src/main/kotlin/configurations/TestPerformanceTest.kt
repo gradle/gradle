@@ -33,57 +33,57 @@ class TestPerformanceTest(
     model: CIBuildModel,
     stage: Stage,
 ) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage, init = {
-        val os = Os.LINUX
-        val buildTypeThis = this
-        val testProject = "smallJavaMultiProject"
+    val os = Os.LINUX
+    val buildTypeThis = this
+    val testProject = "smallJavaMultiProject"
 
-        fun BuildSteps.gradleStep(tasks: List<String>) {
-            gradleWrapper {
-                name = "GRADLE_RUNNER"
-                gradleParams =
-                    (
-                        tasks +
-                            buildToolGradleParameters(isContinue = false)
+    fun BuildSteps.gradleStep(tasks: List<String>) {
+        gradleWrapper {
+            name = "GRADLE_RUNNER"
+            gradleParams =
+                (
+                    tasks +
+                        buildToolGradleParameters(isContinue = false)
                     ).joinToString(separator = " ")
-                skipConditionally()
-            }
+            skipConditionally()
         }
+    }
 
-        fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
-            gradleStep(
-                listOf(
-                    "clean",
-                    "performance:${testProject}PerformanceAdHocTest",
-                    tests.map { """--tests "$it"""" }.joinToString(" "),
-                    """--warmups 2 --runs 2 --checks none""",
-                    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
-                    "-PtestJavaVendor=${os.perfTestJavaVendor.name.lowercase()}",
-                    "-PautoDownloadAndroidStudio=true",
-                    "-PrunAndroidStudioInHeadlessMode=true",
-                    os.javaInstallationLocations(),
-                ),
-            )
-        }
+    fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
+        gradleStep(
+            listOf(
+                "clean",
+                "performance:${testProject}PerformanceAdHocTest",
+                tests.map { """--tests "$it"""" }.joinToString(" "),
+                """--warmups 2 --runs 2 --checks none""",
+                "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
+                "-PtestJavaVendor=${os.perfTestJavaVendor.name.lowercase()}",
+                "-PautoDownloadAndroidStudio=true",
+                "-PrunAndroidStudioInHeadlessMode=true",
+                os.javaInstallationLocations(),
+            ),
+        )
+    }
 
-        id("${model.projectId}_TestPerformanceTest")
-        name = "Test performance test tasks - Java8 Linux"
-        description = "Tries to run an adhoc performance test without a database connection to verify this is still working"
+    id("${model.projectId}_TestPerformanceTest")
+    name = "Test performance test tasks - Java8 Linux"
+    description = "Tries to run an adhoc performance test without a database connection to verify this is still working"
 
-        applyPerformanceTestSettings()
-        artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
+    applyPerformanceTestSettings()
+    artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
 
-        steps {
-            killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
-            adHocPerformanceTest(
-                listOf(
-                    "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
-                    "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
-                    "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
-                ),
-            )
+    steps {
+        killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
+        adHocPerformanceTest(
+            listOf(
+                "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+                "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
+                "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
+            ),
+        )
 
-            checkCleanM2AndAndroidUserHome(os)
-        }
+        checkCleanM2AndAndroidUserHome(os)
+    }
 
-        applyDefaultDependencies(model, this)
-    })
+    applyDefaultDependencies(model, this)
+})

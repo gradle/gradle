@@ -2525,7 +2525,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         then:
         def dependencies = dependenciesOnly(metadata.dependencies)
         dependencies.size() == 2
-        dependencies.every {it.selector.version == outputVersion}
+        dependencies.every { it.selector.version == outputVersion }
 
         where:
         inputVersion | outputVersion

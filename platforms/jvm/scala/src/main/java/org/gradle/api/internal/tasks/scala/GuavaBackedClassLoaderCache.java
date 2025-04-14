@@ -45,7 +45,7 @@ public class GuavaBackedClassLoaderCache<K> implements AutoCloseable {
                     if (value instanceof AutoCloseable) {
                         try {
                             ((AutoCloseable) value).close();
-                        } catch(Exception ex) {
+                        } catch (Exception ex) {
                             throw new RuntimeException("Failed to close classloader", ex);
                         }
                     }

@@ -25,6 +25,12 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class NotifyProjectBeforeEvaluatedBuildOperationType implements BuildOperationType<NotifyProjectBeforeEvaluatedBuildOperationType.Details, NotifyProjectBeforeEvaluatedBuildOperationType.Result> {
 
+    final static Result RESULT = new Result() {
+    };
+
+    private NotifyProjectBeforeEvaluatedBuildOperationType() {
+    }
+
     public interface Details {
 
         String getProjectPath();
@@ -35,12 +41,6 @@ public final class NotifyProjectBeforeEvaluatedBuildOperationType implements Bui
 
     public interface Result {
 
-    }
-
-    final static Result RESULT = new Result() {
-    };
-
-    private NotifyProjectBeforeEvaluatedBuildOperationType() {
     }
 
 }

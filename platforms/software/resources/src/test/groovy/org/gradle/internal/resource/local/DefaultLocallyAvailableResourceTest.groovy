@@ -21,7 +21,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultLocallyAvailableResourceTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "uses value from origin file"() {
         given:

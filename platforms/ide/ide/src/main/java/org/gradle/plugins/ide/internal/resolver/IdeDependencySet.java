@@ -62,6 +62,12 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
  * Allows adding and subtracting {@link Configuration}s, working in offline mode and downloading sources/javadoc.
  */
 public class IdeDependencySet {
+    private static final Spec<ComponentIdentifier> NOT_A_MODULE = new Spec<ComponentIdentifier>() {
+        @Override
+        public boolean isSatisfiedBy(ComponentIdentifier id) {
+            return !(id instanceof ModuleComponentIdentifier);
+        }
+    };
     private final DependencyHandler dependencyHandler;
     private final JavaModuleDetector javaModuleDetector;
     private final Collection<Configuration> plusConfigurations;
@@ -259,8 +265,8 @@ public class IdeDependencySet {
             String artifactFileName = artifact.getFile().getName();
             String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
             return (componentIdentifier.equals(GRADLE_API.displayName)
-                    || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
-                    || componentIdentifier.equals(LOCAL_GROOVY.displayName))
+                || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
+                || componentIdentifier.equals(LOCAL_GROOVY.displayName))
                 && artifactFileName.startsWith("groovy-");
         }
 
@@ -278,12 +284,5 @@ public class IdeDependencySet {
             }
         }
     }
-
-    private static final Spec<ComponentIdentifier> NOT_A_MODULE = new Spec<ComponentIdentifier>() {
-        @Override
-        public boolean isSatisfiedBy(ComponentIdentifier id) {
-            return !(id instanceof ModuleComponentIdentifier);
-        }
-    };
 
 }

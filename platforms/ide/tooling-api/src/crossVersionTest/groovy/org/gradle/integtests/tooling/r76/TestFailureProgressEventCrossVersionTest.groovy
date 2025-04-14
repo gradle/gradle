@@ -524,7 +524,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             if (event instanceof TestFinishEvent) {
                 TestOperationResult result = ((TestFinishEvent) event).getResult();
                 if (result instanceof TestFailureResult) {
-                    failures += ((TestFailureResult)result).failures
+                    failures += ((TestFailureResult) result).failures
                 }
             }
         }

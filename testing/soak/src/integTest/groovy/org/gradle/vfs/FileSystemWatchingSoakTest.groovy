@@ -169,7 +169,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
     }
 
     private static void waitBetweenChangesToAvoidOverflow() {
-            Thread.sleep(150)
+        Thread.sleep(150)
     }
 
     private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
@@ -204,7 +204,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             package my.domain;
 
             public class ${className} {
-                ${ (1..numberOfMethods).collect { "public void doNothing${it}() {}" }.join("\n")}
+                ${(1..numberOfMethods).collect { "public void doNothing${it}() {}" }.join("\n")}
             }
         """
     }

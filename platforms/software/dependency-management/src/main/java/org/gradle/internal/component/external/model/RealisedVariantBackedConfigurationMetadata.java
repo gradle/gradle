@@ -27,7 +27,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantBackedConfigurationMetadata {
 
     public RealisedVariantBackedConfigurationMetadata(ModuleComponentIdentifier id, ComponentVariant variant, ImmutableAttributes componentLevelAttributes, AttributesFactory attributesFactory) {
-        super(id, new ComponentAttributesAwareVariant(variant, attributesFactory, componentLevelAttributes), ((AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl)variant).getDependencyMetadata());
+        super(id, new ComponentAttributesAwareVariant(variant, attributesFactory, componentLevelAttributes), ((AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl) variant).getDependencyMetadata());
     }
 
     /**

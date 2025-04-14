@@ -88,7 +88,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         toolingApi.withConnection {
-             it.newBuild().forTasks("help").run()
+            it.newBuild().forTasks("help").run()
         }
 
         then:

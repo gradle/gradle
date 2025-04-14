@@ -251,8 +251,8 @@ task retrieve(type: Sync) {
         def missingParent = repo1.module("org", "parent")
         def parent = repo2.module("org", "parent", "1.0")
         parent.dependsOn("org", "parent_dep", "1.2")
-                .hasPackaging('pom')
-                .publish()
+            .hasPackaging('pom')
+            .publish()
 
         def parentDep = repo1.module("org", "parent_dep", "1.2").publish()
 

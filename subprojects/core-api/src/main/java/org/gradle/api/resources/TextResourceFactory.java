@@ -79,7 +79,6 @@ public interface TextResourceFactory {
      * @param archive an archive file evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @param entryPath the path to an archive entry
      * @param charset the archive entry's character encoding (e.g. {@code "utf-8"})
-     *
      * @return a text resource backed by the archive entry at the given path within the given archive
      */
     TextResource fromArchiveEntry(Object archive, String entryPath, String charset);
@@ -93,7 +92,6 @@ public interface TextResourceFactory {
      * Creates a text resource backed by the given uri.
      *
      * @param uri a URI as evaluated by {@link org.gradle.api.Project#uri(Object)}
-     *
      * @return a text resource backed by the given uri
      * @since 4.8
      */
@@ -105,10 +103,9 @@ public interface TextResourceFactory {
      * <b>NOTE:</b> This method allows insecure protocols (like HTTP) to be used. Only use this method if you're comfortable with the dangers.
      *
      * @param uri a URI as evaluated by {@link org.gradle.api.Project#uri(Object)}
-     *
      * @return a text resource backed by the given uri
-     * @since 6.0
      * @see #fromUri(Object)
+     * @since 6.0
      */
     TextResource fromInsecureUri(Object uri);
 

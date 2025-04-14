@@ -282,7 +282,7 @@ class ConcurrentSpecTest extends ConcurrentSpec {
         start {
             thread.blockUntil.unknown
         }
-        async { }
+        async {}
 
         then:
         e = thrown()

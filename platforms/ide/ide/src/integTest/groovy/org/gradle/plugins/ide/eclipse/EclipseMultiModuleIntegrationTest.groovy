@@ -28,20 +28,20 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void dealsWithDuplicatedModuleNames() {
-      /*
-      This is the multi-module project structure the integration test works with:
-      -root
-        -api
-        -shared
+        /*
+        This is the multi-module project structure the integration test works with:
+        -root
           -api
-          -model
-        -services
-          -utilities (renamed by user to 'util'
-        -util
-        -contrib
+          -shared
+            -api
+            -model
           -services
-            -util
-      */
+            -utilities (renamed by user to 'util'
+          -util
+          -contrib
+            -services
+              -util
+        */
 
         def settingsFile = file("settings.gradle")
         createDirs("api", "shared", "shared/api", "shared/model", "services", "services/utilities", "util", "contrib", "contrib/services", "contrib/services/util")

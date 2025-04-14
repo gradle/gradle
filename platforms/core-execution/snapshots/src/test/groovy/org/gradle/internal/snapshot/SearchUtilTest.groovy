@@ -25,7 +25,7 @@ class SearchUtilTest extends Specification {
         SearchUtil.binarySearch(children, searchedChild) == expectedResult
 
         where:
-        children | searchedChild
+        children                     | searchedChild
         ["a", "b", "ba", "bb", "cc"] | "b"
         ["a", "b", "ba", "bb", "cc"] | "baa"
         []                           | "baa"

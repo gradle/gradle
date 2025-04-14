@@ -61,6 +61,7 @@ public interface ComponentSelectionContext {
 
     /**
      * Adds a candidate that matched the provided selector, but was rejected because it didn't match the consumer attributes.
+     *
      * @param rejectedVersion a version rejected by attribute matching
      */
     void doesNotMatchConsumerAttributes(RejectedByAttributesVersion rejectedVersion);

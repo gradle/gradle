@@ -267,7 +267,7 @@ public abstract class SwiftCompile extends DefaultTask {
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        return ((VersionAwareCompiler)createCompiler()).getVersion();
+        return ((VersionAwareCompiler) createCompiler()).getVersion();
     }
 
     private Compiler<SwiftCompileSpec> createCompiler() {

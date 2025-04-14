@@ -69,9 +69,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private final Property<String> mainClass;
     private final ListProperty<String> jvmArguments;
     private final ClientExecHandleBuilder execHandleBuilder;
-    private ConfigurableFileCollection classpath;
     private final JavaForkOptionsInternal javaOptions;
     private final ModularitySpec modularity;
+    private ConfigurableFileCollection classpath;
 
     public JavaExecHandleBuilder(
         FileCollectionFactory fileCollectionFactory,
@@ -92,6 +92,14 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         this.modularity = new DefaultModularitySpec(objectFactory);
         this.execHandleBuilder = execHandleBuilder;
         setExecutable(javaOptions.getExecutable());
+    }
+
+    private static Manifest toManifest(FileCollection classpath) {
+        Manifest manifest = new Manifest();
+        Attributes attributes = manifest.getMainAttributes();
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        attributes.putValue("Class-Path", classpath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
+        return manifest;
     }
 
     public List<String> getAllJvmArgs() {
@@ -256,7 +264,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         javaOptions.debugOptions(action);
     }
 
-
     @Override
     public String getExecutable() {
         return javaOptions.getExecutable();
@@ -340,14 +347,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return execHandleBuilder.getArgumentProviders();
     }
 
-    public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
-        // we need to create a new file collection container to avoid cycles. See: https://github.com/gradle/gradle/issues/8755
-        ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
-        newClasspath.setFrom(classpath);
-        this.classpath = newClasspath;
-        return this;
-    }
-
     public ModularitySpec getModularity() {
         return modularity;
     }
@@ -359,6 +358,14 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     public FileCollection getClasspath() {
         return classpath;
+    }
+
+    public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
+        // we need to create a new file collection container to avoid cycles. See: https://github.com/gradle/gradle/issues/8755
+        ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
+        newClasspath.setFrom(classpath);
+        this.classpath = newClasspath;
+        return this;
     }
 
     public List<String> getAllArguments() {
@@ -375,12 +382,12 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return javaOptions.getJvmArgumentProviders();
     }
 
-    public void setStandardInput(InputStream inputStream) {
-        execHandleBuilder.setStandardInput(inputStream);
-    }
-
     public InputStream getStandardInput() {
         return execHandleBuilder.getStandardInput();
+    }
+
+    public void setStandardInput(InputStream inputStream) {
+        execHandleBuilder.setStandardInput(inputStream);
     }
 
     public OutputStream getStandardOutput() {
@@ -449,14 +456,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
         return pathingJarFile;
-    }
-
-    private static Manifest toManifest(FileCollection classpath) {
-        Manifest manifest = new Manifest();
-        Attributes attributes = manifest.getMainAttributes();
-        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        attributes.putValue("Class-Path", classpath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
-        return manifest;
     }
 
     public JavaExecHandleBuilder redirectErrorStream() {

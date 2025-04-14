@@ -50,8 +50,8 @@ class StackTraceFilterTest extends Specification {
 
     def "filters stack trace in invocation order (bottom to top)"() {
         trace = [
-                new StackTraceElement("ClassName", "methodName", "FileName.java", 1),
-                new StackTraceElement("ClassName", "methodName", "FileName.java", 2)
+            new StackTraceElement("ClassName", "methodName", "FileName.java", 1),
+            new StackTraceElement("ClassName", "methodName", "FileName.java", 2)
         ]
 
         when:

@@ -133,13 +133,13 @@ class ClosureBackedRuleActionTest extends Specification {
 
     def "equality"() {
         given:
-        def c = {String foo -> }
+        def c = { String foo -> }
         def a1 = action(c)
 
         expect:
         Matchers.strictlyEquals(a1, action(c))
         a1 == action(c)
-        a1 != action({String bar -> })
+        a1 != action({ String bar -> })
         a1 != new ClosureBackedRuleAction(Integer.class, { Integer val -> })
     }
 

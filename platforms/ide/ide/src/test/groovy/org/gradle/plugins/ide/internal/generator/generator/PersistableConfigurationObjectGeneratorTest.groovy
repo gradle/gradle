@@ -23,6 +23,7 @@ class PersistableConfigurationObjectGeneratorTest extends Specification {
         PersistableConfigurationObject create() {
             return object
         }
+
         void configure(PersistableConfigurationObject object) {
         }
     }

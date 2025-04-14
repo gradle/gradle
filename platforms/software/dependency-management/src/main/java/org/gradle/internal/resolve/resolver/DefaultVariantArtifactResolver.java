@@ -46,6 +46,15 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         this.resolvedVariantCache = resolvedVariantCache;
     }
 
+    private static ImmutableCapabilities withImplicitCapability(ImmutableCapabilities capabilities, ComponentArtifactResolveMetadata component) {
+        // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
+        if (capabilities.asSet().isEmpty()) {
+            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(component.getModuleVersionId()));
+        } else {
+            return capabilities;
+        }
+    }
+
     @Override
     public ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts) {
         VariantResolveMetadata.Identifier identifier = artifacts.size() == 1
@@ -128,15 +137,6 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             artifacts,
             new DefaultComponentArtifactResolver(component, artifactResolver)
         );
-    }
-
-    private static ImmutableCapabilities withImplicitCapability(ImmutableCapabilities capabilities, ComponentArtifactResolveMetadata component) {
-        // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
-        if (capabilities.asSet().isEmpty()) {
-            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(component.getModuleVersionId()));
-        } else {
-            return capabilities;
-        }
     }
 
     /**

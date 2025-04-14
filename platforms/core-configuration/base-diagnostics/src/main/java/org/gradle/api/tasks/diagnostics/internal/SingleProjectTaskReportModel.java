@@ -26,6 +26,12 @@ import java.util.Set;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
 
+    private final SetMultimap<String, TaskDetails> groups;
+
+    private SingleProjectTaskReportModel(SetMultimap<String, TaskDetails> groups) {
+        this.groups = groups;
+    }
+
     public static SingleProjectTaskReportModel forTasks(Collection<? extends Task> tasks, TaskDetailsFactory factory) {
         final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
         for (Task task : tasks) {
@@ -33,12 +39,6 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             groups.put(group, factory.create(task));
         }
         return new SingleProjectTaskReportModel(groups);
-    }
-
-    private final SetMultimap<String, TaskDetails> groups;
-
-    private SingleProjectTaskReportModel(SetMultimap<String, TaskDetails> groups) {
-        this.groups = groups;
     }
 
     @Override

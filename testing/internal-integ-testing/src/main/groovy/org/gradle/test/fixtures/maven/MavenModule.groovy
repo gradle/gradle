@@ -95,7 +95,7 @@ interface MavenModule extends Module {
     /**
      * Define a variant with attributes. Variants are only published when using {@link #withModuleMetadata()}.
      */
-    MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value= VariantMetadataSpec, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration)
+    MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> variantConfiguration)
 
     /**
      * Clears all predefined variants

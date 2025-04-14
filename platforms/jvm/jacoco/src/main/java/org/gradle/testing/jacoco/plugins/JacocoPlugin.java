@@ -81,25 +81,6 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         this.instantiator = instantiator;
     }
 
-    @Override
-    public void apply(Project project) {
-        project.getPluginManager().apply(ReportingBasePlugin.class);
-        this.project = (ProjectInternal) project;
-        addJacocoConfigurations();
-        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, this.project.getServices().get(FileOperations.class));
-        JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
-        extension.setToolVersion(DEFAULT_JACOCO_VERSION);
-        final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
-
-        configureAgentDependencies(agent, extension);
-        configureTaskClasspathDefaults(extension);
-        applyToDefaultTasks(extension);
-        configureJacocoReportsDefaults(extension);
-        addDefaultReportAndCoverageVerificationTasks(extension);
-        configureCoverageDataElementsVariants(project);
-    }
-
     private static void configureCoverageDataElementsVariants(Project project) {
         project.getPlugins().withType(JvmTestSuitePlugin.class, p -> {
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
@@ -146,6 +127,25 @@ public abstract class JacocoPlugin implements Plugin<Project> {
                 attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
             });
         });
+    }
+
+    @Override
+    public void apply(Project project) {
+        project.getPluginManager().apply(ReportingBasePlugin.class);
+        this.project = (ProjectInternal) project;
+        addJacocoConfigurations();
+        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, this.project.getServices().get(FileOperations.class));
+        JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
+        extension.setToolVersion(DEFAULT_JACOCO_VERSION);
+        final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
+        extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
+
+        configureAgentDependencies(agent, extension);
+        configureTaskClasspathDefaults(extension);
+        applyToDefaultTasks(extension);
+        configureJacocoReportsDefaults(extension);
+        addDefaultReportAndCoverageVerificationTasks(extension);
+        configureCoverageDataElementsVariants(project);
     }
 
     /**
@@ -207,9 +207,9 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         DirectoryProperty reportsDir = extension.getReportsDirectory();
         reportTask.getReports().all(action(report -> {
             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(reportTask.getName() + "/" + report.getName()));
+                ((DirectoryReport) report).getOutputLocation().convention(reportsDir.dir(reportTask.getName() + "/" + report.getName()));
             } else {
-                ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()));
+                ((SingleFileReport) report).getOutputLocation().convention(reportsDir.file(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()));
             }
         }));
     }
@@ -249,9 +249,9 @@ public abstract class JacocoPlugin implements Plugin<Project> {
                     // uses the `reportTask`.
                     // https://github.com/gradle/gradle/issues/6343
                     if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                        ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(testTaskName + "/" + report.getName()));
+                        ((DirectoryReport) report).getOutputLocation().convention(reportsDir.dir(testTaskName + "/" + report.getName()));
                     } else {
-                        ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(testTaskName + "/" + reportTask.getName() + "." + report.getName()));
+                        ((SingleFileReport) report).getOutputLocation().convention(reportsDir.file(testTaskName + "/" + reportTask.getName() + "." + report.getName()));
                     }
                 }));
             });

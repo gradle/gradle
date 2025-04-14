@@ -82,6 +82,10 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         }));
     }
 
+    public static String getUUID(File projectFile) {
+        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase(Locale.ROOT) + "}";
+    }
+
     @Override
     public String getComponentName() {
         return componentName;
@@ -99,10 +103,6 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
 
     public void addSourceFile(File sourceFile) {
         additionalFiles.add(sourceFile);
-    }
-
-    public static String getUUID(File projectFile) {
-        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase(Locale.ROOT) + "}";
     }
 
     public ConfigurableFileCollection getSourceFiles() {

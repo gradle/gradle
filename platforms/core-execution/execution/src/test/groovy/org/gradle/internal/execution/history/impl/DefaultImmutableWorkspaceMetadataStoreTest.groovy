@@ -38,7 +38,7 @@ class DefaultImmutableWorkspaceMetadataStoreTest extends Specification {
     def store = new DefaultImmutableWorkspaceMetadataStore()
 
     def "can serialize and deserialize metadata"() {
-        def outputHashes = ImmutableListMultimap.<String, HashCode>builder()
+        def outputHashes = ImmutableListMultimap.<String, HashCode> builder()
             .putAll("out1", hashCodeFrom(0x1234), hashCodeFrom(0x2345))
             .putAll("out2", hashCodeFrom(0x3456))
             .build()

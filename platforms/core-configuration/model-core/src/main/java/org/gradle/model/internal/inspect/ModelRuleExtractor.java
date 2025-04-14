@@ -76,19 +76,18 @@ import java.util.concurrent.ExecutionException;
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
 public class ModelRuleExtractor {
-    private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
-            .weakKeys()
-            .build(new CacheLoader<Class<?>, CachedRuleSource>() {
-                @Override
-                public CachedRuleSource load(Class<?> source) {
-                    return doExtract(source);
-                }
-            });
-
     private final Iterable<MethodModelRuleExtractor> handlers;
     private final ManagedProxyFactory proxyFactory;
     private final ModelSchemaStore schemaStore;
     private final StructBindingsStore structBindingsStore;
+    private final LoadingCache<Class<?>, CachedRuleSource> cache = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<?>, CachedRuleSource>() {
+            @Override
+            public CachedRuleSource load(Class<?> source) {
+                return doExtract(source);
+            }
+        });
 
     public ModelRuleExtractor(Iterable<MethodModelRuleExtractor> handlers, ManagedProxyFactory proxyFactory, ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
         this.handlers = handlers;
@@ -283,6 +282,10 @@ public class ModelRuleExtractor {
         }
     }
 
+    interface CachedRuleSource {
+        <T> ExtractedRuleSource<T> newInstance(Class<T> source);
+    }
+
     private static class ConcreteRuleSourceFactory<T> implements Factory<T> {
         // Reference class via `ModelType` to avoid strong reference
         private final ModelType<T> type;
@@ -336,10 +339,6 @@ public class ModelRuleExtractor {
         public T create() {
             return proxyFactory.createProxy(this, schema, bindings);
         }
-    }
-
-    interface CachedRuleSource {
-        <T> ExtractedRuleSource<T> newInstance(Class<T> source);
     }
 
     private static class StatelessRuleSource implements CachedRuleSource {
@@ -600,7 +599,7 @@ public class ModelRuleExtractor {
         @Override
         protected ModelPath calculateTarget(MutableModelNode target) {
             if (targetProperty != null) {
-                return ((MutableModelNode)values.get(targetProperty.getName())).getPath();
+                return ((MutableModelNode) values.get(targetProperty.getName())).getPath();
             }
             return target.getPath();
         }

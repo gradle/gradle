@@ -20,8 +20,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;

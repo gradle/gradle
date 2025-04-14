@@ -79,9 +79,9 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         if (resolveOptimizations.mayHaveForcedPlatforms()) {
             List<T> allowed = candidates
-                    .stream()
-                    .filter(SelectorStateResolverResults::isVersionAllowedByPlatform)
-                    .collect(Collectors.toList());
+                .stream()
+                .filter(SelectorStateResolverResults::isVersionAllowedByPlatform)
+                .collect(Collectors.toList());
             if (!allowed.isEmpty()) {
                 if (allowed.size() == 1) {
                     return allowed.get(0);
@@ -178,7 +178,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
     /**
      * Given the result of resolving any 'prefer' constraints, see if these can be used to further refine the results
-     *  of resolving the 'require' constraints.
+     * of resolving the 'require' constraints.
      */
     private void integratePreferResults(ModuleSelectors<? extends ResolvableSelectorState> selectors, SelectorStateResolverResults results, TreeSet<ComponentIdResolveResult> preferResults) {
 

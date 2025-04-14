@@ -28,8 +28,8 @@ import java.io.File;
 @ServiceScope(Scope.Build.class)
 public class MavenPublishers {
     private final BuildCommencedTimeProvider timeProvider;
-    private RepositoryTransportFactory repositoryTransportFactory;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
+    private RepositoryTransportFactory repositoryTransportFactory;
 
     public MavenPublishers(BuildCommencedTimeProvider timeProvider, RepositoryTransportFactory repositoryTransportFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.timeProvider = timeProvider;

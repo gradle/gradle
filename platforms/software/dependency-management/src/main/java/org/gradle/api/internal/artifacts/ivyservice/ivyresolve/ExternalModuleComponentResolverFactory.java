@@ -125,6 +125,22 @@ public class ExternalModuleComponentResolverFactory {
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
+    private static ModuleComponentRepository<ExternalModuleComponentGraphResolveState> filterRepository(
+        ResolutionAwareRepository repository,
+        ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository
+    ) {
+        Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
+        if (repository instanceof ContentFilteringRepository) {
+            filter = ((ContentFilteringRepository) repository).getContentFilter();
+        }
+
+        if (filter == Actions.doNothing()) {
+            return moduleComponentRepository;
+        }
+
+        return new FilteredModuleComponentRepository(moduleComponentRepository, filter);
+    }
+
     /**
      * Creates component resolvers for the given repositories.
      */
@@ -175,22 +191,6 @@ public class ExternalModuleComponentResolverFactory {
         }
 
         return moduleResolver;
-    }
-
-    private static ModuleComponentRepository<ExternalModuleComponentGraphResolveState> filterRepository(
-        ResolutionAwareRepository repository,
-        ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository
-    ) {
-        Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
-        if (repository instanceof ContentFilteringRepository) {
-            filter = ((ContentFilteringRepository) repository).getContentFilter();
-        }
-
-        if (filter == Actions.doNothing()) {
-            return moduleComponentRepository;
-        }
-
-        return new FilteredModuleComponentRepository(moduleComponentRepository, filter);
     }
 
     private ModuleComponentRepository<ExternalModuleComponentGraphResolveState> maybeApplyDependencyVerification(

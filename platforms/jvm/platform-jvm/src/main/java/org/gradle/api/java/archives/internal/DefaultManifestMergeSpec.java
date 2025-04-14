@@ -38,9 +38,20 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
-    List<Object> mergePaths = new ArrayList<Object>();
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
+    List<Object> mergePaths = new ArrayList<Object>();
     private String contentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
+
+    private static String resolveValueToString(Object value) {
+        if (value == null) {
+            return null;
+        } else if (value instanceof Provider) {
+            Object providedValue = ((Provider<?>) value).getOrNull();
+            return resolveValueToString(providedValue);
+        } else {
+            return value.toString();
+        }
+    }
 
     @Override
     public String getContentCharset() {
@@ -93,8 +104,8 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         Set<String> allSections = Sets.union(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
         for (String section : allSections) {
             mergeSection(section, mergedManifest,
-                    GUtil.getOrDefault(baseManifest.getSections().get(section), DefaultAttributes::new),
-                    GUtil.getOrDefault(toMergeManifest.getSections().get(section), DefaultAttributes::new));
+                GUtil.getOrDefault(baseManifest.getSections().get(section), DefaultAttributes::new),
+                GUtil.getOrDefault(toMergeManifest.getSections().get(section), DefaultAttributes::new));
         }
         return mergedManifest;
     }
@@ -125,17 +136,6 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         String mergeValueString = resolveValueToString(mergeValue);
         String value = mergeValueString == null ? baseValueString : mergeValueString;
         return new DefaultManifestMergeDetails(section, key, baseValueString, mergeValueString, value);
-    }
-
-    private static String resolveValueToString(Object value) {
-        if (value == null) {
-            return null;
-        } else if (value instanceof Provider) {
-            Object providedValue = ((Provider<?>) value).getOrNull();
-            return resolveValueToString(providedValue);
-        } else {
-            return value.toString();
-        }
     }
 
     private void addMergeDetailToManifest(String section, Manifest mergedManifest, DefaultManifestMergeDetails mergeDetails) {

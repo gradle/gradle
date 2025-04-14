@@ -42,6 +42,12 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  */
 @NullMarked
 public class LegacyTestReportGenerator implements TestReportGenerator {
+    private final Supplier<TestResultsProvider> provider;
+
+    public LegacyTestReportGenerator(FileCollection resultDirs) {
+        this.provider = createAggregateProvider(resultDirs);
+    }
+
     private static Supplier<TestResultsProvider> createAggregateProvider(FileCollection resultDirs) {
         if (resultDirs.getFiles().size() == 1) {
             File singleFile = resultDirs.getSingleFile();
@@ -58,12 +64,6 @@ public class LegacyTestReportGenerator implements TestReportGenerator {
                 }
             };
         }
-    }
-
-    private final Supplier<TestResultsProvider> provider;
-
-    public LegacyTestReportGenerator(FileCollection resultDirs) {
-        this.provider = createAggregateProvider(resultDirs);
     }
 
     @Override

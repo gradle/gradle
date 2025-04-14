@@ -88,9 +88,9 @@ abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractTes
             .assertTestFailed('a test that renames itself', containsString("epic"))
         assertTestSkippedOrPassed(junit3TestClass, 'testRenamesItself')
         result.testClass('org.gradle.Junit4Test')
-                .assertTestCount(2, 0, 0)
-                .assertTestsExecuted('ok')
-                .assertTestPassed('ok')
-                .assertTestsSkipped('broken')
+            .assertTestCount(2, 0, 0)
+            .assertTestsExecuted('ok')
+            .assertTestPassed('ok')
+            .assertTestsSkipped('broken')
     }
 }

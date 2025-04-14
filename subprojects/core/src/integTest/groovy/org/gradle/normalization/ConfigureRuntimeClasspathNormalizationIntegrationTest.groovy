@@ -579,10 +579,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
 
         where:
-        enableFilterFlag        | normalizationRule                                                         | description
-        PROPERTIES_FILTER_FLAG  | "properties('**/foo.properties') { ignoreProperty '${ALSO_IGNORE_ME}' }"  | 'properties rule'
-        META_INF_FILTER_FLAG    | "metaInf { ignoreAttribute '${IMPLEMENTATION_VERSION}' }"                 | 'meta-inf rule'
-        FILE_FILTER_FLAG        | "ignore '**/ignored.txt'"                                                 | 'ignore rule'
+        enableFilterFlag       | normalizationRule                                                        | description
+        PROPERTIES_FILTER_FLAG | "properties('**/foo.properties') { ignoreProperty '${ALSO_IGNORE_ME}' }" | 'properties rule'
+        META_INF_FILTER_FLAG   | "metaInf { ignoreAttribute '${IMPLEMENTATION_VERSION}' }"                | 'meta-inf rule'
+        FILE_FILTER_FLAG       | "ignore '**/ignored.txt'"                                                | 'ignore rule'
     }
 
     def "treats '#extension' as archive"() {
@@ -917,7 +917,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             changed()
         }
 
-        void writeRaw(byte[]... content) {
+        void writeRaw(byte[] ... content) {
             def stream = backingFile.newOutputStream()
             try {
                 content.each { stream.write(it) }
@@ -959,10 +959,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             def manifest = new Manifest()
             def mainAttributes = manifest.getMainAttributes()
             mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
-            attributes.each {name, value ->
+            attributes.each { name, value ->
                 mainAttributes.put(new Attributes.Name(name), value)
             }
-            backingFile.withOutputStream {os ->
+            backingFile.withOutputStream { os ->
                 manifest.write(os)
             }
             return this
@@ -988,7 +988,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     class PropertiesResource extends TestResource {
         String comment = ""
 
-        PropertiesResource(TestFile backingFile, Map<String, String> initialProps, Closure finalizedBy={}) {
+        PropertiesResource(TestFile backingFile, Map<String, String> initialProps, Closure finalizedBy = {}) {
             super(backingFile, finalizedBy)
             withProperties() { Properties props ->
                 props.putAll(initialProps)
@@ -1010,7 +1010,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
 
         PropertiesResource setContent(String content) {
             // Preserve the order of the properties in the map when writing the properties file
-            backingFile.withWriter {writer ->
+            backingFile.withWriter { writer ->
                 writer.write("# ${comment}\n")
                 writer.write(content)
             }

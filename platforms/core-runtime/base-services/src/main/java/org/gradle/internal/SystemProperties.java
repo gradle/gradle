@@ -30,6 +30,8 @@ import java.util.Set;
  */
 public class SystemProperties {
     private static final Set<String> STANDARD_PROPERTIES;
+    private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = Collections.singleton("java.runtime.version");
+    private static final SystemProperties INSTANCE = new SystemProperties();
 
     static {
         Set<String> standardProperties = new HashSet<String>();
@@ -64,15 +66,11 @@ public class SystemProperties {
         STANDARD_PROPERTIES = Collections.unmodifiableSet(standardProperties);
     }
 
-    private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = Collections.singleton("java.runtime.version");
-
-    private static final SystemProperties INSTANCE = new SystemProperties();
+    private SystemProperties() {
+    }
 
     public static SystemProperties getInstance() {
         return INSTANCE;
-    }
-
-    private SystemProperties() {
     }
 
     public String getLineSeparator() {

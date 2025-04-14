@@ -88,6 +88,29 @@ public class CompileTransaction {
         this.deleter = deleter;
     }
 
+    private static void rollbackOverwrittenFiles(ApiCompilerResult result) {
+        result.getBackupClassFiles().forEach((original, backup) -> moveFile(new File(backup), new File(original)));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Restoring overwritten files: {}", result.getBackupClassFiles().keySet().stream().sorted().collect(Collectors.toList()));
+        }
+    }
+
+    private static void rollbackStashedFiles(List<StashedFile> stashedFiles) {
+        stashedFiles.forEach(StashedFile::unstash);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Restoring stashed files: {}", stashedFiles.stream().map(f -> f.sourceFile.getAbsolutePath()).sorted().collect(Collectors.toList()));
+        }
+    }
+
+    private static void moveFile(File sourceFile, File destinationFile) {
+        try {
+            destinationFile.getParentFile().mkdirs();
+            Files.move(sourceFile.toPath(), destinationFile.toPath(), REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     /**
      * Executes the function that is wrapped in the transaction. Function accepts a work result,
      * that has a result of a stash operation. If some files were stashed, then work will be marked as "did work".
@@ -96,7 +119,7 @@ public class CompileTransaction {
      * 1. At start create empty temporary directories or make sure they are empty <br>
      * 2. Stash all files that should be deleted from compiler destination directories to a temporary directories <br>
      * 3. a. In case of a success do nothing <br>
-     *    b. In case of a failure delete generated files and restore stashed files <br>
+     * b. In case of a failure delete generated files and restore stashed files <br>
      */
     public <T> T execute(Function<WorkResult, T> function) {
         ensureEmptyDirectoriesBeforeExecution();
@@ -246,29 +269,6 @@ public class CompileTransaction {
         return Stream.of(spec.getDestinationDir(), spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getCompileOptions().getHeaderOutputDirectory())
             .filter(Objects::nonNull)
             .collect(ImmutableSet.toImmutableSet());
-    }
-
-    private static void rollbackOverwrittenFiles(ApiCompilerResult result) {
-        result.getBackupClassFiles().forEach((original, backup) -> moveFile(new File(backup), new File(original)));
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Restoring overwritten files: {}", result.getBackupClassFiles().keySet().stream().sorted().collect(Collectors.toList()));
-        }
-    }
-
-    private static void rollbackStashedFiles(List<StashedFile> stashedFiles) {
-        stashedFiles.forEach(StashedFile::unstash);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Restoring stashed files: {}", stashedFiles.stream().map(f -> f.sourceFile.getAbsolutePath()).sorted().collect(Collectors.toList()));
-        }
-    }
-
-    private static void moveFile(File sourceFile, File destinationFile) {
-        try {
-            destinationFile.getParentFile().mkdirs();
-            Files.move(sourceFile.toPath(), destinationFile.toPath(), REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     private static class StashedFile {

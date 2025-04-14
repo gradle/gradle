@@ -91,18 +91,18 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         protected void execute(ModelRuleInvoker<?> invoker, final T binary, List<ModelView<?>> inputs) {
             NamedEntityInstantiator<Task> taskFactory = Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0), TASK_FACTORY));
             ModelMap<Task> cast = DomainObjectCollectionBackedModelMap.wrap(
-                    "tasks",
-                    Task.class,
-                    binary.getTasks(),
-                    taskFactory,
-                    Named.Namer.INSTANCE,
-                    new Action<Task>() {
-                        @Override
-                        public void execute(Task task) {
-                            binary.getTasks().add(task);
-                            binary.builtBy(task);
-                        }
-                    });
+                "tasks",
+                Task.class,
+                binary.getTasks(),
+                taskFactory,
+                Named.Namer.INSTANCE,
+                new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        binary.getTasks().add(task);
+                        binary.builtBy(task);
+                    }
+                });
 
             List<ModelView<?>> inputsWithBinary = new ArrayList<ModelView<?>>(inputs.size());
             inputsWithBinary.addAll(inputs.subList(1, inputs.size()));
@@ -112,7 +112,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
     }
 
-    private static class ExtractedBinaryTasksRule<T extends BinarySpec>  extends AbstractExtractedModelRule {
+    private static class ExtractedBinaryTasksRule<T extends BinarySpec> extends AbstractExtractedModelRule {
         private final ModelType<T> binaryType;
 
         public ExtractedBinaryTasksRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<T> binaryType) {
@@ -126,14 +126,14 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
             final BinaryTaskRule<T> binaryTaskRule = new BinaryTaskRule<T>(binaryType, ruleDefinition);
             final ModelAction binaryTaskAction = context.contextualize(binaryTaskRule);
             context.getRegistry().configure(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(
-                    BINARIES_CONTAINER,
-                    ruleDefinition.getDescriptor(),
-                    new Action<MutableModelNode>() {
-                        @Override
-                        public void execute(MutableModelNode modelNode) {
-                            modelNode.applyTo(allLinks(), ModelActionRole.Finalize, binaryTaskAction);
-                        }
+                BINARIES_CONTAINER,
+                ruleDefinition.getDescriptor(),
+                new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode modelNode) {
+                        modelNode.applyTo(allLinks(), ModelActionRole.Finalize, binaryTaskAction);
                     }
+                }
             ));
         }
 

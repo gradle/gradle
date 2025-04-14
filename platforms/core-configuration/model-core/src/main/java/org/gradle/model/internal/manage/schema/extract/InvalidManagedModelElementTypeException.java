@@ -25,6 +25,18 @@ import java.util.LinkedList;
 @Contextual
 public class InvalidManagedModelElementTypeException extends RuntimeException {
 
+    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext) {
+        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext), null);
+    }
+
+    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message) {
+        this(extractionContext, message, null);
+    }
+
+    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message, Throwable throwable) {
+        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext, message), throwable);
+    }
+
     private static void createPathString(DefaultModelSchemaExtractionContext<?> extractionContext, StringBuilder out) {
         StringBuilder prefix = new StringBuilder("  ");
 
@@ -75,18 +87,6 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
         }
 
         return out.toString();
-    }
-
-    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext) {
-        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext), null);
-    }
-
-    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message) {
-        this(extractionContext, message, null);
-    }
-
-    public InvalidManagedModelElementTypeException(ModelSchemaExtractionContext<?> extractionContext, String message, Throwable throwable) {
-        super(getMessage((DefaultModelSchemaExtractionContext<?>) extractionContext, message), throwable);
     }
 
 }

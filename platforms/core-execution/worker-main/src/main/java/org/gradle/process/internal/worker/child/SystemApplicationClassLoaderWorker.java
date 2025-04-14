@@ -76,6 +76,21 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         this.configInputStream = configInputStream;
     }
 
+    private static ServiceRegistry createBasicWorkerServices(ServiceRegistry nativeServices, ServiceRegistry loggingServiceRegistry) {
+        return ServiceRegistryBuilder.builder()
+            .displayName("basic worker services")
+            .parent(nativeServices)
+            .parent(loggingServiceRegistry)
+            .provider(new ServiceRegistrationProvider() {
+                @SuppressWarnings("unused")
+                void configure(ServiceRegistration registration) {
+                    registration.add(ExecutorFactory.class, new DefaultExecutorFactory());
+                }
+            })
+            .provider(new MessagingServices())
+            .build();
+    }
+
     @Override
     public Void call() throws Exception {
         if (System.getProperty("org.gradle.worker.test.stuck") != null) {
@@ -138,29 +153,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return new File(workingDirectory, "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt");
     }
 
-    private static class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
-        private final File errorLog;
-
-        private PrintUnrecoverableErrorToFileHandler(File errorLog) {
-            this.errorLog = errorLog;
-        }
-
-        @Override
-        public void execute(Throwable throwable) {
-            try {
-                final PrintStream ps = new PrintStream(errorLog);
-                try {
-                    ps.println("Encountered unrecoverable error:");
-                    throwable.printStackTrace(ps);
-                } finally {
-                    ps.close();
-                }
-            } catch (FileNotFoundException e) {
-                // ignore this, we won't be able to get any logs
-            }
-        }
-    }
-
     private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection, WorkerLogEventListener workerLogEventListener) {
         connection.useParameterSerializers(WorkerLoggingSerializer.create());
         WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
@@ -185,22 +177,36 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return loggingManagerInternal;
     }
 
-    private static ServiceRegistry createBasicWorkerServices(ServiceRegistry nativeServices, ServiceRegistry loggingServiceRegistry) {
-        return ServiceRegistryBuilder.builder()
-            .displayName("basic worker services")
-            .parent(nativeServices)
-            .parent(loggingServiceRegistry)
-            .provider(new ServiceRegistrationProvider() {
-                @SuppressWarnings("unused")
-                void configure(ServiceRegistration registration) {
-                    registration.add(ExecutorFactory.class, new DefaultExecutorFactory());
+    private static class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
+        private final File errorLog;
+
+        private PrintUnrecoverableErrorToFileHandler(File errorLog) {
+            this.errorLog = errorLog;
+        }
+
+        @Override
+        public void execute(Throwable throwable) {
+            try {
+                final PrintStream ps = new PrintStream(errorLog);
+                try {
+                    ps.println("Encountered unrecoverable error:");
+                    throwable.printStackTrace(ps);
+                } finally {
+                    ps.close();
                 }
-            })
-            .provider(new MessagingServices())
-            .build();
+            } catch (FileNotFoundException e) {
+                // ignore this, we won't be able to get any logs
+            }
+        }
     }
 
     private static class WorkerServices implements ServiceRegistrationProvider {
+
+        private final File gradleUserHomeDir;
+
+        public WorkerServices(File gradleUserHomeDir) {
+            this.gradleUserHomeDir = gradleUserHomeDir;
+        }
 
         public static CloseableServiceRegistry create(ServiceRegistry parent, File gradleUserHomeDir) {
             return ServiceRegistryBuilder.builder()
@@ -208,12 +214,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 .parent(parent)
                 .provider(new WorkerServices(gradleUserHomeDir))
                 .build();
-        }
-
-        private final File gradleUserHomeDir;
-
-        public WorkerServices(File gradleUserHomeDir) {
-            this.gradleUserHomeDir = gradleUserHomeDir;
         }
 
         @Provides

@@ -89,6 +89,12 @@ public class StreamByteBuffer {
         return Math.min(Math.max(value, min), max);
     }
 
+    public static StreamByteBuffer of(List<byte[]> listOfByteArrays) {
+        StreamByteBuffer buffer = new StreamByteBuffer();
+        buffer.addChunks(listOfByteArrays);
+        return buffer;
+    }
+
     public OutputStream getOutputStream() {
         return output;
     }
@@ -170,8 +176,8 @@ public class StreamByteBuffer {
 
     private CharBuffer readAsCharBuffer(Charset charset) throws CharacterCodingException {
         CharsetDecoder decoder = charset.newDecoder().onMalformedInput(
-                CodingErrorAction.REPLACE).onUnmappableCharacter(
-                CodingErrorAction.REPLACE);
+            CodingErrorAction.REPLACE).onUnmappableCharacter(
+            CodingErrorAction.REPLACE);
         CharBuffer charbuffer = CharBuffer.allocate(totalBytesUnread());
         ByteBuffer buf = null;
         boolean wasUnderflow = false;
@@ -281,12 +287,6 @@ public class StreamByteBuffer {
         return bytesUnread;
     }
 
-    public static StreamByteBuffer of(List<byte[]> listOfByteArrays) {
-        StreamByteBuffer buffer = new StreamByteBuffer();
-        buffer.addChunks(listOfByteArrays);
-        return buffer;
-    }
-
     private void addChunks(List<byte[]> listOfByteArrays) {
         for (byte[] buf : listOfByteArrays) {
             addChunk(new StreamByteBufferChunk(buf));
@@ -296,6 +296,13 @@ public class StreamByteBuffer {
     private void addChunk(StreamByteBufferChunk chunk) {
         chunks.add(chunk);
         totalBytesUnreadInList += chunk.bytesUnread();
+    }
+
+    public void clear() {
+        chunks.clear();
+        currentReadChunk = null;
+        totalBytesUnreadInList = 0;
+        currentWriteChunk.clear();
     }
 
     static class StreamByteBufferChunk {
@@ -382,7 +389,7 @@ public class StreamByteBuffer {
 
         public int readFrom(InputStream inputStream, int len) throws IOException {
             int readBytes = inputStream.read(buffer, used, len);
-            if(readBytes > 0) {
+            if (readBytes > 0) {
                 used += readBytes;
             }
             return readBytes;
@@ -416,7 +423,7 @@ public class StreamByteBuffer {
             }
 
             if ((off < 0) || (off > b.length) || (len < 0)
-                    || ((off + len) > b.length) || ((off + len) < 0)) {
+                || ((off + len) > b.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             }
 
@@ -473,7 +480,7 @@ public class StreamByteBuffer {
             }
 
             if ((off < 0) || (off > b.length) || (len < 0)
-                    || ((off + len) > b.length) || ((off + len) < 0)) {
+                || ((off + len) > b.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             }
 
@@ -515,12 +522,5 @@ public class StreamByteBuffer {
             }
             return null;
         }
-    }
-
-    public void clear() {
-        chunks.clear();
-        currentReadChunk = null;
-        totalBytesUnreadInList = 0;
-        currentWriteChunk.clear();
     }
 }

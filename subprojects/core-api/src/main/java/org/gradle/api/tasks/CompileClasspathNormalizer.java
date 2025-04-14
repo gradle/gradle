@@ -25,7 +25,6 @@ package org.gradle.api.tasks;
  * and ignores any non-class resource.
  *
  * @see org.gradle.api.tasks.CompileClasspath
- *
  * @since 4.3
  */
 public interface CompileClasspathNormalizer extends FileNormalizer {

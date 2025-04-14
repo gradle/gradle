@@ -62,6 +62,20 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         this.cachingState = cachingState;
     }
 
+    private static byte @Nullable [] getClassLoaderHashBytesOrNull(ImplementationSnapshot implementation) {
+        HashCode hash = implementation.getClassLoaderHash();
+        return hash == null ? null : hash.toByteArray();
+    }
+
+    private static <K, V, U> Collector<Map.Entry<K, V>, ?, LinkedHashMap<K, U>> toLinkedHashMap(Function<? super V, ? extends U> valueMapper) {
+        return Collectors.toMap(
+            Map.Entry::getKey,
+            entry -> valueMapper.apply(entry.getValue()),
+            (a, b) -> b,
+            LinkedHashMap::new
+        );
+    }
+
     protected abstract Map<String, Object> fileProperties();
 
     @Nullable
@@ -99,12 +113,6 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
                 .collect(Collectors.toList()))
             .orElse(null);
     }
-
-    private static byte @Nullable [] getClassLoaderHashBytesOrNull(ImplementationSnapshot implementation) {
-        HashCode hash = implementation.getClassLoaderHash();
-        return hash == null ? null : hash.toByteArray();
-    }
-
 
     @Nullable
     public List<String> getActionClassNames() {
@@ -179,15 +187,6 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         model.put("outputPropertyNames", getOutputPropertyNames());
 
         return model;
-    }
-
-    private static <K, V, U> Collector<Map.Entry<K, V>, ?, LinkedHashMap<K, U>> toLinkedHashMap(Function<? super V, ? extends U> valueMapper) {
-        return Collectors.toMap(
-            Map.Entry::getKey,
-            entry -> valueMapper.apply(entry.getValue()),
-            (a, b) -> b,
-            LinkedHashMap::new
-        );
     }
 
     protected Optional<BeforeExecutionState> getBeforeExecutionState() {
@@ -266,9 +265,9 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
 
     protected abstract static class BaseFilePropertyCollectingVisitor<STATE extends FilePropertyVisitor.VisitState> {
 
+        final Deque<DirEntry> dirStack;
         private final Map<String, Object> fileProperties;
         Property property;
-        final Deque<DirEntry> dirStack;
 
         public BaseFilePropertyCollectingVisitor() {
             this.fileProperties = new TreeMap<>();
@@ -280,6 +279,50 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         }
 
         protected abstract Property createProperty(STATE state);
+
+        public void preProperty(STATE state) {
+            property = createProperty(state);
+            fileProperties.put(state.getPropertyName(), property);
+        }
+
+        public void preRoot(STATE state) {
+
+        }
+
+        public void preDirectory(STATE state) {
+            boolean isRoot = dirStack.isEmpty();
+            DirEntry dir = new DirEntry(isRoot ? state.getPath() : state.getName());
+            if (isRoot) {
+                property.roots.add(dir);
+            } else {
+                //noinspection ConstantConditions
+                dirStack.peek().children.add(dir);
+            }
+            dirStack.push(dir);
+        }
+
+        public void file(STATE state) {
+            boolean isRoot = dirStack.isEmpty();
+            FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), HashCode.fromBytes(state.getHashBytes()).toString());
+            if (isRoot) {
+                property.roots.add(file);
+            } else {
+                //noinspection ConstantConditions
+                dirStack.peek().children.add(file);
+            }
+        }
+
+        public void postDirectory() {
+            dirStack.pop();
+        }
+
+        public void postRoot() {
+
+        }
+
+        public void postProperty() {
+
+        }
 
         protected static class Property {
 
@@ -344,50 +387,6 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             public Collection<Entry> getChildren() {
                 return children;
             }
-        }
-
-        public void preProperty(STATE state) {
-            property = createProperty(state);
-            fileProperties.put(state.getPropertyName(), property);
-        }
-
-        public void preRoot(STATE state) {
-
-        }
-
-        public void preDirectory(STATE state) {
-            boolean isRoot = dirStack.isEmpty();
-            DirEntry dir = new DirEntry(isRoot ? state.getPath() : state.getName());
-            if (isRoot) {
-                property.roots.add(dir);
-            } else {
-                //noinspection ConstantConditions
-                dirStack.peek().children.add(dir);
-            }
-            dirStack.push(dir);
-        }
-
-        public void file(STATE state) {
-            boolean isRoot = dirStack.isEmpty();
-            FileEntry file = new FileEntry(isRoot ? state.getPath() : state.getName(), HashCode.fromBytes(state.getHashBytes()).toString());
-            if (isRoot) {
-                property.roots.add(file);
-            } else {
-                //noinspection ConstantConditions
-                dirStack.peek().children.add(file);
-            }
-        }
-
-        public void postDirectory() {
-            dirStack.pop();
-        }
-
-        public void postRoot() {
-
-        }
-
-        public void postProperty() {
-
         }
     }
 }

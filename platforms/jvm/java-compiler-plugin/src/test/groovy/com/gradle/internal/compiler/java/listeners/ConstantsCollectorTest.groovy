@@ -277,8 +277,8 @@ class A {
 }
 """
         List<File> classes = toSourceFile(clazz) \
-            + getAnnotation(constantType, "gradle.unit.test") \
-            + getConstants(constantType, constantValue, "gradle.unit.test")
+             + getAnnotation(constantType, "gradle.unit.test") \
+             + getConstants(constantType, constantValue, "gradle.unit.test")
 
         when:
         compiler.compile(classes)
@@ -548,7 +548,7 @@ import java.lang.annotation.Target;
 public @interface PackageInfoAnnotation {
     String value();
 }
-""",  """
+""", """
 package gradle.unit.test;
 public class Constant {
     public static final String CONSTANT = "hello";

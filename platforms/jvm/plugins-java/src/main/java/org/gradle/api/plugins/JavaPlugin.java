@@ -243,41 +243,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
     @Inject
     public JavaPlugin() {}
 
-    @Override
-    public void apply(final Project project) {
-        if (project.getPluginManager().hasPlugin("java-platform")) {
-            throw new IllegalStateException("The \"java\" or \"java-library\" plugin cannot be applied together with the \"java-platform\" plugin. " +
-                "A project is either a platform or a library but cannot be both at the same time.");
-        }
-        final ProjectInternal projectInternal = (ProjectInternal) project;
-
-        project.getPluginManager().apply(JavaBasePlugin.class);
-        project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
-
-        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-
-        project.getComponents().registerBinding(JvmSoftwareComponentInternal.class, DefaultJvmSoftwareComponent.class);
-        JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal, sourceSets);
-
-        configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
-
-        // Set the 'java' component as the project's default.
-        Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
-        defaultConfiguration.extendsFrom(javaComponent.getMainFeature().getRuntimeElementsConfiguration());
-        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
-
-        // Build the main jar when running `assemble`.
-        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
-            .add(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
-
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
-        configureSourceSets(buildOutputCleanupRegistry, sourceSets);
-
-        configureTestTaskOrdering(project.getTasks());
-        configureDiagnostics(project, javaComponent.getMainFeature());
-        configureBuild(project);
-    }
-
     private static JvmFeatureInternal createMainFeature(ProjectInternal project, SourceSetContainer sourceSets) {
         SourceSet sourceSet = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
@@ -415,5 +380,40 @@ public abstract class JavaPlugin implements Plugin<Project> {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
+    }
+
+    @Override
+    public void apply(final Project project) {
+        if (project.getPluginManager().hasPlugin("java-platform")) {
+            throw new IllegalStateException("The \"java\" or \"java-library\" plugin cannot be applied together with the \"java-platform\" plugin. " +
+                "A project is either a platform or a library but cannot be both at the same time.");
+        }
+        final ProjectInternal projectInternal = (ProjectInternal) project;
+
+        project.getPluginManager().apply(JavaBasePlugin.class);
+        project.getPluginManager().apply("org.gradle.jvm-test-suite"); // TODO: change to reference plugin class by name after project dependency cycles untangled; this will affect ApplyPluginBuildOperationIntegrationTest (will have to remove id)
+
+        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+
+        project.getComponents().registerBinding(JvmSoftwareComponentInternal.class, DefaultJvmSoftwareComponent.class);
+        JvmSoftwareComponentInternal javaComponent = createJavaComponent(projectInternal, sourceSets);
+
+        configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
+
+        // Set the 'java' component as the project's default.
+        Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
+        defaultConfiguration.extendsFrom(javaComponent.getMainFeature().getRuntimeElementsConfiguration());
+        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
+
+        // Build the main jar when running `assemble`.
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
+            .add(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
+        configureSourceSets(buildOutputCleanupRegistry, sourceSets);
+
+        configureTestTaskOrdering(project.getTasks());
+        configureDiagnostics(project, javaComponent.getMainFeature());
+        configureBuild(project);
     }
 }

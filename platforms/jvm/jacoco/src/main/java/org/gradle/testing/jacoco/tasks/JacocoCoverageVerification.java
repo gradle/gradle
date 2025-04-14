@@ -43,6 +43,7 @@ import java.io.IOException;
 public abstract class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;
+    private final String projectName = getProject().getName();
 
     public JacocoCoverageVerification() {
         super();
@@ -67,8 +68,6 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
     protected File getDummyOutputFile() {
         return new File(getTemporaryDir(), "success.txt");
     }
-
-    private final String projectName = getProject().getName();
 
     /**
      * Configures the violation rules for this task.

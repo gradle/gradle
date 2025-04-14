@@ -43,8 +43,10 @@ public class ModelProperty<T> {
     private final ImmutableMap<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors;
     private ModelSchema<T> schema;
 
-    public ModelProperty(ModelType<T> type, String name, Set<ModelType<?>> declaredBy,
-                         Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors) {
+    public ModelProperty(
+        ModelType<T> type, String name, Set<ModelType<?>> declaredBy,
+        Map<PropertyAccessorType, WeaklyTypeReferencingMethod<?, ?>> accessors
+    ) {
         this.name = name;
         this.type = type;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);

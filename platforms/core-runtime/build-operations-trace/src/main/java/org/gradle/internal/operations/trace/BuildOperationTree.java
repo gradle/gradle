@@ -37,13 +37,6 @@ public class BuildOperationTree {
         this.records = records.build();
     }
 
-    private void visit(ImmutableMap.Builder<Long, BuildOperationRecord> records, BuildOperationRecord record) {
-        records.put(record.id, record);
-        for (BuildOperationRecord child : record.children) {
-            visit(records, child);
-        }
-    }
-
     static List<Map<String, ?>> serialize(List<BuildOperationRecord> roots) {
         return Lists.transform(roots, new Function<BuildOperationRecord, Map<String, ?>>() {
             @Override
@@ -51,6 +44,13 @@ public class BuildOperationTree {
                 return input.toSerializable();
             }
         });
+    }
+
+    private void visit(ImmutableMap.Builder<Long, BuildOperationRecord> records, BuildOperationRecord record) {
+        records.put(record.id, record);
+        for (BuildOperationRecord child : record.children) {
+            visit(records, child);
+        }
     }
 
 }

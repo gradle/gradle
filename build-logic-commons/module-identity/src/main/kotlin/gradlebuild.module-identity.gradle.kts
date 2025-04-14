@@ -64,15 +64,19 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
         isFinalRelease -> {
             baseVersion
         }
+
         rcNumber.isPresent -> {
             "$baseVersion-rc-${rcNumber.get()}"
         }
+
         milestoneNumber.isPresent -> {
             "$baseVersion-milestone-${milestoneNumber.get()}"
         }
+
         versionQualifier.isPresent -> {
             "$baseVersion-${versionQualifier.get()}-${buildTimestamp.get()}"
         }
+
         else -> {
             "$baseVersion-${buildTimestamp.get()}"
         }

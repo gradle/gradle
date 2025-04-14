@@ -131,7 +131,7 @@ class TemplateFactoryTest extends Specification {
         def mainSourceFileTree = Mock(FileTreeInternal)
         def testSourceFileTree = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
-        def settings = createInitSettings( "my.lib")
+        def settings = createInitSettings("my.lib")
         def factory = new TemplateFactory(settings, Language.JAVA, templateOperationFactory)
 
         when:

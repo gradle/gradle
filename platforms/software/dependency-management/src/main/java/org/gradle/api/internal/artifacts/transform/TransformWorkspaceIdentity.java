@@ -32,34 +32,6 @@ class TransformWorkspaceIdentity implements UnitOfWork.Identity {
         this.secondaryInputsSnapshot = secondaryInputsSnapshot;
     }
 
-    public ValueSnapshot getSecondaryInputsSnapshot() {
-        return secondaryInputsSnapshot;
-    }
-
-    @Override
-    public String getUniqueId() {
-        return uniqueId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        TransformWorkspaceIdentity that = (TransformWorkspaceIdentity) o;
-
-        return uniqueId.equals(that.uniqueId);
-    }
-
-    @Override
-    public int hashCode() {
-        return uniqueId.hashCode();
-    }
-
     public static TransformWorkspaceIdentity createMutable(
         String normalizedInputArtifactPath,
         String producerBuildTreePath,
@@ -100,5 +72,33 @@ class TransformWorkspaceIdentity implements UnitOfWork.Identity {
         hasher.put(secondaryInputsSnapshot);
         hasher.putHash(dependenciesHash);
         return new TransformWorkspaceIdentity(secondaryInputsSnapshot, hasher.hash());
+    }
+
+    public ValueSnapshot getSecondaryInputsSnapshot() {
+        return secondaryInputsSnapshot;
+    }
+
+    @Override
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        TransformWorkspaceIdentity that = (TransformWorkspaceIdentity) o;
+
+        return uniqueId.equals(that.uniqueId);
+    }
+
+    @Override
+    public int hashCode() {
+        return uniqueId.hashCode();
     }
 }

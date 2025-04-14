@@ -24,7 +24,8 @@ import spock.lang.Issue
 
 class ForceScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def setup() {
         executer.withRepositoryMirrors()

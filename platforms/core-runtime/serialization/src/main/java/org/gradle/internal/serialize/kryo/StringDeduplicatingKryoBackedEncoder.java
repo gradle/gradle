@@ -32,10 +32,8 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
 
     static final int NULL_STRING = 0;
     static final int NEW_STRING = 1;
-
-    private Object2IntMap<String> strings;
-
     private final Output output;
+    private Object2IntMap<String> strings;
 
     public StringDeduplicatingKryoBackedEncoder(OutputStream outputStream) {
         this(outputStream, 4096);

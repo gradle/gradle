@@ -36,11 +36,11 @@ import org.gradle.api.problems.internal.DefaultProblemId;
  *     Java compilation
  *         Foo.java#L10: unused variable a
  *         Foo.java#L20: unused variable b
-
+ *
  * </pre>
  *
- * @since 8.13
  * @see org.gradle.api.problems.ProblemDefinition
+ * @since 8.13
  */
 @Incubating
 public abstract class ProblemId {
@@ -52,6 +52,19 @@ public abstract class ProblemId {
      */
     protected ProblemId() {
         // clients should use the static create() method
+    }
+
+    /**
+     * Creates a new problem id.
+     *
+     * @param name the name of the problem. The convention is to use kebab-case (ie lower case with hyphens).
+     * @param displayName the user-friendly display name of the problem
+     * @param group the group to which the problem belongs
+     * @return the new problem id
+     * @since 8.13
+     */
+    public static ProblemId create(String name, String displayName, ProblemGroup group) {
+        return new DefaultProblemId(name, displayName, group);
     }
 
     /**
@@ -79,17 +92,4 @@ public abstract class ProblemId {
      * @since 8.13
      */
     public abstract ProblemGroup getGroup();
-
-    /**
-     * Creates a new problem id.
-     *
-     * @param name the name of the problem. The convention is to use kebab-case (ie lower case with hyphens).
-     * @param displayName the user-friendly display name of the problem
-     * @param group the group to which the problem belongs
-     * @return the new problem id
-     * @since 8.13
-     */
-    public static ProblemId create(String name, String displayName, ProblemGroup group) {
-        return new DefaultProblemId(name, displayName, group);
-    }
 }

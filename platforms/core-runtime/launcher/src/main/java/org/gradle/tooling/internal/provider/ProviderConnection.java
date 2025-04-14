@@ -148,6 +148,23 @@ public class ProviderConnection {
         this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
+    private static File reportableJavaHomeForBuild(Parameters params) {
+        DaemonParameters daemonParameters = params.daemonParams;
+        DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
+        if (criteria instanceof DaemonJvmCriteria.Spec) {
+            // Gradle daemon properties have been defined
+            // TODO: We don't know what this will be without searching.
+            // We'll say it's the current JVM because we don't know any better for now.
+            return Jvm.current().getJavaHome();
+        } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
+            return ((DaemonJvmCriteria.JavaHome) criteria).getJavaHome();
+        } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
+            return Jvm.current().getJavaHome();
+        } else {
+            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
+        }
+    }
+
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
         this.consumerVersion = consumerVersion;
         LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
@@ -179,23 +196,6 @@ public class ProviderConnection {
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new BuildModelAction(params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
-    }
-
-    private static File reportableJavaHomeForBuild(Parameters params) {
-        DaemonParameters daemonParameters = params.daemonParams;
-        DaemonJvmCriteria criteria = daemonParameters.getRequestedJvmCriteria();
-        if (criteria instanceof DaemonJvmCriteria.Spec) {
-            // Gradle daemon properties have been defined
-            // TODO: We don't know what this will be without searching.
-            // We'll say it's the current JVM because we don't know any better for now.
-            return Jvm.current().getJavaHome();
-        } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
-            return ((DaemonJvmCriteria.JavaHome) criteria).getJavaHome();
-        } else if (criteria instanceof DaemonJvmCriteria.LauncherJvm) {
-            return Jvm.current().getJavaHome();
-        } else {
-            throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
-        }
     }
 
     @SuppressWarnings({"deprecation", "overloads"})
@@ -477,11 +477,6 @@ public class ProviderConnection {
         }
 
         @VisibleForTesting
-        BuildEventSubscriptions getClientSubscriptions() {
-            return clientSubscriptions;
-        }
-
-        @VisibleForTesting
         static ProgressListenerConfiguration from(
             ProviderOperationParameters providerParameters,
             GradleVersion consumerVersion,
@@ -535,6 +530,11 @@ public class ProviderConnection {
                 return operationTypes;
             }
             return emptySet();
+        }
+
+        @VisibleForTesting
+        BuildEventSubscriptions getClientSubscriptions() {
+            return clientSubscriptions;
         }
 
         private static class SynchronizedConsumer implements BuildEventConsumer {

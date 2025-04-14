@@ -5,7 +5,8 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin </td>
+                    <td>Default with <literal>java</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
@@ -14,7 +15,10 @@
             </tr>
             <tr>
                 <td>source</td>
-                <td><literal><replaceable>sourceSet</replaceable>.java</literal></td>
+                <td>
+                    <literal><replaceable>sourceSet</replaceable>.java
+                    </literal>
+                </td>
             </tr>
         </table>
     </section>

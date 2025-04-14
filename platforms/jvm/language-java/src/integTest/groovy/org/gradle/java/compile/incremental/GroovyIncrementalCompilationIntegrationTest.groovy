@@ -166,7 +166,7 @@ class A2{}
 
         then:
         outputs.recompiledClasses('B')
-        outputs.deletedClasses( "C")
+        outputs.deletedClasses("C")
     }
 
     def "does recompile when a resource changes"() {

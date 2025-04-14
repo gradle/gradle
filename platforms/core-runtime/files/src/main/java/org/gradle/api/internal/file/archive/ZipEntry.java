@@ -22,25 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface ZipEntry {
-    /**
-     * The compression method used for an entry
-     */
-    enum ZipCompressionMethod {
-        /**
-         * The entry is compressed with DEFLATE algorithm.
-         */
-        DEFLATED,
-
-        /**
-         * The entry is stored uncompressed.
-         */
-        STORED,
-        /**
-         * The entry is compressed with some other method (Zip spec declares about a dozen of these).
-         */
-        OTHER,
-    }
-
     boolean isDirectory();
 
     String getName();
@@ -73,6 +54,25 @@ public interface ZipEntry {
     boolean canReopen();
 
     ZipCompressionMethod getCompressionMethod();
+
+    /**
+     * The compression method used for an entry
+     */
+    enum ZipCompressionMethod {
+        /**
+         * The entry is compressed with DEFLATE algorithm.
+         */
+        DEFLATED,
+
+        /**
+         * The entry is stored uncompressed.
+         */
+        STORED,
+        /**
+         * The entry is compressed with some other method (Zip spec declares about a dozen of these).
+         */
+        OTHER,
+    }
 
     // Copied from org.gradle.internal.io.IoFunction in :functional due to
     // JDK version mismatch between the projects

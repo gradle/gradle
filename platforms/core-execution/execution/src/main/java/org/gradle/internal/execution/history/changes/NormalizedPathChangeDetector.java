@@ -34,43 +34,6 @@ public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetect
 
     INSTANCE;
 
-    /**
-     * Determines changes by:
-     *
-     * <ul>
-     *     <li>Determining which {@link FileSystemLocationFingerprint}s are only in the previous or current fingerprint collection.</li>
-     *     <li>
-     *         For those only in the previous fingerprint collection it checks if some entry with the same normalized path is in the current collection.
-     *         If it is, file is reported as modified, if not as removed.
-     *     </li>
-     * </ul>
-     */
-    @Override
-    public boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> previousFingerprints, Map<String, FileSystemLocationFingerprint> currentFingerprints, String propertyTitle, ChangeVisitor visitor) {
-        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints.entrySet());
-        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(currentFingerprints, unaccountedForPreviousFiles, previousFingerprints.entrySet());
-
-        Iterator<Entry<FileSystemLocationFingerprint, FilePathWithType>> iterator = unaccountedForPreviousFiles.entries().stream().sorted(comparingByKey()).iterator();
-        while (iterator.hasNext()) {
-            Entry<FileSystemLocationFingerprint, FilePathWithType> entry = iterator.next();
-            FileSystemLocationFingerprint previousFingerprint = entry.getKey();
-            FilePathWithType pathWithType = entry.getValue();
-
-            Change change = getChange(propertyTitle, addedFilesByNormalizedPath, previousFingerprint, pathWithType);
-            if (!visitor.visitChange(change)) {
-                return false;
-            }
-        }
-
-        for (Entry<String, FilePathWithType> entry : addedFilesByNormalizedPath.entries()) {
-            Change added = added(propertyTitle, entry);
-            if (!visitor.visitChange(added)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private static Change getChange(
         String propertyTitle,
         ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath,
@@ -173,5 +136,42 @@ public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetect
             }
         }
         return results;
+    }
+
+    /**
+     * Determines changes by:
+     *
+     * <ul>
+     *     <li>Determining which {@link FileSystemLocationFingerprint}s are only in the previous or current fingerprint collection.</li>
+     *     <li>
+     *         For those only in the previous fingerprint collection it checks if some entry with the same normalized path is in the current collection.
+     *         If it is, file is reported as modified, if not as removed.
+     *     </li>
+     * </ul>
+     */
+    @Override
+    public boolean visitChangesSince(Map<String, FileSystemLocationFingerprint> previousFingerprints, Map<String, FileSystemLocationFingerprint> currentFingerprints, String propertyTitle, ChangeVisitor visitor) {
+        ListMultimap<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFiles = getUnaccountedForPreviousFingerprints(previousFingerprints, currentFingerprints.entrySet());
+        ListMultimap<String, FilePathWithType> addedFilesByNormalizedPath = getAddedFilesByNormalizedPath(currentFingerprints, unaccountedForPreviousFiles, previousFingerprints.entrySet());
+
+        Iterator<Entry<FileSystemLocationFingerprint, FilePathWithType>> iterator = unaccountedForPreviousFiles.entries().stream().sorted(comparingByKey()).iterator();
+        while (iterator.hasNext()) {
+            Entry<FileSystemLocationFingerprint, FilePathWithType> entry = iterator.next();
+            FileSystemLocationFingerprint previousFingerprint = entry.getKey();
+            FilePathWithType pathWithType = entry.getValue();
+
+            Change change = getChange(propertyTitle, addedFilesByNormalizedPath, previousFingerprint, pathWithType);
+            if (!visitor.visitChange(change)) {
+                return false;
+            }
+        }
+
+        for (Entry<String, FilePathWithType> entry : addedFilesByNormalizedPath.entries()) {
+            Change added = added(propertyTitle, entry);
+            if (!visitor.visitChange(added)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

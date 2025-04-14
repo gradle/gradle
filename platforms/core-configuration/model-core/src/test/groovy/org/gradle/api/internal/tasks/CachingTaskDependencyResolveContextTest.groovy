@@ -164,7 +164,8 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task, dependency)
 
         then:
-        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context
             context.add(otherDependency)
             context.add(buildable)
         }

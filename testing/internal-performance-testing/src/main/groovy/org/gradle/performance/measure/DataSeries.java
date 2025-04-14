@@ -86,6 +86,10 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         standardError = Amount.valueOf(result, baseUnits);
     }
 
+    public static double confidenceInDifference(DataSeries first, DataSeries second) {
+        return 1 - new MannWhitneyUTest().mannWhitneyUTest(first.asDoubleArray(), second.asDoubleArray());
+    }
+
     public Amount<Q> getAverage() {
         return average;
     }
@@ -104,10 +108,6 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
 
     public Amount<Q> getStandardError() {
         return standardError;
-    }
-
-    public static double confidenceInDifference(DataSeries first, DataSeries second) {
-        return 1 - new MannWhitneyUTest().mannWhitneyUTest(first.asDoubleArray(), second.asDoubleArray());
     }
 
     public List<Double> asDoubleList() {

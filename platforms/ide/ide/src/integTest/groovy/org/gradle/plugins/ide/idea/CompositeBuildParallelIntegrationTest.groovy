@@ -25,7 +25,8 @@ import org.junit.Rule
 
 @Requires(IntegTestPreconditions.NotParallelExecutor)
 class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     @ToBeFixedForConfigurationCache
     def "builds IDE metadata artifacts in parallel"() {

@@ -23,6 +23,7 @@ apply plugin: MirrorPlugin
 @CompileStatic
 class MirrorPlugin implements Plugin<Gradle> {
     Map<String, String> mirrors = [:]
+
     MirrorPlugin() {
         def repoMirrorUrls = System.getenv("REPO_MIRROR_URLS")?.split(',')?.collectEntries { mirrorEntry -> mirrorEntry.split(":", 2) } as Map<String, String>
         if (repoMirrorUrls) {

@@ -13,7 +13,8 @@ def processTemplates = tasks.register('processTemplates', ProcessTemplates) {
 }
 
 interface Injected {
-    @Inject FileSystemOperations getFs()
+    @Inject
+    FileSystemOperations getFs()
 }
 
 // tag::ad-hoc-task[]
@@ -52,8 +53,8 @@ tasks.register('processTemplatesAdHocSkipWhenEmpty') {
     // ...
 
     inputs.files(fileTree('src/templates') {
-            include '**/*.fm'
-        })
+        include '**/*.fm'
+    })
         .skipWhenEmpty()
         .withPropertyName('sourceFiles')
         .withPathSensitivity(PathSensitivity.RELATIVE)

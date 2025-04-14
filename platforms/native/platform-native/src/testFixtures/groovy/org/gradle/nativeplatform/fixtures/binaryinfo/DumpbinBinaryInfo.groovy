@@ -42,7 +42,8 @@ class DumpbinBinaryInfo implements BinaryInfo {
         vcPath = visualCpp.path.join(';')
     }
 
-    static @Nullable VisualStudioInstall findVisualStudio() {
+    static @Nullable
+    VisualStudioInstall findVisualStudio() {
         return VisualStudioLocatorTestFixture.visualStudioLocator.locateComponent(null).component
     }
 

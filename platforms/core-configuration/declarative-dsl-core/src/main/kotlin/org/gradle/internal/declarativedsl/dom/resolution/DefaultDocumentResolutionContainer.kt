@@ -140,6 +140,7 @@ class DocumentResolver(
                 is ResolutionTrace.ResolutionOrErrors.Resolution -> ValueFactoryResolution.ValueFactoryResolved((exprResolution.result as ObjectOrigin.FunctionOrigin).function)
                 is ResolutionTrace.ResolutionOrErrors.Errors ->
                     ValueFactoryResolution.ValueFactoryNotResolved(mapValueFactoryErrors(exprResolution.errors))
+
                 is ResolutionTrace.ResolutionOrErrors.NoResolution ->
                     ValueFactoryResolution.ValueFactoryNotResolved(listOf(UnresolvedBase))
             }
@@ -155,8 +156,10 @@ class DocumentResolver(
                     } else {
                         NamedReferenceResolution.NamedReferenceNotResolved(listOf(NonEnumValueNamedReference))
                     }
+
                 is ResolutionTrace.ResolutionOrErrors.Errors ->
                     NamedReferenceResolution.NamedReferenceNotResolved(mapNamedReferenceErrors(exprResolution.errors))
+
                 is ResolutionTrace.ResolutionOrErrors.NoResolution ->
                     NamedReferenceResolution.NamedReferenceNotResolved(listOf(UnresolvedBase))
             }
@@ -251,7 +254,7 @@ class DocumentResolver(
         mapElementErrors(errors).map { it as ValueFactoryNotResolvedReason }
 
     private
-    fun mapNamedReferenceErrors(errors: Iterable<ResolutionError>) : List<NamedReferenceNotResolvedReason> = errors.map {
+    fun mapNamedReferenceErrors(errors: Iterable<ResolutionError>): List<NamedReferenceNotResolvedReason> = errors.map {
         when (it.errorReason) {
             is ErrorReason.NonReadableProperty -> NonEnumValueNamedReference
             is ErrorReason.UnresolvedReference -> UnresolvedName

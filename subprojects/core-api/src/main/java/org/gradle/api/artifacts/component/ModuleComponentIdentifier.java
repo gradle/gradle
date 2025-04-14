@@ -54,7 +54,6 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
      * as {@link #getGroup()} and {@link #getModule()}.
      *
      * @return the module identifier
-     *
      * @since 4.9
      */
     ModuleIdentifier getModuleIdentifier();

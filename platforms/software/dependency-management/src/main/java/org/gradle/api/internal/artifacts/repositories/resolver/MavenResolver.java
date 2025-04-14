@@ -51,10 +51,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MavenResolver extends ExternalResourceResolver {
+    private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
     private final URI root;
     private final MavenMetadataLoader mavenMetaDataLoader;
-
-    private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
     private final MavenLocalRepositoryAccess localAccess = new MavenLocalRepositoryAccess();
     private final MavenRemoteRepositoryAccess remoteAccess = new MavenRemoteRepositoryAccess();
 
@@ -70,7 +69,8 @@ public class MavenResolver extends ExternalResourceResolver {
         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
         Instantiator injector,
-        ChecksumService checksumService) {
+        ChecksumService checksumService
+    ) {
         super(descriptor, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -84,6 +84,26 @@ public class MavenResolver extends ExternalResourceResolver {
             checksumService);
         this.mavenMetaDataLoader = mavenMetaDataLoader;
         this.root = rootUri;
+    }
+
+    public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {
+        ModuleComponentIdentifier id = metaData.getId();
+        if (isNonUniqueSnapshot(id)) {
+            metaData.setChanging(true);
+        }
+        if (isUniqueSnapshot(id)) {
+            MavenUniqueSnapshotComponentIdentifier mus = (MavenUniqueSnapshotComponentIdentifier) id;
+            metaData.setSnapshotTimestamp(mus.getTimestamp());
+        }
+        return metaData;
+    }
+
+    private static boolean isUniqueSnapshot(ModuleComponentIdentifier id) {
+        return id instanceof MavenUniqueSnapshotComponentIdentifier;
+    }
+
+    protected static boolean isNonUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
+        return moduleComponentIdentifier.getVersion().endsWith("-SNAPSHOT");
     }
 
     @Override
@@ -183,16 +203,11 @@ public class MavenResolver extends ExternalResourceResolver {
         return remoteAccess;
     }
 
-    public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {
-        ModuleComponentIdentifier id = metaData.getId();
-        if (isNonUniqueSnapshot(id)) {
-            metaData.setChanging(true);
-        }
-        if (isUniqueSnapshot(id)) {
-            MavenUniqueSnapshotComponentIdentifier mus = (MavenUniqueSnapshotComponentIdentifier) id;
-            metaData.setSnapshotTimestamp(mus.getTimestamp());
-        }
-        return metaData;
+    private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
+        return new MavenUniqueSnapshotComponentIdentifier(
+            moduleComponentIdentifier.getModuleIdentifier(),
+            moduleComponentIdentifier.getVersion(),
+            uniqueSnapshotVersion.getTimestamp());
     }
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
@@ -210,20 +225,5 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
 
-    }
-
-    private static boolean isUniqueSnapshot(ModuleComponentIdentifier id) {
-        return id instanceof MavenUniqueSnapshotComponentIdentifier;
-    }
-
-    protected static boolean isNonUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
-        return moduleComponentIdentifier.getVersion().endsWith("-SNAPSHOT");
-    }
-
-    private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
-        return new MavenUniqueSnapshotComponentIdentifier(
-            moduleComponentIdentifier.getModuleIdentifier(),
-            moduleComponentIdentifier.getVersion(),
-            uniqueSnapshotVersion.getTimestamp());
     }
 }

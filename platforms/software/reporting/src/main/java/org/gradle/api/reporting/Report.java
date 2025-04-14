@@ -79,6 +79,14 @@ public interface Report extends Configurable<Report> {
     Property<? extends FileSystemLocation> getOutputLocation();
 
     /**
+     * The type of output that the report generates.
+     *
+     * @return The type of output that the report generates.
+     */
+    @Input
+    OutputType getOutputType();
+
+    /**
      * The type of output the report produces
      */
     enum OutputType {
@@ -97,13 +105,5 @@ public interface Report extends Configurable<Report> {
          */
         DIRECTORY
     }
-
-    /**
-     * The type of output that the report generates.
-     *
-     * @return The type of output that the report generates.
-     */
-    @Input
-    OutputType getOutputType();
 
 }

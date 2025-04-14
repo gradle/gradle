@@ -59,10 +59,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private static final NotationParser<Object, Set<ModuleVersionSelector>> FORCED_MODULES_PARSER = ModuleVersionSelectorParsers.multiParser("force()");
 
     private final Set<Object> forcedModules = new LinkedHashSet<>();
-    private Set<ModuleVersionSelector> parsedForcedModules;
-    private ConflictResolution conflictResolution = ConflictResolution.latest;
     private final DefaultComponentSelectionRules componentSelectionRules;
-
     private final CachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final GlobalDependencyResolutionRules globalDependencySubstitutionRules;
@@ -72,15 +69,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final DependencyLockingProvider dependencyLockingProvider;
     private final CapabilitiesResolutionInternal capabilitiesResolution;
     private final ObjectFactory objectFactory;
+    private final Property<Boolean> useGlobalDependencySubstitutionRules;
+    private Set<ModuleVersionSelector> parsedForcedModules;
+    private ConflictResolution conflictResolution = ConflictResolution.latest;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
-
     private boolean dependencyLockingEnabled = false;
     private boolean assumeFluidDependencies;
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private boolean failOnDynamicVersions;
     private boolean failOnChangingVersions;
     private boolean verifyDependencies = true;
-    private final Property<Boolean> useGlobalDependencySubstitutionRules;
     private boolean selectableVariantResults = false;
     private boolean keepStateRequiredForGraphResolution = false;
 
@@ -135,6 +133,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public DefaultResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations) {
+        mutationValidator.validateMutation(STRATEGY);
+        this.forcedModules.clear();
+        force(moduleVersionSelectorNotations);
+        return this;
+    }
+
+    @Override
     public ResolutionStrategy failOnVersionConflict() {
         mutationValidator.validateMutation(STRATEGY);
         this.conflictResolution = ConflictResolution.strict;
@@ -180,7 +186,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         dependencyLockingEnabled = false;
         return this;
     }
-
 
     @Override
     public void sortArtifacts(SortOrder sortOrder) {
@@ -248,14 +253,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             || dependencySubstitutions.rulesMayAddProjectDependency()
             || (useGlobalDependencySubstitutionRules.get() && globalDependencySubstitutionRules.getDependencySubstitutionRules().rulesMayAddProjectDependency())
             || vcsResolver.hasRules();
-    }
-
-    @Override
-    public DefaultResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations) {
-        mutationValidator.validateMutation(STRATEGY);
-        this.forcedModules.clear();
-        force(moduleVersionSelectorNotations);
-        return this;
     }
 
     @Override
@@ -388,14 +385,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void setIncludeAllSelectableVariantResults(boolean selectableVariantResults) {
-        mutationValidator.validateMutation(STRATEGY);
-        this.selectableVariantResults = selectableVariantResults;
+    public boolean getIncludeAllSelectableVariantResults() {
+        return this.selectableVariantResults;
     }
 
     @Override
-    public boolean getIncludeAllSelectableVariantResults() {
-        return this.selectableVariantResults;
+    public void setIncludeAllSelectableVariantResults(boolean selectableVariantResults) {
+        mutationValidator.validateMutation(STRATEGY);
+        this.selectableVariantResults = selectableVariantResults;
     }
 
     @Override

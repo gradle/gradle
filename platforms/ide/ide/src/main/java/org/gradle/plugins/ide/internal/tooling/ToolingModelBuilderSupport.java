@@ -24,13 +24,13 @@ import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 public abstract class ToolingModelBuilderSupport {
     public static <T extends LaunchableGradleTask> T buildFromTask(T target, DefaultProjectIdentifier projectIdentifier, Task task) {
         target.setPath(task.getPath())
-                .setName(task.getName())
-                .setGroup(task.getGroup())
-                .setDisplayName(task.toString())
-                .setDescription(task.getDescription())
-                .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task))
-                .setProjectIdentifier(projectIdentifier)
-                .setBuildTreePath(((TaskInternal) task).getIdentityPath().getPath());
+            .setName(task.getName())
+            .setGroup(task.getGroup())
+            .setDisplayName(task.toString())
+            .setDescription(task.getDescription())
+            .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task))
+            .setProjectIdentifier(projectIdentifier)
+            .setBuildTreePath(((TaskInternal) task).getIdentityPath().getPath());
         return target;
     }
 }

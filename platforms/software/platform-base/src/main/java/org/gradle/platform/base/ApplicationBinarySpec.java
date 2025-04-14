@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * A binary produced from a `{@link org.gradle.platform.base.ApplicationSpec}`.
- * */
+ */
 @Incubating
 public interface ApplicationBinarySpec extends BinarySpec {
     /**

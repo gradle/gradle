@@ -112,8 +112,11 @@ class ToolingParameterProxyTest extends Specification {
 
     interface ValidParameter {
         void setValue(String value)
+
         String getValue()
+
         void setBooleanValue(boolean booleanValue)
+
         boolean isBooleanValue()
     }
 
@@ -123,11 +126,13 @@ class ToolingParameterProxyTest extends Specification {
 
     interface InvalidParameter2 {
         void setValue()
+
         String getValue()
     }
 
     interface InvalidParameter3 {
         void setValue(Integer value)
+
         String getValue()
     }
 
@@ -141,9 +146,11 @@ class ToolingParameterProxyTest extends Specification {
 
     class InvalidParameter6 {
         String value
+
         String getValue() {
             return value
         }
+
         void setValue(String value) {
             this.value = value
         }
@@ -151,7 +158,9 @@ class ToolingParameterProxyTest extends Specification {
 
     interface InvalidParameter7 {
         boolean getValue()
+
         boolean isValue()
+
         void setValue(boolean value)
     }
 }

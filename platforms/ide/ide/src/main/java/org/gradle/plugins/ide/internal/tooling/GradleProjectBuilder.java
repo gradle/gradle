@@ -37,22 +37,6 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
  */
 public class GradleProjectBuilder implements GradleProjectBuilderInternal {
 
-    @Override
-    public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.GradleProject");
-    }
-
-    @Override
-    public Object buildAll(String modelName, Project project) {
-        return buildForRoot(project);
-    }
-
-    @Override
-    public DefaultGradleProject buildForRoot(Project project) {
-        boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
-        return buildHierarchy(project.getRootProject(), realizeTasks);
-    }
-
     /**
      * When {@code realizeTasks} is false, the project's task graph will not be realized, and the task list in the model will be empty
      */
@@ -100,5 +84,21 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
         LaunchableGradleProjectTask model = buildFromTask(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), task);
         model.setProject(owner);
         return model;
+    }
+
+    @Override
+    public boolean canBuild(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.GradleProject");
+    }
+
+    @Override
+    public Object buildAll(String modelName, Project project) {
+        return buildForRoot(project);
+    }
+
+    @Override
+    public DefaultGradleProject buildForRoot(Project project) {
+        boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
+        return buildHierarchy(project.getRootProject(), realizeTasks);
     }
 }

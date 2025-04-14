@@ -40,12 +40,11 @@ import java.util.stream.Collectors;
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
     private static final Logger LOGGER = Logging.getLogger(JUnitTestFramework.class);
-
-    private JUnitOptions options;
-    private JUnitDetector detector;
     private final DefaultTestFilter filter;
     private final Factory<File> testTaskTemporaryDir;
     private final Provider<Boolean> dryRun;
+    private JUnitOptions options;
+    private JUnitDetector detector;
 
     public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
         this(filter, new JUnitOptions(), testTask.getTemporaryDirFactory(), testTask.getDryRun());

@@ -50,16 +50,6 @@ public class DefaultImportsReader implements ImportsReader {
         }
     }
 
-    @Override
-    public String[] getImportPackages() {
-        return importPackages;
-    }
-
-    @Override
-    public Map<String, List<String>> getSimpleNameToFullClassNamesMapping() {
-        return simpleNameToFQCN;
-    }
-
     /**
      * @implNote Logic is duplicated in {@link gradlebuild.integrationtests.action.AnnotationGeneratorWorkAction}.
      * Please keep this code in sync.
@@ -113,5 +103,15 @@ public class DefaultImportsReader implements ImportsReader {
                 return builder.build();
             }
         });
+    }
+
+    @Override
+    public String[] getImportPackages() {
+        return importPackages;
+    }
+
+    @Override
+    public Map<String, List<String>> getSimpleNameToFullClassNamesMapping() {
+        return simpleNameToFQCN;
     }
 }

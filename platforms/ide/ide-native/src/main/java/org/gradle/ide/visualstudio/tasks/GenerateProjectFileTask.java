@@ -58,11 +58,11 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
     private transient DefaultVisualStudioProject visualStudioProject;
-    private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getProjectFile().getLocation()));
     private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer = Cached.of(this::getTransformer);
     private String gradleExe;
     private String gradleArgs;
+    private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
 
     @Inject
     public GenerateProjectFileTask(DefaultVisualStudioProject visualStudioProject) {
@@ -99,13 +99,13 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         return RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getProjectFile().getLocation());
     }
 
-    public void setVisualStudioProject(VisualStudioProject vsProject) {
-        this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
-    }
-
     @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
+    }
+
+    public void setVisualStudioProject(VisualStudioProject vsProject) {
+        this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
     /**
@@ -309,6 +309,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
         /**
          * The SDK version for this project.
+         *
          * @since 8.11
          */
         @Input
@@ -341,6 +342,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
         /**
          * The header files for this project.
+         *
          * @since 8.11
          */
         @Input

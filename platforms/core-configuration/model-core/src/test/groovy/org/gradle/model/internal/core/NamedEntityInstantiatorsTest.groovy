@@ -21,7 +21,9 @@ import spock.lang.Specification
 class NamedEntityInstantiatorsTest extends Specification {
 
     static class Base {}
+
     static class NonSubtype {}
+
     static class NonSubtypeChild extends NonSubtype {}
 
 

@@ -53,7 +53,7 @@ class UserGuideTransformTaskTest extends Specification {
     def preservesFormattingWithIndentedMultiline() {
         given:
         String content = TextUtil.normaliseLineSeparators(
-"""            sources {
+            """            sources {
                 cpp {
                     lib library: "hello"
                 }
@@ -63,7 +63,7 @@ class UserGuideTransformTaskTest extends Specification {
 
         then:
         actual ==
-"""sources {
+            """sources {
     cpp {
         lib library: "hello"
     }

@@ -67,6 +67,84 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         this.projects = projects;
     }
 
+    /**
+     * Get the coordinates of a project that has no publications.
+     */
+    private static <T> T getImplicitCoordinates(Class<T> coordsType, Project project) {
+        // Project has no publications: simply use the project name in place of the dependency name
+        if (coordsType.equals(ModuleVersionIdentifier.class)) {
+
+            // TODO: Deprecate this behavior
+//            String message = "Cannot publish dependency on " + project.getDisplayName() + " since it does not declare any publications. " +
+//                "Publishing a component that depends on another project without publications";
+//            DeprecationLogger.deprecate(message)
+//                .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
+//                .willBecomeAnErrorInGradle9()
+//                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
+//                .nagUser();
+
+            return coordsType.cast(DefaultModuleVersionIdentifier.newId(project.getGroup().toString(), project.getName(), project.getVersion().toString()));
+        }
+
+        throw new UnsupportedOperationException(String.format("Could not find any publications of type %s in %s.", coordsType.getSimpleName(), project.getDisplayName()));
+    }
+
+    /**
+     * Try to find a single set of coordinates shared by all top-level publications.
+     */
+    private static <T> T getCommonCoordinates(Project project, Class<T> coordsType, Collection<ProjectComponentPublication> topLevel) {
+        Iterator<ProjectComponentPublication> iterator = topLevel.iterator();
+        T candidate = iterator.next().getCoordinates(coordsType);
+        while (iterator.hasNext()) {
+            T alternative = iterator.next().getCoordinates(coordsType);
+            if (!candidate.equals(alternative)) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.");
+                formatter.node("Found the following publications in " + project.getDisplayName());
+                formatter.startChildren();
+                for (ProjectComponentPublication publication : topLevel) {
+                    formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates(coordsType));
+                }
+                formatter.endChildren();
+                throw new UnsupportedOperationException(formatter.toString());
+            }
+        }
+        return candidate;
+    }
+
+    /**
+     * For each declared component in a set of publications, map it with its coordinates.
+     */
+    private static <T> Map<SoftwareComponent, T> getComponentCoordinates(Class<T> coordsType, Collection<ProjectComponentPublication> publications) {
+        Map<SoftwareComponent, T> coordinatesMap = new HashMap<>();
+        for (ProjectComponentPublication publication : publications) {
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (component != null && !publication.isAlias()) {
+                T coordinates = publication.getCoordinates(coordsType);
+                if (coordinates != null) {
+                    coordinatesMap.put(component, coordinates);
+                }
+            }
+        }
+        return coordinatesMap;
+    }
+
+    /**
+     * Get all components that are a child of another component.
+     */
+    private static Set<SoftwareComponent> getChildComponents(Collection<ProjectComponentPublication> publications) {
+        Set<SoftwareComponent> children = new HashSet<>();
+        for (ProjectComponentPublication publication : publications) {
+            SoftwareComponent component = publication.getComponent().getOrNull();
+            if (component instanceof ComponentWithVariants) {
+                ComponentWithVariants parent = (ComponentWithVariants) component;
+                // Child components are not top-level entry points.
+                children.addAll(parent.getVariants());
+            }
+        }
+        return children;
+    }
+
     @Override
     public <T> T resolveComponent(Class<T> coordsType, Path identityPath) {
         return withCoordinateResolver(coordsType, identityPath,
@@ -134,68 +212,6 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
     }
 
     /**
-     * Get the coordinates of a project that has no publications.
-     */
-    private static <T> T getImplicitCoordinates(Class<T> coordsType, Project project) {
-        // Project has no publications: simply use the project name in place of the dependency name
-        if (coordsType.equals(ModuleVersionIdentifier.class)) {
-
-            // TODO: Deprecate this behavior
-//            String message = "Cannot publish dependency on " + project.getDisplayName() + " since it does not declare any publications. " +
-//                "Publishing a component that depends on another project without publications";
-//            DeprecationLogger.deprecate(message)
-//                .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
-//                .willBecomeAnErrorInGradle9()
-//                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
-//                .nagUser();
-
-            return coordsType.cast(DefaultModuleVersionIdentifier.newId(project.getGroup().toString(), project.getName(), project.getVersion().toString()));
-        }
-
-        throw new UnsupportedOperationException(String.format("Could not find any publications of type %s in %s.", coordsType.getSimpleName(), project.getDisplayName()));
-    }
-
-    /**
-     * Try to find a single set of coordinates shared by all top-level publications.
-     */
-    private static <T> T getCommonCoordinates(Project project, Class<T> coordsType, Collection<ProjectComponentPublication> topLevel) {
-        Iterator<ProjectComponentPublication> iterator = topLevel.iterator();
-        T candidate = iterator.next().getCoordinates(coordsType);
-        while (iterator.hasNext()) {
-            T alternative = iterator.next().getCoordinates(coordsType);
-            if (!candidate.equals(alternative)) {
-                TreeFormatter formatter = new TreeFormatter();
-                formatter.node("Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.");
-                formatter.node("Found the following publications in " + project.getDisplayName());
-                formatter.startChildren();
-                for (ProjectComponentPublication publication : topLevel) {
-                    formatter.node(publication.getDisplayName().getCapitalizedDisplayName() + " with coordinates " + publication.getCoordinates(coordsType));
-                }
-                formatter.endChildren();
-                throw new UnsupportedOperationException(formatter.toString());
-            }
-        }
-        return candidate;
-    }
-
-    /**
-     * For each declared component in a set of publications, map it with its coordinates.
-     */
-    private static <T> Map<SoftwareComponent, T> getComponentCoordinates(Class<T> coordsType, Collection<ProjectComponentPublication> publications) {
-        Map<SoftwareComponent, T> coordinatesMap = new HashMap<>();
-        for (ProjectComponentPublication publication : publications) {
-            SoftwareComponent component = publication.getComponent().getOrNull();
-            if (component != null && !publication.isAlias()) {
-                T coordinates = publication.getCoordinates(coordsType);
-                if (coordinates != null) {
-                    coordinatesMap.put(component, coordinates);
-                }
-            }
-        }
-        return coordinatesMap;
-    }
-
-    /**
      * Given a project and a coordinate type, find all publications that publish a component
      * with the given coordinate type.
      */
@@ -212,25 +228,16 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
     }
 
     /**
-     * Get all components that are a child of another component.
-     */
-    private static Set<SoftwareComponent> getChildComponents(Collection<ProjectComponentPublication> publications) {
-        Set<SoftwareComponent> children = new HashSet<>();
-        for (ProjectComponentPublication publication : publications) {
-            SoftwareComponent component = publication.getComponent().getOrNull();
-            if (component instanceof ComponentWithVariants) {
-                ComponentWithVariants parent = (ComponentWithVariants) component;
-                // Child components are not top-level entry points.
-                children.addAll(parent.getVariants());
-            }
-        }
-        return children;
-    }
-
-    /**
      * Resolves the coordinates of variants of a single component
      */
     private interface VariantCoordinateResolver<T> {
+
+        /**
+         * Create a resolver that always returns the given coordinates
+         */
+        static <T> VariantCoordinateResolver<T> fixed(T coordinates) {
+            return new FixedVariantCoordinateResolver<>(coordinates);
+        }
 
         /**
          * Get the coordinates of the root component
@@ -242,13 +249,6 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
          */
         @Nullable
         T getVariantCoordinates(String variantName);
-
-        /**
-         * Create a resolver that always returns the given coordinates
-         */
-        static <T> VariantCoordinateResolver<T> fixed(T coordinates) {
-            return new FixedVariantCoordinateResolver<>(coordinates);
-        }
 
         class FixedVariantCoordinateResolver<T> implements VariantCoordinateResolver<T> {
             private final T coordinates;
@@ -284,18 +284,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             this.variantCoordinatesMap = Lazy.locking().of(() -> mapVariantNamesToCoordinates(root, componentCoordinates, identityPath));
         }
 
-        @Override
-        public T getComponentCoordinates() {
-            return componentCoordinates.get(root);
-        }
-
-        @Nullable
-        @Override
-        public T getVariantCoordinates(String resolvedVariant) {
-            return variantCoordinatesMap.get().get(resolvedVariant);
-        }
-
-        private static <T>  Map<String, T> mapVariantNamesToCoordinates(SoftwareComponent root, Map<SoftwareComponent, T> componentsMap, Path identityPath) {
+        private static <T> Map<String, T> mapVariantNamesToCoordinates(SoftwareComponent root, Map<SoftwareComponent, T> componentsMap, Path identityPath) {
             Map<String, T> result = new HashMap<>();
             ComponentWalker.walkComponent(root, componentsMap, (variant, coordinates) -> {
                 if (result.put(variant.getName(), coordinates) != null) {
@@ -307,16 +296,23 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             });
             return result;
         }
+
+        @Override
+        public T getComponentCoordinates() {
+            return componentCoordinates.get(root);
+        }
+
+        @Nullable
+        @Override
+        public T getVariantCoordinates(String resolvedVariant) {
+            return variantCoordinatesMap.get().get(resolvedVariant);
+        }
     }
 
     /**
      * Walks a composite component and its subcomponents to determine coordinates of each variant.
      */
     private static class ComponentWalker {
-
-        interface ComponentVisitor<T> {
-            void visitVariant(SoftwareComponentVariant variant, T coordinates);
-        }
 
         /**
          * Visit every variant of a composite component
@@ -359,6 +355,10 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
                     walkComponent(child, componentCoordinates, componentsSeen, coordinatesSeen, visitor);
                 }
             }
+        }
+
+        interface ComponentVisitor<T> {
+            void visitVariant(SoftwareComponentVariant variant, T coordinates);
         }
     }
 

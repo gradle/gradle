@@ -39,14 +39,17 @@ public abstract class IncrementalHelloWorldApp extends CommonHeaderHelloWorldApp
             }
         };
     }
+
     private SourceFile getAlternateLibraryHeader() {
         return getLibraryHeader();
     }
 
     public abstract SourceFile getAlternateMainSource();
+
     public abstract String getAlternateOutput();
 
     public abstract List<SourceFile> getAlternateLibrarySources();
+
     public abstract String getAlternateLibraryOutput();
 
     public abstract SourceFile getBrokenFile();

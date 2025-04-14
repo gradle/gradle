@@ -46,13 +46,13 @@ import java.util.List;
  *
  * This is the lifecycle for the watchable hierarchies:
  * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},
- *   each call augmenting the collection. The watchers will be updated accordingly.
+ * each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch watchable hierarchies registered for this build or old watched directories from previous builds instead of
- *   directories inside them.
+ * directories inside them.
  * - At the end of the build
- *   - stop watching the watchable directories with nothing to watch inside
- *   - remember the currently watched directories as old watched directories for the next build
- *   - remove everything that isn't watched from the virtual file system.
+ * - stop watching the watchable directories with nothing to watch inside
+ * - remember the currently watched directories as old watched directories for the next build
+ * - remove everything that isn't watched from the virtual file system.
  */
 public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);

@@ -100,6 +100,32 @@ public class DefaultGradleRunner extends GradleRunner {
         });
     }
 
+    private static OutputStream toOutputStream(Writer standardOutput) {
+        try {
+            return WriterOutputStream.builder().setWriter(standardOutput).get();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static GradleProvider findGradleInstallFromGradleRunner() {
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        if (gradleInstallation == null) {
+            if ("embedded".equals(System.getProperty("org.gradle.integtest.executer"))) {
+                return GradleProvider.embedded();
+            }
+            String messagePrefix = "Could not find a Gradle installation to use based on the location of the GradleRunner class";
+            try {
+                File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
+                messagePrefix += ": " + classpathForClass.getAbsolutePath();
+            } catch (Exception ignore) {
+                // ignore
+            }
+            throw new InvalidRunnerConfigurationException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
+        }
+        return GradleProvider.installation(gradleInstallation.getGradleHome());
+    }
+
     public TestKitDirProvider getTestKitDirProvider() {
         return testKitDirProvider;
     }
@@ -253,14 +279,6 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
-    private static OutputStream toOutputStream(Writer standardOutput) {
-        try {
-            return WriterOutputStream.builder().setWriter(standardOutput).get();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     private void validateArgumentNotNull(Object argument, String argumentName) {
         if (argument == null) {
             throw new IllegalArgumentException(String.format("%s argument cannot be null", argumentName));
@@ -390,24 +408,6 @@ public class DefaultGradleRunner extends GradleRunner {
         } else {
             throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
         }
-    }
-
-    private static GradleProvider findGradleInstallFromGradleRunner() {
-        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
-        if (gradleInstallation == null) {
-            if ("embedded".equals(System.getProperty("org.gradle.integtest.executer"))) {
-                return GradleProvider.embedded();
-            }
-            String messagePrefix = "Could not find a Gradle installation to use based on the location of the GradleRunner class";
-            try {
-                File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
-                messagePrefix += ": " + classpathForClass.getAbsolutePath();
-            } catch (Exception ignore) {
-                // ignore
-            }
-            throw new InvalidRunnerConfigurationException(messagePrefix + ". Please specify a Gradle runtime to use via GradleRunner.withGradleVersion() or similar.");
-        }
-        return GradleProvider.installation(gradleInstallation.getGradleHome());
     }
 
 

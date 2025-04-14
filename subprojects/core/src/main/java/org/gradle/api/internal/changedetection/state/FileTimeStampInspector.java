@@ -34,9 +34,9 @@ import java.nio.file.Files;
  * The detection is done by updating a marker file at the end of the build. In the next build, consider any files whose timestamp is the same as that of this marker file as potentially changed and hash their contents.
  *
  * This strategy could be improved in several ways:
- *  - Don't use the timestamp for files that we've already hashed during this build.
- *  - Potentially only apply the end-of-build timestamp for input files only, as often some or all of the output files of a build will have the end-of-build timestamp.
- *  - Use finer grained timestamps, where available. Currently we still use the `File.lastModified()` timestamp on some platforms.
+ * - Don't use the timestamp for files that we've already hashed during this build.
+ * - Potentially only apply the end-of-build timestamp for input files only, as often some or all of the output files of a build will have the end-of-build timestamp.
+ * - Use finer grained timestamps, where available. Currently we still use the `File.lastModified()` timestamp on some platforms.
  */
 public abstract class FileTimeStampInspector {
     private final File workDir;

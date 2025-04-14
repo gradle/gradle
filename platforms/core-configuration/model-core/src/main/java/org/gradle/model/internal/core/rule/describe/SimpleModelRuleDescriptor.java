@@ -17,7 +17,9 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -32,6 +34,7 @@ public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
     public SimpleModelRuleDescriptor(final Factory<String> descriptor) {
         this.factory = new Factory<String>() {
             String cachedValue;
+
             @Override
             public String create() {
                 if (cachedValue == null) {

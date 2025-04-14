@@ -41,19 +41,6 @@ public class ModuleApplicationNameWritingCompiler<T extends JavaCompileSpec> imp
         this.delegate = delegate;
     }
 
-    @Override
-    public WorkResult execute(T spec) {
-        WorkResult result = delegate.execute(spec);
-        String mainClass = spec.getCompileOptions().getJavaModuleMainClass();
-        if (mainClass != null) {
-            File moduleInfo = new File(spec.getDestinationDir(), "module-info.class");
-            if (moduleInfo.exists()) {
-                addMainClass(moduleInfo, mainClass);
-            }
-        }
-        return result;
-    }
-
     private static void addMainClass(File moduleInfo, String mainClass) {
         try (InputStream inputStream = new FileInputStream(moduleInfo)) {
             ClassReader classReader = new ClassReader(inputStream);
@@ -68,6 +55,18 @@ public class ModuleApplicationNameWritingCompiler<T extends JavaCompileSpec> imp
         }
     }
 
+    @Override
+    public WorkResult execute(T spec) {
+        WorkResult result = delegate.execute(spec);
+        String mainClass = spec.getCompileOptions().getJavaModuleMainClass();
+        if (mainClass != null) {
+            File moduleInfo = new File(spec.getDestinationDir(), "module-info.class");
+            if (moduleInfo.exists()) {
+                addMainClass(moduleInfo, mainClass);
+            }
+        }
+        return result;
+    }
 
     private static class ModuleInfoVisitor extends ClassVisitor {
         private final String mainClass;

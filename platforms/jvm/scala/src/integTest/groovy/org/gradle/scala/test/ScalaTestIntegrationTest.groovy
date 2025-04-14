@@ -24,8 +24,10 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for ScalaTest 2.x, which is not compatible with running on JDK 24.")
     def executesTestsWithMultiLineDescriptions() {
@@ -62,6 +64,6 @@ class MultiLineSuite extends FunSuite {
 
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("org.gradle.MultiLineSuite")
-	    result.testClass("org.gradle.MultiLineSuite").assertTestPassed("This test method name\nspans many\nlines")
+        result.testClass("org.gradle.MultiLineSuite").assertTestPassed("This test method name\nspans many\nlines")
     }
 }

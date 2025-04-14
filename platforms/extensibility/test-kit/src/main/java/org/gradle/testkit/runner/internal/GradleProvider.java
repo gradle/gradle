@@ -28,10 +28,6 @@ public abstract class GradleProvider {
     private GradleProvider() {
     }
 
-    public abstract void applyTo(GradleConnector gradleConnector);
-
-    public abstract void applyTo(GradleRunner gradleRunner);
-
     public static GradleProvider installation(File gradleHome) {
         return new InstallationGradleProvider(gradleHome);
     }
@@ -47,6 +43,10 @@ public abstract class GradleProvider {
     public static GradleProvider embedded() {
         return new EmbeddedGradleProvider();
     }
+
+    public abstract void applyTo(GradleConnector gradleConnector);
+
+    public abstract void applyTo(GradleRunner gradleRunner);
 
     private static final class InstallationGradleProvider extends GradleProvider {
         private final File gradleHome;

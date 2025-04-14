@@ -41,7 +41,7 @@ public class StatementLabelsScriptTransformer extends AbstractScriptTransformer 
             protected void visitStatement(Statement statement) {
                 if (statement.getStatementLabels() != null && !statement.getStatementLabels().isEmpty()) {
                     String message = String.format("Statement labels may not be used in build scripts.%nIn case you tried to configure a property named '%s', replace ':' with '=' or ' ', otherwise it will not have the desired effect.",
-                            statement.getStatementLabels().get(0));
+                        statement.getStatementLabels().get(0));
                     addError(message, statement);
                 }
             }

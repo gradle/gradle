@@ -66,7 +66,8 @@ class ClassSetAnalysisTest extends Specification {
 
     def "returns empty analysis"() {
         def a = analysis([:])
-        expect: a.findTransitiveDependents(["Foo"], [:]).getAllDependentClasses().isEmpty()
+        expect:
+        a.findTransitiveDependents(["Foo"], [:]).getAllDependentClasses().isEmpty()
     }
 
     def "does not recurse private dependencies"() {
@@ -132,8 +133,10 @@ class ClassSetAnalysisTest extends Specification {
         expect:
         deps.dependencyToAll
 
-        when: deps.getAllDependentClasses()
-        then: thrown(UnsupportedOperationException)
+        when:
+        deps.getAllDependentClasses()
+        then:
+        thrown(UnsupportedOperationException)
     }
 
     def "marks as dependency to all if transitive dependency is a dependency to all"() {
@@ -192,7 +195,7 @@ class ClassSetAnalysisTest extends Specification {
             "Bar": dependentClasses([] as Set, ["Baz"] as Set),
             "Baz": dependentClasses([] as Set, ["Foo"] as Set),
         ])
-        def deps =  a.findTransitiveDependents(["Foo"], [:])
+        def deps = a.findTransitiveDependents(["Foo"], [:])
 
         expect:
         deps.getAllDependentClasses() == ["Bar", "Baz"] as Set
@@ -205,7 +208,7 @@ class ClassSetAnalysisTest extends Specification {
             "c": dependentClasses([] as Set, [] as Set),
             "d": dependentClasses([] as Set, [] as Set),
         ])
-        def deps =  a.findTransitiveDependents(["a"], [:])
+        def deps = a.findTransitiveDependents(["a"], [:])
 
         expect:
         deps.getAllDependentClasses() == ["c", "d", 'a$b'] as Set
@@ -249,8 +252,8 @@ class ClassSetAnalysisTest extends Specification {
 
     def "some classes may depend on any change"() {
         def a = analysis([
-            "A": dependentClasses([] as Set, ["B"] as Set), "B": empty(), "DependsOnAny" : dependentClasses([] as Set, ["C"] as Set)
-        ], [:], dependentClasses([] as Set, ["A"] as Set), dependentClasses([] as Set, ["DependsOnAny"] as Set) )
+            "A": dependentClasses([] as Set, ["B"] as Set), "B": empty(), "DependsOnAny": dependentClasses([] as Set, ["C"] as Set)
+        ], [:], dependentClasses([] as Set, ["A"] as Set), dependentClasses([] as Set, ["DependsOnAny"] as Set))
         def deps = a.findTransitiveDependents(["A"], [:])
 
         expect:
@@ -297,7 +300,7 @@ class ClassSetAnalysisTest extends Specification {
         )
 
         when:
-        def deps = a.findTransitiveDependents(["Foo"], ["Foo" : IntSet.of(1)])
+        def deps = a.findTransitiveDependents(["Foo"], ["Foo": IntSet.of(1)])
 
         then:
         deps.isDependencyToAll()
@@ -307,11 +310,11 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis(
             [:], [:], empty(), empty(), null,
-            CompilerApiData.withConstantsMapping([:], new ConstantToDependentsMapping(["Foo" : dependentClasses(["BarBar"] as Set, ["Bar"] as Set)]))
+            CompilerApiData.withConstantsMapping([:], new ConstantToDependentsMapping(["Foo": dependentClasses(["BarBar"] as Set, ["Bar"] as Set)]))
         )
 
         when:
-        def deps = a.findTransitiveDependents(["Foo"], ["Foo" : IntSet.of(1)])
+        def deps = a.findTransitiveDependents(["Foo"], ["Foo": IntSet.of(1)])
 
         then:
         deps.getAccessibleDependentClasses() == ["Bar"] as Set
@@ -322,7 +325,7 @@ class ClassSetAnalysisTest extends Specification {
         given:
         def a = analysis(
             [:], [:], empty(), empty(), null,
-            CompilerApiData.withConstantsMapping([:], new ConstantToDependentsMapping(["Foo" : dependentClasses([] as Set, ["Bar"] as Set)]))
+            CompilerApiData.withConstantsMapping([:], new ConstantToDependentsMapping(["Foo": dependentClasses([] as Set, ["Bar"] as Set)]))
         )
 
         when:
@@ -337,10 +340,10 @@ class ClassSetAnalysisTest extends Specification {
         def a = analysis(
             [:], [:], empty(), empty(), null,
             CompilerApiData.withConstantsMapping([:], new ConstantToDependentsMapping([
-                "Foo" : dependentClasses([] as Set, ["Bar"] as Set),
-                "Bar" : dependentClasses([] as Set, ["FooBar"] as Set),
-                "FooBar" : dependentClasses([] as Set, ["BarFoo"] as Set),
-                "X" : dependentClasses([] as Set, ["Y"] as Set),
+                "Foo": dependentClasses([] as Set, ["Bar"] as Set),
+                "Bar": dependentClasses([] as Set, ["FooBar"] as Set),
+                "FooBar": dependentClasses([] as Set, ["BarFoo"] as Set),
+                "X": dependentClasses([] as Set, ["Y"] as Set),
             ]))
         )
 

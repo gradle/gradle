@@ -25,7 +25,7 @@ class IvyComponentMetadataRulesChangingModulesIntegrationTest extends ComponentM
     }
 
     String getRepoDeclaration() {
-"""
+        """
 repositories {
     ivy {
         url = "$repo.uri"

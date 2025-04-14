@@ -23,7 +23,7 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import java.util.Collection;
 
 public interface AttributeMatchingExplanationBuilder {
-    AttributeMatchingExplanationBuilder NO_OP = new AttributeMatchingExplanationBuilder() { };
+    AttributeMatchingExplanationBuilder NO_OP = new AttributeMatchingExplanationBuilder() {};
 
     static AttributeMatchingExplanationBuilder logging() {
         return LoggingAttributeMatchingExplanationBuilder.logging();

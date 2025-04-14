@@ -38,7 +38,6 @@ public interface EclipseClasspathEntry {
      *
      * @return The access rules.
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
-     *
      * @since 3.0
      */
     DomainObjectSet<? extends AccessRule> getAccessRules() throws UnsupportedMethodException;

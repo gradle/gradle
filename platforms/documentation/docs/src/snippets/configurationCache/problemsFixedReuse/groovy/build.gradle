@@ -1,10 +1,13 @@
 abstract class MyCopyTask extends DefaultTask {
 
-    @InputDirectory abstract DirectoryProperty getSource()
+    @InputDirectory
+    abstract DirectoryProperty getSource()
 
-    @OutputDirectory abstract DirectoryProperty getDestination()
+    @OutputDirectory
+    abstract DirectoryProperty getDestination()
 
-    @Inject abstract FileSystemOperations getFs()
+    @Inject
+    abstract FileSystemOperations getFs()
 
     @TaskAction
     void action() {

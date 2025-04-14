@@ -95,15 +95,18 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
     }
 
     static class Builder implements BuildActionExecuter.Builder {
-        private PhasedBuildAction.@Nullable BuildActionWrapper<?> projectsLoadedAction = null;
-        private PhasedBuildAction.@Nullable BuildActionWrapper<?> buildFinishedAction = null;
-
         private final AsyncConsumerActionExecutor connection;
         private final ConnectionParameters parameters;
+        private PhasedBuildAction.@Nullable BuildActionWrapper<?> projectsLoadedAction = null;
+        private PhasedBuildAction.@Nullable BuildActionWrapper<?> buildFinishedAction = null;
 
         Builder(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
             this.connection = connection;
             this.parameters = parameters;
+        }
+
+        private static IllegalArgumentException getException(String phase) {
+            return new IllegalArgumentException(String.format("%s has already been added. Only one action per phase is allowed.", phase));
         }
 
         @Override
@@ -127,10 +130,6 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
         @Override
         public BuildActionExecuter<Void> build() {
             return new DefaultPhasedBuildActionExecuter(new DefaultPhasedBuildAction(projectsLoadedAction, buildFinishedAction), connection, parameters);
-        }
-
-        private static IllegalArgumentException getException(String phase) {
-            return new IllegalArgumentException(String.format("%s has already been added. Only one action per phase is allowed.", phase));
         }
     }
 }

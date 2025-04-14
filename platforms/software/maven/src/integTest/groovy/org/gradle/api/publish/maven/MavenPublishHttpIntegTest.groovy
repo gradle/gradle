@@ -345,7 +345,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     def "can publish to authenticated repository using inlined credentials"() {
         given:
         PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('username', 'password')
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "mavenRepo","""
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "mavenRepo", """
             credentials {
                 username = '${credentials.username}'
                 password = '${credentials.password}'
@@ -369,7 +369,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('username', 'password')
 
         def repositoryName = "maven-repo-invalid-as-identity"
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, repositoryName,"""
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, repositoryName, """
             credentials {
                 username = '${credentials.username}'
                 password = '${credentials.password}'

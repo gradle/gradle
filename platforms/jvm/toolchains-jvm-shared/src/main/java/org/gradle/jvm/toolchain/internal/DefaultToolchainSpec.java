@@ -33,50 +33,6 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     private final Property<JvmImplementation> implementation;
     private final Property<Boolean> nativeImageCapable;
 
-    public static class Key implements JavaToolchainSpecInternal.Key {
-        private final JavaLanguageVersion languageVersion;
-        private final JvmVendorSpec vendor;
-        private final JvmImplementation implementation;
-        private final boolean nativeImageCapable;
-
-        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation, boolean nativeImageCapable) {
-            this.languageVersion = languageVersion;
-            this.vendor = vendor;
-            this.implementation = implementation;
-            this.nativeImageCapable = nativeImageCapable;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            Key that = (Key) o;
-            return Objects.equals(languageVersion, that.languageVersion)
-                && Objects.equals(vendor, that.vendor)
-                && Objects.equals(implementation, that.implementation)
-                && nativeImageCapable == that.nativeImageCapable;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(languageVersion, vendor, implementation, nativeImageCapable);
-        }
-
-        @Override
-        public String toString() {
-            return "DefaultKey{" +
-                "languageVersion=" + languageVersion +
-                ", vendor=" + vendor +
-                ", implementation=" + implementation +
-                ", nativeImageCapable=" + nativeImageCapable +
-                '}';
-        }
-    }
-
     @Inject
     public DefaultToolchainSpec(PropertyFactory propertyFactory) {
         version = propertyFactory.property(JavaLanguageVersion.class);
@@ -86,6 +42,14 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
         getVendor().convention(getConventionVendor());
         getImplementation().convention(getConventionImplementation());
+    }
+
+    private static JvmVendorSpec getConventionVendor() {
+        return DefaultJvmVendorSpec.any();
+    }
+
+    private static JvmImplementation getConventionImplementation() {
+        return JvmImplementation.VENDOR_SPECIFIC;
     }
 
     @Override
@@ -134,11 +98,47 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         return getDisplayName();
     }
 
-    private static JvmVendorSpec getConventionVendor() {
-        return DefaultJvmVendorSpec.any();
-    }
+    public static class Key implements JavaToolchainSpecInternal.Key {
+        private final JavaLanguageVersion languageVersion;
+        private final JvmVendorSpec vendor;
+        private final JvmImplementation implementation;
+        private final boolean nativeImageCapable;
 
-    private static JvmImplementation getConventionImplementation() {
-        return JvmImplementation.VENDOR_SPECIFIC;
+        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation, boolean nativeImageCapable) {
+            this.languageVersion = languageVersion;
+            this.vendor = vendor;
+            this.implementation = implementation;
+            this.nativeImageCapable = nativeImageCapable;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Key that = (Key) o;
+            return Objects.equals(languageVersion, that.languageVersion)
+                && Objects.equals(vendor, that.vendor)
+                && Objects.equals(implementation, that.implementation)
+                && nativeImageCapable == that.nativeImageCapable;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(languageVersion, vendor, implementation, nativeImageCapable);
+        }
+
+        @Override
+        public String toString() {
+            return "DefaultKey{" +
+                "languageVersion=" + languageVersion +
+                ", vendor=" + vendor +
+                ", implementation=" + implementation +
+                ", nativeImageCapable=" + nativeImageCapable +
+                '}';
+        }
     }
 }

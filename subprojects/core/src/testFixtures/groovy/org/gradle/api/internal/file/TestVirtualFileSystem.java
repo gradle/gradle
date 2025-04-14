@@ -30,11 +30,11 @@ public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
         return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
-    public void setRoot(SnapshotHierarchy newRoot) {
-        updateRootUnderLock(root -> newRoot);
-    }
-
     public SnapshotHierarchy getRoot() {
         return root;
+    }
+
+    public void setRoot(SnapshotHierarchy newRoot) {
+        updateRootUnderLock(root -> newRoot);
     }
 }

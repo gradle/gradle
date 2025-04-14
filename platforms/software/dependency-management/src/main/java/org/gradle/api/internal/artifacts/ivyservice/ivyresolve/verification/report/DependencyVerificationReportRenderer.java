@@ -20,9 +20,14 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 
 interface DependencyVerificationReportRenderer {
     void startNewSection(String title);
+
     void startArtifactErrors(Runnable action);
+
     void startNewArtifact(ModuleComponentArtifactIdentifier key, Runnable action);
+
     void reportFailure(RepositoryAwareVerificationFailure failure);
+
     void reportAsMultipleErrors(Runnable action);
+
     void finish(VerificationHighLevelErrors highLevelErrors);
 }

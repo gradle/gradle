@@ -47,24 +47,24 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
         return extension != null ? extension : getDefaultExtension();
     }
 
-    protected abstract String getDefaultExtension();
-
     @Override
     public final void setExtension(String extension) {
         this.extension = Strings.nullToEmpty(extension);
     }
+
+    protected abstract String getDefaultExtension();
 
     @Override
     public final String getClassifier() {
         return Strings.emptyToNull(classifier != null ? classifier : getDefaultClassifier());
     }
 
-    protected abstract String getDefaultClassifier();
-
     @Override
     public final void setClassifier(String classifier) {
         this.classifier = Strings.nullToEmpty(classifier);
     }
+
+    protected abstract String getDefaultClassifier();
 
     @Override
     public final void builtBy(Object... tasks) {

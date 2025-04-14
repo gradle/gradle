@@ -47,6 +47,12 @@ import static org.junit.Assert.fail;
  * A set of classes for use in the AnnotationProcessingTaskFactoryTest.
  */
 public class AnnotationProcessingTasks {
+    public interface WithProperty<T extends PropertyContainer<?>> {
+        T getNestedProperty();
+    }
+
+    public interface PropertyContainer<T extends SomeProperty> {}
+
     public static class TestTask extends DefaultTask {
         final Runnable action;
 
@@ -303,9 +309,9 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithBridgeMethod extends TaskWithAction implements WithProperty<SpecificProperty> {
+        public int traversedOutputsCount;
         @Nested
         private SpecificProperty nestedProperty = new SpecificProperty();
-        public int traversedOutputsCount;
 
         public SpecificProperty getNestedProperty() {
             traversedOutputsCount++;
@@ -313,11 +319,8 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public interface WithProperty<T extends PropertyContainer<?>> {
-        T getNestedProperty();
-    }
-    public interface PropertyContainer<T extends SomeProperty> {}
     public static class SpecificProperty extends SomePropertyContainer<SomeProperty> {}
+
     public static class SomeProperty {}
 
     public static abstract class SomePropertyContainer<T extends SomeProperty> implements PropertyContainer<T> {

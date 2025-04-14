@@ -1,5 +1,6 @@
 import org.junit.Test;
 
 public class FooTest {
-  @Test public void test() { }
+    @Test
+    public void test() {}
 }

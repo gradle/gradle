@@ -39,6 +39,6 @@ class CPCHCompilerTest extends VisualCppNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        return [ '/Yc' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        return ['/Yc'] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

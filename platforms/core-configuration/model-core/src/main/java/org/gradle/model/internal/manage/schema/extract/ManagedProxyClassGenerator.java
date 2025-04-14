@@ -171,6 +171,12 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         .put(long.class, Long.class)
         .build();
 
+    // Called from generated code on failure to convert the supplied value for a property to the property type
+    @SuppressWarnings("unused")
+    public static void propertyValueConvertFailure(Class<?> viewType, String propertyName, Object value, TypeConversionException failure) throws UnsupportedPropertyValueException {
+        throw new UnsupportedPropertyValueException(String.format("Cannot set property: %s for class: %s to value: %s.", propertyName, viewType.getName(), value), failure);
+    }
+
     /**
      * Generates an implementation of the given managed type.
      * <p>
@@ -257,8 +263,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return generator.define(targetClassLoader);
     }
 
-    private void generateProxyClass(ClassWriter visitor, StructSchema<?> viewSchema, StructBindings<?> bindings, Collection<String> interfacesToImplement,
-                                    Collection<ModelType<?>> viewTypes, Type generatedType, Type superclassType, Class<? extends GeneratedViewState> backingStateType) {
+    private void generateProxyClass(
+        ClassWriter visitor, StructSchema<?> viewSchema, StructBindings<?> bindings, Collection<String> interfacesToImplement,
+        Collection<ModelType<?>> viewTypes, Type generatedType, Type superclassType, Class<? extends GeneratedViewState> backingStateType
+    ) {
         Class<?> viewClass = viewSchema.getType().getConcreteClass();
         StructSchema<?> delegateSchema = bindings.getDelegateSchema();
         declareClass(visitor, interfacesToImplement, generatedType, superclassType);
@@ -510,7 +518,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             writeViewPropertyDslMethods(visitor, generatedType, viewProperties, viewClass);
         }
 
-        for (StructMethodBinding methodBinding :  bindings.getMethodBindings()) {
+        for (StructMethodBinding methodBinding : bindings.getMethodBindings()) {
             WeaklyTypeReferencingMethod<?, ?> weakViewMethod = methodBinding.getViewMethod();
             Method viewMethod = weakViewMethod.getMethod();
 
@@ -554,7 +562,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 throw new AssertionError();
             }
         }
-   }
+    }
 
     private void writeViewPropertyDslMethods(ClassVisitor visitor, Type generatedType, Collection<ModelProperty<?>> viewProperties, Class<?> viewClass) {
         boolean writable = Iterables.any(viewProperties, new Predicate<ModelProperty<?>>() {
@@ -722,7 +730,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         putFirstMethodArgumentOnStack(methodVisitor);
         methodVisitor.visitVarInsn(ALOAD, 2);
         methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(ManagedProxyClassGenerator.class), "propertyValueConvertFailure",
-                Type.getMethodDescriptor(Type.VOID_TYPE, CLASS_TYPE, STRING_TYPE, OBJECT_TYPE, TYPE_CONVERSION_EXCEPTION_TYPE), false);
+            Type.getMethodDescriptor(Type.VOID_TYPE, CLASS_TYPE, STRING_TYPE, OBJECT_TYPE, TYPE_CONVERSION_EXCEPTION_TYPE), false);
         finishVisitingMethod(methodVisitor);
     }
 
@@ -992,12 +1000,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void invokeSuperMethod(MethodVisitor methodVisitor, Class<?> superClass, Method method) {
         putThisOnStack(methodVisitor);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(superClass), method.getName(), Type.getMethodDescriptor(method), false);
-    }
-
-    // Called from generated code on failure to convert the supplied value for a property to the property type
-    @SuppressWarnings("unused")
-    public static void propertyValueConvertFailure(Class<?> viewType, String propertyName, Object value, TypeConversionException failure) throws UnsupportedPropertyValueException {
-        throw new UnsupportedPropertyValueException(String.format("Cannot set property: %s for class: %s to value: %s.", propertyName, viewType.getName(), value), failure);
     }
 
     public interface GeneratedView {

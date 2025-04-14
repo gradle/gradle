@@ -98,8 +98,11 @@ class VariantContext {
         }
 
         abstract String getAsPath()
+
         abstract String getAsPublishingName()
+
         abstract String getAsVariantName()
+
         abstract String getName()
 
         static VariantDimension missing(String dimensionName) {

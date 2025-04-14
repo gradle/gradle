@@ -40,12 +40,12 @@ import java.util.concurrent.Callable;
 @UsedByScanPlugin("test-retry")
 public class TestNGTestFramework implements TestFramework {
     private final TestNGOptions options;
-    private TestNGDetector detector;
     private final DefaultTestFilter filter;
     private final ObjectFactory objects;
     private final Factory<File> testTaskTemporaryDir;
     private final DirectoryReport htmlReport;
     private final Provider<Boolean> dryRun;
+    private TestNGDetector detector;
 
     public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, ObjectFactory objects) {
         this(

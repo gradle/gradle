@@ -143,7 +143,7 @@ class ModuleJarFixture {
         final String code
 
         JavaSourceFromString(String name, String code) {
-            super(URI.create("string:///" + name.replace('.','/') + Kind.SOURCE.extension),Kind.SOURCE)
+            super(URI.create("string:///" + name.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE)
             this.code = code
         }
 

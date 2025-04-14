@@ -203,7 +203,8 @@ operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out 
  * @since 8.6
  */
 @Incubating
-operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>) = add(externalModule, configuration)
+operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>) =
+    add(externalModule, configuration)
 
 
 /**

@@ -45,6 +45,7 @@ class JavaGradlePluginLegacyPluginPublishingIntegrationTest extends AbstractInte
         expect:
         succeeds 'help'
     }
+
     def publishToMaven() {
         buildFile << """
             apply plugin: 'maven-publish'

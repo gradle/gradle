@@ -42,12 +42,12 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         CallInterceptorRegistry.loadCallInterceptors(pluginsClassLoader);
     }
 
-    private ClassLoader restrictToGradleApi(ClassLoader classLoader) {
-        return restrictTo(apiSpecFor(classLoader), classLoader);
-    }
-
     private static ClassLoader restrictTo(FilteringClassLoader.Spec spec, ClassLoader parent) {
         return new FilteringClassLoader(parent, spec);
+    }
+
+    private ClassLoader restrictToGradleApi(ClassLoader classLoader) {
+        return restrictTo(apiSpecFor(classLoader), classLoader);
     }
 
     private FilteringClassLoader.Spec apiSpecFor(ClassLoader classLoader) {

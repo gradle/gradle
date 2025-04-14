@@ -23,11 +23,11 @@ import java.util.List;
 import java.util.Map;
 
 class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
-    private String description;
     private final File workDirectory;
     private final Iterable<String> args;
     private final CommandLineToolContext context;
     private final BuildOperationLogger oplogger;
+    private String description;
 
     DefaultCommandLineToolInvocation(String description, File workDirectory, Iterable<String> args, CommandLineToolContext context, BuildOperationLogger oplogger) {
         this.description = description;

@@ -43,12 +43,12 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.get(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             ConsumerAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]
         }
-        1 * connection.run(GradleProject, _) >> {args ->
+        1 * connection.run(GradleProject, _) >> { args ->
             ConsumerOperationParameters params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
@@ -79,12 +79,12 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.forTasks('a', 'b').get(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             ConsumerAction<GradleProject> action = args[0]
             action.run(connection)
             adaptedHandler = args[1]
         }
-        1 * connection.run(GradleProject, _) >> {args ->
+        1 * connection.run(GradleProject, _) >> { args ->
             ConsumerOperationParameters params = args[1]
             assert params.standardOutput == null
             assert params.standardError == null
@@ -111,7 +111,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.get(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             adaptedHandler = args[1]
         }
 
@@ -119,7 +119,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         adaptedHandler.onFailure(failure)
 
         then:
-        1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
+        1 * handler.onFailure(!null) >> { args -> wrappedFailure = args[0] }
         _ * asyncConnection.displayName >> '[connection]'
         wrappedFailure.message == 'Could not fetch model of type \'GradleProject\' using [connection].'
         wrappedFailure.cause.is(failure)
@@ -136,7 +136,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         builder.get(handler)
 
         then:
-        1 * asyncConnection.run(!null, !null) >> {args ->
+        1 * asyncConnection.run(!null, !null) >> { args ->
             adaptedHandler = args[1]
         }
 
@@ -144,7 +144,7 @@ class DefaultModelBuilderTest extends ConcurrentSpec {
         adaptedHandler.onFailure(failure)
 
         then:
-        1 * handler.onFailure(!null) >> {args -> wrappedFailure = args[0] }
+        1 * handler.onFailure(!null) >> { args -> wrappedFailure = args[0] }
         wrappedFailure.message.contains(Exceptions.INCOMPATIBLE_VERSION_HINT)
         wrappedFailure.cause.is(failure)
     }

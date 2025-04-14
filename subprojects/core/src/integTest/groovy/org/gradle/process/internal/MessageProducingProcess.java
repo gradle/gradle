@@ -28,7 +28,7 @@ public class MessageProducingProcess implements Action<WorkerProcessContext>, Se
         new Thread(new Runnable() {
             public void run() {
                 latch.countDown();
-                for (int i=0; i<1000; i++) {
+                for (int i = 0; i < 1000; i++) {
                     System.out.println("message " + i + "...");
                 }
             }

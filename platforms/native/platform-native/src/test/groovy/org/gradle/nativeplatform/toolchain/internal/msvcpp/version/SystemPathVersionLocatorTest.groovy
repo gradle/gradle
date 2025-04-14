@@ -23,7 +23,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class SystemPathVersionLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def os = Mock(OperatingSystem)
     def versionDeterminer = Mock(VisualStudioMetaDataProvider)

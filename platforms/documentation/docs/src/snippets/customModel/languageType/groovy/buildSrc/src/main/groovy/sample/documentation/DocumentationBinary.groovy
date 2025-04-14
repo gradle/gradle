@@ -7,6 +7,7 @@ import org.gradle.platform.base.BinarySpec
 @Managed
 interface DocumentationBinary extends BinarySpec {
     File getOutputDir()
+
     void setOutputDir(File outputDir)
 }
 // end::binary-declaration[]

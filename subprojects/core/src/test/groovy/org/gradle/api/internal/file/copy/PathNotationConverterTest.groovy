@@ -74,7 +74,7 @@ class PathNotationConverterTest extends Specification {
 
     def "with closure "() {
         expect:
-        "closure/path" == pathNotationParser.parseNotation({ "closure/path"});
+        "closure/path" == pathNotationParser.parseNotation({ "closure/path" });
     }
 
     def "with double nested closure "() {

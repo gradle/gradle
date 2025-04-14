@@ -69,71 +69,34 @@ import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.ty
  * Generates a single bytecode rewriter class.
  */
 public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
-    /**
-     * Emits the code that generates interceptor method invocation.
-     */
-    @FunctionalInterface
-    private interface InvocationGenerator {
-        void generate(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder code);
-    }
-
-    /**
-     * Creates the code block that checks if the invocation operation should be intercepted.
-     */
-    @FunctionalInterface
-    private interface InvocationMatcher {
-        CodeBlock generate(CallableInfo info);
-    }
-
-    @Override
-    protected String classNameForRequest(CallInterceptionRequest request) {
-        return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
-            .map(RequestExtra.InterceptJvmCalls::getImplementationClassName)
-            .orElse(null);
-    }
-
-    @Override
-    protected Consumer<TypeSpec.Builder> classContentForClass(
-        String className,
-        List<CallInterceptionRequest> requestsClassGroup,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super FailureInfo> onFailure
-    ) {
-        Map<Type, FieldSpec> typeFieldByOwner = generateFieldsForImplementationOwners(requestsClassGroup);
-        BytecodeInterceptorType interceptorType = requestsClassGroup.get(0).getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
-            .map(RequestExtra.InterceptJvmCalls::getInterceptionType)
-            .orElseThrow(() -> new IllegalStateException(RequestExtra.InterceptJvmCalls.class.getSimpleName() + " should be present at this stage!"));
-
-        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner = requestsClassGroup.stream().collect(
-            Collectors.groupingBy(it -> it.getInterceptedCallable().getOwner(), LinkedHashMap::new, Collectors.toList())
-        );
-
-        MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
-        generateVisitMethodInsnCode(visitMethodInsnBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
-
-        MethodSpec.Builder findBridgeMethodBuilder = getFindBridgeMethodBuilder();
-        generateFindBridgeMethodBuilderCode(findBridgeMethodBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
-
-        TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
-
-        return builder ->
-            builder.addMethod(constructor)
-                .addAnnotation(GENERATED_ANNOTATION.asClassName())
-                .addModifiers(Modifier.PUBLIC)
-                // generic stuff not related to the content:
-                .addSuperinterface(ClassName.get(JvmBytecodeCallInterceptor.class))
-                .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
-                .addMethod(BINARY_CLASS_NAME_OF)
-                .addMethod(LOAD_BINARY_CLASS_NAME)
-                .addField(INTERCEPTORS_REQUEST_TYPE)
-                .addField(METADATA_FIELD)
-                .addField(CONTEXT_FIELD)
-                // actual content:
-                .addMethod(visitMethodInsnBuilder.build())
-                .addMethod(findBridgeMethodBuilder.build())
-                .addFields(typeFieldByOwner.values())
-                .addType(factoryClass);
-    }
+    private static final ParameterSpec METHOD_VISITOR_PARAM = ParameterSpec.builder(MethodVisitorScope.class, "mv").build();
+    private static final MethodSpec BINARY_CLASS_NAME_OF = MethodSpec.methodBuilder("binaryClassNameOf")
+        .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+        .returns(String.class)
+        .addParameter(String.class, "className")
+        .addStatement("return $T.getObjectType(className).getClassName()", Type.class)
+        .build();
+    private static final FieldSpec INTERCEPTORS_REQUEST_TYPE =
+        FieldSpec.builder(Type.class, "INTERCEPTORS_REQUEST_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+            .initializer("$T.getType($T.class)", Type.class, BytecodeInterceptorFilter.class)
+            .build();
+    private static final MethodSpec LOAD_BINARY_CLASS_NAME = MethodSpec.methodBuilder("loadOwnerBinaryClassName")
+        .addModifiers(Modifier.PRIVATE)
+        .returns(void.class)
+        .addParameter(METHOD_VISITOR_PARAM)
+        .addParameter(String.class, "className")
+        .addStatement("$1N._LDC($2N(className))", METHOD_VISITOR_PARAM, BINARY_CLASS_NAME_OF)
+        .build();
+    private static final FieldSpec METADATA_FIELD =
+        FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
+    private static final FieldSpec CONTEXT_FIELD =
+        FieldSpec.builder(BytecodeInterceptorFilter.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
+    MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
+        .addParameter(InstrumentationMetadata.class, "metadata")
+        .addParameter(BytecodeInterceptorFilter.class, "context")
+        .addStatement("this.$N = metadata", METADATA_FIELD)
+        .addStatement("this.$N = context", CONTEXT_FIELD)
+        .build();
 
     private static TypeSpec generateFactoryClass(String className, BytecodeInterceptorType interceptorType) {
         MethodSpec method = MethodSpec.methodBuilder("create")
@@ -151,7 +114,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addMethod(method)
             .build();
     }
-
 
     private static void generateVisitMethodInsnCode(
         MethodSpec.Builder method,
@@ -197,7 +159,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         method.addCode(code.build());
     }
 
-
     private static void generateBridgeMethodBuilder(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder method) {
         String interceptorName = request.getImplementationInfo().getName();
         String interceptorDesc = request.getImplementationInfo().getDescriptor();
@@ -233,7 +194,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         }
     }
 
-
     private static Map<Type, FieldSpec> generateFieldsForImplementationOwners(Collection<CallInterceptionRequest> interceptionRequests) {
         Set<String> knownSimpleNames = new HashSet<>();
         return interceptionRequests.stream().map(it -> it.getImplementationInfo().getOwner()).distinct()
@@ -248,15 +208,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                     .build();
             }, (u, v) -> u, LinkedHashMap::new));
     }
-
-    MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
-        .addParameter(InstrumentationMetadata.class, "metadata")
-        .addParameter(BytecodeInterceptorFilter.class, "context")
-        .addStatement("this.$N = metadata", METADATA_FIELD)
-        .addStatement("this.$N = context", CONTEXT_FIELD)
-        .build();
-
-    private static final ParameterSpec METHOD_VISITOR_PARAM = ParameterSpec.builder(MethodVisitorScope.class, "mv").build();
 
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
         return MethodSpec.methodBuilder("visitMethodInsn")
@@ -285,32 +236,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addParameter(String.class, "descriptor");
 
     }
-
-    private static final MethodSpec BINARY_CLASS_NAME_OF = MethodSpec.methodBuilder("binaryClassNameOf")
-        .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-        .returns(String.class)
-        .addParameter(String.class, "className")
-        .addStatement("return $T.getObjectType(className).getClassName()", Type.class)
-        .build();
-
-    private static final FieldSpec INTERCEPTORS_REQUEST_TYPE =
-        FieldSpec.builder(Type.class, "INTERCEPTORS_REQUEST_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-            .initializer("$T.getType($T.class)", Type.class, BytecodeInterceptorFilter.class)
-            .build();
-
-    private static final MethodSpec LOAD_BINARY_CLASS_NAME = MethodSpec.methodBuilder("loadOwnerBinaryClassName")
-        .addModifiers(Modifier.PRIVATE)
-        .returns(void.class)
-        .addParameter(METHOD_VISITOR_PARAM)
-        .addParameter(String.class, "className")
-        .addStatement("$1N._LDC($2N(className))", METHOD_VISITOR_PARAM, BINARY_CLASS_NAME_OF)
-        .build();
-
-    private static final FieldSpec METADATA_FIELD =
-        FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
-
-    private static final FieldSpec CONTEXT_FIELD =
-        FieldSpec.builder(BytecodeInterceptorFilter.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static void generateCodeForOwner(
         CallableOwnerInfo owner,
@@ -436,8 +361,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         }
     }
 
-    // TODO: move validation earlier?
-
     private static void generateInterceptedInvocation(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder method) {
         CallableInfo callable = request.getInterceptedCallable();
         String implementationName = request.getImplementationInfo().getName();
@@ -520,6 +443,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         method.addStatement("$N._INVOKESTATIC($N, $S, $S)", METHOD_VISITOR_PARAM, ownerTypeField, implementationName, implementationDescriptor);
         method.addStatement("return true");
     }
+
+    // TODO: move validation earlier?
 
     private static void validateSignature(CallableInfo callable) {
         if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
@@ -605,6 +530,72 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             Stream.of(Type.getType(int.class), Type.getType(Object.class))
         ).toArray(Type[]::new);
         return Type.getMethodDescriptor(returnType, argumentTypesWithDefault);
+    }
+
+    @Override
+    protected String classNameForRequest(CallInterceptionRequest request) {
+        return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
+            .map(RequestExtra.InterceptJvmCalls::getImplementationClassName)
+            .orElse(null);
+    }
+
+    @Override
+    protected Consumer<TypeSpec.Builder> classContentForClass(
+        String className,
+        List<CallInterceptionRequest> requestsClassGroup,
+        Consumer<? super CallInterceptionRequest> onProcessedRequest,
+        Consumer<? super FailureInfo> onFailure
+    ) {
+        Map<Type, FieldSpec> typeFieldByOwner = generateFieldsForImplementationOwners(requestsClassGroup);
+        BytecodeInterceptorType interceptorType = requestsClassGroup.get(0).getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
+            .map(RequestExtra.InterceptJvmCalls::getInterceptionType)
+            .orElseThrow(() -> new IllegalStateException(RequestExtra.InterceptJvmCalls.class.getSimpleName() + " should be present at this stage!"));
+
+        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner = requestsClassGroup.stream().collect(
+            Collectors.groupingBy(it -> it.getInterceptedCallable().getOwner(), LinkedHashMap::new, Collectors.toList())
+        );
+
+        MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
+        generateVisitMethodInsnCode(visitMethodInsnBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
+
+        MethodSpec.Builder findBridgeMethodBuilder = getFindBridgeMethodBuilder();
+        generateFindBridgeMethodBuilderCode(findBridgeMethodBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
+
+        TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
+
+        return builder ->
+            builder.addMethod(constructor)
+                .addAnnotation(GENERATED_ANNOTATION.asClassName())
+                .addModifiers(Modifier.PUBLIC)
+                // generic stuff not related to the content:
+                .addSuperinterface(ClassName.get(JvmBytecodeCallInterceptor.class))
+                .addSuperinterface(ClassName.get(interceptorType.getInterceptorMarkerInterface()))
+                .addMethod(BINARY_CLASS_NAME_OF)
+                .addMethod(LOAD_BINARY_CLASS_NAME)
+                .addField(INTERCEPTORS_REQUEST_TYPE)
+                .addField(METADATA_FIELD)
+                .addField(CONTEXT_FIELD)
+                // actual content:
+                .addMethod(visitMethodInsnBuilder.build())
+                .addMethod(findBridgeMethodBuilder.build())
+                .addFields(typeFieldByOwner.values())
+                .addType(factoryClass);
+    }
+
+    /**
+     * Emits the code that generates interceptor method invocation.
+     */
+    @FunctionalInterface
+    private interface InvocationGenerator {
+        void generate(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder code);
+    }
+
+    /**
+     * Creates the code block that checks if the invocation operation should be intercepted.
+     */
+    @FunctionalInterface
+    private interface InvocationMatcher {
+        CodeBlock generate(CallableInfo info);
     }
 
     private static class Failure extends RuntimeException {

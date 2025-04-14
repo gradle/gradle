@@ -46,6 +46,7 @@ public interface PluginRegistry {
 
     /**
      * Finds the plugin id which corresponds to the supplied class name.
+     *
      * @param clazz the class to look for
      * @return the plugin id for this class.
      */

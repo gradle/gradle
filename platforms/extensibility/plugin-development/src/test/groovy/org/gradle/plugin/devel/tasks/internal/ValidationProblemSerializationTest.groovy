@@ -251,7 +251,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
         deserialized[0].additionalData instanceof GeneralData
-        (deserialized[0].additionalData as GeneralData).asMap == ['foo' : 'bar']
+        (deserialized[0].additionalData as GeneralData).asMap == ['foo': 'bar']
     }
 
     def "can serialize deprecation additional data"() {

@@ -31,6 +31,13 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     private final int timeoutMs;
     private CountdownTimer timer;
 
+    private ExponentialBackoff(int timeoutMs, S signal, long slotTime) {
+        this.timeoutMs = timeoutMs;
+        this.signal = signal;
+        this.slotTime = slotTime;
+        restartTimer();
+    }
+
     public static ExponentialBackoff<Signal> of(int amount, TimeUnit unit) {
         return of(amount, unit, Signal.SLEEP);
     }
@@ -41,13 +48,6 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
 
     public static ExponentialBackoff<Signal> of(int amount, TimeUnit unit, int slotTime, TimeUnit slotTimeUnit) {
         return new ExponentialBackoff<Signal>((int) TimeUnit.MILLISECONDS.convert(amount, unit), Signal.SLEEP, TimeUnit.MILLISECONDS.convert(slotTime, slotTimeUnit));
-    }
-
-    private ExponentialBackoff(int timeoutMs, S signal, long slotTime) {
-        this.timeoutMs = timeoutMs;
-        this.signal = signal;
-        this.slotTime = slotTime;
-        restartTimer();
     }
 
     public void restartTimer() {
@@ -107,10 +107,6 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     }
 
     public abstract static class Result<T> {
-        public abstract boolean isSuccessful();
-
-        public abstract T getValue();
-
         /**
          * Creates a result that indicates that the operation was successful and should not be repeated.
          */
@@ -150,5 +146,9 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
                 }
             };
         }
+
+        public abstract boolean isSuccessful();
+
+        public abstract T getValue();
     }
 }

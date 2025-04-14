@@ -66,20 +66,6 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 @DisableCachingByDefault(because = "Not worth caching.")
 public abstract class MergeInstrumentationAnalysisTransform implements TransformAction<MergeInstrumentationAnalysisTransform.Parameters> {
 
-    public interface Parameters extends TransformParameters {
-        @Internal
-        Property<CacheInstrumentationDataBuildService> getBuildService();
-        @Internal
-        Property<Long> getContextId();
-
-        /**
-         * Analysis result is an input, but we access it through build service.
-         */
-        @InputFiles
-        @PathSensitive(PathSensitivity.NAME_ONLY)
-        ConfigurableFileCollection getTypeHierarchyAnalysis();
-    }
-
     @Inject
     public abstract ObjectFactory getObjects();
 
@@ -132,5 +118,20 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         long contextId = getParameters().getContextId().get();
         CacheInstrumentationDataBuildService buildService = getParameters().getBuildService().get();
         return buildService.getInstrumentationTypeRegistry(contextId);
+    }
+
+    public interface Parameters extends TransformParameters {
+        @Internal
+        Property<CacheInstrumentationDataBuildService> getBuildService();
+
+        @Internal
+        Property<Long> getContextId();
+
+        /**
+         * Analysis result is an input, but we access it through build service.
+         */
+        @InputFiles
+        @PathSensitive(PathSensitivity.NAME_ONLY)
+        ConfigurableFileCollection getTypeHierarchyAnalysis();
     }
 }

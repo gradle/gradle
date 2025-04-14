@@ -44,7 +44,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     def "writes correct prologue and schema declarations"() {
         expect:
         ivyFile.text.startsWith(TextUtil.toPlatformLineSeparators(
-"""<?xml version="1.0" encoding="UTF-8"?>
+            """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
 """))
     }
@@ -62,7 +62,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes empty descriptor with module values"() {
         expect:
-        with (ivyXml) {
+        with(ivyXml) {
             info.@organisation == "my-org"
             info.@module == "my-name"
             info.@revision == "my-version"
@@ -84,7 +84,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         descriptor.coordinates.revision.set('version-&"')
 
         then:
-        with (ivyXml) {
+        with(ivyXml) {
             info.@organisation == 'org-ぴ₦ガき∆ç√∫'
             info.@module == 'module-<tag attrib="value"/>-markup'
             info.@revision == 'version-&"'
@@ -107,7 +107,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         ivyXml.info.@branch == "someBranch"
     }
 
-    def "writes supplied licenses" () {
+    def "writes supplied licenses"() {
         when:
         descriptor.license {
             name = "EPL v2.0"
@@ -118,7 +118,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         }
 
         then:
-        with (ivyXml.info) {
+        with(ivyXml.info) {
             license.size() == 2
             license[0].@name == "EPL v2.0"
             license[0].@url.isEmpty()
@@ -127,7 +127,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         }
     }
 
-    def "writes supplied authors" () {
+    def "writes supplied authors"() {
         when:
         descriptor.author {
             name = "Alice"
@@ -138,7 +138,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         }
 
         then:
-        with (ivyXml.info) {
+        with(ivyXml.info) {
             ivyauthor.size() == 2
             ivyauthor[0].@name == "Alice"
             ivyauthor[0].@url.isEmpty()
@@ -147,7 +147,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         }
     }
 
-    def "writes supplied description" () {
+    def "writes supplied description"() {
         when:
         descriptor.description {
             text = "Some lengthy description."
@@ -155,26 +155,26 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         }
 
         then:
-        with (ivyXml) {
+        with(ivyXml) {
             info.description[0].text() == "Some lengthy description."
             info.description[0].@homepage == "http://example.com"
         }
     }
 
-    def "writes supplied description without text" () {
+    def "writes supplied description without text"() {
         when:
         descriptor.description {
             homepage = "http://example.com"
         }
 
         then:
-        with (ivyXml) {
+        with(ivyXml) {
             info.description[0].text() == ""
             info.description[0].@homepage == "http://example.com"
         }
     }
 
-    def "writes supplied extra info elements" () {
+    def "writes supplied extra info elements"() {
         when:
         descriptor.extraInfo("http://namespace/foo", "foo", "fooValue")
         descriptor.extraInfo("http://namespace/bar", "bar", "barValue")
@@ -197,13 +197,13 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         descriptor.configurations.set([config1, config2])
 
         then:
-        with (ivyXml) {
+        with(ivyXml) {
             configurations.conf.size() == 2
-            with (configurations[0].conf[0]) {
+            with(configurations[0].conf[0]) {
                 it.@name == "config1"
                 it.@extends == "foo,bar"
             }
-            with (configurations[0].conf[1]) {
+            with(configurations[0].conf[1]) {
                 it.@name == "config2"
                 it.@extends.empty
             }
@@ -230,16 +230,16 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         then:
         includesMavenNamespace()
         and:
-        with (ivyXml) {
+        with(ivyXml) {
             publications.artifact.size() == 2
-            with (publications[0].artifact[0]) {
+            with(publications[0].artifact[0]) {
                 it.@name == "module"
                 it.@type == "txt"
                 it.@ext == "txt"
                 it."@m:classifier" == "classy"
                 it.@conf.isEmpty()
             }
-            with (publications[0].artifact[1]) {
+            with(publications[0].artifact[1]) {
                 it.@name == ""
                 it.@type == ""
                 it.@ext == ""
@@ -256,15 +256,15 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         descriptor.dependencies.set([dependency1, dependency2])
 
         then:
-        with (ivyXml) {
+        with(ivyXml) {
             dependencies.dependency.size() == 2
-            with (dependencies[0].dependency[0]) {
+            with(dependencies[0].dependency[0]) {
                 it.@org == "dep-group"
                 it.@name == "dep-name-1"
                 it.@rev == "dep-version"
                 it.@conf == "confMappingProject"
             }
-            with (dependencies[0].dependency[1]) {
+            with(dependencies[0].dependency[1]) {
                 it.@org == "dep-group"
                 it.@name == "dep-name-2"
                 it.@rev == "dep-version"
@@ -294,22 +294,22 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         includesMavenNamespace()
 
         and:
-        with (ivyXml) {
+        with(ivyXml) {
             dependencies.dependency.size() == 1
-            with (dependencies[0].dependency[0]) {
+            with(dependencies[0].dependency[0]) {
                 it.@org == "dep-group"
                 it.@name == "dep-name"
                 it.@rev == "dep-version"
                 it.@conf == "confMapping"
 
                 artifact.size() == 2
-                with (artifact[0]) {
+                with(artifact[0]) {
                     it.@name == "artifact-1"
                     it.@type == "type-1"
                     it.@ext == "ext-1"
                     it."@m:classifier".isEmpty()
                 }
-                with (artifact[1]) {
+                with(artifact[1]) {
                     it.@name == "artifact-2"
                     it.@type.isEmpty()
                     it.@ext.isEmpty()
@@ -336,9 +336,9 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         descriptor.dependencies.set([dependency])
 
         then:
-        with (ivyXml) {
+        with(ivyXml) {
             dependencies[0].dependency[0].exclude.size() == 3
-            with (dependencies[0].dependency[0]) {
+            with(dependencies[0].dependency[0]) {
                 with(exclude[0]) {
                     it.@org == 'excludeGroup1'
                     it.@module == 'excludeModule1'
@@ -369,7 +369,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         })
 
         then:
-        with (ivyXml) {
+        with(ivyXml) {
             info.@organisation == "my-org"
             info.@revision == "3"
             info.description == "custom-description-ぴ₦ガき∆ç√∫"
@@ -378,7 +378,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     private void includesMavenNamespace() {
         assert ivyFile.text.startsWith(TextUtil.toPlatformLineSeparators(
-                """<?xml version="1.0" encoding="UTF-8"?>
+            """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
 """))
     }

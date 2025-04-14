@@ -50,11 +50,11 @@ class DependencyResultSorterSpec extends Specification {
         t.message == "Dependency edge or the requested component selector may not be null"
 
         where:
-        d1                                                                                                                                                          | d2
-        null                                                                                                                                                        | null
-        null         | newDependency(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.aha", "aha"), v("1.0")), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0"))
+        d1                                                                                                                                                                                                                       | d2
+        null                                                                                                                                                                                                                     | null
+        null                                                                                                                                                                                                                     | newDependency(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.aha", "aha"), v("1.0")), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0"))
         newDependency(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.aha", "aha"), v("1.0")), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0")) | null
-        newDependency(null, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0")) | newDependency(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.aha", "aha"), v("1.0")), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0"))
+        newDependency(null, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0"))                                                                                                  | newDependency(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.aha", "aha"), v("1.0")), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0"))
         newDependency(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.aha", "aha"), v("1.0")), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0")) | newDependency(null, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.gradle", "zzzz"), "3.0"))
     }
 

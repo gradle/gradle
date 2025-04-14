@@ -34,6 +34,10 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
 
     private static final String COMMENTS_PROPERTY = "org.gradle.buildinit.comments";
 
+    private static Provider<Boolean> getCommentsProperty(Project project) {
+        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(SerializableLambdas.transformer(Boolean::parseBoolean));
+    }
+
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
@@ -53,9 +57,5 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 initBuild.getComments().convention(getCommentsProperty(project).orElse(true));
             });
         }
-    }
-
-    private static Provider<Boolean> getCommentsProperty(Project project) {
-        return project.getProviders().gradleProperty(COMMENTS_PROPERTY).map(SerializableLambdas.transformer(Boolean::parseBoolean));
     }
 }

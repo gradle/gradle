@@ -38,12 +38,14 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
         visitor.candidate("Maps").example("[group: 'org.gradle', name: 'gradle-core', version: '1.0']");
     }
 
-    protected T parseMap(@MapKey("group") @Nullable String group,
-                         @MapKey("name") @Nullable String name,
-                         @MapKey("version") @Nullable String version,
-                         @MapKey("configuration") @Nullable String configuration,
-                         @MapKey("ext") @Nullable String ext,
-                         @MapKey("classifier") @Nullable String classifier) {
+    protected T parseMap(
+        @MapKey("group") @Nullable String group,
+        @MapKey("name") @Nullable String name,
+        @MapKey("version") @Nullable String version,
+        @MapKey("configuration") @Nullable String configuration,
+        @MapKey("ext") @Nullable String ext,
+        @MapKey("classifier") @Nullable String classifier
+    ) {
         T dependency;
         if (configuration == null) {
             dependency = instantiator.newInstance(resultingType, group, name, version);

@@ -56,10 +56,10 @@ public class DistributionInstaller {
     private final AtomicReference<InternalBuildProgressListener> currentListener = new AtomicReference<InternalBuildProgressListener>(NO_OP);
     // Protects the following state
     private final Object lock = new Object();
+    private final int timeout;
     private boolean completed;
     private boolean cancelled;
     private Throwable failure;
-    private final int timeout;
 
     public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock, int timeout) {
         this.progressLoggerFactory = progressLoggerFactory;

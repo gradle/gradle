@@ -33,11 +33,10 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
 
 public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpirationStrategy {
 
-    private static final Logger LOG = Logging.getLogger(DaemonRegistryUnavailableExpirationStrategy.class);
     public static final String REGISTRY_BECAME_UNREADABLE = "after the daemon registry became unreadable";
     public static final String REGISTRY_ENTRY_UNEXPECTEDLY_LOST = "after the daemon was no longer found in the daemon registry";
     public static final String REGISTRY_BECAME_INACCESSIBLE = "after the daemon registry became inaccessible";
-
+    private static final Logger LOG = Logging.getLogger(DaemonRegistryUnavailableExpirationStrategy.class);
     private final Daemon daemon;
 
     public DaemonRegistryUnavailableExpirationStrategy(Daemon daemon) {

@@ -50,6 +50,17 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         this.outputWriter = outputWriter;
     }
 
+    private static String findEnclosingClassName(TestDescriptor testDescriptor) {
+        if (testDescriptor == null) {
+            return null;
+        }
+        String className = testDescriptor.getClassName();
+        if (className != null) {
+            return className;
+        }
+        return findEnclosingClassName(testDescriptor.getParent());
+    }
+
     @Override
     public void beforeSuite(TestDescriptor suite) {
     }
@@ -133,7 +144,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         } catch (Throwable t) {
             String exceptionClassName = exceptionClassName(throwable);
             return String.format("Could not determine failure message for exception of type %s: %s",
-                    exceptionClassName, t);
+                exceptionClassName, t);
         }
     }
 
@@ -179,16 +190,5 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         } else {
             outputWriter.onOutput(classResult.getId(), methodResult.getId(), outputEvent);
         }
-    }
-
-    private static String findEnclosingClassName(TestDescriptor testDescriptor) {
-        if (testDescriptor == null) {
-            return null;
-        }
-        String className = testDescriptor.getClassName();
-        if (className != null) {
-            return className;
-        }
-        return findEnclosingClassName(testDescriptor.getParent());
     }
 }

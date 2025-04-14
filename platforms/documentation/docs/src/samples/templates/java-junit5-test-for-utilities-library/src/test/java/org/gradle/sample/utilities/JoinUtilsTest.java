@@ -8,7 +8,8 @@ import org.gradle.sample.utilities.JoinUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JoinUtilsTest {
-    @Test public void testJoin() {
+    @Test
+    public void testJoin() {
         LinkedList list = StringUtils.split("The dog is green");
         assertEquals("The dog is green", JoinUtils.join(list));
     }

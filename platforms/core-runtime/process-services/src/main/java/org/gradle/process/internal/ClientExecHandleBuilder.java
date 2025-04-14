@@ -36,14 +36,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder commandLine(Object... args);
 
-    ClientExecHandleBuilder setStandardInput(InputStream inputStream);
-
-    @Override
-    ClientExecHandleBuilder setStandardOutput(OutputStream outputStream);
-
-    @Override
-    ClientExecHandleBuilder setErrorOutput(OutputStream outputStream);
-
     ClientExecHandleBuilder redirectErrorStream();
 
     @Override
@@ -57,6 +49,8 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     Map<String, Object> getEnvironment();
 
+    void setEnvironment(Map<String, ?> environmentVariables);
+
     ClientExecHandleBuilder environment(String key, Object value);
 
     ClientExecHandleBuilder args(Object... args);
@@ -67,11 +61,11 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder setArgs(Iterable<?> args);
 
+    String getExecutable();
+
     ClientExecHandleBuilder setExecutable(String executable);
 
     void setExecutable(Object executable);
-
-    String getExecutable();
 
     @Nullable
     File getWorkingDir();
@@ -82,20 +76,25 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     OutputStream getErrorOutput();
 
+    @Override
+    ClientExecHandleBuilder setErrorOutput(OutputStream outputStream);
+
     List<String> getCommandLine();
 
     OutputStream getStandardOutput();
+
+    @Override
+    ClientExecHandleBuilder setStandardOutput(OutputStream outputStream);
 
     List<String> getAllArguments();
 
     List<CommandLineArgumentProvider> getArgumentProviders();
 
-    void setEnvironment(Map<String, ?> environmentVariables);
-
     void environment(Map<String, ?> environmentVariables);
 
     InputStream getStandardInput();
 
+    ClientExecHandleBuilder setStandardInput(InputStream inputStream);
 
     void copyTo(ProcessForkOptions options);
 

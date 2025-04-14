@@ -48,6 +48,16 @@ public class WorkerDaemonStarter {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
+    private static Iterable<File> toFiles(VisitableURLClassLoader.Spec spec) {
+        return CollectionUtils.collect(spec.getClasspath(), url -> {
+            try {
+                return new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        });
+    }
+
     WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Time.startTimer();
@@ -87,15 +97,5 @@ public class WorkerDaemonStarter {
         LOG.info("Started Gradle worker daemon ({}) with fork options {}.", clock.getElapsed(), forkOptions);
 
         return client;
-    }
-
-    private static Iterable<File> toFiles(VisitableURLClassLoader.Spec spec) {
-        return CollectionUtils.collect(spec.getClasspath(), url -> {
-            try {
-                return new File(url.toURI());
-            } catch (URISyntaxException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        });
     }
 }

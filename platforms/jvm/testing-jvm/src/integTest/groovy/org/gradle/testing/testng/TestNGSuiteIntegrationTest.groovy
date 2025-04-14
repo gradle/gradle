@@ -125,7 +125,9 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
   </test>
 </suite>"""
 
-        when: run("test")
-        then: new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('FooTest', 'BarTest')
+        when:
+        run("test")
+        then:
+        new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('FooTest', 'BarTest')
     }
 }

@@ -41,9 +41,9 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 @NullMarked
 public class TaskDetailPrinter {
+    private static final String INDENT = "     ";
     private final String taskPath;
     private final List<TaskDetails> tasks;
-    private static final String INDENT = "     ";
 
     public TaskDetailPrinter(String taskPath, List<TaskDetails> tasks) {
         this.taskPath = taskPath;

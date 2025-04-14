@@ -59,7 +59,7 @@ public interface CacheBuilder {
      * Opens the cache. It is the caller's responsibility to close the cache when finished with it.
      *
      * <p>
-     *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
+     * NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
      * </p>
      * <ul>
      *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() in the exclusive mode and keep it locked until {@link PersistentCache#close()} is called.</li>

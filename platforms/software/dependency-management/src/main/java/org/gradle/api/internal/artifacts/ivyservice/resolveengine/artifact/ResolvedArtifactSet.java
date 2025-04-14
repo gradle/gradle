@@ -31,24 +31,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
  * There are no guarantees of uniqueness of visited artifacts. This would be better named {@code ResolvedArtifactCollection}.
  */
 public interface ResolvedArtifactSet extends TaskDependencyContainer {
-    /**
-     * Visits the contents of the set, adding any remaining work to finalise the set of artifacts to the given queue.
-     */
-    void visit(Visitor visitor);
-
-    void visitTransformSources(TransformSourceVisitor visitor);
-
-    interface TransformSourceVisitor {
-        void visitArtifact(ResolvableArtifact artifact);
-
-        void visitTransform(TransformStepNode source);
-    }
-
-    /**
-     * Visits the external artifacts of this set.
-     */
-    void visitExternalArtifacts(Action<ResolvableArtifact> visitor);
-
     ResolvedArtifactSet EMPTY = new ResolvedArtifactSet() {
         @Override
         public void visit(Visitor visitor) {
@@ -66,6 +48,24 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         public void visitDependencies(TaskDependencyResolveContext context) {
         }
     };
+
+    /**
+     * Visits the contents of the set, adding any remaining work to finalise the set of artifacts to the given queue.
+     */
+    void visit(Visitor visitor);
+
+    void visitTransformSources(TransformSourceVisitor visitor);
+
+    /**
+     * Visits the external artifacts of this set.
+     */
+    void visitExternalArtifacts(Action<ResolvableArtifact> visitor);
+
+    interface TransformSourceVisitor {
+        void visitArtifact(ResolvableArtifact artifact);
+
+        void visitTransform(TransformStepNode source);
+    }
 
     interface Artifacts {
         /**

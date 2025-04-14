@@ -118,7 +118,7 @@ class CorePluginResolverTest extends Specification {
 
         and:
         def e = thrown(LocationAwareException)
-        e.cause.message.contains("not a core plugin. " + new DocumentationRegistry().getDocumentationRecommendationFor("available plugins","plugin_reference"))
+        e.cause.message.contains("not a core plugin. " + new DocumentationRegistry().getDocumentationRecommendationFor("available plugins", "plugin_reference"))
     }
 
 }

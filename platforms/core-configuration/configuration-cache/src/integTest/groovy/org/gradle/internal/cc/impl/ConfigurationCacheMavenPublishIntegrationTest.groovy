@@ -295,8 +295,8 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
     }
 
     private ProjectConfiguration configureProject(String username, String password, String repositoryName, boolean inlinedCredentials) {
-        assert !inlinedCredentials : "Inlined credentials are not supported with the configuration cache"
-        with (server) {
+        assert !inlinedCredentials: "Inlined credentials are not supported with the configuration cache"
+        with(server) {
             requireAuthentication(username, password)
             // or else insecure protocol enforcement is skipped
             useHostname()

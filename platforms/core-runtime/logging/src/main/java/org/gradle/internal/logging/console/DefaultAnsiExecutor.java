@@ -113,6 +113,7 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
         void beforeNewLineWritten(AnsiContext ansi, Cursor writeCursor);
 
         void beforeLineWrap(AnsiContext ansi, Cursor writeCursor);
+
         void afterLineWrap(AnsiContext ansi, Cursor writeCursor);
     }
 
@@ -180,7 +181,7 @@ public class DefaultAnsiExecutor implements AnsiExecutor {
 
         @Override
         public AnsiContext newLines(int numberOfNewLines) {
-            while(0 < numberOfNewLines--) {
+            while (0 < numberOfNewLines--) {
                 newLine();
             }
             return this;

@@ -26,7 +26,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "annotations on class are retained"() {
         given:
         def api = toApi([
-            A  : '@Ann public class A {}',
+            A: '@Ann public class A {}',
             Ann: '''
                 import java.lang.annotation.ElementType;
                 import java.lang.annotation.Retention;
@@ -57,7 +57,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "annotations on method are retained"() {
         given:
         def api = toApi([
-            A  : '''
+            A: '''
                 public class A {
                     @Ann
                     public void foo() {}
@@ -93,7 +93,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "annotations on method params are retained"() {
         given:
         def api = toApi([
-            A  : '''
+            A: '''
                 public class A {
                     public void foo(@Ann(path="somePath") String foo) {}
                 }
@@ -131,7 +131,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "annotations on field are retained"() {
         given:
         def api = toApi([
-            A  : '''
+            A: '''
                 public class A {
                     @Ann(a="b")
                     public String foo;
@@ -170,11 +170,11 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "annotation value is retained"() {
         given:
         def api = toApi([
-            A     : '''
+            A: '''
                 @Ann(@SubAnn("foo"))
                 public class A {}
             ''',
-            Ann   : '''
+            Ann: '''
                 import java.lang.annotation.ElementType;
                 import java.lang.annotation.Retention;
                 import java.lang.annotation.RetentionPolicy;
@@ -225,11 +225,11 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "annotation arrays on class are retained"() {
         given:
         def api = toApi([
-            A     : '''
+            A: '''
                 @Ann({@SubAnn("foo"), @SubAnn("bar")})
                 public class A {}
             ''',
-            Ann   : '''
+            Ann: '''
                 import java.lang.annotation.ElementType;
                 import java.lang.annotation.Retention;
                 import java.lang.annotation.RetentionPolicy;
@@ -280,11 +280,11 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "annotation arrays of String on class are retained"() {
         given:
         def api = toApi([
-            A     : '''
+            A: '''
                 @Ann(names={"foo", "bar"})
                 public class A {}
             ''',
-            Ann   : '''
+            Ann: '''
                 import java.lang.annotation.ElementType;
                 import java.lang.annotation.Retention;
                 import java.lang.annotation.RetentionPolicy;
@@ -320,7 +320,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
     void "default values for annotations are retained"() {
         given:
         def api = toApi([
-            A  : '@Ann public class A {}',
+            A: '@Ann public class A {}',
             Ann: '''
                 import java.lang.annotation.ElementType;
                 import java.lang.annotation.Retention;

@@ -23,7 +23,8 @@ import spock.lang.Issue
 
 import java.util.zip.ZipFile
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+// Gradle API and TestKit JARs are not generated when running embedded
 class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeIntegrationTest {
 
     def setup() {
@@ -83,7 +84,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         def generatedJars = [
             'gradle-api',
             'gradle-test-kit'
-        ].collect { file("user-home/caches/$version/generated-gradle-jars/${it}-${version}.jar" )}
+        ].collect { file("user-home/caches/$version/generated-gradle-jars/${it}-${version}.jar") }
 
         when:
         run "classes", "testClasses"

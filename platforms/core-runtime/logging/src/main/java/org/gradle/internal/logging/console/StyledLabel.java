@@ -25,5 +25,6 @@ import java.util.List;
  */
 public interface StyledLabel extends Label {
     void setText(List<StyledTextOutputEvent.Span> spans);
+
     void setText(StyledTextOutputEvent.Span span);
 }

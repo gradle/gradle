@@ -57,47 +57,29 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
     private static final int DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT = 1;
-
+    private final File projectDir;
     private File outputDirectory;
-
     private Set<String> includeGroups = new LinkedHashSet<String>();
-
     private Set<String> excludeGroups = new LinkedHashSet<String>();
-
     private String configFailurePolicy = DEFAULT_CONFIG_FAILURE_POLICY;
-
     private Set<String> listeners = new LinkedHashSet<String>();
-
     private String parallel = DEFAULT_PARALLEL_MODE;
-
     private int threadCount = DEFAULT_THREAD_COUNT;
-
     private boolean useDefaultListeners;
-
     private String threadPoolFactoryClass;
-
     private String suiteName = "Gradle suite";
-
     private String testName = "Gradle test";
-
     private List<File> suiteXmlFiles = new ArrayList<File>();
-
     private boolean preserveOrder;
-
     private boolean groupByInstances;
-
     private transient StringWriter suiteXmlWriter;
-
-    private transient MarkupBuilder suiteXmlBuilder;
-
     private final Cached<String> cachedSuiteXml = Cached.of(new Callable<String>() {
         @Override
         public String call() {
             return suiteXmlWriter != null ? suiteXmlWriter.toString() : null;
         }
     });
-
-    private final File projectDir;
+    private transient MarkupBuilder suiteXmlBuilder;
 
     @Inject
     public TestNGOptions(ProjectLayout projectLayout) {
@@ -105,8 +87,14 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         this.getSuiteThreadPoolSize().convention(DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT);
     }
 
+    private static <T> void replace(Collection<T> target, Collection<T> source) {
+        target.clear();
+        target.addAll(source);
+    }
+
     /**
      * Copies the options from the source options into the current one.
+     *
      * @since 8.0
      */
     public void copyFrom(TestNGOptions other) {
@@ -127,11 +115,6 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         this.groupByInstances = other.groupByInstances;
         // not copying suiteXmlWriter as it is transient
         // not copying suiteXmlBuilder as it is transient
-    }
-
-    private static <T> void replace(Collection<T> target, Collection<T> source) {
-        target.clear();
-        target.addAll(source);
     }
 
     public MarkupBuilder suiteXmlBuilder() {
@@ -343,6 +326,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     /**
      * The number of XML suites will run parallel
+     *
      * @since 8.9
      */
     @Internal
@@ -357,6 +341,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     /**
      * ThreadPoolExecutorFactory class used by TestNG
+     *
      * @since 8.7
      */
     @Internal
@@ -364,6 +349,19 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ToBeReplacedByLazyProperty
     public String getThreadPoolFactoryClass() {
         return threadPoolFactoryClass;
+    }
+
+    /**
+     * Sets a custom threadPoolExecutorFactory class.
+     * This should be a fully qualified class name and the class should implement org.testng.IExecutorFactory
+     * More details in https://github.com/testng-team/testng/pull/2042
+     * Requires TestNG 7.0 or higher
+     *
+     * @since 8.7
+     */
+    @Incubating
+    public void setThreadPoolFactoryClass(String threadPoolFactoryClass) {
+        this.threadPoolFactoryClass = threadPoolFactoryClass;
     }
 
     /**
@@ -399,18 +397,6 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     public void setUseDefaultListeners(boolean useDefaultListeners) {
         this.useDefaultListeners = useDefaultListeners;
-    }
-
-    /**
-     * Sets a custom threadPoolExecutorFactory class.
-     * This should be a fully qualified class name and the class should implement org.testng.IExecutorFactory
-     * More details in https://github.com/testng-team/testng/pull/2042
-     * Requires TestNG 7.0 or higher
-     * @since 8.7
-     */
-    @Incubating
-    public void setThreadPoolFactoryClass(String threadPoolFactoryClass) {
-        this.threadPoolFactoryClass = threadPoolFactoryClass;
     }
 
     /**

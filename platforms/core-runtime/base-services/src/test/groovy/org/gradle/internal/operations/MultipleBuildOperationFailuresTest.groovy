@@ -31,7 +31,7 @@ class MultipleBuildOperationFailuresTest extends Specification {
 
     def "format for a single failure"() {
         given:
-        def failures = [ new TestException(0) ]
+        def failures = [new TestException(0)]
         def exception = new MultipleBuildOperationFailures(failures, LOG_LOCATION)
         when:
         def message = exception.getMessage()

@@ -44,6 +44,17 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
         this.idFactory = idFactory;
     }
 
+    private static int getDestination(TestOutputEvent.Destination destination) {
+        switch (destination) {
+            case StdOut:
+                return Destination.StdOut.getCode();
+            case StdErr:
+                return Destination.StdErr.getCode();
+            default:
+                throw new IllegalStateException("Unknown output destination type: " + destination);
+        }
+    }
+
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
     }
@@ -57,14 +68,6 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
             int destination = getDestination(progress.getOutput().getDestination());
             DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination, progress.getOutput().getMessage());
             eventConsumer.progress(new DefaultTestOutputEvent(progressEvent.getTime(), descriptor, result));
-        }
-    }
-
-    private static int getDestination(TestOutputEvent.Destination destination) {
-        switch (destination) {
-            case StdOut: return Destination.StdOut.getCode();
-            case StdErr: return Destination.StdErr.getCode();
-            default: throw new IllegalStateException("Unknown output destination type: " + destination);
         }
     }
 

@@ -14,8 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
-                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<verification-metadata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xmlns="https://schema.gradle.org/dependency-verification"
                        xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/verification-1.1.xsd">
     <configuration>
         <verify-metadata>false</verify-metadata>

@@ -71,6 +71,10 @@ class RuntimeShadedJarCreator {
         this.classpathBuilder = classpathBuilder;
     }
 
+    private static boolean isModuleInfoClass(String name) {
+        return "module-info".equals(name);
+    }
+
     public void create(final File outputJar, final Iterable<? extends File> files) {
         LOGGER.info("Generating " + outputJar.getAbsolutePath());
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
@@ -136,10 +140,6 @@ class RuntimeShadedJarCreator {
         } else {
             processResource(builder, entry);
         }
-    }
-
-    private static boolean isModuleInfoClass(String name) {
-        return "module-info".equals(name);
     }
 
     private void processServiceDescriptor(ClasspathEntryVisitor.Entry entry, Map<String, List<String>> services) throws IOException {
@@ -224,6 +224,23 @@ class RuntimeShadedJarCreator {
         return classWriter.toByteArray();
     }
 
+    private String[] maybeRelocateResources(String... resources) {
+        return Arrays.stream(resources)
+            .filter(Objects::nonNull)
+            .map(resource -> {
+                String remapped = remapper.maybeRelocateResource(resource);
+                if (remapped == null) {
+                    return resource; // This resource was not relocated. Use the original name.
+                }
+                return remapped;
+            })
+            .toArray(String[]::new);
+    }
+
+    private String[] separateLines(String entry) {
+        return entry.split("\\n");
+    }
+
     private static class ShadingClassRemapper extends ClassRemapper {
         final Map<String, String> remappedClassLiterals;
         private final ImplementationDependencyRelocator dependencyRelocator;
@@ -283,22 +300,5 @@ class RuntimeShadedJarCreator {
                 }
             };
         }
-    }
-
-    private String[] maybeRelocateResources(String... resources) {
-        return Arrays.stream(resources)
-            .filter(Objects::nonNull)
-            .map(resource -> {
-                String remapped = remapper.maybeRelocateResource(resource);
-                if (remapped == null) {
-                    return resource; // This resource was not relocated. Use the original name.
-                }
-                return remapped;
-            })
-            .toArray(String[]::new);
-    }
-
-    private String[] separateLines(String entry) {
-        return entry.split("\\n");
     }
 }

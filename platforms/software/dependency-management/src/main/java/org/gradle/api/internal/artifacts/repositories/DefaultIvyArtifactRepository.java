@@ -78,8 +78,6 @@ import java.util.Set;
 import static java.util.Collections.unmodifiableSet;
 
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository<IvyRepositoryDescriptor> implements IvyArtifactRepository, ResolutionAwareRepository {
-    private volatile Set<String> schemes;
-    private AbstractRepositoryLayout layout;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
@@ -98,6 +96,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final IsolatableFactory isolatableFactory;
     private final ChecksumService checksumService;
     private final IvyMetadataSources metadataSources = new IvyMetadataSources();
+    private volatile Set<String> schemes;
+    private AbstractRepositoryLayout layout;
 
     public DefaultIvyArtifactRepository(
         FileResolver fileResolver,
@@ -252,6 +252,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return urlArtifactRepository.getUrl();
     }
 
+    @Override
+    public void setUrl(URI url) {
+        invalidateDescriptor();
+        urlArtifactRepository.setUrl(url);
+    }
+
+    @Override
+    public void setUrl(Object url) {
+        invalidateDescriptor();
+        urlArtifactRepository.setUrl(url);
+    }
 
     @Override
     protected Collection<URI> getRepositoryUrls() {
@@ -278,26 +289,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public void setUrl(URI url) {
-        invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
-    }
-
-    @Override
-    public void setUrl(Object url) {
-        invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
+    public boolean isAllowInsecureProtocol() {
+        return urlArtifactRepository.isAllowInsecureProtocol();
     }
 
     @Override
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         invalidateDescriptor();
         urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
-    }
-
-    @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
     }
 
     @Override
@@ -351,14 +350,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return layout;
     }
 
-    @Override
-    public IvyArtifactRepositoryMetaDataProvider getResolve() {
-        return metaDataProvider;
-    }
-
     public void setRepositoryLayout(AbstractRepositoryLayout layout) {
         invalidateDescriptor();
         this.layout = layout;
+    }
+
+    @Override
+    public IvyArtifactRepositoryMetaDataProvider getResolve() {
+        return metaDataProvider;
     }
 
     @Override

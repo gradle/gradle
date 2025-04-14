@@ -40,11 +40,6 @@ abstract class AbstractOptionElement implements OptionElement {
         this.optionType = optionType;
     }
 
-    @Override
-    public Class<?> getOptionType() {
-        return optionType;
-    }
-
     public static OptionElement of(String optionName, Option option, PropertySetter setter, OptionValueNotationParserFactory notationParserFactory) {
         if (setter.getRawType().equals(Boolean.class) || setter.getRawType().equals(Boolean.TYPE)) {
             return new BooleanOptionElement(optionName, option, setter);
@@ -64,6 +59,20 @@ abstract class AbstractOptionElement implements OptionElement {
         }
     }
 
+    protected static <T> NotationParser<CharSequence, T> createNotationParserOrFail(OptionValueNotationParserFactory optionValueNotationParserFactory, String optionName, Class<T> optionType, Class<?> declaringClass) {
+        try {
+            return optionValueNotationParserFactory.toComposite(optionType);
+        } catch (OptionValidationException ex) {
+            throw new OptionValidationException(String.format("Option '%s' cannot be cast to type '%s' in class '%s'.",
+                optionName, optionType.getName(), declaringClass.getName()));
+        }
+    }
+
+    @Override
+    public Class<?> getOptionType() {
+        return optionType;
+    }
+
     protected Object invokeMethod(Object object, Method method, Object... parameterValues) {
         final JavaMethod<Object, Object> javaMethod = JavaMethod.of(Object.class, method);
         return javaMethod.invoke(object, parameterValues);
@@ -77,14 +86,5 @@ abstract class AbstractOptionElement implements OptionElement {
     @Override
     public String getDescription() {
         return description;
-    }
-
-    protected static <T> NotationParser<CharSequence, T> createNotationParserOrFail(OptionValueNotationParserFactory optionValueNotationParserFactory, String optionName, Class<T> optionType, Class<?> declaringClass) {
-        try {
-            return optionValueNotationParserFactory.toComposite(optionType);
-        } catch (OptionValidationException ex) {
-            throw new OptionValidationException(String.format("Option '%s' cannot be cast to type '%s' in class '%s'.",
-                    optionName, optionType.getName(), declaringClass.getName()));
-        }
     }
 }

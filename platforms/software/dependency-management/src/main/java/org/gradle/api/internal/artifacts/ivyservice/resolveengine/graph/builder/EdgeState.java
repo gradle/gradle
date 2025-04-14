@@ -323,26 +323,6 @@ class EdgeState implements DependencyGraphEdge {
         return new GraphVariantSelectionResult(legacyVariants, false);
     }
 
-    public static class GraphVariantSelectionResult {
-
-        private final List<? extends VariantGraphResolveState> variants;
-        private final boolean selectedByVariantAwareResolution;
-
-        public GraphVariantSelectionResult(List<? extends VariantGraphResolveState> variants, boolean selectedByVariantAwareResolution) {
-            this.variants = variants;
-            this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
-        }
-
-        public List<? extends VariantGraphResolveState> getVariants() {
-            return variants;
-        }
-
-        public boolean isSelectedByVariantAwareResolution() {
-            return selectedByVariantAwareResolution;
-        }
-
-    }
-
     private boolean isVirtualDependency() {
         return selector.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata;
     }
@@ -557,5 +537,25 @@ class EdgeState implements DependencyGraphEdge {
 
     public boolean isArtifactOnlyEdge() {
         return !isTransitive && !dependencyMetadata.getArtifacts().isEmpty();
+    }
+
+    public static class GraphVariantSelectionResult {
+
+        private final List<? extends VariantGraphResolveState> variants;
+        private final boolean selectedByVariantAwareResolution;
+
+        public GraphVariantSelectionResult(List<? extends VariantGraphResolveState> variants, boolean selectedByVariantAwareResolution) {
+            this.variants = variants;
+            this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
+        }
+
+        public List<? extends VariantGraphResolveState> getVariants() {
+            return variants;
+        }
+
+        public boolean isSelectedByVariantAwareResolution() {
+            return selectedByVariantAwareResolution;
+        }
+
     }
 }

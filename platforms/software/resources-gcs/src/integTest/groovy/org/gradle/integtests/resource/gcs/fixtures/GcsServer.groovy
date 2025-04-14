@@ -114,15 +114,15 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 path = "/upload/b/$bucketName/o"
                 headers = [
                     'Content-Type': 'application/json; charset=utf-8',
-                    'Connection'  : 'Keep-Alive'
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                    'Date'            : DATE_HEADER,
-                    'Server'          : SERVER_GCS,
-                    'Location'        : "$uri$uploadLocation"
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Location': "$uri$uploadLocation"
                 ]
             }
         }
@@ -134,7 +134,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 path = uploadLocation
                 headers = [
                     'Content-Type': 'application/octet-stream',
-                    'Connection'  : 'Keep-Alive'
+                    'Connection': 'Keep-Alive'
                 ]
                 body = { InputStream content ->
                     file.parentFile.mkdirs()
@@ -144,9 +144,9 @@ class GcsServer extends HttpServer implements RepositoryServer {
             response {
                 status = 200
                 headers = [
-                    'Date'            : DATE_HEADER,
-                    "ETag"            : { calculateEtag(file) },
-                    'Server'          : SERVER_GCS
+                    'Date': DATE_HEADER,
+                    "ETag": { calculateEtag(file) },
+                    'Server': SERVER_GCS
                 ]
                 body = { '{}' }
             }
@@ -165,16 +165,16 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 path = "/b/$bucketName/o/$objectName"
                 headers = [
                     'Content-Type': 'application/json; charset=utf-8',
-                    'Connection'  : 'Keep-Alive'
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                    'Date'            : DATE_HEADER,
-                    'Server'          : SERVER_GCS,
-                    'Accept-Ranges'   : 'bytes',
-                    'Content-Type'    : 'application/json; charset=utf-8',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Accept-Ranges': 'bytes',
+                    'Content-Type': 'application/json; charset=utf-8',
                 ]
                 body = {
                     """
@@ -210,20 +210,20 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 path = "/b/$bucketName/o/$objectName"
                 headers = [
                     'Content-Type': 'application/json; charset=utf-8',
-                    'Connection'  : 'Keep-Alive'
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = statusCode
                 headers = [
-                    'Date'            : DATE_HEADER,
-                    'Server'          : SERVER_GCS,
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
                     'Content-Type': 'application/json; charset=utf-8',
                 ]
                 body = { '{}' }
             }
         }
-       expect(httpStub)
+        expect(httpStub)
     }
 
     def stubGetFile(File file, String url) {
@@ -236,17 +236,17 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = "/b/$bucketName/o/$objectName"
                 headers = [
-                    'Content-Type':  'application/json; charset=utf-8',
-                    'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                    'Date'            : DATE_HEADER,
-                    'Server'          : SERVER_GCS,
-                    'Accept-Ranges'   : 'bytes',
-                    'Content-Type'    : 'application/json; charset=utf-8',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Accept-Ranges': 'bytes',
+                    'Content-Type': 'application/json; charset=utf-8',
                 ]
                 body = {
                     """
@@ -268,17 +268,17 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = "/download/b/$bucketName/o/$objectName"
                 headers = [
-                    'Content-Type':  'application/octet-stream',
-                    'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                    'Date'            : DATE_HEADER,
-                    'Server'          : SERVER_GCS,
-                    'Accept-Ranges'   : 'bytes',
-                    'Content-Type'    : 'application/octet-stream',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Accept-Ranges': 'bytes',
+                    'Content-Type': 'application/octet-stream',
                 ]
                 body = { file.bytes }
             }
@@ -292,26 +292,26 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = "/b/${bucketName}/o"
                 params = [
-                    'prefix' : [prefix] as String[]
+                    'prefix': [prefix] as String[]
                 ]
                 headers = [
                     'Content-Type': 'application/json; charset=utf-8',
-                    'Connection'  : 'Keep-Alive'
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                    'Date'            : DATE_HEADER,
-                    'Server'          : SERVER_GCS,
-                    'Content-Type'    : 'application/json; charset=utf-8',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Content-Type': 'application/json; charset=utf-8',
                 ]
                 body = {
                     """
                     {
                         "kind": "storage#objects",
                         "prefixes": ["$prefix"],
-                        "items": [${ file.listFiles().collect { currentFile -> """{ "name": "${currentFile.name}" }"""}.join(',') }]
+                        "items": [${file.listFiles().collect { currentFile -> """{ "name": "${currentFile.name}" }""" }.join(',')}]
                     }
                     """
                 }
@@ -328,18 +328,18 @@ class GcsServer extends HttpServer implements RepositoryServer {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path =  "/b/$bucketName/o/$objectName"
+                path = "/b/$bucketName/o/$objectName"
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 401
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'text/plain; charset=UTF-8',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Content-Type': 'text/plain; charset=UTF-8',
                 ]
             }
         }
@@ -355,16 +355,16 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 method = 'POST'
                 path = "/upload/b/$bucketName/o"
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 403
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'text/plain; charset=UTF-8',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Content-Type': 'text/plain; charset=UTF-8',
                 ]
             }
         }
@@ -379,18 +379,18 @@ class GcsServer extends HttpServer implements RepositoryServer {
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
-                path =  "/b/$bucketName/o/$objectName"
+                path = "/b/$bucketName/o/$objectName"
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 404
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'text/plain; charset=UTF-8',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Content-Type': 'text/plain; charset=UTF-8',
                 ]
             }
         }
@@ -407,16 +407,16 @@ class GcsServer extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = "/b/$bucketName/o/$objectName"
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 500
                 headers = [
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_GCS,
-                        'Content-Type'    : 'text/plain; charset=UTF-8',
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_GCS,
+                    'Content-Type': 'text/plain; charset=UTF-8',
                 ]
             }
 
@@ -479,6 +479,6 @@ class GcsServer extends HttpServer implements RepositoryServer {
         def parts = url.split('/') - ''
         def first = parts.first()
         def rest = (parts - first).join('/')
-        return [ first: first, rest: rest ]
+        return [first: first, rest: rest]
     }
 }

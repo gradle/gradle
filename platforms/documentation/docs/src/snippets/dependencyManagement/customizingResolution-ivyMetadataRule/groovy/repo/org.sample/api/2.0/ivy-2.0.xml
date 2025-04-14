@@ -6,7 +6,7 @@
         <conf name="runtime" visibility="public"/>
     </configurations>
     <publications>
-        <artifact name='api' type='jar' ext='jar' conf='compile' />
+        <artifact name='api' type='jar' ext='jar' conf='compile'/>
     </publications>
     <dependencies>
         <dependency org="org.sample" name="lib" rev="2.0" conf="runtime->default"/>

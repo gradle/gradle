@@ -103,12 +103,6 @@ public class InstrumentingClassTransform implements ClassTransform {
     private final MethodInterceptionListener methodInterceptionListener;
     private final InstrumentationMetadata instrumentationMetadata;
 
-    @Override
-    public void applyConfigurationTo(Hasher hasher) {
-        hasher.putString(InstrumentingClassTransform.class.getSimpleName());
-        hasher.putInt(DECORATION_FORMAT);
-    }
-
     public InstrumentingClassTransform() {
         this(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
     }
@@ -121,6 +115,12 @@ public class InstrumentingClassTransform implements ClassTransform {
         this.externalInterceptors = CallInterceptorRegistry.getJvmBytecodeInterceptors(interceptorFilter);
         this.methodInterceptionListener = methodInterceptionListener;
         this.instrumentationMetadata = (type, superType) -> typeRegistry.getSuperTypes(type).contains(superType);
+    }
+
+    @Override
+    public void applyConfigurationTo(Hasher hasher) {
+        hasher.putString(InstrumentingClassTransform.class.getSimpleName());
+        hasher.putInt(DECORATION_FORMAT);
     }
 
     private BytecodeInterceptorFilter interceptorFilter() {
@@ -292,6 +292,7 @@ public class InstrumentingClassTransform implements ClassTransform {
 
         /**
          * Prepares the bridge method for the {@code interceptedHandle} with proper argument types.
+         *
          * @param targetOwner the owner type to be used by the bridge method
          * @param interceptedHandle the method reference to potentially intercept
          * @return the bridge method data or null if the method shouldn't be intercepted

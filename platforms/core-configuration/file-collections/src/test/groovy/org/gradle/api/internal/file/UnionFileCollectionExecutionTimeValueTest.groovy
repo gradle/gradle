@@ -41,7 +41,7 @@ class UnionFileCollectionExecutionTimeValueTest extends Specification {
         def newCollection = executionTimeValue.get().toFileCollection(fileCollectionFactory())
 
         then:
-        newCollection.files ==  [new File("foo.txt"), new File("bar.txt")] as Set
+        newCollection.files == [new File("foo.txt"), new File("bar.txt")] as Set
         newCollection.displayName == "file collection"
     }
 

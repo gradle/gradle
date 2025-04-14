@@ -70,14 +70,14 @@ public class DefaultIdeaProject implements Serializable {
         return null;
     }
 
+    public Collection<DefaultIdeaModule> getChildren() {
+        return children;
+    }
+
     public DefaultIdeaProject setChildren(Collection<? extends DefaultIdeaModule> children) {
         this.children.clear();
         this.children.addAll(children);
         return this;
-    }
-
-    public Collection<DefaultIdeaModule> getChildren() {
-        return children;
     }
 
     public Collection<DefaultIdeaModule> getModules() {
@@ -96,11 +96,11 @@ public class DefaultIdeaProject implements Serializable {
     @Override
     public String toString() {
         return "DefaultIdeaProject{"
-                + " name='" + name + '\''
-                + ", description='" + description + '\''
-                + ", children count=" + children.size()
-                + ", languageLevel='" + languageLevel + '\''
-                + ", jdkName='" + jdkName + '\''
-                + '}';
+            + " name='" + name + '\''
+            + ", description='" + description + '\''
+            + ", children count=" + children.size()
+            + ", languageLevel='" + languageLevel + '\''
+            + ", jdkName='" + jdkName + '\''
+            + '}';
     }
 }

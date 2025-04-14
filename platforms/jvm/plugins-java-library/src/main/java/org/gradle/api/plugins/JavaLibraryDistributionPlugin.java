@@ -35,7 +35,7 @@ public abstract class JavaLibraryDistributionPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
-        DistributionContainer distributionContainer = (DistributionContainer)project.getExtensions().getByName("distributions");
+        DistributionContainer distributionContainer = (DistributionContainer) project.getExtensions().getByName("distributions");
         distributionContainer.named(DistributionPlugin.MAIN_DISTRIBUTION_NAME).configure(dist -> {
             JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
             CopySpec childSpec = project.copySpec();

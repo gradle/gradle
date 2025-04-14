@@ -385,7 +385,7 @@ class PatternSetTest extends AbstractTestForPatternSet {
     private static FileTreeElement element(boolean isFile, String... elements) {
         [
             getRelativePath: { return new RelativePath(isFile, elements) },
-            getFile        : { return new File(elements.join('/')) }
+            getFile: { return new File(elements.join('/')) }
         ] as FileTreeElement
     }
 

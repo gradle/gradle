@@ -75,7 +75,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         buildFile """
             @CacheableTask
             abstract class TaskWithInputs extends DefaultTask {
-                ${ api == Api.ANNOTATION_API ? "@InputDirectory @PathSensitive(PathSensitivity.RELATIVE)" : "@Internal" }
+                ${api == Api.ANNOTATION_API ? "@InputDirectory @PathSensitive(PathSensitivity.RELATIVE)" : "@Internal"}
                 abstract DirectoryProperty getSources()
 
                 @OutputFile
@@ -90,9 +90,9 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
             tasks.register("taskWithInputs", TaskWithInputs) {
                 sources.set(file("inputDir"))
                 outputFile.set(file("build/outputFile.txt"))
-                ${ api == Api.RUNTIME_API
-                    ? "inputs.dir(sources).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName('sources')"
-                    : "" }
+                ${api == Api.RUNTIME_API
+            ? "inputs.dir(sources).withPathSensitivity(PathSensitivity.RELATIVE).withPropertyName('sources')"
+            : ""}
             }
         """
         def inputDir = file("inputDir").createDir()

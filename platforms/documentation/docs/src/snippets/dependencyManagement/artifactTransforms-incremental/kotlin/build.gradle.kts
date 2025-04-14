@@ -28,6 +28,7 @@ abstract class CountLoc : TransformAction<TransformParameters.None> {
 
                     outputLocation.writeText(changedFile.readLines().size.toString())
                 }
+
                 ChangeType.REMOVED -> {
                     println("Removing leftover output file ${outputLocation.name}")
                     outputLocation.delete()

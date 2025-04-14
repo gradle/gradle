@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.fixtures.app;
 
 public interface XCTestElement {
     int getFailureCount();
+
     int getPassCount();
+
     int getTestCount();
 }

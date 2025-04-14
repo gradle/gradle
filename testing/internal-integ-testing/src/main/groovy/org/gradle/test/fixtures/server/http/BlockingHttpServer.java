@@ -57,8 +57,8 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
     private static final AtomicInteger COUNTER = new AtomicInteger();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
-    private final Lock lock = new ReentrantLock();
     protected final HttpServer server;
+    private final Lock lock = new ReentrantLock();
     private final HttpContext context;
     private final ChainingHttpHandler handler;
     private final Duration timeout;
@@ -77,10 +77,6 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         this(HttpServer.create(new InetSocketAddress(0), 10), timeoutMs, Scheme.HTTP);
     }
 
-    public void setHostAlias(String hostAlias) {
-        this.hostAlias = hostAlias;
-    }
-
     protected BlockingHttpServer(HttpServer server, int timeoutMs, Scheme scheme) {
         this.server = server;
         this.server.setExecutor(EXECUTOR_SERVICE);
@@ -93,6 +89,28 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
 
     static String getCurrentTimestamp() {
         return LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+    }
+
+    /**
+     * To help with debugging the underlying {@link com.sun.net.httpserver.HttpServer}.
+     */
+    public static void enableServerLogging() {
+        final ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        final Logger logger = Logger.getLogger("com.sun.net.httpserver");
+        logger.setLevel(Level.ALL);
+        logger.addHandler(handler);
+    }
+
+    static String normalizePath(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
+        }
+        return path;
+    }
+
+    public void setHostAlias(String hostAlias) {
+        this.hostAlias = hostAlias;
     }
 
     /**
@@ -419,22 +437,17 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         return server.getAddress().getPort();
     }
 
-    /**
-     * To help with debugging the underlying {@link com.sun.net.httpserver.HttpServer}.
-     */
-    public static void enableServerLogging() {
-        final ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(Level.ALL);
-        final Logger logger = Logger.getLogger("com.sun.net.httpserver");
-        logger.setLevel(Level.ALL);
-        logger.addHandler(handler);
-    }
+    protected enum Scheme {
+        HTTP("http", "127.0.0.1"),
+        HTTPS("https", "localhost");
 
-    static String normalizePath(String path) {
-        if (path.startsWith("/")) {
-            return path.substring(1);
+        private final String scheme;
+        private final String host;
+
+        Scheme(String scheme, String host) {
+            this.scheme = scheme;
+            this.host = host;
         }
-        return path;
     }
 
     public interface ExpectedRequests {
@@ -566,19 +579,6 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
             } finally {
                 lock.unlock();
             }
-        }
-    }
-
-    protected enum Scheme {
-        HTTP("http", "127.0.0.1"),
-        HTTPS("https", "localhost");
-
-        private final String scheme;
-        private final String host;
-
-        Scheme(String scheme, String host) {
-            this.scheme = scheme;
-            this.host = host;
         }
     }
 }

@@ -55,6 +55,10 @@ public class PublicKeyDownloadService implements PublicKeyService {
         this.client = client;
     }
 
+    private static void logKeyDownloadAttempt(String fingerprint, URI baseUri) {
+        LOGGER.debug("Cannot download public key " + fingerprint + " from " + baseUri.getHost());
+    }
+
     @Override
     public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
         List<URI> servers = new ArrayList<>(keyServers);
@@ -142,10 +146,6 @@ public class PublicKeyDownloadService implements PublicKeyService {
             onKeyring.accept(strippedKeyRing);
             builder.keyRing(strippedKeyRing);
         }
-    }
-
-    private static void logKeyDownloadAttempt(String fingerprint, URI baseUri) {
-        LOGGER.debug("Cannot download public key " + fingerprint + " from " + baseUri.getHost());
     }
 
     private ExternalResourceName toQuery(URI baseUri, String fingerprint) throws URISyntaxException {

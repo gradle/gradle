@@ -60,8 +60,8 @@ public interface BuildEnvironment extends Model, BuildModel {
     /**
      * Returns information about the Java environment, for example the Java home or the JVM args used.
      *
-     * @since 1.0-milestone-8
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-8, where this method is not supported.
+     * @since 1.0-milestone-8
      */
     JavaEnvironment getJava() throws UnsupportedMethodException;
 }

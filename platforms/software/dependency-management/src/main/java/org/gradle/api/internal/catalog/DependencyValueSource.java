@@ -21,12 +21,12 @@ import org.gradle.api.provider.ValueSourceParameters;
 
 public abstract class DependencyValueSource implements ValueSource<DependencyModel, DependencyValueSource.Params> {
 
-    interface Params extends ValueSourceParameters {
-        Property<DependencyModel> getDependencyData();
-    }
-
     @Override
     public DependencyModel obtain() {
         return getParameters().getDependencyData().get();
+    }
+
+    interface Params extends ValueSourceParameters {
+        Property<DependencyModel> getDependencyData();
     }
 }

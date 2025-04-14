@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.process.internal.worker.child
 
 import groovyjarjarasm.asm.ClassVisitor
@@ -29,7 +28,8 @@ import org.gradle.internal.reflect.JavaReflectionUtil
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class SerializableMockHelper {     static final Map ACTIONS = [:]
+class SerializableMockHelper {
+    static final Map ACTIONS = [:]
     private final AtomicInteger counter = new AtomicInteger()
 
     /**

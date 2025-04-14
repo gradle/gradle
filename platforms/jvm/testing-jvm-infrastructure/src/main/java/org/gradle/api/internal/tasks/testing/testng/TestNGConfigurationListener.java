@@ -41,6 +41,7 @@ public interface TestNGConfigurationListener {
      * Invoked whenever a configuration method was skipped.
      */
     void onConfigurationSkip(ITestResult itr);
+
     /**
      * Invoked before a configuration method is invoked.
      *

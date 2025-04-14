@@ -28,7 +28,6 @@ public interface ModuleDependencySpecBuilder extends DependencySpecBuilder {
      * Narrows this dependency specification down to a specific module.
      *
      * @param name the module name
-     *
      * @return this instance
      */
     ModuleDependencySpecBuilder module(String name);
@@ -37,7 +36,6 @@ public interface ModuleDependencySpecBuilder extends DependencySpecBuilder {
      * Narrows this dependency specification down to a specific group.
      *
      * @param name the group name
-     *
      * @return this instance
      */
     ModuleDependencySpecBuilder group(String name);
@@ -46,7 +44,6 @@ public interface ModuleDependencySpecBuilder extends DependencySpecBuilder {
      * Narrows this dependency specification down to a specific version range.
      *
      * @param range the version range
-     *
      * @return this instance
      */
     ModuleDependencySpecBuilder version(String range);

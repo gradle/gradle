@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class OptionValueNotationParserFactorySpec extends Specification {
 
-    def "creates notationparser for handling strings"(){
+    def "creates notationparser for handling strings"() {
         given:
         OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
         when:
@@ -30,7 +30,7 @@ class OptionValueNotationParserFactorySpec extends Specification {
         parser.parseNotation("somestring") == "somestring"
     }
 
-    def "creates notationparser for handling handles enums"(){
+    def "creates notationparser for handling handles enums"() {
         given:
         OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
         when:
@@ -39,7 +39,7 @@ class OptionValueNotationParserFactorySpec extends Specification {
         parser.parseNotation("ABC") == TestEnum.ABC
     }
 
-    def "creates notationparser for handling handles integers"(){
+    def "creates notationparser for handling handles integers"() {
         given:
         OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
         when:
@@ -48,7 +48,7 @@ class OptionValueNotationParserFactorySpec extends Specification {
         parser.parseNotation("123") == 123
     }
 
-    def "fails on creating parser for unsupported"(){
+    def "fails on creating parser for unsupported"() {
         setup:
         OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
         when:

@@ -158,11 +158,11 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
 
     private void runBuild(String task, Action<BuildLauncher> config = {}) {
         withConnection {
-                def launcher = newBuild()
-                    .forTasks(task)
-                    .addProgressListener(events, EnumSet.of(OperationType.TASK))
-                config.execute(launcher)
-                launcher.run()
+            def launcher = newBuild()
+                .forTasks(task)
+                .addProgressListener(events, EnumSet.of(OperationType.TASK))
+            config.execute(launcher)
+            launcher.run()
         }
     }
 

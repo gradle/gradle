@@ -56,6 +56,54 @@ class PgpKeyGrouper {
         this.entriesToBeWritten = entriesToBeWritten;
     }
 
+    // Tries to find the common super-group for a list of groups
+    // For example given ["org.foo", "org.foo.bar", "org.foo.baz"] it will group using "org.foo.*"
+    @SuppressWarnings("MixedMutabilityReturnType")
+    static List<List<String>> tryComputeCommonPrefixes(List<String> groups) {
+        List<List<String>> splitGroups = groups.stream()
+            .map(GROUP_SPLITTER::splitToList)
+            .sorted(Comparator.comparing(List::size))
+            .collect(Collectors.toList());
+        List<String> shortest = splitGroups.get(0);
+        if (shortest.size() < 2) {
+            // we need at least a prefix of 2 elements, like "com.mycompany", to perform grouping
+            return Collections.emptyList();
+        }
+        List<List<String>> commonPrefixes = new ArrayList<>();
+        List<List<String>> remainder = Lists.newArrayList(splitGroups);
+        List<List<String>> previous;
+        while (!remainder.isEmpty()) {
+            previous = Lists.newArrayList(remainder);
+            shortest = remainder.get(0);
+            int prefixLen = 2;
+            List<String> prefix = shortest.subList(0, prefixLen);
+            List<String> commonPrefix = null;
+            List<List<String>> candidatesWithSamePrefix = Lists.newArrayList(remainder);
+            while ((candidatesWithSamePrefix = samePrefix(prefixLen, prefix, candidatesWithSamePrefix)).size() > 1) {
+                remainder.removeAll(candidatesWithSamePrefix);
+                commonPrefix = prefix;
+                prefixLen++;
+                if (prefixLen <= shortest.size()) {
+                    prefix = shortest.subList(0, prefixLen);
+                } else {
+                    break;
+                }
+            }
+            if (commonPrefix != null) {
+                commonPrefixes.add(commonPrefix);
+            }
+            if (remainder.equals(previous)) {
+                // could do nothing with the first, let's go with the next one
+                remainder.remove(0);
+            }
+        }
+        return commonPrefixes;
+    }
+
+    private static List<List<String>> samePrefix(int prefixLen, List<String> prefix, List<List<String>> candidates) {
+        return candidates.stream().filter(groups -> groups.subList(0, prefixLen).equals(prefix)).collect(Collectors.toList());
+    }
+
     public void performPgpKeyGrouping() {
         Multimap<String, PgpEntry> keysToEntries = groupEntriesByPgpKey();
         keysToEntries.asMap()
@@ -108,7 +156,7 @@ class PgpKeyGrouper {
             .collect(Collectors.toList());
         for (String group : groups) {
             long count = remainingUntouched.stream().filter(p -> p.getGroup().equals(group)).count();
-            if (count>1) {
+            if (count > 1) {
                 // a key is at least used in 2 artifacts
                 verificationsBuilder.addTrustedKey(
                     keyId,
@@ -145,54 +193,6 @@ class PgpKeyGrouper {
                 }
             }
         }
-    }
-
-    // Tries to find the common super-group for a list of groups
-    // For example given ["org.foo", "org.foo.bar", "org.foo.baz"] it will group using "org.foo.*"
-    @SuppressWarnings("MixedMutabilityReturnType")
-    static List<List<String>> tryComputeCommonPrefixes(List<String> groups) {
-        List<List<String>> splitGroups = groups.stream()
-            .map(GROUP_SPLITTER::splitToList)
-            .sorted(Comparator.comparing(List::size))
-            .collect(Collectors.toList());
-        List<String> shortest = splitGroups.get(0);
-        if (shortest.size() < 2) {
-            // we need at least a prefix of 2 elements, like "com.mycompany", to perform grouping
-            return Collections.emptyList();
-        }
-        List<List<String>> commonPrefixes = new ArrayList<>();
-        List<List<String>> remainder = Lists.newArrayList(splitGroups);
-        List<List<String>> previous;
-        while (!remainder.isEmpty()) {
-            previous = Lists.newArrayList(remainder);
-            shortest = remainder.get(0);
-            int prefixLen = 2;
-            List<String> prefix = shortest.subList(0, prefixLen);
-            List<String> commonPrefix = null;
-            List<List<String>> candidatesWithSamePrefix = Lists.newArrayList(remainder);
-            while ((candidatesWithSamePrefix = samePrefix(prefixLen, prefix, candidatesWithSamePrefix)).size() > 1) {
-                remainder.removeAll(candidatesWithSamePrefix);
-                commonPrefix = prefix;
-                prefixLen++;
-                if (prefixLen <= shortest.size()) {
-                    prefix = shortest.subList(0, prefixLen);
-                } else {
-                    break;
-                }
-            }
-            if (commonPrefix != null) {
-                commonPrefixes.add(commonPrefix);
-            }
-            if (remainder.equals(previous)) {
-                // could do nothing with the first, let's go with the next one
-                remainder.remove(0);
-            }
-        }
-        return commonPrefixes;
-    }
-
-    private static List<List<String>> samePrefix(int prefixLen, List<String> prefix, List<List<String>> candidates) {
-        return candidates.stream().filter(groups -> groups.subList(0, prefixLen).equals(prefix)).collect(Collectors.toList());
     }
 
     private void markKeyDeclaredGlobally(Map.Entry<String, Collection<PgpEntry>> e) {

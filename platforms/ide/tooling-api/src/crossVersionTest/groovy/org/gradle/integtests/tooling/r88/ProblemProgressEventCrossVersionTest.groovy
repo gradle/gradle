@@ -131,6 +131,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
     }
+
     @TargetGradleVersion("=8.5")
     def "Problems don't crash the run in 8.5"() {
         given:

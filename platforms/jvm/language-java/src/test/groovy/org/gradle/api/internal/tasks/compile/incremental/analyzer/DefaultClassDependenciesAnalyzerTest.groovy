@@ -43,7 +43,7 @@ import spock.lang.Subject
 class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     @Subject
-    analyzer = new DefaultClassDependenciesAnalyzer(new StringInterner())
+        analyzer = new DefaultClassDependenciesAnalyzer(new StringInterner())
 
     private ClassAnalysis analyze(Class foo) {
         analyzer.getClassAnalysis(classStream(foo))
@@ -117,8 +117,8 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     def "knows if a class uses annotations with source retention"() {
         expect:
-        analyze(UsesRuntimeAnnotation).accessibleClassDependencies  == ["org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeRuntimeAnnotation"] as Set
-        analyze(UsesRuntimeAnnotation).privateClassDependencies  == [] as Set
+        analyze(UsesRuntimeAnnotation).accessibleClassDependencies == ["org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeRuntimeAnnotation"] as Set
+        analyze(UsesRuntimeAnnotation).privateClassDependencies == [] as Set
         analyze(SomeRuntimeAnnotation).accessibleClassDependencies.isEmpty()
         analyze(SomeRuntimeAnnotation).privateClassDependencies.isEmpty()
         !analyze(SomeRuntimeAnnotation).dependencyToAllReason

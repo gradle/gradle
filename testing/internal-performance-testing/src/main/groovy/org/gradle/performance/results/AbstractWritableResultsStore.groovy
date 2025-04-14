@@ -33,7 +33,8 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
 
     private static final int LATEST_EXECUTION_TIMES_DAYS = 14
     private static final String SELECT_LATEST_EXECUTION_TIMES = """
-           ${ OperatingSystem.values().collect { os -> """
+           ${OperatingSystem.values().collect { os ->
+        """
             select
                testClass,
                testId,
@@ -46,7 +47,7 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
               or channel like ?
              and testProject is not null
            group by testClass, testId, testProject
-           """ }.join("UNION") }
+           """ }.join("UNION")}
          order by testClass, testId, testProject, os
 
     """
@@ -63,7 +64,7 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
 
     @Override
     public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {
-        return this.<Map<PerformanceExperimentOnOs, Long>>withConnection("load estimated runtimes") { connection ->
+        return this.<Map<PerformanceExperimentOnOs, Long>> withConnection("load estimated runtimes") { connection ->
             Timestamp since = Timestamp.valueOf(LocalDateTime.now().minusDays(LATEST_EXECUTION_TIMES_DAYS))
             ImmutableMap.Builder<PerformanceExperimentOnOs, Long> builder = ImmutableMap.builder()
             connection.prepareStatement(SELECT_LATEST_EXECUTION_TIMES).withCloseable { statement ->

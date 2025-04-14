@@ -197,7 +197,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         task.taskDependencies.getDependencies(task).name.sort() == ["a-target2", "a-target3"]
     }
 
-    def "setting lifecycle log level on builder sets it on logging adapter" () {
+    def "setting lifecycle log level on builder sets it on logging adapter"() {
         when:
         ant.lifecycleLogLevel = AntMessagePriority.INFO
 
@@ -205,7 +205,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         1 * loggingAdapter.setLifecycleLogLevel(AntMessagePriority.INFO)
     }
 
-    def "can set lifecycle log level using string representation" () {
+    def "can set lifecycle log level using string representation"() {
         when:
         ant.lifecycleLogLevel = stringLevel
 
@@ -221,7 +221,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         "ERROR"     | AntMessagePriority.ERROR
     }
 
-    def "getting lifecycle log level on builder gets it from logging adapter" () {
+    def "getting lifecycle log level on builder gets it from logging adapter"() {
         when:
         def level = ant.getLifecycleLogLevel()
 
@@ -254,13 +254,13 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         where:
 
         [filename, antType] << [[
-            'f1$$SomeOtherText',
-            'f1$$$$$$Some$OtherText',
-            'f1$${Some}OtherText',
-            'f1$${SomeOther$$$Text',
-            'f1$$${my.property}Text',
-            '${my.property}'],
-            [AntType.FileSet, AntType.ResourceCollection]
+                                    'f1$$SomeOtherText',
+                                    'f1$$$$$$Some$OtherText',
+                                    'f1$${Some}OtherText',
+                                    'f1$${SomeOther$$$Text',
+                                    'f1$$${my.property}Text',
+                                    '${my.property}'],
+                                [AntType.FileSet, AntType.ResourceCollection]
         ].combinations()
     }
 

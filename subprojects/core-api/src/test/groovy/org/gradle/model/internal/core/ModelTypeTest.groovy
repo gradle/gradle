@@ -26,6 +26,7 @@ import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
 class ModelTypeTest extends Specification {
     class Nested {}
+
     interface NestedInterface {}
 
     def "represents classes"() {
@@ -488,29 +489,45 @@ class ModelTypeTest extends Specification {
         def superString = new ModelType<List<? super String>>() {}.typeVariables[0]
         def anything = new ModelType<List<?>>() {}.typeVariables[0]
 
-        when: ModelType.of(CharSequence).asSubtype(ModelType.of(String))
-        then: thrown ClassCastException
+        when:
+        ModelType.of(CharSequence).asSubtype(ModelType.of(String))
+        then:
+        thrown ClassCastException
 
-        when: anything.asSubtype(superString)
-        then: thrown IllegalStateException
+        when:
+        anything.asSubtype(superString)
+        then:
+        thrown IllegalStateException
 
-        when: superString.asSubtype(anything)
-        then: thrown IllegalStateException
+        when:
+        superString.asSubtype(anything)
+        then:
+        thrown IllegalStateException
 
-        when: superString.asSubtype(extendsString)
-        then: thrown IllegalStateException
+        when:
+        superString.asSubtype(extendsString)
+        then:
+        thrown IllegalStateException
 
-        when: extendsString.asSubtype(superString)
-        then: thrown IllegalStateException
+        when:
+        extendsString.asSubtype(superString)
+        then:
+        thrown IllegalStateException
 
-        when: ModelType.of(String).asSubtype(anything)
-        then: thrown IllegalArgumentException
+        when:
+        ModelType.of(String).asSubtype(anything)
+        then:
+        thrown IllegalArgumentException
 
-        when: ModelType.of(String).asSubtype(extendsString)
-        then: thrown IllegalArgumentException
+        when:
+        ModelType.of(String).asSubtype(extendsString)
+        then:
+        thrown IllegalArgumentException
 
-        when: ModelType.of(String).asSubtype(superString)
-        then: thrown IllegalArgumentException
+        when:
+        ModelType.of(String).asSubtype(superString)
+        then:
+        thrown IllegalArgumentException
     }
 
     def "has wildcards"() {
@@ -540,10 +557,10 @@ class ModelTypeTest extends Specification {
     }
 
     enum MyEnumWithClassBodies {
-        ONE {
+        ONE{
             int execute() { return 1 }
         },
-        TWO {
+        TWO{
             int execute() { return 2 }
         }
 

@@ -42,34 +42,20 @@ import java.util.Map;
  */
 public abstract class GroovyCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
-
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private String encoding = "UTF-8";
-
-    private boolean fork = true;
-
-    private boolean keepStubs;
-
-    private List<String> fileExtensions = ImmutableList.of("java", "groovy");
-
-    private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
-
-    private Map<String, Boolean> optimizationOptions = new HashMap<>();
-
-    private File stubDir;
-
-    private File configurationScript;
-
-    private boolean javaAnnotationProcessing;
-
-    private boolean parameters;
-
     private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
+    private boolean failOnError = true;
+    private boolean verbose;
+    private boolean listFiles;
+    private String encoding = "UTF-8";
+    private boolean fork = true;
+    private boolean keepStubs;
+    private List<String> fileExtensions = ImmutableList.of("java", "groovy");
+    private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
+    private Map<String, Boolean> optimizationOptions = new HashMap<>();
+    private File stubDir;
+    private File configurationScript;
+    private boolean javaAnnotationProcessing;
+    private boolean parameters;
 
     @Inject
     protected ObjectFactory getObjectFactory() {
@@ -190,6 +176,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * <p>
      * <b>This feature is only available if compiling with Groovy 2.1 or later.</b>
      * </p>
+     *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
@@ -293,7 +280,9 @@ public abstract class GroovyCompileOptions implements Serializable {
      * </dl>
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
     }

@@ -26,11 +26,13 @@ class BuildLogicFunctionalTest {
     @Test
     fun `my task can be loaded from the configuration cache`() {
 
-        buildFile.writeText("""
+        buildFile.writeText(
+            """
             plugins {
                 id 'org.example.my-plugin'
             }
-        """)
+        """
+        )
 
         runner()
             .withArguments("--configuration-cache", "myTask")        // <1>

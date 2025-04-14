@@ -31,7 +31,41 @@ import java.util.regex.Matcher;
  */
 public class ClipboardPostprocessor extends Postprocessor {
 
-    public ClipboardPostprocessor(){ }
+    public ClipboardPostprocessor() {}
+
+    private static String readResource(String resourcePath) {
+        try (InputStream inputStream = ClipboardPostprocessor.class.getResourceAsStream(resourcePath)) {
+            return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to read source resource for Clipboard: " + e.getMessage());
+        }
+    }
+
+    private static String addCss(String output, String resource) {
+        String css = readResource(resource);
+        String replacement = new StringBuffer()
+            .append("<style>").append(css).append("</style>")
+            .append("</head>")
+            .toString();
+        return output.replace("</head>", replacement);
+    }
+
+    private static String addJs(String output, String resource) {
+        String javascript = readResource(resource);
+        String replacement = new StringBuffer()
+            .append("<script type='text/javascript'>").append(javascript).append("</script>")
+            .append("</html>")
+            .toString();
+        return output.replace("</html>", replacement);
+    }
+
+    private static String addExternalJs(String output, String url) {
+        String replacement = new StringBuffer()
+            .append("</body>")
+            .append("<script type='text/javascript' src='").append(url).append("'></script>")
+            .toString();
+        return output.replace("</body>", replacement);
+    }
 
     @Override
     public String process(Document document, String output) {
@@ -52,40 +86,6 @@ public class ClipboardPostprocessor extends Postprocessor {
         output = addCss(output, "/clipboard.css");
 
         return output;
-    }
-
-    private static String readResource(String resourcePath) {
-        try (InputStream inputStream = ClipboardPostprocessor.class.getResourceAsStream(resourcePath)) {
-            return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to read source resource for Clipboard: " + e.getMessage());
-        }
-    }
-
-    private static String addCss(String output, String resource){
-        String css = readResource(resource);
-        String replacement = new StringBuffer()
-            .append("<style>").append(css).append("</style>")
-            .append("</head>")
-            .toString();
-        return  output.replace("</head>", replacement);
-    }
-
-    private static String addJs(String output, String resource){
-        String javascript = readResource(resource);
-        String replacement = new StringBuffer()
-            .append("<script type='text/javascript'>").append(javascript).append("</script>")
-            .append("</html>")
-            .toString();
-        return output.replace("</html>", replacement);
-    }
-
-    private static String addExternalJs(String output, String url){
-        String replacement = new StringBuffer()
-            .append("</body>")
-            .append("<script type='text/javascript' src='").append(url).append("'></script>")
-            .toString();
-        return output.replace("</body>", replacement);
     }
 
 }

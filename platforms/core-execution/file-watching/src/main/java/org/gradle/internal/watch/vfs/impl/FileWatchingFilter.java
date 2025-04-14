@@ -27,11 +27,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * Keeps track of how locations should be watched:
  *
  * - Immutable locations are managed by Gradle, i.e. file system changes should never be external,
- *   and therefore these locations should not be watched to cut down on the number of watchers needed.
+ * and therefore these locations should not be watched to cut down on the number of watchers needed.
  *
  * - Locations known to be modified during a build might receive late file events that would invalidate VFS state we just
- *   captured after the changes; to avoid this, after a known modification we assume no further modifications will
- *   happen to the same location, and all file events belong the know modifications instead.
+ * captured after the changes; to avoid this, after a known modification we assume no further modifications will
+ * happen to the same location, and all file events belong the know modifications instead.
  */
 @ServiceScope(Scope.UserHome.class)
 public class FileWatchingFilter implements FileSystemAccess.WriteListener {

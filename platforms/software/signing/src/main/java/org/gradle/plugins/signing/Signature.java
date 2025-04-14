@@ -200,10 +200,6 @@ public class Signature extends AbstractPublishArtifact {
         return uncheckedCall(toSignGenerator);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     /**
      * The name of the signature artifact.
      *
@@ -220,6 +216,10 @@ public class Signature extends AbstractPublishArtifact {
         return name != null ? name : defaultName();
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Nullable
     private String defaultName() {
         return nameGenerator != null ? uncheckedCall(nameGenerator) : fileName();
@@ -229,10 +229,6 @@ public class Signature extends AbstractPublishArtifact {
     private String fileName() {
         final File file = getFile();
         return file != null ? file.getName() : null;
-    }
-
-    public void setExtension(String extension) {
-        this.extension = extension;
     }
 
     /**
@@ -251,14 +247,14 @@ public class Signature extends AbstractPublishArtifact {
         return extension != null ? extension : signatureTypeExtension();
     }
 
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
     @Nullable
     private String signatureTypeExtension() {
         SignatureType signatureType = getSignatureType();
         return signatureType != null ? signatureType.getExtension() : null;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     /**
@@ -278,6 +274,10 @@ public class Signature extends AbstractPublishArtifact {
         return type != null ? type : defaultType();
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Nullable
     private String defaultType() {
         File toSign = getToSign();
@@ -285,10 +285,6 @@ public class Signature extends AbstractPublishArtifact {
         return toSign != null && signatureType != null
             ? signatureType.combinedExtension(toSign)
             : null;
-    }
-
-    public void setClassifier(String classifier) {
-        this.classifier = classifier;
     }
 
     /**
@@ -305,12 +301,12 @@ public class Signature extends AbstractPublishArtifact {
         return classifier != null ? classifier : defaultClassifier();
     }
 
-    private String defaultClassifier() {
-        return classifierGenerator == null ? null : uncheckedCall(classifierGenerator);
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    private String defaultClassifier() {
+        return classifierGenerator == null ? null : uncheckedCall(classifierGenerator);
     }
 
     /**
@@ -325,6 +321,10 @@ public class Signature extends AbstractPublishArtifact {
     @ToBeReplacedByLazyProperty
     public Date getDate() {
         return date != null ? date : defaultDate();
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 
     @Nullable
@@ -385,16 +385,16 @@ public class Signature extends AbstractPublishArtifact {
         return signatureSpec.getSignatureType();
     }
 
-    @SuppressWarnings("unused")
-    public void setSignatureSpec(SignatureSpec signatureSpec) {
-        this.signatureSpec = signatureSpec;
-    }
-
     @Internal
     @SuppressWarnings("unused")
     @ToBeReplacedByLazyProperty
     public SignatureSpec getSignatureSpec() {
         return signatureSpec;
+    }
+
+    @SuppressWarnings("unused")
+    public void setSignatureSpec(SignatureSpec signatureSpec) {
+        this.signatureSpec = signatureSpec;
     }
 
     @Internal

@@ -117,9 +117,9 @@ public class XmlValidation {
     /**
      * Verifies if a codepoint is an allowed XML char.
      *
-     * @see <a href="https://www.w3.org/TR/REC-xml/#charsets">XML Charsets</a>
      * @param c codepoint
      * @return true when the codepoint is a valid XML char
+     * @see <a href="https://www.w3.org/TR/REC-xml/#charsets">XML Charsets</a>
      */
     public static boolean isLegalCharacter(final int c) {
         if (c == 0x9 || c == 0xA || c == 0xD) {

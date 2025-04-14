@@ -40,6 +40,10 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
         this.variant = variant;
     }
 
+    public static DependencySpec of(LibraryBinaryIdentifier id) {
+        return new DefaultLibraryBinaryDependencySpec(id.getProjectPath(), id.getLibraryName(), id.getVariant());
+    }
+
     @Override
     public String getProjectPath() {
         return projectPath;
@@ -84,9 +88,5 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
         result = 31 * result + ObjectUtils.hashCode(libraryName);
         result = 31 * result + ObjectUtils.hashCode(variant);
         return result;
-    }
-
-    public static DependencySpec of(LibraryBinaryIdentifier id) {
-        return new DefaultLibraryBinaryDependencySpec(id.getProjectPath(), id.getLibraryName(), id.getVariant());
     }
 }

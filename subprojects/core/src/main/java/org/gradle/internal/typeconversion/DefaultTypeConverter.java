@@ -40,6 +40,16 @@ public class DefaultTypeConverter implements TypeConverter {
         .build();
     private final Map<Class<?>, NotationParser<Object, ?>> parsers = new HashMap<>();
 
+    public DefaultTypeConverter(final PathToFileResolver fileResolver) {
+        registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
+            @Override
+            public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
+                result.converted(fileResolver.resolve(notation));
+            }
+        }), File.class);
+        registerConverters();
+    }
+
     private static <T> NotationParser<Object, T> build(NotationConverter<Object, T> converter, Class<T> type) {
         return NotationParserBuilder
             .toType(type)
@@ -82,6 +92,37 @@ public class DefaultTypeConverter implements TypeConverter {
         registerConverter(new StringConverter(), String.class);
     }
 
+    @Override
+    public Object convert(Object notation, Class<?> type, boolean primitive) throws TypeConversionException {
+        if (type.isInstance(notation)) {
+            return notation;
+        }
+        if (!primitive && notation == null) {
+            return null;
+        }
+
+        if (type.isEnum()) {
+            return convertEnum(Cast.uncheckedCast(type), notation);
+        }
+
+        NotationParser<Object, ?> parser;
+        parser = parsers.get(primitive ? UNBOXED_TYPES.get(type) : type);
+        if (parser == null) {
+            throw new IllegalArgumentException("Don't know how to convert to type " + type.getName());
+        }
+
+        return parser.parseNotation(notation);
+    }
+
+    private <T extends Enum<T>> T convertEnum(Class<T> type, Object notation) {
+        return NotationParserBuilder
+            .toType(type)
+            .noImplicitConverters()
+            .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(type))
+            .toComposite()
+            .parseNotation(notation);
+    }
+
     private abstract static class CharSequenceConverter<T> implements NotationConverter<String, T> {
         final Class<T> type;
 
@@ -120,6 +161,22 @@ public class DefaultTypeConverter implements TypeConverter {
             this.type = type;
         }
 
+        private static BigDecimal toBigDecimal(Number notation) {
+            if (notation instanceof BigDecimal) {
+                return (BigDecimal) notation;
+            }
+            if (notation instanceof BigInteger) {
+                return new BigDecimal((BigInteger) notation);
+            }
+            if (notation instanceof Float) {
+                return new BigDecimal(notation.floatValue());
+            }
+            if (notation instanceof Double) {
+                return new BigDecimal(notation.doubleValue());
+            }
+            return new BigDecimal(notation.longValue());
+        }
+
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("A String or CharSequence");
@@ -145,64 +202,7 @@ public class DefaultTypeConverter implements TypeConverter {
             }
         }
 
-        private static BigDecimal toBigDecimal(Number notation) {
-            if (notation instanceof BigDecimal) {
-                return (BigDecimal) notation;
-            }
-            if (notation instanceof BigInteger) {
-                return new BigDecimal((BigInteger) notation);
-            }
-            if (notation instanceof Float) {
-                return new BigDecimal(notation.floatValue());
-            }
-            if (notation instanceof Double) {
-                return new BigDecimal(notation.doubleValue());
-            }
-            return new BigDecimal(notation.longValue());
-        }
-
         protected abstract void convertNumberToNumber(BigDecimal n, NotationConvertResult<? super T> result);
-    }
-
-    public DefaultTypeConverter(final PathToFileResolver fileResolver) {
-        registerConverter(new CharSequenceNotationConverter<Object, File>(new CharSequenceConverter<File>(File.class) {
-            @Override
-            public void convert(String notation, NotationConvertResult<? super File> result) throws TypeConversionException {
-                result.converted(fileResolver.resolve(notation));
-            }
-        }), File.class);
-        registerConverters();
-    }
-
-    @Override
-    public Object convert(Object notation, Class<?> type, boolean primitive) throws TypeConversionException {
-        if (type.isInstance(notation)) {
-            return notation;
-        }
-        if (!primitive && notation == null) {
-            return null;
-        }
-
-        if (type.isEnum()) {
-            return convertEnum(Cast.uncheckedCast(type), notation);
-        }
-
-        NotationParser<Object, ?> parser;
-        parser = parsers.get(primitive ? UNBOXED_TYPES.get(type) : type);
-        if (parser == null) {
-            throw new IllegalArgumentException("Don't know how to convert to type " + type.getName());
-        }
-
-        return parser.parseNotation(notation);
-    }
-
-    private <T extends Enum<T>> T convertEnum(Class<T> type, Object notation) {
-        return NotationParserBuilder
-                .toType(type)
-                .noImplicitConverters()
-                .fromCharSequence(new EnumFromCharSequenceNotationParser<T>(type))
-                .toComposite()
-                .parseNotation(notation);
     }
 
     private static class DoubleNumberConverter extends NumberConverter<Double> {
@@ -316,7 +316,7 @@ public class DefaultTypeConverter implements TypeConverter {
         public void convert(String notation, NotationConvertResult<? super Character> result) throws TypeConversionException {
             if (notation.length() != 1) {
                 throw new TypeConversionException(String.format("Cannot convert string value '%s' with length %d to type %s",
-                        notation, notation.length(), target.getSimpleName()));
+                    notation, notation.length(), target.getSimpleName()));
             }
 
             result.converted(notation.charAt(0));

@@ -57,7 +57,7 @@ class TreatInterfaceAsConfigureLambdaTest {
 
         val valueCaptor2 = customConfigureLambdas.produceValueCaptor(typeOf<MyFunctionalInterface<*>>())
         f(valueCaptor2.lambda as MyFunctionalInterface<String>)
-        assertEquals(InstanceAndPublicType.of("test",null), valueCaptor2.value)
+        assertEquals(InstanceAndPublicType.of("test", null), valueCaptor2.value)
 
         assertThrows<IllegalArgumentException> {
             customConfigureLambdas.produceValueCaptor(typeOf<Runnable>())

@@ -73,65 +73,29 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         this.objectFactory = objectFactory;
     }
 
-    private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
-        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, ApiCompilerResult result) {
-            if (spec.incrementalCompilationEnabled()) {
-                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result, new CompilationClassBackupService(spec, result));
-            } else {
-                return new NoOpCompilationCustomizer();
-            }
+    /**
+     * Returns true if the exception is fatal, unrecoverable for the incremental compilation. Example of such error:
+     * <pre>
+     * error: startup failed:
+     * General error during instruction selection: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
+     *   java.lang.RuntimeException: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
+     *      at org.codehaus.groovy.control.CompilationUnit$IPrimaryClassNodeOperation.doPhaseOperation(CompilationUnit.java:977)
+     *      at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:672)
+     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:636)
+     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:611)
+     * </pre>
+     */
+    private static boolean isFatalException(org.codehaus.groovy.control.CompilationFailedException e) {
+        if (e instanceof MultipleCompilationErrorsException) {
+            // Groovy compiler wraps any uncontrolled exception (e.g. IOException, NoClassDefFoundError and similar) in a `ExceptionMessage`
+            return ((MultipleCompilationErrorsException) e).getErrorCollector().getErrors().stream()
+                .anyMatch(message -> message instanceof ExceptionMessage);
         }
-
-        public IncrementalCompilationCustomizer() {
-            super(CompilePhase.CLASS_GENERATION);
-        }
-
-        abstract void addToConfiguration(CompilerConfiguration configuration);
+        return false;
     }
 
-    private static class NoOpCompilationCustomizer extends IncrementalCompilationCustomizer {
-
-        @Override
-        public void addToConfiguration(CompilerConfiguration configuration) {
-        }
-
-        @Override
-        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
-        private final CompilationSourceDirs compilationSourceDirs;
-        private final ApiCompilerResult result;
-        private final CompilationClassBackupService compilationClassBackupService;
-
-        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, ApiCompilerResult result, CompilationClassBackupService compilationClassBackupService) {
-            this.compilationSourceDirs = compilationSourceDirs;
-            this.result = result;
-            this.compilationClassBackupService = compilationClassBackupService;
-        }
-
-        @Override
-        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) {
-            inspectClassNode(source, classNode);
-        }
-
-        private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
-            String classFqName = classNode.getName();
-            String relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
-            result.getSourceClassesMapping().computeIfAbsent(relativePath, key -> new HashSet<>()).add(classFqName);
-            compilationClassBackupService.maybeBackupClassFile(classFqName);
-            Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
-            while (iterator.hasNext()) {
-                inspectClassNode(sourceUnit, iterator.next());
-            }
-        }
-
-        @Override
-        public void addToConfiguration(CompilerConfiguration configuration) {
-            configuration.addCompilationCustomizers(this);
-        }
+    private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
+        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing() && spec.annotationProcessingConfigured();
     }
 
     private File[] getSortedSourceFiles(GroovyJavaJointCompileSpec spec) {
@@ -305,31 +269,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
     }
 
-    /**
-     * Returns true if the exception is fatal, unrecoverable for the incremental compilation. Example of such error:
-     * <pre>
-     * error: startup failed:
-     * General error during instruction selection: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
-     *   java.lang.RuntimeException: java.lang.NoClassDefFoundError: Unable to load class ClassName due to missing dependency DependencyName
-     *      at org.codehaus.groovy.control.CompilationUnit$IPrimaryClassNodeOperation.doPhaseOperation(CompilationUnit.java:977)
-     *      at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:672)
-     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:636)
-     *      at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:611)
-     * </pre>
-     */
-    private static boolean isFatalException(org.codehaus.groovy.control.CompilationFailedException e) {
-        if (e instanceof MultipleCompilationErrorsException) {
-            // Groovy compiler wraps any uncontrolled exception (e.g. IOException, NoClassDefFoundError and similar) in a `ExceptionMessage`
-            return ((MultipleCompilationErrorsException) e).getErrorCollector().getErrors().stream()
-                .anyMatch(message -> message instanceof ExceptionMessage);
-        }
-        return false;
-    }
-
-    private static boolean shouldProcessAnnotations(GroovyJavaJointCompileSpec spec) {
-        return spec.getGroovyCompileOptions().isJavaAnnotationProcessing() && spec.annotationProcessingConfigured();
-    }
-
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {
         VersionNumber version = parseGroovyVersion();
         if (version.compareTo(VersionNumber.parse("2.1")) < 0) {
@@ -383,5 +322,66 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     private ClassLoader getExtClassLoader() {
         return ClassLoaderUtils.getPlatformClassLoader();
+    }
+
+    private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
+        public IncrementalCompilationCustomizer() {
+            super(CompilePhase.CLASS_GENERATION);
+        }
+
+        static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, ApiCompilerResult result) {
+            if (spec.incrementalCompilationEnabled()) {
+                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result, new CompilationClassBackupService(spec, result));
+            } else {
+                return new NoOpCompilationCustomizer();
+            }
+        }
+
+        abstract void addToConfiguration(CompilerConfiguration configuration);
+    }
+
+    private static class NoOpCompilationCustomizer extends IncrementalCompilationCustomizer {
+
+        @Override
+        public void addToConfiguration(CompilerConfiguration configuration) {
+        }
+
+        @Override
+        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
+        private final CompilationSourceDirs compilationSourceDirs;
+        private final ApiCompilerResult result;
+        private final CompilationClassBackupService compilationClassBackupService;
+
+        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, ApiCompilerResult result, CompilationClassBackupService compilationClassBackupService) {
+            this.compilationSourceDirs = compilationSourceDirs;
+            this.result = result;
+            this.compilationClassBackupService = compilationClassBackupService;
+        }
+
+        @Override
+        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) {
+            inspectClassNode(source, classNode);
+        }
+
+        private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
+            String classFqName = classNode.getName();
+            String relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
+            result.getSourceClassesMapping().computeIfAbsent(relativePath, key -> new HashSet<>()).add(classFqName);
+            compilationClassBackupService.maybeBackupClassFile(classFqName);
+            Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
+            while (iterator.hasNext()) {
+                inspectClassNode(sourceUnit, iterator.next());
+            }
+        }
+
+        @Override
+        public void addToConfiguration(CompilerConfiguration configuration) {
+            configuration.addCompilationCustomizers(this);
+        }
     }
 }

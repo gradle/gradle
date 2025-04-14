@@ -809,8 +809,8 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
 
         where:
         one   | two
-        '1.5'   | '2.0'
-        '2.0'   | '1.5'
+        '1.5' | '2.0'
+        '2.0' | '1.5'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19882")

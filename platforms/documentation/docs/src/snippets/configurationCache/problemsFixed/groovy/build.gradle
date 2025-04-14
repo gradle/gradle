@@ -1,11 +1,14 @@
 // tag::fixed[]
 abstract class MyCopyTask extends DefaultTask { // <1>
 
-    @InputDirectory abstract DirectoryProperty getSource() // <2>
+    @InputDirectory
+    abstract DirectoryProperty getSource() // <2>
 
-    @OutputDirectory abstract DirectoryProperty getDestination() // <2>
+    @OutputDirectory
+    abstract DirectoryProperty getDestination() // <2>
 
-    @Inject abstract FileSystemOperations getFs() // <3>
+    @Inject
+    abstract FileSystemOperations getFs() // <3>
 
     @TaskAction
     void action() {

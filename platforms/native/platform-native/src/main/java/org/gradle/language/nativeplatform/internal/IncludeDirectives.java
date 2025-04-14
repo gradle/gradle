@@ -23,26 +23,6 @@ import java.util.List;
  * An immutable snapshot of the preprocessor directives from a source or header file.
  */
 public interface IncludeDirectives {
-    List<Include> getQuotedIncludes();
-    List<Include> getSystemIncludes();
-    List<Include> getMacroIncludes();
-    List<Include> getAll();
-    List<Include> getIncludesOnly();
-
-    Iterable<Macro> getMacros(String name);
-    Iterable<MacroFunction> getMacroFunctions(String name);
-
-    Collection<Macro> getAllMacros();
-    Collection<MacroFunction> getAllMacroFunctions();
-
-    boolean hasMacros();
-    boolean hasMacroFunctions();
-
-    /**
-     * Returns a copy of these directives, with #import directives removed.
-     */
-    IncludeDirectives discardImports();
-
     IncludeDirectives EMPTY = new IncludeDirectives() {
         @Override
         public List<Include> getQuotedIncludes() {
@@ -104,4 +84,31 @@ public interface IncludeDirectives {
             return this;
         }
     };
+
+    List<Include> getQuotedIncludes();
+
+    List<Include> getSystemIncludes();
+
+    List<Include> getMacroIncludes();
+
+    List<Include> getAll();
+
+    List<Include> getIncludesOnly();
+
+    Iterable<Macro> getMacros(String name);
+
+    Iterable<MacroFunction> getMacroFunctions(String name);
+
+    Collection<Macro> getAllMacros();
+
+    Collection<MacroFunction> getAllMacroFunctions();
+
+    boolean hasMacros();
+
+    boolean hasMacroFunctions();
+
+    /**
+     * Returns a copy of these directives, with #import directives removed.
+     */
+    IncludeDirectives discardImports();
 }

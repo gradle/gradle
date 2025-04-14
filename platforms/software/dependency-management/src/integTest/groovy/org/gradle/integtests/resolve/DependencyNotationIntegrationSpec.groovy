@@ -26,7 +26,7 @@ class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands dependency notations"() {
         when:
-        buildFile <<  """
+        buildFile << """
 configurations {
     conf
     gradleStuff
@@ -79,7 +79,7 @@ task checkDeps {
         when:
         settingsFile << "include 'otherProject'"
 
-        buildFile <<  """
+        buildFile << """
             configurations {
                 conf
                 confTwo
@@ -114,7 +114,7 @@ task checkDeps {
 
     def "fails gracefully for invalid notations"() {
         when:
-        buildFile <<  """
+        buildFile << """
 configurations {
     conf
 }
@@ -132,7 +132,7 @@ task checkDeps
 
     def "fails gracefully for single null notation"() {
         when:
-        buildFile <<  """
+        buildFile << """
 configurations {
     conf
 }
@@ -150,7 +150,7 @@ task checkDeps
 
     def "fails gracefully for null notation in list"() {
         when:
-        buildFile <<  """
+        buildFile << """
 configurations {
     conf
 }

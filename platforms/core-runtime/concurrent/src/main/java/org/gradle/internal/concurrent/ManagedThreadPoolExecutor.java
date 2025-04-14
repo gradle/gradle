@@ -22,17 +22,17 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 public interface ManagedThreadPoolExecutor extends ManagedExecutor {
-    void setThreadFactory(ThreadFactory threadFactory);
-
     ThreadFactory getThreadFactory();
 
-    void setRejectedExecutionHandler(RejectedExecutionHandler handler);
+    void setThreadFactory(ThreadFactory threadFactory);
 
     RejectedExecutionHandler getRejectedExecutionHandler();
 
-    void setCorePoolSize(int corePoolSize);
+    void setRejectedExecutionHandler(RejectedExecutionHandler handler);
 
     int getCorePoolSize();
+
+    void setCorePoolSize(int corePoolSize);
 
     boolean prestartCoreThread();
 
@@ -42,9 +42,9 @@ public interface ManagedThreadPoolExecutor extends ManagedExecutor {
 
     void allowCoreThreadTimeOut(boolean value);
 
-    void setMaximumPoolSize(int maximumPoolSize);
-
     int getMaximumPoolSize();
+
+    void setMaximumPoolSize(int maximumPoolSize);
 
     void setKeepAliveTime(long time, TimeUnit unit);
 

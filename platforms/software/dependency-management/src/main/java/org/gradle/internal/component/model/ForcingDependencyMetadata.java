@@ -23,6 +23,7 @@ public interface ForcingDependencyMetadata extends DependencyMetadata {
 
     /**
      * Returns a copy of this dependency metadata, using force.
+     *
      * @return forced dependency metadata
      */
     ForcingDependencyMetadata forced();

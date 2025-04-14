@@ -57,7 +57,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         config.entryRetention.unset()
 
         then:
-        config.entryRetentionTimestampSupplier.get() ==  clock.currentTime - configDefault
+        config.entryRetentionTimestampSupplier.get() == clock.currentTime - configDefault
     }
 
     def "cannot modify cache configurations via convenience method unless mutable"() {

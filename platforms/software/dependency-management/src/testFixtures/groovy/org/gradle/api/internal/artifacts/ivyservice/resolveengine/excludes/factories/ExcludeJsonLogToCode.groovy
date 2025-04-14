@@ -88,7 +88,7 @@ class ExcludeJsonLogToCode {
 
     private final Map<String, String> mappingCache = [:].withDefault {
         def size = mappingCache.size()
-        size >WORDS.size() ? "word${size}" : WORDS[size]
+        size > WORDS.size() ? "word${size}" : WORDS[size]
     }
 
     /**

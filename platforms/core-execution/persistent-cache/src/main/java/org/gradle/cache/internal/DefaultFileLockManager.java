@@ -60,9 +60,8 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  * Uses file system locks on a lock file per target file.
  */
 public class DefaultFileLockManager implements FileLockManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     public static final int DEFAULT_LOCK_TIMEOUT = 60000;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
@@ -78,23 +77,23 @@ public class DefaultFileLockManager implements FileLockManager {
         this(metaDataProvider, lockTimeoutMs, fileLockContentionHandler, new RandomLongIdGenerator());
     }
 
-    DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler,
-                           LongSupplier generator) {
+    DefaultFileLockManager(
+        ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler,
+        LongSupplier generator
+    ) {
         this.metaDataProvider = metaDataProvider;
         this.lockTimeoutMs = lockTimeoutMs;
         this.fileLockContentionHandler = fileLockContentionHandler;
         this.generator = generator;
     }
 
-    private static class RandomLongIdGenerator implements LongSupplier {
-        private final Random random = new Random();
-
-        @Override
-        public long getAsLong() {
-            return random.nextLong();
+    static File determineLockTargetFile(File target) {
+        if (target.isDirectory()) {
+            return new File(target, target.getName() + ".lock");
+        } else {
+            return new File(target.getParentFile(), target.getName() + ".lock");
         }
     }
-
 
     @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName) throws LockTimeoutException {
@@ -129,11 +128,59 @@ public class DefaultFileLockManager implements FileLockManager {
         }
     }
 
-    static File determineLockTargetFile(File target) {
-        if (target.isDirectory()) {
-            return new File(target, target.getName() + ".lock");
-        } else {
-            return new File(target.getParentFile(), target.getName() + ".lock");
+    private ExponentialBackoff<AwaitableFileLockReleasedSignal> newExponentialBackoff(int shortTimeoutMs) {
+        return ExponentialBackoff.of(shortTimeoutMs, MILLISECONDS, new AwaitableFileLockReleasedSignal());
+    }
+
+    private static class RandomLongIdGenerator implements LongSupplier {
+        private final Random random = new Random();
+
+        @Override
+        public long getAsLong() {
+            return random.nextLong();
+        }
+    }
+
+    @VisibleForTesting
+    static class AwaitableFileLockReleasedSignal implements FileLockReleasedSignal, ExponentialBackoff.Signal {
+
+        private final Lock lock = new ReentrantLock();
+        private final Condition condition = lock.newCondition();
+        private int waiting;
+
+        @SuppressWarnings("WaitNotInLoop")
+        @Override
+        public boolean await(long millis) throws InterruptedException {
+            lock.lock();
+            try {
+                waiting++;
+                return condition.await(millis, MILLISECONDS);
+            } finally {
+                waiting--;
+                lock.unlock();
+            }
+        }
+
+        @Override
+        public void trigger() {
+            lock.lock();
+            try {
+                if (waiting > 0) {
+                    condition.signalAll();
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        @VisibleForTesting
+        boolean isWaiting() {
+            lock.lock();
+            try {
+                return waiting > 0;
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
@@ -143,11 +190,11 @@ public class DefaultFileLockManager implements FileLockManager {
         private final LockMode mode;
         private final String displayName;
         private final String operationDisplayName;
+        private final int port;
+        private final long lockId;
         private java.nio.channels.FileLock lock;
         private LockFileAccess lockFileAccess;
         private LockState lockState;
-        private final int port;
-        private final long lockId;
 
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, @Nullable Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
@@ -372,7 +419,7 @@ public class DefaultFileLockManager implements FileLockManager {
             if (fileLockOutcome == FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS) {
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.pid, thisProcessPid, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
-            } else if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS){
+            } else if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS) {
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by this Gradle process.Owner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
             } else {
@@ -446,53 +493,6 @@ public class DefaultFileLockManager implements FileLockManager {
                     return ExponentialBackoff.Result.notSuccessful(lockOutcome);
                 }
             });
-        }
-    }
-
-    private ExponentialBackoff<AwaitableFileLockReleasedSignal> newExponentialBackoff(int shortTimeoutMs) {
-        return ExponentialBackoff.of(shortTimeoutMs, MILLISECONDS, new AwaitableFileLockReleasedSignal());
-    }
-
-    @VisibleForTesting
-    static class AwaitableFileLockReleasedSignal implements FileLockReleasedSignal, ExponentialBackoff.Signal {
-
-        private final Lock lock = new ReentrantLock();
-        private final Condition condition = lock.newCondition();
-        private int waiting;
-
-        @SuppressWarnings("WaitNotInLoop")
-        @Override
-        public boolean await(long millis) throws InterruptedException {
-            lock.lock();
-            try {
-                waiting++;
-                return condition.await(millis, MILLISECONDS);
-            } finally {
-                waiting--;
-                lock.unlock();
-            }
-        }
-
-        @Override
-        public void trigger() {
-            lock.lock();
-            try {
-                if (waiting > 0) {
-                    condition.signalAll();
-                }
-            } finally {
-                lock.unlock();
-            }
-        }
-
-        @VisibleForTesting
-        boolean isWaiting() {
-            lock.lock();
-            try {
-                return waiting > 0;
-            } finally {
-                lock.unlock();
-            }
         }
     }
 }

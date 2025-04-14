@@ -54,9 +54,9 @@ class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
 
         where:
         type << [
-                OuterClass.InnerPublicStaticClass,
-                OuterClass.HasExplicitDefaultConstructor,
-                OuterClass.HasStaticFinalField
+            OuterClass.InnerPublicStaticClass,
+            OuterClass.HasExplicitDefaultConstructor,
+            OuterClass.HasStaticFinalField
         ]
     }
 }

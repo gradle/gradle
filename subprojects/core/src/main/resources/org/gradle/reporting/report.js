@@ -74,7 +74,7 @@
             checkBox.checked = false;
 
             removeClass(label, "hidden");
-         }
+        }
     }
 
     class TabManager {
@@ -211,8 +211,8 @@
 
     // Entry point.
 
-    window.onload = function() {
+    window.onload = function () {
         initTabs();
         initControls();
     };
-} (window, window.document));
+}(window, window.document));

@@ -34,6 +34,9 @@ import java.util.Set;
  */
 public final class SnapshotTaskInputsBuildOperationType implements BuildOperationType<SnapshotTaskInputsBuildOperationType.Details, SnapshotTaskInputsBuildOperationType.Result> {
 
+    private SnapshotTaskInputsBuildOperationType() {
+    }
+
     public interface Details {
     }
 
@@ -93,6 +96,38 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          */
         @Nullable
         Map<String, byte[]> getInputValueHashesBytes();
+
+        /**
+         * Traverses the input properties that are file types (e.g. File, FileCollection, FileTree, List of File).
+         * <p>
+         * If there are no input file properties, visitor will not be called at all.
+         */
+        void visitInputFileProperties(InputFilePropertyVisitor visitor);
+
+        /**
+         * Names of input properties which have been loaded by non Gradle managed classloader.
+         * <p>
+         * Ordered by property name, lexicographically.
+         * No null values.
+         * Never empty.
+         *
+         * This is kept for backward compatibility with the Develocity Gradle plugin.
+         *
+         * @deprecated Always null, since we don't capture inputs when anything is loaded by an unknown classloader.
+         */
+        @Deprecated
+        @Nullable
+        Set<String> getInputPropertiesLoadedByUnknownClassLoader();
+
+        /**
+         * The names of the output properties.
+         * <p>
+         * No duplicate values.
+         * Ordered lexicographically.
+         * Never empty.
+         */
+        @Nullable
+        List<String> getOutputPropertyNames();
 
         /**
          * The consuming visitor for file property inputs.
@@ -178,41 +213,6 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             String getPropertyNormalizationStrategyName();
         }
 
-        /**
-         * Traverses the input properties that are file types (e.g. File, FileCollection, FileTree, List of File).
-         * <p>
-         * If there are no input file properties, visitor will not be called at all.
-         */
-        void visitInputFileProperties(InputFilePropertyVisitor visitor);
-
-        /**
-         * Names of input properties which have been loaded by non Gradle managed classloader.
-         * <p>
-         * Ordered by property name, lexicographically.
-         * No null values.
-         * Never empty.
-         *
-         * This is kept for backward compatibility with the Develocity Gradle plugin.
-         *
-         * @deprecated Always null, since we don't capture inputs when anything is loaded by an unknown classloader.
-         */
-        @Deprecated
-        @Nullable
-        Set<String> getInputPropertiesLoadedByUnknownClassLoader();
-
-        /**
-         * The names of the output properties.
-         * <p>
-         * No duplicate values.
-         * Ordered lexicographically.
-         * Never empty.
-         */
-        @Nullable
-        List<String> getOutputPropertyNames();
-
-    }
-
-    private SnapshotTaskInputsBuildOperationType() {
     }
 
 }

@@ -39,15 +39,14 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details).";
 
     public static final String BUILD_SCRIPT_BASENAME = "build";
-
-    private String name;
-    private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
-    private File dir;
-    private File canonicalDir;
     private final DefaultProjectDescriptor parent;
     private final Set<DefaultProjectDescriptor> children = new LinkedHashSet<>();
+    private String name;
+    private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
+    private File dir;
+    private File canonicalDir;
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName;

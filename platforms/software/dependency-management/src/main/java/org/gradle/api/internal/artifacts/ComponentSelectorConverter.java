@@ -29,5 +29,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Project.class)
 public interface ComponentSelectorConverter {
     ModuleIdentifier getModule(ComponentSelector selector);
+
     ModuleVersionSelector getSelector(ComponentSelector selector);
 }

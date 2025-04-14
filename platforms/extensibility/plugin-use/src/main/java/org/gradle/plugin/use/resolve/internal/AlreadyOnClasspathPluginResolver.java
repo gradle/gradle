@@ -57,6 +57,14 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         this.pluginVersionTracker = pluginVersionTracker;
     }
 
+    @Nullable
+    private static String getVersion(PluginRequestInternal pluginRequest) {
+        if (pluginRequest.getOriginalRequest() != null) {
+            return pluginRequest.getOriginalRequest().getVersion();
+        }
+        return pluginRequest.getVersion();
+    }
+
     @Override
     public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         PluginId pluginId = pluginRequest.getId();
@@ -99,14 +107,6 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         }
 
         return resolveAlreadyOnClasspath(pluginId, existingVersion);
-    }
-
-    @Nullable
-    private static String getVersion(PluginRequestInternal pluginRequest) {
-        if (pluginRequest.getOriginalRequest() != null) {
-            return pluginRequest.getOriginalRequest().getVersion();
-        }
-        return pluginRequest.getVersion();
     }
 
     private PluginResolutionResult resolveAlreadyOnClasspath(PluginId pluginId, @Nullable String pluginVersion) {

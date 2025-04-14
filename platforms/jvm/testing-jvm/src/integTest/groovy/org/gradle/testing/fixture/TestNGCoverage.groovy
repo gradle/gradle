@@ -61,7 +61,7 @@ class TestNGCoverage {
             return versions.findAll { VersionNumber.parse(it) >= VersionNumber.parse(FIXED_ILLEGAL_ACCESS) }
         } else if (javaVersion < JavaVersion.VERSION_1_7) {
             // 6.8.21 was the last version to compile to JDK 5 bytecode. Afterwards (6.9.4) TestNG compiled to JDK 7 bytecode.
-            return versions.findAll { VersionNumber.parse(it) <= VersionNumber.parse('6.8.21')}
+            return versions.findAll { VersionNumber.parse(it) <= VersionNumber.parse('6.8.21') }
         } else {
             return versions
         }

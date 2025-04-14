@@ -58,6 +58,14 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         this.incrementalCompilation = incrementalCompilation;
     }
 
+    private static String getCantUsePCHMessage(String pchHeader, File sourceFile) {
+        return "The source file "
+            .concat(sourceFile.getName())
+            .concat(" includes the header ")
+            .concat(pchHeader)
+            .concat(" but it is not the first declared header, so the pre-compiled header will not be used.");
+    }
+
     @Override
     public WorkResult execute(final T spec) {
         WorkResult workResult;
@@ -103,14 +111,6 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         }
 
         return Collections.emptyList();
-    }
-
-    private static String getCantUsePCHMessage(String pchHeader, File sourceFile) {
-        return "The source file "
-            .concat(sourceFile.getName())
-            .concat(" includes the header ")
-            .concat(pchHeader)
-            .concat(" but it is not the first declared header, so the pre-compiled header will not be used.");
     }
 
     protected WorkResult doIncrementalCompile(IncrementalCompilation compilation, T spec) {

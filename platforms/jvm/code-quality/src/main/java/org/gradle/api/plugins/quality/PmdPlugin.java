@@ -67,6 +67,32 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     private PmdExtension extension;
 
+    private static List<String> ruleSetsConvention(PmdExtension extension) {
+        if (extension.getRuleSetConfig() == null && extension.getRuleSetFiles().isEmpty()) {
+            return Collections.singletonList("category/java/errorprone.xml");
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @VisibleForTesting
+    static Set<String> calculateDefaultDependencyNotation(final String versionString) {
+        final VersionNumber toolVersion = VersionNumber.parse(versionString);
+        if (toolVersion.compareTo(VersionNumber.version(5)) < 0) {
+            return Collections.singleton("pmd:pmd:" + versionString);
+        } else if (toolVersion.compareTo(VersionNumber.parse("5.2.0")) < 0) {
+            return Collections.singleton("net.sourceforge.pmd:pmd:" + versionString);
+        } else if (toolVersion.getMajor() < 7) {
+            return Collections.singleton("net.sourceforge.pmd:pmd-java:" + versionString);
+        }
+
+        // starting from version 7, PMD is split into multiple modules
+        return ImmutableSet.of(
+            "net.sourceforge.pmd:pmd-java:" + versionString,
+            "net.sourceforge.pmd:pmd-ant:" + versionString
+        );
+    }
+
     @Override
     protected String getToolName() {
         return "PMD";
@@ -130,14 +156,6 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         configureToolchains(task);
     }
 
-    private static List<String> ruleSetsConvention(PmdExtension extension) {
-        if (extension.getRuleSetConfig() == null && extension.getRuleSetFiles().isEmpty()) {
-            return Collections.singletonList("category/java/errorprone.xml");
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
             calculateDefaultDependencyNotation(extension.getToolVersion())
@@ -185,24 +203,6 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
             task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
         });
-    }
-
-    @VisibleForTesting
-    static Set<String> calculateDefaultDependencyNotation(final String versionString) {
-        final VersionNumber toolVersion = VersionNumber.parse(versionString);
-        if (toolVersion.compareTo(VersionNumber.version(5)) < 0) {
-            return Collections.singleton("pmd:pmd:" + versionString);
-        } else if (toolVersion.compareTo(VersionNumber.parse("5.2.0")) < 0) {
-            return Collections.singleton("net.sourceforge.pmd:pmd:" + versionString);
-        } else if (toolVersion.getMajor() < 7) {
-            return Collections.singleton("net.sourceforge.pmd:pmd-java:" + versionString);
-        }
-
-        // starting from version 7, PMD is split into multiple modules
-        return ImmutableSet.of(
-            "net.sourceforge.pmd:pmd-java:" + versionString,
-            "net.sourceforge.pmd:pmd-ant:" + versionString
-        );
     }
 
     @Override

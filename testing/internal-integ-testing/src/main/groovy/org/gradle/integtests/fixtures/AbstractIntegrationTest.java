@@ -59,16 +59,18 @@ public abstract class AbstractIntegrationTest implements HasGradleExecutor {
 
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
     public final GradleContextualExecuter executer = createExecuter();
+    //    @Rule
+    public final M2Installation m2 = new M2Installation(testDirectoryProvider);
+    private MavenFileRepository mavenRepo;
+    private IvyFileRepository ivyRepo;
+
+    public static String mavenCentralRepository() {
+        return RepoScriptBlockUtil.mavenCentralRepository();
+    }
 
     public IntegrationTestBuildContext getBuildContext() {
         return IntegrationTestBuildContext.INSTANCE;
     }
-
-//    @Rule
-    public final M2Installation m2 = new M2Installation(testDirectoryProvider);
-
-    private MavenFileRepository mavenRepo;
-    private IvyFileRepository ivyRepo;
 
     @After
     public void cleanup() {
@@ -161,13 +163,8 @@ public abstract class AbstractIntegrationTest implements HasGradleExecutor {
         return ivyRepo;
     }
 
-
     public GradleExecuter using(Action<GradleExecuter> action) {
         action.execute(executer);
         return executer;
-    }
-
-    public static String mavenCentralRepository() {
-        return RepoScriptBlockUtil.mavenCentralRepository();
     }
 }

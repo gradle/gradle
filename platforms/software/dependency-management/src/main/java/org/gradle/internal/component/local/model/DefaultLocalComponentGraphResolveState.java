@@ -90,6 +90,48 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         initCalculatedValues();
     }
 
+    private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
+        LocalVariantGraphResolveStateFactory variantFactory,
+        @Nullable ComponentIdentifier overrideComponentId
+    ) {
+        ImmutableList.Builder<LocalVariantGraphResolveState> variantsWithAttributes = new ImmutableList.Builder<>();
+        ImmutableMap.Builder<String, LocalVariantGraphResolveState> variantsByConfigurationName = ImmutableMap.builder();
+
+        variantFactory.visitConsumableVariants(variantState -> {
+            if (overrideComponentId != null) {
+                variantState = variantState.copyWithComponentId(overrideComponentId);
+            }
+
+            if (!variantState.getAttributes().isEmpty()) {
+                variantsWithAttributes.add(variantState);
+            }
+
+            if (variantState.getMetadata().getConfigurationName() != null) {
+                variantsByConfigurationName.put(variantState.getMetadata().getConfigurationName(), variantState);
+            }
+        });
+
+        return new DefaultLocalComponentGraphSelectionCandidates(
+            variantsWithAttributes.build(),
+            variantsByConfigurationName.build()
+        );
+    }
+
+    private static List<ResolvedVariantResult> computeSelectableVariantResults(DefaultLocalComponentGraphResolveState component) {
+        return component.getCandidatesForGraphVariantSelection()
+            .getVariantsForAttributeMatching()
+            .stream()
+            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
+            .map(variant -> new DefaultResolvedVariantResult(
+                component.getId(),
+                Describables.of(variant.getName()),
+                component.getAttributeDesugaring().desugar(variant.getAttributes().asImmutable()),
+                component.capabilitiesFor(variant.getCapabilities()),
+                null
+            ))
+            .collect(Collectors.toList());
+    }
+
     @Override
     public void reevaluate() {
         // TODO: This is not really thread-safe.
@@ -164,53 +206,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         return value.get();
     }
 
-    private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
-        LocalVariantGraphResolveStateFactory variantFactory,
-        @Nullable ComponentIdentifier overrideComponentId
-    ) {
-        ImmutableList.Builder<LocalVariantGraphResolveState> variantsWithAttributes = new ImmutableList.Builder<>();
-        ImmutableMap.Builder<String, LocalVariantGraphResolveState> variantsByConfigurationName = ImmutableMap.builder();
-
-        variantFactory.visitConsumableVariants(variantState -> {
-            if (overrideComponentId != null) {
-                variantState = variantState.copyWithComponentId(overrideComponentId);
-            }
-
-            if (!variantState.getAttributes().isEmpty()) {
-                variantsWithAttributes.add(variantState);
-            }
-
-            if (variantState.getMetadata().getConfigurationName() != null) {
-                variantsByConfigurationName.put(variantState.getMetadata().getConfigurationName(), variantState);
-            }
-        });
-
-        return new DefaultLocalComponentGraphSelectionCandidates(
-            variantsWithAttributes.build(),
-            variantsByConfigurationName.build()
-        );
-    }
-
     @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
         CalculatedValue<List<ResolvedVariantResult>> value = selectableVariantResults.get();
         value.finalizeIfNotAlready();
         return value.get();
-    }
-
-    private static List<ResolvedVariantResult> computeSelectableVariantResults(DefaultLocalComponentGraphResolveState component) {
-        return component.getCandidatesForGraphVariantSelection()
-            .getVariantsForAttributeMatching()
-            .stream()
-            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
-            .map(variant -> new DefaultResolvedVariantResult(
-                component.getId(),
-                Describables.of(variant.getName()),
-                component.getAttributeDesugaring().desugar(variant.getAttributes().asImmutable()),
-                component.capabilitiesFor(variant.getCapabilities()),
-                null
-            ))
-            .collect(Collectors.toList());
     }
 
     private static class LocalComponentArtifactResolveMetadata implements ComponentArtifactResolveMetadata {

@@ -136,6 +136,10 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 this.plannedNodeGraph = plannedNodeGraph;
             }
 
+            private static List<String> toUniqueSortedTaskPaths(Set<Task> tasks) {
+                return tasks.stream().map(Task::getPath).distinct().sorted().collect(Collectors.toList());
+            }
+
             @Override
             public List<String> getRequestedTaskPaths() {
                 return toUniqueSortedTaskPaths(requestedTasks);
@@ -172,10 +176,6 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 builder.put("taskPlan", getTaskPlan());
                 builder.put("executionPlan", getExecutionPlan(EnumSet.allOf(NodeIdentity.NodeType.class)));
                 return builder.build();
-            }
-
-            private static List<String> toUniqueSortedTaskPaths(Set<Task> tasks) {
-                return tasks.stream().map(Task::getPath).distinct().sorted().collect(Collectors.toList());
             }
         }
     }

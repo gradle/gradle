@@ -26,7 +26,8 @@ import spock.lang.Issue
 
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/4636")
 class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
-    @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer httpServer = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/14434")
     def "can run tests in parallel with project dependencies"() {

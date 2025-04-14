@@ -47,7 +47,7 @@ class AntLoggingAdapterTest extends Specification {
         antLoggingAdapter.messageLogged(buildEvent(antPriority))
 
         then:
-        1 * listener.onOutput({it.logLevel == gradleLogLevel && isCategorizedAsAntLoggingAdapter(it)})
+        1 * listener.onOutput({ it.logLevel == gradleLogLevel && isCategorizedAsAntLoggingAdapter(it) })
 
         where:
         lifecyLevel                | antPriority         | gradleLogLevel

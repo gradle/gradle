@@ -104,20 +104,23 @@ public interface ArchUnitFixture {
 
     DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(classes_not_written_in_kotlin)
         .as("written in Java or Groovy");
-
-    DescribedPredicate<JavaMember> not_from_fileevents = declaredIn(resideOutsideOfPackages("org.gradle.fileevents.."))
-        .as("not from fileevents");
-
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
         .and(not(not_written_in_kotlin))
         .and(modifier(PUBLIC))
         .and(nameMatching(".+\\$[a-z_]+")) // Kotlin internal methods have `$kotlin_module_name` appended to their name
         .as("Kotlin internal methods");
-
     DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
         .and(modifier(PUBLIC))
         .and(not(kotlin_internal_methods))
         .as("public API methods");
+    DescribedPredicate<JavaMember> not_from_fileevents = declaredIn(resideOutsideOfPackages("org.gradle.fileevents.."))
+        .as("not from fileevents");
+    DescribedPredicate<JavaClass> primitive = new DescribedPredicate<JavaClass>("primitive") {
+        @Override
+        public boolean test(JavaClass input) {
+            return input.isPrimitive();
+        }
+    };
 
     static ArchRule freeze(ArchRule rule) {
         return new FreezeInstructionsPrintingArchRule(FreezingArchRule.freeze(rule));
@@ -157,13 +160,6 @@ public interface ArchUnitFixture {
             .and(not(inTestFixturePackages()))
             .as("in Gradle internal API packages");
     }
-
-    DescribedPredicate<JavaClass> primitive = new DescribedPredicate<JavaClass>("primitive") {
-        @Override
-        public boolean test(JavaClass input) {
-            return input.isPrimitive();
-        }
-    };
 
     static <T> DescribedPredicate<Collection<T>> thatAll(DescribedPredicate<T> predicate) {
         return new DescribedPredicate<Collection<T>>("that all %s", predicate.getDescription()) {
@@ -300,6 +296,15 @@ public interface ArchUnitFixture {
         return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
     }
 
+    @Nullable
+    static Method safeReflect(JavaMethod method) {
+        try {
+            return method.reflect();
+        } catch (NoClassDefFoundError | Exception e) {
+            return null;
+        }
+    }
+
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
         private final DescribedPredicate<JavaClass> types;
 
@@ -370,15 +375,15 @@ public interface ArchUnitFixture {
             super("in Gradle public API packages");
         }
 
-        @Override
-        public boolean test(JavaClass input) {
-            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName());
-        }
-
         private static Set<String> parsePackageMatcher(String packageList) {
             return Arrays.stream(packageList.split(":"))
                 .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
                 .collect(toSet());
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName());
         }
     }
 
@@ -487,15 +492,6 @@ public interface ArchUnitFixture {
                 // Fall back to ArchUnit query
                 return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
             }
-        }
-    }
-
-    @Nullable
-    static Method safeReflect(JavaMethod method) {
-        try {
-            return method.reflect();
-        } catch (NoClassDefFoundError | Exception e) {
-            return null;
         }
     }
 }

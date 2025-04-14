@@ -61,22 +61,8 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
     private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
     private static final ModelType<SourceComponentSpec> SOURCE_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(SourceComponentSpec.class);
     private static final ModelType<VariantComponentSpec> VARIANT_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(VariantComponentSpec.class);
-
-    private static class ComponentTypeRegistrationInfo {
-        private final String modelName;
-        private final ModelType<? extends ComponentSpec> baseInterface;
-        private final List<Class<?>> requiredPlugins;
-
-        private ComponentTypeRegistrationInfo(String modelName, ModelType<? extends ComponentSpec> baseInterface, Class<?> requiredPlugins) {
-            this.modelName = modelName;
-            this.baseInterface = baseInterface;
-            this.requiredPlugins = ImmutableList.<Class<?>>of(requiredPlugins);
-        }
-    }
-
     private final ModelSchemaStore schemaStore;
     private final ModelReference<ComponentSpecFactory> registryRef;
-
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
         this.registryRef = COMPONENT_SPEC_FACTORY_MODEL_REFERENCE;
@@ -153,6 +139,18 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
             if (!internalView.isInterface()) {
                 throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
             }
+        }
+    }
+
+    private static class ComponentTypeRegistrationInfo {
+        private final String modelName;
+        private final ModelType<? extends ComponentSpec> baseInterface;
+        private final List<Class<?>> requiredPlugins;
+
+        private ComponentTypeRegistrationInfo(String modelName, ModelType<? extends ComponentSpec> baseInterface, Class<?> requiredPlugins) {
+            this.modelName = modelName;
+            this.baseInterface = baseInterface;
+            this.requiredPlugins = ImmutableList.<Class<?>>of(requiredPlugins);
         }
     }
 

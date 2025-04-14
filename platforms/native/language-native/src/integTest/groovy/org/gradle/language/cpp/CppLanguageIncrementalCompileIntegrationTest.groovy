@@ -20,8 +20,8 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 
 class CppLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest {
-     @Override
-     IncrementalHelloWorldApp getHelloWorldApp() {
-         return new CppHelloWorldApp()
-     }
- }
+    @Override
+    IncrementalHelloWorldApp getHelloWorldApp() {
+        return new CppHelloWorldApp()
+    }
+}

@@ -41,11 +41,6 @@ import static org.gradle.api.internal.initialization.transform.ProjectDependency
 @DisableCachingByDefault(because = "Instrumented jars are too big to cache.")
 public abstract class ProjectDependencyInstrumentingArtifactTransform extends BaseInstrumentingArtifactTransform<Parameters> {
 
-    public interface Parameters extends BaseInstrumentingArtifactTransform.Parameters {
-        @Input
-        Property<Boolean> getIsUpgradeReport();
-    }
-
     @Override
     @Classpath
     @InputArtifact
@@ -84,5 +79,10 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
 
     private InstrumentationTypeRegistry getGradleCoreTypeRegistry() {
         return internalServices.get().getGradleCoreInstrumentationTypeRegistry();
+    }
+
+    public interface Parameters extends BaseInstrumentingArtifactTransform.Parameters {
+        @Input
+        Property<Boolean> getIsUpgradeReport();
     }
 }

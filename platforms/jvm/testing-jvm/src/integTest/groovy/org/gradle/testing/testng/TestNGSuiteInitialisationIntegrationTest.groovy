@@ -43,6 +43,6 @@ class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
 
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClassStartsWith("Gradle Test Executor").assertTestFailed(EXECUTION_FAILURE,
-                startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
+            startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
     }
 }

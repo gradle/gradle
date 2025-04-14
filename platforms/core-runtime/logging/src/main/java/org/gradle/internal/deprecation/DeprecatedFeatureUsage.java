@@ -70,52 +70,15 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.problemId = usage.problemId;
     }
 
-    @Nullable public String getProblemId() {
-        return problemId;
+    private static void append(StringBuilder outputBuilder, @Nullable String message) {
+        if (isNotEmpty(message)) {
+            outputBuilder.append(" ").append(message);
+        }
     }
 
-    /**
-     * Indicates the type of usage, affecting the feedback that can be given.
-     */
-    public enum Type {
-
-        /**
-         * The key characteristic is that the trace to the usage indicates the offending user code.
-         *
-         * Example: calling a deprecated method.
-         */
-        USER_CODE_DIRECT,
-
-        /**
-         * The key characteristic is that the trace to the usage DOES NOT indicate the offending user code,
-         * but the usage happens during runtime and may be associated to a logical entity (e.g. task, plugin).
-         *
-         * The association between a usage and entity is not modelled by the usage,
-         * but can be inferred from the operation stream (for deprecations, for which operation progress events are emitted).
-         *
-         * Example: annotation processor on compile classpath (feature is used at compile, not classpath definition)
-         */
-        USER_CODE_INDIRECT,
-
-        /**
-         * The key characteristic is that there is no useful "where was it used information",
-         * as the usage relates to how/where Gradle was invoked.
-         *
-         * Example: deprecated CLI switch.
-         */
-        BUILD_INVOCATION;
-
-        public DeprecationData.Type toDeprecationDataType() {
-            switch (this) {
-                case USER_CODE_DIRECT:
-                    return DeprecationData.Type.USER_CODE_DIRECT;
-                case USER_CODE_INDIRECT:
-                    return DeprecationData.Type.USER_CODE_INDIRECT;
-                case BUILD_INVOCATION:
-                    return DeprecationData.Type.BUILD_INVOCATION;
-            }
-            throw new IllegalStateException("Unknown deprecation type: " + this);
-        }
+    @Nullable
+    public String getProblemId() {
+        return problemId;
     }
 
     /**
@@ -177,9 +140,47 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return outputBuilder.toString();
     }
 
-    private static void append(StringBuilder outputBuilder, @Nullable String message) {
-        if (isNotEmpty(message)) {
-            outputBuilder.append(" ").append(message);
+    /**
+     * Indicates the type of usage, affecting the feedback that can be given.
+     */
+    public enum Type {
+
+        /**
+         * The key characteristic is that the trace to the usage indicates the offending user code.
+         *
+         * Example: calling a deprecated method.
+         */
+        USER_CODE_DIRECT,
+
+        /**
+         * The key characteristic is that the trace to the usage DOES NOT indicate the offending user code,
+         * but the usage happens during runtime and may be associated to a logical entity (e.g. task, plugin).
+         *
+         * The association between a usage and entity is not modelled by the usage,
+         * but can be inferred from the operation stream (for deprecations, for which operation progress events are emitted).
+         *
+         * Example: annotation processor on compile classpath (feature is used at compile, not classpath definition)
+         */
+        USER_CODE_INDIRECT,
+
+        /**
+         * The key characteristic is that there is no useful "where was it used information",
+         * as the usage relates to how/where Gradle was invoked.
+         *
+         * Example: deprecated CLI switch.
+         */
+        BUILD_INVOCATION;
+
+        public DeprecationData.Type toDeprecationDataType() {
+            switch (this) {
+                case USER_CODE_DIRECT:
+                    return DeprecationData.Type.USER_CODE_DIRECT;
+                case USER_CODE_INDIRECT:
+                    return DeprecationData.Type.USER_CODE_INDIRECT;
+                case BUILD_INVOCATION:
+                    return DeprecationData.Type.BUILD_INVOCATION;
+            }
+            throw new IllegalStateException("Unknown deprecation type: " + this);
         }
     }
 }

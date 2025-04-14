@@ -93,13 +93,15 @@ public class WorkersServices extends AbstractGradleModuleServices {
 
     private static class GradleUserHomeServices implements ServiceRegistrationProvider {
         @Provides
-        WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
-                                                                    LoggingManagerInternal loggingManager,
-                                                                    ListenerManager listenerManager,
-                                                                    MemoryManager memoryManager,
-                                                                    OsMemoryInfo memoryInfo,
-                                                                    ClassPathRegistry classPathRegistry,
-                                                                    ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        WorkerDaemonClientsManager createWorkerDaemonClientsManager(
+            WorkerProcessFactory workerFactory,
+            LoggingManagerInternal loggingManager,
+            ListenerManager listenerManager,
+            MemoryManager memoryManager,
+            OsMemoryInfo memoryInfo,
+            ClassPathRegistry classPathRegistry,
+            ActionExecutionSpecFactory actionExecutionSpecFactory
+        ) {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry, actionExecutionSpecFactory), listenerManager, loggingManager, memoryManager, memoryInfo);
         }
 
@@ -121,22 +123,23 @@ public class WorkersServices extends AbstractGradleModuleServices {
 
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory,
-                                            WorkerDaemonFactory daemonWorkerFactory,
-                                            IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
-                                            JavaForkOptionsFactory forkOptionsFactory,
-                                            WorkerLeaseRegistry workerLeaseRegistry,
-                                            BuildOperationRunner buildOperationRunner,
-                                            AsyncWorkTracker asyncWorkTracker,
-                                            WorkerDirectoryProvider workerDirectoryProvider,
-                                            ClassLoaderStructureProvider classLoaderStructureProvider,
-                                            WorkerExecutionQueueFactory workerExecutionQueueFactory,
-                                            ServiceRegistry projectServices,
-                                            ActionExecutionSpecFactory actionExecutionSpecFactory,
-                                            CachedClasspathTransformer classpathTransformer,
-                                            ProjectLayout projectLayout,
-                                            ProjectCacheDir projectCacheDir
-                                            ) {
+        WorkerExecutor createWorkerExecutor(
+            InstantiatorFactory instantiatorFactory,
+            WorkerDaemonFactory daemonWorkerFactory,
+            IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory,
+            JavaForkOptionsFactory forkOptionsFactory,
+            WorkerLeaseRegistry workerLeaseRegistry,
+            BuildOperationRunner buildOperationRunner,
+            AsyncWorkTracker asyncWorkTracker,
+            WorkerDirectoryProvider workerDirectoryProvider,
+            ClassLoaderStructureProvider classLoaderStructureProvider,
+            WorkerExecutionQueueFactory workerExecutionQueueFactory,
+            ServiceRegistry projectServices,
+            ActionExecutionSpecFactory actionExecutionSpecFactory,
+            CachedClasspathTransformer classpathTransformer,
+            ProjectLayout projectLayout,
+            ProjectCacheDir projectCacheDir
+        ) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationRunner, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
             DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(

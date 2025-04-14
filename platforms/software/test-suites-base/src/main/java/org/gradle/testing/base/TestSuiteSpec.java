@@ -31,12 +31,14 @@ public interface TestSuiteSpec extends GeneralComponentSpec {
 
     /**
      * Sets the tested component.
+     *
      * @param testedComponent the component under test
      */
     void setTestedComponent(ComponentSpec testedComponent);
 
     /**
      * Sets the tested component.
+     *
      * @param testedComponent the component under test
      */
     void testing(ComponentSpec testedComponent);

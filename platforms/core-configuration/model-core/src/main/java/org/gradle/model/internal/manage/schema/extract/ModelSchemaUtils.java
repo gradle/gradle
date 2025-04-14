@@ -109,7 +109,7 @@ public class ModelSchemaUtils {
      * declarations, and use the ones from the proxied interfaces instead.
      *
      * @param declaringMethods declarations of the same method from different types in the type hierarchy. They are
-     *      expected to be in order of specificity, i.e. overrides preceding overridden declarations.
+     * expected to be in order of specificity, i.e. overrides preceding overridden declarations.
      * @return the most specific declaration of the method.
      * @throws IllegalArgumentException if no declaration can be found.
      */

@@ -46,6 +46,10 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
         return options;
     }
 
+    public void setScalaCompileOptions(MinimalScalaCompileOptions options) {
+        this.options = options;
+    }
+
     @Override
     public File getAnalysisFile() {
         return analysisFile;
@@ -54,10 +58,6 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
     @Override
     public void setAnalysisFile(File analysisFile) {
         this.analysisFile = analysisFile;
-    }
-
-    public void setScalaCompileOptions(MinimalScalaCompileOptions options) {
-        this.options = options;
     }
 
     @Override

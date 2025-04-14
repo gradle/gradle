@@ -246,7 +246,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private void assertNotStopped() {
         if (stopped) {
             throw new IllegalStateException(
-                    "Cannot start managing file contention because this handler has been closed.");
+                "Cannot start managing file contention because this handler has been closed.");
         }
     }
 

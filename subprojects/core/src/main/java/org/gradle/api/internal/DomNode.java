@@ -22,13 +22,17 @@ import groovy.util.Node;
  * A node which represents the root of an XML document.
  */
 public class DomNode extends Node {
-    private String publicId;
-    private String systemId;
-
     static {
         setMetaClass(GroovySystem.getMetaClassRegistry().getMetaClass(DomNode.class), DomNode.class);
     }
-    
+
+    private String publicId;
+    private String systemId;
+
+    public DomNode(Object name) {
+        super(null, name);
+    }
+
     public String getPublicId() {
         return publicId;
     }
@@ -43,9 +47,5 @@ public class DomNode extends Node {
 
     public void setSystemId(String systemId) {
         this.systemId = systemId;
-    }
-
-    public DomNode(Object name) {
-        super(null, name);
     }
 }

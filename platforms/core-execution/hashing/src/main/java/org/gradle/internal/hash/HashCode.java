@@ -50,11 +50,6 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
     private HashCode() {
     }
 
-    enum Usage {
-        CLONE_BYTES_IF_NECESSARY,
-        SAFE_TO_REUSE_BYTES
-    }
-
     static HashCode fromBytes(byte[] bytes, Usage usage) {
         switch (bytes.length) {
             case 16:
@@ -119,6 +114,55 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         throw new IllegalArgumentException("Illegal hexadecimal character: " + ch);
     }
 
+    private static StringBuilder toStringBuilder(int capacity, byte[] bytes) {
+        StringBuilder sb = new StringBuilder(capacity);
+        for (byte b : bytes) {
+            sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
+        }
+        return sb;
+    }
+
+    // TODO Replace with Long.compare() after migrating off of Java 6
+    private static int compareLong(long a, long b) {
+        return (a < b) ? -1 : ((a == b) ? 0 : 1);
+    }
+
+    private static int compareBytes(byte[] a, byte[] b) {
+        int result;
+        int len1 = a.length;
+        int len2 = b.length;
+        int length = Math.min(len1, len2);
+        for (int idx = 0; idx < length; idx++) {
+            result = a[idx] - b[idx];
+            if (result != 0) {
+                return result;
+            }
+        }
+        return len1 - len2;
+    }
+
+    private static long bytesToLong(byte[] bytes, int offset) {
+        return (bytes[offset] & 0xFFL)
+            | ((bytes[offset + 1] & 0xFFL) << 8)
+            | ((bytes[offset + 2] & 0xFFL) << 16)
+            | ((bytes[offset + 3] & 0xFFL) << 24)
+            | ((bytes[offset + 4] & 0xFFL) << 32)
+            | ((bytes[offset + 5] & 0xFFL) << 40)
+            | ((bytes[offset + 6] & 0xFFL) << 48)
+            | ((bytes[offset + 7] & 0xFFL) << 56);
+    }
+
+    private static void longToBytes(long value, byte[] bytes, int offset) {
+        bytes[offset] = (byte) (value & 0xFF);
+        bytes[offset + 1] = (byte) ((value >>> 8) & 0xFF);
+        bytes[offset + 2] = (byte) ((value >>> 16) & 0xFF);
+        bytes[offset + 3] = (byte) ((value >>> 24) & 0xFF);
+        bytes[offset + 4] = (byte) ((value >>> 32) & 0xFF);
+        bytes[offset + 5] = (byte) ((value >>> 40) & 0xFF);
+        bytes[offset + 6] = (byte) ((value >>> 48) & 0xFF);
+        bytes[offset + 7] = (byte) ((value >>> 56) & 0xFF);
+    }
+
     public abstract int length();
 
     public abstract byte[] toByteArray();
@@ -151,14 +195,6 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         return sb.toString();
     }
 
-    private static StringBuilder toStringBuilder(int capacity, byte[] bytes) {
-        StringBuilder sb = new StringBuilder(capacity);
-        for (byte b : bytes) {
-            sb.append(HEX_DIGITS[(b >> 4) & 0xf]).append(HEX_DIGITS[b & 0xf]);
-        }
-        return sb;
-    }
-
     /**
      * Encodes the hash code into a base-36 string,
      * which yields shorter strings than {@link #toString()}.
@@ -176,6 +212,11 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
     abstract void appendToHasher(PrimitiveHasher hasher);
 
     abstract byte[] bytes();
+
+    enum Usage {
+        CLONE_BYTES_IF_NECESSARY,
+        SAFE_TO_REUSE_BYTES
+    }
 
     @VisibleForTesting
     static class HashCode128 extends HashCode {
@@ -313,46 +354,5 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         public int compareTo(@NonNull HashCode o) {
             return compareBytes(bytes, o.bytes());
         }
-    }
-
-    // TODO Replace with Long.compare() after migrating off of Java 6
-    private static int compareLong(long a, long b) {
-        return (a < b) ? -1 : ((a == b) ? 0 : 1);
-    }
-
-    private static int compareBytes(byte[] a, byte[] b) {
-        int result;
-        int len1 = a.length;
-        int len2 = b.length;
-        int length = Math.min(len1, len2);
-        for (int idx = 0; idx < length; idx++) {
-            result = a[idx] - b[idx];
-            if (result != 0) {
-                return result;
-            }
-        }
-        return len1 - len2;
-    }
-
-    private static long bytesToLong(byte[] bytes, int offset) {
-        return (bytes[offset] & 0xFFL)
-            | ((bytes[offset + 1] & 0xFFL) << 8)
-            | ((bytes[offset + 2] & 0xFFL) << 16)
-            | ((bytes[offset + 3] & 0xFFL) << 24)
-            | ((bytes[offset + 4] & 0xFFL) << 32)
-            | ((bytes[offset + 5] & 0xFFL) << 40)
-            | ((bytes[offset + 6] & 0xFFL) << 48)
-            | ((bytes[offset + 7] & 0xFFL) << 56);
-    }
-
-    private static void longToBytes(long value, byte[] bytes, int offset) {
-        bytes[offset] = (byte) (value & 0xFF);
-        bytes[offset + 1] = (byte) ((value >>> 8) & 0xFF);
-        bytes[offset + 2] = (byte) ((value >>> 16) & 0xFF);
-        bytes[offset + 3] = (byte) ((value >>> 24) & 0xFF);
-        bytes[offset + 4] = (byte) ((value >>> 32) & 0xFF);
-        bytes[offset + 5] = (byte) ((value >>> 40) & 0xFF);
-        bytes[offset + 6] = (byte) ((value >>> 48) & 0xFF);
-        bytes[offset + 7] = (byte) ((value >>> 56) & 0xFF);
     }
 }

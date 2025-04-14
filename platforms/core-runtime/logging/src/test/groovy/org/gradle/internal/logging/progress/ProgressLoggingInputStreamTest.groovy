@@ -34,7 +34,8 @@ class ProgressLoggingInputStreamTest extends Specification {
 
         when:
         def buffer = new byte[5]
-        while (loggingInputStream.read(buffer) != -1) { /* Read until end */ }
+        while (loggingInputStream.read(buffer) != -1) { /* Read until end */
+        }
 
         then:
         processedBytes == inputBytes.length
@@ -52,7 +53,8 @@ class ProgressLoggingInputStreamTest extends Specification {
 
         when:
         def buffer = new byte[5]
-        while (loggingInputStream.read(buffer) != -1) { /* Read until end */ }
+        while (loggingInputStream.read(buffer) != -1) { /* Read until end */
+        }
 
         then:
         processedBytes == 0

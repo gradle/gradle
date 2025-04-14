@@ -25,7 +25,8 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     SimpleMavenFileLocations locations
     DefaultLocalMavenRepositoryLocator locator
@@ -203,9 +204,9 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         def ex = thrown(CannotLocateLocalMavenRepositoryException);
         ex.message == "Cannot resolve placeholder '${prop}' in value '${repoPath.absolutePath}'"
         where:
-        prop                  |   propType
-        'sys.unknown.prop'    |   "system property"
-        'env.unknown.ENV_VAR' |   "environment variable"
+        prop                  | propType
+        'sys.unknown.prop'    | "system property"
+        'env.unknown.ENV_VAR' | "environment variable"
     }
 
     @Requires(UnitTestPreconditions.Windows)

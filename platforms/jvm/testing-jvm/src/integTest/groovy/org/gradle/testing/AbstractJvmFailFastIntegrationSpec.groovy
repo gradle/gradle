@@ -63,9 +63,9 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         result.testClass('pkg.OtherTest').assertTestPassed('passingTest')
 
         where:
-        description        | taskList                   | buildConfig
-        'default config'   | ['test']                   | ''
-        'failFast = false' | ['test']                   | 'test { failFast = false }'
+        description        | taskList | buildConfig
+        'default config'   | ['test'] | ''
+        'failFast = false' | ['test'] | 'test { failFast = false }'
     }
 
     def "stop test execution with #description"() {
@@ -88,9 +88,9 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         result.testClass('pkg.OtherTest').assertTestSkipped('passingTest')
 
         where:
-        description       | taskList                   | buildConfig
-        'failFast = true' | ['test']                   | 'test { failFast = true }'
-        '--fail-fast'     | ['test', '--fail-fast']    | ''
+        description       | taskList                | buildConfig
+        'failFast = true' | ['test']                | 'test { failFast = true }'
+        '--fail-fast'     | ['test', '--fail-fast'] | ''
     }
 
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {

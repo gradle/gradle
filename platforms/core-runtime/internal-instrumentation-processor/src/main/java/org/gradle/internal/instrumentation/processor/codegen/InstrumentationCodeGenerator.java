@@ -32,7 +32,9 @@ public interface InstrumentationCodeGenerator {
 
         interface CanGenerateClasses extends GenerationResult {
             Collection<String> getClassNames();
+
             void buildType(String className, TypeSpec.Builder builder);
+
             Collection<CallInterceptionRequest> getCoveredRequests();
         }
 

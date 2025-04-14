@@ -21,5 +21,6 @@ import java.util.List;
 
 interface CustomArtifactModel {
     Exception getFailure();
+
     List<File> getFiles();
 }

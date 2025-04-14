@@ -58,8 +58,8 @@ import static java.util.Collections.emptyList;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class TaskReportTask extends ConventionReportTask {
 
-    private boolean detail;
     private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
+    private boolean detail;
     private String group;
     private List<String> groups;
     private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
@@ -96,16 +96,6 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     /**
-     * Set a specific task group to be displayed.
-     *
-     * @since 5.1
-     */
-    @Option(option = "group", description = "Show tasks for a specific group.")
-    public void setDisplayGroup(String group) {
-        this.group = group;
-    }
-
-    /**
      * Returns the task group to be displayed.
      *
      * This property can be set via command-line option '--group'.
@@ -116,6 +106,30 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @ToBeReplacedByLazyProperty
     public String getDisplayGroup() {
         return group;
+    }
+
+    /**
+     * Set a specific task group to be displayed.
+     *
+     * @since 5.1
+     */
+    @Option(option = "group", description = "Show tasks for a specific group.")
+    public void setDisplayGroup(String group) {
+        this.group = group;
+    }
+
+    /**
+     * Returns the task groups to be displayed.
+     *
+     * Task groups can be added via command-line option '--groups'.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    @Console
+    @ToBeReplacedByLazyProperty
+    public List<String> getDisplayGroups() {
+        return groups == null ? new ArrayList<>() : groups;
     }
 
     /**
@@ -131,20 +145,6 @@ public abstract class TaskReportTask extends ConventionReportTask {
             this.groups = new ArrayList<>();
         }
         this.groups.addAll(groups);
-    }
-
-    /**
-     * Returns the task groups to be displayed.
-     *
-     * Task groups can be added via command-line option '--groups'.
-     *
-     * @since 7.5
-     */
-    @Incubating
-    @Console
-    @ToBeReplacedByLazyProperty
-    public List<String> getDisplayGroups() {
-        return groups == null ? new ArrayList<>() : groups;
     }
 
     /**
@@ -182,33 +182,6 @@ public abstract class TaskReportTask extends ConventionReportTask {
             result.add(Try.ofFailable(() -> projectReportModelFor(project)));
         }
         return result;
-    }
-
-    private static class TaskReportModel {
-        final List<Try<ProjectReportModel>> projects;
-
-        public TaskReportModel(List<Try<ProjectReportModel>> projects) {
-            this.projects = projects;
-        }
-    }
-
-    private static class ProjectReportModel {
-        public final ProjectDetails project;
-        public final List<String> defaultTasks;
-        public final DefaultGroupTaskReportModel tasks;
-        public final List<RuleDetails> rules;
-
-        public ProjectReportModel(
-            ProjectDetails project,
-            List<String> defaultTasks,
-            DefaultGroupTaskReportModel tasks,
-            List<RuleDetails> rules
-        ) {
-            this.project = project;
-            this.defaultTasks = defaultTasks;
-            this.tasks = tasks;
-            this.rules = rules;
-        }
     }
 
     private ProjectReportModel projectReportModelFor(Project project) {
@@ -288,5 +261,32 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @Inject
     protected ProjectTaskLister getProjectTaskLister() {
         throw new UnsupportedOperationException();
+    }
+
+    private static class TaskReportModel {
+        final List<Try<ProjectReportModel>> projects;
+
+        public TaskReportModel(List<Try<ProjectReportModel>> projects) {
+            this.projects = projects;
+        }
+    }
+
+    private static class ProjectReportModel {
+        public final ProjectDetails project;
+        public final List<String> defaultTasks;
+        public final DefaultGroupTaskReportModel tasks;
+        public final List<RuleDetails> rules;
+
+        public ProjectReportModel(
+            ProjectDetails project,
+            List<String> defaultTasks,
+            DefaultGroupTaskReportModel tasks,
+            List<RuleDetails> rules
+        ) {
+            this.project = project;
+            this.defaultTasks = defaultTasks;
+            this.tasks = tasks;
+            this.rules = rules;
+        }
     }
 }

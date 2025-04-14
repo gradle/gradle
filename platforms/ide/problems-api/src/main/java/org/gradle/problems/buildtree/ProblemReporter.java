@@ -28,10 +28,6 @@ import java.io.File;
 
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class})
 public interface ProblemReporter {
-    interface ProblemConsumer {
-        void accept(Throwable throwable);
-    }
-
     /**
      * A stable identifier for this reporter. Reporters are ordered by id before {@link #report(File, ProblemConsumer)} is called, so
      * that the output is generated in a stable order rather than in an order based on the order that implementations
@@ -47,4 +43,8 @@ public interface ProblemReporter {
      * @param validationFailures Collects any validation failures.
      */
     void report(File reportDir, ProblemConsumer validationFailures);
+
+    interface ProblemConsumer {
+        void accept(Throwable throwable);
+    }
 }

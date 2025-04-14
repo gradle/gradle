@@ -53,12 +53,12 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         jar.assertContainsFile('META-INF/gradle-plugins/test-plugin.properties') &&
             jar.assertFileContent('META-INF/gradle-plugins/test-plugin.properties', descriptorFile.text)
         jar.assertContainsFile('com/xxx/TestPlugin.class')
-        ! output.contains(NO_DESCRIPTOR_WARNING)
-        ! output.contains(BAD_IMPL_CLASS_WARNING_PREFIX)
-        ! output.contains(INVALID_DESCRIPTOR_WARNING_PREFIX)
+        !output.contains(NO_DESCRIPTOR_WARNING)
+        !output.contains(BAD_IMPL_CLASS_WARNING_PREFIX)
+        !output.contains(INVALID_DESCRIPTOR_WARNING_PREFIX)
     }
 
-    def "jar issues warning if built jar does not contain any plugin descriptors" () {
+    def "jar issues warning if built jar does not contain any plugin descriptors"() {
         given:
         buildFile()
         goodPlugin()
@@ -68,7 +68,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains(NO_DESCRIPTOR_WARNING)
     }
 
-    def "jar issues warning if built jar does not contain declared plugin" () {
+    def "jar issues warning if built jar does not contain declared plugin"() {
         given:
         buildFile()
         goodPlugin()
@@ -90,7 +90,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains(String.format(':jar', DECLARED_PLUGIN_MISSING_MESSAGE, "otherPlugin", "other-plugin"))
     }
 
-    def "jar issues warning if built jar contains bad descriptor" (String descriptorContents, String warningMessage) {
+    def "jar issues warning if built jar contains bad descriptor"(String descriptorContents, String warningMessage) {
         given:
         buildFile()
         badPluginDescriptor(descriptorContents)
@@ -107,7 +107,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX
     }
 
-    def "jar issues warning if built jar contains one bad descriptor out of multiple descriptors" (String descriptorContents, String warningMessage) {
+    def "jar issues warning if built jar contains one bad descriptor out of multiple descriptors"(String descriptorContents, String warningMessage) {
         given:
         buildFile()
         goodPluginDescriptor()
@@ -124,7 +124,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX
     }
 
-    def "jar issues correct warnings if built jar contains multiple bad descriptors" (String descriptorContents, String warningMessage, int messageCount) {
+    def "jar issues correct warnings if built jar contains multiple bad descriptors"(String descriptorContents, String warningMessage, int messageCount) {
         given:
         buildFile()
         badPluginDescriptor('bad-plugin1', descriptorContents)
@@ -142,7 +142,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX     | 2
     }
 
-    def "jar issues correct warnings if built jar contains mixed descriptor problems" () {
+    def "jar issues correct warnings if built jar contains mixed descriptor problems"() {
         given:
         buildFile()
         badPluginDescriptor('bad-plugin1', 'implementation-class=')
@@ -301,7 +301,8 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("assemble")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // ProjectBuilder needs full distribution
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    // ProjectBuilder needs full distribution
     @Issue("https://github.com/gradle/gradle/issues/18647")
     def "can test plugin with ProjectBuilder without warnings or errors"() {
         given:

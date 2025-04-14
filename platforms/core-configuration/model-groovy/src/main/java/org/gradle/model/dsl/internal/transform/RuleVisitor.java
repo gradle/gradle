@@ -111,11 +111,11 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(inputsField), ASSIGN, new VariableExpression("inputs"))));
             statements.add(new ExpressionStatement(new BinaryExpression(new FieldExpression(ruleFactoryField), ASSIGN, new VariableExpression("ruleFactory"))));
             node.addMethod(new MethodNode("makeRule",
-                    Modifier.PUBLIC,
-                    ClassHelper.VOID_TYPE,
-                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs"), new Parameter(RULE_FACTORY, "ruleFactory")},
-                    new ClassNode[0],
-                    new BlockStatement(statements, new VariableScope())));
+                Modifier.PUBLIC,
+                ClassHelper.VOID_TYPE,
+                new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs"), new Parameter(RULE_FACTORY, "ruleFactory")},
+                new ClassNode[0],
+                new BlockStatement(statements, new VariableScope())));
 
             // Generate inputReferences() method
             VariableExpression inputsVar = new VariableExpression("inputs", INPUT_REFERENCES);
@@ -125,43 +125,68 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             statements.add(new ExpressionStatement(new DeclarationExpression(inputsVar, ASSIGN, new ConstructorCallExpression(INPUT_REFERENCES, new ArgumentListExpression()))));
             for (InputReference inputReference : inputs.getOwnReferences()) {
                 statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,
-                        "ownReference",
-                        new ArgumentListExpression(
-                                new ConstantExpression(inputReference.getPath()),
-                                new ConstantExpression(inputReference.getLineNumber())))));
+                    "ownReference",
+                    new ArgumentListExpression(
+                        new ConstantExpression(inputReference.getPath()),
+                        new ConstantExpression(inputReference.getLineNumber())))));
             }
             for (InputReference inputReference : inputs.getNestedReferences()) {
                 statements.add(new ExpressionStatement(new MethodCallExpression(inputsVar,
-                        "nestedReference",
-                        new ArgumentListExpression(
-                                new ConstantExpression(inputReference.getPath()),
-                                new ConstantExpression(inputReference.getLineNumber())))));
+                    "nestedReference",
+                    new ArgumentListExpression(
+                        new ConstantExpression(inputReference.getPath()),
+                        new ConstantExpression(inputReference.getLineNumber())))));
             }
             statements.add(new ReturnStatement(inputsVar));
             node.addMethod(new MethodNode("inputReferences",
-                                Modifier.PUBLIC,
-                                INPUT_REFERENCES,
-                                new Parameter[0],
-                                new ClassNode[0],
-                                new BlockStatement(statements, methodVarScope)));
+                Modifier.PUBLIC,
+                INPUT_REFERENCES,
+                new Parameter[0],
+                new ClassNode[0],
+                new BlockStatement(statements, methodVarScope)));
 
             // Generate sourceLocation() method
             statements = new ArrayList<Statement>();
             statements.add(new ReturnStatement(new ConstructorCallExpression(SOURCE_LOCATION,
-                    new ArgumentListExpression(Arrays.<Expression>asList(
-                            new ConstantExpression(SOURCE_URI_TOKEN),
-                            new ConstantExpression(SOURCE_DESC_TOKEN),
-                            new ConstantExpression(sourceLocation.getExpression()),
-                            new ConstantExpression(sourceLocation.getLineNumber()),
-                            new ConstantExpression(sourceLocation.getColumnNumber())
-                    )))));
+                new ArgumentListExpression(Arrays.<Expression>asList(
+                    new ConstantExpression(SOURCE_URI_TOKEN),
+                    new ConstantExpression(SOURCE_DESC_TOKEN),
+                    new ConstantExpression(sourceLocation.getExpression()),
+                    new ConstantExpression(sourceLocation.getLineNumber()),
+                    new ConstantExpression(sourceLocation.getColumnNumber())
+                )))));
             node.addMethod(new MethodNode("sourceLocation",
-                                Modifier.PUBLIC,
-                                SOURCE_LOCATION,
-                                new Parameter[0],
-                                new ClassNode[0],
-                                new BlockStatement(statements, new VariableScope())));
+                Modifier.PUBLIC,
+                SOURCE_LOCATION,
+                new Parameter[0],
+                new ClassNode[0],
+                new BlockStatement(statements, new VariableScope())));
         }
+    }
+
+    public static String displayName(MethodCallExpression expression) {
+        StringBuilder builder = new StringBuilder();
+        if (!expression.isImplicitThis()) {
+            builder.append(expression.getObjectExpression().getText());
+            builder.append('.');
+        }
+        builder.append(expression.getMethodAsString());
+        if (expression.getArguments() instanceof ArgumentListExpression) {
+            ArgumentListExpression arguments = (ArgumentListExpression) expression.getArguments();
+            boolean hasTrailingClosure = !arguments.getExpressions().isEmpty() && arguments.getExpression(arguments.getExpressions().size() - 1) instanceof ClosureExpression;
+            List<Expression> otherArgs = hasTrailingClosure ? arguments.getExpressions().subList(0, arguments.getExpressions().size() - 1) : arguments.getExpressions();
+            if (!otherArgs.isEmpty() || !hasTrailingClosure) {
+                builder.append("(");
+                builder.append(Joiner.on(", ").join(CollectionUtils.collect(otherArgs, ASTNode::getText)));
+                builder.append(")");
+            }
+            if (hasTrailingClosure) {
+                builder.append(" { ... }");
+            }
+        } else {
+            builder.append("()");
+        }
+        return builder.toString();
     }
 
     public void visitRuleClosure(ClosureExpression expression, Expression invocation, String invocationDisplayName) {
@@ -188,9 +213,9 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             } else {
                 // <inputs-lvar> = <inputs-field> ?: <parent-inputs-lvar>
                 DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN,
-                        new ElvisOperatorExpression(
-                                new VariableExpression(INPUTS_FIELD_NAME),
-                                parentInputsVariable));
+                    new ElvisOperatorExpression(
+                        new VariableExpression(INPUTS_FIELD_NAME),
+                        parentInputsVariable));
                 code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
             }
 
@@ -312,7 +337,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 // TODO find a better way to present this information in the error message
                 // Attempt to mimic Gradle nested exception output
                 String message = "Invalid model path given as rule input." + SystemProperties.getInstance().getLineSeparator()
-                        + "  > " + e.getMessage();
+                    + "  > " + e.getMessage();
                 if (e.getCause() != null) {
                     // if there is a cause, it's an invalid name exception
                     message += SystemProperties.getInstance().getLineSeparator() + "    > " + e.getCause().getMessage();
@@ -333,30 +358,5 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private void error(ASTNode call, String message) {
         SyntaxException syntaxException = new SyntaxException(message, call.getLineNumber(), call.getColumnNumber());
         sourceUnit.getErrorCollector().addError(syntaxException, sourceUnit);
-    }
-
-    public static String displayName(MethodCallExpression expression) {
-        StringBuilder builder = new StringBuilder();
-        if (!expression.isImplicitThis()) {
-            builder.append(expression.getObjectExpression().getText());
-            builder.append('.');
-        }
-        builder.append(expression.getMethodAsString());
-        if (expression.getArguments() instanceof ArgumentListExpression) {
-            ArgumentListExpression arguments = (ArgumentListExpression) expression.getArguments();
-            boolean hasTrailingClosure = !arguments.getExpressions().isEmpty() && arguments.getExpression(arguments.getExpressions().size() - 1) instanceof ClosureExpression;
-            List<Expression> otherArgs = hasTrailingClosure ? arguments.getExpressions().subList(0, arguments.getExpressions().size() - 1) : arguments.getExpressions();
-            if (!otherArgs.isEmpty() || !hasTrailingClosure) {
-                builder.append("(");
-                builder.append(Joiner.on(", ").join(CollectionUtils.collect(otherArgs, ASTNode::getText)));
-                builder.append(")");
-            }
-            if (hasTrailingClosure) {
-                builder.append(" { ... }");
-            }
-        } else {
-            builder.append("()");
-        }
-        return builder.toString();
     }
 }

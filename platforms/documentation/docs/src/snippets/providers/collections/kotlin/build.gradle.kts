@@ -65,7 +65,7 @@ abstract class MyPluginExtensionExtensiblePolymorphicDomainObjectContainer(objec
 
     // Add a dog to the container
     fun addDog(name: String, breed: String) {
-        var dog : Dog = Dog(name, breed)
+        var dog: Dog = Dog(name, breed)
         animals.add(dog)
     }
 }

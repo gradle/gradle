@@ -114,7 +114,7 @@ public abstract class SwiftBasePlugin implements Plugin<Project> {
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             if (Usage.SWIFT_API.equals(details.getConsumerValue().getName())
-                    && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
+                && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
                 details.compatible();
             }
         }

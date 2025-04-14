@@ -32,12 +32,14 @@ public interface JvmLanguageSourceDirectoryBuilder {
     /**
      * The description of the source directory set.
      * If not called Gradle will generate a default description.
+     *
      * @param description the description
      */
     JvmLanguageSourceDirectoryBuilder withDescription(String description);
 
     /**
      * Tells how to compile this source directory set.
+     *
      * @param taskBuilder the builder for the task which compiles sources
      */
     JvmLanguageSourceDirectoryBuilder compiledBy(Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder);
@@ -46,6 +48,7 @@ public interface JvmLanguageSourceDirectoryBuilder {
      * Assumes that this source set will contain Java sources and therefore creates a Java
      * compile task which configuration can be refined using the provided action configuration.
      * Implicitly calls {@link #includeInAllJava()}
+     *
      * @param compilerConfiguration the configuration of the compile task
      */
     JvmLanguageSourceDirectoryBuilder compiledWithJava(Action<? super JavaCompile> compilerConfiguration);

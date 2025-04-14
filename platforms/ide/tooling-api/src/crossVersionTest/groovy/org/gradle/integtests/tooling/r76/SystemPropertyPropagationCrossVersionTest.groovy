@@ -43,12 +43,12 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
     @TargetGradleVersion(">=4.0 <7.6")
     def "Custom system properties are ignored in older Gradle versions"() {
         setup:
-        if (targetDist.version < GradleVersion.version('4.9') ) {
+        if (targetDist.version < GradleVersion.version('4.9')) {
             buildFile.text = buildFile.text.replace('tasks.register', 'tasks.create')
         }
 
         when:
-        runTask { withSystemProperties('mySystemProperty' : 'ignored') }
+        runTask { withSystemProperties('mySystemProperty': 'ignored') }
 
         then:
         hasSystemProperty('mySystemProperty', 'defined in the client JVM')
@@ -67,7 +67,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
         toolingApi.requireDaemons() // no separate daemon JVM -> all client JVM system properties are expected to be visible
 
         when:
-        runTask { withSystemProperties('unrelated' : 'value') }
+        runTask { withSystemProperties('unrelated': 'value') }
 
         then:
         hasNoSystemProperty('mySystemProperty')
@@ -76,7 +76,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
     def "Calling withSystemProperties(null) resets to default behavior"() {
         when:
         runTask {
-            withSystemProperties('unrelated' : 'value')
+            withSystemProperties('unrelated': 'value')
             withSystemProperties(null)
         }
 
@@ -97,7 +97,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
 
     def "Can define new system property"() {
         when:
-        runTask { withSystemProperties('customKey' : 'customValue') }
+        runTask { withSystemProperties('customKey': 'customValue') }
 
         then:
         hasSystemProperty('customKey', 'customValue')
@@ -105,7 +105,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
 
     def "Can override existing system properties"() {
         when:
-        runTask { withSystemProperties('mySystemProperty' : 'newValue') }
+        runTask { withSystemProperties('mySystemProperty': 'newValue') }
 
         then:
         hasSystemProperty('mySystemProperty', 'newValue')
@@ -114,7 +114,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
     def "JVM arguments have precedence over system properties"() {
         when:
         runTask {
-            withSystemProperties('customKey' : 'syspropValue')
+            withSystemProperties('customKey': 'syspropValue')
             addJvmArguments('-DcustomKey=jvmargValue')
         }
 
@@ -129,7 +129,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
         when:
         String customTmpDir = System.getProperty('java.io.tmpdir') + System.getProperty('path.separator') + 'custom'
         runTask {
-            withSystemProperties('java.io.tmpdir' : customTmpDir)
+            withSystemProperties('java.io.tmpdir': customTmpDir)
         }
 
         then:

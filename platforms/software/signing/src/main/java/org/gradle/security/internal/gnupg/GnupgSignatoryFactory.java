@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 
 /**
  * Creates {@link GnupgSignatory} instances.
+ *
  * @since 4.5
  */
 public class GnupgSignatoryFactory {

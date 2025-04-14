@@ -32,16 +32,6 @@ import java.util.Map;
 public class ToolingParameterProxy implements InvocationHandler {
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (isSetter(method)) {
-            properties.put(getPropertyName(method.getName()), args[0]);
-        } else if (isGetter(method)) {
-            return properties.get(getPropertyName(method.getName()));
-        }
-        return null;
-    }
-
     /**
      * Check if the given interface can be instantiated by this proxy.
      * <p>
@@ -159,5 +149,15 @@ public class ToolingParameterProxy implements InvocationHandler {
         }
 
         return interfaces[0];
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if (isSetter(method)) {
+            properties.put(getPropertyName(method.getName()), args[0]);
+        } else if (isGetter(method)) {
+            return properties.get(getPropertyName(method.getName()));
+        }
+        return null;
     }
 }

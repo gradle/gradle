@@ -49,26 +49,6 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     private final NamedDomainObjectSet<T> enabled;
 
     /**
-     * Create a new report container.
-     *
-     * @param objectFactory The object factory used for instantiation.
-     * @param type The type of report held by this container.
-     * @param reportGenerator The generator used to create the initial set of reports.
-     *
-     * @return A new report container.
-     *
-     * @param <T> The type of report held by this container.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T extends Report> DefaultReportContainer<T> create(
-        ObjectFactory objectFactory,
-        Class<? extends T> type,
-        ReportGenerator<T> reportGenerator
-    ) {
-        return objectFactory.newInstance(DefaultReportContainer.class, type, reportGenerator);
-    }
-
-    /**
      * Use {@link #create(ObjectFactory, Class, ReportGenerator)}.
      */
     @Inject
@@ -86,6 +66,24 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         }));
 
         this.enabled = matching(SerializableLambdas.spec(element -> element.getRequired().get()));
+    }
+
+    /**
+     * Create a new report container.
+     *
+     * @param objectFactory The object factory used for instantiation.
+     * @param type The type of report held by this container.
+     * @param reportGenerator The generator used to create the initial set of reports.
+     * @param <T> The type of report held by this container.
+     * @return A new report container.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Report> DefaultReportContainer<T> create(
+        ObjectFactory objectFactory,
+        Class<? extends T> type,
+        ReportGenerator<T> reportGenerator
+    ) {
+        return objectFactory.newInstance(DefaultReportContainer.class, type, reportGenerator);
     }
 
     @Override

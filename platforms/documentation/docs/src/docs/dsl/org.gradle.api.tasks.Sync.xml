@@ -10,11 +10,15 @@
             </thead>
             <tr>
                 <td>destinationDir</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>preserve</td>
-                <td><literal>empty</literal></td>
+                <td>
+                    <literal>empty</literal>
+                </td>
             </tr>
         </table>
     </section>

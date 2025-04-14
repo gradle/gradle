@@ -7,7 +7,8 @@ import spock.lang.TempDir
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class UrlVerifierPluginFunctionalTest extends Specification {
-    @TempDir File testProjectDir
+    @TempDir
+    File testProjectDir
     File buildFile
 
     def setup() {

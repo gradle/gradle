@@ -39,6 +39,10 @@ public class OrSpec<T> extends CompositeSpec<T> {
         super(specs);
     }
 
+    public static <T> OrSpec<T> empty() {
+        return uncheckedCast(EMPTY);
+    }
+
     @Override
     public boolean isSatisfiedBy(T object) {
         Spec<? super T>[] specs = getSpecsArray();
@@ -67,10 +71,6 @@ public class OrSpec<T> extends CompositeSpec<T> {
         System.arraycopy(thisSpecs, 0, combinedSpecs, 0, thisLength);
         System.arraycopy(specs, 0, combinedSpecs, thisLength, specs.length);
         return new OrSpec<T>(combinedSpecs);
-    }
-
-    public static <T> OrSpec<T> empty() {
-        return uncheckedCast(EMPTY);
     }
 
 }

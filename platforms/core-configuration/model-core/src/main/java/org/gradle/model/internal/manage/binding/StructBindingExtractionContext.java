@@ -25,10 +25,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class StructBindingExtractionContext<T> implements StructBindingValidationProblemCollector {
+    final FormattingValidationProblemCollector problems;
     private final StructSchema<T> publicSchema;
     private final Iterable<StructSchema<?>> implementedSchemas;
     private final StructSchema<?> delegateSchema;
-    final FormattingValidationProblemCollector problems;
 
     public StructBindingExtractionContext(StructSchema<T> publicSchema, Iterable<StructSchema<?>> implementedSchemas, StructSchema<?> delegateSchema) {
         this.publicSchema = publicSchema;

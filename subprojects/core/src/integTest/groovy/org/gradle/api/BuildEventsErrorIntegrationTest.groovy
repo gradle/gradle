@@ -34,9 +34,9 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("broken")
-                .assertHasNoCause()
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3)
+            .assertHasNoCause()
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when taskGraph.whenReady action fails"() {
@@ -53,9 +53,9 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("broken")
-                .assertHasNoCause()
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3)
+            .assertHasNoCause()
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when taskGraph listener fails"() {
@@ -72,9 +72,9 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("broken")
-                .assertHasNoCause()
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3)
+            .assertHasNoCause()
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error when Gradle.allprojects action fails"() {
@@ -89,9 +89,9 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("broken")
-                .assertHasNoCause()
-                .assertHasFileName("Initialization script '$initScriptFile'")
-                .assertHasLineNumber(3)
+            .assertHasNoCause()
+            .assertHasFileName("Initialization script '$initScriptFile'")
+            .assertHasLineNumber(3)
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*Gradle.buildFinished.*")
@@ -107,9 +107,9 @@ gradle.rootProject { task a }
 
         then:
         failure.assertHasDescription("broken")
-                .assertHasNoCause()
-                .assertHasFileName("Settings file '$settingsFile'")
-                .assertHasLineNumber(3)
+            .assertHasNoCause()
+            .assertHasFileName("Settings file '$settingsFile'")
+            .assertHasLineNumber(3)
 
         where:
         method              | _
@@ -133,9 +133,9 @@ gradle.rootProject { task a }
 
         then:
         failure.assertHasDescription("broken")
-                .assertHasNoCause()
-                .assertHasFileName("Settings file '$settingsFile'")
-                .assertHasLineNumber(3)
+            .assertHasNoCause()
+            .assertHasFileName("Settings file '$settingsFile'")
+            .assertHasLineNumber(3)
 
         where:
         method              | _
@@ -163,9 +163,9 @@ gradle.rootProject { task a }
 
         then:
         failure.assertHasDescription("broken")
-                .assertHasNoCause()
-                .assertHasFileName("Settings file '$settingsFile'")
-                .assertHasLineNumber(5)
+            .assertHasNoCause()
+            .assertHasFileName("Settings file '$settingsFile'")
+            .assertHasLineNumber(5)
 
         where:
         method              | params
@@ -192,11 +192,11 @@ gradle.rootProject { task a }
         then:
         failure.assertHasFailures(2)
         failure.assertHasDescription("Execution failed for task ':broken'.")
-                .assertHasCause("broken task")
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(6)
+            .assertHasCause("broken task")
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(6)
         failure.assertHasDescription("broken closure")
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3)
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(3)
     }
 }

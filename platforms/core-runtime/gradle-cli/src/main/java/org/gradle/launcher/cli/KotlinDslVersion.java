@@ -24,19 +24,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 final class KotlinDslVersion {
 
+    private final String kotlin;
+
+    private KotlinDslVersion(String kotlin) {
+        checkNotNull(kotlin, "Kotlin version was not found");
+        this.kotlin = kotlin;
+    }
+
     static KotlinDslVersion current() {
         ClassLoader loader = KotlinDslVersion.class.getClassLoader();
         URL resource = loader.getResource("gradle-kotlin-dsl-versions.properties");
         checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
         Properties versions = GUtil.loadProperties(resource);
         return new KotlinDslVersion(versions.getProperty("kotlin"));
-    }
-
-    private final String kotlin;
-
-    private KotlinDslVersion(String kotlin) {
-        checkNotNull(kotlin, "Kotlin version was not found");
-        this.kotlin = kotlin;
     }
 
     String getKotlinVersion() {

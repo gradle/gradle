@@ -75,12 +75,12 @@ model {
             it.assertDebugFileExists()
             it.exec().out == helloWorldApp.englishOutput
         }
-        with (executable("build/exe/main/integration/main")) {
+        with(executable("build/exe/main/integration/main")) {
             it.assertExists()
             it.assertDebugFileExists()
             it.exec().out == helloWorldApp.frenchOutput
         }
-        with (executable("build/exe/main/release/main")) {
+        with(executable("build/exe/main/release/main")) {
             it.assertExists()
             it.assertDebugFileDoesNotExist()
             it.exec().out == helloWorldApp.englishOutput

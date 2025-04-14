@@ -94,17 +94,29 @@ public class GradleResolveVisitor extends ResolveVisitor {
         "BigInteger", ClassHelper.BigInteger_TYPE,
         "BigDecimal", ClassHelper.BigDecimal_TYPE
     );
+    private final static ClassNode NO_CLASS;
 
-    private ClassNode currentClass;
+    static {
+        ClassNode cn = null;
+        try {
+            try {
+                cn = (ClassNode) ClassNodeResolver.class.getDeclaredField("NO_CLASS").get(null);
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                cn = null;
+            }
+        } finally {
+            NO_CLASS = cn;
+        }
+    }
+
     private final Map<String, List<String>> simpleNameToFQN;
     private final CompilationUnit compilationUnit;
+    private ClassNode currentClass;
     private SourceUnit source;
     private VariableScope currentScope;
-
     private boolean isTopLevelProperty = true;
     private boolean inPropertyExpression;
     private boolean inClosure;
-
     private Map<String, GenericsType> genericParameterNames = new HashMap<>();
     private Set<FieldNode> fieldTypesChecked = new HashSet<>();
     private boolean checkingVariableTypeInDeclaration;
@@ -112,127 +124,25 @@ public class GradleResolveVisitor extends ResolveVisitor {
     private MethodNode currentMethod;
     private ClassNodeResolver classNodeResolver;
 
-    /**
-     * A ConstructedNestedClass consists of an outer class and a name part, denoting a nested class with an unknown number of levels down. This allows resolve tests to skip this node for further inner
-     * class searches and combinations with imports, since the outer class we know is already resolved.
-     */
-    private static class ConstructedNestedClass extends ClassNode {
-        private final ClassNode knownEnclosingType;
-
-        public ConstructedNestedClass(ClassNode outer, String inner) {
-            super(outer.getName() + "$" + replacePoints(inner), Opcodes.ACC_PUBLIC, ClassHelper.OBJECT_TYPE);
-            this.knownEnclosingType = outer;
-            this.isPrimaryNode = false;
-        }
-
-        @Override
-        public boolean hasPackageName() {
-            if (redirect() != this) {
-                return super.hasPackageName();
-            }
-            return knownEnclosingType.hasPackageName();
-        }
-
-        @Override
-        public String setName(String name) {
-            if (redirect() != this) {
-                return super.setName(name);
-            } else {
-                throw new GroovyBugError("ConstructedNestedClass#setName should not be called");
-            }
-        }
+    public GradleResolveVisitor(CompilationUnit cu, Map<String, List<String>> simpleNameToFQN) {
+        super(cu);
+        compilationUnit = cu;
+        this.classNodeResolver = new ClassNodeResolver();
+        this.simpleNameToFQN = simpleNameToFQN;
     }
 
     private static String replacePoints(String name) {
         return name.replace('.', '$');
     }
 
-    /**
-     * we use ConstructedClassWithPackage to limit the resolving the compiler does when combining package names and class names. The idea that if we use a package, then we do not want to replace the
-     * '.' with a '$' for the package part, only for the class name part. There is also the case of a imported class, so this logic can't be done in these cases...
-     */
-    private static class ConstructedClassWithPackage extends ClassNode {
-        private final String prefix;
-        private String className;
-
-        public ConstructedClassWithPackage(String pkg, String name) {
-            super(pkg + name, Opcodes.ACC_PUBLIC, ClassHelper.OBJECT_TYPE);
-            isPrimaryNode = false;
-            this.prefix = pkg;
-            this.className = name;
+    private static String replaceLastPoint(String name) {
+        int lastPoint = name.lastIndexOf('.');
+        if (lastPoint > 0) {
+            name = name.substring(0, lastPoint)
+                + "$"
+                + name.substring(lastPoint + 1);
         }
-
-        @Override
-        public String getName() {
-            if (redirect() != this) {
-                return super.getName();
-            }
-            return prefix + className;
-        }
-
-        @Override
-        public boolean hasPackageName() {
-            if (redirect() != this) {
-                return super.hasPackageName();
-            }
-            return getName().indexOf('.') != -1;
-        }
-
-        @Override
-        public String setName(String name) {
-            if (redirect() != this) {
-                return super.setName(name);
-            } else {
-                throw new GroovyBugError("ConstructedClassWithPackage#setName should not be called");
-            }
-        }
-    }
-
-    /**
-     * we use LowerCaseClass to limit the resolving the compiler does for vanilla names starting with a lower case letter. The idea that if we use a vanilla name with a lower case letter, that this is
-     * in most cases no class. If it is a class the class needs to be imported explicitly. The effect is that in an expression like "def foo = bar" we do not have to use a loadClass call to check the
-     * name foo and bar for being classes. Instead we will ask the module for an alias for this name which is much faster.
-     */
-    private static class LowerCaseClass extends ClassNode {
-        private final String className;
-
-        public LowerCaseClass(String name) {
-            super(name, Opcodes.ACC_PUBLIC, ClassHelper.OBJECT_TYPE);
-            isPrimaryNode = false;
-            this.className = name;
-        }
-
-        @Override
-        public String getName() {
-            if (redirect() != this) {
-                return super.getName();
-            }
-            return className;
-        }
-
-        @Override
-        public boolean hasPackageName() {
-            if (redirect() != this) {
-                return super.hasPackageName();
-            }
-            return false;
-        }
-
-        @Override
-        public String setName(String name) {
-            if (redirect() != this) {
-                return super.setName(name);
-            } else {
-                throw new GroovyBugError("LowerCaseClass#setName should not be called");
-            }
-        }
-    }
-
-    public GradleResolveVisitor(CompilationUnit cu, Map<String, List<String>> simpleNameToFQN) {
-        super(cu);
-        compilationUnit = cu;
-        this.classNodeResolver = new ClassNodeResolver();
-        this.simpleNameToFQN = simpleNameToFQN;
+        return name;
     }
 
     @Override
@@ -507,16 +417,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
 
         return false;
-    }
-
-    private static String replaceLastPoint(String name) {
-        int lastPoint = name.lastIndexOf('.');
-        if (lastPoint > 0) {
-            name = name.substring(0, lastPoint)
-                + "$"
-                + name.substring(lastPoint + 1);
-        }
-        return name;
     }
 
     private boolean resolveFromStaticInnerClasses(ClassNode type, boolean testStaticInnerClasses) {
@@ -809,21 +709,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
         return false;
     }
 
-    private final static ClassNode NO_CLASS;
-
-    static {
-        ClassNode cn = null;
-        try {
-            try {
-                cn = (ClassNode) ClassNodeResolver.class.getDeclaredField("NO_CLASS").get(null);
-            } catch (IllegalAccessException | NoSuchFieldException e) {
-                cn = null;
-            }
-        } finally {
-            NO_CLASS = cn;
-        }
-    }
-
     @Override
     protected boolean resolveToOuter(ClassNode type) {
         String name = type.getName();
@@ -856,7 +741,6 @@ public class GradleResolveVisitor extends ResolveVisitor {
         }
         return false;
     }
-
 
     @Override
     public Expression transform(Expression exp) {
@@ -1663,5 +1547,117 @@ public class GradleResolveVisitor extends ResolveVisitor {
     @Override
     public void setClassNodeResolver(ClassNodeResolver classNodeResolver) {
         this.classNodeResolver = classNodeResolver;
+    }
+
+    /**
+     * A ConstructedNestedClass consists of an outer class and a name part, denoting a nested class with an unknown number of levels down. This allows resolve tests to skip this node for further inner
+     * class searches and combinations with imports, since the outer class we know is already resolved.
+     */
+    private static class ConstructedNestedClass extends ClassNode {
+        private final ClassNode knownEnclosingType;
+
+        public ConstructedNestedClass(ClassNode outer, String inner) {
+            super(outer.getName() + "$" + replacePoints(inner), Opcodes.ACC_PUBLIC, ClassHelper.OBJECT_TYPE);
+            this.knownEnclosingType = outer;
+            this.isPrimaryNode = false;
+        }
+
+        @Override
+        public boolean hasPackageName() {
+            if (redirect() != this) {
+                return super.hasPackageName();
+            }
+            return knownEnclosingType.hasPackageName();
+        }
+
+        @Override
+        public String setName(String name) {
+            if (redirect() != this) {
+                return super.setName(name);
+            } else {
+                throw new GroovyBugError("ConstructedNestedClass#setName should not be called");
+            }
+        }
+    }
+
+    /**
+     * we use ConstructedClassWithPackage to limit the resolving the compiler does when combining package names and class names. The idea that if we use a package, then we do not want to replace the
+     * '.' with a '$' for the package part, only for the class name part. There is also the case of a imported class, so this logic can't be done in these cases...
+     */
+    private static class ConstructedClassWithPackage extends ClassNode {
+        private final String prefix;
+        private String className;
+
+        public ConstructedClassWithPackage(String pkg, String name) {
+            super(pkg + name, Opcodes.ACC_PUBLIC, ClassHelper.OBJECT_TYPE);
+            isPrimaryNode = false;
+            this.prefix = pkg;
+            this.className = name;
+        }
+
+        @Override
+        public String getName() {
+            if (redirect() != this) {
+                return super.getName();
+            }
+            return prefix + className;
+        }
+
+        @Override
+        public boolean hasPackageName() {
+            if (redirect() != this) {
+                return super.hasPackageName();
+            }
+            return getName().indexOf('.') != -1;
+        }
+
+        @Override
+        public String setName(String name) {
+            if (redirect() != this) {
+                return super.setName(name);
+            } else {
+                throw new GroovyBugError("ConstructedClassWithPackage#setName should not be called");
+            }
+        }
+    }
+
+    /**
+     * we use LowerCaseClass to limit the resolving the compiler does for vanilla names starting with a lower case letter. The idea that if we use a vanilla name with a lower case letter, that this is
+     * in most cases no class. If it is a class the class needs to be imported explicitly. The effect is that in an expression like "def foo = bar" we do not have to use a loadClass call to check the
+     * name foo and bar for being classes. Instead we will ask the module for an alias for this name which is much faster.
+     */
+    private static class LowerCaseClass extends ClassNode {
+        private final String className;
+
+        public LowerCaseClass(String name) {
+            super(name, Opcodes.ACC_PUBLIC, ClassHelper.OBJECT_TYPE);
+            isPrimaryNode = false;
+            this.className = name;
+        }
+
+        @Override
+        public String getName() {
+            if (redirect() != this) {
+                return super.getName();
+            }
+            return className;
+        }
+
+        @Override
+        public boolean hasPackageName() {
+            if (redirect() != this) {
+                return super.hasPackageName();
+            }
+            return false;
+        }
+
+        @Override
+        public String setName(String name) {
+            if (redirect() != this) {
+                return super.setName(name);
+            } else {
+                throw new GroovyBugError("LowerCaseClass#setName should not be called");
+            }
+        }
     }
 }

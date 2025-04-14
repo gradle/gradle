@@ -23,11 +23,13 @@ import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
-@ToolingModelContract(subTypes = [
-    Property::class,
-    Custom::class,
-    ConfiguringLambdaArgument::class
-])
+@ToolingModelContract(
+    subTypes = [
+        Property::class,
+        Custom::class,
+        ConfiguringLambdaArgument::class
+    ]
+)
 sealed interface ConfigureAccessor : Serializable {
     val objectType: DataTypeRef
 

@@ -26,7 +26,8 @@ import org.junit.Rule
 @Requires(UnitTestPreconditions.Jdk9OrLater)
 class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(temporaryFolder, 'java/application')
+    @Rule
+    Sample sample = new Sample(temporaryFolder, 'java/application')
 
     def setup() {
         executer.withRepositoryMirrors()

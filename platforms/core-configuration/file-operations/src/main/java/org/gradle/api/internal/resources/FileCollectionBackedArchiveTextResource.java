@@ -29,11 +29,13 @@ import java.io.File;
 import java.nio.charset.Charset;
 
 public class FileCollectionBackedArchiveTextResource extends FileCollectionBackedTextResource {
-    public FileCollectionBackedArchiveTextResource(final FileOperations fileOperations,
-                                                   final TaskDependencyFactory taskDependencyFactory,
-                                                   final TemporaryFileProvider tempFileProvider,
-                                                   final FileCollection fileCollection,
-                                                   final String path, Charset charset) {
+    public FileCollectionBackedArchiveTextResource(
+        final FileOperations fileOperations,
+        final TaskDependencyFactory taskDependencyFactory,
+        final TemporaryFileProvider tempFileProvider,
+        final FileCollection fileCollection,
+        final String path, Charset charset
+    ) {
         super(tempFileProvider, new LazilyInitializedFileCollection(taskDependencyFactory) {
             @Override
             public String getDisplayName() {

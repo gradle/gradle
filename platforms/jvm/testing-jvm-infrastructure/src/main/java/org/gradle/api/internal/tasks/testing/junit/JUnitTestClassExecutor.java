@@ -61,6 +61,21 @@ public class JUnitTestClassExecutor implements Action<String> {
         this.listener = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
     }
 
+    // https://github.com/gradle/gradle/issues/2319
+    public static boolean isNestedClassInsideEnclosedRunner(Class<?> testClass) {
+        if (testClass.getEnclosingClass() == null) {
+            return false;
+        }
+
+        Class<?> outermostClass = testClass;
+        while (outermostClass.getEnclosingClass() != null) {
+            outermostClass = outermostClass.getEnclosingClass();
+        }
+
+        RunWith runWith = outermostClass.getAnnotation(RunWith.class);
+        return runWith != null && Enclosed.class.equals(runWith.value());
+    }
+
     @Override
     public void execute(String testClassName) {
         executionListener.testClassStarted(testClassName);
@@ -120,21 +135,6 @@ public class JUnitTestClassExecutor implements Action<String> {
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
         runner.run(notifier);
-    }
-
-    // https://github.com/gradle/gradle/issues/2319
-    public static boolean isNestedClassInsideEnclosedRunner(Class<?> testClass) {
-        if (testClass.getEnclosingClass() == null) {
-            return false;
-        }
-
-        Class<?> outermostClass = testClass;
-        while (outermostClass.getEnclosingClass() != null) {
-            outermostClass = outermostClass.getEnclosingClass();
-        }
-
-        RunWith runWith = outermostClass.getAnnotation(RunWith.class);
-        return runWith != null && Enclosed.class.equals(runWith.value());
     }
 
     private void verifyJUnitCategorySupport() {

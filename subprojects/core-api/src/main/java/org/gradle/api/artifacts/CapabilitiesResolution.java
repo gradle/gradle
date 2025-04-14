@@ -43,7 +43,6 @@ public interface CapabilitiesResolution {
      * Configures the resolution strategy of a specific capability. The capability version is <i>irrelevant</i>.
      *
      * @param capability a capability to configure
-     *
      * @param action the configuration action
      */
     void withCapability(Capability capability, Action<? super CapabilityResolutionDetails> action);
@@ -53,7 +52,6 @@ public interface CapabilitiesResolution {
      *
      * @param group the group of the capability to configure
      * @param name the name of the capability to configure
-     *
      * @param action the configuration action
      */
     void withCapability(String group, String name, Action<? super CapabilityResolutionDetails> action);
@@ -62,7 +60,6 @@ public interface CapabilitiesResolution {
      * Configures the resolution strategy of a specific capability.
      *
      * @param notation the {@linkplain ConfigurationPublications#capability(Object) notation} of the capability to configure, {@linkplain Provider Providers} of any notation are also accepted
-     *
      * @param action the configuration action
      */
     void withCapability(Object notation, Action<? super CapabilityResolutionDetails> action);

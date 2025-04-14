@@ -80,6 +80,27 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         this.systemInfo = systemInfo;
     }
 
+    private static boolean isValidInstall(VisualStudioInstallCandidate install) {
+        switch (install.getCompatibility()) {
+            case LEGACY:
+                return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
+                    && isLegacyVisualCpp(install.getVisualCppDir());
+            case VS2017_OR_LATER:
+                return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
+                    && isVS2017VisualCpp(install.getVisualCppDir());
+            default:
+                throw new IllegalArgumentException("Cannot determine valid install for unknown compatibility: " + install.getCompatibility());
+        }
+    }
+
+    private static boolean isLegacyVisualCpp(File candidate) {
+        return new File(candidate, PATH_BIN + LEGACY_COMPILER_FILENAME).isFile();
+    }
+
+    private static boolean isVS2017VisualCpp(File candidate) {
+        return new File(candidate, PATH_BIN + VS2017_COMPILER_FILENAME).isFile();
+    }
+
     @Override
     public List<? extends VisualStudioInstall> locateAllComponents() {
         initializeVisualStudioInstalls();
@@ -248,26 +269,5 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation. None of the following locations contain a valid installation",
             CollectionUtils.collect(brokenInstalls, new ArrayList<String>(), File::getAbsolutePath)
         );
-    }
-
-    private static boolean isValidInstall(VisualStudioInstallCandidate install) {
-        switch (install.getCompatibility()) {
-            case LEGACY:
-                return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
-                    && isLegacyVisualCpp(install.getVisualCppDir());
-            case VS2017_OR_LATER:
-                return new File(install.getInstallDir(), PATH_COMMON).isDirectory()
-                    && isVS2017VisualCpp(install.getVisualCppDir());
-            default:
-                throw new IllegalArgumentException("Cannot determine valid install for unknown compatibility: " + install.getCompatibility());
-        }
-    }
-
-    private static boolean isLegacyVisualCpp(File candidate) {
-        return new File(candidate, PATH_BIN + LEGACY_COMPILER_FILENAME).isFile();
-    }
-
-    private static boolean isVS2017VisualCpp(File candidate) {
-        return new File(candidate, PATH_BIN + VS2017_COMPILER_FILENAME).isFile();
     }
 }

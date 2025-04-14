@@ -36,16 +36,15 @@ import java.util.List;
 public abstract class PmdExtension extends CodeQualityExtension {
 
     private final Project project;
-
-    private TargetJdk targetJdk;
-    private TextResource ruleSetConfig;
-    private ConfigurableFileCollection ruleSetFiles;
-    private boolean consoleOutput;
     private final ListProperty<String> ruleSets;
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
     private final Property<Integer> threads;
+    private TargetJdk targetJdk;
+    private TextResource ruleSetConfig;
+    private ConfigurableFileCollection ruleSetFiles;
+    private boolean consoleOutput;
 
     public PmdExtension(Project project) {
         this.project = project;
@@ -114,6 +113,15 @@ public abstract class PmdExtension extends CodeQualityExtension {
     }
 
     /**
+     * Sets the target jdk used with pmd.
+     *
+     * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
+     */
+    public void setTargetJdk(Object value) {
+        targetJdk = TargetJdk.toVersion(value);
+    }
+
+    /**
      * The maximum number of failures to allow before stopping the build.
      *
      * If <pre>ignoreFailures</pre> is set, this is ignored and no limit is enforced.
@@ -122,15 +130,6 @@ public abstract class PmdExtension extends CodeQualityExtension {
      */
     public Property<Integer> getMaxFailures() {
         return maxFailures;
-    }
-
-    /**
-     * Sets the target jdk used with pmd.
-     *
-     * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
-     */
-    public void setTargetJdk(Object value) {
-        targetJdk = TargetJdk.toVersion(value);
     }
 
     /**

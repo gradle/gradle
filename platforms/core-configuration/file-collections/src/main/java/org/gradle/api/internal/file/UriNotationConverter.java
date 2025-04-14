@@ -42,6 +42,15 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
             .toComposite();
     }
 
+    @NonNull
+    private static InvalidUserDataException invalidUserDataException(Object notation, URISyntaxException e) {
+        return new InvalidUserDataException(String.format("Cannot convert '%s' to a URI.", notation), e);
+    }
+
+    private static boolean isWindowsRootDirectory(@Nullable String scheme) {
+        return scheme != null && scheme.length() == 1 && Character.isLetter(scheme.charAt(0)) && OperatingSystem.current().isWindows();
+    }
+
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate("A URI or URL instance.");
@@ -85,14 +94,5 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
                 // ignore, this is not a valid URI
             }
         }
-    }
-
-    @NonNull
-    private static InvalidUserDataException invalidUserDataException(Object notation, URISyntaxException e) {
-        return new InvalidUserDataException(String.format("Cannot convert '%s' to a URI.", notation), e);
-    }
-
-    private static boolean isWindowsRootDirectory(@Nullable String scheme) {
-        return scheme != null && scheme.length() == 1 && Character.isLetter(scheme.charAt(0)) && OperatingSystem.current().isWindows();
     }
 }

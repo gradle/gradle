@@ -27,7 +27,7 @@ public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
 
         when:
         def publishArtifact = new DefaultPublishArtifact(testName, testExt, testType,
-                testClassifier, date, testFile, task1, task2)
+            testClassifier, date, testFile, task1, task2)
         then:
         publishArtifact.buildDependencies.getDependencies(null) == [task1, task2] as Set
         assertCommonPropertiesAreSet(publishArtifact, true)

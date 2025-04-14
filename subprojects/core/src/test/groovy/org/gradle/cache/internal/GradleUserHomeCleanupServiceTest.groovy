@@ -38,10 +38,11 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.notUsedWithinDays
 
 class GradleUserHomeCleanupServiceTest extends Specification implements GradleUserHomeCleanupFixture {
-    private static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS/2 as int)
+    private static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS / 2 as int)
     private static final int TWICE_DEFAULT_MAX_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS * 2
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
@@ -74,13 +75,14 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         }
     }
 
-    @Subject def cleanupService = new GradleUserHomeCleanupService(
-            TestFiles.deleter(),
-            userHomeDirProvider,
-            cacheBuilderFactory,
-            usedGradleVersions,
-            new TestBuildOperationRunner(),
-            cacheConfigurations
+    @Subject
+    def cleanupService = new GradleUserHomeCleanupService(
+        TestFiles.deleter(),
+        userHomeDirProvider,
+        cacheBuilderFactory,
+        usedGradleVersions,
+        new TestBuildOperationRunner(),
+        cacheConfigurations
     )
 
     def "cleans up unused version-specific cache directories and deletes distributions for unused versions with the default retention"() {
@@ -132,7 +134,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
 
         then:
         releasedWrappers.getEntryRetentionTimestampSupplier() >> TimestampSuppliers.daysAgo(TWICE_DEFAULT_MAX_AGE_IN_DAYS)
-        usedGradleVersions.getUsedGradleVersions() >> ([ GradleVersion.version('2.3.4') ] as SortedSet)
+        usedGradleVersions.getUsedGradleVersions() >> ([GradleVersion.version('2.3.4')] as SortedSet)
 
         and:
         oldCacheDir.assertExists()

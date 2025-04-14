@@ -28,14 +28,14 @@ import java.util.function.Supplier;
 
 public interface JvmBytecodeCallInterceptor extends FilterableBytecodeInterceptor {
     boolean visitMethodInsn(
-            MethodVisitorScope mv,
-            String className,
-            int opcode,
-            String owner,
-            String name,
-            String descriptor,
-            boolean isInterface,
-            Supplier<MethodNode> readMethodNode
+        MethodVisitorScope mv,
+        String className,
+        int opcode,
+        String owner,
+        String name,
+        String descriptor,
+        boolean isInterface,
+        Supplier<MethodNode> readMethodNode
     );
 
     @Nullable

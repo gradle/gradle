@@ -59,7 +59,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared
         ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     @Shared
-        MutableComponentVariant defaultVariant
+    MutableComponentVariant defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
         new VariantMetadataRules.VariantAction<T>(variantName, action)

@@ -52,8 +52,10 @@ class ResolutionTracer(
 
     private
     val assignmentResolutions = IdentityHashMap<AssignmentLikeStatement, AssignmentRecord>()
+
     private
     val expressionResolution = IdentityHashMap<Expr, TypedOrigin>()
+
     private
     val elementErrors = IdentityHashMap<LanguageTreeElement, MutableList<ResolutionError>>()
 

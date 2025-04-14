@@ -51,9 +51,9 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 public abstract class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
+    private final CopySpecInternal metaInf;
     private String manifestContentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
     private Manifest manifest;
-    private final CopySpecInternal metaInf;
 
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);

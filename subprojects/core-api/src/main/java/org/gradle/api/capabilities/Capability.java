@@ -25,7 +25,9 @@ import org.jspecify.annotations.Nullable;
  */
 public interface Capability {
     String getGroup();
+
     String getName();
+
     @Nullable
     String getVersion();
 }

@@ -44,7 +44,7 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
             }
         """.stripIndent()
 
-        file('src/main/groovy/Hello.groovy') << """
+            file('src/main/groovy/Hello.groovy') << """
             class Hello {
                 public static void main(String... args) {
                     println "Hello!"

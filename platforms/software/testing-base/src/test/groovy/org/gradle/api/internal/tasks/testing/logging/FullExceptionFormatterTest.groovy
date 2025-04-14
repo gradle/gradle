@@ -262,30 +262,30 @@ class FullExceptionFormatterTest extends Specification {
 
     private createStackTrace() {
         [
-                new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 11),
-                new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
-                new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+            new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 11),
+            new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+            new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
         ] as StackTraceElement[]
     }
 
     private createCauseTrace() {
         [
-                new StackTraceElement("org.ClassName0", "methodName0", "FileName0.java", 1),
-                new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 10),
-                new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
-                new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+            new StackTraceElement("org.ClassName0", "methodName0", "FileName0.java", 1),
+            new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 10),
+            new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+            new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
         ] as StackTraceElement[]
     }
 
     private createGroovyTrace() {
         [
-                new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 11),
-                new StackTraceElement("java.lang.reflect.Method", "invoke", "Method.java", 597),
-                new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
-                // class and method name match SimpleTestDescriptor
-                new StackTraceElement("ClassName", "testName", "MyTest.java", 22),
-                new StackTraceElement("java.lang.reflect.Method", "invoke", "Method.java", 597),
-                new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
+            new StackTraceElement("org.ClassName1", "methodName1", "FileName1.java", 11),
+            new StackTraceElement("java.lang.reflect.Method", "invoke", "Method.java", 597),
+            new StackTraceElement("org.ClassName2", "methodName2", "FileName2.java", 22),
+            // class and method name match SimpleTestDescriptor
+            new StackTraceElement("ClassName", "testName", "MyTest.java", 22),
+            new StackTraceElement("java.lang.reflect.Method", "invoke", "Method.java", 597),
+            new StackTraceElement("org.ClassName3", "methodName3", "FileName3.java", 33)
         ] as StackTraceElement[]
     }
 }

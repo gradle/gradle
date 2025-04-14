@@ -30,7 +30,9 @@ import java.util.Map;
  */
 public interface ProviderInternalTestExecutionRequest {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();
+
     Collection<String> getTestClassNames();
+
     Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults);
 
     /**

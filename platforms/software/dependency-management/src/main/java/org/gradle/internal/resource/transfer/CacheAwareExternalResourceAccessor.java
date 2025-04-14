@@ -29,6 +29,7 @@ import java.io.IOException;
 public interface CacheAwareExternalResourceAccessor {
     /**
      * Fetches for a resource located at some URI.
+     *
      * @param source the URI of the resource to be fetched
      * @param baseName the required name of the local resource. Can be null.
      * @param fileStore used whenever the resource is effectively downloaded, to move it into a cache

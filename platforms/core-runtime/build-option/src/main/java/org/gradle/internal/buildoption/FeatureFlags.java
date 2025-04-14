@@ -33,6 +33,7 @@ public interface FeatureFlags {
 
     /**
      * Checks if the given flag was enabled with {@link #enable(FeatureFlag)}. This method doesn't take overrides into account.
+     *
      * @param flag the flag to check
      * @return {@code true} if the flag was enabled
      */

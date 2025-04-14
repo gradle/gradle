@@ -19,5 +19,6 @@ package org.gradle.internal.nativeintegration.jansi;
 public interface JansiRuntimeResolver {
 
     String getOperatingSystem();
+
     String getPlatform();
 }

@@ -52,6 +52,12 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
         getJavaLauncher().convention(getToolchainService().launcherFor(getObjectFactory().newInstance(CurrentJvmToolchainSpec.class)));
     }
 
+    private static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, JavaForkOptions forkOptions) {
+        if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion()).isJava9Compatible()) {
+            forkOptions.jvmArgs("--add-opens", OPEN_MODULES_ARG);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -86,12 +92,6 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
         forkOptions.setMaxHeapSize(getMaxHeapSize().getOrNull());
         forkOptions.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath());
         maybeAddOpensJvmArgs(getJavaLauncher().get(), forkOptions);
-    }
-
-    private static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, JavaForkOptions forkOptions) {
-        if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion()).isJava9Compatible()) {
-            forkOptions.jvmArgs("--add-opens", OPEN_MODULES_ARG);
-        }
     }
 
     /**

@@ -53,6 +53,10 @@ public interface CallInterceptorResolver {
             this.interceptorFilter = interceptorFilter;
         }
 
+        public static CallInterceptorResolver of(BytecodeInterceptorFilter filter) {
+            return RESOLVERS.get().get(filter);
+        }
+
         @Nullable
         @Override
         public CallInterceptor resolveCallInterceptor(InterceptScope scope) {
@@ -70,10 +74,6 @@ public interface CallInterceptorResolver {
                 return ((CallInterceptorResolver) currentDecorator).isAwareOfCallSiteName(name);
             }
             return false;
-        }
-
-        public static CallInterceptorResolver of(BytecodeInterceptorFilter filter) {
-            return RESOLVERS.get().get(filter);
         }
     }
 }

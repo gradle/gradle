@@ -36,18 +36,14 @@ import static org.gradle.internal.hash.HashCode.Usage.SAFE_TO_REUSE_BYTES;
  * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public class Hashing {
+    private static final HashFunction MD5 = MessageDigestHashFunction.of("MD5");
+    private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
+    private static final HashFunction SHA256 = MessageDigestHashFunction.of("SHA-256");
+    private static final HashFunction SHA512 = MessageDigestHashFunction.of("SHA-512");
+    private static final HashFunction DEFAULT = MD5;
+
     private Hashing() {
     }
-
-    private static final HashFunction MD5 = MessageDigestHashFunction.of("MD5");
-
-    private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
-
-    private static final HashFunction SHA256 = MessageDigestHashFunction.of("SHA-256");
-
-    private static final HashFunction SHA512 = MessageDigestHashFunction.of("SHA-512");
-
-    private static final HashFunction DEFAULT = MD5;
 
     /**
      * Returns a new {@link Hasher} based on the default hashing implementation.
@@ -285,6 +281,15 @@ public class Hashing {
             this.digest = digest;
         }
 
+        /**
+         * Without this cast, when the code compiled by Java 9+ is executed on Java 8, it will throw
+         * java.lang.NoSuchMethodError: Method flip()Ljava/nio/ByteBuffer; does not exist in class java.nio.ByteBuffer
+         */
+        @SuppressWarnings("RedundantCast")
+        private static <T extends Buffer> Buffer castBuffer(T byteBuffer) {
+            return (Buffer) byteBuffer;
+        }
+
         private MessageDigest getDigest() {
             if (digest == null) {
                 throw new IllegalStateException("Cannot reuse hasher!");
@@ -310,15 +315,6 @@ public class Hashing {
         private void update(int length) {
             getDigest().update(buffer.array(), 0, length);
             castBuffer(buffer).clear();
-        }
-
-        /**
-         * Without this cast, when the code compiled by Java 9+ is executed on Java 8, it will throw
-         * java.lang.NoSuchMethodError: Method flip()Ljava/nio/ByteBuffer; does not exist in class java.nio.ByteBuffer
-         */
-        @SuppressWarnings("RedundantCast")
-        private static <T extends Buffer> Buffer castBuffer(T byteBuffer) {
-            return (Buffer) byteBuffer;
         }
 
         @Override

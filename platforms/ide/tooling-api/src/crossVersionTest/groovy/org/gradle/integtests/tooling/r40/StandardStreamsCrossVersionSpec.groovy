@@ -25,7 +25,8 @@ import org.junit.Rule
 
 @TargetGradleVersion(">=4.0")
 class StandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
-    @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
+    @Rule
+    RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
     def escapeHeader = "\u001b["
 
     def "allows colored output with updated logging"() {

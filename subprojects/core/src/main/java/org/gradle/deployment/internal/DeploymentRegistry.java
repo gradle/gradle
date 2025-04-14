@@ -34,7 +34,6 @@ public interface DeploymentRegistry {
      * @param changeBehavior how the deployment responds to potential changes
      * @param handleType type of deployment handle
      * @param params constructor arguments
-     *
      * @throws IllegalStateException if deployment handle with the given name already exists
      */
     <T extends DeploymentHandle> T start(String name, ChangeBehavior changeBehavior, Class<T> handleType, Object... params);

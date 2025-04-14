@@ -1,6 +1,7 @@
 import org.junit.Test
 
-@MagicField @MagicInterface
+@MagicField
+@MagicInterface
 class MagicFieldTransformTest {
     @Test
     void transformHasBeenApplied() {

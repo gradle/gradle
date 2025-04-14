@@ -41,13 +41,14 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
     private final BuildLoggerFactory buildLoggerFactory;
     private final ExceptionProblemRegistry registry;
 
-    public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory,
-                                                  ListenerManager listenerManager,
-                                                  BuildActionRunner delegate,
-                                                  BuildStartedTime buildStartedTime,
-                                                  BuildRequestMetaData buildRequestMetaData,
-                                                  BuildLoggerFactory buildLoggerFactory,
-                                                  ExceptionProblemRegistry registry
+    public BuildOutcomeReportingBuildActionRunner(
+        StyledTextOutputFactory styledTextOutputFactory,
+        ListenerManager listenerManager,
+        BuildActionRunner delegate,
+        BuildStartedTime buildStartedTime,
+        BuildRequestMetaData buildRequestMetaData,
+        BuildLoggerFactory buildLoggerFactory,
+        ExceptionProblemRegistry registry
     ) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.listenerManager = listenerManager;
@@ -56,6 +57,11 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         this.buildRequestMetaData = buildRequestMetaData;
         this.buildLoggerFactory = buildLoggerFactory;
         this.registry = registry;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void callUseLogger(GradleInternal gradle, BuildLogger logger) {
+        gradle.useLogger(logger);
     }
 
     @Override
@@ -73,10 +79,5 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         buildLogger.logResult(result.getBuildFailure(), registry.getProblemLocator());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
         return result;
-    }
-
-    @SuppressWarnings("deprecation")
-    private static void callUseLogger(GradleInternal gradle, BuildLogger logger) {
-        gradle.useLogger(logger);
     }
 }

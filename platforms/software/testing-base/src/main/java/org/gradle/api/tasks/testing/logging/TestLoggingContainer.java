@@ -194,7 +194,6 @@ public interface TestLoggingContainer extends TestLogging {
      * Returns logging options for the specified level.
      *
      * @param level the level whose logging options are to be returned
-     *
      * @return logging options for the specified level
      */
     TestLogging get(LogLevel level);

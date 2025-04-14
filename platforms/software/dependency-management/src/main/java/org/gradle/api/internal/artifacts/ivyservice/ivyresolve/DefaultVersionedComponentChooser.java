@@ -68,6 +68,34 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         this.consumerSchema = consumerSchema;
     }
 
+    private static DefaultMetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
+        return new DefaultMetadataProvider(candidate);
+    }
+
+    private static void applyTo(DefaultMetadataProvider provider, ComponentSelectionContext result) {
+        BuildableModuleComponentMetaDataResolveResult<?> metaDataResult = provider.getResult();
+        switch (metaDataResult.getState()) {
+            case Unknown:
+            case Missing:
+                result.noMatchFound();
+                break;
+            case Failed:
+                result.failed(metaDataResult.getFailure());
+                break;
+            default:
+                throw new IllegalStateException("Unexpected meta-data resolution result.");
+        }
+    }
+
+    private static boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
+        if (selector.requiresMetadata()) {
+            ComponentMetadata componentMetadata = metadataProvider.getComponentMetadata();
+            return componentMetadata != null && selector.accept(componentMetadata);
+        } else {
+            return selector.accept(component.getVersion());
+        }
+    }
+
     @Override
     public ComponentGraphResolveMetadata selectNewestComponent(@Nullable ExternalModuleComponentGraphResolveMetadata one, @Nullable ExternalModuleComponentGraphResolveMetadata two) {
         if (one == null || two == null) {
@@ -185,34 +213,6 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             return true;
         }
         return false;
-    }
-
-    private static DefaultMetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
-        return new DefaultMetadataProvider(candidate);
-    }
-
-    private static void applyTo(DefaultMetadataProvider provider, ComponentSelectionContext result) {
-        BuildableModuleComponentMetaDataResolveResult<?> metaDataResult = provider.getResult();
-        switch (metaDataResult.getState()) {
-            case Unknown:
-            case Missing:
-                result.noMatchFound();
-                break;
-            case Failed:
-                result.failed(metaDataResult.getFailure());
-                break;
-            default:
-                throw new IllegalStateException("Unexpected meta-data resolution result.");
-        }
-    }
-
-    private static boolean versionMatches(VersionSelector selector, ModuleComponentResolveState component, MetadataProvider metadataProvider) {
-        if (selector.requiresMetadata()) {
-            ComponentMetadata componentMetadata = metadataProvider.getComponentMetadata();
-            return componentMetadata != null && selector.accept(componentMetadata);
-        } else {
-            return selector.accept(component.getVersion());
-        }
     }
 
     @Override

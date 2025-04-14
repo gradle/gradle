@@ -108,7 +108,7 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
     }
 
     private static String constraintFor(annotation) {
-        if(annotation.value() == "current"){
+        if (annotation.value() == "current") {
             return "=${INSTALLATION_GRADLE_VERSION.baseVersion.version}"
         }
         return annotation.value()

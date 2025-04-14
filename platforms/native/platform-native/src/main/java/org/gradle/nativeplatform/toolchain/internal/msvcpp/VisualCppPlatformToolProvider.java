@@ -252,7 +252,7 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
         return new Transformer<T, T>() {
             @Override
             public T transform(T original) {
-                    for (Map.Entry<String, String> definition : libraries.getPreprocessorMacros().entrySet()) {
+                for (Map.Entry<String, String> definition : libraries.getPreprocessorMacros().entrySet()) {
                     original.define(definition.getKey(), definition.getValue());
                 }
                 return original;

@@ -78,6 +78,39 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private ImmutableActionSet<DependencySubstitution> substitutionRules;
     private boolean rulesMayAddProjectDependency;
 
+    @Inject
+    public DefaultDependencySubstitutions(
+        ComponentSelectionDescriptor reason,
+        NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
+        NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
+        Instantiator instantiator,
+        ObjectFactory objectFactory,
+        AttributesFactory attributesFactory,
+        NotationParser<Object, Capability> capabilityNotationParser
+    ) {
+        this(reason, ImmutableActionSet.empty(), moduleSelectorNotationParser, projectSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
+    }
+
+    private DefaultDependencySubstitutions(
+        ComponentSelectionDescriptor reason,
+        ImmutableActionSet<DependencySubstitution> substitutionRules,
+        NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
+        NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
+        Instantiator instantiator,
+        ObjectFactory objectFactory,
+        AttributesFactory attributesFactory,
+        NotationParser<Object, Capability> capabilityNotationParser
+    ) {
+        this.reason = reason;
+        this.substitutionRules = substitutionRules;
+        this.moduleSelectorNotationParser = moduleSelectorNotationParser;
+        this.projectSelectorNotationParser = projectSelectorNotationParser;
+        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
+        this.attributesFactory = attributesFactory;
+        this.capabilityNotationParser = capabilityNotationParser;
+    }
+
     public static DefaultDependencySubstitutions forResolutionStrategy(
         BuildState build,
         NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
@@ -126,35 +159,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             .toType(ComponentSelector.class)
             .fromCharSequence(new ProjectPathConverter(build))
             .toComposite();
-    }
-
-    @Inject
-    public DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
-                                          NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
-                                          NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                          Instantiator instantiator,
-                                          ObjectFactory objectFactory,
-                                          AttributesFactory attributesFactory,
-                                          NotationParser<Object, Capability> capabilityNotationParser) {
-        this(reason, ImmutableActionSet.empty(), moduleSelectorNotationParser, projectSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser);
-    }
-
-    private DefaultDependencySubstitutions(ComponentSelectionDescriptor reason,
-                                           ImmutableActionSet<DependencySubstitution> substitutionRules,
-                                           NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                           NotationParser<Object, ComponentSelector> projectSelectorNotationParser,
-                                           Instantiator instantiator,
-                                           ObjectFactory objectFactory,
-                                           AttributesFactory attributesFactory,
-                                           NotationParser<Object, Capability> capabilityNotationParser) {
-        this.reason = reason;
-        this.substitutionRules = substitutionRules;
-        this.moduleSelectorNotationParser = moduleSelectorNotationParser;
-        this.projectSelectorNotationParser = projectSelectorNotationParser;
-        this.instantiator = instantiator;
-        this.objectFactory = objectFactory;
-        this.attributesFactory = attributesFactory;
-        this.capabilityNotationParser = capabilityNotationParser;
     }
 
     @Override
@@ -514,7 +518,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             AttributesFactory attributesFactory,
             ObjectFactory objectFactory,
             NotationParser<Object, Capability> capabilityNotationParser,
-            ComponentSelector selector) {
+            ComponentSelector selector
+        ) {
             this.attributesFactory = attributesFactory;
             this.objectFactory = objectFactory;
             this.capabilityNotationParser = capabilityNotationParser;

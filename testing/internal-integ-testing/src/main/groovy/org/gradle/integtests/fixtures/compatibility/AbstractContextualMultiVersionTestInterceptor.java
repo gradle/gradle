@@ -47,6 +47,10 @@ import static com.google.common.collect.Iterators.getLast;
 public abstract class AbstractContextualMultiVersionTestInterceptor<T extends VersionedTool> extends AbstractMultiTestInterceptor {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
+    public AbstractContextualMultiVersionTestInterceptor(Class<?> target) {
+        super(target);
+    }
+
     protected abstract Collection<T> getAllVersions();
 
     protected Collection<T> getQuickVersions() {
@@ -101,10 +105,6 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
 
     protected abstract Collection<Execution> createExecutionsFor(T versionedTool);
 
-    public AbstractContextualMultiVersionTestInterceptor(Class<?> target) {
-        super(target);
-    }
-
     @Override
     protected void createExecutions() {
         String versions = System.getProperty(VERSIONS_SYSPROP_NAME, CoverageContext.DEFAULT.selector);
@@ -119,7 +119,7 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
 
     protected void createExecutionsForContext(CoverageContext coverageContext) {
         Set<T> versionsUnderTest = new HashSet<>();
-        switch(coverageContext) {
+        switch (coverageContext) {
             case DEFAULT:
             case LATEST:
                 versionsUnderTest.addAll(getQuickVersions());

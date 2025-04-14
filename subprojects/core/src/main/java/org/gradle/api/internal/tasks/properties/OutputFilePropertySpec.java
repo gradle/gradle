@@ -22,5 +22,6 @@ import java.io.File;
 
 public interface OutputFilePropertySpec extends FilePropertySpec {
     TreeType getOutputType();
+
     File getOutputFile();
 }

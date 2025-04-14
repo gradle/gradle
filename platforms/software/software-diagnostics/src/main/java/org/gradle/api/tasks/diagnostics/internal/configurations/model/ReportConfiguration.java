@@ -39,13 +39,15 @@ public final class ReportConfiguration {
     private final ImmutableList<ReportSecondaryVariant> variants;
     private final ImmutableList<ReportConfiguration> extendedConfigurations;
 
-    ReportConfiguration(String name, @Nullable String description, @Nullable Type type,
-                                List<? extends GradleException> lenientErrors,
-                                List<ReportAttribute> attributes,
-                                List<ReportCapability> capabilities,
-                                List<ReportArtifact> artifacts,
-                                List<ReportSecondaryVariant> variants,
-                                List<ReportConfiguration> extendedConfigurations) {
+    ReportConfiguration(
+        String name, @Nullable String description, @Nullable Type type,
+        List<? extends GradleException> lenientErrors,
+        List<ReportAttribute> attributes,
+        List<ReportCapability> capabilities,
+        List<ReportArtifact> artifacts,
+        List<ReportSecondaryVariant> variants,
+        List<ReportConfiguration> extendedConfigurations
+    ) {
         this.name = name;
         this.description = description;
         this.type = type;

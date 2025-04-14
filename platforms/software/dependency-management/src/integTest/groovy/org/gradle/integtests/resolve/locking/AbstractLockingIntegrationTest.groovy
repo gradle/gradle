@@ -59,7 +59,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         def constraintVersion = lockMode() == LockMode.LENIENT ? "1.0" : "{strictly 1.0}"
 
@@ -168,7 +168,7 @@ dependencies {
 """
 
         when:
-        succeeds'dependencies', '--write-locks', '--refresh-dependencies'
+        succeeds 'dependencies', '--write-locks', '--refresh-dependencies'
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
@@ -279,7 +279,7 @@ dependencies {
 """
 
         when:
-        succeeds'dependencies', '--write-locks'
+        succeeds 'dependencies', '--write-locks'
 
         then:
         lockfileFixture.verifyLockfile(['lockedConf': ["org:bar:${resolved}"], 'subConf': ['org:bar:1.1']])
@@ -775,7 +775,7 @@ dependencies {
 """
 
         when:
-        succeeds'dependencies', '--write-locks', '--refresh-dependencies'
+        succeeds 'dependencies', '--write-locks', '--refresh-dependencies'
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0'])

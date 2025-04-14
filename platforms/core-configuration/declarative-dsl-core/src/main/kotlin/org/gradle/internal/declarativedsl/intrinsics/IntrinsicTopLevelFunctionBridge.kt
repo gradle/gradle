@@ -42,7 +42,7 @@ class IntrinsicRuntimeFunctionCandidatesProvider(intrinsicImplementationClasses:
         clazz.java.methods.mapNotNull { javaMethod ->
             var bridgeAnnotation = javaMethod.getAnnotation(IntrinsicTopLevelFunctionBridge::class.java)
             if (bridgeAnnotation == null || !Modifier.isStatic(javaMethod.modifiers))
-                 null
+                null
             else bridgeAnnotation.topLevelFunctionFqn to checkNotNull(javaMethod.kotlinFunction) { "expected kotlinFunction to be present for Java method $javaMethod" }
         }
     }.groupBy({ (fqn, _) -> fqn }, valueTransform = { (_, kFunction) -> kFunction })

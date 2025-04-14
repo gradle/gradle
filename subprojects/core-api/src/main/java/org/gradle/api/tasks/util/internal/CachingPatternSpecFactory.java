@@ -58,36 +58,6 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
         }
     }
 
-    private class CachingSpec implements Spec<FileTreeElement> {
-        private final Spec<FileTreeElement> spec;
-        private final Cache<RelativePath, Boolean> resultCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(RESULTS_CACHE_MAX_SIZE)).build();
-
-        CachingSpec(Spec<FileTreeElement> spec) {
-            this.spec = spec;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(final FileTreeElement element) {
-            try {
-                return resultCache.get(element.getRelativePath(), new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() {
-                        return spec.isSatisfiedBy(element);
-                    }
-                });
-            } catch (ExecutionException e) {
-                throw UncheckedException.throwAsUncheckedException(e.getCause());
-            }
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                .add("spec", spec)
-                .toString();
-        }
-    }
-
     private static class SpecKey {
         private final ImmutableList<String> patterns;
         private final boolean include;
@@ -128,6 +98,36 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
                 .add("patterns", patterns)
                 .add("include", include)
                 .add("caseSensitive", caseSensitive)
+                .toString();
+        }
+    }
+
+    private class CachingSpec implements Spec<FileTreeElement> {
+        private final Spec<FileTreeElement> spec;
+        private final Cache<RelativePath, Boolean> resultCache = CacheBuilder.newBuilder().maximumSize(cacheSizer.scaleCacheSize(RESULTS_CACHE_MAX_SIZE)).build();
+
+        CachingSpec(Spec<FileTreeElement> spec) {
+            this.spec = spec;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(final FileTreeElement element) {
+            try {
+                return resultCache.get(element.getRelativePath(), new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() {
+                        return spec.isSatisfiedBy(element);
+                    }
+                });
+            } catch (ExecutionException e) {
+                throw UncheckedException.throwAsUncheckedException(e.getCause());
+            }
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this)
+                .add("spec", spec)
                 .toString();
         }
     }

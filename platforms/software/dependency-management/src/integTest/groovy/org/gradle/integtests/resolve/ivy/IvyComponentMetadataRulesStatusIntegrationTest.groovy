@@ -26,7 +26,7 @@ class IvyComponentMetadataRulesStatusIntegrationTest extends ComponentMetadataRu
 
     @Override
     String getRepoDeclaration() {
-"""
+        """
 repositories {
     ivy {
         url = "$ivyHttpRepo.uri"
@@ -41,7 +41,7 @@ repositories {
 
     def "module with custom status can be resolved by adapting status scheme"() {
         buildFile <<
-                """
+            """
 class StatusRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
         assert context.details.status == "silver"
@@ -68,7 +68,7 @@ dependencies {
 
     def "resolve fails if status doesn't match custom status scheme"() {
         buildFile <<
-                """
+            """
 class StatusRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
         assert context.details.status == "silver"
@@ -89,7 +89,7 @@ dependencies {
 
     def "rule can change status"() {
         buildFile <<
-                """
+            """
 class StatusRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
         context.details.status = "milestone"

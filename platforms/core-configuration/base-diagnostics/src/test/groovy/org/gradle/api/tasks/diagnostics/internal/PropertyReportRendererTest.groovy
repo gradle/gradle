@@ -22,9 +22,11 @@ import static org.gradle.util.Matchers.containsLine
 
 class PropertyReportRendererTest extends Specification {
     private final TestStyledTextOutput out = new TestStyledTextOutput()
-    private final PropertyReportRenderer renderer = new PropertyReportRenderer(){{
-        setOutput(out)
-    }}
+    private final PropertyReportRenderer renderer = new PropertyReportRenderer() {
+        {
+            setOutput(out)
+        }
+    }
 
     def 'writes property'() {
         when:

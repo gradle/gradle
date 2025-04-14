@@ -30,7 +30,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
  * sure we are always faster than Maven.
  */
 @RunFor(
-    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects =  ["mediumMonolithicJavaProject", "mediumJavaMultiProject"])
+    @Scenario(type = PER_WEEK, operatingSystems = [LINUX], testProjects = ["mediumMonolithicJavaProject", "mediumJavaMultiProject"])
 )
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 

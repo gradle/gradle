@@ -64,11 +64,13 @@ public class IvyMutableModuleMetadataFactory implements MutableModuleMetadataFac
             ImmutableList.of());
     }
 
-    public MutableIvyModuleResolveMetadata create(ModuleComponentIdentifier from,
-                                                  List<IvyDependencyDescriptor> dependencies,
-                                                  Collection<Configuration> configurationDefinitions,
-                                                  Collection<? extends Artifact> artifactDefinitions,
-                                                  Collection<? extends Exclude> excludes) {
+    public MutableIvyModuleResolveMetadata create(
+        ModuleComponentIdentifier from,
+        List<IvyDependencyDescriptor> dependencies,
+        Collection<Configuration> configurationDefinitions,
+        Collection<? extends Artifact> artifactDefinitions,
+        Collection<? extends Exclude> excludes
+    ) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
         return new DefaultMutableIvyModuleResolveMetadata(
             attributesFactory,

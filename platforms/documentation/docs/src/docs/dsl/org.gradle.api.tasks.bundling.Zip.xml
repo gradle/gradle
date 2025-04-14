@@ -14,7 +14,9 @@
             </tr>
             <tr>
                 <td>entryCompression</td>
-                <td><literal>ZipEntryCompression.DEFLATED</literal></td>
+                <td>
+                    <literal>ZipEntryCompression.DEFLATED</literal>
+                </td>
             </tr>
             <tr>
                 <td>metadataCharset</td>
@@ -22,7 +24,9 @@
             </tr>
             <tr>
                 <td>zip64</td>
-                <td><literal>false</literal></td>
+                <td>
+                    <literal>false</literal>
+                </td>
             </tr>
         </table>
     </section>

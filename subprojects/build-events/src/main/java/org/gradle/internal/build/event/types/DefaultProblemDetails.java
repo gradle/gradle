@@ -41,8 +41,8 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
     private final List<InternalLocation> originLocations;
     private final List<InternalLocation> contextualLocations;
     private final List<InternalSolution> solutions;
-    private InternalAdditionalData additionalData;
     private final InternalFailure failure;
+    private InternalAdditionalData additionalData;
 
     public DefaultProblemDetails(
         InternalProblemDefinition definition,

@@ -80,7 +80,6 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param action The action to execute when this graph has been populated.
-     *
      * @since 3.1
      */
     void whenReady(Action<TaskExecutionGraph> action);
@@ -100,9 +99,8 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param action The action to execute when a task is about to be executed.
-     * @deprecated This method is not supported when configuration caching is enabled.
-     *
      * @since 3.1
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
     @Deprecated
     void beforeTask(Action<Task> action);
@@ -123,9 +121,8 @@ public interface TaskExecutionGraph {
      * first parameter.</p>
      *
      * @param action The action to execute when a task has been executed
-     * @deprecated This method is not supported when configuration caching is enabled.
-     *
      * @since 3.1
+     * @deprecated This method is not supported when configuration caching is enabled.
      */
     @Deprecated
     void afterTask(Action<Task> action);
@@ -163,7 +160,6 @@ public interface TaskExecutionGraph {
      *
      * @return The tasks. Returns an empty set if there are no dependent tasks.
      * @throws IllegalStateException When this graph has not been populated or the task is not part of it.
-     *
      * @since 4.6
      */
     Set<Task> getDependencies(Task task);

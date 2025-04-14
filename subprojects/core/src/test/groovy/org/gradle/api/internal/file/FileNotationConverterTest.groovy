@@ -30,7 +30,8 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class FileNotationConverterTest extends Specification {
 
-    @Rule public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass());
+    @Rule
+    public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass());
 
     def "with File returns this File"() {
         setup:

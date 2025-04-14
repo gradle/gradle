@@ -44,24 +44,6 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     }
 
     private final Map<Object, Object> userData = new HashMap<Object, Object>();
-
-    /**
-     * This method can be used to store user data that should live among with this classloader
-     *
-     * @param consumerId the consumer
-     * @param onMiss called to create the initial data, when not found
-     * @param <T> the type of data
-     * @return user data
-     */
-    public synchronized <T> T getUserData(Object consumerId, Factory<T> onMiss) {
-        if (userData.containsKey(consumerId)) {
-            return Cast.uncheckedCast(userData.get(consumerId));
-        }
-        T value = onMiss.create();
-        userData.put(consumerId, value);
-        return value;
-    }
-
     // TODO:lptr When we drop Java 8 support we can switch to using ClassLoader.getName() instead of storing our own
     private final String name;
 
@@ -79,6 +61,30 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     private VisitableURLClassLoader(String name, URL[] classpath, ClassLoader parent) {
         super(classpath, parent);
         this.name = name;
+    }
+
+    public static VisitableURLClassLoader fromClassPath(String name, ClassLoader parent, ClassPath classPath) {
+        if (classPath instanceof TransformedClassPath) {
+            return new InstrumentingVisitableURLClassLoader(name, parent, (TransformedClassPath) classPath);
+        }
+        return new VisitableURLClassLoader(name, parent, classPath);
+    }
+
+    /**
+     * This method can be used to store user data that should live among with this classloader
+     *
+     * @param consumerId the consumer
+     * @param onMiss called to create the initial data, when not found
+     * @param <T> the type of data
+     * @return user data
+     */
+    public synchronized <T> T getUserData(Object consumerId, Factory<T> onMiss) {
+        if (userData.containsKey(consumerId)) {
+            return Cast.uncheckedCast(userData.get(consumerId));
+        }
+        T value = onMiss.create();
+        userData.put(consumerId, value);
+        return value;
     }
 
     @Override
@@ -108,13 +114,13 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         final String name;
         final List<URL> classpath;
 
-        public String getName() {
-            return name;
-        }
-
         public Spec(String name, List<URL> classpath) {
             this.name = name;
             this.classpath = classpath;
+        }
+
+        public String getName() {
+            return name;
         }
 
         public List<URL> getClasspath() {
@@ -142,13 +148,6 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         public int hashCode() {
             return classpath.hashCode();
         }
-    }
-
-    public static VisitableURLClassLoader fromClassPath(String name, ClassLoader parent, ClassPath classPath) {
-        if (classPath instanceof TransformedClassPath) {
-            return new InstrumentingVisitableURLClassLoader(name, parent, (TransformedClassPath) classPath);
-        }
-        return new VisitableURLClassLoader(name, parent, classPath);
     }
 
     private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader {

@@ -46,6 +46,10 @@ public class TypedResolveException extends ResolveException {
         this.resolutions = ImmutableList.copyOf(resolutions);
     }
 
+    private static String buildMessage(String type, String displayName) {
+        return String.format("Could not resolve all %s for %s.", type, displayName);
+    }
+
     /**
      * The type. This is used to build the failure message.
      *
@@ -61,10 +65,6 @@ public class TypedResolveException extends ResolveException {
             .addAll(resolutions)
             .addAll(super.getResolutions()) // Calculated from causes
             .build();
-    }
-
-    private static String buildMessage(String type, String displayName) {
-        return String.format("Could not resolve all %s for %s.", type, displayName);
     }
 
 }

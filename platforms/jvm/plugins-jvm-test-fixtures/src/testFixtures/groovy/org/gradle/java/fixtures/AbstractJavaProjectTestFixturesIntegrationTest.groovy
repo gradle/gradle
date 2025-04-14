@@ -72,10 +72,10 @@ abstract class AbstractJavaProjectTestFixturesIntegrationTest extends AbstractTe
         def skippedJars = getSkippedJars(compileClasspathPackaging)
         def producedJars = [':jar', ':testFixturesJar'] - skippedJars
         executedAndNotSkipped(
-                ":compileJava",
-                ":compileTestFixturesJava",
-                ":compileTestJava",
-                *producedJars
+            ":compileJava",
+            ":compileTestFixturesJava",
+            ":compileTestJava",
+            *producedJars
         )
         notExecuted(*skippedJars)
         outputContains """Test compile classpath
@@ -129,10 +129,10 @@ hamcrest-core-1.3.jar
         def skippedJars = getSkippedJars(compileClasspathPackaging)
         def producedJars = [':jar', ':testFixturesJar'] - skippedJars
         executedAndNotSkipped(
-                ":compileJava",
-                ":compileTestFixturesJava",
-                ":compileTestJava",
-                *producedJars
+            ":compileJava",
+            ":compileTestFixturesJava",
+            ":compileTestJava",
+            *producedJars
         )
         notExecuted(*skippedJars)
 
@@ -222,7 +222,7 @@ hamcrest-core-1.3.jar
 
         then:
         executedAndNotSkipped(
-                ":sub:compileTestFixturesJava"
+            ":sub:compileTestFixturesJava"
         )
     }
 
@@ -252,7 +252,7 @@ hamcrest-core-1.3.jar
 
         then:
         executedAndNotSkipped(
-                ":sub:compileTestFixturesJava"
+            ":sub:compileTestFixturesJava"
         )
     }
 
@@ -295,7 +295,7 @@ hamcrest-core-1.3.jar
         MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
         pom.scope("runtime") {
             assertOptionalDependencies(
-                    "org.apache.commons:commons-lang3:3.9"
+                "org.apache.commons:commons-lang3:3.9"
             )
         }
 
@@ -363,19 +363,19 @@ hamcrest-core-1.3.jar
 
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
-                .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {
-                    capability('com.acme', 'external-module-test-fixtures', '1.3')
-                    dependsOn("com.acme:external-module:1.3")
-                    artifact("external-module-1.3-test-fixtures.jar")
-                }
-                .variant("testFixturesRuntimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar']) {
-                    capability('com.acme', 'external-module-test-fixtures', '1.3')
-                    dependsOn("com.acme:external-module:1.3")
-                    dependsOn("org.apache.commons:commons-lang3:3.9")
-                    artifact("external-module-1.3-test-fixtures.jar")
-                }
-                .withModuleMetadata()
-                .publish()
+            .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {
+                capability('com.acme', 'external-module-test-fixtures', '1.3')
+                dependsOn("com.acme:external-module:1.3")
+                artifact("external-module-1.3-test-fixtures.jar")
+            }
+            .variant("testFixturesRuntimeElements", ['org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar']) {
+                capability('com.acme', 'external-module-test-fixtures', '1.3')
+                dependsOn("com.acme:external-module:1.3")
+                dependsOn("org.apache.commons:commons-lang3:3.9")
+                artifact("external-module-1.3-test-fixtures.jar")
+            }
+            .withModuleMetadata()
+            .publish()
         buildFile << """
             dependencies {
                 testImplementation(testFixtures('com.acme:external-module:1.3'))
@@ -400,7 +400,7 @@ hamcrest-core-1.3.jar
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesApiElements", [
-                            'org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar'
+                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar'
                     ])
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
@@ -426,7 +426,7 @@ hamcrest-core-1.3.jar
                 }
                 module('com.acme:external-module:1.3') {
                     variant("testFixturesRuntimeElements", [
-                            'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'
+                        'org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'
                     ])
                     firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {

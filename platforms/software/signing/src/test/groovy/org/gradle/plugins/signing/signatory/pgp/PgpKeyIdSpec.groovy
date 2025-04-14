@@ -18,7 +18,7 @@ package org.gradle.plugins.signing.signatory.pgp
 
 import spock.lang.*
 
-class PgpKeyIdSpec extends Specification  {
+class PgpKeyIdSpec extends Specification {
 
     protected key(arg) {
         new PgpKeyId(arg)

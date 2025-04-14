@@ -34,14 +34,14 @@ class FileVisitorUtil {
     static void assertCanStopVisiting(FileTree tree) {
         boolean found = false
         FileVisitor visitor = [
-                visitFile: {FileVisitDetails details ->
-                    assertFalse(found)
-                    found = true
-                    details.stopVisiting()
-                },
-                visitDir: {FileVisitDetails details ->
-                    assertFalse(found)
-                }
+            visitFile: { FileVisitDetails details ->
+                assertFalse(found)
+                found = true
+                details.stopVisiting()
+            },
+            visitDir: { FileVisitDetails details ->
+                assertFalse(found)
+            }
         ] as FileVisitor
 
         tree.visit(visitor)
@@ -56,25 +56,25 @@ class FileVisitorUtil {
         Set files = [] as Set
         Set dirs = [] as Set
         FileVisitor visitor = [
-                visitFile: {FileVisitDetails details ->
-                    if (details.relativePath.parent.parent) {
-                        assertThat(dirs, hasItem(details.relativePath.parent.pathString))
-                    }
-                    assertTrue(files.add(details.relativePath.pathString))
-                    assertTrue(details.relativePath.isFile())
-                    assertTrue(details.file.file)
-                    ByteArrayOutputStream outstr = new ByteArrayOutputStream()
-                    details.copyTo(outstr)
-                    assertEquals(details.file.text, outstr.toString())
-                },
-                visitDir: {FileVisitDetails details ->
-                    if (details.relativePath.parent.parent) {
-                        assertThat(dirs, hasItem(details.relativePath.parent.pathString))
-                    }
-                    assertTrue(dirs.add(details.relativePath.pathString))
-                    assertFalse(details.relativePath.isFile())
-                    assertTrue(details.file.directory)
+            visitFile: { FileVisitDetails details ->
+                if (details.relativePath.parent.parent) {
+                    assertThat(dirs, hasItem(details.relativePath.parent.pathString))
                 }
+                assertTrue(files.add(details.relativePath.pathString))
+                assertTrue(details.relativePath.isFile())
+                assertTrue(details.file.file)
+                ByteArrayOutputStream outstr = new ByteArrayOutputStream()
+                details.copyTo(outstr)
+                assertEquals(details.file.text, outstr.toString())
+            },
+            visitDir: { FileVisitDetails details ->
+                if (details.relativePath.parent.parent) {
+                    assertThat(dirs, hasItem(details.relativePath.parent.pathString))
+                }
+                assertTrue(dirs.add(details.relativePath.pathString))
+                assertFalse(details.relativePath.isFile())
+                assertTrue(details.file.directory)
+            }
         ] as FileVisitor
 
         tree.visit(visitor)
@@ -83,7 +83,7 @@ class FileVisitorUtil {
         assertThat(dirs, equalTo(expectedDirs as Set))
 
         files = [] as Set
-        tree.visit {FileVisitDetails details ->
+        tree.visit { FileVisitDetails details ->
             assertTrue(files.add(details.relativePath.pathString))
         }
 
@@ -93,11 +93,11 @@ class FileVisitorUtil {
     static void assertVisits(FileTree tree, Map<String, File> files) {
         Map<String, File> visited = [:]
         FileVisitor visitor = [
-                visitFile: {FileVisitDetails details ->
-                    visited.put(details.path, details.file)
-                },
-                visitDir: {FileVisitDetails details ->
-                }
+            visitFile: { FileVisitDetails details ->
+                visited.put(details.path, details.file)
+            },
+            visitDir: { FileVisitDetails details ->
+            }
         ] as FileVisitor
 
         tree.visit(visitor)

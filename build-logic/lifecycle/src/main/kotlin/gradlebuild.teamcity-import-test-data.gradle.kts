@@ -57,11 +57,12 @@ abstract class EmitTeamCityImportDataServiceMessageBuildService : BuildService<E
 if (isTeamCityParallelTestsEnabled) {
     val gradleRootDir = repoRoot().asFile.toPath()
     project.gradle.taskGraph.whenReady {
-        val buildService: Provider<EmitTeamCityImportDataServiceMessageBuildService> = gradle.sharedServices.registerIfAbsent("emitTeamCityImportDataServiceMessageBuildService-$name", EmitTeamCityImportDataServiceMessageBuildService::class.java) {
-            parameters.testTaskPathToJUnitXmlLocation = allTasks.filterIsInstance<Test>().associate {
-                it.path to gradleRootDir.relativize(it.reports.junitXml.outputLocation.asFile.get().toPath()).toString()
+        val buildService: Provider<EmitTeamCityImportDataServiceMessageBuildService> =
+            gradle.sharedServices.registerIfAbsent("emitTeamCityImportDataServiceMessageBuildService-$name", EmitTeamCityImportDataServiceMessageBuildService::class.java) {
+                parameters.testTaskPathToJUnitXmlLocation = allTasks.filterIsInstance<Test>().associate {
+                    it.path to gradleRootDir.relativize(it.reports.junitXml.outputLocation.asFile.get().toPath()).toString()
+                }
             }
-        }
         gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(buildService)
     }
 }

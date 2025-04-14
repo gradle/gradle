@@ -26,7 +26,7 @@ public class TellGradleToRunAutoBuildTasks implements BuildAction<Void>, Seriali
 
     @Override
     public Void execute(BuildController controller) {
-            controller.getModel(RunEclipseAutoBuildTasks.class);
+        controller.getModel(RunEclipseAutoBuildTasks.class);
         return null;
     }
 }

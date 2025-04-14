@@ -18,5 +18,6 @@ package org.gradle.performance.fixture;
 
 public interface TestProject {
     void configure(CrossVersionPerformanceTestRunner runner);
+
     void configure(GradleBuildExperimentSpec.GradleBuilder builder);
 }

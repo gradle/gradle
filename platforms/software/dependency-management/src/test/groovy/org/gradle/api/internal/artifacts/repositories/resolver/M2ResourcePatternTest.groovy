@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.resolver
+
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier

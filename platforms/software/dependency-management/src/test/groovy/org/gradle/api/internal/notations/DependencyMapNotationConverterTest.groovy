@@ -71,7 +71,7 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def "with classifier"() {
         when:
-        def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'10', classifier:'jdk-1.4']);
+        def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '10', classifier: 'jdk-1.4']);
 
         then:
         d.name == 'gradle-core'
@@ -87,13 +87,15 @@ class DependencyMapNotationConverterTest extends Specification {
         !d.changing
 
         d.artifacts.size() == 1
-        d.artifacts.find { it.name == 'gradle-core' && it.classifier == 'jdk-1.4' &&
-                it.type == DependencyArtifact.DEFAULT_TYPE && it.extension == DependencyArtifact.DEFAULT_TYPE }
+        d.artifacts.find {
+            it.name == 'gradle-core' && it.classifier == 'jdk-1.4' &&
+                it.type == DependencyArtifact.DEFAULT_TYPE && it.extension == DependencyArtifact.DEFAULT_TYPE
+        }
     }
 
     def "with 3-element map"() {
         when:
-        def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0']);
+        def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '1.0']);
 
         then:
         d.group == 'org.gradle'
@@ -111,7 +113,7 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def "with 3-element map and configuration"() {
         when:
-        def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0', configuration:'compile']);
+        def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '1.0', configuration: 'compile']);
 
         then:
         d.group == 'org.gradle'
@@ -130,7 +132,7 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def "with default configuration"() {
         when:
-        def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0', configuration:'default']);
+        def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '1.0', configuration: 'default']);
 
         then:
         d.group == 'org.gradle'
@@ -149,7 +151,7 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def "without default configuration"() {
         when:
-        def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0']);
+        def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '1.0']);
 
         then:
         d.group == 'org.gradle'
@@ -168,7 +170,7 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def "with 3-element map and property"() {
         when:
-        def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0', transitive:false]);
+        def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '1.0', transitive: false]);
 
         then:
         d.group == 'org.gradle'
@@ -187,7 +189,7 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def "with no group and no version"() {
         when:
-        def d = parser.parseNotation([name:'foo'])
+        def d = parser.parseNotation([name: 'foo'])
 
         then:
         d.group == null

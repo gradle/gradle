@@ -400,7 +400,7 @@ class DefaultAttributeSelectionSchemaTest extends Specification {
 
     private static <T> ImmutableAttributes candidate(Map<Attribute<T>, T> map) {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
-        map.each { mutable.attribute(it.key, it.value)}
+        map.each { mutable.attribute(it.key, it.value) }
         mutable.asImmutable()
     }
 

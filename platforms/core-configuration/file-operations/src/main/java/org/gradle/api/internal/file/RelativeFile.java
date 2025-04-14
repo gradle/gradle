@@ -45,7 +45,7 @@ public class RelativeFile implements Serializable {
         }
         int relativeSegments = relativePath.getSegments().length;
         File parentFile = file;
-        for (int i=0; i<relativeSegments; i++) {
+        for (int i = 0; i < relativeSegments; i++) {
             parentFile = parentFile.getParentFile();
         }
         return parentFile;

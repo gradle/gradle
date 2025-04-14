@@ -19,7 +19,7 @@ package org.gradle.nativeplatform
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
-class AutoTestedSamplesPlatformNativeIntegrationTest extends AbstractAutoTestedSamplesTest{
+class AutoTestedSamplesPlatformNativeIntegrationTest extends AbstractAutoTestedSamplesTest {
 
     @Test
     void runSamples() {

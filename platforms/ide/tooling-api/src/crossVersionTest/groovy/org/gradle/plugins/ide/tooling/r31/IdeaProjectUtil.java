@@ -59,10 +59,10 @@ public class IdeaProjectUtil {
     }
 
     public static class AllProjects implements Serializable {
+        public final Map<GradleBuild, IdeaProject> includedBuildIdeaProjects = new LinkedHashMap<>();
         public GradleBuild rootBuild;
         public IdeaProject rootIdeaProject;
         public List<IdeaProject> allIdeaProjects = new ArrayList<>();
-        public final Map<GradleBuild, IdeaProject> includedBuildIdeaProjects = new LinkedHashMap<>();
 
         public IdeaProject getIdeaProject(String name) {
             for (IdeaProject ideaProject : allIdeaProjects) {

@@ -191,12 +191,6 @@ public class TypeMetaData implements Serializable, TypeContainer {
         return this;
     }
 
-    public interface SignatureVisitor {
-        void visitText(String text);
-
-        void visitType(String name);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -218,5 +212,11 @@ public class TypeMetaData implements Serializable, TypeContainer {
     @Override
     public int hashCode() {
         return Objects.hash(name, arrayDimensions, varargs, typeArgs, wildcard, upperBounds, lowerBounds);
+    }
+
+    public interface SignatureVisitor {
+        void visitText(String text);
+
+        void visitType(String name);
     }
 }

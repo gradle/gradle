@@ -27,8 +27,8 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>Consumer compatibility: This interface is used by all consumer versions from 4.8.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 4.8.</p>
  *
- * @since 4.8
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
+ * @since 4.8
  */
 public interface InternalPhasedActionConnection extends InternalProtocolInterface {
 
@@ -40,17 +40,18 @@ public interface InternalPhasedActionConnection extends InternalProtocolInterfac
      *
      * @return The result of the entire build. A {@code Void} type is expected as result. Results for individual actions
      * are supplied to their respective handlers.
-     *
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws InternalBuildActionFailureException When one of the actions fails with an exception.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
      */
-    BuildResult<?> run(InternalPhasedAction internalPhasedAction,
-                       PhasedActionResultListener listener,
-                       InternalCancellationToken cancellationToken,
-                       BuildParameters operationParameters) throws
+    BuildResult<?> run(
+        InternalPhasedAction internalPhasedAction,
+        PhasedActionResultListener listener,
+        InternalCancellationToken cancellationToken,
+        BuildParameters operationParameters
+    ) throws
         BuildExceptionVersion1,
         InternalUnsupportedBuildArgumentException,
         InternalBuildActionFailureException,

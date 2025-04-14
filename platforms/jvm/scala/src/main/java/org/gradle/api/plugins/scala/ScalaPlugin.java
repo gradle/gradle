@@ -44,6 +44,23 @@ public abstract class ScalaPlugin implements Plugin<Project> {
 
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
 
+    private static void configureScaladoc(final Project project, final JvmFeatureInternal feature) {
+        project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
+            scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
+                ConfigurableFileCollection files = project.files();
+                files.from(feature.getSourceSet().getOutput());
+                files.from(feature.getSourceSet().getCompileClasspath());
+                return files;
+            });
+            scalaDoc.setSource(feature.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
+            scalaDoc.getCompilationOutputs().from(feature.getSourceSet().getOutput());
+        });
+        project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
+            scalaDoc.setDescription("Generates Scaladoc for the main source code.");
+            scalaDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+        });
+    }
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ScalaBasePlugin.class);
@@ -60,22 +77,5 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         compileScala.configure(task -> task.getAnalysisMappingFile().set(compileScalaMapping));
         incrementalAnalysisElements.getOutgoing().artifact(
             compileScalaMapping, configurablePublishArtifact -> configurablePublishArtifact.builtBy(compileScala));
-    }
-
-    private static void configureScaladoc(final Project project, final JvmFeatureInternal feature) {
-        project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
-                ConfigurableFileCollection files = project.files();
-                files.from(feature.getSourceSet().getOutput());
-                files.from(feature.getSourceSet().getCompileClasspath());
-                return files;
-            });
-            scalaDoc.setSource(feature.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
-            scalaDoc.getCompilationOutputs().from(feature.getSourceSet().getOutput());
-        });
-        project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
-            scalaDoc.setDescription("Generates Scaladoc for the main source code.");
-            scalaDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-        });
     }
 }

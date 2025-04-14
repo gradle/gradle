@@ -40,6 +40,6 @@ class DefaultSlidingWindowTest extends Specification {
         window.snapshot().size() == 5
 
         and:
-        window.snapshot() == [4,5,6,7,8] as Set
+        window.snapshot() == [4, 5, 6, 7, 8] as Set
     }
 }

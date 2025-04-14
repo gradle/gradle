@@ -42,9 +42,9 @@ import java.util.Collections;
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class PrefixHeaderFileGenerateTask extends DefaultTask {
+    private final WorkerExecutor workerExecutor;
     private String header;
     private File prefixHeaderFile;
-    private final WorkerExecutor workerExecutor;
 
     /**
      * Injects a {@link WorkerExecutor} instance.
@@ -89,12 +89,13 @@ public abstract class PrefixHeaderFileGenerateTask extends DefaultTask {
 
     interface PrefixHeaderFileParameters extends WorkParameters {
         Property<String> getHeader();
+
         RegularFileProperty getPrefixHeaderFile();
     }
 
     static abstract class GeneratePrefixHeaderFile implements WorkAction<PrefixHeaderFileParameters> {
         @Inject
-        public GeneratePrefixHeaderFile() { }
+        public GeneratePrefixHeaderFile() {}
 
         @Override
         public void execute() {

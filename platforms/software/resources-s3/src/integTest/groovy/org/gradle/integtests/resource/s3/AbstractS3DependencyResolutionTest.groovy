@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resource.s3
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.IvyS3Repository
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository

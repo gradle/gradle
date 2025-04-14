@@ -198,6 +198,7 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
 
     /**
      * Adds an additional artifact to this module.
+     *
      * @param options Can specify any of name, type, ext or classifier
      * @return t();
      */

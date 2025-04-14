@@ -88,7 +88,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         def result = packOperationExecutor.unpack(key, entity, input)
 
         then:
-        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext) }
         1 * originFactory.createReader() >> originReader
 
         then:
@@ -117,7 +117,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         packOperationExecutor.unpack(key, entity, input)
 
         then:
-        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext)}
+        1 * buildOperationRunner.call(_) >> { CallableBuildOperation action -> action.call(buildOperationContext) }
         1 * originFactory.createReader() >> originReader
 
         then:
@@ -142,7 +142,7 @@ class DefaultBuildCacheControllerPackOperationExecutorTest extends Specification
         packOperationExecutor.pack(output, key, entity, outputSnapshots, Duration.ofMillis(421L))
 
         then:
-        1 * buildOperationRunner.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext)}
+        1 * buildOperationRunner.run(_) >> { RunnableBuildOperation action -> action.run(buildOperationContext) }
         1 * originFactory.createWriter(entity.identity, entity.type, TestHashCodes.hashCodeFrom(1234), Duration.ofMillis(421L)) >> originWriter
 
         then:

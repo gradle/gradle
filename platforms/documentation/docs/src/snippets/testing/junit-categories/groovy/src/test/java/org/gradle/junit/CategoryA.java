@@ -1,5 +1,5 @@
 package org.gradle.junit;
 
-public interface CategoryA{
+public interface CategoryA {
 
 }

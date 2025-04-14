@@ -58,6 +58,10 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
         this.sleeper = sleeper;
     }
 
+    private static void disableHttpTransportLogging() {
+        java.util.logging.Logger.getLogger(HttpTransport.class.getName()).setLevel(java.util.logging.Level.OFF);
+    }
+
     @Override
     public void initialize(HttpRequest request) {
         // Turn off request logging, this can end up logging OAUTH
@@ -94,9 +98,5 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
         });
         request.setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff())
             .setSleeper(sleeper));
-    }
-
-    private static void disableHttpTransportLogging() {
-        java.util.logging.Logger.getLogger(HttpTransport.class.getName()).setLevel(java.util.logging.Level.OFF);
     }
 }

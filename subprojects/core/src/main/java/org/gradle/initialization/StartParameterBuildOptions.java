@@ -492,10 +492,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache-problems";
         public static final String LONG_OPTION = "configuration-cache-problems";
 
-        public enum Value {
-            FAIL, WARN
-        }
-
         public ConfigurationCacheProblemsOption() {
             super(
                 LONG_OPTION,
@@ -513,6 +509,10 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(Value value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheProblems(value);
+        }
+
+        public enum Value {
+            FAIL, WARN
         }
     }
 

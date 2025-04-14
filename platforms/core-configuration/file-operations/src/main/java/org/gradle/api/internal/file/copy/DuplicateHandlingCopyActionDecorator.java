@@ -78,7 +78,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
     private void failWithIncorrectDuplicatesStrategySetup(RelativePath relativePath) {
         throw new InvalidUserCodeException(
             "Entry " + relativePath.getPathString() + " is a duplicate but no duplicate handling strategy has been set. " +
-            "Please refer to " + documentationRegistry.getDslRefForProperty("org.gradle.api.tasks.Copy", "duplicatesStrategy") + " for details."
+                "Please refer to " + documentationRegistry.getDslRefForProperty("org.gradle.api.tasks.Copy", "duplicatesStrategy") + " for details."
         );
     }
 }

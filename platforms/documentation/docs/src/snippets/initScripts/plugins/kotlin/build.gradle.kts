@@ -1,7 +1,7 @@
 import java.net.URI
 
 // tag::show-repos-task[]
-repositories{
+repositories {
     mavenCentral()
 }
 

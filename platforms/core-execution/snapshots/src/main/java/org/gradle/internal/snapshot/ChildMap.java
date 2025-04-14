@@ -29,29 +29,39 @@ public interface ChildMap<T> {
 
     <RESULT> RESULT withNode(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, NodeHandler<T, RESULT> handler);
 
-    interface NodeHandler<T, RESULT> {
-        RESULT handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
-        RESULT handleAsAncestorOfChild(String childPath, T child);
-        RESULT handleExactMatchWithChild(T child);
-        RESULT handleUnrelatedToAnyChild();
-    }
-
     <RESULT> ChildMap<RESULT> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, InvalidationHandler<T, RESULT> handler);
-
-    interface InvalidationHandler<T, RESULT> {
-        Optional<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
-        void handleAsAncestorOfChild(String childPath, T child);
-        void handleExactMatchWithChild(T child);
-        void handleUnrelatedToAnyChild();
-    }
 
     ChildMap<T> store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, StoreHandler<T> storeHandler);
 
+    interface NodeHandler<T, RESULT> {
+        RESULT handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+
+        RESULT handleAsAncestorOfChild(String childPath, T child);
+
+        RESULT handleExactMatchWithChild(T child);
+
+        RESULT handleUnrelatedToAnyChild();
+    }
+
+    interface InvalidationHandler<T, RESULT> {
+        Optional<RESULT> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+
+        void handleAsAncestorOfChild(String childPath, T child);
+
+        void handleExactMatchWithChild(T child);
+
+        void handleUnrelatedToAnyChild();
+    }
+
     interface StoreHandler<T> {
         T handleAsDescendantOfChild(VfsRelativePath pathInChild, T child);
+
         T handleAsAncestorOfChild(String childPath, T child);
+
         T mergeWithExisting(T child);
+
         T createChild();
+
         T createNodeFromChildren(ChildMap<T> children);
     }
 
@@ -102,14 +112,6 @@ public interface ChildMap<T> {
             return handler.handleSiblingOfChild(targetPath, path, value, commonPrefixLength);
         }
 
-        public interface PathRelationshipHandler<RESULT, T> {
-            RESULT handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, T child);
-            RESULT handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, T child);
-            RESULT handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, T child);
-            RESULT handleSiblingOfChild(VfsRelativePath targetPath, String childPath, T child, int commonPrefixLength);
-            RESULT handleUnrelatedToAnyChild(VfsRelativePath targetPath);
-        }
-
         public String getPath() {
             return path;
         }
@@ -145,6 +147,18 @@ public interface ChildMap<T> {
         @Override
         public String toString() {
             return "Entry{" + path + " : " + value + '}';
+        }
+
+        public interface PathRelationshipHandler<RESULT, T> {
+            RESULT handleAsDescendantOfChild(VfsRelativePath targetPath, String childPath, T child);
+
+            RESULT handleAsAncestorOfChild(VfsRelativePath targetPath, String childPath, T child);
+
+            RESULT handleExactMatchWithChild(VfsRelativePath targetPath, String childPath, T child);
+
+            RESULT handleSiblingOfChild(VfsRelativePath targetPath, String childPath, T child, int commonPrefixLength);
+
+            RESULT handleUnrelatedToAnyChild(VfsRelativePath targetPath);
         }
     }
 }

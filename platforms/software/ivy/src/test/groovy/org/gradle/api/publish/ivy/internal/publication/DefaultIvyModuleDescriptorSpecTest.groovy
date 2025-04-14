@@ -27,7 +27,7 @@ import static org.gradle.util.TestUtil.objectFactory
 class DefaultIvyModuleDescriptorSpecTest extends Specification {
     def spec = objectFactory().newInstance(DefaultIvyModuleDescriptorSpec, objectFactory(), objectFactory().newInstance(IvyPublicationCoordinates))
 
-    def "getExtraInfo returns IvyExtraInfo with immutable map" () {
+    def "getExtraInfo returns IvyExtraInfo with immutable map"() {
         when:
         spec.getExtraInfo().asMap().put(new QName('http://some.namespace', 'foo'), 'fooValue')
 
@@ -35,7 +35,7 @@ class DefaultIvyModuleDescriptorSpecTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    def "can add extra info elements" () {
+    def "can add extra info elements"() {
         when:
         spec.extraInfo 'http://some.namespace', 'foo', 'fooValue'
 
@@ -43,7 +43,7 @@ class DefaultIvyModuleDescriptorSpecTest extends Specification {
         spec.getExtraInfo().get('foo') == 'fooValue'
     }
 
-    def "cannot add extra info elements with null values" () {
+    def "cannot add extra info elements with null values"() {
         when:
         spec.extraInfo namespace, name, 'fooValue'
 
@@ -52,8 +52,8 @@ class DefaultIvyModuleDescriptorSpecTest extends Specification {
         e.getMessage().startsWith("Cannot add an extra info element with null ")
 
         where:
-        namespace                | name
-        null                     | "foo"
-        "http://my.extra.info"   | null
+        namespace              | name
+        null                   | "foo"
+        "http://my.extra.info" | null
     }
 }

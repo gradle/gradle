@@ -28,6 +28,7 @@ public class InvalidLockFileException extends RuntimeException implements Resolu
         super("Invalid lock state for " + displayName, cause);
         this.resolutionMessage = resolutionMessage;
     }
+
     public InvalidLockFileException(String displayName, String resolutionMessage) {
         super("Invalid lock state for " + displayName);
         this.resolutionMessage = resolutionMessage;

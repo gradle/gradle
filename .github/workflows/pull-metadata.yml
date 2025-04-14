@@ -4,7 +4,7 @@ on:
   pull_request_target:
     types: [ closed ]
 
-permissions: {}
+permissions: { }
 
 jobs:
   check_pull_metadata:

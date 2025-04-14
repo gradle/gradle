@@ -13,7 +13,8 @@ abstract class Minify : TransformAction<Minify.Parameters> {   // <1>
     interface Parameters : TransformParameters {               // <2>
         @get:Input
         var keepClassesByArtifact: Map<String, Set<String>>
-// end::artifact-transform-minify[]
+
+        // end::artifact-transform-minify[]
         @get:Input
         var timestamp: Long
 // tag::artifact-transform-minify[]

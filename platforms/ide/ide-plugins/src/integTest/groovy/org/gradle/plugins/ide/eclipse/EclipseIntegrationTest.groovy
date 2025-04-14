@@ -45,45 +45,45 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         when:
         executer.withTasks("eclipse").run()
 
-        assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
-        assertHasExpectedContents(getProjectFile(project:"api"), "apiProject.xml")
-        assertHasExpectedContents(getComponentFile(project:"api"), "apiWtpComponent.xml")
-        assertHasExpectedContents(getFacetFile(project:"api"), "apiWtpFacet.xml")
-        assertHasExpectedProperties(getJdtPropertiesFile(project:"api"), "apiJdt.properties")
+        assertHasExpectedContents(getClasspathFile(project: "api"), "apiClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project: "api"), "apiProject.xml")
+        assertHasExpectedContents(getComponentFile(project: "api"), "apiWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project: "api"), "apiWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project: "api"), "apiJdt.properties")
 
-        assertHasExpectedContents(getClasspathFile(project:"common"), "commonClasspath.xml")
-        assertHasExpectedContents(getProjectFile(project:"common"), "commonProject.xml")
-        assertHasExpectedContents(getComponentFile(project:"common"), "commonWtpComponent.xml")
-        assertHasExpectedContents(getFacetFile(project:"common"), "commonWtpFacet.xml")
-        assertHasExpectedProperties(getJdtPropertiesFile(project:"common"), "commonJdt.properties")
+        assertHasExpectedContents(getClasspathFile(project: "common"), "commonClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project: "common"), "commonProject.xml")
+        assertHasExpectedContents(getComponentFile(project: "common"), "commonWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project: "common"), "commonWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project: "common"), "commonJdt.properties")
 
-        assertHasExpectedContents(getClasspathFile(project:"groovyproject"), "groovyprojectClasspath.xml")
-        assertHasExpectedContents(getProjectFile(project:"groovyproject"), "groovyprojectProject.xml")
-        assertHasExpectedProperties(getJdtPropertiesFile(project:"groovyproject"), "groovyprojectJdt.properties")
+        assertHasExpectedContents(getClasspathFile(project: "groovyproject"), "groovyprojectClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project: "groovyproject"), "groovyprojectProject.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project: "groovyproject"), "groovyprojectJdt.properties")
 
-        assertHasExpectedContents(getClasspathFile(project:"javabaseproject"), "javabaseprojectClasspath.xml")
-        assertHasExpectedContents(getProjectFile(project:"javabaseproject"), "javabaseprojectProject.xml")
-        assertHasExpectedProperties(getJdtPropertiesFile(project:"javabaseproject"), "javabaseprojectJdt.properties")
+        assertHasExpectedContents(getClasspathFile(project: "javabaseproject"), "javabaseprojectClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project: "javabaseproject"), "javabaseprojectProject.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project: "javabaseproject"), "javabaseprojectJdt.properties")
 
         assertHasExpectedContents(getProjectFile(), "masterProject.xml")
 
-        assertHasExpectedContents(getClasspathFile(project:"webAppJava6"), "webAppJava6Classpath.xml")
-        assertHasExpectedContents(getProjectFile(project:"webAppJava6"), "webAppJava6Project.xml")
-        assertHasExpectedContents(getComponentFile(project:"webAppJava6"), "webAppJava6WtpComponent.xml")
-        assertHasExpectedContents(getFacetFile(project:"webAppJava6"), "webAppJava6WtpFacet.xml")
-        assertHasExpectedProperties(getJdtPropertiesFile(project:"webAppJava6"), "webAppJava6Jdt.properties")
+        assertHasExpectedContents(getClasspathFile(project: "webAppJava6"), "webAppJava6Classpath.xml")
+        assertHasExpectedContents(getProjectFile(project: "webAppJava6"), "webAppJava6Project.xml")
+        assertHasExpectedContents(getComponentFile(project: "webAppJava6"), "webAppJava6WtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project: "webAppJava6"), "webAppJava6WtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project: "webAppJava6"), "webAppJava6Jdt.properties")
 
-        assertHasExpectedContents(getClasspathFile(project:"webAppWithVars"), "webAppWithVarsClasspath.xml")
-        assertHasExpectedContents(getProjectFile(project:"webAppWithVars"), "webAppWithVarsProject.xml")
-        assertHasExpectedContents(getComponentFile(project:"webAppWithVars"), "webAppWithVarsWtpComponent.xml")
-        assertHasExpectedContents(getFacetFile(project:"webAppWithVars"), "webAppWithVarsWtpFacet.xml")
-        assertHasExpectedProperties(getJdtPropertiesFile(project:"webAppWithVars"), "webAppWithVarsJdt.properties")
+        assertHasExpectedContents(getClasspathFile(project: "webAppWithVars"), "webAppWithVarsClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project: "webAppWithVars"), "webAppWithVarsProject.xml")
+        assertHasExpectedContents(getComponentFile(project: "webAppWithVars"), "webAppWithVarsWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project: "webAppWithVars"), "webAppWithVarsWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project: "webAppWithVars"), "webAppWithVarsJdt.properties")
 
-        assertHasExpectedContents(getClasspathFile(project:"webservice"), "webserviceClasspath.xml")
-        assertHasExpectedContents(getProjectFile(project:"webservice"), "webserviceProject.xml")
-        assertHasExpectedContents(getComponentFile(project:"webservice"), "webserviceWtpComponent.xml")
-        assertHasExpectedContents(getFacetFile(project:"webservice"), "webserviceWtpFacet.xml")
-        assertHasExpectedProperties(getJdtPropertiesFile(project:"webservice"), "webserviceJdt.properties")
+        assertHasExpectedContents(getClasspathFile(project: "webservice"), "webserviceClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project: "webservice"), "webserviceProject.xml")
+        assertHasExpectedContents(getComponentFile(project: "webservice"), "webserviceWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project: "webservice"), "webserviceWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project: "webservice"), "webserviceJdt.properties")
 
         executer.withTasks("cleanEclipse").run()
     }
@@ -486,7 +486,8 @@ dependencies {
     }
 
     @Test
-    @Issue("GRADLE-1706") // doesn't prove that the issue is fixed because the test also passes with 1.0-milestone-4
+    @Issue("GRADLE-1706")
+    // doesn't prove that the issue is fixed because the test also passes with 1.0-milestone-4
     @ToBeFixedForConfigurationCache
     void canHandleDependencyWithoutSourceJarInMavenRepo() {
         mavenRepo.module("some", "lib", "1.0").publish()

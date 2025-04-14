@@ -26,7 +26,8 @@ import spock.lang.Specification
 
 class OutputEventListenerBackedLoggerDefaultConfigurationTest extends Specification {
 
-    @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    @Rule
+    RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
     String getOut() {
         outputs.stdOut

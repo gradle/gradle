@@ -36,46 +36,6 @@ public abstract class ExecutionResult<T> {
         }
     };
 
-    /**
-     * Returns the value, if available.
-     */
-    public abstract T getValue();
-
-    /**
-     * Returns the failures in this result, or an empty list if the operation was successful.
-     */
-    public abstract List<Throwable> getFailures();
-
-    /**
-     * Returns a single exception object that contains all failures in this result, if available.
-     */
-    public abstract RuntimeException getFailure();
-
-    /**
-     * Returns a single exception object that contains all failures in this result, or null if the operation was successful.
-     */
-    public abstract RuntimeException getFailureOrNull();
-
-    /**
-     * Returns the value or rethrows the failures of this result.
-     */
-    public abstract T getValueOrRethrow();
-
-    /**
-     * Rethrows the failures in this result, if any, otherwise does nothing.
-     */
-    public abstract void rethrow();
-
-    /**
-     * Returns a copy of this result, adding any failures from the given result object.
-     */
-    public abstract ExecutionResult<T> withFailures(ExecutionResult<Void> otherResult);
-
-    /**
-     * Casts a failed result.
-     */
-    public abstract <S> ExecutionResult<S> asFailure();
-
     public static <T> ExecutionResult<T> succeeded(T value) {
         return new Success<T>() {
             @Override
@@ -139,6 +99,46 @@ public abstract class ExecutionResult<T> {
             return maybeFailed(failures);
         }
     }
+
+    /**
+     * Returns the value, if available.
+     */
+    public abstract T getValue();
+
+    /**
+     * Returns the failures in this result, or an empty list if the operation was successful.
+     */
+    public abstract List<Throwable> getFailures();
+
+    /**
+     * Returns a single exception object that contains all failures in this result, if available.
+     */
+    public abstract RuntimeException getFailure();
+
+    /**
+     * Returns a single exception object that contains all failures in this result, or null if the operation was successful.
+     */
+    public abstract RuntimeException getFailureOrNull();
+
+    /**
+     * Returns the value or rethrows the failures of this result.
+     */
+    public abstract T getValueOrRethrow();
+
+    /**
+     * Rethrows the failures in this result, if any, otherwise does nothing.
+     */
+    public abstract void rethrow();
+
+    /**
+     * Returns a copy of this result, adding any failures from the given result object.
+     */
+    public abstract ExecutionResult<T> withFailures(ExecutionResult<Void> otherResult);
+
+    /**
+     * Casts a failed result.
+     */
+    public abstract <S> ExecutionResult<S> asFailure();
 
     private static abstract class Success<T> extends ExecutionResult<T> {
         @Override

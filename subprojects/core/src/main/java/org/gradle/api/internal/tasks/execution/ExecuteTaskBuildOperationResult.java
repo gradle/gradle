@@ -42,6 +42,31 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
         this.executionReasons = executionReasons;
     }
 
+    private static CachingDisabledReasonCategory convertNoCacheReasonCategory(org.gradle.internal.execution.caching.CachingDisabledReasonCategory category) {
+        switch (category) {
+            case UNKNOWN:
+                return CachingDisabledReasonCategory.UNKNOWN;
+            case BUILD_CACHE_DISABLED:
+                return CachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
+            case NOT_CACHEABLE:
+                return CachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK;
+            case ENABLE_CONDITION_NOT_SATISFIED:
+                return CachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
+            case DISABLE_CONDITION_SATISFIED:
+                return CachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
+            case NO_OUTPUTS_DECLARED:
+                return CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED;
+            case NON_CACHEABLE_OUTPUT:
+                return CachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
+            case OVERLAPPING_OUTPUTS:
+                return CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
+            case VALIDATION_FAILURE:
+                return CachingDisabledReasonCategory.VALIDATION_FAILURE;
+            default:
+                throw new AssertionError();
+        }
+    }
+
     @Nullable
     @Override
     public String getSkipMessage() {
@@ -101,31 +126,6 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
             .whenDisabled()
             .map(CachingState.Disabled::getDisabledReasons)
             .map(reasons -> reasons.get(0));
-    }
-
-    private static CachingDisabledReasonCategory convertNoCacheReasonCategory(org.gradle.internal.execution.caching.CachingDisabledReasonCategory category) {
-        switch (category) {
-            case UNKNOWN:
-                return CachingDisabledReasonCategory.UNKNOWN;
-            case BUILD_CACHE_DISABLED:
-                return CachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
-            case NOT_CACHEABLE:
-                return CachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK;
-            case ENABLE_CONDITION_NOT_SATISFIED:
-                return CachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
-            case DISABLE_CONDITION_SATISFIED:
-                return CachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
-            case NO_OUTPUTS_DECLARED:
-                return CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED;
-            case NON_CACHEABLE_OUTPUT:
-                return CachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
-            case OVERLAPPING_OUTPUTS:
-                return CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS;
-            case VALIDATION_FAILURE:
-                return CachingDisabledReasonCategory.VALIDATION_FAILURE;
-            default:
-                throw new AssertionError();
-        }
     }
 
     @Override

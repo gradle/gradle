@@ -50,6 +50,13 @@ class DefaultResolvableArtifactCodec(
         val artifactName = IvyArtifactNameSerializer.INSTANCE.read(this)
         val componentId = componentIdSerializer.read(this)
         val artifactId = ComponentFileArtifactIdentifier(componentId, file.name)
-        return DefaultResolvableArtifact(null, artifactName, artifactId, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory.create(Describables.of(artifactId), file), calculatedValueContainerFactory)
+        return DefaultResolvableArtifact(
+            null,
+            artifactName,
+            artifactId,
+            TaskDependencyContainer.EMPTY,
+            calculatedValueContainerFactory.create(Describables.of(artifactId), file),
+            calculatedValueContainerFactory
+        )
     }
 }

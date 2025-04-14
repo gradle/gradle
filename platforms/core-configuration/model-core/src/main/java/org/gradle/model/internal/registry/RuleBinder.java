@@ -32,9 +32,8 @@ public class RuleBinder {
     private final ModelAction action;
     private final List<BindingPredicate> inputReferences;
     private final Collection<RuleBinder> binders;
-
-    private int inputsBound;
     private final List<ModelBinding> inputBindings;
+    private int inputsBound;
 
     public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelAction action, Collection<RuleBinder> binders) {
         this.action = action;

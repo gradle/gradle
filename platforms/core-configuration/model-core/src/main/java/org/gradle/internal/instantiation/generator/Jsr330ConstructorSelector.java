@@ -31,6 +31,15 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
         this.classGenerator = classGenerator;
     }
 
+    private static <T> void validateType(Class<T> type) {
+        if (!type.isInterface() && type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(type);
+            formatter.append(" is a non-static inner class.");
+            throw new IllegalArgumentException(formatter.toString());
+        }
+    }
+
     @Override
     public void vetoParameters(ClassGenerator.GeneratedConstructor<?> constructor, Object[] parameters) {
         for (Object param : parameters) {
@@ -63,15 +72,6 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
         return Cast.uncheckedCast(constructor.getConstructor());
     }
 
-    private static <T> void validateType(Class<T> type) {
-        if (!type.isInterface() && type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(type);
-            formatter.append(" is a non-static inner class.");
-            throw new IllegalArgumentException(formatter.toString());
-        }
-    }
-
     public static class CachedConstructor {
         private final ClassGenerator.GeneratedConstructor<?> constructor;
         private final RuntimeException error;
@@ -81,19 +81,19 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
             this.error = error;
         }
 
-        public ClassGenerator.GeneratedConstructor<?> getConstructor() {
-            if (error != null) {
-                throw error;
-            }
-            return constructor;
-        }
-
         public static CachedConstructor of(ClassGenerator.GeneratedConstructor<?> ctor) {
             return new CachedConstructor(ctor, null);
         }
 
         public static CachedConstructor of(RuntimeException err) {
             return new CachedConstructor(null, err);
+        }
+
+        public ClassGenerator.GeneratedConstructor<?> getConstructor() {
+            if (error != null) {
+                throw error;
+            }
+            return constructor;
         }
     }
 }

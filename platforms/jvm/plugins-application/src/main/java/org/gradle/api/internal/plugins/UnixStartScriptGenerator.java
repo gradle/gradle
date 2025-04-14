@@ -22,9 +22,9 @@ public class UnixStartScriptGenerator extends DefaultTemplateBasedStartScriptGen
 
     public UnixStartScriptGenerator() {
         super(
-                TextUtil.getUnixLineSeparator(),
-                StartScriptTemplateBindingFactory.unix(),
-                utf8ClassPathResource(UnixStartScriptGenerator.class, "unixStartScript.txt")
+            TextUtil.getUnixLineSeparator(),
+            StartScriptTemplateBindingFactory.unix(),
+            utf8ClassPathResource(UnixStartScriptGenerator.class, "unixStartScript.txt")
         );
     }
 

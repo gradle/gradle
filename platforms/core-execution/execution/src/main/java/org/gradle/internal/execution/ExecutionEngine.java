@@ -36,6 +36,39 @@ import java.util.Optional;
 public interface ExecutionEngine {
     Request createRequest(UnitOfWork work);
 
+    /**
+     * The way the outputs have been produced.
+     */
+    enum ExecutionOutcome {
+        /**
+         * The outputs haven't been changed, because the work is already up-to-date
+         * (i.e. its inputs and outputs match that of the previous execution in the
+         * same workspace).
+         */
+        UP_TO_DATE,
+
+        /**
+         * The outputs of the work have been loaded from the build cache.
+         */
+        FROM_CACHE,
+
+        /**
+         * Executing the work was not necessary to produce the outputs.
+         * This is usually due to the work having no inputs to process.
+         */
+        SHORT_CIRCUITED,
+
+        /**
+         * The work has been executed with information about the changes that happened since the previous execution.
+         */
+        EXECUTED_INCREMENTALLY,
+
+        /**
+         * The work has been executed with no incremental change information.
+         */
+        EXECUTED_NON_INCREMENTALLY
+    }
+
     interface Request {
         /**
          * Force the re-execution of the unit of work, disabling optimizations
@@ -107,6 +140,21 @@ public interface ExecutionEngine {
     }
 
     interface Execution {
+        static Execution skipped(ExecutionOutcome outcome, UnitOfWork work) {
+            return new Execution() {
+                @Override
+                public ExecutionOutcome getOutcome() {
+                    return outcome;
+                }
+
+                @Nullable
+                @Override
+                public Object getOutput(File workspace) {
+                    return work.loadAlreadyProducedOutput(workspace);
+                }
+            };
+        }
+
         /**
          * Get how the outputs have been produced.
          */
@@ -126,53 +174,5 @@ public interface ExecutionEngine {
         default boolean canStoreOutputsInCache() {
             return true;
         }
-
-        static Execution skipped(ExecutionOutcome outcome, UnitOfWork work) {
-            return new Execution() {
-                @Override
-                public ExecutionOutcome getOutcome() {
-                    return outcome;
-                }
-
-                @Nullable
-                @Override
-                public Object getOutput(File workspace) {
-                    return work.loadAlreadyProducedOutput(workspace);
-                }
-            };
-        }
-    }
-
-    /**
-     * The way the outputs have been produced.
-     */
-    enum ExecutionOutcome {
-        /**
-         * The outputs haven't been changed, because the work is already up-to-date
-         * (i.e. its inputs and outputs match that of the previous execution in the
-         * same workspace).
-         */
-        UP_TO_DATE,
-
-        /**
-         * The outputs of the work have been loaded from the build cache.
-         */
-        FROM_CACHE,
-
-        /**
-         * Executing the work was not necessary to produce the outputs.
-         * This is usually due to the work having no inputs to process.
-         */
-        SHORT_CIRCUITED,
-
-        /**
-         * The work has been executed with information about the changes that happened since the previous execution.
-         */
-        EXECUTED_INCREMENTALLY,
-
-        /**
-         * The work has been executed with no incremental change information.
-         */
-        EXECUTED_NON_INCREMENTALLY
     }
 }

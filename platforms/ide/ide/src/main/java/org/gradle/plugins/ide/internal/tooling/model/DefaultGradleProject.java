@@ -85,6 +85,11 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
         return projectIdentifier;
     }
 
+    public DefaultGradleProject setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
+        return this;
+    }
+
     @Override
     public String getProjectPath() {
         return projectIdentifier.getProjectPath();
@@ -93,11 +98,6 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
     @Override
     public File getRootDir() {
         return projectIdentifier.getBuildIdentifier().getRootDir();
-    }
-
-    public DefaultGradleProject setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
-        this.projectIdentifier = projectIdentifier;
-        return this;
     }
 
     public DefaultGradleProject findByPath(String path) {
@@ -152,12 +152,12 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
         return buildScript;
     }
 
+    public String getBuildTreePath() {
+        return buildTreePath;
+    }
+
     public DefaultGradleProject setBuildTreePath(String buildTreePath) {
         this.buildTreePath = buildTreePath;
         return this;
-    }
-
-    public String getBuildTreePath() {
-        return buildTreePath;
     }
 }

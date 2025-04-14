@@ -114,8 +114,8 @@ public class UnpackingVisitor {
     }
 
     private static class SingleFileResolvingFileCollection extends AbstractOpaqueFileCollection {
-        private Object element;
         private final PathToFileResolver resolver;
+        private Object element;
         private File resolved;
 
         public SingleFileResolvingFileCollection(Object element, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {

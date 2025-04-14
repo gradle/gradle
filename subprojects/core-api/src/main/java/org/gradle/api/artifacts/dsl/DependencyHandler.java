@@ -267,9 +267,7 @@ public interface DependencyHandler extends ExtensionAware {
      * Adds a dependency to the given configuration.
      *
      * @param configurationName The name of the configuration.
-     * @param dependencyNotation
-     *
-     * The dependency notation, in one of the notations described above.
+     * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @return The dependency, or null if dependencyNotation is a provider.
      */
     @Nullable
@@ -292,7 +290,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency provider notation, in one of the notations described above.
      * @param configuration The action to use to configure the dependency.
-     *
      * @since 6.8
      */
     <T, U extends ExternalModuleDependency> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration);
@@ -302,7 +299,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency provider notation, in one of the notations described above.
-     *
      * @since 7.0
      */
     <T> void addProvider(String configurationName, Provider<T> dependencyNotation);
@@ -313,7 +309,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency provider notation, in one of the notations described above.
      * @param configuration The action to use to configure the dependency.
-     *
      * @since 7.4
      */
     <T, U extends ExternalModuleDependency> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration);
@@ -323,7 +318,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency provider notation, in one of the notations described above.
-     *
      * @since 7.4
      */
     <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation);
@@ -446,29 +440,31 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Configures the attributes schema. The action is passed a {@link AttributesSchema} instance.
+     *
      * @param configureAction the configure action
      * @return the configured schema
-     *
      * @since 3.4
      */
     AttributesSchema attributesSchema(Action<? super AttributesSchema> configureAction);
 
     /**
      * Returns the attributes schema for this handler.
-     * @return the attributes schema
      *
+     * @return the attributes schema
      * @since 3.4
      */
     AttributesSchema getAttributesSchema();
 
     /**
      * Returns the artifact type definitions for this handler.
+     *
      * @since 4.0
      */
     ArtifactTypeContainer getArtifactTypes();
 
     /**
      * Configures the artifact type definitions for this handler.
+     *
      * @since 4.0
      */
     void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
@@ -477,8 +473,8 @@ public interface DependencyHandler extends ExtensionAware {
      * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a>.
      *
      * <p>
-     *     The registration action needs to specify the {@code from} and {@code to} attributes.
-     *     It may also provide parameters for the transform action by using {@link TransformSpec#parameters(Action)}.
+     * The registration action needs to specify the {@code from} and {@code to} attributes.
+     * It may also provide parameters for the transform action by using {@link TransformSpec#parameters(Action)}.
      * </p>
      *
      * <p>For example:</p>
@@ -523,7 +519,6 @@ public interface DependencyHandler extends ExtensionAware {
      * potential components, the platform component will be selected, instead of the library.
      *
      * @param notation the coordinates of the platform
-     *
      * @since 5.0
      */
     Dependency platform(Object notation);
@@ -534,7 +529,6 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param notation the coordinates of the platform
      * @param configureAction the dependency configuration block
-     *
      * @since 5.0
      */
     Dependency platform(Object notation, Action<? super Dependency> configureAction);
@@ -546,7 +540,6 @@ public interface DependencyHandler extends ExtensionAware {
      * that they would override any other version found in the graph.
      *
      * @param notation the coordinates of the platform
-     *
      * @since 5.0
      */
     Dependency enforcedPlatform(Object notation);
@@ -559,15 +552,14 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param notation the coordinates of the platform
      * @param configureAction the dependency configuration block
-     *
      * @since 5.0
      */
     Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction);
 
     /**
      * Declares a dependency on the test fixtures of a component.
-     * @param notation the coordinates of the component to use test fixtures for
      *
+     * @param notation the coordinates of the component to use test fixtures for
      * @since 5.6
      */
     Dependency testFixtures(Object notation);
@@ -575,8 +567,8 @@ public interface DependencyHandler extends ExtensionAware {
     /**
      * Declares a dependency on the test fixtures of a component and allows configuring
      * the resulting dependency.
-     * @param notation the coordinates of the component to use test fixtures for
      *
+     * @param notation the coordinates of the component to use test fixtures for
      * @since 5.6
      */
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
@@ -601,13 +593,16 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the configured variant
      * @since 7.3
      */
-    default Provider<MinimalExternalModuleDependency> variantOf(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible,
-                                                                Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
+    default Provider<MinimalExternalModuleDependency> variantOf(
+        ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible,
+        Action<? super ExternalModuleDependencyVariantSpec> variantSpec
+    ) {
         return variantOf(dependencyProviderConvertible.asProvider(), variantSpec);
     }
 
     /**
      * Configures this dependency provider to select the platform variant of the target component
+     *
      * @param dependencyProvider the dependency provider
      * @return a new dependency provider targeting the platform variant of the component
      * @since 6.8
@@ -618,6 +613,7 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Configures this dependency provider to select the platform variant of the target component
+     *
      * @param dependencyProviderConvertible the dependency provider convertible that returns the dependency provider
      * @return a new dependency provider targeting the platform variant of the component
      * @since 7.3
@@ -628,6 +624,7 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Configures this dependency provider to select the enforced-platform variant of the target component
+     *
      * @param dependencyProvider the dependency provider
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
@@ -636,6 +633,7 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Configures this dependency provider to select the enforced-platform variant of the target component
+     *
      * @param dependencyProviderConvertible the dependency provider convertible that returns the dependency provider
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
@@ -646,6 +644,7 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Configures this dependency provider to select the test fixtures of the target component
+     *
      * @param dependencyProvider the dependency provider
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 6.8
@@ -656,6 +655,7 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Configures this dependency provider to select the test fixtures of the target component
+     *
      * @param dependencyProviderConvertible the dependency provider convertible that returns the dependency provider
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 7.3

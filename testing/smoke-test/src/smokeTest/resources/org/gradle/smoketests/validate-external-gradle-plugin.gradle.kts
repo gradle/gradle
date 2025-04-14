@@ -61,9 +61,11 @@ fun registerValidationTaskForNewPlugin(pluginId: String, project: Project, lifec
     return jarsForPlugin
 }
 
-fun configureValidationTask(project: Project,
-                            pluginJars: MutableList<File>,
-                            pluginId: String): TaskProvider<ValidatePlugins> {
+fun configureValidationTask(
+    project: Project,
+    pluginJars: MutableList<File>,
+    pluginId: String
+): TaskProvider<ValidatePlugins> {
     val idWithoutDots = pluginId.replace('.', '_')
     return project.tasks.register<ValidatePlugins>("validatePluginWithId_" + idWithoutDots) {
         group = "Plugin development"

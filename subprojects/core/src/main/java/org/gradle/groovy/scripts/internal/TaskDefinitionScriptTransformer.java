@@ -102,7 +102,7 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
             // Matches: task <expression> <operator> <expression>
 
             if (expression.getLeftExpression() instanceof VariableExpression || expression.getLeftExpression() instanceof GStringExpression || expression
-                    .getLeftExpression() instanceof ConstantExpression) {
+                .getLeftExpression() instanceof ConstantExpression) {
                 // Matches: task <identifier> <operator> <expression> | task <string> <operator> <expression>
                 // Map to: passThrough(task('<identifier>') <operator> <expression>) | passThrough(task(<string>) <operator> <expression>)
                 call.setMethod(new ConstantExpression("passThrough"));

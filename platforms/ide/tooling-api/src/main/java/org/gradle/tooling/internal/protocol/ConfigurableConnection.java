@@ -24,8 +24,8 @@ package org.gradle.tooling.internal.protocol;
  * <p>Consumer compatibility: This interface is used by all consumer versions from 1.2-rc-1.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.2-rc-1.</p>
  *
- * @since 1.2-rc-1
  * @see ConnectionVersion4
+ * @since 1.2-rc-1
  */
 public interface ConfigurableConnection extends InternalProtocolInterface {
     /**

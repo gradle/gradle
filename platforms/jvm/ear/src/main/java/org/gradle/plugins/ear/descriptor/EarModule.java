@@ -45,10 +45,8 @@ public interface EarModule {
     /**
      * Convert this object to an XML Node (or two nodes if altDeployDescriptor is not null).
      *
-     * @param parentModule
-     *            The parent &lt;module&gt; node to add this node to.
-     * @param name
-     *            The name of this node.
+     * @param parentModule The parent &lt;module&gt; node to add this node to.
+     * @param name The name of this node.
      * @return The new node. If an &lt;alt-dd&gt; node is created it is not returned.
      */
     Node toXmlNode(Node parentModule, Object name);

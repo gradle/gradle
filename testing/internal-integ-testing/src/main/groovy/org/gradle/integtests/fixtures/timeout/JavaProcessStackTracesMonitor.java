@@ -85,6 +85,58 @@ public class JavaProcessStackTracesMonitor {
         return System.getProperty("os.name").toLowerCase().contains("windows");
     }
 
+    private static ExecResult run(String... args) {
+        try {
+            Process process = new ProcessBuilder().command(args).start();
+            CountDownLatch latch = new CountDownLatch(2);
+            ByteArrayOutputStream stdout = connectStream(process.getInputStream(), latch);
+            ByteArrayOutputStream stderr = connectStream(process.getErrorStream(), latch);
+
+            process.waitFor(1, TimeUnit.MINUTES);
+            latch.await(1, TimeUnit.MINUTES);
+            return new ExecResult(args, process.exitValue(), stdout.toString(), stderr.toString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static ByteArrayOutputStream connectStream(InputStream forkedProcessOutput, CountDownLatch latch) {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(os, true);
+        Thread thread = new Thread(() -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(forkedProcessOutput));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    ps.println(line);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                latch.countDown();
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+        return os;
+    }
+
+    private StdoutAndPatterns ps() {
+        String[] command = isWindows() ? new String[]{"wmic", "process", "get", "processid,commandline"} : new String[]{"ps", "x"};
+        ExecResult result = run(command);
+        output.printf("Run: %s", Arrays.toString(command));
+        output.printf("Stdout: %s", result.stdout);
+        output.printf("Stderr: %s", result.stderr);
+
+        result.assertZeroExit();
+        return new StdoutAndPatterns(result.stdout);
+    }
+
+    public File printAllStackTracesByJstack() {
+        output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
+        return outputFile;
+    }
+
     public static class JavaProcessInfo {
         String pid;
         String javaCommand;
@@ -193,17 +245,6 @@ public class JavaProcessStackTracesMonitor {
         }
     }
 
-    private StdoutAndPatterns ps() {
-        String[] command = isWindows() ? new String[]{"wmic", "process", "get", "processid,commandline"} : new String[]{"ps", "x"};
-        ExecResult result = run(command);
-        output.printf("Run: %s", Arrays.toString(command));
-        output.printf("Stdout: %s", result.stdout);
-        output.printf("Stderr: %s", result.stderr);
-
-        result.assertZeroExit();
-        return new StdoutAndPatterns(result.stdout);
-    }
-
     private static class ExecResult {
         String[] args;
         int code;
@@ -230,47 +271,5 @@ public class JavaProcessStackTracesMonitor {
             assertTrue(code == 0, String.format("%s returns %d\n", Arrays.toString(args), code));
             return this;
         }
-    }
-
-    private static ExecResult run(String... args) {
-        try {
-            Process process = new ProcessBuilder().command(args).start();
-            CountDownLatch latch = new CountDownLatch(2);
-            ByteArrayOutputStream stdout = connectStream(process.getInputStream(), latch);
-            ByteArrayOutputStream stderr = connectStream(process.getErrorStream(), latch);
-
-            process.waitFor(1, TimeUnit.MINUTES);
-            latch.await(1, TimeUnit.MINUTES);
-            return new ExecResult(args, process.exitValue(), stdout.toString(), stderr.toString());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static ByteArrayOutputStream connectStream(InputStream forkedProcessOutput, CountDownLatch latch) {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(os, true);
-        Thread thread = new Thread(() -> {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(forkedProcessOutput));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    ps.println(line);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                latch.countDown();
-            }
-        });
-        thread.setDaemon(true);
-        thread.start();
-        return os;
-    }
-
-
-    public File printAllStackTracesByJstack() {
-        output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
-        return outputFile;
     }
 }

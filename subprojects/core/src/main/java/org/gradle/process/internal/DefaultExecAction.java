@@ -100,21 +100,6 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public void setCommandLine(List<String> args) {
-        execHandleBuilder.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Object... args) {
-        execHandleBuilder.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Iterable<?> args) {
-        execHandleBuilder.commandLine(args);
-    }
-
-    @Override
     public ExecAction args(Object... args) {
         execHandleBuilder.args(args);
         return this;
@@ -212,6 +197,21 @@ public class DefaultExecAction implements ExecAction {
     @Override
     public List<String> getCommandLine() {
         return execHandleBuilder.getCommandLine();
+    }
+
+    @Override
+    public void setCommandLine(List<String> args) {
+        execHandleBuilder.commandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Object... args) {
+        execHandleBuilder.commandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Iterable<?> args) {
+        execHandleBuilder.commandLine(args);
     }
 
     @Override

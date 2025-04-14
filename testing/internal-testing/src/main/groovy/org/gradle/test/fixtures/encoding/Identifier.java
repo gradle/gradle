@@ -37,44 +37,11 @@ public class Identifier {
         this.suffix = suffix == null ? "" : suffix;
     }
 
-    public Identifier safeForBranch() {
-        return without(getUnsupportedFileNameCharacters().replace("/", ""));
-    }
-
-    public Identifier safeForFileName() {
-        return without(getUnsupportedFileNameCharacters());
-    }
-
-    public Identifier safeForGradleDomainObjectName() {
-        return without(GRADLE_NAME_FORBIDDEN_CHARACTERS);
-    }
-
-    public Identifier without(String toRemove) {
-        String newSuffix = suffix;
-        for (char c : toRemove.toCharArray()) {
-            newSuffix = newSuffix.replace(c, '-');
-        }
-        return new Identifier(newSuffix, displayName);
-    }
-
     private static String getUnsupportedFileNameCharacters() {
         if (OperatingSystem.current().isWindows()) {
             return "<>:\"/\\|?*";
         }
         return "/\\";
-    }
-
-    public String decorate(String prefix) {
-        return prefix + suffix;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
-    public String toString() {
-        return displayName;
     }
 
     public static List<Identifier> getAll() {
@@ -103,5 +70,38 @@ public class Identifier {
 
     public static Identifier getWhiteSpace() {
         return new Identifier(" with white space", "whitespace");
+    }
+
+    public Identifier safeForBranch() {
+        return without(getUnsupportedFileNameCharacters().replace("/", ""));
+    }
+
+    public Identifier safeForFileName() {
+        return without(getUnsupportedFileNameCharacters());
+    }
+
+    public Identifier safeForGradleDomainObjectName() {
+        return without(GRADLE_NAME_FORBIDDEN_CHARACTERS);
+    }
+
+    public Identifier without(String toRemove) {
+        String newSuffix = suffix;
+        for (char c : toRemove.toCharArray()) {
+            newSuffix = newSuffix.replace(c, '-');
+        }
+        return new Identifier(newSuffix, displayName);
+    }
+
+    public String decorate(String prefix) {
+        return prefix + suffix;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
     }
 }

@@ -45,6 +45,10 @@ public class AndSpec<T> extends CompositeSpec<T> {
         super(specs);
     }
 
+    public static <T> AndSpec<T> empty() {
+        return uncheckedCast(EMPTY);
+    }
+
     @Override
     public boolean isSatisfiedBy(T object) {
         return findUnsatisfiedSpec(object) == null;
@@ -55,7 +59,6 @@ public class AndSpec<T> extends CompositeSpec<T> {
      *
      * @param object to check specs against
      * @return an unsatisfied spec or null
-     *
      * @since 7.6
      */
     @Nullable
@@ -99,10 +102,6 @@ public class AndSpec<T> extends CompositeSpec<T> {
     @SuppressWarnings("rawtypes")
     public AndSpec<T> and(Closure spec) {
         return and(new ClosureSpec<>(spec));
-    }
-
-    public static <T> AndSpec<T> empty() {
-        return uncheckedCast(EMPTY);
     }
 
 }

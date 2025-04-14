@@ -30,7 +30,7 @@ import java.util.Set;
 public class FetchAllTaskSelectorsBuildAction implements BuildAction<Map<String, Set<String>>> {
     public Map<String, Set<String>> execute(BuildController controller) {
         Map<String, Set<String>> model = new HashMap<String, Set<String>>();
-        for (BasicGradleProject project: controller.getBuildModel().getProjects()) {
+        for (BasicGradleProject project : controller.getBuildModel().getProjects()) {
             BuildInvocations entryPointsForProject = controller.getModel(project, BuildInvocations.class);
             Set<String> selectorNames = new HashSet<String>();
             for (TaskSelector selector : entryPointsForProject.getTaskSelectors()) {

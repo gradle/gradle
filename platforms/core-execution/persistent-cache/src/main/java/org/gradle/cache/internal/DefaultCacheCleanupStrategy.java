@@ -58,6 +58,10 @@ class DefaultCacheCleanupStrategy implements CacheCleanupStrategy {
         });
     }
 
+    @Override
+    public CleanupFrequency getCleanupFrequency() {
+        return cleanupFrequency.get();
+    }
 
     private static class CacheCleanupDetails implements CacheCleanupBuildOperationType.Details {
         private final File cacheLocation;
@@ -90,10 +94,5 @@ class DefaultCacheCleanupStrategy implements CacheCleanupStrategy {
         public Instant getPreviousCleanupTime() {
             return previousCleanupTime;
         }
-    }
-
-    @Override
-    public CleanupFrequency getCleanupFrequency() {
-        return cleanupFrequency.get();
     }
 }

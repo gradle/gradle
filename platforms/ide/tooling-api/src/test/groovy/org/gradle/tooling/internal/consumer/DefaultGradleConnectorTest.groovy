@@ -61,8 +61,8 @@ class DefaultGradleConnectorTest extends Specification {
 
         when:
         def result = connector
-                .useDistribution(gradleDist)
-                .useGradleUserHomeDir(userDir).forProjectDirectory(projectDir).connect()
+            .useDistribution(gradleDist)
+            .useGradleUserHomeDir(userDir).forProjectDirectory(projectDir).connect()
 
         then:
         result == connection

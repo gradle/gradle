@@ -118,7 +118,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
 
         swiftLibrary("hello/build/lib/main/debug/Hello").assertExists()
         cppLibrary("cppGreeter/build/lib/main/debug/cppGreeter").assertExists()
-        cppLibrary(linkage,"logger/build/lib/main/debug/logger").assertExists()
+        cppLibrary(linkage, "logger/build/lib/main/debug/logger").assertExists()
 
         where:
         linkage << [SHARED, STATIC]

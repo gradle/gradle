@@ -213,7 +213,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
         def emptyJar = file('empty.jar')
         file('emptyDir').createDir().zipTo(emptyJar)
         def nonEmptyJar = file('nonEmpty.jar')
-        file('nonEmptyDir').create{
+        file('nonEmptyDir').create {
             file('some-resource').text = 'not-empty'
         }.zipTo(nonEmptyJar)
 

@@ -35,6 +35,15 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
         this.writePos = writePos;
     }
 
+    private static Action<AnsiContext> writeText(final String text) {
+        return new Action<AnsiContext>() {
+            @Override
+            public void execute(AnsiContext ansi) {
+                ansi.a(text);
+            }
+        };
+    }
+
     @Override
     public void setText(String text) {
         this.spans = Collections.singletonList(new StyledTextOutputEvent.Span(text));
@@ -110,15 +119,6 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
             ansi.eraseForward();
         }
         // Note: We can't conclude anything if the label scrolled so we leave the erasing to the parent widget.
-    }
-
-    private static Action<AnsiContext> writeText(final String text) {
-        return new Action<AnsiContext>() {
-            @Override
-            public void execute(AnsiContext ansi) {
-                ansi.a(text);
-            }
-        };
     }
 
     // Only for relative positioning

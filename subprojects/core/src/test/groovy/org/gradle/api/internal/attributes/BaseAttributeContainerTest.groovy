@@ -36,7 +36,9 @@ import spock.lang.Specification
 /**
  * Abstract base class for testing functionality common to all {@link AttributeContainer} implementations.
  */
-/* package */ abstract class BaseAttributeContainerTest extends Specification {
+/* package */
+
+abstract class BaseAttributeContainerTest extends Specification {
     protected attributesFactory
     protected final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule

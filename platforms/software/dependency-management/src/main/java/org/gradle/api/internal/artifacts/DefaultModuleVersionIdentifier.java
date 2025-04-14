@@ -43,6 +43,22 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         this.hashCode = 31 * id.hashCode() ^ version.hashCode();
     }
 
+    public static ModuleVersionIdentifier newId(Module module) {
+        return new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
+    }
+
+    public static ModuleVersionIdentifier newId(ModuleIdentifier id, String version) {
+        return new DefaultModuleVersionIdentifier(id, version);
+    }
+
+    public static ModuleVersionIdentifier newId(String group, String name, String version) {
+        return new DefaultModuleVersionIdentifier(group, name, version);
+    }
+
+    public static ModuleVersionIdentifier newId(ModuleComponentIdentifier componentId) {
+        return new DefaultModuleVersionIdentifier(componentId.getGroup(), componentId.getModule(), componentId.getVersion());
+    }
+
     @Override
     public String getGroup() {
         return id.getGroup();
@@ -88,21 +104,5 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     @Override
     public ModuleIdentifier getModule() {
         return id;
-    }
-
-    public static ModuleVersionIdentifier newId(Module module) {
-        return new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
-    }
-
-    public static ModuleVersionIdentifier newId(ModuleIdentifier id, String version) {
-        return new DefaultModuleVersionIdentifier(id, version);
-    }
-
-    public static ModuleVersionIdentifier newId(String group, String name, String version) {
-        return new DefaultModuleVersionIdentifier(group, name, version);
-    }
-
-    public static ModuleVersionIdentifier newId(ModuleComponentIdentifier componentId) {
-        return new DefaultModuleVersionIdentifier(componentId.getGroup(), componentId.getModule(), componentId.getVersion());
     }
 }

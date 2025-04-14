@@ -74,7 +74,7 @@ abstract class AbstractTaskProjectAccessChecker(
      * Either way, errors here are false positives: the failing tasks are CC-compatible when CC actually stores them.
      */
     private
-    fun currentEvaluationShouldBeReducedByStore() : Boolean {
+    fun currentEvaluationShouldBeReducedByStore(): Boolean {
         // If we've loaded from the cache, then all stores already happened. Everything not reduced by this point should be reported.
         if (graphLoadingState.isLoadedFromCache()) {
             return false

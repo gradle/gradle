@@ -56,25 +56,6 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         return Collections.unmodifiableMap(map);
     }
 
-    @Override
-    public boolean handles(String target) {
-        return target.equals(SAMPLE);
-    }
-
-    @Override
-    public void process(Document document, PreprocessorReader reader, String target, Map<String, Object> attributes) {
-        if (!attributes.containsKey("dir") || !attributes.containsKey("files")) {
-            throw new IllegalStateException("Both the 'dir' and 'files' attributes are required to include a sample");
-        }
-
-        final String sampleBaseDir = document.getAttribute("samples-dir", ".").toString();
-        final String sampleDir = attributes.get("dir").toString();
-        final List<String> files = Arrays.asList(attributes.get("files").toString().split(";"));
-
-        final String sampleContent = getSampleContent(sampleBaseDir, sampleDir, files);
-        reader.pushInclude(sampleContent, target, target, 1, attributes);
-    }
-
     private static String getSourceSyntax(String fileName) {
         String syntax = "txt";
         int i = fileName.lastIndexOf('.');
@@ -209,5 +190,24 @@ public class SampleIncludeProcessor extends IncludeProcessor {
             }
         }
         return minIndent == Integer.MAX_VALUE ? 0 : minIndent;
+    }
+
+    @Override
+    public boolean handles(String target) {
+        return target.equals(SAMPLE);
+    }
+
+    @Override
+    public void process(Document document, PreprocessorReader reader, String target, Map<String, Object> attributes) {
+        if (!attributes.containsKey("dir") || !attributes.containsKey("files")) {
+            throw new IllegalStateException("Both the 'dir' and 'files' attributes are required to include a sample");
+        }
+
+        final String sampleBaseDir = document.getAttribute("samples-dir", ".").toString();
+        final String sampleDir = attributes.get("dir").toString();
+        final List<String> files = Arrays.asList(attributes.get("files").toString().split(";"));
+
+        final String sampleContent = getSampleContent(sampleBaseDir, sampleDir, files);
+        reader.pushInclude(sampleContent, target, target, 1, attributes);
     }
 }

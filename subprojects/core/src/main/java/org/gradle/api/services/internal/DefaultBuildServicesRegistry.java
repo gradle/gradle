@@ -62,7 +62,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     private final BuildIdentifier buildIdentifier;
     private final Lock registrationsLock = new ReentrantLock();
-    private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
     private final DomainObjectCollectionFactory collectionFactory;
     private final InstantiatorFactory instantiatorFactory;
     private final ServiceRegistry services;
@@ -73,6 +72,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
     private final BuildServiceProvider.Listener listener;
+    private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
 
     public DefaultBuildServicesRegistry(
         BuildIdentifier buildIdentifier,
@@ -145,7 +145,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             ImmutableSet.<BuildServiceRegistration<?, ?>>builder().addAll(registrations.matching(it ->
                 type.isAssignableFrom(BuildServiceProvider.getProvidedType(it.getService()))
                     &&
-                (StringUtils.isEmpty(name) || it.getName().equals(name))
+                    (StringUtils.isEmpty(name) || it.getName().equals(name))
             )).build()
         );
     }

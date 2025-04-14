@@ -27,13 +27,13 @@ class ProgressListenerAdapterTest extends Specification {
         adapter.onOperationStart('main')
 
         then:
-        1 * listener.statusChanged({it.description == 'main'})
+        1 * listener.statusChanged({ it.description == 'main' })
 
         when:
         adapter.onOperationEnd()
 
         then:
-        1 * listener.statusChanged({it.description == ''})
+        1 * listener.statusChanged({ it.description == '' })
         0 * _._
     }
 
@@ -43,16 +43,16 @@ class ProgressListenerAdapterTest extends Specification {
         adapter.onOperationStart('nested')
 
         then:
-        1 * listener.statusChanged({it.description == 'main'})
-        1 * listener.statusChanged({it.description == 'nested'})
+        1 * listener.statusChanged({ it.description == 'main' })
+        1 * listener.statusChanged({ it.description == 'nested' })
 
         when:
         adapter.onOperationEnd()
         adapter.onOperationEnd()
 
         then:
-        1 * listener.statusChanged({it.description == 'main'})
-        1 * listener.statusChanged({it.description == ''})
+        1 * listener.statusChanged({ it.description == 'main' })
+        1 * listener.statusChanged({ it.description == '' })
         0 * _._
     }
 }

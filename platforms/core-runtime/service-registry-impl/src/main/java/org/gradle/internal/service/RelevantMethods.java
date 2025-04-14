@@ -61,6 +61,10 @@ class RelevantMethods {
             this.type = type;
         }
 
+        private static boolean takesReturnTypeAsParameter(Method method) {
+            return contains(method.getParameterTypes(), method.getReturnType());
+        }
+
         public RelevantMethods build() {
             for (Class<?> clazz = type; clazz != Object.class && clazz != DefaultServiceRegistry.class; clazz = clazz.getSuperclass()) {
                 for (Method method : clazz.getDeclaredMethods()) {
@@ -106,10 +110,6 @@ class RelevantMethods {
             if (seen.add(signature.toString())) {
                 builder.add(SERVICE_METHOD_FACTORY.toServiceMethod(method));
             }
-        }
-
-        private static boolean takesReturnTypeAsParameter(Method method) {
-            return contains(method.getParameterTypes(), method.getReturnType());
         }
     }
 }

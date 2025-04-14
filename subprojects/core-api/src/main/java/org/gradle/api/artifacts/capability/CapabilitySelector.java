@@ -26,7 +26,6 @@ import org.gradle.api.Incubating;
  * to specify the capability of the variant that should be selected from a given component.
  *
  * @implSpec Implementations must override equals and hash code
- *
  * @since 8.11
  */
 @Incubating

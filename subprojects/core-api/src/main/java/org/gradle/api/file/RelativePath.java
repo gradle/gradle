@@ -90,6 +90,15 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         System.arraycopy(source, 0, target, 0, length);
     }
 
+    public static RelativePath parse(boolean isFile, String path) {
+        return parse(isFile, null, path);
+    }
+
+    public static RelativePath parse(boolean isFile, @Nullable RelativePath parent, String path) {
+        String[] names = FilePathUtil.getPathSegments(path);
+        return new RelativePath(isFile, parent, names);
+    }
+
     public String[] getSegments() {
         return segments;
     }
@@ -214,15 +223,6 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
                 copySegments(parentSegments, segments);
                 return new RelativePath(false, parentSegments);
         }
-    }
-
-    public static RelativePath parse(boolean isFile, String path) {
-        return parse(isFile, null, path);
-    }
-
-    public static RelativePath parse(boolean isFile, @Nullable RelativePath parent, String path) {
-        String[] names = FilePathUtil.getPathSegments(path);
-        return new RelativePath(isFile, parent, names);
     }
 
     /**

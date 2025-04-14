@@ -25,7 +25,8 @@ import org.junit.Rule
 @Requires(IntegTestPreconditions.NotParallelExecutor)
 // no point, always runs in parallel
 class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         executer.withArgument('--parallel')

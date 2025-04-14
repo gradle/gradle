@@ -124,10 +124,25 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         );
     }
 
+    /*
+     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
+     */
+    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
+        interface Details {
+            Details INSTANCE = new Details() {
+            };
+        }
+
+        interface Result {
+            Result INSTANCE = new Result() {
+            };
+        }
+    }
+
     private static class ImplementationsBuilder implements UnitOfWork.ImplementationVisitor {
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-        private ImplementationSnapshot implementation;
         private final ImmutableList.Builder<ImplementationSnapshot> additionalImplementations = ImmutableList.builder();
+        private ImplementationSnapshot implementation;
 
         public ImplementationsBuilder(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
             this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -156,21 +171,6 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
 
         public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
             return additionalImplementations.build();
-        }
-    }
-
-    /*
-     * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
-     */
-    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
-        interface Details {
-            Details INSTANCE = new Details() {
-            };
-        }
-
-        interface Result {
-            Result INSTANCE = new Result() {
-            };
         }
     }
 }

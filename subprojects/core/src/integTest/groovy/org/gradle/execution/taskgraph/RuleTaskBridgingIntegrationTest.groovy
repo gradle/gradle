@@ -388,7 +388,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(any(':climbTask', ':oldClimber'),  ':customTask')
+        result.assertTasksExecutedInOrder(any(':climbTask', ':oldClimber'), ':customTask')
     }
 
     @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible, configuring projects from root, ")

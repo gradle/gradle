@@ -7,9 +7,15 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>delete</td></tr>
-            <tr><td>targetFiles</td></tr>
-            <tr><td>followSymlinks</td></tr>
+            <tr>
+                <td>delete</td>
+            </tr>
+            <tr>
+                <td>targetFiles</td>
+            </tr>
+            <tr>
+                <td>followSymlinks</td>
+            </tr>
         </table>
     </section>
     <section>

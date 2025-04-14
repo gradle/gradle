@@ -36,6 +36,11 @@ import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResour
  */
 public abstract class WrapperPlugin implements Plugin<Project> {
 
+    private static String getVersionUrl() {
+        String baseUrl = DistributionLocator.getBaseUrl();
+        return baseUrl + "/versions";
+    }
+
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
@@ -54,11 +59,6 @@ public abstract class WrapperPlugin implements Plugin<Project> {
                 wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly));
             });
         }
-    }
-
-    private static String getVersionUrl() {
-        String baseUrl = DistributionLocator.getBaseUrl();
-        return baseUrl + "/versions";
     }
 
 }

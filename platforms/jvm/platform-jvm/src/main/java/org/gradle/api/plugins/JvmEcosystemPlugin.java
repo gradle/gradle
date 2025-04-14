@@ -39,8 +39,8 @@ import javax.inject.Inject;
  * will configure the JVM attributes schema, setup resolution rules
  * and create the source set container.
  *
- * @since 6.7
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
+ * @since 6.7
  */
 public abstract class JvmEcosystemPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;

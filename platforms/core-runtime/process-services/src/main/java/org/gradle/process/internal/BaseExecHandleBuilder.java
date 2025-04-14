@@ -25,7 +25,9 @@ import java.io.OutputStream;
 public interface BaseExecHandleBuilder {
 
     BaseExecHandleBuilder setDisplayName(@Nullable String displayName);
+
     BaseExecHandleBuilder setStandardOutput(OutputStream outputStream);
+
     BaseExecHandleBuilder setErrorOutput(OutputStream outputStream);
 
     /**

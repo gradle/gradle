@@ -68,10 +68,12 @@ public class Dimensions {
         return multivalueProperty.size() > 1;
     }
 
-    public static void unitTestVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines, @Nullable SetProperty<TargetMachine> declaredTargetMachinesOfTestedComponent,
-                                        ObjectFactory objectFactory, AttributesFactory attributesFactory,
-                                        Provider<String> group, Provider<String> version,
-                                        Action<NativeVariantIdentity> action) {
+    public static void unitTestVariants(
+        Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines, @Nullable SetProperty<TargetMachine> declaredTargetMachinesOfTestedComponent,
+        ObjectFactory objectFactory, AttributesFactory attributesFactory,
+        Provider<String> group, Provider<String> version,
+        Action<NativeVariantIdentity> action
+    ) {
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "unit test", declaredTargetMachines);
         if (declaredTargetMachinesOfTestedComponent != null) {
             Collection<TargetMachine> targetMachinesOfTestedComponent = extractAndValidate("target machine", "component under test", declaredTargetMachinesOfTestedComponent);
@@ -80,19 +82,23 @@ public class Dimensions {
         variants(baseName, Arrays.asList(BuildType.DEBUG), targetMachines, objectFactory, attributesFactory, group, version, action);
     }
 
-    public static void applicationVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines,
-                                       ObjectFactory objectFactory, AttributesFactory attributesFactory,
-                                       Provider<String> group, Provider<String> version,
-                                       Action<NativeVariantIdentity> action) {
+    public static void applicationVariants(
+        Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines,
+        ObjectFactory objectFactory, AttributesFactory attributesFactory,
+        Provider<String> group, Provider<String> version,
+        Action<NativeVariantIdentity> action
+    ) {
         Collection<BuildType> buildTypes = BuildType.DEFAULT_BUILD_TYPES;
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "application", declaredTargetMachines);
         variants(baseName, buildTypes, targetMachines, objectFactory, attributesFactory, group, version, action);
     }
 
-    public static void libraryVariants(Provider<String> baseName, SetProperty<Linkage> declaredLinkages, SetProperty<TargetMachine> declaredTargetMachines,
-                                           ObjectFactory objectFactory, AttributesFactory attributesFactory,
-                                           Provider<String> group, Provider<String> version,
-                                           Action<NativeVariantIdentity> action) {
+    public static void libraryVariants(
+        Provider<String> baseName, SetProperty<Linkage> declaredLinkages, SetProperty<TargetMachine> declaredTargetMachines,
+        ObjectFactory objectFactory, AttributesFactory attributesFactory,
+        Provider<String> group, Provider<String> version,
+        Action<NativeVariantIdentity> action
+    ) {
         Collection<BuildType> buildTypes = BuildType.DEFAULT_BUILD_TYPES;
         Collection<Linkage> linkages = extractAndValidate("linkage", "library", declaredLinkages);
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "library", declaredTargetMachines);
@@ -120,11 +126,13 @@ public class Dimensions {
         }
     }
 
-    private static void variants(Provider<String> baseName, Collection<BuildType> buildTypes, Collection<Linkage> linkages, Collection<TargetMachine> targetMachines,
-                                 ObjectFactory objectFactory, AttributesFactory attributesFactory,
-                                 // TODO: These should come from somewhere else, probably
-                                 Provider<String> group, Provider<String> version,
-                                 Action<NativeVariantIdentity> action) {
+    private static void variants(
+        Provider<String> baseName, Collection<BuildType> buildTypes, Collection<Linkage> linkages, Collection<TargetMachine> targetMachines,
+        ObjectFactory objectFactory, AttributesFactory attributesFactory,
+        // TODO: These should come from somewhere else, probably
+        Provider<String> group, Provider<String> version,
+        Action<NativeVariantIdentity> action
+    ) {
         for (BuildType buildType : buildTypes) {
             for (Linkage linkage : linkages) {
                 for (TargetMachine targetMachine : targetMachines) {
@@ -161,11 +169,13 @@ public class Dimensions {
         }
     }
 
-    private static void variants(Provider<String> baseName, Collection<BuildType> buildTypes, Collection<TargetMachine> targetMachines,
-                                 ObjectFactory objectFactory, AttributesFactory attributesFactory,
-                                 // TODO: These should come from somewhere else, probably
-                                 Provider<String> group, Provider<String> version,
-                                 Action<NativeVariantIdentity> action) {
+    private static void variants(
+        Provider<String> baseName, Collection<BuildType> buildTypes, Collection<TargetMachine> targetMachines,
+        ObjectFactory objectFactory, AttributesFactory attributesFactory,
+        // TODO: These should come from somewhere else, probably
+        Provider<String> group, Provider<String> version,
+        Action<NativeVariantIdentity> action
+    ) {
         for (BuildType buildType : buildTypes) {
             for (TargetMachine targetMachine : targetMachines) {
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);

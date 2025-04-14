@@ -24,7 +24,7 @@ abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
     static final DEFAULT_KEY_SET = "gradle"
 
     private assertProject() {
-        assert project != null : "You haven't created a project"
+        assert project != null: "You haven't created a project"
     }
 
     protected def getSigning() {

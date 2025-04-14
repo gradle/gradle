@@ -22,20 +22,20 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.internal.component.model.IvyArtifactName;
 
 final class DefaultExcludeAllOf extends DefaultCompositeExclude implements ExcludeAllOf {
-    public static ExcludeAllOf of(ImmutableSet<ExcludeSpec> components) {
-        return new DefaultExcludeAllOf(components);
-    }
+    private Boolean mayExcludeArtifacts;
 
     private DefaultExcludeAllOf(ImmutableSet<ExcludeSpec> components) {
         super(components);
+    }
+
+    public static ExcludeAllOf of(ImmutableSet<ExcludeSpec> components) {
+        return new DefaultExcludeAllOf(components);
     }
 
     @Override
     int mask() {
         return 1877062907;
     }
-
-    private Boolean mayExcludeArtifacts;
 
     @Override
     protected String getDisplayName() {
@@ -69,10 +69,10 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
         }
         mayExcludeArtifacts = true;
         for (ExcludeSpec component : getComponents()) {
-           if (!component.mayExcludeArtifacts()) {
-               mayExcludeArtifacts = false;
-               break;
-           }
+            if (!component.mayExcludeArtifacts()) {
+                mayExcludeArtifacts = false;
+                break;
+            }
         }
         return mayExcludeArtifacts;
     }

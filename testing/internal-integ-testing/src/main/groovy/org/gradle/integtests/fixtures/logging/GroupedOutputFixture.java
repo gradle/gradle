@@ -66,6 +66,14 @@ public class GroupedOutputFixture {
      * Pattern to extract task output.
      */
     private static final Pattern TRANSFORM_OUTPUT_PATTERN = patternForHeader(TRANSFORM_HEADER);
+    private final LogContent originalOutput;
+    private final String strippedOutput;
+    private Map<String, GroupedTaskOutputFixture> tasks;
+    private Map<String, GroupedTransformOutputFixture> transforms;
+    public GroupedOutputFixture(LogContent output) {
+        this.originalOutput = output;
+        this.strippedOutput = parse(output);
+    }
 
     private static Pattern patternForHeader(String header) {
         String pattern = "(?ms)";
@@ -75,14 +83,11 @@ public class GroupedOutputFixture {
         return Pattern.compile(pattern);
     }
 
-    private final LogContent originalOutput;
-    private final String strippedOutput;
-    private Map<String, GroupedTaskOutputFixture> tasks;
-    private Map<String, GroupedTransformOutputFixture> transforms;
-
-    public GroupedOutputFixture(LogContent output) {
-        this.originalOutput = output;
-        this.strippedOutput = parse(output);
+    private static void findOutputs(String strippedOutput, Pattern outputPattern, Consumer<Matcher> consumer) {
+        Matcher matcher = outputPattern.matcher(strippedOutput);
+        while (matcher.find()) {
+            consumer.accept(matcher);
+        }
     }
 
     private String parse(LogContent output) {
@@ -94,13 +99,6 @@ public class GroupedOutputFixture {
         findOutputs(strippedOutput, TRANSFORM_OUTPUT_PATTERN, this::consumeTransformOutput);
 
         return strippedOutput;
-    }
-
-    private static void findOutputs(String strippedOutput, Pattern outputPattern, Consumer<Matcher> consumer) {
-        Matcher matcher = outputPattern.matcher(strippedOutput);
-        while (matcher.find()) {
-            consumer.accept(matcher);
-        }
     }
 
     public int getTaskCount() {
@@ -164,9 +162,9 @@ public class GroupedOutputFixture {
      */
     public Set<String> subjectsFor(String transformer) {
         return transforms.values().stream()
-                .filter(transform -> transform.getTransformer().equals(transformer))
-                .map(GroupedTransformOutputFixture::getSubject)
-                .collect(Collectors.toSet());
+            .filter(transform -> transform.getTransformer().equals(transformer))
+            .map(GroupedTransformOutputFixture::getSubject)
+            .collect(Collectors.toSet());
     }
 
     public String getStrippedOutput() {

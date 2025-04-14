@@ -72,14 +72,14 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
     }
 
     private static class ChangeState {
-        private Map.Entry<String, FileSystemLocationFingerprint> current;
-        private Map.Entry<String, FileSystemLocationFingerprint> previous;
         private final ChangeVisitor changeConsumer;
         private final Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries;
         private final Map<String, FileSystemLocationFingerprint> currentSnapshots;
         private final Iterator<Map.Entry<String, FileSystemLocationFingerprint>> previousEntries;
         private final Map<String, FileSystemLocationFingerprint> previousSnapshots;
         private final String propertyTitle;
+        private Map.Entry<String, FileSystemLocationFingerprint> current;
+        private Map.Entry<String, FileSystemLocationFingerprint> previous;
 
         private ChangeState(String propertyTitle, ChangeVisitor changeConsumer, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots) {
             this.propertyTitle = propertyTitle;

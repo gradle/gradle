@@ -87,9 +87,9 @@ class MultiProjectDerivationStrategyIntegTest extends AbstractPolyglotIntegratio
                 module("org:foo:1.1") {
                     variant "runtime", [
                         'org.gradle.status': 'release',
-                        'org.gradle.category':'library',
-                        'org.gradle.libraryelements':'jar',
-                        'org.gradle.usage':'java-runtime'
+                        'org.gradle.category': 'library',
+                        'org.gradle.libraryelements': 'jar',
+                        'org.gradle.usage': 'java-runtime'
                     ]
                 }
             }

@@ -67,7 +67,6 @@ import java.util.Map;
  * The exception that is thrown when an attempt is made to get the value of a property that does not exist is different depending on whether the
  * Groovy syntax is used or not. If Groovy property syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
  * When the {@link #get(String)} method is used, an {@link UnknownPropertyException} will be thrown.
- *
  */
 public interface ExtraPropertiesExtension {
 

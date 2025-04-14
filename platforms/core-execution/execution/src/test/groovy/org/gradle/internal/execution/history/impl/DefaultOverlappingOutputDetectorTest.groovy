@@ -42,10 +42,10 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
 
     def "detects overlap when there is a stale root"() {
         def staleFileAddedBetweenExecutions = new RegularFileSnapshot("/absolute/path", "path", TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(0, 0, AccessType.DIRECT))
-        def previousOutputFiles = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+        def previousOutputFiles = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "output", FileSystemSnapshot.EMPTY
         )
-        def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+        def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "output", staleFileAddedBetweenExecutions
         )
 

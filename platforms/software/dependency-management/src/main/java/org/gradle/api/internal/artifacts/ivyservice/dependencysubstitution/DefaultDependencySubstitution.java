@@ -38,18 +38,26 @@ import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_B
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final ComponentSelector requested;
+    private final ArtifactSelectionDetailsInternal artifactSelectionDetails;
     private List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private ComponentSelector target;
-    private final ArtifactSelectionDetailsInternal artifactSelectionDetails;
 
     @Inject
-    public DefaultDependencySubstitution(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                         ComponentSelector requested,
-                                         List<IvyArtifactName> artifacts) {
+    public DefaultDependencySubstitution(
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        ComponentSelector requested,
+        List<IvyArtifactName> artifacts
+    ) {
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.requested = requested;
         this.target = requested;
         this.artifactSelectionDetails = new DefaultArtifactSelectionDetails(this, artifacts);
+    }
+
+    public static void validateTarget(ComponentSelector componentSelector) {
+        if (componentSelector instanceof UnversionedModuleComponentSelector) {
+            throw new InvalidUserDataException("Must specify version for target of dependency substitution");
+        }
     }
 
     @Override
@@ -104,11 +112,5 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
     @Override
     public ArtifactSelectionDetailsInternal getArtifactSelectionDetails() {
         return artifactSelectionDetails;
-    }
-
-    public static void validateTarget(ComponentSelector componentSelector) {
-        if (componentSelector instanceof UnversionedModuleComponentSelector) {
-            throw new InvalidUserDataException("Must specify version for target of dependency substitution");
-        }
     }
 }

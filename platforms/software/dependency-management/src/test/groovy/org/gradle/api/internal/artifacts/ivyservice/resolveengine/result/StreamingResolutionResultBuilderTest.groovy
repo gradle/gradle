@@ -103,8 +103,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def selector2 = selector("org", "dep2", "3.0")
         def dep1 = node(2, "org", "dep1", "2.0", of(CONFLICT_RESOLUTION))
         root.outgoingEdges >> [
-                dep(selector1, 1, 2),
-                dep(selector2, 1, new RuntimeException("Boo!"))
+            dep(selector1, 1, 2),
+            dep(selector2, 1, new RuntimeException("Boo!"))
         ]
 
         builder.start(root)

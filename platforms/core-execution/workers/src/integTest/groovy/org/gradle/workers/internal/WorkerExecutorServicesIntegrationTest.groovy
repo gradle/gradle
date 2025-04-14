@@ -316,10 +316,10 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
 
         where:
         [forbiddenType, isolationMode] << [[
-            Project, // Not isolated
-            ProjectLayout, // Not isolated
-            Instantiator, // internal
-        ], ISOLATION_MODES].combinations()
+                                               Project, // Not isolated
+                                               ProjectLayout, // Not isolated
+                                               Instantiator, // internal
+                                           ], ISOLATION_MODES].combinations()
     }
 
     def withTestMainParametersAndServices() {

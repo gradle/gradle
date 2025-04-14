@@ -41,7 +41,8 @@ public interface CachingRuleExecutor<KEY, DETAILS, RESULT> {
     /**
      * Executes a rule, fetching the result from the cache if available, or executing the rule and caches
      * the result in case of cache miss.
-     *  @param rule the rule to be executed
+     *
+     * @param rule the rule to be executed
      * @param detailsToResult transforms a details object into a result object which may be cached
      * @param onCacheMiss whenever cache is missed, this function is responsible for creating the initial DETAILS object that is going to be exposed to the user
      * @param cacheExpirationControl the cache policy

@@ -44,6 +44,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     private final CollectionCallbackActionDecorator callbackActionDecorator;
 
+    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> delegate, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(delegate);
+        this.callbackActionDecorator = callbackActionDecorator;
+    }
+
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
@@ -58,34 +63,6 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             out.addCollection(c);
         }
         return out;
-    }
-
-    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> delegate, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(delegate);
-        this.callbackActionDecorator = callbackActionDecorator;
-    }
-
-    public class ItemIsUniqueInCompositeSpec implements Spec<T> {
-        @Override
-        public boolean isSatisfiedBy(T element) {
-            int matches = 0;
-            for (DomainObjectCollection<? extends T> collection : getStore().store) {
-                if (collection.contains(element)) {
-                    if (++matches > 1) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-    }
-
-    public class ItemNotInCompositeSpec implements Spec<T> {
-        @Override
-        public boolean isSatisfiedBy(T element) {
-            return !getStore().contains(element);
-        }
     }
 
     @Override
@@ -141,7 +118,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     /**
      * {@inheritDoc}
-     *  <p>
+     * <p>
      * This method is expensive. Avoid calling it if possible. If all you need is a rough
      * estimate, call {@link #estimatedSize()} instead.
      */
@@ -329,6 +306,29 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         @Override
         public MutationGuard getLazyBehaviorGuard() {
             return MutationGuards.identity();
+        }
+    }
+
+    public class ItemIsUniqueInCompositeSpec implements Spec<T> {
+        @Override
+        public boolean isSatisfiedBy(T element) {
+            int matches = 0;
+            for (DomainObjectCollection<? extends T> collection : getStore().store) {
+                if (collection.contains(element)) {
+                    if (++matches > 1) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public class ItemNotInCompositeSpec implements Spec<T> {
+        @Override
+        public boolean isSatisfiedBy(T element) {
+            return !getStore().contains(element);
         }
     }
 }

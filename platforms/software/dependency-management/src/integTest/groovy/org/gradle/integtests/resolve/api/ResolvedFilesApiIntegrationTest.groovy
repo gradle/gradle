@@ -521,7 +521,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
         """
 
-        when:\
+        when:
+        \
+
         fails 'show'
 
         then:

@@ -55,8 +55,8 @@ class DefaultSnapshotMavenMetaData implements SnapshotMavenMetaData {
         def versioning = xml.versioning[0]
 
         lastUpdated = versioning.lastUpdated[0]?.text()
-        snapshotTimestamp =  versioning.snapshot.timestamp[0]?.text()
-        snapshotBuildNumber =  versioning.snapshot.buildNumber[0]?.text()
+        snapshotTimestamp = versioning.snapshot.timestamp[0]?.text()
+        snapshotBuildNumber = versioning.snapshot.buildNumber[0]?.text()
         localSnapshot = versioning.snapshot.localCopy[0]?.text() == 'true'
 
         def snapshotVersionCollector = new LinkedHashSet<String>()

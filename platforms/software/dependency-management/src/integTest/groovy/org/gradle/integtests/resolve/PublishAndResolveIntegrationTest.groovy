@@ -147,7 +147,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         return TextUtil.escapeString(paths.join(File.separator))
     }
 
-    def versionIsCopiedAndExists(lib, version, root="") {
+    def versionIsCopiedAndExists(lib, version, root = "") {
         assert TextUtil.normaliseFileSeparators(output).contains("ivy-repo/org.gradle.test/${lib}/${version}/${lib}-${version}.jar")
         testDirectory.assertContainsDescendants("${root}build/copies/${lib}-${version}.jar")
         true

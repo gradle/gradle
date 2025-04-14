@@ -216,7 +216,7 @@ class OutputFileChangesTest extends Specification implements TestSnapshotFixture
         def visitor = new CollectingChangeVisitor()
         def outputFileChanges = new OutputFileChanges(ImmutableSortedMap.of("test", previousSnapshot), ImmutableSortedMap.of("test", currentSnapshot))
         outputFileChanges.accept(visitor)
-        visitor.getChanges().collect {new DescriptiveChange(it.message) }.toList()
+        visitor.getChanges().collect { new DescriptiveChange(it.message) }.toList()
     }
 
     def added(String path) {

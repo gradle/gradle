@@ -80,7 +80,7 @@ public class LogContent {
 
     private static int getSubstringEnd(String chars, int pos, int next) {
         if (next > pos && chars.charAt(next - 1) == '\r') {
-             return next - 1;
+            return next - 1;
         }
         return next;
     }

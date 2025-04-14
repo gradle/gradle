@@ -40,6 +40,6 @@ class WorkspaceSettingsFile {
             return true
         }
 
-        return ((NSNumber)value).boolValue()
+        return ((NSNumber) value).boolValue()
     }
 }

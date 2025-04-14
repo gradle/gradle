@@ -57,6 +57,10 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         this.buildType = buildType;
     }
 
+    private static boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
+        return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
+    }
+
     @Override
     public BuildScanConfig collect(BuildScanPluginMetadata pluginMetadata) {
         if (manager.isPresent()) {
@@ -87,8 +91,30 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         // Should not get here, since none of the plugin versions using this service are supported
     }
 
-    private static boolean isPluginAwareOfUnsupported(VersionNumber pluginVersion) {
-        return pluginVersion.compareTo(FIRST_VERSION_AWARE_OF_UNSUPPORTED) >= 0;
+    private enum Requestedness {
+
+        DEFAULTED(false, false),
+        ENABLED(true, false),
+        DISABLED(false, true);
+
+        private final boolean enabled;
+        private final boolean disabled;
+
+        Requestedness(boolean enabled, boolean disabled) {
+            this.enabled = enabled;
+            this.disabled = disabled;
+        }
+
+        private static Requestedness from(GradleInternal gradle) {
+            StartParameter startParameter = gradle.getStartParameter();
+            if (startParameter.isNoBuildScan()) {
+                return DISABLED;
+            } else if (startParameter.isBuildScan()) {
+                return ENABLED;
+            } else {
+                return DEFAULTED;
+            }
+        }
     }
 
     private static class Config implements BuildScanConfig {
@@ -120,32 +146,6 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         @Override
         public BuildScanConfig.Attributes getAttributes() {
             return attributes;
-        }
-    }
-
-    private enum Requestedness {
-
-        DEFAULTED(false, false),
-        ENABLED(true, false),
-        DISABLED(false, true);
-
-        private final boolean enabled;
-        private final boolean disabled;
-
-        Requestedness(boolean enabled, boolean disabled) {
-            this.enabled = enabled;
-            this.disabled = disabled;
-        }
-
-        private static Requestedness from(GradleInternal gradle) {
-            StartParameter startParameter = gradle.getStartParameter();
-            if (startParameter.isNoBuildScan()) {
-                return DISABLED;
-            } else if (startParameter.isBuildScan()) {
-                return ENABLED;
-            } else {
-                return DEFAULTED;
-            }
         }
     }
 

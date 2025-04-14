@@ -29,9 +29,12 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
-    @Rule TestProxyServer proxyServer = new TestProxyServer()
-    @Rule TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    TestProxyServer proxyServer = new TestProxyServer()
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
 
     public static final String TEST_DISTRIBUTION_URL = "gradlew/dist"
 

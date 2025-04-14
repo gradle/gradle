@@ -51,6 +51,31 @@ public class CompositeStoppable implements Stoppable {
         return new CompositeStoppable().add(elements);
     }
 
+    private static Stoppable toStoppable(final Object object) {
+        if (object instanceof Stoppable) {
+            return (Stoppable) object;
+        }
+        if (object instanceof Closeable) {
+            final Closeable closeable = (Closeable) object;
+            return new Stoppable() {
+                @Override
+                public String toString() {
+                    return closeable.toString();
+                }
+
+                @Override
+                public void stop() {
+                    try {
+                        closeable.close();
+                    } catch (IOException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            };
+        }
+        return NO_OP_STOPPABLE;
+    }
+
     public CompositeStoppable addFailure(final Throwable failure) {
         add(new Closeable() {
             @Override
@@ -78,31 +103,6 @@ public class CompositeStoppable implements Stoppable {
     public synchronized CompositeStoppable add(Object closeable) {
         this.elements.add(toStoppable(closeable));
         return this;
-    }
-
-    private static Stoppable toStoppable(final Object object) {
-        if (object instanceof Stoppable) {
-            return (Stoppable) object;
-        }
-        if (object instanceof Closeable) {
-            final Closeable closeable = (Closeable) object;
-            return new Stoppable() {
-                @Override
-                public String toString() {
-                    return closeable.toString();
-                }
-
-                @Override
-                public void stop() {
-                    try {
-                        closeable.close();
-                    } catch (IOException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-            };
-        }
-        return NO_OP_STOPPABLE;
     }
 
     @Override

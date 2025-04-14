@@ -30,13 +30,6 @@ import java.util.stream.Collectors;
  * A {@link ResolutionFailureDescriber} that describes a {@link NoVariantsWithMatchingCapabilitiesFailure}.
  */
 public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber extends AbstractResolutionFailureDescriber<NoVariantsWithMatchingCapabilitiesFailure> {
-    @Override
-    public VariantSelectionByAttributesException describeFailure(NoVariantsWithMatchingCapabilitiesFailure failure) {
-        String message = buildFailureMsg(failure);
-        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
-        return new VariantSelectionByAttributesException(message, failure, resolutions);
-    }
-
     private static String buildFailureMsg(NoVariantsWithMatchingCapabilitiesFailure failure) {
         StringBuilder sb = new StringBuilder();
 
@@ -56,5 +49,12 @@ public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber extends
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public VariantSelectionByAttributesException describeFailure(NoVariantsWithMatchingCapabilitiesFailure failure) {
+        String message = buildFailureMsg(failure);
+        List<String> resolutions = buildResolutions(suggestReviewAlgorithm());
+        return new VariantSelectionByAttributesException(message, failure, resolutions);
     }
 }

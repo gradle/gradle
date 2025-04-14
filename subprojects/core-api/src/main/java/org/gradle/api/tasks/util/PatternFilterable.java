@@ -76,14 +76,6 @@ public interface PatternFilterable {
     Set<String> getIncludes();
 
     /**
-     * Returns the set of exclude patterns.
-     *
-     * @return The exclude patterns. Returns an empty set when there are no exclude patterns.
-     */
-    @ToBeReplacedByLazyProperty
-    Set<String> getExcludes();
-
-    /**
      * Set the allowable include patterns.  Note that unlike {@link #include(Iterable)} this replaces any previously
      * defined includes.
      *
@@ -92,6 +84,14 @@ public interface PatternFilterable {
      * @see PatternFilterable Pattern Format
      */
     PatternFilterable setIncludes(Iterable<String> includes);
+
+    /**
+     * Returns the set of exclude patterns.
+     *
+     * @return The exclude patterns. Returns an empty set when there are no exclude patterns.
+     */
+    @ToBeReplacedByLazyProperty
+    Set<String> getExcludes();
 
     /**
      * Set the allowable exclude patterns.  Note that unlike {@link #exclude(Iterable)} this replaces any previously

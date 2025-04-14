@@ -187,6 +187,7 @@ class DefaultResolvedDependencySpec extends Specification {
         dependency != differentVersion
         dependency != differentConfiguration
     }
+
     def "provides meta-data about the module"() {
         given:
         def dependency = newDependency("config", newId("group", "module", "version"))

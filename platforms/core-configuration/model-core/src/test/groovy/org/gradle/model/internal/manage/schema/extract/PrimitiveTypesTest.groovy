@@ -58,7 +58,7 @@ class PrimitiveTypesTest extends Specification {
         PrimitiveTypes.defaultValueOf(ModelType.of(type)) == value
 
         where:
-        type | value
+        type    | value
         boolean | false
         char    | '\u0000' as char
         byte    | 0 as byte

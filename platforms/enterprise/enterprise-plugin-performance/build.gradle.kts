@@ -58,14 +58,16 @@ performanceTest.registerTestProject<gradlebuild.performance.generator.tasks.JvmP
     daemonMemory = "4096m"
     maxWorkers = 4
     doLast {
-        File(destDir, "build.gradle").appendText("""
+        File(destDir, "build.gradle").appendText(
+            """
 // gradle-profiler doesn't support expectFailure
 subprojects {
     afterEvaluate {
         test.ignoreFailures = true
     }
 }
-""")
+"""
+        )
     }
 }
 

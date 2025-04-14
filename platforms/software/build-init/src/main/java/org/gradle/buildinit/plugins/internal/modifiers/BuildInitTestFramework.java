@@ -31,6 +31,12 @@ public enum BuildInitTestFramework implements WithIdentifier {
     XCTEST("XCTest"),
     CPPTest("C++ executable");
 
+    private final String displayName;
+
+    BuildInitTestFramework(String displayName) {
+        this.displayName = displayName;
+    }
+
     public static List<String> listSupported() {
         List<String> result = new ArrayList<>();
         for (BuildInitTestFramework testFramework : values()) {
@@ -39,12 +45,6 @@ public enum BuildInitTestFramework implements WithIdentifier {
             }
         }
         return result;
-    }
-
-    private final String displayName;
-
-    BuildInitTestFramework(String displayName) {
-        this.displayName = displayName;
     }
 
     @Override

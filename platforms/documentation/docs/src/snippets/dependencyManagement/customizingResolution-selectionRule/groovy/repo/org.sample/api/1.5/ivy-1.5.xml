@@ -20,8 +20,8 @@
           revision="1.5"
           status="integration"
           branch="test"
-          />
+    />
     <publications>
-        <artifact />
+        <artifact/>
     </publications>
 </ivy-module>

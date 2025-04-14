@@ -185,9 +185,9 @@ class MessageTest extends Specification {
     def "replaces incompatible exception with local version"() {
         def cause = new RuntimeException("nested")
         def sourceExceptionType = source.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
+            "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
         def destExceptionType = dest.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { private String someField; public TestException(String msg) { super(msg); } }")
+            "package org.gradle; public class TestException extends RuntimeException { private String someField; public TestException(String msg) { super(msg); } }")
 
         def original = sourceExceptionType.newInstance("message", cause)
 
@@ -208,7 +208,7 @@ class MessageTest extends Specification {
     def "uses placeholder when local exception cannot be constructed"() {
         def cause = new RuntimeException("nested")
         def sourceExceptionType = source.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
+            "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }")
         dest.parseClass("package org.gradle; public class TestException extends RuntimeException { private String someField; }")
 
         def original = sourceExceptionType.newInstance("message", cause)

@@ -5,9 +5,9 @@
 format.version = "1.1"
 
 [libraries]
-foo = {group = "org", name = "from-model", version = "1.0" }
-foo2 = {group = "org", name = "foo", version = "1.2" }
-from-script = {group = "org", name = "from-script", version = "1.0" }
+foo = { group = "org", name = "from-model", version = "1.0" }
+foo2 = { group = "org", name = "foo", version = "1.2" }
+from-script = { group = "org", name = "from-script", version = "1.0" }
 
 [bundles]
 my = ["foo", "foo2", "from-script"]

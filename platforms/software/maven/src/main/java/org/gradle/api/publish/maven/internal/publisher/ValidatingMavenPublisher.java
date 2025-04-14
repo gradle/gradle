@@ -54,15 +54,15 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         Model model = parsePomFileIntoMavenModel(publication);
 
         field(publication, "artifactId", publication.getArtifactId())
-                .validMavenIdentifier()
-                .matches(model.getArtifactId());
+            .validMavenIdentifier()
+            .matches(model.getArtifactId());
 
         boolean hasParentPom = model.getParent() != null;
         MavenFieldValidator groupIdValidator = field(publication, "groupId", publication.getGroupId())
-                .validMavenIdentifier();
+            .validMavenIdentifier();
         MavenFieldValidator versionValidator = field(publication, "version", publication.getVersion())
-                .notEmpty()
-                .validInFileName();
+            .notEmpty()
+            .validInFileName();
 
         if (!hasParentPom) {
             groupIdValidator.matches(model.getGroupId());
@@ -78,8 +78,8 @@ public class ValidatingMavenPublisher implements MavenPublisher {
             return model;
         } catch (XmlPullParserException parseException) {
             throw new InvalidMavenPublicationException(publication.getName(),
-                    "POM file is invalid. Check any modifications you have made to the POM file.",
-                    parseException);
+                "POM file is invalid. Check any modifications you have made to the POM file.",
+                parseException);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
@@ -94,11 +94,11 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     private void validateArtifacts(MavenNormalizedPublication publication) {
         for (MavenArtifact artifact : publication.getAllArtifacts()) {
             field(publication, "artifact extension", artifact.getExtension())
-                    .notNull()
-                    .validInFileName();
+                .notNull()
+                .validInFileName();
             field(publication, "artifact classifier", artifact.getClassifier())
-                    .optionalNotEmpty()
-                    .validInFileName();
+                .optionalNotEmpty()
+                .validInFileName();
 
             checkCanPublish(publication.getName(), artifact);
         }
@@ -116,7 +116,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
         for (MavenArtifact artifact : artifacts) {
             if (ObjectUtils.equals(artifact.getExtension(), extension) && ObjectUtils.equals(artifact.getClassifier(), classifier)) {
                 String message = String.format(
-                        "multiple artifacts with the identical extension and classifier ('%s', '%s').", extension, classifier
+                    "multiple artifacts with the identical extension and classifier ('%s', '%s').", extension, classifier
                 );
                 throw new InvalidMavenPublicationException(publication.getName(), message);
             }

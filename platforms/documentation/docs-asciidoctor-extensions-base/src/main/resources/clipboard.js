@@ -1,5 +1,5 @@
 /* Custom JS on top of external clipboard.js */
-window.onload = function() {
+window.onload = function () {
     var pre = document.getElementsByTagName('pre');
 
     for (var i = 0; i < pre.length; i++) {
@@ -16,7 +16,7 @@ window.onload = function() {
     }
 
     var clipboard = new ClipboardJS('.clipboard', {
-       target: function(b) {
+        target: function (b) {
             var p = b.parentNode;
             if (p.className.includes("highlight")) {
                 var elems = p.getElementsByTagName("code");
@@ -27,15 +27,15 @@ window.onload = function() {
         }
     });
 
-    clipboard.on('success', function(e) {
+    clipboard.on('success', function (e) {
         e.clearSelection();
         e.trigger.classList.add('clipboard_success');
-        setTimeout(function() {
+        setTimeout(function () {
             e.trigger.classList.remove('clipboard_success');
         }, 1300);
     });
 
-    clipboard.on('error', function(e) {
+    clipboard.on('error', function (e) {
         console.error('Action:', e.action, e);
         console.error('Trigger:', e.trigger);
     });

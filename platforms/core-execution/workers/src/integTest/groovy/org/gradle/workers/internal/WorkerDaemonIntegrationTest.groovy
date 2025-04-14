@@ -211,9 +211,9 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         def workActionThatVerifiesOptions = fixture.getWorkActionThatCreatesFiles("OptionVerifyingWorkAction")
         workActionThatVerifiesOptions.with {
             imports += [
-                    "java.util.regex.Pattern",
-                    "java.lang.management.ManagementFactory",
-                    "java.lang.management.RuntimeMXBean"
+                "java.util.regex.Pattern",
+                "java.lang.management.ManagementFactory",
+                "java.lang.management.RuntimeMXBean"
             ]
             action += """
                 ${optionsVerifier.dumpProcessEnvironment(isOracleJDK)}

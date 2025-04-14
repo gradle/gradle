@@ -21,7 +21,8 @@ import org.junit.Rule
 
 abstract class AbstractDefaultTestOrderingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
         executer.noExtraLogging()

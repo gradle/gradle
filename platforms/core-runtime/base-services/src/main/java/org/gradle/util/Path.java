@@ -37,9 +37,18 @@ import static org.apache.commons.lang.StringUtils.join;
  */
 public class Path implements Comparable<Path> {
     public static final Path ROOT = new Path(new String[0], true);
-
-    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
     public static final String SEPARATOR = ":";
+    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
+    private final String[] segments;
+    private final boolean absolute;
+    private final int hashCode;
+    private volatile String fullPath;
+    private Path(String[] segments, boolean absolute) {
+        this.segments = segments;
+        this.absolute = absolute;
+
+        this.hashCode = computeHashCode(absolute, segments);
+    }
 
     public static Path path(@Nullable String path) {
         validatePath(path);
@@ -68,16 +77,13 @@ public class Path implements Comparable<Path> {
         return new Path(segments, absolute);
     }
 
-    private final String[] segments;
-    private final boolean absolute;
-    private final int hashCode;
-    private volatile String fullPath;
-
-    private Path(String[] segments, boolean absolute) {
-        this.segments = segments;
-        this.absolute = absolute;
-
-        this.hashCode = computeHashCode(absolute, segments);
+    private static int computeHashCode(boolean absolute, String[] segments) {
+        int result = 0;
+        for (Object element : segments) {
+            result = 31 * result + element.hashCode();
+        }
+        result = 31 * result + (absolute ? 1 : 0);
+        return result;
     }
 
     @Override
@@ -128,7 +134,7 @@ public class Path implements Comparable<Path> {
      * @since 8.5
      */
     @Incubating
-    public List<String> segments(){
+    public List<String> segments() {
         return asList(segments);
     }
 
@@ -152,15 +158,6 @@ public class Path implements Comparable<Path> {
     @Override
     public int hashCode() {
         return hashCode;
-    }
-
-    private static int computeHashCode(boolean absolute, String[] segments) {
-        int result = 0;
-        for (Object element : segments) {
-            result = 31 * result + element.hashCode();
-        }
-        result = 31 * result + (absolute ? 1 : 0);
-        return result;
     }
 
     @Override

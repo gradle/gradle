@@ -44,7 +44,7 @@ class TemplateOperationFactorySpec extends Specification {
         def operation1 = factory.newTemplateOperation()
         def operation2 = factory.newTemplateOperation()
 
-        operation1.withBindings(key:"value")
+        operation1.withBindings(key: "value")
         operation1.withTarget(new File("atarget"))
 
         then:

@@ -4,12 +4,12 @@ $(document).ready(function () {
     var controls = $("div#controls");
     var groups = [];
     var slices = [];
-    $("tr.control-groups").closest("table").find("tr").each(function() {
+    $("tr.control-groups").closest("table").find("tr").each(function () {
         var row = $(this);
         if (row.hasClass('control-groups')) {
             var currentCol = 0;
             slices = [];
-            row.find("th").each(function(){
+            row.find("th").each(function () {
                 var e = $(this);
                 var title = e.text().trim();
                 var startCol = currentCol;
@@ -39,7 +39,7 @@ $(document).ready(function () {
                 }
             });
         } else {
-            row.find("td,th").each(function(index){
+            row.find("td,th").each(function (index) {
                 $(this).addClass(slices[index]);
             })
         }

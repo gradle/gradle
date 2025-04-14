@@ -39,7 +39,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
     }
 
     def "output file properties are snapshotted"() {
-        def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", Mock(FileSystemSnapshot))
+        def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot> of("outputDir", Mock(FileSystemSnapshot))
 
         when:
         step.execute(work, context)

@@ -21,6 +21,6 @@ import org.gradle.testing.junit.AbstractJUnitClassDetectionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
-@TargetCoverage({  JUNIT_VINTAGE })
+@TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageClassDetectionIntegrationTest extends AbstractJUnitClassDetectionIntegrationTest implements JUnitVintageMultiVersionTest {
 }

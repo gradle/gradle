@@ -34,8 +34,10 @@ public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExe
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
 
-    public RootBuildLifecycleBuildActionExecutor(BuildStateRegistry buildStateRegistry,
-                                                 BuildActionRunner buildActionRunner) {
+    public RootBuildLifecycleBuildActionExecutor(
+        BuildStateRegistry buildStateRegistry,
+        BuildActionRunner buildActionRunner
+    ) {
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
     }

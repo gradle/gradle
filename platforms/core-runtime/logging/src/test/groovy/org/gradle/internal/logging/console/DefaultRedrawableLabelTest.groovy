@@ -22,7 +22,7 @@ import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
 
-class DefaultRedrawableLabelTest extends Specification{
+class DefaultRedrawableLabelTest extends Specification {
     def ansi = Mock(Ansi)
     def factory = new AnsiFactory() {
         Ansi create() {

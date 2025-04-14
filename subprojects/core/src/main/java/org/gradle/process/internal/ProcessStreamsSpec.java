@@ -26,6 +26,10 @@ public class ProcessStreamsSpec {
     private OutputStream standardOutput;
     private OutputStream errorOutput;
 
+    public InputStream getStandardInput() {
+        return standardInput;
+    }
+
     public ProcessStreamsSpec setStandardInput(InputStream inputStream) {
         if (inputStream == null) {
             throw new IllegalArgumentException("inputStream == null!");
@@ -34,8 +38,8 @@ public class ProcessStreamsSpec {
         return this;
     }
 
-    public InputStream getStandardInput() {
-        return standardInput;
+    public OutputStream getStandardOutput() {
+        return standardOutput;
     }
 
     public ProcessStreamsSpec setStandardOutput(OutputStream outputStream) {
@@ -46,8 +50,8 @@ public class ProcessStreamsSpec {
         return this;
     }
 
-    public OutputStream getStandardOutput() {
-        return standardOutput;
+    public OutputStream getErrorOutput() {
+        return errorOutput;
     }
 
     public ProcessStreamsSpec setErrorOutput(OutputStream outputStream) {
@@ -56,9 +60,5 @@ public class ProcessStreamsSpec {
         }
         errorOutput = outputStream;
         return this;
-    }
-
-    public OutputStream getErrorOutput() {
-        return errorOutput;
     }
 }

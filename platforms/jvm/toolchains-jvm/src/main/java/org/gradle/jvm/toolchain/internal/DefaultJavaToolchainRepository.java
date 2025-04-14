@@ -41,10 +41,10 @@ public abstract class DefaultJavaToolchainRepository implements JavaToolchainRep
 
     @Inject
     public DefaultJavaToolchainRepository(
-            String name,
-            AuthenticationContainer authenticationContainer,
-            AuthenticationSupporter authenticationSupporter,
-            ProviderFactory providerFactory
+        String name,
+        AuthenticationContainer authenticationContainer,
+        AuthenticationSupporter authenticationSupporter,
+        ProviderFactory providerFactory
     ) {
         this.name = name;
         this.authenticationContainer = authenticationContainer;

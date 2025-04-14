@@ -36,10 +36,10 @@ public abstract class DependencyReportsPlugin implements Plugin<Project> {
             tasks.register("listResolvedArtifacts", ListResolvedArtifacts.class, task -> {
 
 // tag::listResolvedArtifacts[]
-Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
-Provider<Set<ResolvedArtifactResult>> artifacts = runtimeClasspath.getIncoming().getArtifacts().getResolvedArtifacts();
+                Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
+                Provider<Set<ResolvedArtifactResult>> artifacts = runtimeClasspath.getIncoming().getArtifacts().getResolvedArtifacts();
 
-task.getArtifactIds().set(artifacts.map(new IdExtractor()));
+                task.getArtifactIds().set(artifacts.map(new IdExtractor()));
 
 // end::listResolvedArtifacts[]
 
@@ -52,11 +52,11 @@ task.getArtifactIds().set(artifacts.map(new IdExtractor()));
             tasks.register("graphResolvedComponents", GraphResolvedComponents.class, task -> {
 
 // tag::graphResolvedComponents[]
-Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
+                Configuration runtimeClasspath = configurations.getByName("runtimeClasspath");
 
-task.getRootComponent().set(
-    runtimeClasspath.getIncoming().getResolutionResult().getRootComponent()
-);
+                task.getRootComponent().set(
+                    runtimeClasspath.getIncoming().getResolutionResult().getRootComponent()
+                );
 // end::graphResolvedComponents[]
 
                 task.getOutputFile().set(layout.getBuildDirectory().file(task.getName() + "/report.txt"));
@@ -76,14 +76,14 @@ task.getRootComponent().set(
         });
     }
 
-// tag::listResolvedArtifacts[]
-static class IdExtractor
-    implements Transformer<List<ComponentArtifactIdentifier>, Collection<ResolvedArtifactResult>> {
-    @Override
-    public List<ComponentArtifactIdentifier> transform(Collection<ResolvedArtifactResult> artifacts) {
-        return artifacts.stream().map(ResolvedArtifactResult::getId).collect(Collectors.toList());
+    // tag::listResolvedArtifacts[]
+    static class IdExtractor
+        implements Transformer<List<ComponentArtifactIdentifier>, Collection<ResolvedArtifactResult>> {
+        @Override
+        public List<ComponentArtifactIdentifier> transform(Collection<ResolvedArtifactResult> artifacts) {
+            return artifacts.stream().map(ResolvedArtifactResult::getId).collect(Collectors.toList());
+        }
     }
-}
 // end::listResolvedArtifacts[]
 
     static class VariantExtractor implements Transformer<List<ResolvedVariantResult>, Collection<ResolvedArtifactResult>> {

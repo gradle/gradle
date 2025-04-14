@@ -24,9 +24,9 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
 public abstract class CompositeTestResults extends TestResultModel {
     private final CompositeTestResults parent;
-    private int tests;
     private final Set<TestResult> failures = new TreeSet<TestResult>();
     private final Set<TestResult> ignored = new TreeSet<TestResult>();
+    private int tests;
     private long duration;
 
     protected CompositeTestResults(CompositeTestResults parent) {

@@ -222,13 +222,13 @@ checkstyle {
     private List<List<String>> parseTable(Element table) {
         def result = []
         def rows = table.select("tr")
-        rows.each {row ->
+        rows.each { row ->
             def rowResult = []
             def cols = row.select("td")
             if (cols.isEmpty()) {
                 cols = row.select("th")
             }
-            cols.each {col ->
+            cols.each { col ->
                 rowResult << col.text()
             }
             result << rowResult

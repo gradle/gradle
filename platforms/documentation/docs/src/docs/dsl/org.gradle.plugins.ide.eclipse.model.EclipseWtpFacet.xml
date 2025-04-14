@@ -5,7 +5,8 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> and <literal>war</literal> plugins</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>war</literal> plugins
+                    </td>
                 </tr>
             </thead>
             <tr>

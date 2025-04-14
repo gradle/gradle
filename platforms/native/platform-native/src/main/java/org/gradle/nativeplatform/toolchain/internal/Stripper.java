@@ -46,7 +46,7 @@ public class Stripper extends AbstractCompiler<StripperSpec> {
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) { }
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {}
 
     private static class StripperArgsTransformer implements ArgsTransformer<StripperSpec> {
         @Override

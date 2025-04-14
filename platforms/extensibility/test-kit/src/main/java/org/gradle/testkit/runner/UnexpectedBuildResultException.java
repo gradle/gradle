@@ -19,8 +19,8 @@ package org.gradle.testkit.runner;
 /**
  * Base class for {@link UnexpectedBuildFailure} and {@link UnexpectedBuildSuccess}.
  *
- * @since 2.9
  * @see BuildResult
+ * @since 2.9
  */
 public abstract class UnexpectedBuildResultException extends RuntimeException {
 

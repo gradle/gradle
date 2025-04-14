@@ -43,13 +43,13 @@ import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginR
 abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
 
     @Inject
-    protected abstract ProviderFactory getProviderFactory();
-
-    @Inject
     public IvyPluginPublishingPlugin() {
         // This class is not visible outside of this package.
         // To instantiate this plugin, we need a public constructor.
     }
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 
     @Override
     public void apply(Project project) {

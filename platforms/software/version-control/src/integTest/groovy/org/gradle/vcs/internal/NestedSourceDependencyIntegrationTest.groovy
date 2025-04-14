@@ -419,11 +419,11 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void vcsMapping(String module, GitFileRepository repo, List<String> plugins=[]) {
+    void vcsMapping(String module, GitFileRepository repo, List<String> plugins = []) {
         vcsMapping(settingsFile, module, repo.getWorkTree().name, plugins)
     }
 
-    void nestedVcsMapping(GitFileRepository repo, String module, GitFileRepository target, List<String> plugins=[]) {
+    void nestedVcsMapping(GitFileRepository repo, String module, GitFileRepository target, List<String> plugins = []) {
         vcsMapping(repo.file('settings.gradle'), module, TextUtil.normaliseFileSeparators(file(target.workTree.name).absolutePath), plugins)
         repo.commit("add source mapping", 'settings.gradle')
     }

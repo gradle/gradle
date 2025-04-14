@@ -21,7 +21,7 @@ public class DefaultExcludeRule implements ExcludeRule {
     private String group;
     private String module;
 
-    public DefaultExcludeRule(){
+    public DefaultExcludeRule() {
     }
 
     public DefaultExcludeRule(String group, String module) {

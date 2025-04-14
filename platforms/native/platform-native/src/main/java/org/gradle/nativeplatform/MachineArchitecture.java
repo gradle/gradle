@@ -28,24 +28,14 @@ import org.gradle.api.tasks.Input;
  */
 public abstract class MachineArchitecture implements Named {
     public static final Attribute<MachineArchitecture> ARCHITECTURE_ATTRIBUTE = Attribute.of("org.gradle.native.architecture", MachineArchitecture.class);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Input
-    public abstract String getName();
-
     /**
      * The intel x86 32-bit architecture
      */
     public static final String X86 = "x86";
-
     /**
      * The intel x86 64-bit architecture
      */
     public static final String X86_64 = "x86-64";
-
     /**
      * The ARM 64-bit architecture
      *
@@ -53,4 +43,11 @@ public abstract class MachineArchitecture implements Named {
      */
     @Incubating
     public static final String ARM64 = "aarch64";
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Input
+    public abstract String getName();
 }

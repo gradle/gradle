@@ -65,7 +65,10 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
      * Used to strip this message from the logs during integration testing.
      */
     public static final String EXPIRE_DAEMON_MESSAGE = "The Daemon will expire ";
-
+    private final Lock statusLock = new ReentrantLock();
+    private final DaemonHealthStats stats;
+    private final GarbageCollectorMonitoringStrategy strategy;
+    private final Logger logger;
     /**
      * Used to determine if a status of a given severity has already been logged.
      * We use this to ensure we don't print the same warning multiple times to the user
@@ -73,11 +76,6 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
      * memory condition persists.
      */
     private DaemonExpirationStatus mostSevereStatus = DO_NOT_EXPIRE;
-    private final Lock statusLock = new ReentrantLock();
-
-    private final DaemonHealthStats stats;
-    private final GarbageCollectorMonitoringStrategy strategy;
-    private final Logger logger;
 
     public HealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
         this(stats, strategy, LoggerFactory.getLogger(HealthExpirationStrategy.class));

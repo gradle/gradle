@@ -1,27 +1,34 @@
-
 model {
     repositories {
         libs(PrebuiltLibraries) {
-            <% prebuiltLibraries.times { %>
-            prebuilt$it {
-                headers.with {
-                    srcDir "prebuilt/lib$it/include"
-                    include "**/*.h"
+            < % prebuiltLibraries.times {
+                % >
+                prebuilt$it {
+                    headers.with {
+                        srcDir "prebuilt/lib$it/include"
+                        include "**/*.h"
+                    }
+                    // TODO: Define library locations (and generate something?)
                 }
-                // TODO: Define library locations (and generate something?)
-            }
-            <% } %>
+                    < %
+            } % >
 
-            commonHeaders {
-                headers.with {
-                    <% if (overlapWithOutput) { %>
-                        srcDir "\$rootDir"
-                    <% } else { %>
-                        srcDir "\$rootDir/common"
-                    <% } %>
-                    include "**/*.h"
+                commonHeaders {
+                    headers.with {
+                        < % if (overlapWithOutput) {
+                            % >
+                            srcDir "\$rootDir"
+                                < %
+                        } else {
+                            {
+                                % >
+                                srcDir "\$rootDir/common"
+                                    < %
+                            } % >
+                                include "**/*.h"
+                        }
+                    }
                 }
-            }
         }
     }
 }

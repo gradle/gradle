@@ -42,12 +42,6 @@ public abstract class Actions {
         return (Action<T>) DO_NOTHING;
     }
 
-    private static class NullAction<T> implements Action<T>, Serializable {
-        @Override
-        public void execute(T t) {
-        }
-    }
-
     /**
      * Creates an action that will call each of the given actions in order.
      *
@@ -100,6 +94,64 @@ public abstract class Actions {
         return composite(filtered);
     }
 
+    /**
+     * Wraps the given runnable in an {@link Action}, where the execute implementation runs the runnable ignoring the argument.
+     *
+     * If the given runnable is {@code null}, the action returned is effectively a noop.
+     *
+     * @param runnable The runnable to run for the action execution.
+     * @return An action that runs the given runnable, ignoring the argument.
+     */
+    public static <T> Action<T> toAction(@Nullable Runnable runnable) {
+        //TODO SF this method accepts Closure instance as parameter but does not work correctly for it
+        if (runnable == null) {
+            return Actions.doNothing();
+        } else {
+            return new RunnableActionAdapter<T>(runnable);
+        }
+    }
+
+    /**
+     * Creates a new action that only forwards arguments on to the given filter if they are satisfied by the given spec.
+     *
+     * @param action The action to delegate filtered items to
+     * @param filter The spec to use to filter items by
+     * @param <T> The type of item the action expects
+     * @return A new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
+     */
+    public static <T> Action<T> filter(Action<? super T> action, Spec<? super T> filter) {
+        return new FilteredAction<T>(action, filter);
+    }
+
+    public static <T> T with(T instance, Action<? super T> action) {
+        action.execute(instance);
+        return instance;
+    }
+
+    public static <T> Action<T> add(final Collection<? super T> collection) {
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                collection.add(t);
+            }
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Action<T> set(Action<T>... actions) {
+        return ImmutableActionSet.of(actions);
+    }
+
+    private static boolean doesSomething(Action<?> action) {
+        return action != DO_NOTHING;
+    }
+
+    private static class NullAction<T> implements Action<T>, Serializable {
+        @Override
+        public void execute(T t) {
+        }
+    }
+
     private static class CompositeAction<T> implements Action<T> {
         private final List<? extends Action<? super T>> actions;
 
@@ -138,23 +190,6 @@ public abstract class Actions {
         }
     }
 
-    /**
-     * Wraps the given runnable in an {@link Action}, where the execute implementation runs the runnable ignoring the argument.
-     *
-     * If the given runnable is {@code null}, the action returned is effectively a noop.
-     *
-     * @param runnable The runnable to run for the action execution.
-     * @return An action that runs the given runnable, ignoring the argument.
-     */
-    public static <T> Action<T> toAction(@Nullable Runnable runnable) {
-        //TODO SF this method accepts Closure instance as parameter but does not work correctly for it
-        if (runnable == null) {
-            return Actions.doNothing();
-        } else {
-            return new RunnableActionAdapter<T>(runnable);
-        }
-    }
-
     private static class RunnableActionAdapter<T> implements Action<T> {
         private final Runnable runnable;
 
@@ -173,18 +208,6 @@ public abstract class Actions {
         }
     }
 
-    /**
-     * Creates a new action that only forwards arguments on to the given filter if they are satisfied by the given spec.
-     *
-     * @param action The action to delegate filtered items to
-     * @param filter The spec to use to filter items by
-     * @param <T> The type of item the action expects
-     * @return A new action that only forwards arguments on to the given filter is they are satisfied by the given spec.
-     */
-    public static <T> Action<T> filter(Action<? super T> action, Spec<? super T> filter) {
-        return new FilteredAction<T>(action, filter);
-    }
-
     private static class FilteredAction<T> implements Action<T> {
         private final Spec<? super T> filter;
         private final Action<? super T> action;
@@ -200,28 +223,5 @@ public abstract class Actions {
                 action.execute(t);
             }
         }
-    }
-
-    public static <T> T with(T instance, Action<? super T> action) {
-        action.execute(instance);
-        return instance;
-    }
-
-    public static <T> Action<T> add(final Collection<? super T> collection) {
-        return new Action<T>() {
-            @Override
-            public void execute(T t) {
-                collection.add(t);
-            }
-        };
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> Action<T> set(Action<T>... actions) {
-        return ImmutableActionSet.of(actions);
-    }
-
-    private static boolean doesSomething(Action<?> action) {
-        return action != DO_NOTHING;
     }
 }

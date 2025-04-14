@@ -49,14 +49,14 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     private final ObjectFactory objectFactory;
     private final MavenPublicationCoordinates mavenPublicationCoordinates;
     private final List<MavenPomLicense> licenses = new ArrayList<>();
-    private MavenPomOrganization organization;
     private final List<MavenPomDeveloper> developers = new ArrayList<>();
     private final List<MavenPomContributor> contributors = new ArrayList<>();
+    private final List<MavenPomMailingList> mailingLists = new ArrayList<>();
+    private MavenPomOrganization organization;
     private MavenPomScm scm;
     private MavenPomIssueManagement issueManagement;
     private MavenPomCiManagement ciManagement;
     private MavenPomDistributionManagementInternal distributionManagement;
-    private final List<MavenPomMailingList> mailingLists = new ArrayList<>();
 
     @Inject
     public DefaultMavenPom(ObjectFactory objectFactory) {

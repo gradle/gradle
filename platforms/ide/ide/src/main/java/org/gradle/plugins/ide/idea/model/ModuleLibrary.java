@@ -48,6 +48,16 @@ public class ModuleLibrary implements Dependency {
         this.exported = false;
     }
 
+    private static boolean scopeEquals(String lhs, String rhs) {
+        if ("COMPILE".equals(lhs)) {
+            return isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
+        } else if ("COMPILE".equals(rhs)) {
+            return isNullOrEmpty(lhs);
+        } else {
+            return Objects.equal(lhs, rhs);
+        }
+    }
+
     /**
      * A set of Jar files or directories containing compiled code.
      */
@@ -173,16 +183,6 @@ public class ModuleLibrary implements Dependency {
             && Objects.equal(javadoc, that.javadoc)
             && scopeEquals(scope, that.scope)
             && Objects.equal(sources, that.sources);
-    }
-
-    private static boolean scopeEquals(String lhs, String rhs) {
-        if ("COMPILE".equals(lhs)) {
-            return isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
-        } else if ("COMPILE".equals(rhs)) {
-            return isNullOrEmpty(lhs);
-        } else {
-            return Objects.equal(lhs, rhs);
-        }
     }
 
     @Override

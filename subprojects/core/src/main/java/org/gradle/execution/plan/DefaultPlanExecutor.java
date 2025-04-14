@@ -183,6 +183,43 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         });
     }
 
+    /**
+     * Implementations must be thread safe.
+     */
+    private interface ExecutorStats {
+        void report();
+
+        WorkerStats startWorker();
+    }
+
+    /**
+     * Implementations are only used by the worker thead and do not need to be thread safe.
+     */
+    private interface WorkerState {
+        void startWaitingForNextItem();
+
+        void finishWaitingForNextItem();
+    }
+
+    /**
+     * Implementations are only used by the worker thead and do not need to be thread safe.
+     */
+    private interface WorkerStats extends WorkerState {
+        void startSelect();
+
+        void finishSelect();
+
+        void startExecute();
+
+        void finishExecute();
+
+        void startMarkFinished();
+
+        void finishMarkFinished();
+
+        void finish();
+    }
+
     private static class PlanDetails {
         final WorkSource<Object> source;
         final Action<Object> worker;
@@ -208,8 +245,8 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     private static class MergedQueues implements Closeable {
         private final ResourceLockCoordinationService coordinationService;
         private final boolean autoFinish;
-        private boolean finished;
         private final LinkedList<PlanDetails> queues = new LinkedList<>();
+        private boolean finished;
 
         public MergedQueues(ResourceLockCoordinationService coordinationService, boolean autoFinish) {
             this.coordinationService = coordinationService;
@@ -333,11 +370,11 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
     private static class ExecutorWorker implements Runnable {
         private final MergedQueues queue;
-        private WorkerLease workerLease;
         private final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
         private final WorkerLeaseService workerLeaseService;
         private final WorkerStats stats;
+        private WorkerLease workerLease;
 
         private ExecutorWorker(
             MergedQueues queue,
@@ -484,43 +521,6 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                 stats.finishMarkFinished();
             }
         }
-    }
-
-    /**
-     * Implementations must be thread safe.
-     */
-    private interface ExecutorStats {
-        void report();
-
-        WorkerStats startWorker();
-    }
-
-    /**
-     * Implementations are only used by the worker thead and do not need to be thread safe.
-     */
-    private interface WorkerState {
-        void startWaitingForNextItem();
-
-        void finishWaitingForNextItem();
-    }
-
-    /**
-     * Implementations are only used by the worker thead and do not need to be thread safe.
-     */
-    private interface WorkerStats extends WorkerState {
-        void startSelect();
-
-        void finishSelect();
-
-        void startExecute();
-
-        void finishExecute();
-
-        void startMarkFinished();
-
-        void finishMarkFinished();
-
-        void finish();
     }
 
     private static class ExecutorState implements ExecutorStats {

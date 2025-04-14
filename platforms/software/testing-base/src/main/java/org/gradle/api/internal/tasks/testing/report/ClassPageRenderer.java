@@ -44,7 +44,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             .characters(" > ")
             .startElement("a").attribute("href", getResults().getUrlTo(getResults().getPackageResults())).characters(getResults().getPackageResults().getName()).endElement()
             .characters(" > " + getResults().getSimpleName())
-        .endElement();
+            .endElement();
     }
 
     private void renderTests(SimpleHtmlWriter htmlWriter) throws IOException {
@@ -151,8 +151,8 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                         .startElement("pre")
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdOut, htmlWriter);
-                        htmlWriter.endElement()
-                    .endElement();
+                    htmlWriter.endElement()
+                        .endElement();
                 }
             });
         }
@@ -161,11 +161,11 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 @Override
                 protected void doExecute(SimpleHtmlWriter element) throws Exception {
                     element.startElement("span").attribute("class", "code")
-                    .startElement("pre")
+                        .startElement("pre")
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdErr, element);
                     element.endElement()
-                    .endElement();
+                        .endElement();
                 }
             });
         }

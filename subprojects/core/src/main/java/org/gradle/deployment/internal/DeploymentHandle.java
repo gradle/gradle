@@ -34,6 +34,7 @@ public interface DeploymentHandle {
 
     /**
      * Starts the given deployment.
+     *
      * @param deployment the deployment to be started
      */
     void start(Deployment deployment);

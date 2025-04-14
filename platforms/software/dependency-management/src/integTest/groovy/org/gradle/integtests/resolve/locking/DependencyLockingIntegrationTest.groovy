@@ -216,7 +216,7 @@ dependencies {
 }
 """
         def lockFile = testDirectory.file('gradle', 'lock.file')
-        LockfileFixture.createCustomLockfile(lockFile,'lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+        LockfileFixture.createCustomLockfile(lockFile, 'lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
 
         when:
         succeeds 'dependencies'

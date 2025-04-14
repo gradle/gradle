@@ -1,6 +1,7 @@
 // The parameters for a single unit of work
 interface ReverseParameters extends WorkParameters {
     RegularFileProperty getFileToReverse()
+
     DirectoryProperty getDestinationDir()
 }
 

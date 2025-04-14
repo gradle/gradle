@@ -44,10 +44,10 @@ import java.util.Collection;
 import java.util.List;
 
 abstract class UnparameterizedBuildController extends HasCompatibilityMapping implements BuildController {
+    protected final VersionDetails gradleVersion;
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
     private final ModelMapping modelMapping;
-    protected final VersionDetails gradleVersion;
     private final File rootDir;
 
     public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {

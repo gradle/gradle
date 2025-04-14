@@ -57,12 +57,10 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
             return OutputEventListener.NO_OP;
         }
     };
-
-    private TextStreamOutputEventListener stdoutListener;
-
     private final DefaultUserInputReceiver userInput = new DefaultUserInputReceiver();
     protected final OutputEventRenderer renderer = makeOutputEventRenderer();
     protected final OutputEventListenerManager outputEventListenerManager = new OutputEventListenerManager(renderer);
+    private TextStreamOutputEventListener stdoutListener;
 
     /**
      * Creates a set of logging services which are suitable to use globally in a process. In particular:

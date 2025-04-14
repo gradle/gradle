@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import static org.gradle.api.problems.Severity.ERROR
 import static org.gradle.api.problems.Severity.WARNING
 
-trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
+trait RuntimePluginValidationTrait implements CommonPluginValidationTrait {
     @Override
     def setup() {
         expectReindentedValidationMessage()

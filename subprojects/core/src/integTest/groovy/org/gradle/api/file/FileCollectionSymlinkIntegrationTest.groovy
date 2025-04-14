@@ -403,10 +403,10 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
             solutions == [
                 "Make sure the ${inputNameLc} exists before the task is called",
                 "Make sure that the task which produces the $inputNameLc is declared as an input",
-            ].collect{it.toString() }
+            ].collect { it.toString() }
             additionalData.asMap == [
-                'typeName' : 'CustomTask',
-                'propertyName' : 'brokenInputFile',
+                'typeName': 'CustomTask',
+                'propertyName': 'brokenInputFile',
             ]
         }
 

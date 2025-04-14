@@ -28,18 +28,6 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public class WindowsOsMemoryInfo implements OsMemoryInfo {
 
-    @Override
-    public OsMemoryStatus getOsSnapshot() {
-        try {
-            Memory memory = NativeServices.getInstance().get(Memory.class);
-            return snapshotFromMemoryInfo(memory.getMemoryInfo());
-        } catch (NativeException ex) {
-            throw new UnsupportedOperationException("Unable to get system memory", ex);
-        } catch (NativeIntegrationException ex) {
-            throw new UnsupportedOperationException("Unable to get system memory", ex);
-        }
-    }
-
     @VisibleForTesting
     static OsMemoryStatus snapshotFromMemoryInfo(MemoryInfo memoryInfo) {
         if (memoryInfo instanceof WindowsMemoryInfo) {
@@ -59,5 +47,17 @@ public class WindowsOsMemoryInfo implements OsMemoryInfo {
 
     private static long availableCommitMemory(WindowsMemoryInfo windowsMemoryInfo) {
         return windowsMemoryInfo.getCommitLimit() - windowsMemoryInfo.getCommitTotal();
+    }
+
+    @Override
+    public OsMemoryStatus getOsSnapshot() {
+        try {
+            Memory memory = NativeServices.getInstance().get(Memory.class);
+            return snapshotFromMemoryInfo(memory.getMemoryInfo());
+        } catch (NativeException ex) {
+            throw new UnsupportedOperationException("Unable to get system memory", ex);
+        } catch (NativeIntegrationException ex) {
+            throw new UnsupportedOperationException("Unable to get system memory", ex);
+        }
     }
 }

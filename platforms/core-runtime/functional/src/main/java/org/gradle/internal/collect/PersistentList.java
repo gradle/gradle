@@ -32,6 +32,34 @@ import java.util.function.Consumer;
  * Uses Cons/Nil as building blocks.
  */
 public abstract class PersistentList<T> implements Iterable<T> {
+    private static final PersistentList<Object> NIL = new PersistentList<Object>() {
+        @Override
+        public void forEach(Consumer<? super Object> consumer) {
+        }
+
+        @Override
+        public PersistentList<Object> plus(Object element) {
+            return new Cons<>(element, this);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "Nil";
+        }
+
+        @Override
+        public Iterator<Object> iterator() {
+            return Collections.emptyIterator();
+        }
+    };
+
+    private PersistentList() {}
+
     @SuppressWarnings("unchecked")
     public static <T> PersistentList<T> of() {
         return (PersistentList<T>) NIL;
@@ -62,34 +90,6 @@ public abstract class PersistentList<T> implements Iterable<T> {
     public abstract PersistentList<T> plus(T element);
 
     public abstract boolean isEmpty();
-
-    private PersistentList() {}
-
-    private static final PersistentList<Object> NIL = new PersistentList<Object>() {
-        @Override
-        public void forEach(Consumer<? super Object> consumer) {
-        }
-
-        @Override
-        public PersistentList<Object> plus(Object element) {
-            return new Cons<>(element, this);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        @Override
-        public String toString() {
-            return "Nil";
-        }
-
-        @Override
-        public Iterator<Object> iterator() {
-            return Collections.emptyIterator();
-        }
-    };
 
     private static class Cons<T> extends PersistentList<T> {
         private final T head;

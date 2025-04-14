@@ -35,24 +35,15 @@ import static java.lang.String.format;
 import static org.gradle.internal.IoActions.uncheckedClose;
 
 public final class DefaultGradleVersion extends GradleVersion {
+    public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
+    public static final String VERSION_OVERRIDE_VAR = "GRADLE_VERSION_OVERRIDE";
+    public static final String VERSION_NUMBER_PROPERTY = "versionNumber";
     private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
     private static final int STAGE_UNKNOWN = 1;
     private static final int STAGE_PREVIEW = 2;
     private static final int STAGE_RC = 3;
-
-    private final String version;
-    private final int majorPart;
-    private final String buildTime;
-    private final String commitId;
-    private final Long snapshot;
-    private final String versionPart;
-    private final Stage stage;
     private static final DefaultGradleVersion CURRENT;
-
-    public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
-    public static final String VERSION_OVERRIDE_VAR = "GRADLE_VERSION_OVERRIDE";
-    public static final String VERSION_NUMBER_PROPERTY = "versionNumber";
 
     static {
         URL resource = DefaultGradleVersion.class.getResource(RESOURCE_NAME);
@@ -92,18 +83,13 @@ public final class DefaultGradleVersion extends GradleVersion {
         }
     }
 
-    public static DefaultGradleVersion current() {
-        return CURRENT;
-    }
-
-    /**
-     * Parses the given string into a GradleVersion.
-     *
-     * @throws IllegalArgumentException On unrecognized version string.
-     */
-    public static DefaultGradleVersion version(String version) throws IllegalArgumentException {
-        return new DefaultGradleVersion(version, null, null);
-    }
+    private final String version;
+    private final int majorPart;
+    private final String buildTime;
+    private final String commitId;
+    private final Long snapshot;
+    private final String versionPart;
+    private final Stage stage;
 
     private DefaultGradleVersion(String version, String buildTime, String commitId) {
         this.version = version;
@@ -119,6 +105,19 @@ public final class DefaultGradleVersion extends GradleVersion {
         this.commitId = setOrParseCommitId(commitId, matcher);
         this.stage = parseStage(matcher);
         this.snapshot = parseSnapshot(matcher);
+    }
+
+    public static DefaultGradleVersion current() {
+        return CURRENT;
+    }
+
+    /**
+     * Parses the given string into a GradleVersion.
+     *
+     * @throws IllegalArgumentException On unrecognized version string.
+     */
+    public static DefaultGradleVersion version(String version) throws IllegalArgumentException {
+        return new DefaultGradleVersion(version, null, null);
     }
 
     private Long parseSnapshot(Matcher matcher) {

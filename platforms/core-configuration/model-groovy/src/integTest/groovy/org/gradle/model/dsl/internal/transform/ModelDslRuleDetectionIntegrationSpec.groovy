@@ -84,11 +84,11 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         path << [
-                "a",
-                "a.b",
-                "a.b.c",
-                "a.b.c.d",
-                'a."b".c."d"'
+            "a",
+            "a.b",
+            "a.b.c",
+            "a.b.c.d",
+            'a."b".c."d"'
         ]
     }
 
@@ -110,11 +110,11 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         pathCode << [
-                '"a" + "a"',
-                'foo.bar().baz',
-                'foo["bar"]',
-                'foo["bar"].baz',
-                'def a = b; b',
+            '"a" + "a"',
+            'foo.bar().baz',
+            'foo["bar"]',
+            'foo["bar"].baz',
+            'def a = b; b',
         ]
     }
 
@@ -134,9 +134,9 @@ class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         code << [
-                'def a = "foo"',
-                'if (true) {}',
-                'try {} catch(e) {}',
+            'def a = "foo"',
+            'if (true) {}',
+            'try {} catch(e) {}',
         ]
     }
 

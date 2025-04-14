@@ -814,7 +814,7 @@ Secondary Variants (*)
         def builtMainClassesPath = file('build/classes/java/main').getRelativePathFromBase()
         def builtMainResourcesPath = file('build/resources/main').getRelativePathFromBase()
         def sourceMainJavaPath = file('src/main/java').getRelativePathFromBase()
-        def sourceMainResourcePath = file( 'src/main/resources').getRelativePathFromBase()
+        def sourceMainResourcePath = file('src/main/resources').getRelativePathFromBase()
         def resultsBinPath = file('build/test-results/test/binary').getRelativePathFromBase()
 
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------

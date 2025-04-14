@@ -135,7 +135,7 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
             lowerBound = VersionNumber.parse('2.1.9')
         }
 
-        return [ LOCAL_GROOVY ] +
+        return [LOCAL_GROOVY] +
             // Leave this at 2.4.7 even if Groovy is upgraded (there is a known problem with 2.4.7 we want to be sure to test)
             GROOVY_2_4_7ifSupported +
             GroovyCoverage.SUPPORTED_BY_JDK.findAll {
@@ -144,10 +144,11 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static Set<String> getGROOVY_2_4_7ifSupported() {
-        return VersionNumber.parse(GroovyCoverage.SUPPORTED_BY_JDK.min()) <= VersionNumber.parse("2.4.7") ? [ "2.4.7" ] : []
+        return VersionNumber.parse(GroovyCoverage.SUPPORTED_BY_JDK.min()) <= VersionNumber.parse("2.4.7") ? ["2.4.7"] : []
     }
 
-    @Requires([UnitTestPreconditions.Jdk11OrLater, IntegTestPreconditions.NotConfigCached]) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
+    @Requires([UnitTestPreconditions.Jdk11OrLater, IntegTestPreconditions.NotConfigCached])
+    // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         initGitDir()

@@ -103,7 +103,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
 
         expect:
         def decorated = create(AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0), BeanWithServiceGetters)
-        def undecorated = create(AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(),0), BeanWithServiceGetters)
+        def undecorated = create(AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0), BeanWithServiceGetters)
         decorated.class != undecorated.class
         decorated instanceof ExtensionAware
         !(undecorated instanceof ExtensionAware)

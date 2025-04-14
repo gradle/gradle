@@ -83,9 +83,11 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     private
     fun findKotlinFunctionGetter(receiverClass: KClass<*>, name: String) =
         receiverClass.memberFunctions.find { function -> function.name == getterName(name) && function.parameters.size == 1 && function.visibility == KVisibility.PUBLIC }
-            ?.let { function -> DeclarativeRuntimePropertyGetter {
-                InstanceAndPublicType.of(function.call(it), function.returnType.jvmErasure)
-            } }
+            ?.let { function ->
+                DeclarativeRuntimePropertyGetter {
+                    InstanceAndPublicType.of(function.call(it), function.returnType.jvmErasure)
+                }
+            }
 
     private
     fun findKotlinFunctionSetter(receiverClass: KClass<*>, name: String) =
@@ -95,9 +97,11 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     private
     fun findJavaGetter(receiverClass: KClass<*>, name: String) =
         receiverClass.java.methods.find { it.name == getterName(name) && it.parameters.isEmpty() && it.modifiers.and(Modifier.PUBLIC) != 0 }
-            ?.let { method -> DeclarativeRuntimePropertyGetter {
-                InstanceAndPublicType.of(method.invoke(it), method.returnType.kotlin)
-            } }
+            ?.let { method ->
+                DeclarativeRuntimePropertyGetter {
+                    InstanceAndPublicType.of(method.invoke(it), method.returnType.kotlin)
+                }
+            }
 
     private
     fun findJavaSetter(receiverClass: KClass<*>, name: String) =

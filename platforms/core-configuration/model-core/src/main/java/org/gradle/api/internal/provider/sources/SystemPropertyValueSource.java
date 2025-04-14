@@ -20,8 +20,6 @@ import org.jspecify.annotations.Nullable;
 
 public abstract class SystemPropertyValueSource extends AbstractPropertyValueSource<SystemPropertyValueSource.Parameters> {
 
-    public interface Parameters extends AbstractPropertyValueSource.Parameters {}
-
     @Nullable
     @Override
     public String obtain() {
@@ -36,4 +34,6 @@ public abstract class SystemPropertyValueSource extends AbstractPropertyValueSou
     public String getDisplayName() {
         return String.format("system property '%s'", propertyNameOrNull());
     }
+
+    public interface Parameters extends AbstractPropertyValueSource.Parameters {}
 }

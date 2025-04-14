@@ -23,5 +23,5 @@ import org.gradle.platform.base.Application;
  */
 @Incubating
 public interface NativeExecutable extends Application {
-    
+
 }

@@ -30,7 +30,9 @@ public interface CompilerMetaDataProvider<T extends CompilerMetadata> {
 
     interface CompilerExecSpec {
         CompilerExecSpec environment(String key, String value);
+
         CompilerExecSpec executable(File executable);
+
         CompilerExecSpec args(Iterable<String> args);
     }
 }

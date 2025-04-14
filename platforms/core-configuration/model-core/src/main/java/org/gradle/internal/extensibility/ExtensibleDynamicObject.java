@@ -41,17 +41,12 @@ import java.util.Map;
 @SuppressWarnings("deprecation")
 public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements org.gradle.api.internal.HasConvention {
 
-    public enum Location {
-        BeforeConvention, AfterConvention
-    }
-
     private final AbstractDynamicObject dynamicDelegate;
-    private DynamicObject parent;
     private final org.gradle.api.plugins.Convention convention;
+    private final DynamicObject extraPropertiesDynamicObject;
+    private DynamicObject parent;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
-    private final DynamicObject extraPropertiesDynamicObject;
-
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
         this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instanceGenerator));
     }
@@ -182,6 +177,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
                 return dynamicDelegate.getDisplayName();
             }
         };
+    }
+
+    public enum Location {
+        BeforeConvention, AfterConvention
     }
 
     private class InheritedDynamicObject implements DynamicObject {

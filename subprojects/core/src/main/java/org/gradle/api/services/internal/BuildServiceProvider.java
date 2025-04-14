@@ -50,51 +50,12 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
     }
 
-    public interface Listener {
-        Listener EMPTY = provider -> {
-        };
-
-        void beforeGet(BuildServiceProvider<?, ?> provider);
-    }
-
-    @Override
-    public boolean isImmutable() {
-        return true;
-    }
-
-    @Override
-    public Object unpackState() {
-        throw new UnsupportedOperationException("Build services cannot be serialized.");
-    }
-
-    @Override
-    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        return ExecutionTimeValue.changingValue(this);
-    }
-
-    public void maybeStop() {
-        // subclasses to override
-    }
-
     @SuppressWarnings("unused") // Used via instrumentation
     public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(@NonNull DefaultProperty<T> property, ServiceLookup serviceLookup, String buildServiceName) {
         BuildServiceRegistryInternal buildServiceRegistry = (BuildServiceRegistryInternal) serviceLookup.get(BuildServiceRegistry.class);
         BuildServiceProvider<T, P> consumer = Cast.uncheckedCast(buildServiceRegistry.consume(buildServiceName, property.getType()));
         property.convention(consumer);
     }
-
-    public abstract BuildServiceDetails<T, P> getServiceDetails();
-
-    public abstract String getName();
-
-    @Override
-    @NonNull
-    public abstract Class<T> getType();
-
-    /**
-     * Returns the identifier for the build that owns this service.
-     */
-    public abstract BuildIdentifier getBuildIdentifier();
 
     /**
      * Are the given providers referring to the same service provider?
@@ -128,6 +89,38 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     }
 
     @Override
+    public boolean isImmutable() {
+        return true;
+    }
+
+    @Override
+    public Object unpackState() {
+        throw new UnsupportedOperationException("Build services cannot be serialized.");
+    }
+
+    @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        return ExecutionTimeValue.changingValue(this);
+    }
+
+    public void maybeStop() {
+        // subclasses to override
+    }
+
+    public abstract BuildServiceDetails<T, P> getServiceDetails();
+
+    public abstract String getName();
+
+    @Override
+    @NonNull
+    public abstract Class<T> getType();
+
+    /**
+     * Returns the identifier for the build that owns this service.
+     */
+    public abstract BuildIdentifier getBuildIdentifier();
+
+    @Override
     public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
         Class<T> selfType = getType();
         if (selfType != null && !targetType.isAssignableFrom(selfType)) {
@@ -146,5 +139,12 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
             }
         }
         return super.asSupplier(owner, targetType, sanitizer);
+    }
+
+    public interface Listener {
+        Listener EMPTY = provider -> {
+        };
+
+        void beforeGet(BuildServiceProvider<?, ?> provider);
     }
 }

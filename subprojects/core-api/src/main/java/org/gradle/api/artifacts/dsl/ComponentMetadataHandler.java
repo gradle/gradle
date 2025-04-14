@@ -117,7 +117,6 @@ public interface ComponentMetadataHandler {
      *
      * @param rule the rule to be added
      * @return this
-     *
      * @since 4.9
      */
     ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule);
@@ -129,7 +128,6 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @param configureAction the rule configuration
      * @return this
-     *
      * @since 4.9
      */
     ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
@@ -171,7 +169,6 @@ public interface ComponentMetadataHandler {
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param rule the rule to be added
      * @return this
-     *
      * @since 4.9
      */
     ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule);
@@ -182,7 +179,6 @@ public interface ComponentMetadataHandler {
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param rule the rule to be added
      * @return this
-     *
      * @since 4.9
      */
     ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);

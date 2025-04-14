@@ -99,6 +99,12 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         transition(modelGraph.getRoot(), Created, false);
     }
 
+    static void checkNodePath(ModelNodeInternal node, ModelAction action) {
+        if (!node.getPath().equals(action.getSubject().getPath())) {
+            throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), node.getPath()));
+        }
+    }
+
     @Override
     public String getProjectPath() {
         return projectPath;
@@ -186,12 +192,6 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     @Override
     public ExtractedRuleSource<?> newRuleSource(Class<? extends RuleSource> rules) {
         return ruleExtractor.extract(rules);
-    }
-
-    static void checkNodePath(ModelNodeInternal node, ModelAction action) {
-        if (!node.getPath().equals(action.getSubject().getPath())) {
-            throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), node.getPath()));
-        }
     }
 
     @Override
@@ -549,42 +549,10 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         return result.build();
     }
 
-    private class GoalGraph {
-        private final Map<NodeAtState, ModelGoal> nodeStates = new HashMap<NodeAtState, ModelGoal>();
-
-        public ModelGoal nodeAtState(NodeAtState goal) {
-            ModelGoal node = nodeStates.get(goal);
-            if (node == null) {
-                switch (goal.state) {
-                    case Registered:
-                        node = new MakeKnown(goal.path);
-                        break;
-                    case Discovered:
-                        node = new Discover(goal.path);
-                        break;
-                    case GraphClosed:
-                        node = new CloseGraph(goal);
-                        break;
-                    default:
-                        node = new ApplyActions(goal);
-                }
-                nodeStates.put(goal, node);
-            }
-            return node;
-        }
-    }
-
     /**
      * Some abstract goal that must be achieved in the model graph.
      */
     private abstract static class ModelGoal {
-        enum State {
-            NotSeen,
-            DiscoveringDependencies,
-            VisitingDependencies,
-            Achieved,
-        }
-
         public State state = State.NotSeen;
 
         /**
@@ -626,6 +594,64 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
 
         @Override
         public abstract String toString();
+
+        enum State {
+            NotSeen,
+            DiscoveringDependencies,
+            VisitingDependencies,
+            Achieved,
+        }
+    }
+
+    private abstract static class DelegatingListener extends ModelListener {
+        private final ModelSpec spec;
+
+        public DelegatingListener(ModelSpec spec) {
+            this.spec = spec;
+        }
+
+        @Override
+        @Nullable
+        public ModelPath getPath() {
+            return spec.getPath();
+        }
+
+        @Override
+        @Nullable
+        public ModelPath getParent() {
+            return spec.getParent();
+        }
+
+        @Override
+        @Nullable
+        public ModelPath getAncestor() {
+            return spec.getAncestor();
+        }
+    }
+
+    private class GoalGraph {
+        private final Map<NodeAtState, ModelGoal> nodeStates = new HashMap<NodeAtState, ModelGoal>();
+
+        public ModelGoal nodeAtState(NodeAtState goal) {
+            ModelGoal node = nodeStates.get(goal);
+            if (node == null) {
+                switch (goal.state) {
+                    case Registered:
+                        node = new MakeKnown(goal.path);
+                        break;
+                    case Discovered:
+                        node = new Discover(goal.path);
+                        break;
+                    case GraphClosed:
+                        node = new CloseGraph(goal);
+                        break;
+                    default:
+                        node = new ApplyActions(goal);
+                }
+                nodeStates.put(goal, node);
+            }
+            return node;
+        }
     }
 
     /**
@@ -1216,32 +1242,6 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
         @Override
         public String toString() {
             return "notify discovered for " + getPath() + ", state: " + state;
-        }
-    }
-
-    private abstract static class DelegatingListener extends ModelListener {
-        private final ModelSpec spec;
-
-        public DelegatingListener(ModelSpec spec) {
-            this.spec = spec;
-        }
-
-        @Override
-        @Nullable
-        public ModelPath getPath() {
-            return spec.getPath();
-        }
-
-        @Override
-        @Nullable
-        public ModelPath getParent() {
-            return spec.getParent();
-        }
-
-        @Override
-        @Nullable
-        public ModelPath getAncestor() {
-            return spec.getAncestor();
         }
     }
 }

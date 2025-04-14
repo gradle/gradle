@@ -117,7 +117,7 @@ class VersionParserTest extends Specification {
         "abc"             | [null]
         "a.b.c.1.2"       | [null, null, null, 1, 2]
         "1b2.1.2.3"       | [1, null, 2, 1, 2, 3]
-        "b1-2-3.3"        | [null, 1, 2, 3 ,3]
+        "b1-2-3.3"        | [null, 1, 2, 3, 3]
     }
 
     def parse(String v) {

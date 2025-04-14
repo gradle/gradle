@@ -41,6 +41,25 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
         this.stringInterner = stringInterner;
     }
 
+    private static void writeMetadata(InstrumentationArtifactMetadata metadata, KryoBackedEncoder encoder) {
+        encoder.writeString(metadata.getArtifactName());
+        encoder.writeString(metadata.getArtifactHash());
+    }
+
+    private static void writeTypesMap(Map<String, Set<String>> typesMap, Encoder encoder, HierarchicalNameSerializer nameSerializer) throws Exception {
+        MapSerializer<String, Set<String>> serializer = new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
+        serializer.write(encoder, typesMap);
+    }
+
+    private static InstrumentationArtifactMetadata readMetadata(KryoBackedDecoder decoder) throws EOFException {
+        return new InstrumentationArtifactMetadata(decoder.readString(), decoder.readString());
+    }
+
+    private static Map<String, Set<String>> readTypesMap(Decoder decoder, HierarchicalNameSerializer nameSerializer) throws Exception {
+        MapSerializer<String, Set<String>> serializer = new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
+        return serializer.read(decoder);
+    }
+
     @Override
     public void writeDependencyAnalysis(File output, InstrumentationDependencyAnalysis dependencyAnalysis) {
         try (KryoBackedEncoder encoder = new KryoBackedEncoder(Files.newOutputStream(output.toPath()))) {
@@ -60,16 +79,6 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
         } catch (Exception e) {
             throw new IllegalStateException("Could not serialize types map to a file: " + output, e);
         }
-    }
-
-    private static void writeMetadata(InstrumentationArtifactMetadata metadata, KryoBackedEncoder encoder) {
-        encoder.writeString(metadata.getArtifactName());
-        encoder.writeString(metadata.getArtifactHash());
-    }
-
-    private static void writeTypesMap(Map<String, Set<String>> typesMap, Encoder encoder, HierarchicalNameSerializer nameSerializer) throws Exception {
-        MapSerializer<String, Set<String>> serializer = new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
-        serializer.write(encoder, typesMap);
     }
 
     @Override
@@ -102,14 +111,5 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
         } catch (Exception e) {
             throw new IllegalStateException("Could not deserialize analysis from a file: " + input, e);
         }
-    }
-
-    private static InstrumentationArtifactMetadata readMetadata(KryoBackedDecoder decoder) throws EOFException {
-        return new InstrumentationArtifactMetadata(decoder.readString(), decoder.readString());
-    }
-
-    private static Map<String, Set<String>> readTypesMap(Decoder decoder, HierarchicalNameSerializer nameSerializer) throws Exception {
-        MapSerializer<String, Set<String>> serializer = new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
-        return serializer.read(decoder);
     }
 }

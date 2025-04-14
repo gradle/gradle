@@ -349,122 +349,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 
-    class NoValueSupplier implements CollectionSupplier<T, C> {
-        private final Value<? extends C> value;
-
-        public NoValueSupplier(Value<? extends C> value) {
-            assert value.isMissing();
-            this.value = value.asType();
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return false;
-        }
-
-        @Override
-        public Value<? extends C> calculateValue(ValueConsumer consumer) {
-            return value;
-        }
-
-        @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            // No value + something = no value.
-            return this;
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
-            return ExecutionTimeValue.missing();
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return ValueProducer.unknown();
-        }
-
-        @Override
-        public String toString() {
-            return value.toString();
-        }
-    }
-
-    private class EmptySupplier implements CollectionSupplier<T, C> {
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return true;
-        }
-
-        @Override
-        public Value<? extends C> calculateValue(ValueConsumer consumer) {
-            return Value.of(emptyCollection());
-        }
-
-        @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            // empty + something = something
-            return newSupplierOf(collector);
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
-            return ExecutionTimeValue.fixedValue(emptyCollection());
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return ValueProducer.noProducer();
-        }
-
-        @Override
-        public String toString() {
-            return "[]";
-        }
-    }
-
-    private class FixedSupplier implements CollectionSupplier<T, C> {
-        private final C value;
-        private final SideEffect<? super C> sideEffect;
-
-        public FixedSupplier(C value, @Nullable SideEffect<? super C> sideEffect) {
-            this.value = value;
-            this.sideEffect = sideEffect;
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return true;
-        }
-
-        @Override
-        public Value<? extends C> calculateValue(ValueConsumer consumer) {
-            return Value.of(value).withSideEffect(sideEffect);
-        }
-
-        @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            return newSupplierOf(new FixedValueCollector<>(value, sideEffect)).plus(collector);
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
-            return ExecutionTimeValue.fixedValue(value).withSideEffect(sideEffect);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return ValueProducer.unknown();
-        }
-
-        @Override
-        public String toString() {
-            return value.toString();
-        }
-    }
-
     private CollectingSupplier<T, C> newSupplierOf(Collector<T> value) {
         return new CollectingSupplier<>(getType(), collectionFactory, valueCollector, value);
+    }
+
+    public void replace(Transformer<? extends @Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transformation) {
+        Provider<? extends Iterable<? extends T>> newValue = transformation.transform(shallowCopy());
+        if (newValue != null) {
+            set(newValue);
+        } else {
+            set((Iterable<? extends T>) null);
+        }
     }
 
     private static class CollectingSupplier<T, C extends Collection<T>> extends AbstractCollectingSupplier<Collector<T>, C> implements CollectionSupplier<T, C> {
@@ -600,12 +495,117 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    public void replace(Transformer<? extends @Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transformation) {
-        Provider<? extends Iterable<? extends T>> newValue = transformation.transform(shallowCopy());
-        if (newValue != null) {
-            set(newValue);
-        } else {
-            set((Iterable<? extends T>) null);
+    class NoValueSupplier implements CollectionSupplier<T, C> {
+        private final Value<? extends C> value;
+
+        public NoValueSupplier(Value<? extends C> value) {
+            assert value.isMissing();
+            this.value = value.asType();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return false;
+        }
+
+        @Override
+        public Value<? extends C> calculateValue(ValueConsumer consumer) {
+            return value;
+        }
+
+        @Override
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
+            // No value + something = no value.
+            return this;
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.missing();
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
+    }
+
+    private class EmptySupplier implements CollectionSupplier<T, C> {
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public Value<? extends C> calculateValue(ValueConsumer consumer) {
+            return Value.of(emptyCollection());
+        }
+
+        @Override
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
+            // empty + something = something
+            return newSupplierOf(collector);
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(emptyCollection());
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.noProducer();
+        }
+
+        @Override
+        public String toString() {
+            return "[]";
+        }
+    }
+
+    private class FixedSupplier implements CollectionSupplier<T, C> {
+        private final C value;
+        private final SideEffect<? super C> sideEffect;
+
+        public FixedSupplier(C value, @Nullable SideEffect<? super C> sideEffect) {
+            this.value = value;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public Value<? extends C> calculateValue(ValueConsumer consumer) {
+            return Value.of(value).withSideEffect(sideEffect);
+        }
+
+        @Override
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
+            return newSupplierOf(new FixedValueCollector<>(value, sideEffect)).plus(collector);
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(value).withSideEffect(sideEffect);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
         }
     }
 }

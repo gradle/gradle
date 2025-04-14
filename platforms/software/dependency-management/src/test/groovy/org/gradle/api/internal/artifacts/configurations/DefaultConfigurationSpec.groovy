@@ -1539,10 +1539,10 @@ class DefaultConfigurationSpec extends Specification {
         t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
 
         where:
-        usageName               | changeUsage
-        'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
-        'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
-        'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
+        usageName    | changeUsage
+        'consumable' | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
+        'resolvable' | { it.setCanBeResolved(!it.isCanBeResolved()) }
+        'declarable' | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
     }
 
     def "observation changes prevents #usageName usage changes"() {
@@ -1558,10 +1558,10 @@ class DefaultConfigurationSpec extends Specification {
         t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
 
         where:
-        usageName               | changeUsage
-        'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
-        'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
-        'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
+        usageName    | changeUsage
+        'consumable' | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
+        'resolvable' | { it.setCanBeResolved(!it.isCanBeResolved()) }
+        'declarable' | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
     }
 
     private ResolverResults buildDependenciesResolved() {
@@ -1619,7 +1619,7 @@ class DefaultConfigurationSpec extends Specification {
             }
 
             @Override
-            void visitDependencies(TaskDependencyResolveContext context) { }
+            void visitDependencies(TaskDependencyResolveContext context) {}
         }
     }
 

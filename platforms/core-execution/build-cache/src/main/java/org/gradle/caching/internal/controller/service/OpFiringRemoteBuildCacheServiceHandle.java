@@ -56,6 +56,17 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
     }
 
+    private static BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
+        switch (operation) {
+            case LOAD:
+                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.LOAD;
+            case STORE:
+                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.STORE;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
     @Override
     protected void loadInner(final String description, final BuildCacheKey key, final LoadTarget loadTarget) {
         buildOperationRunner.run(new RunnableBuildOperation() {
@@ -102,14 +113,18 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         buildOperationProgressEventEmitter.emitNowIfCurrent(new RemoteDisabledDueToFailureProgressDetails(key, failure, operationType));
     }
 
-    private static BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType convertToBuildOperationType(Operation operation) {
-        switch (operation) {
-            case LOAD:
-                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.LOAD;
-            case STORE:
-                return BuildCacheRemoteDisabledDueToFailureProgressDetails.BuildCacheOperationType.STORE;
-            default:
-                throw new IllegalStateException();
+    private static class UncheckedWrapper extends RuntimeException {
+        UncheckedWrapper(IOException cause) {
+            super(cause);
+        }
+
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
+        }
+
+        IOException getIOException() {
+            return (IOException) getCause();
         }
     }
 
@@ -143,21 +158,6 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
             } catch (UncheckedWrapper uncheckedWrapper) {
                 throw uncheckedWrapper.getIOException();
             }
-        }
-    }
-
-    private static class UncheckedWrapper extends RuntimeException {
-        UncheckedWrapper(IOException cause) {
-            super(cause);
-        }
-
-        @Override
-        public synchronized Throwable fillInStackTrace() {
-            return this;
-        }
-
-        IOException getIOException() {
-            return (IOException) getCause();
         }
     }
 

@@ -28,7 +28,7 @@ public abstract class CustomTest extends DefaultTask {
      * @return property with value {@code true} if the task should demonstrate a test failure, {@code false} otherwise
      */
     @Input
-    @Option(option="fail", description = "Tells the task to demonstrate failures.")
+    @Option(option = "fail", description = "Tells the task to demonstrate failures.")
     public abstract Property<Boolean> getFail();
 
     @Inject
@@ -132,7 +132,7 @@ public abstract class CustomTest extends DefaultTask {
                 suite.started(Instant.now());
 
                 // Simulate 10 tests running
-                for (int i=0; i<10; i++) {
+                for (int i = 0; i < 10; i++) {
 
                     try (TestEventReporter test = suite.reportTest("test" + i, "test(" + i + ")")) {
                         // Start an individual test case

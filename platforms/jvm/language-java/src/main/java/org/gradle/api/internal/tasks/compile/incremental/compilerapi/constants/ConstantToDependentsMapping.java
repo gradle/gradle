@@ -29,20 +29,20 @@ public class ConstantToDependentsMapping {
         this.constantDependents = constantDependents;
     }
 
-    public Map<String, DependentsSet> getConstantDependents() {
-        return constantDependents;
-    }
-
-    public DependentsSet getConstantDependentsForClass(String constantOrigin) {
-        return constantDependents.getOrDefault(constantOrigin, DependentsSet.empty());
-    }
-
     public static ConstantToDependentsMapping empty() {
         return new ConstantToDependentsMapping(Collections.emptyMap());
     }
 
     public static ConstantToDependentsMappingBuilder builder() {
         return new ConstantToDependentsMappingBuilder();
+    }
+
+    public Map<String, DependentsSet> getConstantDependents() {
+        return constantDependents;
+    }
+
+    public DependentsSet getConstantDependentsForClass(String constantOrigin) {
+        return constantDependents.getOrDefault(constantOrigin, DependentsSet.empty());
     }
 
 }

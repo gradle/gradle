@@ -19,12 +19,12 @@ package org.gradle.platform.base.internal;
 public class DefaultPlatformRequirement implements PlatformRequirement {
     private final String platformName;
 
-    public static PlatformRequirement create(String name) {
-        return new DefaultPlatformRequirement(name);
-    }
-
     public DefaultPlatformRequirement(String platformName) {
         this.platformName = platformName;
+    }
+
+    public static PlatformRequirement create(String name) {
+        return new DefaultPlatformRequirement(name);
     }
 
     @Override

@@ -34,6 +34,10 @@ public class FileResourceConnector implements FileResourceRepository {
         this.listener = listenerManager.getBroadcaster(FileResourceListener.class);
     }
 
+    private static File getFile(ExternalResourceName location) {
+        return new File(location.getUri());
+    }
+
     @Override
     public ExternalResourceRepository withProgressLogging() {
         return this;
@@ -63,9 +67,5 @@ public class FileResourceConnector implements FileResourceRepository {
     @Override
     public LocallyAvailableExternalResource resource(File file, URI originUri, ExternalResourceMetaData originMetadata) {
         return new DefaultLocallyAvailableExternalResource(originUri, file, originMetadata, fileSystem);
-    }
-
-    private static File getFile(ExternalResourceName location) {
-        return new File(location.getUri());
     }
 }

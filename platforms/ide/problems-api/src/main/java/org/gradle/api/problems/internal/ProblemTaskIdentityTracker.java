@@ -29,10 +29,6 @@ public class ProblemTaskIdentityTracker {
 
     private static final ThreadLocal<TaskIdentity> TASK_IDENTITY = new ThreadLocal<TaskIdentity>();
 
-    public static void setTaskIdentity(TaskIdentity taskIdentity) {
-        TASK_IDENTITY.set(taskIdentity);
-    }
-
     /**
      * Returns the identity of the currently executed task.
      *
@@ -41,6 +37,10 @@ public class ProblemTaskIdentityTracker {
     @Nullable
     public static TaskIdentity getTaskIdentity() {
         return TASK_IDENTITY.get();
+    }
+
+    public static void setTaskIdentity(TaskIdentity taskIdentity) {
+        TASK_IDENTITY.set(taskIdentity);
     }
 
     public static void clear() {

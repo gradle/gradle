@@ -74,6 +74,17 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         return new ScriptPluginImpl(scriptSource, (ScriptHandlerInternal) scriptHandler, targetScope, baseScope, topLevelScript);
     }
 
+    // TODO This is not nice: work out a better way to collect the plugin requests from invoking the plugins block.
+    private PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {
+        if (initialRunner.getRunDoesSomething()) {
+            BasicScript script = initialRunner.getScript();
+            if (script instanceof PluginsAwareScript) {
+                return ((PluginsAwareScript) script).getPluginRequests();
+            }
+        }
+        return PluginRequests.EMPTY;
+    }
+
     private class ScriptPluginImpl implements ScriptPlugin {
         private final ScriptSource scriptSource;
         private final ClassLoaderScope targetScope;
@@ -172,16 +183,5 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 return new DefaultScriptTarget(target);
             }
         }
-    }
-
-    // TODO This is not nice: work out a better way to collect the plugin requests from invoking the plugins block.
-    private PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {
-        if (initialRunner.getRunDoesSomething()) {
-            BasicScript script = initialRunner.getScript();
-            if (script instanceof PluginsAwareScript) {
-                return ((PluginsAwareScript) script).getPluginRequests();
-            }
-        }
-        return PluginRequests.EMPTY;
     }
 }

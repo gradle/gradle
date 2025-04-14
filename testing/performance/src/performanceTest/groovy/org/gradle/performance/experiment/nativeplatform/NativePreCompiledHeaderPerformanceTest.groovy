@@ -28,7 +28,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    def "clean assemble with precompiled headers" () {
+    def "clean assemble with precompiled headers"() {
         given:
         runner.testGroup = 'pre-compiled header builds'
         runner.buildSpec {

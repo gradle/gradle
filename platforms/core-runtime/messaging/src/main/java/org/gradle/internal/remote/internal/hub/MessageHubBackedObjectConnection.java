@@ -173,7 +173,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         @Override
         public void endStream() {
             if (instance instanceof StreamCompletion) {
-                ((StreamCompletion)instance).endStream();
+                ((StreamCompletion) instance).endStream();
             }
         }
 
@@ -185,7 +185,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         @Override
         public void handleStreamFailure(Throwable t) {
             if (instance instanceof StreamFailureHandler) {
-                ((StreamFailureHandler)instance).handleStreamFailure(t);
+                ((StreamFailureHandler) instance).handleStreamFailure(t);
             }
         }
     }

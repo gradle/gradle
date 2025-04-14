@@ -27,7 +27,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPAT
 
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
 @Requires(UnitTestPreconditions.NotWindows)
-class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends ObjectiveCLanguageIncrementalBuildIntegrationTest{
+class ObjectiveCppLanguageIncrementalBuildIntegrationTest extends ObjectiveCLanguageIncrementalBuildIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCppHelloWorldApp()

@@ -21,7 +21,8 @@ import spock.lang.Subject
 
 class ConflictContainerTest extends Specification {
 
-    @Subject container = new ConflictContainer<String, Integer>()
+    @Subject
+        container = new ConflictContainer<String, Integer>()
 
     def "no conflict when candidates are empty"() {
         def conflict = container.newElement('a', [], null)

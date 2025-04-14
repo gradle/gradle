@@ -48,7 +48,7 @@ public class Person2 {
 
 
     @Override
-    void changeSources(List<TestFile> sourceFiles){
+    void changeSources(List<TestFile> sourceFiles) {
         def personGroovyFile = sourceFiles.find { it.name == "Person.groovy" }
         personGroovyFile.text = personGroovyFile.text.replace("String name", "String name\\nString anotherName")
     }
@@ -63,10 +63,10 @@ interface Extra {
     }
 
     List<JvmSourceFile> expectedOutputs = [
-            sources[0].classFile,
-            sources[1].classFile,
-            resources[0],
-            resources[1]
+        sources[0].classFile,
+        sources[1].classFile,
+        resources[0],
+        resources[1]
     ]
 
     @Override

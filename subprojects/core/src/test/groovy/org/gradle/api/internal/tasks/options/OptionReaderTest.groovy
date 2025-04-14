@@ -171,7 +171,7 @@ class OptionReaderTest extends Specification {
         List<OptionDescriptor> options = TaskOptionsGenerator.generate(new TestClassWithProperties(), reader).getAll()
         int ownOptions = 14
         then:
-        options.forEach {it -> System.out.println(it.name + " " + it.description)}
+        options.forEach { it -> System.out.println(it.name + " " + it.description) }
 
         TaskOptionsGenerator.BUILT_IN_OPTIONS.eachWithIndex { BuiltInOptionElement optionElement, int i ->
             assert options[ownOptions + i].name == optionElement.optionName

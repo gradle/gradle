@@ -46,35 +46,11 @@ public class PlatformSupport {
         enforcedPlatform = instantiator.named(Category.class, Category.ENFORCED_PLATFORM);
     }
 
-    public boolean isTargetingPlatform(HasConfigurableAttributes<?> target) {
-        Category category = target.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
-        return regularPlatform.equals(category) || enforcedPlatform.equals(category);
-    }
-
-    public Category getRegularPlatformCategory() {
-        return regularPlatform;
-    }
-
-    public void configureSchema(AttributesSchemaInternal attributesSchema) {
-        configureCategoryDisambiguationRule(attributesSchema);
-    }
     public static void configureFailureHandler(ResolutionFailureHandler handler) {
         // TODO: This should not be here.
         // This failure handler has nothing to do with platforms.
         // This should live in JavaEcosystemSupport.
         handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
-    }
-
-    private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<Category> categorySchema = attributesSchema.attribute(Category.CATEGORY_ATTRIBUTE);
-        categorySchema.getDisambiguationRules().add(ComponentCategoryDisambiguationRule.class, actionConfiguration -> {
-            actionConfiguration.params(library);
-            actionConfiguration.params(regularPlatform);
-        });
-    }
-
-    public <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final Category category) {
-        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category));
     }
 
     /**
@@ -87,6 +63,31 @@ public class PlatformSupport {
      */
     public static boolean hasForcedDependencies(ComponentVariant variant) {
         return Objects.equal(variant.getAttributes().getAttribute(MavenAttributesFactory.CATEGORY_ATTRIBUTE), Category.ENFORCED_PLATFORM);
+    }
+
+    public boolean isTargetingPlatform(HasConfigurableAttributes<?> target) {
+        Category category = target.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
+        return regularPlatform.equals(category) || enforcedPlatform.equals(category);
+    }
+
+    public Category getRegularPlatformCategory() {
+        return regularPlatform;
+    }
+
+    public void configureSchema(AttributesSchemaInternal attributesSchema) {
+        configureCategoryDisambiguationRule(attributesSchema);
+    }
+
+    private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<Category> categorySchema = attributesSchema.attribute(Category.CATEGORY_ATTRIBUTE);
+        categorySchema.getDisambiguationRules().add(ComponentCategoryDisambiguationRule.class, actionConfiguration -> {
+            actionConfiguration.params(library);
+            actionConfiguration.params(regularPlatform);
+        });
+    }
+
+    public <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final Category category) {
+        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category));
     }
 
     public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<Category> {

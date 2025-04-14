@@ -18,7 +18,7 @@ package org.gradle.plugin.devel.impldeps
 
 import org.gradle.test.fixtures.file.TestFile
 
-class BaseGradleImplDepsTestCodeIntegrationTest extends BaseGradleImplDepsIntegrationTest  {
+class BaseGradleImplDepsTestCodeIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     protected TestFile productionCode() {
         file("src/main/java/MyPlugin.java") << """

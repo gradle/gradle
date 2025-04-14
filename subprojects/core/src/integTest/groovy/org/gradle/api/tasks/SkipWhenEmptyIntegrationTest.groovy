@@ -40,12 +40,12 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
         skipped(":sourceTask")
 
         where:
-        description                           | inputDeclaration
-        "empty file collection"               | "files()"
-        "empty directory as file tree"        | "fileTree(file('emptyDir'))"
-        "empty zip tree"                      | "zipTree(file('emptyZip.zip'))"
-        "empty tar tree"                      | "tarTree(file('emptyTar.tar'))"
-        "empty directory"                     | "files('emptyDir')"
+        description                    | inputDeclaration
+        "empty file collection"        | "files()"
+        "empty directory as file tree" | "fileTree(file('emptyDir'))"
+        "empty zip tree"               | "zipTree(file('emptyZip.zip'))"
+        "empty tar tree"               | "tarTree(file('emptyTar.tar'))"
+        "empty directory"              | "files('emptyDir')"
     }
 
     def "SkipWhenEmpty does not skip for #description"() {

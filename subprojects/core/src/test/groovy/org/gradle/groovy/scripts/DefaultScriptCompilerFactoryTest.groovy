@@ -59,8 +59,8 @@ class DefaultScriptCompilerFactoryTest extends Specification {
         then:
         result == runner
 
-        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, Script, target, targetScope, operation, verifier) >> compiledScript
-        1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource}, classLoader) >> runner
+        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource }, Script, target, targetScope, operation, verifier) >> compiledScript
+        1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource }, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._
     }

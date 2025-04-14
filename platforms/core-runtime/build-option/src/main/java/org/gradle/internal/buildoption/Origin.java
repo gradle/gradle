@@ -22,16 +22,16 @@ import org.gradle.util.internal.TextUtil;
 public abstract class Origin {
     protected String source;
 
+    private Origin(String source) {
+        this.source = source;
+    }
+
     public static Origin forGradleProperty(String gradleProperty) {
         return new GradlePropertyOrigin(gradleProperty);
     }
 
     public static Origin forCommandLine(String commandLineOption) {
         return new CommandLineOrigin(commandLineOption);
-    }
-
-    private Origin(String source) {
-        this.source = source;
     }
 
     public abstract void handleInvalidValue(String value, String hint);

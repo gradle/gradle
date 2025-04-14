@@ -28,19 +28,6 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
         super(projectName);
     }
 
-    @Override
-    public String getSourceSetName() {
-        return "test";
-    }
-
-    @Override
-    public List<SourceFile> getFiles() {
-        List<SourceFile> result = Lists.newArrayList(CollectionUtils.collect(getTestSuites(), XCTestSourceFileElement::getSourceFile));
-
-        result.add(getLinuxMainSourceFile(getTestSuites()));
-        return result;
-    }
-
     public static SourceFile getLinuxMainSourceFile(List<XCTestSourceFileElement> testSuites) {
         StringBuilder content = new StringBuilder();
         content.append("import XCTest\n");
@@ -62,6 +49,25 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
         content.append("])\n");
 
         return new SourceFile("swift", "LinuxMain.swift", content.toString());
+    }
+
+    static void assertTestCasesRanInSuite(TestExecutionResult testExecutionResult, List<XCTestSourceFileElement> testSuites) {
+        for (XCTestSourceFileElement element : testSuites) {
+            element.assertTestCasesRan(testExecutionResult.testClass(element.getTestSuiteName()));
+        }
+    }
+
+    @Override
+    public String getSourceSetName() {
+        return "test";
+    }
+
+    @Override
+    public List<SourceFile> getFiles() {
+        List<SourceFile> result = Lists.newArrayList(CollectionUtils.collect(getTestSuites(), XCTestSourceFileElement::getSourceFile));
+
+        result.add(getLinuxMainSourceFile(getTestSuites()));
+        return result;
     }
 
     @Override
@@ -95,12 +101,6 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
 
     public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
         assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
-    }
-
-    static void assertTestCasesRanInSuite(TestExecutionResult testExecutionResult, List<XCTestSourceFileElement> testSuites) {
-        for (XCTestSourceFileElement element : testSuites) {
-            element.assertTestCasesRan(testExecutionResult.testClass(element.getTestSuiteName()));
-        }
     }
 
     @Override

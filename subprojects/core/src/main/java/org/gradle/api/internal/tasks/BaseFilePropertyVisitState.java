@@ -51,10 +51,15 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
     }
 
     protected abstract void preRoot();
+
     protected abstract void postRoot();
+
     protected abstract void preDirectory();
+
     protected abstract void preUnvisitedDirectory(DirectorySnapshot unvisited);
+
     protected abstract void postDirectory();
+
     protected abstract void file();
 
     @Override

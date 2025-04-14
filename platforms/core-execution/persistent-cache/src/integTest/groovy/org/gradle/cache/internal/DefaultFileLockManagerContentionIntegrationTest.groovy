@@ -115,7 +115,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         def terminate = false
         setupLockOwner {
             requestReceived = true
-            while(!terminate) { Thread.sleep(100) } //block the release action thread
+            while (!terminate) {
+                Thread.sleep(100)
+            } //block the release action thread
         }
 
         when:
@@ -351,6 +353,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(communicator, inetAddressProvider, new DefaultExecutorFactory())
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
             String getProcessIdentifier() { return "pid" }
+
             String getProcessDisplayName() { return "process" }
         }, receivingFileLockContentionHandler)
 

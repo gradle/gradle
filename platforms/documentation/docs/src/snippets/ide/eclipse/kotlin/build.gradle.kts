@@ -11,6 +11,7 @@ import org.gradle.plugins.ide.eclipse.model.Project
 // end::project-before-merged[]
 // tag::wtp-with-xml[]
 import org.w3c.dom.Element
+
 // end::wtp-with-xml[]
 
 // tag::use-eclipse-plugin[]

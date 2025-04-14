@@ -24,12 +24,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 
 public interface FileSystemLocationSnapshotHasher extends ConfigurableNormalizer {
-    /**
-     * Returns {@code null} if the file should be ignored.
-     */
-    @Nullable
-    HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException;
-
     FileSystemLocationSnapshotHasher DEFAULT = new FileSystemLocationSnapshotHasher() {
         @Nullable
         @Override
@@ -42,4 +36,10 @@ public interface FileSystemLocationSnapshotHasher extends ConfigurableNormalizer
             hasher.putString(getClass().getName());
         }
     };
+
+    /**
+     * Returns {@code null} if the file should be ignored.
+     */
+    @Nullable
+    HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException;
 }

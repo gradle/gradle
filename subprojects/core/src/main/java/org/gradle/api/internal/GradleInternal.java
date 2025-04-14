@@ -51,6 +51,14 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @Override
     ProjectInternal getRootProject() throws IllegalStateException;
 
+    /**
+     * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
+     * is executed, {@link #getRootProject()} will throw {@link IllegalStateException}.
+     *
+     * @param rootProject The root project for this build.
+     */
+    void setRootProject(ProjectInternal rootProject);
+
     @Override
     @Nullable
     GradleInternal getParent();
@@ -76,6 +84,14 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     ProjectInternal getDefaultProject();
 
     /**
+     * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
+     * is executed, {@link #getDefaultProject()} will return null.
+     *
+     * @param defaultProject The default project for this build.
+     */
+    void setDefaultProject(ProjectInternal defaultProject);
+
+    /**
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build
      */
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
@@ -97,22 +113,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     void attachSettings(@Nullable SettingsState settings);
 
     /**
-     * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
-     * is executed, {@link #getDefaultProject()} will return null.
-     *
-     * @param defaultProject The default project for this build.
-     */
-    void setDefaultProject(ProjectInternal defaultProject);
-
-    /**
-     * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
-     * is executed, {@link #getRootProject()} will throw {@link IllegalStateException}.
-     *
-     * @param rootProject The root project for this build.
-     */
-    void setRootProject(ProjectInternal rootProject);
-
-    /**
      * Returns the broadcaster for {@link BuildListener} events
      */
     BuildListener getBuildListenerBroadcaster();
@@ -120,9 +120,9 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @UsedByScanPlugin
     ServiceRegistry getServices();
 
-    void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope);
-
     ClassLoaderScope getClassLoaderScope();
+
+    void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope);
 
     void setIncludedBuilds(Collection<? extends IncludedBuildInternal> includedBuilds);
 

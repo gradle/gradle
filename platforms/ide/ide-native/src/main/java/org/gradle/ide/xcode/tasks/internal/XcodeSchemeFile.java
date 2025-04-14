@@ -27,8 +27,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
+    private static final String YES = "YES";
+    private static final String NO = "NO";
+
     public XcodeSchemeFile(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
+    }
+
+    private static Node getOrAppendNode(Node xml, String name) {
+        NodeList nodes = (NodeList) xml.get(name);
+        if (nodes.isEmpty()) {
+            return xml.appendNode(name);
+        }
+        return (Node) nodes.get(0);
+    }
+
+    private static String toYesNo(boolean value) {
+        if (value) {
+            return YES;
+        }
+        return NO;
     }
 
     public BuildAction getBuildAction() {
@@ -55,14 +73,6 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         return new AnalyzeAction(getOrAppendNode(getXml(), "AnalyzeAction"));
     }
 
-    private static Node getOrAppendNode(Node xml, String name) {
-        NodeList nodes = (NodeList) xml.get(name);
-        if (nodes.isEmpty()) {
-            return xml.appendNode(name);
-        }
-        return (Node) nodes.get(0);
-    }
-
     @Override
     protected String getDefaultResourceName() {
         return "default.xcscheme";
@@ -78,15 +88,6 @@ public class XcodeSchemeFile extends XmlPersistableConfigurationObject {
         public void entry(Action<BuildActionEntry> action) {
             action.execute(new BuildActionEntry(getOrAppendNode(xml, "BuildActionEntries").appendNode("BuildActionEntry")));
         }
-    }
-
-    private static final String YES = "YES";
-    private static final String NO = "NO";
-    private static String toYesNo(boolean value) {
-        if (value) {
-            return YES;
-        }
-        return NO;
     }
 
     public static class BuildActionEntry {

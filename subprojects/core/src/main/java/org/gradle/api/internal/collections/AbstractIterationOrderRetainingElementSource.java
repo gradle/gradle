@@ -53,11 +53,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     private final List<Element<T>> inserted = new ArrayList<>();
 
     private final MutationGuard lazyGuard = new DefaultMutationGuard();
-
+    protected int modCount;
     private Action<T> pendingAddedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
-
-    protected int modCount;
 
     List<Element<T>> getInserted() {
         return inserted;
@@ -233,103 +231,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         return lazyGuard;
     }
 
-    protected class RealizedElementCollectionIterator implements Iterator<T> {
-        final List<Element<T>> backingList;
-        final Spec<ValuePointer<?>> acceptanceSpec;
-        int nextIndex = -1;
-        int nextSubIndex = -1;
-        int previousIndex = -1;
-        int previousSubIndex = -1;
-        T next;
-        int expectedModCount = modCount;
-
-        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<ValuePointer<?>> acceptanceSpec) {
-            this.backingList = backingList;
-            this.acceptanceSpec = acceptanceSpec;
-            updateNext();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return next != null;
-        }
-
-        private void updateNext() {
-            if (nextIndex == -1) {
-                nextIndex = 0;
-            }
-
-            int i = nextIndex;
-            while (i < backingList.size()) {
-                Element<T> candidate = backingList.get(i);
-                if (candidate.isRealized()) {
-                    List<T> collected = candidate.getValues();
-                    int j = nextSubIndex + 1;
-                    while (j < collected.size()) {
-                        T value = collected.get(j);
-                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
-                            nextIndex = i;
-                            nextSubIndex = j;
-                            next = value;
-                            return;
-                        }
-                        j++;
-                    }
-                    nextSubIndex = -1;
-                }
-                i++;
-            }
-            nextIndex = i;
-            next = null;
-        }
-
-        @Override
-        public T next() {
-            checkForComodification();
-            if (next == null) {
-                throw new NoSuchElementException();
-            }
-            T thisNext = next;
-            previousIndex = nextIndex;
-            previousSubIndex = nextSubIndex;
-            updateNext();
-            return thisNext;
-        }
-
-        @Override
-        public void remove() {
-            if (previousIndex > -1) {
-                checkForComodification();
-                Element<T> element = backingList.get(previousIndex);
-                List<T> collected = element.getValues();
-                if (collected.size() > 1) {
-                    element.remove(collected.get(previousSubIndex));
-                    nextSubIndex--;
-                } else {
-                    backingList.remove(previousIndex);
-                    nextIndex--;
-                }
-                previousIndex = -1;
-                previousSubIndex = -1;
-            } else {
-                throw new IllegalStateException();
-            }
-        }
-
-        final void checkForComodification() {
-            if (modCount != expectedModCount) {
-                throw new ConcurrentModificationException();
-            }
-        }
-    }
-
     protected static class Element<T> extends TypedCollector<T> {
+        private final Action<T> realizeAction;
         private List<T> cache = null;
         private List<T> removedValues = null;
         private IntSet duplicates = IntSets.emptySet();
         private boolean realized;
-
-        private final Action<T> realizeAction;
 
         Element(@Nullable Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
             super(type, delegate);
@@ -445,6 +352,96 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         public Integer getIndex() {
             return index;
+        }
+    }
+
+    protected class RealizedElementCollectionIterator implements Iterator<T> {
+        final List<Element<T>> backingList;
+        final Spec<ValuePointer<?>> acceptanceSpec;
+        int nextIndex = -1;
+        int nextSubIndex = -1;
+        int previousIndex = -1;
+        int previousSubIndex = -1;
+        T next;
+        int expectedModCount = modCount;
+
+        RealizedElementCollectionIterator(List<Element<T>> backingList, Spec<ValuePointer<?>> acceptanceSpec) {
+            this.backingList = backingList;
+            this.acceptanceSpec = acceptanceSpec;
+            updateNext();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        private void updateNext() {
+            if (nextIndex == -1) {
+                nextIndex = 0;
+            }
+
+            int i = nextIndex;
+            while (i < backingList.size()) {
+                Element<T> candidate = backingList.get(i);
+                if (candidate.isRealized()) {
+                    List<T> collected = candidate.getValues();
+                    int j = nextSubIndex + 1;
+                    while (j < collected.size()) {
+                        T value = collected.get(j);
+                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                            nextIndex = i;
+                            nextSubIndex = j;
+                            next = value;
+                            return;
+                        }
+                        j++;
+                    }
+                    nextSubIndex = -1;
+                }
+                i++;
+            }
+            nextIndex = i;
+            next = null;
+        }
+
+        @Override
+        public T next() {
+            checkForComodification();
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            T thisNext = next;
+            previousIndex = nextIndex;
+            previousSubIndex = nextSubIndex;
+            updateNext();
+            return thisNext;
+        }
+
+        @Override
+        public void remove() {
+            if (previousIndex > -1) {
+                checkForComodification();
+                Element<T> element = backingList.get(previousIndex);
+                List<T> collected = element.getValues();
+                if (collected.size() > 1) {
+                    element.remove(collected.get(previousSubIndex));
+                    nextSubIndex--;
+                } else {
+                    backingList.remove(previousIndex);
+                    nextIndex--;
+                }
+                previousIndex = -1;
+                previousSubIndex = -1;
+            } else {
+                throw new IllegalStateException();
+            }
+        }
+
+        final void checkForComodification() {
+            if (modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }
         }
     }
 }

@@ -65,6 +65,7 @@ fun hasPackageAttribute(kmPackageSupplier: Supplier<KmPackage>, memberType: Memb
         MemberType.FIELD -> hasPropertyAttribute(kmPackage::properties, jvmSignature, predicate)
         MemberType.METHOD -> hasFunctionAttribute(kmPackage::functions, jvmSignature, predicate) ||
             hasPropertyAttribute(kmPackage::properties, jvmSignature, predicate)
+
         else -> false
     }
 }
@@ -111,7 +112,7 @@ interface AttributePredicate {
     fun match(kmPropertyAccessorAttributes: KmPropertyAccessorAttributes): Boolean
 
     companion object Factory {
-        fun visibility(visibility: Visibility): AttributePredicate = object: AttributePredicate {
+        fun visibility(visibility: Visibility): AttributePredicate = object : AttributePredicate {
             override fun match(kmClass: KmClass) = kmClass.visibility == visibility
             override fun match(kmConstructor: KmConstructor) = kmConstructor.visibility == visibility
             override fun match(kmProperty: KmProperty) = kmProperty.visibility == visibility
@@ -119,7 +120,7 @@ interface AttributePredicate {
             override fun match(kmPropertyAccessorAttributes: KmPropertyAccessorAttributes) = kmPropertyAccessorAttributes.visibility == visibility
         }
 
-        fun functionAttribute(test: (KmFunction) -> Boolean): AttributePredicate = object: AttributePredicate {
+        fun functionAttribute(test: (KmFunction) -> Boolean): AttributePredicate = object : AttributePredicate {
             override fun match(kmClass: KmClass) = false
             override fun match(kmConstructor: KmConstructor) = false
             override fun match(kmProperty: KmProperty) = false

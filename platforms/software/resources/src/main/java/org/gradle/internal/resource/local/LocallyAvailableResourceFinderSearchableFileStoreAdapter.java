@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * Makes a LocallyAvailableResourceFinder out of a FileStoreSearcher.
+ *
  * @param <C> The type of criterion the filestore can be searched for, and therefore locally available resources searched for.
  */
 public class LocallyAvailableResourceFinderSearchableFileStoreAdapter<C> extends AbstractLocallyAvailableResourceFinder<C> {

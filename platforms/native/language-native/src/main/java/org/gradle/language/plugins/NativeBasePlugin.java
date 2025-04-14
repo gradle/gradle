@@ -126,6 +126,10 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         this.targetMachineFactory = targetMachineFactory;
     }
 
+    private static void addTargetMachineFactoryAsExtension(ExtensionContainer extensions, TargetMachineFactory targetMachineFactory) {
+        extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
+    }
+
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
@@ -162,10 +166,6 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         addPublicationsFromVariants(project, components);
     }
 
-    private static void addTargetMachineFactoryAsExtension(ExtensionContainer extensions, TargetMachineFactory targetMachineFactory) {
-        extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
-    }
-
     private void addLifecycleTasks(final Project project, final TaskContainer tasks, final SoftwareComponentContainer components) {
         components.withType(ComponentWithBinaries.class, component -> {
             // Register each child of each component
@@ -186,10 +186,10 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
             }
 
             if (component instanceof ComponentWithTargetMachines) {
-                ComponentWithTargetMachines componentWithTargetMachines = (ComponentWithTargetMachines)component;
+                ComponentWithTargetMachines componentWithTargetMachines = (ComponentWithTargetMachines) component;
                 tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> {
                     task.dependsOn((Callable) () -> {
-                        TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
+                        TargetMachine currentHost = ((DefaultTargetMachineFactory) targetMachineFactory).host();
                         boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
                         if (!targetsCurrentMachine) {
                             task.getLogger().warn("'" + component.getName() + "' component in project '" + project.getPath() + "' does not target this operating system.");
@@ -223,9 +223,9 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
             if (executable.isDebuggable() && executable.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
                 Provider<RegularFile> symbolLocation = buildDirectory.file(
-                        executable.getBaseName().map(baseName -> toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + baseName)));
+                    executable.getBaseName().map(baseName -> toolProvider.getExecutableSymbolFileName("exe/" + names.getDirName() + "stripped/" + baseName)));
                 Provider<RegularFile> strippedLocation = buildDirectory.file(
-                        executable.getBaseName().map(baseName -> toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + baseName)));
+                    executable.getBaseName().map(baseName -> toolProvider.getExecutableName("exe/" + names.getDirName() + "stripped/" + baseName)));
 
                 TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
                 executable.getExecutableFile().set(stripSymbols.flatMap(task -> task.getOutputFile()));
@@ -286,7 +286,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
             if (toolProvider.producesImportLibrary()) {
                 link.configure(linkSharedLibrary -> {
                     linkSharedLibrary.getImportLibrary().set(buildDirectory.file(
-                            library.getBaseName().map(baseName -> toolProvider.getImportLibraryName("lib/" + names.getDirName() + baseName))));
+                        library.getBaseName().map(baseName -> toolProvider.getImportLibraryName("lib/" + names.getDirName() + baseName))));
                 });
                 linkFile = link.flatMap(task -> task.getImportLibrary());
             }
@@ -294,9 +294,9 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
             if (library.isDebuggable() && library.isOptimized() && toolProvider.requiresDebugBinaryStripping()) {
 
                 Provider<RegularFile> symbolLocation = buildDirectory.file(
-                        library.getBaseName().map(baseName -> toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + baseName)));
+                    library.getBaseName().map(baseName -> toolProvider.getLibrarySymbolFileName("lib/" + names.getDirName() + "stripped/" + baseName)));
                 Provider<RegularFile> strippedLocation = buildDirectory.file(
-                        library.getBaseName().map(baseName -> toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + baseName)));
+                    library.getBaseName().map(baseName -> toolProvider.getSharedLibraryName("lib/" + names.getDirName() + "stripped/" + baseName)));
 
                 TaskProvider<StripSymbols> stripSymbols = stripSymbols(link, names, tasks, toolChain, targetPlatform, strippedLocation);
                 linkFile = runtimeFile = stripSymbols.flatMap(task -> task.getOutputFile());
@@ -323,7 +323,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
                 task.source(library.getObjects());
                 final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
                 Provider<RegularFile> linktimeFile = buildDirectory.file(
-                        library.getBaseName().map(baseName -> toolProvider.getStaticLibraryName("lib/" + names.getDirName() + baseName)));
+                    library.getBaseName().map(baseName -> toolProvider.getStaticLibraryName("lib/" + names.getDirName() + baseName)));
                 task.getOutputFile().set(linktimeFile);
                 task.getTargetPlatform().set(library.getNativePlatform());
                 task.getToolChain().set(library.getToolChain());

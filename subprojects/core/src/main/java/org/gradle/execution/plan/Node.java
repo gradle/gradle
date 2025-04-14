@@ -36,32 +36,7 @@ import java.util.function.Consumer;
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
  */
 public abstract class Node {
-    @VisibleForTesting
-    enum ExecutionState {
-        // Node is not scheduled to run in any plan
-        // Nodes may be moved back into this state when the execution plan is cancelled or aborted due to a failure
-        NOT_SCHEDULED,
-        // Node has been scheduled in an execution plan and should run if possible (depending on failures in other nodes)
-        SHOULD_RUN,
-        // Node is currently executing
-        EXECUTING,
-        // Node has been executed, and possibly failed, in an execution plan (not necessarily the current)
-        EXECUTED,
-        // Node cannot be executed because of a failed dependency
-        FAILED_DEPENDENCY
-    }
-
-    public enum DependenciesState {
-        // Still waiting for dependencies to complete
-        NOT_COMPLETE,
-        // All dependencies complete, can run this node
-        COMPLETE_AND_SUCCESSFUL,
-        // All dependencies complete, but cannot run this node due to failure
-        COMPLETE_AND_NOT_SUCCESSFUL,
-        // All dependencies complete, but this node does not need to run
-        COMPLETE_AND_CAN_SKIP
-    }
-
+    private final ConsumerState consumerState = new ConsumerState();
     private ExecutionState state = ExecutionState.NOT_SCHEDULED;
     private boolean dependenciesProcessed;
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
@@ -71,8 +46,34 @@ public abstract class Node {
     private DependencyNodesSet dependencyNodes = DependencyNodesSet.EMPTY;
     private DependentNodesSet dependentNodes = DependentNodesSet.EMPTY;
     private MutationInfo mutationInfo = MutationInfo.EMPTY;
-    private final ConsumerState consumerState = new ConsumerState();
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
+
+    public static String formatNodes(Iterable<? extends Node> nodes) {
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        boolean first = true;
+        for (Node node : nodes) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append(", ");
+            }
+            builder.append(node).append(" (").append(node.getState()).append(")");
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
+    private static HasFinalizers maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
+        if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
+            return finalizers;
+        }
+        if (current instanceof OrdinalGroup) {
+            return CompositeNodeGroup.mergeInto((OrdinalGroup) current, finalizers);
+        } else {
+            return CompositeNodeGroup.mergeInto((HasFinalizers) current, finalizers);
+        }
+    }
 
     @VisibleForTesting
     ExecutionState getState() {
@@ -91,22 +92,6 @@ public abstract class Node {
                 + ", group=" + group
                 + ", " + specificState + " )";
         }
-    }
-
-    public static String formatNodes(Iterable<? extends Node> nodes) {
-        StringBuilder builder = new StringBuilder();
-        builder.append('[');
-        boolean first = true;
-        for (Node node : nodes) {
-            if (first) {
-                first = false;
-            } else {
-                builder.append(", ");
-            }
-            builder.append(node).append(" (").append(node.getState()).append(")");
-        }
-        builder.append(']');
-        return builder.toString();
     }
 
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
@@ -158,17 +143,6 @@ public abstract class Node {
         }
         if (newGroup != group) {
             setGroup(newGroup);
-        }
-    }
-
-    private static HasFinalizers maybeInheritGroupAsFinalizerDependency(HasFinalizers finalizers, NodeGroup current) {
-        if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
-            return finalizers;
-        }
-        if (current instanceof OrdinalGroup) {
-            return CompositeNodeGroup.mergeInto((OrdinalGroup) current, finalizers);
-        } else {
-            return CompositeNodeGroup.mergeInto((HasFinalizers) current, finalizers);
         }
     }
 
@@ -358,11 +332,6 @@ public abstract class Node {
         }
     }
 
-    public void setExecutionFailure(Throwable failure) {
-        assert state == ExecutionState.EXECUTING;
-        this.executionFailure = failure;
-    }
-
     /**
      * Returns any error that happened in the execution engine while processing this node,
      * i.e. there was a {@link NullPointerException} in the {@link ExecutionPlan} code.
@@ -371,6 +340,11 @@ public abstract class Node {
     @Nullable
     public Throwable getExecutionFailure() {
         return this.executionFailure;
+    }
+
+    public void setExecutionFailure(Throwable failure) {
+        assert state == ExecutionState.EXECUTING;
+        this.executionFailure = failure;
     }
 
     public SortedSet<Node> getDependencyPredecessors() {
@@ -589,7 +563,7 @@ public abstract class Node {
     public void visitPostExecutionNodes(Consumer<? super Node> visitor) {
     }
 
-    public void mutationsResolved(MutationInfo mutationInfo)  {
+    public void mutationsResolved(MutationInfo mutationInfo) {
         this.mutationInfo = mutationInfo;
     }
 
@@ -637,5 +611,31 @@ public abstract class Node {
 
     @Override
     public abstract String toString();
+
+    @VisibleForTesting
+    enum ExecutionState {
+        // Node is not scheduled to run in any plan
+        // Nodes may be moved back into this state when the execution plan is cancelled or aborted due to a failure
+        NOT_SCHEDULED,
+        // Node has been scheduled in an execution plan and should run if possible (depending on failures in other nodes)
+        SHOULD_RUN,
+        // Node is currently executing
+        EXECUTING,
+        // Node has been executed, and possibly failed, in an execution plan (not necessarily the current)
+        EXECUTED,
+        // Node cannot be executed because of a failed dependency
+        FAILED_DEPENDENCY
+    }
+
+    public enum DependenciesState {
+        // Still waiting for dependencies to complete
+        NOT_COMPLETE,
+        // All dependencies complete, can run this node
+        COMPLETE_AND_SUCCESSFUL,
+        // All dependencies complete, but cannot run this node due to failure
+        COMPLETE_AND_NOT_SUCCESSFUL,
+        // All dependencies complete, but this node does not need to run
+        COMPLETE_AND_CAN_SKIP
+    }
 
 }

@@ -23,9 +23,9 @@ import org.gradle.api.provider.SetProperty;
 /**
  * A contributor of a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomContributorSpec
+ * @since 4.8
  */
 public interface MavenPomContributor {
 

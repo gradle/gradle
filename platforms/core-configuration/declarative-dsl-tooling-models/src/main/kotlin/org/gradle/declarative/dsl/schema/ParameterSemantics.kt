@@ -23,18 +23,20 @@ import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
-@ToolingModelContract(subTypes = [
-    StoreValueInProperty::class,
-    IdentityKey::class,
-    Unknown::class
-])
+@ToolingModelContract(
+    subTypes = [
+        StoreValueInProperty::class,
+        IdentityKey::class,
+        Unknown::class
+    ]
+)
 sealed interface ParameterSemantics : Serializable {
     interface StoreValueInProperty : ParameterSemantics {
         val dataProperty: DataProperty
     }
 
     interface IdentityKey : ParameterSemantics {
-        val basedOnProperty : DataProperty?
+        val basedOnProperty: DataProperty?
     }
 
     interface Unknown : ParameterSemantics

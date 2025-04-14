@@ -163,7 +163,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     def "can publish to authenticated repository using inline credentials and #authScheme auth"() {
         given:
         PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('testuser', 'password')
-        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy","""
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy", """
         credentials(PasswordCredentials) {
             username = "${credentials.username}"
             password = "${credentials.password}"

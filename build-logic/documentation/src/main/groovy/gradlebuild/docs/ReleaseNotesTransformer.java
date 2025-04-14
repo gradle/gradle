@@ -79,10 +79,10 @@ public class ReleaseNotesTransformer extends FilterReader {
         document.outputSettings().indentAmount(2).prettyPrint(true);
         document.prependChild(new DocumentType("html", "", ""));
         document.head().
-                append("<meta charset='utf-8'>").
-                append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
-                append("<title>Gradle @version@ Release Notes</title>").
-                append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>");
+            append("<meta charset='utf-8'>").
+            append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
+            append("<title>Gradle @version@ Release Notes</title>").
+            append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>");
         addCssToHead(document);
         addJavascriptToHead(document);
         addHighlightJsToHead(document);
@@ -239,14 +239,14 @@ public class ReleaseNotesTransformer extends FilterReader {
         Element toc = tocSection.append("<ul class='toc'/>").children().last();
 
         Elements h23elements = document.select("h2,h3");
-        for (Element h23element: h23elements) {
+        for (Element h23element : h23elements) {
             String tag = h23element.tagName();
             String name = h23element.text();
             Element link = h23element.selectFirst("a");
             String anchor = (link != null) ? link.attr("id") : "";
-            if(!name.startsWith("Table") && tag.equals("h2")){
+            if (!name.startsWith("Table") && tag.equals("h2")) {
                 toc.append("<li class=\"mainTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
-            } else if(!name.startsWith("Table") && tag.equals("h3")){
+            } else if (!name.startsWith("Table") && tag.equals("h3")) {
                 toc.append("<li class=\"subTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
             }
         }

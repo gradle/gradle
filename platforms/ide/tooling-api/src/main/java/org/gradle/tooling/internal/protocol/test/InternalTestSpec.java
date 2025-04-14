@@ -28,7 +28,10 @@ import java.util.Map;
  */
 public interface InternalTestSpec extends InternalTaskSpec {
     List<String> getPackages();
+
     List<String> getClasses();
+
     Map<String, List<String>> getMethods();
+
     List<String> getPatterns();
 }

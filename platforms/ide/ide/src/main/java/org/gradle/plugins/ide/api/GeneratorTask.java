@@ -55,13 +55,12 @@ import java.io.File;
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class GeneratorTask<T> extends ConventionTask {
-    private File inputFile;
-    private File outputFile;
     protected final MutableActionSet<T> beforeConfigured = new MutableActionSet<T>();
     protected final MutableActionSet<T> afterConfigured = new MutableActionSet<T>();
     protected Generator<T> generator;
-
     protected T domainObject;
+    private File inputFile;
+    private File outputFile;
 
     public GeneratorTask() {
         if (!getIncremental()) {
@@ -89,7 +88,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
             } catch (RuntimeException e) {
                 throw new GradleException(String.format("Cannot parse file '%s'.\n"
                         + "       Perhaps this file was tinkered with? In that case try delete this file and then retry.",
-                        inputFile), e);
+                    inputFile), e);
             }
         } else {
             domainObject = generator.defaultInstance();
@@ -117,8 +116,18 @@ public abstract class GeneratorTask<T> extends ConventionTask {
         return inputFile != null ? inputFile : getOutputFile();
     }
 
+    /**
+     * Sets the input file to load the initial configuration from.
+     *
+     * @param inputFile The input file. Use null to use the output file.
+     */
+    public void setInputFile(@Nullable File inputFile) {
+        this.inputFile = inputFile;
+    }
+
     // Workaround for when the task is given an input file that doesn't exist
-    @Nullable  @Optional
+    @Nullable
+    @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     protected File getInputFileIfExists() {
@@ -128,15 +137,6 @@ public abstract class GeneratorTask<T> extends ConventionTask {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Sets the input file to load the initial configuration from.
-     *
-     * @param inputFile The input file. Use null to use the output file.
-     */
-    public void setInputFile(@Nullable File inputFile) {
-        this.inputFile = inputFile;
     }
 
     /**

@@ -43,11 +43,11 @@ class LineEndingNormalizingFileSystemLocationSnapshotHasherTest extends Specific
         0 * delegate._
 
         where:
-        description               | contents
-        "new lines"               | "this is\na text file\n".bytes
-        "new lines with CR-LF"    | "this is\r\na text file\r\n".bytes
-        "no new lines"            | "No new lines\tin this file".bytes
-        "utf8 content"            | "here's some UTF8 content: €ЇΩ".getBytes(Charset.forName("UTF-8"))
+        description            | contents
+        "new lines"            | "this is\na text file\n".bytes
+        "new lines with CR-LF" | "this is\r\na text file\r\n".bytes
+        "no new lines"         | "No new lines\tin this file".bytes
+        "utf8 content"         | "here's some UTF8 content: €ЇΩ".getBytes(Charset.forName("UTF-8"))
     }
 
     def "calls delegate for binary files with #description"() {

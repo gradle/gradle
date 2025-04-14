@@ -122,11 +122,10 @@ public abstract class IdeaProject implements IdeWorkspace {
     private final XmlFileContentMerger ipr;
     private final ProjectStateRegistry projectPathRegistry;
     private final IdeArtifactRegistry artifactRegistry;
-
-    private List<IdeaModule> modules;
-    private String jdkName;
     protected IdeaLanguageLevel languageLevel;
     protected JavaVersion targetBytecodeVersion;
+    private List<IdeaModule> modules;
+    private String jdkName;
     private String vcs;
     private Set<String> wildcards = new LinkedHashSet<>();
     private RegularFileProperty outputFile;

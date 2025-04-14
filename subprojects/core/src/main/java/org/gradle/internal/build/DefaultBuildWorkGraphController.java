@@ -50,8 +50,8 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private final WorkerLeaseService workerLeaseService;
     private final Map<String, DefaultExportedTaskNode> nodesByPath = new ConcurrentHashMap<>();
     private final Object lock = new Object();
-    private Thread currentOwner;
     private final Set<DefaultBuildWorkGraph> pendingGraphs = new HashSet<>();
+    private Thread currentOwner;
     private DefaultBuildWorkGraph currentlyRunning;
 
     public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, BuildLifecycleController controller, BuildState buildState, WorkerLeaseService workerLeaseService) {

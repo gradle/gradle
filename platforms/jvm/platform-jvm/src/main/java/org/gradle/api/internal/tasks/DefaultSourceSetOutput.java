@@ -37,13 +37,11 @@ import java.util.function.Consumer;
 
 public abstract class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
     private final ConfigurableFileCollection outputDirectories;
-    private Object resourcesDir;
-
     private final ConfigurableFileCollection classesDirs;
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
-
+    private Object resourcesDir;
     private DirectoryContribution resourcesContributor;
 
     @Inject

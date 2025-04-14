@@ -11,8 +11,11 @@ println project['gradlePropertiesProp']
 // end::gradle-properties[]
 
 abstract class PrintValue extends DefaultTask {
-    @Input abstract Property<String> getInputValue()
-    @TaskAction void action() { println(inputValue.get()) }
+    @Input
+    abstract Property<String> getInputValue()
+
+    @TaskAction
+    void action() { println(inputValue.get()) }
 }
 
 // tag::gradle-properties-task-inputs[]

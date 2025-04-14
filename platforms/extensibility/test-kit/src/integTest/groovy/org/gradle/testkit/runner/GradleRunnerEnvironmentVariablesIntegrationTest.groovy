@@ -23,7 +23,8 @@ import org.gradle.testkit.runner.fixtures.NoDebug
 class GradleRunnerEnvironmentVariablesIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     @CustomEnvironmentVariables
-    @NoDebug //avoid in-process execution so that we can set the env variable
+    @NoDebug
+    //avoid in-process execution so that we can set the env variable
     def "user can provide env vars"() {
         given:
         buildFile "file('env.txt') << System.getenv('dummyEnvVar')"

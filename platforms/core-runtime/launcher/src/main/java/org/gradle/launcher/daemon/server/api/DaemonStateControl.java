@@ -67,7 +67,6 @@ public interface DaemonStateControl {
      *
      * @param command The command to run
      * @param commandDisplayName The command's display name, used for logging and error messages.
-     *
      * @throws DaemonUnavailableException When this daemon is unable to run the command, either because it is currently executing another command
      * or is currently stopping.
      * @throws DaemonStoppedException When this daemon started executing the command but was unable to complete it because the daemon is about to stop.

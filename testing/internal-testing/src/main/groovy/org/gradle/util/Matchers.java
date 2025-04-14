@@ -67,6 +67,7 @@ public class Matchers {
             public boolean matches(Object o) {
                 return ((String) o).contains(pattern);
             }
+
             @Override
             public void describeTo(Description description) {
                 description.appendText("a CharSequence that contains text ").appendValue(pattern);

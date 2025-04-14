@@ -58,15 +58,19 @@ class LightTreeSourceData(
     val lineColumnInfo: LineColumnInfo by lazy {
         LineColumnInfo.fromIndexRange(sourceCode, sourceOffset, indexRange)
     }
+
     override
     val lineRange: IntRange
         get() = lineColumnInfo.startLine..lineColumnInfo.endLine
+
     override
     val startColumn: Int
         get() = lineColumnInfo.startColumn
+
     override
     val endColumn: Int
         get() = lineColumnInfo.endColumn
+
     override
     fun text(): String = sourceCode.substring((indexRange.first + sourceOffset)..(indexRange.last + sourceOffset))
 
@@ -80,6 +84,7 @@ class LightTreeSourceData(
                         '\r' -> {
                             if (index + 1 < length && this[index + 1] == '\n') 2 else 1
                         }
+
                         else -> 0
                     }
 
@@ -205,6 +210,7 @@ fun escapedStringToCharacter(text: String): Char? {
             // bare slash
             return null
         }
+
         1 -> {
             // one-char escape
             return when (escape[0]) {
@@ -219,6 +225,7 @@ fun escapedStringToCharacter(text: String): Char? {
                 else -> null
             }
         }
+
         5 -> {
             // unicode escape
             if (escape[0] == 'u') {

@@ -106,7 +106,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
                                        "org.gradle.jvm.version": currentJavaVersion,
                                        "org.gradle.libraryelements": "jar",
                                        "org.gradle.usage": "java-api",
-                                      ])
+        ])
         assertAttributes(runtimeElements, ["org.gradle.category": "library",
                                            "org.gradle.dependency.bundling": "external",
                                            "org.gradle.jvm.version": currentJavaVersion,
@@ -202,6 +202,6 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     }
 
     private static String[] mavenizeDependencies(String[] input) {
-        return input.collect {it.replace("latest.integration", "LATEST").replace("latest.release", "RELEASE")}
+        return input.collect { it.replace("latest.integration", "LATEST").replace("latest.release", "RELEASE") }
     }
 }

@@ -70,7 +70,7 @@ class DistributionBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks.assembleCustomDist
         task instanceof DefaultTask
-        task TaskDependencyMatchers.dependsOn ("customDistZip","customDistTar")
+        task TaskDependencyMatchers.dependsOn("customDistZip", "customDistTar")
     }
 
     def "adds installDist task for custom distribution"() {

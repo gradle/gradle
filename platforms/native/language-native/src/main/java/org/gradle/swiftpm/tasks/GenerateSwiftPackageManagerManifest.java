@@ -128,13 +128,13 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
                                 writer.print("from: \"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"");
-                            } else if (versionDependency.isUpperInclusive()){
+                            } else if (versionDependency.isUpperInclusive()) {
                                 writer.print("\"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"...\"");
                                 writer.print(versionDependency.getUpperBound());
                                 writer.print("\"");
-                            }  else {
+                            } else {
                                 writer.print("\"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"..<\"");

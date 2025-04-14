@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.ModuleIdentifier
@@ -34,7 +33,8 @@ class ModuleIdentifierNotationConverterTest extends Specification {
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory)).toComposite()
+    @Subject
+        parser = NotationParserBuilder.toType(ModuleIdentifier).fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory)).toComposite()
 
     def "parses module identifier notation"() {
         expect:
@@ -43,15 +43,21 @@ class ModuleIdentifierNotationConverterTest extends Specification {
     }
 
     def "reports invalid notation"() {
-        when: parser.parseNotation(notation)
-        then: thrown(UnsupportedNotationException)
-        where: notation << [null, "", ":", "foo:", "bar:", "foo:bar:baz", "  :", ":  ", "  :  "]
+        when:
+        parser.parseNotation(notation)
+        then:
+        thrown(UnsupportedNotationException)
+        where:
+        notation << [null, "", ":", "foo:", "bar:", "foo:bar:baz", "  :", ":  ", "  :  "]
     }
 
     def "reports notation with invalid character"() {
-        when: parser.parseNotation("group:module${character}")
-        then: thrown(UnsupportedNotationException)
-        where: character << ["*", "[", "]", "(", ")", ","]
+        when:
+        parser.parseNotation("group:module${character}")
+        then:
+        thrown(UnsupportedNotationException)
+        where:
+        character << ["*", "[", "]", "(", ")", ","]
     }
 
 

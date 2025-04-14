@@ -40,9 +40,9 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
     private final Consumer<FileLock> onClose;
     private final Runnable unlocker;
     private final Consumer<FileLockReleasedSignal> whenContended;
+    private final CacheInitializationAction initAction;
     private int lockCount;
     private FileLock fileLock;
-    private final CacheInitializationAction initAction;
     private FileLockReleasedSignal lockReleaseSignal;
 
     /**

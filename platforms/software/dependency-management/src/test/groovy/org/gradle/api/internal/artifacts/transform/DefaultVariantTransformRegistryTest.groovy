@@ -57,7 +57,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformInvocationFactory = Mock(TransformInvocationFactory)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionFactory = Mock(FileCollectionFactory)
-    @SuppressWarnings('unused') // Still necessary for stubbing
+    @SuppressWarnings('unused')
+    // Still necessary for stubbing
     def propertyWalker = Mock(PropertyWalker)
     def inspectionScheme = Stub(InspectionScheme) {
         getPropertyWalker() >> propertyWalker

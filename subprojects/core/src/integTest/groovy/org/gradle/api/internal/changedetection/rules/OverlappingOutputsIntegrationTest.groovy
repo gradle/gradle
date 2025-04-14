@@ -129,7 +129,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output directory with first, second then first, second"() {
         def (String first, TestFile firstOutput,
-        String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        String      second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
         withBuildCache().run(first, second)
@@ -155,7 +155,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output directory with first, second then second, first"() {
         def (String first, TestFile firstOutput,
-        String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        String      second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
         withBuildCache().run(first, second)
@@ -180,7 +180,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output directory with first, second then second only"() {
         def (String first, TestFile firstOutput,
-             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        String      second, TestFile secondOutput) = useOverlappingOutputDirectories()
 
         when:
         withBuildCache().run(first, second)
@@ -206,7 +206,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output directory with first cleanSecond second then first second"() {
         def (String first, TestFile firstOutput,
-             String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        String      second, TestFile secondOutput) = useOverlappingOutputDirectories()
         def cleanSecond = ":cleanSecond"
 
         when:
@@ -237,13 +237,13 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                 delete dirTask
             }
         """
-        return [ ":fileTask", file("build/overlap/fileTask.txt"),
-                 ":dirTask", file("build/overlap/dirTask.txt") ]
+        return [":fileTask", file("build/overlap/fileTask.txt"),
+                ":dirTask", file("build/overlap/dirTask.txt")]
     }
 
     def "overlapping output with fileTask, dirTask then fileTask, dirTask"() {
         def (String fileTask, TestFile fileTaskOutput,
-             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
+        String      dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
         withBuildCache().run(fileTask, dirTask)
@@ -267,7 +267,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output with fileTask, dirTask then dirTask, fileTask"() {
         def (String fileTask, TestFile fileTaskOutput,
-             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
+        String      dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
         withBuildCache().run(fileTask, dirTask)
@@ -304,7 +304,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output with fileTask, dirTask then dirTask only"() {
         def (String fileTask, TestFile fileTaskOutput,
-             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
+        String      dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
         withBuildCache().run(fileTask, dirTask)
@@ -330,7 +330,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output with dirTask, fileTask then fileTask then dirTask"() {
         def (String fileTask, TestFile fileTaskOutput,
-             String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
+        String      dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
 
         when:
         withBuildCache().run(dirTask, fileTask)
@@ -508,13 +508,13 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
             task localStateFileTask(type: LocalStateFileTask)
             task dirTask(type: OutputDirectoryTask)
         """
-        return [ ":localStateFileTask", file("build/localStateFileTask-output.txt"), file("build/overlap/localStateFileTask.txt"),
-                 ":dirTask", file("build/overlap/dirTask.txt")]
+        return [":localStateFileTask", file("build/localStateFileTask-output.txt"), file("build/overlap/localStateFileTask.txt"),
+                ":dirTask", file("build/overlap/dirTask.txt")]
     }
 
     def "overlapping output with localStateFileTask, dirTask then localStateFileTask, dirTask"() {
         def (String localStateFileTask, TestFile localStateFileTaskOutput, TestFile localStateFileTaskState,
-        String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
+        String      dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
 
         when:
         withBuildCache().run(localStateFileTask, dirTask)
@@ -541,7 +541,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping file output with localStateFileTask, dirTask then dirTask, localStateFileTask"() {
         def (String localStateFileTask, TestFile localStateFileTaskOutput, TestFile localStateFileTaskState,
-             String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
+        String      dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
 
         when:
         withBuildCache().run(localStateFileTask, dirTask)
@@ -585,14 +585,14 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
             task localStateDirTask(type: LocalStateDirectoryTask)
             task fileTask(type: OutputFileTask)
         """
-        return [ ":localStateDirTask", file("build/localStateDirTask-output.txt"), file("build/overlap/localStateDirTask.txt"),
-                 ":fileTask", file("build/overlap/fileTask.txt")]
+        return [":localStateDirTask", file("build/localStateDirTask-output.txt"), file("build/overlap/localStateDirTask.txt"),
+                ":fileTask", file("build/overlap/fileTask.txt")]
     }
 
     @ToBeImplemented("We don't yet detect when somebody messes with a task's local state")
     def "overlapping output with localStateDirTask, fileTask then localStateDirTask, fileTask"() {
         def (String localStateDirTask, TestFile localStateDirTaskOutput, TestFile localStateDirTaskState,
-        String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
+        String      fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
 
         when:
         withBuildCache().run(localStateDirTask, fileTask)
@@ -624,7 +624,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     @ToBeImplemented("We don't yet detect when somebody messes with a task's local state")
     def "overlapping output with localStateDirTask, fileTask then fileTask, localStateDirTask"() {
         def (String localStateDirTask, TestFile localStateDirTaskOutput, TestFile localStateDirTaskState,
-             String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
+        String      fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
 
         when:
         withBuildCache().run(localStateDirTask, fileTask)
@@ -760,7 +760,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         someTaskOutput.text == "Generated by ${someTask}"
 
         where:
-        taskType << [ "OutputDirectoryTask", "OutputFileTask" ]
+        taskType << ["OutputDirectoryTask", "OutputFileTask"]
     }
 
     def "overlapping directory with external process that creates a directory"() {

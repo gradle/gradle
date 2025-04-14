@@ -150,6 +150,7 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
                 log(ResolvedToPrevious(cid, script.file, previousDependencies))
                 previousDependencies
             }
+
             is ResolverAction.RequestNew -> {
                 assembleDependenciesFrom(
                     cid,
@@ -191,10 +192,12 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
                 dependenciesFrom(request, response, classPathBlocksHash).also {
                     log(ResolvedDependencies(cid, scriptFile, it))
                 }
+
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
                 previousDependencies.also {
                     log(ResolvedToPreviousWithErrors(cid, scriptFile, previousDependencies, response.exceptions))
                 }
+
             else ->
                 dependenciesFrom(request, response, classPathBlocksHash).also {
                     log(ResolvedDependenciesWithErrors(cid, scriptFile, it, response.exceptions))

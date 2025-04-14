@@ -75,7 +75,7 @@ class MixedLanguageHelloWorldApp extends HelloWorldApp {
     }
 
     List<SourceFile> getLibrarySources() {
-        return  [
+        return [
             new SourceFile("c", "hello.c", """
             #include <stdio.h>
             #include "hello.h"

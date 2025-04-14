@@ -35,8 +35,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeElement implements FileVisitDetails {
     private final File expandedDir;
-    private File file;
     private final AtomicBoolean stopFlag;
+    private File file;
 
     /**
      * Creates a new instance.

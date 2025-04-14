@@ -69,8 +69,8 @@ public interface HierarchicalEclipseProject extends HierarchicalElement, HasGrad
      * Returns the project directory for this project.
      *
      * @return The project directory.
-     * @since 1.0-milestone-9
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-9, where this method is not supported.
+     * @since 1.0-milestone-9
      */
     File getProjectDirectory() throws UnsupportedMethodException;
 

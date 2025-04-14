@@ -72,16 +72,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
     Set<URI> getArtifactUrls();
 
     /**
-     * Adds some additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
-     *
-     * <p>The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
-     * relative to the project directory.
-     *
-     * @param urls The URLs to add.
-     */
-    void artifactUrls(Object... urls);
-
-    /**
      * Sets the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
      *
      * @param urls The URLs.
@@ -100,11 +90,20 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
     void setArtifactUrls(Iterable<?> urls);
 
     /**
+     * Adds some additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
+     *
+     * <p>The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
+     * relative to the project directory.
+     *
+     * @param urls The URLs to add.
+     */
+    void artifactUrls(Object... urls);
+
+    /**
      * Configures the metadata sources for this repository. This method will replace any previously configured sources
      * of metadata.
      *
      * @param configureAction the configuration of metadata sources.
-     *
      * @since 4.5
      */
     void metadataSources(Action<? super MetadataSources> configureAction);
@@ -118,10 +117,17 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
     MetadataSources getMetadataSources();
 
     /**
+     * Configures the content of this Maven repository.
+     *
+     * @param configureAction the configuration action
+     * @since 5.1
+     */
+    void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction);
+
+    /**
      * Allows configuring the sources of metadata for a specific repository.
      *
      * @since 4.5
-     *
      */
     interface MetadataSources {
         /**
@@ -147,7 +153,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          * Indicates that this repository will ignore Gradle module metadata redirection markers found in POM files.
          *
          * @since 5.6
-         *
          */
         void ignoreGradleMetadataRedirection();
 
@@ -179,12 +184,4 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          */
         boolean isIgnoreGradleMetadataRedirectionEnabled();
     }
-
-    /**
-     * Configures the content of this Maven repository.
-     * @param configureAction the configuration action
-     *
-     * @since 5.1
-     */
-    void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction);
 }

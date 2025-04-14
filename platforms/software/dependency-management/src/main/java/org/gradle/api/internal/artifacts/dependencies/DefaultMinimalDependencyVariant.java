@@ -32,11 +32,12 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     private String classifier;
     private String artifactType;
 
-    public DefaultMinimalDependencyVariant(MinimalExternalModuleDependency delegate,
-                                           @Nullable Action<? super AttributeContainer> attributesMutator,
-                                           @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
-                                           @Nullable String classifier,
-                                           @Nullable String artifactType
+    public DefaultMinimalDependencyVariant(
+        MinimalExternalModuleDependency delegate,
+        @Nullable Action<? super AttributeContainer> attributesMutator,
+        @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
+        @Nullable String classifier,
+        @Nullable String artifactType
     ) {
         super(delegate.getModule(), new DefaultMutableVersionConstraint(delegate.getVersionConstraint()), delegate.getTargetConfiguration());
 

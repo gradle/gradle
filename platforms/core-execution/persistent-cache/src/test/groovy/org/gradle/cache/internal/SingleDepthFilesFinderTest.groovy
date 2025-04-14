@@ -21,7 +21,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class SingleDepthFilesFinderTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "finds files for depth #depth"() {
         given:

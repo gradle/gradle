@@ -44,7 +44,7 @@ class DefaultProcessForkOptionsTest extends Specification {
 
     def convertsEnvironmentToString() {
         when:
-        options.environment = [key1: 12, key2: "${1+2}", key3: null]
+        options.environment = [key1: 12, key2: "${1 + 2}", key3: null]
 
         then:
         options.actualEnvironment == [key1: '12', key2: '3', key3: 'null']

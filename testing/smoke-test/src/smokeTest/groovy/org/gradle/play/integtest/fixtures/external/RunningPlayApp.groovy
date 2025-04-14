@@ -35,7 +35,7 @@ class RunningPlayApp {
         this.testDirectory = testDirectory
     }
 
-    URL playUrl(String path='') {
+    URL playUrl(String path = '') {
         requireHttpPort()
         return new URL("http://localhost:$httpPort/${path}")
     }
@@ -91,7 +91,7 @@ class RunningPlayApp {
     void waitForStarted(int occurrence = 0) {
         int timeout = 120
         ConcurrentTestUtil.poll(timeout) {
-            assert parseHttpPort(occurrence) != UNASSIGNED : "Could not parse Play http port from spec output after ${timeout} seconds"
+            assert parseHttpPort(occurrence) != UNASSIGNED: "Could not parse Play http port from spec output after ${timeout} seconds"
         }
     }
 

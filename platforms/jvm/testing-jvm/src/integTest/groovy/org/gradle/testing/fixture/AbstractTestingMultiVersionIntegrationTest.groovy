@@ -45,6 +45,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
  */
 abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
     abstract BuildScriptConfiguration getBuildScriptConfiguration()
+
     abstract TestSourceConfiguration getTestSourceConfiguration()
 
     String getTestFrameworkDependencies() {
@@ -112,8 +113,11 @@ abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIn
      */
     interface BuildScriptConfiguration {
         String getTestFrameworkDependencies(String sourceSet)
+
         String getConfigureTestFramework()
+
         String getIncludeCategoryOrTagConfigurationElement()
+
         String getExcludeCategoryOrTagConfigurationElement()
 
         default configurationFor(String sourceSet, String configurationName) {
@@ -134,12 +138,19 @@ abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIn
      */
     interface TestSourceConfiguration {
         String getTestFrameworkImports()
+
         String getBeforeClassAnnotation()
+
         String getAfterClassAnnotation()
+
         String getBeforeTestAnnotation()
+
         String getAfterTestAnnotation()
+
         String getIgnoreOrDisabledAnnotation()
+
         String getRunOrExtendWithAnnotation(String runOrExtendWithClasses)
+
         String maybeParentheses(String methodName)
     }
 }

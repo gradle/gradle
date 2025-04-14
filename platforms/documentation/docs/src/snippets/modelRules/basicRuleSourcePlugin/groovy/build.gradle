@@ -4,56 +4,66 @@
 @Managed
 interface Person {
 // tag::property-type-string[]
-  void setFirstName(String name)
-  String getFirstName()
+    void setFirstName(String name)
+
+    String getFirstName()
 // end::property-type-string[]
 
-  void setLastName(String name)
-  String getLastName()
+    void setLastName(String name)
+
+    String getLastName()
 // end::managed-type[]
 // end::managed-type-and-plugin[]
 // end::managed-type-plugin-and-dsl[]
 
 // tag::property-type-int[]
-  void setAge(int age)
-  int getAge()
+    void setAge(int age)
+
+    int getAge()
 // end::property-type-int[]
 
 // tag::property-type-boolean[]
-  void setEmployed(boolean isEmployed)
-  boolean isEmployed()
+    void setEmployed(boolean isEmployed)
+
+    boolean isEmployed()
 // end::property-type-boolean[]
 
 // tag::property-type-managed[]
-  void setMother(Person mother)
-  Person getMother()
+    void setMother(Person mother)
+
+    Person getMother()
 // end::property-type-managed[]
 
-  void setFather(Person father)
-  Person getFather()
+    void setFather(Person father)
+
+    Person getFather()
 
 // tag::property-type-managedset[]
-  ModelSet<Person> getChildren()
+    ModelSet<Person> getChildren()
 // end::property-type-managedset[]
 
 // tag::property-type-file[]
-  void setHomeDirectory(File homeDir)
-  File getHomeDirectory()
+    void setHomeDirectory(File homeDir)
+
+    File getHomeDirectory()
 // end::property-type-file[]
 
 // tag::property-type-long[]
-  void setId(Long id)
-  Long getId()
+    void setId(Long id)
+
+    Long getId()
 // end::property-type-long[]
 
 // tag::property-type-enum[]
-  void setMaritalStatus(MaritalStatus status)
-  MaritalStatus getMaritalStatus()
+    void setMaritalStatus(MaritalStatus status)
+
+    MaritalStatus getMaritalStatus()
 // end::property-type-enum[]
 
 // tag::property-type-collection-scalar[]
-   void setUserGroups(List<String> groups)
-   List<String> getUserGroups()
+    void setUserGroups(List<String> groups)
+
+    List<String> getUserGroups()
 // end::property-type-collection-scalar[]
 
 
@@ -66,25 +76,28 @@ interface Person {
 // tag::rule-source-plugin[]
 class PersonRules extends RuleSource {
 // tag::create-rule[]
-  @Model void person(Person p) {}
+    @Model
+    void person(Person p) {}
 // end::create-rule[]
 
 // tag::plugin-mutate-rule[]
-  //Create a rule that modifies a Person and takes no other inputs
-  @Mutate void setFirstName(Person p) {
-    p.firstName = "John"
-  }
+    //Create a rule that modifies a Person and takes no other inputs
+    @Mutate
+    void setFirstName(Person p) {
+        p.firstName = "John"
+    }
 // end::plugin-mutate-rule[]
 
 // tag::task-create-rule[]
-  //Create a rule that modifies a ModelMap<Task> and takes as input a Person
-  @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
-    tasks.create("hello") {
-      doLast {
-        println "Hello $p.firstName $p.lastName!"
-      }
+    //Create a rule that modifies a ModelMap<Task> and takes as input a Person
+    @Mutate
+    void createHelloTask(ModelMap<Task> tasks, Person p) {
+        tasks.create("hello") {
+            doLast {
+                println "Hello $p.firstName $p.lastName!"
+            }
+        }
     }
-  }
 // end::task-create-rule[]
 }
 
@@ -94,9 +107,9 @@ apply plugin: PersonRules
 
 // tag::dsl[]
 model {
-  person {
-    lastName = "Smith"
-  }
+    person {
+        lastName = "Smith"
+    }
 }
 // end::dsl[]
 // end::managed-type-plugin-and-dsl[]

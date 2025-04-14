@@ -44,8 +44,9 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
     private final PersistentCache cache;
 
     public ReadOnlyArtifactCacheLockingAccessCoordinator(
-            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
-            ArtifactCacheMetadata cacheMetaData) {
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+        ArtifactCacheMetadata cacheMetaData
+    ) {
         cache = unscopedCacheBuilderFactory
             .cache(cacheMetaData.getCacheDir())
             .withDisplayName("read only artifact cache")

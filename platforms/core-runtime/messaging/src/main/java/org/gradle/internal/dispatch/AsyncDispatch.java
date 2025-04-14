@@ -34,10 +34,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * of a pool of delegate {@link Dispatch} instances.</p>
  */
 public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
-    private enum State {
-        Init, Stopped
-    }
-
     private static final int MAX_QUEUE_SIZE = 200;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
@@ -46,7 +42,6 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     private final int maxQueueSize;
     private final Map<Dispatch<?>, InterruptibleRunnable> dispatchers = new HashMap<Dispatch<?>, InterruptibleRunnable>();
     private State state;
-
     public AsyncDispatch(Executor executor) {
         this(executor, null, MAX_QUEUE_SIZE);
     }
@@ -215,5 +210,9 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
             throw new IllegalStateException(
                 "Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
         }
+    }
+
+    private enum State {
+        Init, Stopped
     }
 }

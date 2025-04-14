@@ -72,7 +72,8 @@ class DependencyInjectingServiceLoaderTest extends Specification {
     static class ServiceTypeImpl implements ServiceType {
         ServiceDependency dependency
 
-        @Inject ServiceTypeImpl(ServiceDependency dependency) {
+        @Inject
+        ServiceTypeImpl(ServiceDependency dependency) {
             this.dependency = dependency
         }
     }

@@ -62,8 +62,8 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 /**
  * Adds the ability to publish in the Maven format to Maven repositories.
  *
- * @since 1.4
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_maven.html">Maven Publishing reference</a>
+ * @since 1.4
  */
 public abstract class MavenPublishPlugin implements Plugin<Project> {
 
@@ -76,14 +76,49 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
-                              FileResolver fileResolver,
-                              TaskDependencyFactory taskDependencyFactory) {
+    public MavenPublishPlugin(
+        InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
+    }
+
+    private static void validateCredentialsSetup(Project project, PublishToMavenRepository publishToMavenRepository) {
+        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository();
+        Credentials creds;
+        try {
+            creds = repository.getConfiguredCredentials().getOrNull();
+        } catch (Exception e) {
+            // In case of exception, we assume compatibility as this will fail later as well
+            creds = null;
+        }
+        if (creds != null && !isUsingCredentialsProvider((ProjectInternal) project, repository.getName(), creds)) {
+            publishToMavenRepository.notCompatibleWithConfigurationCache("Publishing to a repository without a credentials provider is not yet supported for the configuration cache");
+        }
+    }
+
+    private static boolean isUsingCredentialsProvider(ProjectInternal project, String identity, Credentials toCheck) {
+        ProviderFactory providerFactory = project.getServices().get(ProviderFactory.class);
+        Credentials referenceCredentials;
+        try {
+            Provider<? extends Credentials> credentialsProvider;
+            try {
+                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
+            } catch (IllegalArgumentException e) {
+                // some possibilities are invalid repository names and invalid credential types
+                // either way, this is not the place to validate that
+                return false;
+            }
+            referenceCredentials = credentialsProvider.get();
+        } catch (MissingValueException e) {
+            return false;
+        }
+        return EqualsBuilder.reflectionEquals(toCheck, referenceCredentials);
     }
 
     @Override
@@ -98,9 +133,9 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
         project.getExtensions().configure(PublishingExtension.class, extension -> {
             extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(
-                    dependencyMetaDataProvider,
-                    instantiatorFactory.decorateLenient(),
-                    fileResolver));
+                dependencyMetaDataProvider,
+                instantiatorFactory.decorateLenient(),
+                fileResolver));
             realizePublishingTasksLater(project, extension);
         });
     }
@@ -153,39 +188,6 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         });
     }
 
-    private static void validateCredentialsSetup(Project project, PublishToMavenRepository publishToMavenRepository) {
-        DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) publishToMavenRepository.getRepository();
-        Credentials creds;
-        try {
-            creds = repository.getConfiguredCredentials().getOrNull();
-        } catch (Exception e) {
-            // In case of exception, we assume compatibility as this will fail later as well
-            creds = null;
-        }
-        if (creds != null && !isUsingCredentialsProvider((ProjectInternal) project, repository.getName(), creds)) {
-            publishToMavenRepository.notCompatibleWithConfigurationCache("Publishing to a repository without a credentials provider is not yet supported for the configuration cache");
-        }
-    }
-
-    private static boolean isUsingCredentialsProvider(ProjectInternal project, String identity, Credentials toCheck) {
-        ProviderFactory providerFactory = project.getServices().get(ProviderFactory.class);
-        Credentials referenceCredentials;
-        try {
-            Provider<? extends Credentials> credentialsProvider;
-            try {
-                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
-            } catch (IllegalArgumentException e) {
-                // some possibilities are invalid repository names and invalid credential types
-                // either way, this is not the place to validate that
-                return false;
-            }
-            referenceCredentials = credentialsProvider.get();
-        } catch (MissingValueException e) {
-            return false;
-        }
-        return EqualsBuilder.reflectionEquals(toCheck, referenceCredentials);
-    }
-
     private void createLocalInstallTask(TaskContainer tasks, final TaskProvider<Task> publishLocalLifecycleTask, final MavenPublicationInternal publication) {
         final String publicationName = publication.getName();
         final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
@@ -230,9 +232,11 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final FileResolver fileResolver;
 
-        private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
-                                        Instantiator instantiator,
-                                        FileResolver fileResolver) {
+        private MavenPublicationFactory(
+            DependencyMetaDataProvider dependencyMetaDataProvider,
+            Instantiator instantiator,
+            FileResolver fileResolver
+        ) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
@@ -243,11 +247,11 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             return objectFactory.newInstance(
-                    DefaultMavenPublication.class,
-                    name,
-                    dependencyMetaDataProvider,
-                    artifactNotationParser,
-                    versionMappingStrategy
+                DefaultMavenPublication.class,
+                name,
+                dependencyMetaDataProvider,
+                artifactNotationParser,
+                versionMappingStrategy
             );
         }
     }

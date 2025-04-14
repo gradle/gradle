@@ -20,6 +20,16 @@ package org.gradle.api.internal.artifacts.configurations;
  * Used to validate mutation of an object and its sub-parts.
  */
 public interface MutationValidator {
+    MutationValidator IGNORE = type -> {
+    };
+
+    /**
+     * Check if mutation is allowed.
+     *
+     * @param type the type of mutation to validate.
+     */
+    void validateMutation(MutationType type);
+
     enum MutationType {
         /**
          * The mutation of the resolution strategy of the configuration, i.e. caching, resolution rules etc.
@@ -82,14 +92,4 @@ public interface MutationValidator {
             return plural;
         }
     }
-
-    /**
-     * Check if mutation is allowed.
-     *
-     * @param type the type of mutation to validate.
-     */
-    void validateMutation(MutationType type);
-
-    MutationValidator IGNORE = type -> {
-    };
 }

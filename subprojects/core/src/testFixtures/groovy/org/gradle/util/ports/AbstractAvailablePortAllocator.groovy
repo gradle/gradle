@@ -15,6 +15,7 @@
  */
 
 package org.gradle.util.ports
+
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import org.gradle.internal.Pair
@@ -66,7 +67,7 @@ abstract class AbstractAvailablePortAllocator implements PortAllocator {
     }
 
     private int reservePort() {
-        while(true) {
+        while (true) {
             for (int i = 0; i < reservations.size(); i++) {
                 ReservedPortRange range = reservations.get(i)
                 int port = range.allocate()

@@ -24,18 +24,22 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class XmlPersistableConfigurationObjectTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     String rootElement
     final XmlPersistableConfigurationObject object = new XmlPersistableConfigurationObject(new XmlTransformer()) {
-        @Override protected String getDefaultResourceName() {
+        @Override
+        protected String getDefaultResourceName() {
             return 'defaultResource.xml'
         }
 
-        @Override protected void load(Node xml) {
+        @Override
+        protected void load(Node xml) {
             rootElement = xml.attributes().get("name") as String
         }
 
-        @Override protected void store(Node xml) {
+        @Override
+        protected void store(Node xml) {
             xml.attributes().put("name", rootElement)
         }
     }

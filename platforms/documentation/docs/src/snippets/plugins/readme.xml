@@ -3,10 +3,12 @@
     <para>This sample contains the following projects:</para>
     <itemizedlist>
         <listitem>
-            <para>The <filename>buildscript</filename> directory contains a project that uses the old <code>buildscript</code> syntax for using plugins.</para>
+            <para>The <filename>buildscript</filename> directory contains a project that uses the old <code>buildscript</code> syntax for using plugins.
+            </para>
         </listitem>
         <listitem>
-            <para>The <filename>dsl</filename> directory contains the a project that uses the new <code>plugins</code> syntax for using plugins.</para>
+            <para>The <filename>dsl</filename> directory contains the a project that uses the new <code>plugins</code> syntax for using plugins.
+            </para>
         </listitem>
         <listitem>
             <para>

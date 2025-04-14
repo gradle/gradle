@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
+
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
@@ -36,6 +37,6 @@ class AssemblerTest extends GccCompatibleNativeCompilerTest {
         def arguments = super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
         // We don't properly support includes for assembler
         arguments.remove("-nostdinc")
-        ['-x', 'assembler' ] + arguments
+        ['-x', 'assembler'] + arguments
     }
 }

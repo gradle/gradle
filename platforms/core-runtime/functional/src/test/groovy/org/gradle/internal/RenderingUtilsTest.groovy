@@ -27,7 +27,7 @@ class RenderingUtilsTest extends Specification {
         render == result
 
         where:
-        items               | result
+        items              | result
         ["i1", "i2", "i3"] | "'i1', 'i2', and 'i3'"
         ["i1", "i2"]       | "'i1' and 'i2'"
         ["i1"]             | "'i1'"

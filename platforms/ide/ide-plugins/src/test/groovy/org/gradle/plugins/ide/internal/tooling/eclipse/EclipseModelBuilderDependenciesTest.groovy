@@ -195,7 +195,7 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
 
         where:
         projectName | expectedTestAttributes
-        'child2'    | [ null ]
+        'child2'    | [null]
         'child5'    | ['true']
     }
 

@@ -23,5 +23,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Build.class)
 public interface MavenSettingsProvider {
     Settings buildSettings() throws SettingsBuildingException;
+
     String getLocalRepository();
 }

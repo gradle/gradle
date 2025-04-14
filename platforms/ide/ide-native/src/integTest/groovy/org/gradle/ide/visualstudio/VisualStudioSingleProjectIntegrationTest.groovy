@@ -333,7 +333,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         projectFile.sourceFiles == ['build.gradle']
         projectFile.headerFiles == []
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        with (projectFile.projectConfigurations['debug']) {
+        with(projectFile.projectConfigurations['debug']) {
             includePath == filePath("src/main/headers")
         }
 
@@ -363,8 +363,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
 
         and:
         final projectFile = projectFile("app.vcxproj")
-        assert projectFile.sourceFiles == ['build.gradle'] + app.sourceFiles.collect({"src/main/cpp/${it.name}"}).sort()
-        assert projectFile.headerFiles == app.headerFiles.collect({"src/main/cpp/${it.name}"}).sort()
+        assert projectFile.sourceFiles == ['build.gradle'] + app.sourceFiles.collect({ "src/main/cpp/${it.name}" }).sort()
+        assert projectFile.headerFiles == app.headerFiles.collect({ "src/main/cpp/${it.name}" }).sort()
     }
 
     private String[] getProjectTasks(String exeName) {

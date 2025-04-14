@@ -61,7 +61,7 @@ public abstract class CustomTest extends DefaultTask {
                         test.started(Instant.now());
                         String testName = String.valueOf(result.getTestIdentifier().getParentIdObject());
                         failedTests.add(testName);  // <4>
-                        test.metadata(Instant.now(),"Parent class:", String.valueOf(result.getTestIdentifier().getParentId().get()));
+                        test.metadata(Instant.now(), "Parent class:", String.valueOf(result.getTestIdentifier().getParentId().get()));
                         test.failed(Instant.now(), String.valueOf(result.getException()));
                     }
                 });

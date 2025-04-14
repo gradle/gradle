@@ -159,7 +159,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.descriptor.dependencies.get().size() == 1
         def ivyDependency = publication.descriptor.dependencies.get().asList().first()
 
-        with (ivyDependency) {
+        with(ivyDependency) {
             organisation == "org"
             module == "name"
             revision == "version"
@@ -198,7 +198,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.descriptor.dependencies.get().size() == 1
         def ivyDependency = publication.descriptor.dependencies.get().asList().first()
 
-        with (ivyDependency) {
+        with(ivyDependency) {
             organisation == "pub-org"
             module == "pub-module"
             revision == "pub-revision"
@@ -325,7 +325,7 @@ class DefaultIvyPublicationTest extends Specification {
         coordinates.revision.get() == "revision2"
 
         and:
-        publication.organisation== "organisation2"
+        publication.organisation == "organisation2"
         publication.module == "module2"
         publication.revision == "revision2"
 

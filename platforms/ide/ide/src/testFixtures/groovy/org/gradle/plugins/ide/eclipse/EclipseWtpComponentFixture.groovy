@@ -44,7 +44,7 @@ class EclipseWtpComponentFixture {
     }
 
     Map<String, String> getModuleProperties() {
-        return component."wb-module".property.collectEntries { [(it.@name) : it.@value] }
+        return component."wb-module".property.collectEntries { [(it.@name): it.@value] }
     }
 
     WbModule lib(String jarName) {
@@ -97,7 +97,7 @@ class EclipseWtpComponentFixture {
         }
 
         void assertAttributes(Map attributes) {
-            attributes.each { key, value ->  assert node."@$key" == value }
+            attributes.each { key, value -> assert node."@$key" == value }
         }
 
     }

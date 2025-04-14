@@ -26,7 +26,8 @@ public interface ComponentSpecIdentifier {
     /**
      * The parent of the component, if any.
      */
-    @Nullable ComponentSpecIdentifier getParent();
+    @Nullable
+    ComponentSpecIdentifier getParent();
 
     /**
      * The base name of this component.

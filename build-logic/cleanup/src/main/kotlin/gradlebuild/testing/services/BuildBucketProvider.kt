@@ -41,14 +41,17 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
             println("Tests to be included:\n$content")
             IncludeTestClassProvider(readTestClasses(content))
         }
+
         parameters.excludeTestClasses.get().isNotBlank() -> {
             val content = parameters.repoRoot.file("test-splits/exclude-test-classes.properties").get().asFile.readText()
             println("Tests to be excluded:\n$content")
             ExcludeTestClassProvider(readTestClasses(content))
         }
+
         parameters.onlyTestGradleVersion.get().isNotBlank() -> {
             CrossVersionBucketProvider(parameters.onlyTestGradleVersion.get())
         }
+
         else -> {
             NoOpTestClassProvider()
         }

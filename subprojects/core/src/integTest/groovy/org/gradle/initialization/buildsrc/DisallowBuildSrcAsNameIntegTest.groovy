@@ -71,7 +71,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
 
     def "fails when trying to include a build with name buildSrc"() {
         def b = file("b")
-         b.file("build.gradle") << ""
+        b.file("build.gradle") << ""
         buildFile << """
             task t
         """

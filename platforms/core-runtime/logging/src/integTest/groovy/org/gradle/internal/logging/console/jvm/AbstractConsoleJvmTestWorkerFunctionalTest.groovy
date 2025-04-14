@@ -125,5 +125,6 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     abstract String testAnnotationClass()
+
     abstract String testFrameworkConfiguration()
 }

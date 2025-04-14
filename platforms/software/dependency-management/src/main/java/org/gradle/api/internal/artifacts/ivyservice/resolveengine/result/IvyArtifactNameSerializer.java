@@ -28,9 +28,10 @@ import java.io.IOException;
 /**
  * Serializes and de-serializes {@link IvyArtifactName}s.
  */
-public class IvyArtifactNameSerializer extends AbstractSerializer<IvyArtifactName>  {
+public class IvyArtifactNameSerializer extends AbstractSerializer<IvyArtifactName> {
 
     public static final IvyArtifactNameSerializer INSTANCE = new IvyArtifactNameSerializer();
+
     private IvyArtifactNameSerializer() {
         // Private to enforce singleton.
     }

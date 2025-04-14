@@ -34,91 +34,11 @@ public class PathFactory {
     private final List<Variable> variables = new ArrayList<>();
     private final Map<String, File> varsByName = new HashMap<>();
 
-    public PathFactory addPathVariable(String name, File dir) {
-        variables.add(new Variable('$' + name + '$', dir.getAbsolutePath() + File.separator, dir));
-        varsByName.put(name, dir);
-        return this;
-    }
-
-    /**
-     * Creates a path for the given file.
-     */
-    public FilePath path(File file) {
-        return path(file, false);
-    }
-
-    /**
-     * Creates a path for the given file.
-     *
-     * @param file The file to generate a path for
-     * @param useFileScheme Whether 'file://' prefixed URI should be used even for JAR files
-     */
-    public FilePath path(File file, boolean useFileScheme) {
-        Variable match = null;
-        for (Variable variable : variables) {
-            if (file.getAbsolutePath().equals(variable.getDir().getAbsolutePath())) {
-                match = variable;
-                break;
-            }
-            if (file.getAbsolutePath().startsWith(variable.getPrefix())) {
-                if (match == null || variable.getPrefix().startsWith(match.getPrefix())) {
-                    match = variable;
-                }
-            }
-        }
-
-        if (match != null) {
-            return resolvePath(match.getDir(), match.getName(), file);
-        }
-
-        // IDEA doesn't like the result of file.toURI() so use the absolute path instead
-        String relPath = file.getAbsolutePath().replace(File.separatorChar, '/');
-        String url = relativePathToURI(relPath, useFileScheme);
-        return new FilePath(file, url, url, relPath);
-    }
-
-    /**
-     * Creates a path relative to the given path variable.
-     */
-    public FilePath relativePath(String pathVar, File file) {
-        return resolvePath(varsByName.get(pathVar), "$" + pathVar + "$", file);
-    }
-
     private static FilePath resolvePath(File rootDir, String rootDirName, File file) {
         String relPath = getRelativePath(rootDir, rootDirName, file);
         String url = relativePathToURI(relPath);
         String canonicalUrl = relativePathToURI(file.getAbsolutePath().replace(File.separatorChar, '/'));
         return new FilePath(file, url, canonicalUrl, relPath);
-    }
-
-    /**
-     * Creates a path for the given URL.
-     */
-    public Path path(String url) {
-        return path(url, null);
-    }
-
-    /**
-     * Creates a path for the given URL.
-     */
-    public Path path(String url, String relPath) {
-        try {
-            String expandedUrl = url;
-            for (Variable variable : variables) {
-                expandedUrl = expandedUrl.replace(variable.getName(), variable.getPrefix());
-            }
-            if (expandedUrl.toLowerCase(Locale.ROOT).startsWith("file://")) {
-                expandedUrl = toUrl("file", new File(expandedUrl.substring(7)).getCanonicalFile());
-            } else if (expandedUrl.toLowerCase(Locale.ROOT).startsWith("jar://")) {
-                String[] parts = expandedUrl.substring(6).split("!");
-                if (parts.length == 2) {
-                    expandedUrl = toUrl("jar", new File(parts[0]).getCanonicalFile()) + "!" + parts[1];
-                }
-            }
-            return new Path(url, expandedUrl, relPath);
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
     }
 
     private static String toUrl(String scheme, File file) {
@@ -190,6 +110,86 @@ public class PathFactory {
         }
 
         return s.toString();
+    }
+
+    public PathFactory addPathVariable(String name, File dir) {
+        variables.add(new Variable('$' + name + '$', dir.getAbsolutePath() + File.separator, dir));
+        varsByName.put(name, dir);
+        return this;
+    }
+
+    /**
+     * Creates a path for the given file.
+     */
+    public FilePath path(File file) {
+        return path(file, false);
+    }
+
+    /**
+     * Creates a path for the given file.
+     *
+     * @param file The file to generate a path for
+     * @param useFileScheme Whether 'file://' prefixed URI should be used even for JAR files
+     */
+    public FilePath path(File file, boolean useFileScheme) {
+        Variable match = null;
+        for (Variable variable : variables) {
+            if (file.getAbsolutePath().equals(variable.getDir().getAbsolutePath())) {
+                match = variable;
+                break;
+            }
+            if (file.getAbsolutePath().startsWith(variable.getPrefix())) {
+                if (match == null || variable.getPrefix().startsWith(match.getPrefix())) {
+                    match = variable;
+                }
+            }
+        }
+
+        if (match != null) {
+            return resolvePath(match.getDir(), match.getName(), file);
+        }
+
+        // IDEA doesn't like the result of file.toURI() so use the absolute path instead
+        String relPath = file.getAbsolutePath().replace(File.separatorChar, '/');
+        String url = relativePathToURI(relPath, useFileScheme);
+        return new FilePath(file, url, url, relPath);
+    }
+
+    /**
+     * Creates a path relative to the given path variable.
+     */
+    public FilePath relativePath(String pathVar, File file) {
+        return resolvePath(varsByName.get(pathVar), "$" + pathVar + "$", file);
+    }
+
+    /**
+     * Creates a path for the given URL.
+     */
+    public Path path(String url) {
+        return path(url, null);
+    }
+
+    /**
+     * Creates a path for the given URL.
+     */
+    public Path path(String url, String relPath) {
+        try {
+            String expandedUrl = url;
+            for (Variable variable : variables) {
+                expandedUrl = expandedUrl.replace(variable.getName(), variable.getPrefix());
+            }
+            if (expandedUrl.toLowerCase(Locale.ROOT).startsWith("file://")) {
+                expandedUrl = toUrl("file", new File(expandedUrl.substring(7)).getCanonicalFile());
+            } else if (expandedUrl.toLowerCase(Locale.ROOT).startsWith("jar://")) {
+                String[] parts = expandedUrl.substring(6).split("!");
+                if (parts.length == 2) {
+                    expandedUrl = toUrl("jar", new File(parts[0]).getCanonicalFile()) + "!" + parts[1];
+                }
+            }
+            return new Path(url, expandedUrl, relPath);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     private static class Variable {

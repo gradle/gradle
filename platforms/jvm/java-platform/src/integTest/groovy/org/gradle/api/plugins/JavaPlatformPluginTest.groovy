@@ -155,8 +155,8 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
 
         where:
         configuration << [
-                JavaPlatformPlugin.API_CONFIGURATION_NAME,
-                JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
+            JavaPlatformPlugin.API_CONFIGURATION_NAME,
+            JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
         ]
     }
 
@@ -176,8 +176,8 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
 
         where:
         configuration << [
-                JavaPlatformPlugin.API_CONFIGURATION_NAME,
-                JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
+            JavaPlatformPlugin.API_CONFIGURATION_NAME,
+            JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME
         ]
     }
 

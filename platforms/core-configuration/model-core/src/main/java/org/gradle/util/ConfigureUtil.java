@@ -114,24 +114,6 @@ public class ConfigureUtil {
     }
 
     /**
-     * Incomplete input exception.
-     */
-    @Deprecated
-    public static class IncompleteInputException extends RuntimeException {
-        private final Collection missingKeys;
-
-        public IncompleteInputException(String message, Collection missingKeys) {
-            super(message);
-            this.missingKeys = missingKeys;
-            logDeprecation();
-        }
-
-        public Collection getMissingKeys() {
-            return missingKeys;
-        }
-    }
-
-    /**
      * <p>Configures {@code target} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
      *
      * <p>If {@code target} does not implement {@link Configurable} interface, it is set as the delegate of a clone of
@@ -213,6 +195,24 @@ public class ConfigureUtil {
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "org_gradle_util_reports_deprecations")
             .nagUser();
+    }
+
+    /**
+     * Incomplete input exception.
+     */
+    @Deprecated
+    public static class IncompleteInputException extends RuntimeException {
+        private final Collection missingKeys;
+
+        public IncompleteInputException(String message, Collection missingKeys) {
+            super(message);
+            this.missingKeys = missingKeys;
+            logDeprecation();
+        }
+
+        public Collection getMissingKeys() {
+            return missingKeys;
+        }
     }
 
     /**

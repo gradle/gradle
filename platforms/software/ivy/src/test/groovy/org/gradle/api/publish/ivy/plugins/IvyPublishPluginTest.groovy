@@ -109,16 +109,16 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
         publishing.publications.create("test", IvyPublication)
         publishing.publications.create("test2", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
-        publishing.repositories { ivy { name='other'; url = "http://bar.com" } }
+        publishing.repositories { ivy { name = 'other'; url = "http://bar.com" } }
 
         then:
         project.tasks["publishAllPublicationsToIvyRepository"].dependsOn.containsAll([
-                "publishTestPublicationToIvyRepository",
-                "publishTest2PublicationToIvyRepository"
+            "publishTestPublicationToIvyRepository",
+            "publishTest2PublicationToIvyRepository"
         ])
         project.tasks["publishAllPublicationsToOtherRepository"].dependsOn.containsAll([
-                "publishTestPublicationToOtherRepository",
-                "publishTest2PublicationToOtherRepository"
+            "publishTestPublicationToOtherRepository",
+            "publishTest2PublicationToOtherRepository"
         ])
     }
 }

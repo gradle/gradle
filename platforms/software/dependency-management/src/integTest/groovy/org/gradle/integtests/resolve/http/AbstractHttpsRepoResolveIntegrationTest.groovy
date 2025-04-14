@@ -27,7 +27,8 @@ import static org.gradle.util.Matchers.containsText
 import static org.gradle.util.Matchers.matchesRegexp
 
 abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore
 
     abstract protected void setupRepo(boolean useAuth)

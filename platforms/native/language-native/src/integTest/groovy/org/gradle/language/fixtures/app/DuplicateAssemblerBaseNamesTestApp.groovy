@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
-class DuplicateAssemblerBaseNamesTestApp extends TestNativeComponent{
+class DuplicateAssemblerBaseNamesTestApp extends TestNativeComponent {
 
     AvailableToolChains.InstalledToolChain toolChain
 
@@ -32,7 +32,7 @@ class DuplicateAssemblerBaseNamesTestApp extends TestNativeComponent{
 
     @Override
     List<SourceFile> getSourceFiles() {
-        return  [
+        return [
             sourceFile("c", "main.c", """
             #include <stdio.h>
 
@@ -75,7 +75,7 @@ _${methodName}    ENDP
 _TEXT   ENDS
 END
 """
-        }else{
+        } else {
             return """
 .text
 .globl  _${methodName}

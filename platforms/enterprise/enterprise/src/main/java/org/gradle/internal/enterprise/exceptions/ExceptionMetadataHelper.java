@@ -39,6 +39,9 @@ public final class ExceptionMetadataHelper {
     private static final String METADATA_KEY_IS_MULTICAUSE = "isMultiCause";
     private static final String METADATA_KEY_IS_VERIFICATION_EXCEPTION = "isVerificationException";
 
+    private ExceptionMetadataHelper() {
+    }
+
     public static Map<String, String> getMetadata(Throwable t) {
         Map<String, String> metadata = new LinkedHashMap<>();
 
@@ -95,9 +98,6 @@ public final class ExceptionMetadataHelper {
                 return Collections.emptyList();
             }
         }
-    }
-
-    private ExceptionMetadataHelper() {
     }
 
 }

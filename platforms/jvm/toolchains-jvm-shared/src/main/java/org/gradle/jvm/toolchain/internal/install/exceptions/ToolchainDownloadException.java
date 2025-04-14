@@ -44,13 +44,13 @@ public class ToolchainDownloadException extends GradleException implements Resol
         resolutions = emptyList();
     }
 
-    @Override
-    public List<String> getResolutions() {
-        return resolutions;
-    }
-
     @NonNull
     private static String getMessage(JavaToolchainSpec spec, String url, @Nullable String cause) {
         return "Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + url + "'" + (cause != null && !cause.isEmpty() ? ", due to: " + cause : ".");
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
     }
 }

@@ -105,24 +105,6 @@ public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudi
         return new SolutionSpec(projects, solution.getSolutionFile().getTextActions());
     }
 
-    private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {
-        @Override
-        public VisualStudioSolutionFile create() {
-            return new VisualStudioSolutionFile();
-        }
-
-        @Override
-        public void configure(final VisualStudioSolutionFile solutionFile) {
-            SolutionSpec spec = GenerateSolutionFileTask.this.spec.get();
-
-            solutionFile.setProjects(spec.projects);
-
-            for (Action<? super TextProvider> textAction : spec.textActions) {
-                solutionFile.getActions().add(textAction);
-            }
-        }
-    }
-
     /**
      * The data to use to generate the solution file.
      *
@@ -158,6 +140,24 @@ public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudi
         @Incubating
         public List<Action<? super TextProvider>> getTextActions() {
             return textActions;
+        }
+    }
+
+    private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {
+        @Override
+        public VisualStudioSolutionFile create() {
+            return new VisualStudioSolutionFile();
+        }
+
+        @Override
+        public void configure(final VisualStudioSolutionFile solutionFile) {
+            SolutionSpec spec = GenerateSolutionFileTask.this.spec.get();
+
+            solutionFile.setProjects(spec.projects);
+
+            for (Action<? super TextProvider> textAction : spec.textActions) {
+                solutionFile.getActions().add(textAction);
+            }
         }
     }
 }

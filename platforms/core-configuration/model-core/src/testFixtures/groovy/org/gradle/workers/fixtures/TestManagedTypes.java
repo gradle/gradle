@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 public class TestManagedTypes {
     public interface ManagedThing {
         String getFoo();
+
         void setFoo(String foo);
     }
 

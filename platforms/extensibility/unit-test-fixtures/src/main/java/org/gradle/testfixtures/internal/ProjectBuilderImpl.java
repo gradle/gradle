@@ -90,9 +90,37 @@ import java.util.function.Function;
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
+    private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
     private static ServiceRegistry globalServices;
 
-    private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
+    public static void stop(Project rootProject) {
+        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable")).stop();
+    }
+
+    public synchronized static ServiceRegistry getGlobalServices() {
+        if (globalServices == null) {
+            globalServices = createGlobalServices();
+            // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
+            // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
+            // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
+            // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
+            // in ApplicationClassesInSystemClassLoaderWorkerImplementationFactory, BootstrapSecurityManager and GradleWorkerMain.)
+            // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
+            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(ProjectBuilderImpl.class.getClassLoader());
+        }
+        return globalServices;
+    }
+
+    private static ServiceRegistry createGlobalServices() {
+        return ServiceRegistryBuilder
+            .builder()
+            .displayName("global services")
+            .parent(LoggingServiceRegistry.newNestedLogging())
+            .parent(NativeServices.getInstance())
+            .provider(new TestGlobalScopeServices())
+            .provider(new BuildProcessScopeServices())
+            .build();
+    }
 
     public Project createChildProject(String name, Project parent, @Nullable File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
@@ -122,10 +150,10 @@ public class ProjectBuilderImpl {
 
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
             LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
-                "This will fail with an error in Gradle {}.0. " +
-                "Use JVM {} or greater to execute Gradle. " +
-                "Projects can continue to use older JVM versions via toolchains. " +
-                "Consult the upgrading guide for further information: {}",
+                    "This will fail with an error in Gradle {}.0. " +
+                    "Use JVM {} or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: {}",
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1,
                 currentMajorGradleVersion + 1,
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION,
@@ -203,37 +231,8 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public static void stop(Project rootProject) {
-        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable")).stop();
-    }
-
     private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {
         return globalServices.get(GradleUserHomeScopeServiceRegistry.class);
-    }
-
-    public synchronized static ServiceRegistry getGlobalServices() {
-        if (globalServices == null) {
-            globalServices = createGlobalServices();
-            // Inject missing interfaces to support the usage of plugins compiled with older Gradle versions.
-            // A normal gradle build does this by adding the MixInLegacyTypesClassLoader to the class loader hierarchy.
-            // In a test run, which is essentially a plain Java application, the classpath is flattened and injected
-            // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
-            // in ApplicationClassesInSystemClassLoaderWorkerImplementationFactory, BootstrapSecurityManager and GradleWorkerMain.)
-            // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
-            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(ProjectBuilderImpl.class.getClassLoader());
-        }
-        return globalServices;
-    }
-
-    private static ServiceRegistry createGlobalServices() {
-        return ServiceRegistryBuilder
-            .builder()
-            .displayName("global services")
-            .parent(LoggingServiceRegistry.newNestedLogging())
-            .parent(NativeServices.getInstance())
-            .provider(new TestGlobalScopeServices())
-            .provider(new BuildProcessScopeServices())
-            .build();
     }
 
     public File prepareProjectDir(@Nullable final File projectDir) {
@@ -257,8 +256,8 @@ public class ProjectBuilderImpl {
     }
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
-        private final GradleInternal gradle;
         final CloseableServiceRegistry buildServices;
+        private final GradleInternal gradle;
 
         public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeState buildTreeState) {
             super(buildTreeState, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);

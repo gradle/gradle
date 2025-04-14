@@ -40,11 +40,11 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
     private final ExclusiveCacheAccessCoordinator cacheAccess;
     private final long batchWindowMillis;
     private final long maximumLockingTimeMillis;
+    private final CountDownLatch doneSignal = new CountDownLatch(1);
+    private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
     private boolean closed;
     private boolean workerCompleted;
     private boolean stopSeen;
-    private final CountDownLatch doneSignal = new CountDownLatch(1);
-    private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
 
     public ExclusiveCacheAccessingWorker(String displayName, ExclusiveCacheAccessCoordinator cacheAccess) {
         this.displayName = displayName;
@@ -97,26 +97,6 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
 
     private void rethrowFailure() {
         failureHandler.onStop();
-    }
-
-    private static class FlushOperationsCommand implements Runnable {
-        private CountDownLatch latch = new CountDownLatch(1);
-
-        @Override
-        public void run() {
-        }
-
-        public void await() {
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        public void completed() {
-            latch.countDown();
-        }
     }
 
     @Override
@@ -185,8 +165,8 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
                                 stopSeen = true;
                             }
                             if (runnableClass == ShutdownOperationsCommand.class
-                                    || runnableClass == FlushOperationsCommand.class
-                                    || timer.hasExpired()) {
+                                || runnableClass == FlushOperationsCommand.class
+                                || timer.hasExpired()) {
                                 break;
                             }
                         }
@@ -218,6 +198,26 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
             }
         }
         rethrowFailure();
+    }
+
+    private static class FlushOperationsCommand implements Runnable {
+        private CountDownLatch latch = new CountDownLatch(1);
+
+        @Override
+        public void run() {
+        }
+
+        public void await() {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        public void completed() {
+            latch.countDown();
+        }
     }
 
     private static class ShutdownOperationsCommand implements Runnable {

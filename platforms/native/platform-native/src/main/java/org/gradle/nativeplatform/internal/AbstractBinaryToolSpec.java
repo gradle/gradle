@@ -66,9 +66,9 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
 
     @Override
     public void systemArgs(List<String> args) {
-       if(!systemArgs.containsAll(args)){
-           systemArgs.addAll(args);
-       }
+        if (!systemArgs.containsAll(args)) {
+            systemArgs.addAll(args);
+        }
     }
 
     @Override

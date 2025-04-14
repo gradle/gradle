@@ -104,6 +104,11 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         return map;
     }
 
+    private enum KeyRetentionPolicy {
+        WEAK,
+        STRONG
+    }
+
     private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
         private final ConcurrentHashMap<K, Lazy<V>> valuesForThisSession = new ConcurrentHashMap<>();
 
@@ -190,11 +195,6 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
             }
             return newValue;
         }
-    }
-
-    private enum KeyRetentionPolicy {
-        WEAK,
-        STRONG
     }
 
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {

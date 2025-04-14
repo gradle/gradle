@@ -68,6 +68,12 @@ public class DaemonMain extends EntryPoint {
     private PrintStream originalOut;
     private PrintStream originalErr;
 
+    private static void invalidArgs(String message) {
+        System.out.println("USAGE: <gradle version>");
+        System.out.println(message);
+        System.exit(1);
+    }
+
     @Override
     protected void doAction(String[] args, ExecutionListener listener) {
         // The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
@@ -144,12 +150,6 @@ public class DaemonMain extends EntryPoint {
         } finally {
             CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
         }
-    }
-
-    private static void invalidArgs(String message) {
-        System.out.println("USAGE: <gradle version>");
-        System.out.println(message);
-        System.exit(1);
     }
 
     protected void daemonStarted(Long pid, String uid, Address address, File daemonLog) {

@@ -71,6 +71,24 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         this.cacheCleanupStrategyFactory = cacheCleanupStrategyFactory;
     }
 
+    private static void checkDirectory(File directory) {
+        if (directory.exists()) {
+            if (!directory.isDirectory()) {
+                throw new IllegalArgumentException(String.format("Cache directory %s must be a directory", directory));
+            }
+            if (!directory.canRead()) {
+                throw new IllegalArgumentException(String.format("Cache directory %s must be readable", directory));
+            }
+            if (!directory.canWrite()) {
+                throw new IllegalArgumentException(String.format("Cache directory %s must be writable", directory));
+            }
+        } else {
+            if (!directory.mkdirs()) {
+                throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
+            }
+        }
+    }
+
     @Override
     public BuildCacheService createBuildCacheService(DirectoryBuildCache buildCacheConfig, Describer describer) {
         Object cacheDirectory = buildCacheConfig.getDirectory();
@@ -108,23 +126,5 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
     private LeastRecentlyUsedCacheCleanup createCleanupAction(Supplier<Long> removeUnusedEntriesTimestamp) {
         return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesTimestamp);
-    }
-
-    private static void checkDirectory(File directory) {
-        if (directory.exists()) {
-            if (!directory.isDirectory()) {
-                throw new IllegalArgumentException(String.format("Cache directory %s must be a directory", directory));
-            }
-            if (!directory.canRead()) {
-                throw new IllegalArgumentException(String.format("Cache directory %s must be readable", directory));
-            }
-            if (!directory.canWrite()) {
-                throw new IllegalArgumentException(String.format("Cache directory %s must be writable", directory));
-            }
-        } else {
-            if (!directory.mkdirs()) {
-                throw new UncheckedIOException(String.format("Could not create cache directory: %s", directory));
-            }
-        }
     }
 }

@@ -21,7 +21,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+// Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "Generating Gradle API jar is logged with rich console"() {

@@ -36,6 +36,7 @@ import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip
 
 class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     BuildOperationsFixture ops
+
     def setup() {
         ops = new BuildOperationsFixture(executer, temporaryFolder)
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"

@@ -46,8 +46,8 @@ dependencies {
 
     compileOnly(libs.zinc) {
         // Because not needed and was vulnerable
-        exclude(module="log4j-core")
-        exclude(module="log4j-api")
+        exclude(module = "log4j-core")
+        exclude(module = "log4j-api")
     }
 
     testImplementation(projects.baseServicesGroovy)

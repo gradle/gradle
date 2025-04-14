@@ -65,6 +65,67 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         this.gradleProjectBuilder = gradleProjectBuilder;
     }
 
+    private static void requireRootProject(Project project) {
+        if (!project.equals(project.getRootProject())) {
+            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
+        }
+    }
+
+    private static DefaultIdeaProject buildWithoutChildren(IdeaProjectInternal ideaProjectExt, IdeaLanguageLevel languageLevel, JavaVersion targetBytecodeVersion) {
+        return new DefaultIdeaProject()
+            .setName(ideaProjectExt.getName())
+            .setJdkName(ideaProjectExt.getJdkName())
+            .setLanguageLevel(new DefaultIdeaLanguageLevel(languageLevel.getLevel()))
+            .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
+                .setSourceLanguageLevel(IdeaModuleBuilderSupport.convertToJavaVersion(languageLevel))
+                .setTargetBytecodeVersion(targetBytecodeVersion)
+                .setJdk(DefaultInstalledJdk.current()));
+    }
+
+    // Simulates computation of the IdeaProject language level property in the IdeaPlugin
+    private static IdeaLanguageLevel resolveRootLanguageLevel(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
+        IdeaLanguageLevel explicitLanguageLevel = ideaProjectExt.getRawLanguageLevel();
+        if (explicitLanguageLevel != null) {
+            return explicitLanguageLevel;
+        }
+
+        JavaVersion maxCompatibility = getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaSourceCompatibility);
+        return new IdeaLanguageLevel(maxCompatibility);
+    }
+
+    // Simulates computation of the IdeaProject target bytecode version property in the IdeaPlugin
+    private static JavaVersion resolveRootTargetBytecodeVersion(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
+        JavaVersion explicitTargetBytecodeVersion = ideaProjectExt.getRawTargetBytecodeVersion();
+        if (explicitTargetBytecodeVersion != null) {
+            return explicitTargetBytecodeVersion;
+        }
+
+        return getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaTargetCompatibility);
+    }
+
+    private static List<DefaultIdeaModule> createIdeaModules(
+        DefaultIdeaProject parent,
+        IdeaModuleBuilder ideaModuleBuilder,
+        List<Project> projects,
+        List<IsolatedIdeaModuleInternal> isolatedIdeaModules
+    ) {
+        return Streams.zip(projects.stream(), isolatedIdeaModules.stream(), ideaModuleBuilder::buildWithoutParent)
+            .map(it -> it.setParent(parent))
+            .collect(Collectors.toList());
+    }
+
+    private static JavaVersion getMaxCompatibility(List<IsolatedIdeaModuleInternal> isolatedIdeaModules, Function<IsolatedIdeaModuleInternal, JavaVersion> getCompatibilty) {
+        return isolatedIdeaModules.stream()
+            .map(getCompatibilty)
+            .filter(Objects::nonNull)
+            .max(JavaVersion::compareTo)
+            .orElse(IdeaModuleSupport.FALLBACK_MODULE_JAVA_COMPATIBILITY_VERSION);
+    }
+
+    private static IdeaModelParameter createParameter(boolean offlineDependencyResolution) {
+        return () -> offlineDependencyResolution;
+    }
+
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals(MODEL_NAME);
@@ -94,12 +155,6 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
 
         IdeaModelParameter parameter = createParameter(offlineDependencyResolution);
         return build(project, parameter);
-    }
-
-    private static void requireRootProject(Project project) {
-        if (!project.equals(project.getRootProject())) {
-            throw new IllegalArgumentException(String.format("%s can only be requested on the root project, got %s", MODEL_NAME, project));
-        }
     }
 
     private void applyIdeaPluginToBuildTree(Project root) {
@@ -146,64 +201,9 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         return out;
     }
 
-    private static DefaultIdeaProject buildWithoutChildren(IdeaProjectInternal ideaProjectExt, IdeaLanguageLevel languageLevel, JavaVersion targetBytecodeVersion) {
-        return new DefaultIdeaProject()
-            .setName(ideaProjectExt.getName())
-            .setJdkName(ideaProjectExt.getJdkName())
-            .setLanguageLevel(new DefaultIdeaLanguageLevel(languageLevel.getLevel()))
-            .setJavaLanguageSettings(new DefaultIdeaJavaLanguageSettings()
-                .setSourceLanguageLevel(IdeaModuleBuilderSupport.convertToJavaVersion(languageLevel))
-                .setTargetBytecodeVersion(targetBytecodeVersion)
-                .setJdk(DefaultInstalledJdk.current()));
-    }
-
-    // Simulates computation of the IdeaProject language level property in the IdeaPlugin
-    private static IdeaLanguageLevel resolveRootLanguageLevel(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
-        IdeaLanguageLevel explicitLanguageLevel = ideaProjectExt.getRawLanguageLevel();
-        if (explicitLanguageLevel != null) {
-            return explicitLanguageLevel;
-        }
-
-        JavaVersion maxCompatibility = getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaSourceCompatibility);
-        return new IdeaLanguageLevel(maxCompatibility);
-    }
-
-    // Simulates computation of the IdeaProject target bytecode version property in the IdeaPlugin
-    private static JavaVersion resolveRootTargetBytecodeVersion(IdeaProjectInternal ideaProjectExt, List<IsolatedIdeaModuleInternal> isolatedModules) {
-        JavaVersion explicitTargetBytecodeVersion = ideaProjectExt.getRawTargetBytecodeVersion();
-        if (explicitTargetBytecodeVersion != null) {
-            return explicitTargetBytecodeVersion;
-        }
-
-        return getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaTargetCompatibility);
-    }
-
     private List<IsolatedIdeaModuleInternal> getIsolatedIdeaModules(Project rootProject, List<Project> allProjects, IdeaModelParameter parameter) {
         return intermediateToolingModelProvider
             .getModels(rootProject, allProjects, IsolatedIdeaModuleInternal.class, parameter);
-    }
-
-    private static List<DefaultIdeaModule> createIdeaModules(
-        DefaultIdeaProject parent,
-        IdeaModuleBuilder ideaModuleBuilder,
-        List<Project> projects,
-        List<IsolatedIdeaModuleInternal> isolatedIdeaModules
-    ) {
-        return Streams.zip(projects.stream(), isolatedIdeaModules.stream(), ideaModuleBuilder::buildWithoutParent)
-            .map(it -> it.setParent(parent))
-            .collect(Collectors.toList());
-    }
-
-    private static JavaVersion getMaxCompatibility(List<IsolatedIdeaModuleInternal> isolatedIdeaModules, Function<IsolatedIdeaModuleInternal, JavaVersion> getCompatibilty) {
-        return isolatedIdeaModules.stream()
-            .map(getCompatibilty)
-            .filter(Objects::nonNull)
-            .max(JavaVersion::compareTo)
-            .orElse(IdeaModuleSupport.FALLBACK_MODULE_JAVA_COMPATIBILITY_VERSION);
-    }
-
-    private static IdeaModelParameter createParameter(boolean offlineDependencyResolution) {
-        return () -> offlineDependencyResolution;
     }
 
     @NullMarked
@@ -221,6 +221,29 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
             this.rootGradleProject = rootGradleProject;
             this.ideaProjectLanguageLevel = ideaProjectLanguageLevel;
             this.ideaProjectTargetBytecodeVersion = ideaProjectTargetBytecodeVersion;
+        }
+
+        @Nullable
+        private static JavaVersion resolveTargetBytecodeVersion(IsolatedIdeaModuleInternal isolatedIdeaModule) {
+            JavaVersion targetBytecodeVersionConvention = isolatedIdeaModule.getJavaTargetCompatibility();
+            JavaVersion explicitTargetBytecodeVersion = isolatedIdeaModule.getExplicitTargetBytecodeVersion();
+            return getPropertyValue(explicitTargetBytecodeVersion, targetBytecodeVersionConvention);
+        }
+
+        private static IdeaLanguageLevel resolveLanguageLevel(IsolatedIdeaModuleInternal isolatedIdeaModule) {
+            JavaVersion languageLevelConvention = isolatedIdeaModule.getJavaSourceCompatibility();
+            IdeaLanguageLevel explicitLanguageLevel = isolatedIdeaModule.getExplicitSourceLanguageLevel();
+            return getPropertyValue(explicitLanguageLevel, new IdeaLanguageLevel(languageLevelConvention));
+        }
+
+        @Nullable
+        private static <T> T takeIfDifferent(T commonValue, @Nullable T value) {
+            return commonValue.equals(value) ? null : value;
+        }
+
+        @Nullable
+        private static <T> T getPropertyValue(@Nullable T value, @Nullable T convention) {
+            return value != null ? value : convention;
         }
 
         private DefaultIdeaModule buildWithoutParent(Project project, IsolatedIdeaModuleInternal isolatedIdeaModule) {
@@ -246,29 +269,6 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
             model.setDependencies(isolatedIdeaModule.getDependencies());
 
             return model;
-        }
-
-        @Nullable
-        private static JavaVersion resolveTargetBytecodeVersion(IsolatedIdeaModuleInternal isolatedIdeaModule) {
-            JavaVersion targetBytecodeVersionConvention = isolatedIdeaModule.getJavaTargetCompatibility();
-            JavaVersion explicitTargetBytecodeVersion = isolatedIdeaModule.getExplicitTargetBytecodeVersion();
-            return getPropertyValue(explicitTargetBytecodeVersion, targetBytecodeVersionConvention);
-        }
-
-        private static IdeaLanguageLevel resolveLanguageLevel(IsolatedIdeaModuleInternal isolatedIdeaModule) {
-            JavaVersion languageLevelConvention = isolatedIdeaModule.getJavaSourceCompatibility();
-            IdeaLanguageLevel explicitLanguageLevel = isolatedIdeaModule.getExplicitSourceLanguageLevel();
-            return getPropertyValue(explicitLanguageLevel, new IdeaLanguageLevel(languageLevelConvention));
-        }
-
-        @Nullable
-        private static <T> T takeIfDifferent(T commonValue, @Nullable T value) {
-            return commonValue.equals(value) ? null : value;
-        }
-
-        @Nullable
-        private static <T> T getPropertyValue(@Nullable T value, @Nullable T convention) {
-            return value != null ? value : convention;
         }
     }
 

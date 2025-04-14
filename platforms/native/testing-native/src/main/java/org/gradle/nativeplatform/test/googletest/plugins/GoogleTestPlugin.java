@@ -63,11 +63,13 @@ public abstract class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createGoogleTestTestBinaries(ModelMap<GoogleTestTestSuiteBinarySpec> binaries,
-                                                 GoogleTestTestSuiteSpec testSuite,
-                                                 @Path("buildDir") final File buildDir,
-                                                 final ServiceRegistry serviceRegistry) {
+        public void createGoogleTestTestBinaries(
+            ModelMap<GoogleTestTestSuiteBinarySpec> binaries,
+            GoogleTestTestSuiteSpec testSuite,
+            @Path("buildDir") final File buildDir,
+            final ServiceRegistry serviceRegistry
+        ) {
             createNativeTestSuiteBinaries(binaries, testSuite, GoogleTestTestSuiteBinarySpec.class, "GoogleTestExe", buildDir, serviceRegistry);
-       }
+        }
     }
 }

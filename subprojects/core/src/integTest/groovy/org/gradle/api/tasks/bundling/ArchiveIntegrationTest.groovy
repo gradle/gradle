@@ -366,9 +366,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(CoreMatchers.startsWith("Cannot expand ZIP"))
 
         where:
-        scenario | content
-        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').tarTo(td.file('compressedTarWithWrongExtension.zip')) }
-        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
+        scenario                  | content
+        "archive of other format" | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').tarTo(td.file('compressedTarWithWrongExtension.zip')) }
+        "random file"             | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
     }
 
     def "tarTreeFailsGracefully when #scenario"() {
@@ -389,9 +389,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(CoreMatchers.startsWith("Unable to expand TAR"))
 
         where:
-        scenario | content
-        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').zipTo(td.file('compressedZipWithWrongExtension.tar')) }
-        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
+        scenario                  | content
+        "archive of other format" | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').zipTo(td.file('compressedZipWithWrongExtension.tar')) }
+        "random file"             | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23391")

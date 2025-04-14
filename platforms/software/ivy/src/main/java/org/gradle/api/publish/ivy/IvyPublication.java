@@ -183,6 +183,7 @@ public interface IvyPublication extends Publication {
 
     /**
      * Returns the complete set of configurations for this publication.
+     *
      * @return the configurations
      */
     IvyConfigurationContainer getConfigurations();
@@ -246,7 +247,7 @@ public interface IvyPublication extends Publication {
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "source"
      * }
-
+     *
      * task genDocs {
      *   doLast {
      *     // Generate 'my-docs-file.htm'
@@ -374,7 +375,6 @@ public interface IvyPublication extends Publication {
      * </pre>
      *
      * @param configureAction the configuration
-     *
      * @since 5.4
      */
     void versionMapping(Action<? super VersionMappingStrategy> configureAction);
@@ -385,7 +385,6 @@ public interface IvyPublication extends Publication {
      * Warnings are emitted when Gradle features are used that cannot be mapped completely to Ivy xml.
      *
      * @param variantName the variant to silence warning for
-     *
      * @since 6.0
      */
     void suppressIvyMetadataWarningsFor(String variantName);

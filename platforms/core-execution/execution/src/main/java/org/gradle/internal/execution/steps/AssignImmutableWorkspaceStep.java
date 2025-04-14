@@ -111,6 +111,64 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         this.delegate = delegate;
     }
 
+    private static WorkspaceResult loadImmutableWorkspace(UnitOfWork work, File immutableLocation, ImmutableWorkspaceMetadata metadata, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
+        OriginMetadata originMetadata = metadata.getOriginMetadata();
+        ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, outputSnapshots, originMetadata, true);
+        return new WorkspaceResult(
+            CachingResult.shortcutResult(
+                Duration.ZERO,
+                Execution.skipped(UP_TO_DATE, work),
+                afterExecutionOutputState,
+                null,
+                originMetadata),
+            immutableLocation);
+    }
+
+    private static ImmutableListMultimap<String, HashCode> calculateOutputHashes(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
+        return outputSnapshots.entrySet().stream()
+            .flatMap(entry ->
+                entry.getValue().roots()
+                    .map(locationSnapshot -> immutableEntry(entry.getKey(), locationSnapshot.getHash())))
+            .collect(toImmutableListMultimap(
+                Map.Entry::getKey,
+                Map.Entry::getValue
+            ));
+    }
+
+    private static String describeSnapshot(FileSystemLocationSnapshot root) {
+        StringBuilder builder = new StringBuilder();
+        root.accept(new FileSystemSnapshotHierarchyVisitor() {
+            private int indent = 0;
+
+            @Override
+            public void enterDirectory(DirectorySnapshot directorySnapshot) {
+                indent++;
+            }
+
+            @Override
+            public void leaveDirectory(DirectorySnapshot directorySnapshot) {
+                indent--;
+            }
+
+            @Override
+            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
+                for (int i = 0; i < indent; i++) {
+                    builder.append("  ");
+                }
+                builder.append(" - ");
+                builder.append(snapshot.getName());
+                builder.append(" (");
+                builder.append(snapshot.getType());
+                builder.append(", ");
+                builder.append(snapshot.getHash());
+                builder.append(")");
+                builder.append("\n");
+                return CONTINUE;
+            }
+        });
+        return builder.toString();
+    }
+
     @Override
     public WorkspaceResult execute(UnitOfWork work, C context) {
         ImmutableWorkspaceProvider workspaceProvider = ((ImmutableUnitOfWork) work).getWorkspaceProvider();
@@ -153,19 +211,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         }
 
         return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata, outputSnapshots));
-    }
-
-    private static WorkspaceResult loadImmutableWorkspace(UnitOfWork work, File immutableLocation, ImmutableWorkspaceMetadata metadata, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
-        OriginMetadata originMetadata = metadata.getOriginMetadata();
-        ExecutionOutputState afterExecutionOutputState = new DefaultExecutionOutputState(true, outputSnapshots, originMetadata, true);
-        return new WorkspaceResult(
-            CachingResult.shortcutResult(
-                Duration.ZERO,
-                Execution.skipped(UP_TO_DATE, work),
-                afterExecutionOutputState,
-                null,
-                originMetadata),
-            immutableLocation);
     }
 
     private void moveInconsistentImmutableWorkspaceToTemporaryLocation(File immutableLocation, File failedWorkspaceLocation, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
@@ -224,17 +269,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 return new WorkspaceResult(delegateResult, null);
             }
         });
-    }
-
-    private static ImmutableListMultimap<String, HashCode> calculateOutputHashes(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
-        return outputSnapshots.entrySet().stream()
-            .flatMap(entry ->
-                entry.getValue().roots()
-                    .map(locationSnapshot -> immutableEntry(entry.getKey(), locationSnapshot.getHash())))
-            .collect(toImmutableListMultimap(
-                Map.Entry::getKey,
-                Map.Entry::getValue
-            ));
     }
 
     private WorkspaceResult moveTemporaryWorkspaceToImmutableLocation(ImmutableWorkspace workspace, WorkspaceMoveHandler move) {
@@ -329,39 +363,5 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             return new UncheckedIOException(String.format("Could not move temporary workspace (%s) to immutable location (%s)",
                 temporaryWorkspace.getAbsolutePath(), workspace.getImmutableLocation().getAbsolutePath()), cause);
         }
-    }
-
-    private static String describeSnapshot(FileSystemLocationSnapshot root) {
-        StringBuilder builder = new StringBuilder();
-        root.accept(new FileSystemSnapshotHierarchyVisitor() {
-            private int indent = 0;
-
-            @Override
-            public void enterDirectory(DirectorySnapshot directorySnapshot) {
-                indent++;
-            }
-
-            @Override
-            public void leaveDirectory(DirectorySnapshot directorySnapshot) {
-                indent--;
-            }
-
-            @Override
-            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
-                for (int i = 0; i < indent; i++) {
-                    builder.append("  ");
-                }
-                builder.append(" - ");
-                builder.append(snapshot.getName());
-                builder.append(" (");
-                builder.append(snapshot.getType());
-                builder.append(", ");
-                builder.append(snapshot.getHash());
-                builder.append(")");
-                builder.append("\n");
-                return CONTINUE;
-            }
-        });
-        return builder.toString();
     }
 }

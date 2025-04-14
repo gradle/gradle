@@ -70,8 +70,8 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         module.assertPublished()
         module.parsedIvy.resolver == resolver.toString()
         module.parsedIvy.extraInfo == [
-                (new QName('http://my.extra.info1', 'foo')): extraValue.toString(),
-                (new QName('http://my.extra.info2', 'bar')): extraValue.toString(),
+            (new QName('http://my.extra.info1', 'foo')): extraValue.toString(),
+            (new QName('http://my.extra.info2', 'bar')): extraValue.toString(),
         ]
 
         and:
@@ -165,7 +165,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
 
-    def "fails with reasonable error message for invalid metadata value" () {
+    def "fails with reasonable error message for invalid metadata value"() {
         when:
         buildFile << """
             apply plugin: 'ivy-publish'
@@ -194,7 +194,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause(message)
 
         where:
-        metadata        | message
+        metadata          | message
         "branch = ''"     | "Invalid publication 'ivy': branch cannot be an empty string. Use null instead"
         "branch = 'a\tb'" | "Invalid publication 'ivy': branch cannot contain ISO control character '\\u0009'"
         "status = ''"     | "Invalid publication 'ivy': status cannot be an empty string. Use null instead"

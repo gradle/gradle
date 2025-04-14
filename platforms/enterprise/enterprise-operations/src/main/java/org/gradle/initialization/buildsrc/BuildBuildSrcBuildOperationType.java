@@ -25,17 +25,18 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class BuildBuildSrcBuildOperationType implements BuildOperationType<BuildBuildSrcBuildOperationType.Details, BuildBuildSrcBuildOperationType.Result> {
 
+    private BuildBuildSrcBuildOperationType() {
+    }
+
     public interface Details {
         /**
          * Returns the path of the _containing_ build.
+         *
          * @since 4.6
          */
         String getBuildPath();
     }
 
     public interface Result {
-    }
-
-    private BuildBuildSrcBuildOperationType(){
     }
 }

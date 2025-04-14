@@ -22,14 +22,14 @@ import java.util.Iterator;
 
 public class DefaultExtensionsSchema implements ExtensionsSchema {
 
-    public static ExtensionsSchema create(Iterable<? extends ExtensionSchema> schemas) {
-        return new DefaultExtensionsSchema(Cast.<Iterable<ExtensionSchema>>uncheckedCast(schemas));
-    }
-
     private final Iterable<ExtensionSchema> extensionSchemas;
 
     private DefaultExtensionsSchema(Iterable<ExtensionSchema> extensionSchemas) {
         this.extensionSchemas = extensionSchemas;
+    }
+
+    public static ExtensionsSchema create(Iterable<? extends ExtensionSchema> schemas) {
+        return new DefaultExtensionsSchema(Cast.<Iterable<ExtensionSchema>>uncheckedCast(schemas));
     }
 
     @Override

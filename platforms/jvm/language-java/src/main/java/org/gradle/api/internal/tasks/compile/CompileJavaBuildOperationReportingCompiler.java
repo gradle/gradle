@@ -52,11 +52,11 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
                 return BuildOperationDescriptor
                     .displayName("Compile Java for " + taskIdentityPath)
                     .details(new CompileJavaBuildOperationType.Details() {
-                    @Override
-                    public String getTaskIdentityPath() {
-                        return taskIdentityPath;
-                    }
-                });
+                        @Override
+                        public String getTaskIdentityPath() {
+                            return taskIdentityPath;
+                        }
+                    });
             }
 
             @Override

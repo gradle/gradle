@@ -89,7 +89,7 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
                 foobar
             }
         """
-        groovyFile "module/build.gradle",  """
+        groovyFile "module/build.gradle", """
             plugins {
                 id 'some-plugin'
             }

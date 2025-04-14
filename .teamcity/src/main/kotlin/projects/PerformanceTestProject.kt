@@ -13,9 +13,9 @@ abstract class PerformanceTestProject(
     val spec: PerformanceTestProjectSpec,
     val performanceTests: List<PerformanceTest>,
 ) : Project({
-        this.id(spec.asConfigurationId(model))
-        this.name = spec.asName()
-    }) {
+    this.id(spec.asConfigurationId(model))
+    this.name = spec.asName()
+}) {
     init {
         performanceTests.forEach(this::buildType)
     }
@@ -27,10 +27,10 @@ class AutomaticallySplitPerformanceTestProject(
     stage: Stage,
     performanceTestCoverage: PerformanceTestCoverage,
 ) : PerformanceTestProject(
-        model,
-        performanceTestCoverage,
-        performanceTestBucketProvider.createPerformanceTestsFor(stage, performanceTestCoverage),
-    )
+    model,
+    performanceTestCoverage,
+    performanceTestBucketProvider.createPerformanceTestsFor(stage, performanceTestCoverage),
+)
 
 class ManuallySplitPerformanceTestProject(
     model: CIBuildModel,

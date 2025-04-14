@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata
@@ -27,7 +26,8 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
 abstract class AbstractCacheReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
-    @Rule public final HttpServer server = new HttpServer()
+    @Rule
+    public final HttpServer server = new HttpServer()
     final MavenHttpRepository mavenHttpRepo = new MavenHttpRepository(server, new MavenFileRepository(file("maven-repo")))
 
     /**

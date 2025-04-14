@@ -161,7 +161,7 @@ task listJars {
         server.authenticationAttempts.asList() == authenticationAttempts
 
         where:
-        authSchemeName     | configuredAuthentication                                                      | authScheme  | authenticationAttempts
+        authSchemeName     | configuredAuthentication                                                      | authScheme        | authenticationAttempts
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | BASIC             | ['Basic']
         'digest'           | 'authentication { auth(DigestAuthentication) }'                               | DIGEST            | ['None', 'Digest']
         'default'          | ''                                                                            | BASIC             | ['None', 'Basic']

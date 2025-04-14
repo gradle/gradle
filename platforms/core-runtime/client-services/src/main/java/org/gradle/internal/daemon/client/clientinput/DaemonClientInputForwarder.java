@@ -73,10 +73,9 @@ public class DaemonClientInputForwarder implements Stoppable {
         private final Dispatch<? super InputMessage> dispatch;
         private final BufferedReader reader;
         private final Executor executor;
-        private char[] buffer;
-
         // Protects the following state
         private final Object lock = new Object();
+        private char[] buffer;
         private boolean closed;
 
         public ForwardingUserInput(InputStream inputStream, Dispatch<? super InputMessage> dispatch, Executor executor) {

@@ -88,6 +88,7 @@ class DefaultInstantiatorFactoryTest extends Specification {
 interface UsesAnnotation1ForInjection {
     @Annotation1
     String getPropertyOne()
+
     @Annotation1
     Integer getPropertyTwo()
 }
@@ -95,6 +96,7 @@ interface UsesAnnotation1ForInjection {
 interface UsesAnnotationsForInjection {
     @Annotation1
     String getPropertyOne()
+
     @Annotation2
     Integer getPropertyTwo()
 }

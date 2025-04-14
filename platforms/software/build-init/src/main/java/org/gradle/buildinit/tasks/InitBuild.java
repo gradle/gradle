@@ -87,18 +87,54 @@ public abstract class InitBuild extends DefaultTask {
     private static final int DEFAULT_JAVA_VERSION = 21;
 
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
-    private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
-    private String dsl;
     private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
+    private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
+    private final Property<String> javaVersion = getProject().getObjects().property(String.class);
+    private String type;
+    private String dsl;
     private String testFramework;
     private String projectName;
     private String packageName;
-    private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
-    private final Property<String> javaVersion = getProject().getObjects().property(String.class);
-
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
+
+    private static String getRelativePath(File baseDir, File targetFile) {
+        return baseDir.toPath().relativize(targetFile.toPath()).toString();
+    }
+
+    private static void validatePackageName(String packageName) {
+        if (!isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
+            throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
+        }
+    }
+
+    private static BuildGenerator selectTypeOfBuild(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+        // Require that the default option is also the first option
+        assert projectLayoutRegistry.getDefaultComponentType() == projectLayoutRegistry.getComponentTypes().get(0);
+
+        ComponentType componentType = userQuestions.choice("Select type of build to generate", projectLayoutRegistry.getComponentTypes())
+            .renderUsing(ComponentType::getDisplayName)
+            .defaultOption(projectLayoutRegistry.getDefaultComponentType())
+            .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
+            .ask();
+        List<BuildGenerator> generators = projectLayoutRegistry.getGeneratorsFor(componentType);
+        if (generators.size() == 1) {
+            return generators.get(0);
+        }
+
+        Map<Language, BuildGenerator> generatorsByLanguage = new LinkedHashMap<>();
+        for (Language language : Language.values()) {
+            for (BuildGenerator generator : generators) {
+                if (generator.productionCodeUses(language)) {
+                    generatorsByLanguage.put(language, generator);
+                    break;
+                }
+            }
+        }
+        Language language = userQuestions.choice("Select implementation language", generatorsByLanguage.keySet()).ask();
+        return generatorsByLanguage.get(language);
+    }
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
@@ -116,12 +152,12 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<Boolean> getUseDefaults();
 
     /**
-    * Should we allow existing files in the build directory to be overwritten?
-    *
-    * This property can be set via command-line option '--overwrite'. Defaults to false.
-    *
-    * @since 8.9
-    */
+     * Should we allow existing files in the build directory to be overwritten?
+     *
+     * This property can be set via command-line option '--overwrite'. Defaults to false.
+     *
+     * @since 8.9
+     */
     @Incubating
     @Input
     @Optional
@@ -143,6 +179,11 @@ public abstract class InitBuild extends DefaultTask {
     @ToBeReplacedByLazyProperty
     public String getType() {
         return isNullOrEmpty(type) ? detectType() : type;
+    }
+
+    @Option(option = "type", description = "Set the type of project to generate.")
+    public void setType(String type) {
+        this.type = type;
     }
 
     /**
@@ -172,6 +213,16 @@ public abstract class InitBuild extends DefaultTask {
     @ToBeReplacedByLazyProperty
     public String getDsl() {
         return isNullOrEmpty(dsl) ? BuildInitDsl.KOTLIN.getId() : dsl;
+    }
+
+    /**
+     * Set the build script DSL to be used.
+     *
+     * @since 4.5
+     */
+    @Option(option = "dsl", description = "Set the build script DSL to be used in generated scripts.")
+    public void setDsl(String dsl) {
+        this.dsl = dsl;
     }
 
     /**
@@ -224,6 +275,16 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
+     * Set the project name.
+     *
+     * @since 5.0
+     */
+    @Option(option = "project-name", description = "Set the project name.")
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    /**
      * The name of the package to use for generated source.
      *
      * This property can be set via command-line option '--package'.
@@ -237,6 +298,16 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
+     * Set the package name.
+     *
+     * @since 5.0
+     */
+    @Option(option = "package", description = "Set the package for source files.")
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    /**
      * The test framework to be used in the generated project.
      *
      * This property can be set via command-line option '--test-framework'
@@ -247,6 +318,14 @@ public abstract class InitBuild extends DefaultTask {
     @ToBeReplacedByLazyProperty
     public String getTestFramework() {
         return testFramework;
+    }
+
+    /**
+     * Set the test framework to be used.
+     */
+    @Option(option = "test-framework", description = "Set the test framework to be used.")
+    public void setTestFramework(@Nullable String testFramework) {
+        this.testFramework = testFramework;
     }
 
     /**
@@ -284,6 +363,10 @@ public abstract class InitBuild extends DefaultTask {
         return projectLayoutRegistry;
     }
 
+    void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
+        this.projectLayoutRegistry = projectLayoutRegistry;
+    }
+
     @TaskAction
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getEffectiveInputHandler();
@@ -319,7 +402,7 @@ public abstract class InitBuild extends DefaultTask {
             spec = userQuestions.choice("Select project type", registry.getAllSpecs())
                 .renderUsing(BuildInitSpec::getDisplayName)
                 .ask();
-        }  else {
+        } else {
             spec = registry.getSpecByType(type);
         }
 
@@ -420,10 +503,6 @@ public abstract class InitBuild extends DefaultTask {
         );
     }
 
-    private static String getRelativePath(File baseDir, File targetFile) {
-        return baseDir.toPath().relativize(targetFile.toPath()).toString();
-    }
-
     private UserInputHandler getEffectiveInputHandler() {
         if (getUseDefaults().get()) {
             return new NonInteractiveUserInputHandler();
@@ -466,12 +545,6 @@ public abstract class InitBuild extends DefaultTask {
     private void abortBuildDueToExistingFiles(File projectDirFile) {
         List<String> resolutions = Arrays.asList("Remove any existing files in the project directory and run the init task again.", "Enable the --overwrite option to allow existing files to be overwritten.");
         throw new BuildInitException("Aborting build initialization due to existing files in the project directory: '" + projectDirFile + "'.", resolutions);
-    }
-
-    private static void validatePackageName(String packageName) {
-        if (!isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
-            throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
-        }
     }
 
     @VisibleForTesting
@@ -589,52 +662,10 @@ public abstract class InitBuild extends DefaultTask {
         return selectTypeOfBuild(userQuestions, projectLayoutRegistry);
     }
 
-    private static BuildGenerator selectTypeOfBuild(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
-        // Require that the default option is also the first option
-        assert projectLayoutRegistry.getDefaultComponentType() == projectLayoutRegistry.getComponentTypes().get(0);
-
-        ComponentType componentType = userQuestions.choice("Select type of build to generate", projectLayoutRegistry.getComponentTypes())
-            .renderUsing(ComponentType::getDisplayName)
-            .defaultOption(projectLayoutRegistry.getDefaultComponentType())
-            .whenNotConnected(projectLayoutRegistry.getDefault().getComponentType())
-            .ask();
-        List<BuildGenerator> generators = projectLayoutRegistry.getGeneratorsFor(componentType);
-        if (generators.size() == 1) {
-            return generators.get(0);
-        }
-
-        Map<Language, BuildGenerator> generatorsByLanguage = new LinkedHashMap<>();
-        for (Language language : Language.values()) {
-            for (BuildGenerator generator : generators) {
-                if (generator.productionCodeUses(language)) {
-                    generatorsByLanguage.put(language, generator);
-                    break;
-                }
-            }
-        }
-        Language language = userQuestions.choice("Select implementation language", generatorsByLanguage.keySet()).ask();
-        return generatorsByLanguage.get(language);
-    }
-
-    @Option(option = "type", description = "Set the type of project to generate.")
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @OptionValues("type")
     @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
     public List<String> getAvailableBuildTypes() {
         return getProjectLayoutRegistry().getAllTypes();
-    }
-
-    /**
-     * Set the build script DSL to be used.
-     *
-     * @since 4.5
-     */
-    @Option(option = "dsl", description = "Set the build script DSL to be used in generated scripts.")
-    public void setDsl(String dsl) {
-        this.dsl = dsl;
     }
 
     /**
@@ -649,44 +680,12 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
-     * Set the test framework to be used.
-     */
-    @Option(option = "test-framework", description = "Set the test framework to be used.")
-    public void setTestFramework(@Nullable String testFramework) {
-        this.testFramework = testFramework;
-    }
-
-    /**
      * Available test frameworks.
      */
     @OptionValues("test-framework")
     @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
     public List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
-    }
-
-    /**
-     * Set the project name.
-     *
-     * @since 5.0
-     */
-    @Option(option = "project-name", description = "Set the project name.")
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    /**
-     * Set the package name.
-     *
-     * @since 5.0
-     */
-    @Option(option = "package", description = "Set the package for source files.")
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
-    }
-
-    void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
-        this.projectLayoutRegistry = projectLayoutRegistry;
     }
 
     private String detectType() {

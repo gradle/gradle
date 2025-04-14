@@ -37,13 +37,13 @@ class TestOutputEventListener implements OutputEventListener {
 
     @Override
     synchronized void onOutput(OutputEvent event) {
-        if(event instanceof LogEvent){
+        if (event instanceof LogEvent) {
             LogEvent logEvent = event as LogEvent
             writer.append("[")
             writer.append(logEvent.toString())
             writer.append("]")
         }
-        if(event instanceof StyledTextOutputEvent){
+        if (event instanceof StyledTextOutputEvent) {
             StyledTextOutputEvent styledTextOutputEvent = event as StyledTextOutputEvent
             writer.append("[")
             writer.append(styledTextOutputEvent.toString())

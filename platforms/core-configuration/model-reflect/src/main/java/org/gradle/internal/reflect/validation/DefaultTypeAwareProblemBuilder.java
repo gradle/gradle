@@ -32,48 +32,10 @@ import java.util.Optional;
 @NullMarked
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
 
+    private String parentPropertyAdditionalData = null;
+
     public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder) {
         super(problemBuilder);
-    }
-
-    @Override
-    public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
-        if (classWithAnnotationAttached != null) {
-            this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
-        }
-        return this;
-    }
-
-    @Override
-    public TypeAwareProblemBuilder forProperty(String propertyName) {
-        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
-        return this;
-    }
-
-    @Override
-    public TypeAwareProblemBuilder forFunction(String methodName) {
-        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.functionName(methodName));
-        return this;
-    }
-
-    @Override
-    public TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty) {
-        if (parentProperty == null) {
-            return this;
-        }
-        String pp = getParentProperty(parentProperty);
-        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
-        parentPropertyAdditionalData = pp;
-        return this;
-    }
-
-    @Override
-    public InternalProblem build() {
-        InternalProblem problem = super.build();
-        Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
-        String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
-        String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
-        return problem.toBuilder(getInfrastructure()).contextualLabel(prefix + text).build();
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {
@@ -163,7 +125,45 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         return !"org.gradle.api.DefaultTask".equals(className);
     }
 
-    private String parentPropertyAdditionalData = null;
+    @Override
+    public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
+        if (classWithAnnotationAttached != null) {
+            this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
+        }
+        return this;
+    }
+
+    @Override
+    public TypeAwareProblemBuilder forProperty(String propertyName) {
+        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
+        return this;
+    }
+
+    @Override
+    public TypeAwareProblemBuilder forFunction(String methodName) {
+        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.functionName(methodName));
+        return this;
+    }
+
+    @Override
+    public TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty) {
+        if (parentProperty == null) {
+            return this;
+        }
+        String pp = getParentProperty(parentProperty);
+        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
+        parentPropertyAdditionalData = pp;
+        return this;
+    }
+
+    @Override
+    public InternalProblem build() {
+        InternalProblem problem = super.build();
+        Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
+        String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
+        String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
+        return problem.toBuilder(getInfrastructure()).contextualLabel(prefix + text).build();
+    }
 
     private String getParentProperty(String parentProperty) {
         String existingParentProperty = parentPropertyAdditionalData;

@@ -46,6 +46,7 @@ public interface ClasspathBuilder {
         default void put(String name, byte[] content) throws IOException {
             put(name, content, ClasspathEntryVisitor.Entry.CompressionMethod.UNDEFINED);
         }
+
         void put(String name, byte[] content, ClasspathEntryVisitor.Entry.CompressionMethod compressionMethod) throws IOException;
     }
 }

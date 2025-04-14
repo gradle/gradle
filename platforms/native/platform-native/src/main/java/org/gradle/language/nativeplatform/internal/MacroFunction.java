@@ -23,6 +23,7 @@ import java.util.List;
  */
 public interface MacroFunction {
     String getName();
+
     int getParameterCount();
 
     Expression evaluate(List<Expression> arguments);

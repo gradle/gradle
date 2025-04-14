@@ -67,7 +67,8 @@ public abstract class LinkSharedLibrary extends AbstractLinkTask {
      *
      * @since 4.4
      */
-    @Optional @OutputFile
+    @Optional
+    @OutputFile
     public RegularFileProperty getImportLibrary() {
         return importLibrary;
     }

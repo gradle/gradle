@@ -57,6 +57,7 @@ class DaemonsEventSequence implements Stoppable, Runnable {
     // wrapper object for the queue, to enable a null sentinel
     private class Holder {
         final value
+
         Holder(value) {
             this.value = value
         }
@@ -122,7 +123,9 @@ class DaemonsEventSequence implements Stoppable, Runnable {
                 throw timeoutError
             }
 
-            if (daemonsState == null) { return }
+            if (daemonsState == null) {
+                return
+            }
 
             Long timeSinceStart = lastStateChangeAt == null ? 0 : lastStateChangeAt.time - runStartedAt.time
             pastStateChanges[timeSinceStart] = daemonsState

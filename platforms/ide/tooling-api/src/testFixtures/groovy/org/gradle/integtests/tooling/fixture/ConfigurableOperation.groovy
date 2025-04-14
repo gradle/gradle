@@ -72,7 +72,7 @@ class ConfigurableOperation {
     }
 
     Object getModel() {
-        assert modelInstance != null : "Model was not built."
+        assert modelInstance != null: "Model was not built."
         this.modelInstance
     }
 }

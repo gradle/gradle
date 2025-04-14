@@ -84,6 +84,10 @@ public class BooleanOptionElement extends AbstractOptionElement {
         });
     }
 
+    private static String removeDisablePrefix(String optionName) {
+        return optionName.substring(DISABLE_NAME_PREFIX.length());
+    }
+
     public boolean isDisableOption() {
         return this.getOptionName().startsWith(DISABLE_NAME_PREFIX);
     }
@@ -96,9 +100,5 @@ public class BooleanOptionElement extends AbstractOptionElement {
     @Override
     public void apply(Object object, List<String> parameterValues) throws TypeConversionException {
         setter.setValue(object, newOptionValue);
-    }
-
-    private static String removeDisablePrefix(String optionName) {
-        return optionName.substring(DISABLE_NAME_PREFIX.length());
     }
 }

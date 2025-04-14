@@ -26,11 +26,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
-    private PartialBasicGradleProject rootProject;
-    private DefaultBuildIdentifier buildIdentifier;
     private final Set<PartialBasicGradleProject> projects = new LinkedHashSet<>();
     private final Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<>();
     private final Set<DefaultGradleBuild> allBuilds = new LinkedHashSet<>();
+    private PartialBasicGradleProject rootProject;
+    private DefaultBuildIdentifier buildIdentifier;
 
     @Override
     public String toString() {

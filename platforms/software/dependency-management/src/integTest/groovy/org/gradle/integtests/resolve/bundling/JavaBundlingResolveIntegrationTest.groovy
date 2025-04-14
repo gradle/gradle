@@ -85,11 +85,11 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
             root(":", ":test:") {
                 module('org:producer:1.0') {
                     variant('api', [
-                            'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.libraryelements': 'jar',
-                            'org.gradle.category': 'library'
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar',
+                        'org.gradle.category': 'library'
                     ])
                     module('org:transitive:1.0')
                 }
@@ -161,10 +161,10 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                 root(":", ":test:") {
                     module('org:producer:1.0') {
                         variant('fatApi', [
-                                'org.gradle.dependency.bundling': selected,
-                                'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
-                                'org.gradle.usage': 'java-api',
-                                'org.gradle.libraryelements': 'jar'
+                            'org.gradle.dependency.bundling': selected,
+                            'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.libraryelements': 'jar'
                         ])
                     }
                 }
@@ -172,7 +172,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         }
 
         where:
-        bundling           | requested         | selected
+        bundling          | requested         | selected
         Bundling.EMBEDDED | Bundling.EMBEDDED | Bundling.EMBEDDED
         Bundling.EMBEDDED | Bundling.SHADOWED | null
         Bundling.SHADOWED | Bundling.EMBEDDED | Bundling.SHADOWED

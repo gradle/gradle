@@ -45,7 +45,7 @@ abstract class CircularEvaluationSpec<T> extends Specification {
      * Base class for testing providers that evaluate user-provided code to determine the provider value.
      * The tests simulate this user code referencing the provider itself.
      *
-     * @param <T> the provider value type
+     * @param <T>  the provider value type
      */
     static abstract class CircularFunctionEvaluationSpec<T> extends CircularEvaluationSpec<T> {
         abstract ProviderInternal<T> providerWithSelfReference()
@@ -88,7 +88,7 @@ abstract class CircularEvaluationSpec<T> extends Specification {
      * Base class for testing providers that produce the value based on some other providers, including properties.
      * The tests simulate circular evaluation chain, when the provider is based on a property that is set to the provider itself.
      *
-     * @param <T> the provider value type
+     * @param <T>  the provider value type
      */
     static abstract class CircularChainEvaluationSpec<T> extends CircularEvaluationSpec<T> {
         /**

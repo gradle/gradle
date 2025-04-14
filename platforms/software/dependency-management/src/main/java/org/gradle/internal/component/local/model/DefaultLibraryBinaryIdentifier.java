@@ -25,11 +25,6 @@ public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
     private final String displayName;
     private final String variant;
 
-    @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
     public DefaultLibraryBinaryIdentifier(String projectPath, String libraryName, String variant) {
         assert projectPath != null : "project path cannot be null";
         assert libraryName != null : "library name cannot be null";
@@ -38,6 +33,11 @@ public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
         this.libraryName = libraryName;
         this.variant = variant;
         this.displayName = "project '" + projectPath + "' library '" + libraryName + "' variant '" + variant + "'";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override

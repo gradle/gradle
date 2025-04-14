@@ -43,6 +43,10 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
     private final EvaluatableFilter<ResourceEntryFilter> manifestAttributeResourceFilter = filter(IgnoringResourceEntryFilter::new, ResourceEntryFilter.FILTER_NOTHING);
     private final DefaultPropertiesFileFilter propertyFileFilters = new DefaultPropertiesFileFilter();
 
+    private static <T> EvaluatableFilter<T> filter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
+        return new EvaluatableFilter<>(initializer, emptyValue);
+    }
+
     @Override
     public void ignore(String pattern) {
         resourceFilter.ignore(pattern);
@@ -78,28 +82,6 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
         return propertyFileFilters.getFilters();
     }
 
-    public class RuntimeMetaInfNormalization implements MetaInfNormalization {
-        @Override
-        public void ignoreCompletely() {
-            ignore("META-INF/*");
-        }
-
-        @Override
-        public void ignoreManifest() {
-            ignore("META-INF/MANIFEST.MF");
-        }
-
-        @Override
-        public void ignoreAttribute(String name) {
-            manifestAttributeResourceFilter.ignore(name.toLowerCase(Locale.ROOT));
-        }
-
-        @Override
-        public void ignoreProperty(String name) {
-            propertyFileFilters.configure("META-INF/**/*.properties", propertiesFileNormalization -> propertiesFileNormalization.ignoreProperty(name));
-        }
-    }
-
     @Override
     public CachedState computeCachedState() {
         DefaultCachedState cachedState = new DefaultCachedState(resourceFilter, manifestAttributeResourceFilter, propertyFileFilters);
@@ -122,22 +104,18 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
         });
     }
 
-    private static <T> EvaluatableFilter<T> filter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
-        return new EvaluatableFilter<>(initializer, emptyValue);
-    }
-
     private static class EvaluatableFilter<T> {
-        private T value;
         private final Supplier<T> valueSupplier;
         private final ImmutableSet.Builder<String> builder;
+        private T value;
 
         public EvaluatableFilter(Function<ImmutableSet<String>, T> initializer, T emptyValue) {
             this.builder = ImmutableSet.builder();
             // if there are configured ignores, use the initializer to create the value, otherwise return emptyValue
             this.valueSupplier = () -> Optional.of(builder.build())
-                                                .filter(ignores -> !ignores.isEmpty())
-                                                .map(initializer)
-                                                .orElse(emptyValue);
+                .filter(ignores -> !ignores.isEmpty())
+                .map(initializer)
+                .orElse(emptyValue);
         }
 
         public T evaluate() {
@@ -219,6 +197,28 @@ public class DefaultRuntimeClasspathNormalization implements RuntimeClasspathNor
 
         boolean isTrivial() {
             return resourceFilterState.isEmpty() && manifestAttributesFilterState.isEmpty() && propertiesFileFiltersState.values().stream().allMatch(Set::isEmpty);
+        }
+    }
+
+    public class RuntimeMetaInfNormalization implements MetaInfNormalization {
+        @Override
+        public void ignoreCompletely() {
+            ignore("META-INF/*");
+        }
+
+        @Override
+        public void ignoreManifest() {
+            ignore("META-INF/MANIFEST.MF");
+        }
+
+        @Override
+        public void ignoreAttribute(String name) {
+            manifestAttributeResourceFilter.ignore(name.toLowerCase(Locale.ROOT));
+        }
+
+        @Override
+        public void ignoreProperty(String name) {
+            propertyFileFilters.configure("META-INF/**/*.properties", propertiesFileNormalization -> propertiesFileNormalization.ignoreProperty(name));
         }
     }
 }

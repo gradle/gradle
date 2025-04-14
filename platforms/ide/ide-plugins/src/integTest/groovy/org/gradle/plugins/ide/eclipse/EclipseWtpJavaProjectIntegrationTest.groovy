@@ -27,7 +27,7 @@ class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpe
         settingsFile << "rootProject.name = 'java'"
 
         buildFile <<
-        """apply plugin: 'eclipse-wtp'
+            """apply plugin: 'eclipse-wtp'
            apply plugin: 'java'
 
            ${mavenCentralRepository()}

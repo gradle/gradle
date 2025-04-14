@@ -23,7 +23,9 @@ import spock.lang.Specification
 abstract class AbstractHasMultiValuesPropertyCollectionViewTest extends Specification {
 
     protected abstract <T extends Collection<String>> T cast(Collection<String> collection)
+
     protected abstract <T extends HasMultipleValues<String> & Provider<Collection<String>>> T multiValueProperty()
+
     protected abstract <T extends Collection<String>> T newCollection(HasMultipleValues<String> multipleValueProperty)
 
     def "modification operations should be visible on a backed property"() {
@@ -116,8 +118,8 @@ abstract class AbstractHasMultiValuesPropertyCollectionViewTest extends Specific
         property.set(["third", "fifth"])
 
         then:
-        collection == cast(["third","fifth"])
-        collection.containsAll(["third","fifth"])
+        collection == cast(["third", "fifth"])
+        collection.containsAll(["third", "fifth"])
         !collection.contains("first")
         !collection.contains("second")
         !collection.contains("forth")

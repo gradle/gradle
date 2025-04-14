@@ -31,6 +31,7 @@ import java.util.Optional;
 public class TypeUtils {
 
     private static final Map<Type, String> PRIMITIVE_TYPES_DEFAULT_VALUES_AS_STRING;
+
     static {
         Map<Type, String> map = new HashMap<>();
         map.put(Type.BYTE_TYPE, "0");

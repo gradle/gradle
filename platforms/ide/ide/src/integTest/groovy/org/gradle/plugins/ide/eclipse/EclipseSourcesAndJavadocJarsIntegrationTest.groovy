@@ -51,7 +51,7 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         def apiLibs = libs.findAll { l ->
             l.jarName.startsWith(apiJarPrefix)
         }
-        assert apiLibs.size() == 1 : "gradle API jar not found"
+        assert apiLibs.size() == 1: "gradle API jar not found"
         return apiLibs.get(0)
     }
 

@@ -30,15 +30,9 @@ import java.util.Collection;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    private enum Property {
-        ARTIFACT_URLS,
-    }
-
     private final ImmutableList<ResourcePattern> metadataResources;
     private final ImmutableList<URI> artifactUrls;
     private final ImmutableList<ResourcePattern> artifactResources;
-
     private MavenRepositoryDescriptor(
         String id,
         String name,
@@ -75,6 +69,11 @@ public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         super.addProperties(builder);
         builder.put(Property.ARTIFACT_URLS.name(), artifactUrls);
+    }
+
+    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    private enum Property {
+        ARTIFACT_URLS,
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {

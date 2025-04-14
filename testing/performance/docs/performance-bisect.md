@@ -3,10 +3,10 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [Tracking down performance regressions with `git bisect`](#tracking-down-performance-regressions-with-git-bisect)
-  - [Identify the test that caused the regression](#identify-the-test-that-caused-the-regression)
-  - [Modify test for regression search](#modify-test-for-regression-search)
-  - [Perform the search](#perform-the-search)
-  - [Verify the results](#verify-the-results)
+    - [Identify the test that caused the regression](#identify-the-test-that-caused-the-regression)
+    - [Modify test for regression search](#modify-test-for-regression-search)
+    - [Perform the search](#perform-the-search)
+    - [Verify the results](#verify-the-results)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -18,8 +18,9 @@ be difficult to track the exact commit that triggered the regression.
 
 The most convenient way to find the commit is to use `git bisect`. Before doing so
 you need to
- 1. identify the test that exposes the regression
- 2. set up the test to search only for the regression you are looking after to speed up the search for the regression.
+
+1. identify the test that exposes the regression
+2. set up the test to search only for the regression you are looking after to speed up the search for the regression.
 
 ## Identify the test that caused the regression
 
@@ -32,14 +33,16 @@ Moreover, we also need to know the sample used for the test. For this example, i
 ## Modify test for regression search
 
 First, you should change the test so that
- - only the version you are interested in is used as a reference
- - only the test you are interested in is executed
- - tighten the regression limits to get significant results
- - only search for memory/execution time regressions depending on what you are interested in
- 
-For our example, let's assume we want to track down a performance regression for `native build medium header file change`. 
+
+- only the version you are interested in is used as a reference
+- only the test you are interested in is executed
+- tighten the regression limits to get significant results
+- only search for memory/execution time regressions depending on what you are interested in
+
+For our example, let's assume we want to track down a performance regression for `native build medium header file change`.
 
 We modify `RealWorldNativePluginPerformanceTest` to only include the test we are interested in:
+
 ```java
     @Ignore
     @Unroll("Project '#testProject' measuring incremental build speed")

@@ -72,6 +72,7 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
         /**
          * Which attributes the resolved configuration was requested with, if any.
+         *
          * @since 5.6
          */
         AttributeContainer getRequestedAttributes();
@@ -86,7 +87,7 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
     public interface Repository {
 
         /**
-         *  A unique identifier for this repository, used for associating resolved components to their source repository.
+         * A unique identifier for this repository, used for associating resolved components to their source repository.
          */
         String getId();
 
@@ -98,7 +99,7 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
         String getType();
 
         /**
-         *  The name of this repository.
+         * The name of this repository.
          */
         String getName();
 

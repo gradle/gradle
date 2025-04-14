@@ -37,6 +37,18 @@ public class LineEndingNormalizingInputStreamHasher {
     private static final HashCode SIGNATURE = Hashing.signature(LineEndingNormalizingInputStreamHasher.class);
     private static final int BUFFER_SIZE = 8192;
 
+    private static boolean isControlCharacter(int c) {
+        return isInControlRange(c) && isNotCommonTextChar(c);
+    }
+
+    private static boolean isInControlRange(int c) {
+        return c >= 0x00 && c < 0x20;
+    }
+
+    private static boolean isNotCommonTextChar(int c) {
+        return !Character.isWhitespace(c);
+    }
+
     /**
      * Hash the contents of the provided input stream, normalizing line endings.
      *
@@ -105,17 +117,5 @@ public class LineEndingNormalizingInputStreamHasher {
         }
 
         return Optional.of(hasher.hash());
-    }
-
-    private static boolean isControlCharacter(int c) {
-        return isInControlRange(c) && isNotCommonTextChar(c);
-    }
-
-    private static boolean isInControlRange(int c) {
-        return c >= 0x00 && c < 0x20;
-    }
-
-    private static boolean isNotCommonTextChar(int c) {
-        return !Character.isWhitespace(c);
     }
 }

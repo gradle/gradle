@@ -54,21 +54,37 @@ class PropertyAccessorTypeTest extends Specification {
 
     static class Bean {
         private String myurl, myURL, mycCompiler, myCCompilerField, mycppCompilerField, myCPPCompilerField, mya, myb
+
         String getUrl() { myurl }
+
         void setUrl(String value) { myurl = value }
+
         String getURL() { myURL }
+
         void setURL(String value) { myURL = value }
+
         String getcCompiler() { mycCompiler }
+
         void setcCompiler(String value) { mycCompiler = value }
+
         String getCCompiler() { myCCompilerField }
+
         void setCCompiler(String value) { myCCompilerField = value }
+
         String getCppCompiler() { mycppCompilerField }
+
         void setCppCompiler(String value) { mycppCompilerField = value }
+
         String getCPPCompiler() { myCPPCompilerField }
+
         void setCPPCompiler(String value) { myCPPCompilerField = value }
+
         String getA() { mya }
+
         void setA(String value) { mya = value }
+
         String getb() { myb }
+
         void setb(String value) { myb = value }
     }
 
@@ -103,13 +119,17 @@ class PropertyAccessorTypeTest extends Specification {
         String gettingStarted() {
             'Getting started!'
         }
+
         boolean isidore() {
             true
         }
+
         void settings(String value) {}
+
         String getccCompiler() { "CC" }
 
         String isNotString() { return "string" }
+
         Boolean isNotBoolean() { return true }
 
         DeviantBean setWriteOnly(String s) {

@@ -109,7 +109,22 @@ public class ProviderMigrationArchitectureTest {
         .and(are(getters))
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
-
+    @ArchTest
+    public static final ArchRule mutable_public_api_properties_should_be_providers = freeze(methods()
+        .that(are(mutable_public_API_properties))
+        .and().doNotHaveRawReturnType(TextResource.class)
+        .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
+        .and(not(declaredIn(resideInAPackage("org.gradle.tooling.."))))
+        .should(haveProviderReturnType()));
+    @ArchTest
+    public static final ArchRule mutable_public_api_properties_should_be_configurable_file_collections = freeze(methods()
+        .that(are(mutable_public_API_properties))
+        .and().haveRawReturnType(assignableTo(FileCollection.class))
+        .should(haveFileCollectionReturnType()));
+    @ArchTest
+    public static final ArchRule mutable_public_api_properties_should_not_use_text_resources = freeze(methods()
+        .that(are(mutable_public_API_properties))
+        .should().notHaveRawReturnType(TextResource.class));
     @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
     private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
         .and(declaredIn(assignableTo(Task.class)))
@@ -120,26 +135,6 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(DefaultTask.class)))
         .and(not(declaredIn(org.gradle.api.internal.AbstractTask.class)))
         .as("task properties");
-
-    @ArchTest
-    public static final ArchRule mutable_public_api_properties_should_be_providers = freeze(methods()
-        .that(are(mutable_public_API_properties))
-        .and().doNotHaveRawReturnType(TextResource.class)
-        .and().doNotHaveRawReturnType(assignableTo(FileCollection.class))
-        .and(not(declaredIn(resideInAPackage("org.gradle.tooling.."))))
-        .should(haveProviderReturnType()));
-
-    @ArchTest
-    public static final ArchRule mutable_public_api_properties_should_be_configurable_file_collections = freeze(methods()
-        .that(are(mutable_public_API_properties))
-        .and().haveRawReturnType(assignableTo(FileCollection.class))
-        .should(haveFileCollectionReturnType()));
-
-    @ArchTest
-    public static final ArchRule mutable_public_api_properties_should_not_use_text_resources = freeze(methods()
-        .that(are(mutable_public_API_properties))
-        .should().notHaveRawReturnType(TextResource.class));
-
     @ArchTest
     public static final ArchRule public_api_task_properties_are_providers = freeze(methods()
         .that(are(task_properties))
@@ -225,6 +220,14 @@ public class ProviderMigrationArchitectureTest {
         return new HaveLazyReturnType(Collections.singletonList(ConfigurableFileCollection.class), Collections.singletonList(FileCollection.class));
     }
 
+    private static boolean hasSetter(JavaMethod input) {
+        PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
+        String propertyNameFromGetter = accessorType.propertyNameFor(input.getName());
+        return input.getOwner().getAllMethods().stream()
+            .filter(method -> PropertyAccessorType.fromName(method.getName()) == PropertyAccessorType.SETTER)
+            .anyMatch(method -> PropertyAccessorType.SETTER.propertyNameFor(method.getName()).equals(propertyNameFromGetter));
+    }
+
     public static class HaveLazyReturnType extends ArchCondition<JavaMethod> {
         private final List<Class<?>> mutableTypes;
         private final List<Class<?>> immutableTypes;
@@ -233,6 +236,10 @@ public class ProviderMigrationArchitectureTest {
             super("have return type " + immutableTypes.get(0).getSimpleName());
             this.mutableTypes = mutableTypes;
             this.immutableTypes = immutableTypes;
+        }
+
+        private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
+            return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
         }
 
         @Override
@@ -244,17 +251,5 @@ public class ProviderMigrationArchitectureTest {
             String message = createMessage(javaMethod, (satisfied ? "has " : "does not have ") + "raw return type (" + returnType.getName() + ") assignable to any of " + expectedReturnTypes.stream().map(Class::getSimpleName).collect(Collectors.toList()));
             events.add(new SimpleConditionEvent(javaMethod, satisfied, message));
         }
-
-        private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
-            return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
-        }
-    }
-
-    private static boolean hasSetter(JavaMethod input) {
-        PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
-        String propertyNameFromGetter = accessorType.propertyNameFor(input.getName());
-        return input.getOwner().getAllMethods().stream()
-            .filter(method -> PropertyAccessorType.fromName(method.getName()) == PropertyAccessorType.SETTER)
-            .anyMatch(method -> PropertyAccessorType.SETTER.propertyNameFor(method.getName()).equals(propertyNameFromGetter));
     }
 }

@@ -27,8 +27,6 @@ import java.util.function.Consumer;
  */
 @FunctionalInterface
 public interface IoConsumer<T> {
-    void accept(@Nullable T payload) throws IOException;
-
     static <T> Consumer<T> wrap(IoConsumer<T> consumer) {
         return payload -> {
             try {
@@ -38,4 +36,6 @@ public interface IoConsumer<T> {
             }
         };
     }
+
+    void accept(@Nullable T payload) throws IOException;
 }

@@ -29,6 +29,26 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.findOutputsStillPresentSincePreviousExecution;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
+    private static ImmutableList<String> collectChanges(ChangeContainer changes) {
+        MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(ExecutionStateChangeDetector.MAX_OUT_OF_DATE_MESSAGES);
+        changes.accept(visitor);
+        return visitor.getMessages();
+    }
+
+    private static InputFileChanges caching(InputFileChanges wrapped) {
+        CachingChangeContainer cachingChangeContainer = new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
+        return new InputFileChangesWrapper(wrapped, cachingChangeContainer);
+    }
+
+    private static ChangeContainer errorHandling(Describable executable, ChangeContainer wrapped) {
+        return new ErrorHandlingChangeContainer(executable, wrapped);
+    }
+
+    private static InputFileChanges errorHandling(Describable executable, InputFileChanges wrapped) {
+        ErrorHandlingChangeContainer errorHandlingChangeContainer = new ErrorHandlingChangeContainer(executable, wrapped);
+        return new InputFileChangesWrapper(wrapped, errorHandlingChangeContainer);
+    }
+
     @Override
     public ExecutionStateChanges detectChanges(
         Describable executable,
@@ -121,26 +141,6 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
                 incrementalInputProperties
             );
         }
-    }
-
-    private static ImmutableList<String> collectChanges(ChangeContainer changes) {
-        MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(ExecutionStateChangeDetector.MAX_OUT_OF_DATE_MESSAGES);
-        changes.accept(visitor);
-        return visitor.getMessages();
-    }
-
-    private static InputFileChanges caching(InputFileChanges wrapped) {
-        CachingChangeContainer cachingChangeContainer = new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
-        return new InputFileChangesWrapper(wrapped, cachingChangeContainer);
-    }
-
-    private static ChangeContainer errorHandling(Describable executable, ChangeContainer wrapped) {
-        return new ErrorHandlingChangeContainer(executable, wrapped);
-    }
-
-    private static InputFileChanges errorHandling(Describable executable, InputFileChanges wrapped) {
-        ErrorHandlingChangeContainer errorHandlingChangeContainer = new ErrorHandlingChangeContainer(executable, wrapped);
-        return new InputFileChangesWrapper(wrapped, errorHandlingChangeContainer);
     }
 
     private static class InputFileChangesWrapper implements InputFileChanges {

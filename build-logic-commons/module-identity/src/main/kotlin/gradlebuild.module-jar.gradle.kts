@@ -92,6 +92,7 @@ fun computeExternalDependenciesNotAccessibleFromProjectDependencies(
                 // We should not include the root variant's dependencies in the locally accessible set
                 locallyAccessible.add(to.owner)
             }
+
             is ModuleComponentIdentifier -> externallyAccessible.add(to.owner)
         }
 

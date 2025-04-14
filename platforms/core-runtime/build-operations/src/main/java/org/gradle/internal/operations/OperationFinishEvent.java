@@ -25,7 +25,6 @@ public final class OperationFinishEvent {
     private final Object result;
 
     /**
-     *
      * @param startTime the time the operation started
      * @param currentTime the current time when the operation is considered finished
      * @param failure operation failure

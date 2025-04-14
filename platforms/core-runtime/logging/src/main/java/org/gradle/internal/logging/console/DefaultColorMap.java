@@ -86,6 +86,18 @@ public class DefaultColorMap implements ColorMap {
         addDefault(STATUS_BAR, "bold");
     }
 
+    private static Color newBoldColor() {
+        // We don't use Attribute.INTENSITY_BOLD_OFF as it's rarely supported like Windows 10
+        return new AttributeColor(Attribute.INTENSITY_BOLD, Attribute.RESET);
+    }
+
+    private static Color newReverseColor() {
+        return new AttributeColor(Attribute.NEGATIVE_ON, Attribute.NEGATIVE_OFF);
+    }
+
+    private static Color newItalicColor() {
+        return new AttributeColor(Attribute.ITALIC, Attribute.ITALIC_OFF);
+    }
 
     private void addDefault(StyledTextOutput.Style style, String colorSpec) {
         addDefault(style.name().toLowerCase(Locale.ROOT), colorSpec);
@@ -199,19 +211,6 @@ public class DefaultColorMap implements ColorMap {
         }
 
         return noDecoration;
-    }
-
-    private static Color newBoldColor() {
-        // We don't use Attribute.INTENSITY_BOLD_OFF as it's rarely supported like Windows 10
-        return new AttributeColor(Attribute.INTENSITY_BOLD, Attribute.RESET);
-    }
-
-    private static Color newReverseColor() {
-        return new AttributeColor(Attribute.NEGATIVE_ON, Attribute.NEGATIVE_OFF);
-    }
-
-    private static Color newItalicColor() {
-        return new AttributeColor(Attribute.ITALIC, Attribute.ITALIC_OFF);
     }
 
     private static class BrightForegroundColor implements Color {

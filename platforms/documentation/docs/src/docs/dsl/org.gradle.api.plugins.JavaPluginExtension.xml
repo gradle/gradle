@@ -21,16 +21,20 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>sourceCompatibility</td>
-                <td>Value of the current used JVM (e.g. <literal>JavaVersion.JAVA_1_6</literal> on a 1.6 JVM).</td>
+                <td>Value of the current used JVM (e.g. <literal>JavaVersion.JAVA_1_6</literal> on a 1.6 JVM).
+                </td>
             </tr>
             <tr>
                 <td>targetCompatibility</td>
-                <td><literal>project.sourceCompatibility</literal></td>
+                <td>
+                    <literal>project.sourceCompatibility</literal>
+                </td>
             </tr>
             <tr>
                 <td>toolchain</td>
@@ -38,11 +42,17 @@
             </tr>
             <tr>
                 <td>docsDir</td>
-                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/docs</literal></td>
+                <td>
+                    <literal><replaceable>${project.layout.buildDirectory}</replaceable>/docs
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>testResultsDir</td>
-                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/test-results</literal></td>
+                <td>
+                    <literal><replaceable>${project.layout.buildDirectory}</replaceable>/test-results
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>testReportDir</td>

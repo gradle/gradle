@@ -29,7 +29,7 @@ class SolutionFile extends IdeWorkspaceFixture {
     SolutionFile(TestFile solutionFile) {
         solutionFile.assertIsFile()
         this.file = solutionFile
-        assert TextUtil.convertLineSeparators(solutionFile.text, TextUtil.windowsLineSeparator) == solutionFile.text : "Solution file contains non-windows line separators"
+        assert TextUtil.convertLineSeparators(solutionFile.text, TextUtil.windowsLineSeparator) == solutionFile.text: "Solution file contains non-windows line separators"
 
         content = TextUtil.normaliseLineSeparators(solutionFile.text)
 
@@ -56,7 +56,7 @@ class SolutionFile extends IdeWorkspaceFixture {
     }
 
     def assertReferencesProject(ProjectFile expectedProject, Collection<String> configurations) {
-        assertReferencesProject(expectedProject, configurations.collectEntries {[(it):it]})
+        assertReferencesProject(expectedProject, configurations.collectEntries { [(it): it] })
     }
 
     def assertReferencesProject(ProjectFile expectedProject, Map<String, String> configurations) {

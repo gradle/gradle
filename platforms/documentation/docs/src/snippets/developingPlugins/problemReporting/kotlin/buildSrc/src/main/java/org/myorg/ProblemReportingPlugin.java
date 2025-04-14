@@ -1,6 +1,7 @@
 package org.myorg;
 
 import javax.inject.Inject;
+
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -18,11 +19,6 @@ public class ProblemReportingPlugin implements Plugin<Project> {
 
     private final ProblemReporter problemReporter;
 
-    interface SomeData extends AdditionalData {
-        void setName(String name);
-        String getName();
-    }
-
     @Inject
     public ProblemReportingPlugin(Problems problems) { // <1>
         this.problemReporter = problems.getReporter(); // <2>
@@ -38,6 +34,12 @@ public class ProblemReportingPlugin implements Plugin<Project> {
                 additionalData.setName("Some name"); // <4>
             })
         );
+    }
+
+    interface SomeData extends AdditionalData {
+        String getName();
+
+        void setName(String name);
     }
 }
 // end::snippet[]

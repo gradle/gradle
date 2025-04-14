@@ -10,22 +10,6 @@ import java.util.stream.Collectors;
 
 public class DataRetriever {
 
-    static public class Version {
-        public String version;
-        public String buildTime;
-        public boolean current;
-        public boolean snapshot;
-        public boolean nightly;
-        public boolean releaseNightly;
-        public boolean activeRc;
-        public String rcFor;
-        public String milestoneFor;
-        public boolean broken;
-        public String downloadUrl;
-        public String checksumUrl;
-        public String wrapperChecksumUrl;
-    }
-
     public static MyProductReleaseList retrieve() {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -43,5 +27,21 @@ public class DataRetriever {
             version = "nightly";
         }
         return "https://docs.gradle.org/" + version + "/release-notes.html";
+    }
+
+    static public class Version {
+        public String version;
+        public String buildTime;
+        public boolean current;
+        public boolean snapshot;
+        public boolean nightly;
+        public boolean releaseNightly;
+        public boolean activeRc;
+        public String rcFor;
+        public String milestoneFor;
+        public boolean broken;
+        public String downloadUrl;
+        public String checksumUrl;
+        public String wrapperChecksumUrl;
     }
 }

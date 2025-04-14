@@ -103,16 +103,20 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         registerIsolatableSerializers();
     }
 
+    public static IsolatableSerializerRegistry create(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+        return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
+    }
+
+    private static Class<?> fromClassName(String className) {
+        return ClassLoaderUtils.classFromContextLoader(className);
+    }
+
     private void registerIsolatableSerializers() {
         for (int i = 0; i < isolatableSerializers.length; i++) {
             IsolatableSerializer<?> serializer = isolatableSerializers[i];
             assert serializer.getSerializerIndex() == i;
             register(serializer.getIsolatableClass(), Cast.uncheckedCast(serializer));
         }
-    }
-
-    public static IsolatableSerializerRegistry create(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-        return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
     }
 
     public Isolatable<?> readIsolatable(Decoder decoder) throws Exception {
@@ -245,10 +249,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
-    private static Class<?> fromClassName(String className) {
-        return ClassLoaderUtils.classFromContextLoader(className);
-    }
-
     private static class StringValueSnapshotSerializer extends IsolatableSerializer<StringValueSnapshot> {
 
         @Override
@@ -362,6 +362,138 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
+    private static class FileValueSnapshotSerializer extends IsolatableSerializer<FileValueSnapshot> {
+        @Override
+        protected void serialize(Encoder encoder, FileValueSnapshot value) throws Exception {
+            encoder.writeString(value.getValue());
+        }
+
+        @Override
+        protected FileValueSnapshot deserialize(Decoder decoder) throws Exception {
+            return new FileValueSnapshot(decoder.readString());
+        }
+
+        @Override
+        public Class<FileValueSnapshot> getIsolatableClass() {
+            return FileValueSnapshot.class;
+        }
+
+        @Override
+        public byte getSerializerIndex() {
+            return FILE_VALUE;
+        }
+    }
+
+    private static class IsolatedJavaSerializedValueSnapshotSerializer extends IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
+
+        @Override
+        protected void serialize(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
+            encoder.writeString(value.getOriginalClass().getName());
+            HashCode implementationHash = value.getImplementationHash();
+            if (implementationHash == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                encoder.writeBinary(implementationHash.toByteArray());
+            }
+            encoder.writeBinary(value.getValue());
+        }
+
+        @Override
+        protected IsolatedJavaSerializedValueSnapshot deserialize(Decoder decoder) throws Exception {
+            String originalClassName = decoder.readString();
+            Class<?> originalClass = fromClassName(originalClassName);
+            HashCode implementationHash = null;
+            if (decoder.readBoolean()) {
+                implementationHash = HashCode.fromBytes(decoder.readBinary());
+            }
+            byte[] serializedBytes = decoder.readBinary();
+            return new IsolatedJavaSerializedValueSnapshot(implementationHash, serializedBytes, originalClass);
+        }
+
+        @Override
+        public Class<IsolatedJavaSerializedValueSnapshot> getIsolatableClass() {
+            return IsolatedJavaSerializedValueSnapshot.class;
+        }
+
+        @Override
+        public byte getSerializerIndex() {
+            return SERIALIZED_VALUE;
+        }
+    }
+
+    private static class NullValueSnapshotSerializer extends IsolatableSerializer<NullValueSnapshot> {
+        @Override
+        protected void serialize(Encoder encoder, NullValueSnapshot value) {
+        }
+
+        @Override
+        protected NullValueSnapshot deserialize(Decoder decoder) {
+            return NullValueSnapshot.INSTANCE;
+        }
+
+        @Override
+        public Class<NullValueSnapshot> getIsolatableClass() {
+            return NullValueSnapshot.class;
+        }
+
+        @Override
+        public byte getSerializerIndex() {
+            return NULL_VALUE;
+        }
+    }
+
+    public static class IsolatedEnumValueSnapshotSerializer extends IsolatableSerializer<IsolatedEnumValueSnapshot> {
+
+        @Override
+        protected void serialize(Encoder encoder, IsolatedEnumValueSnapshot value) throws Exception {
+            encoder.writeString(value.getClassName());
+            encoder.writeString(value.getName());
+        }
+
+        @Override
+        protected IsolatedEnumValueSnapshot deserialize(Decoder decoder) throws Exception {
+            String className = decoder.readString();
+            String name = decoder.readString();
+            Class<? extends Enum<?>> enumClass = Cast.uncheckedCast(fromClassName(className));
+            return new IsolatedEnumValueSnapshot(Enum.valueOf(Cast.uncheckedCast(enumClass), name));
+        }
+
+        @Override
+        public Class<IsolatedEnumValueSnapshot> getIsolatableClass() {
+            return IsolatedEnumValueSnapshot.class;
+        }
+
+        @Override
+        public byte getSerializerIndex() {
+            return ENUM_VALUE;
+        }
+    }
+
+    @NullMarked
+    private static class IsolatedArrayOfPrimitiveSerializer extends IsolatableSerializer<ArrayOfPrimitiveValueSnapshot> {
+
+        @Override
+        protected void serialize(Encoder encoder, ArrayOfPrimitiveValueSnapshot value) throws Exception {
+            value.encode(encoder);
+        }
+
+        @Override
+        protected ArrayOfPrimitiveValueSnapshot deserialize(Decoder decoder) throws Exception {
+            return ArrayOfPrimitiveValueSnapshot.decode(decoder);
+        }
+
+        @Override
+        public Class<ArrayOfPrimitiveValueSnapshot> getIsolatableClass() {
+            return ArrayOfPrimitiveValueSnapshot.class;
+        }
+
+        @Override
+        public byte getSerializerIndex() {
+            return ISOLATED_ARRAY_OF_PRIMITIVE;
+        }
+    }
+
     private class AttributeDefinitionSnapshotSerializer extends IsolatableSerializer<AttributeDefinitionSnapshot> {
         @Override
         protected void serialize(Encoder encoder, AttributeDefinitionSnapshot value) throws Exception {
@@ -450,115 +582,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
-    private static class FileValueSnapshotSerializer extends IsolatableSerializer<FileValueSnapshot> {
-        @Override
-        protected void serialize(Encoder encoder, FileValueSnapshot value) throws Exception {
-            encoder.writeString(value.getValue());
-        }
-
-        @Override
-        protected FileValueSnapshot deserialize(Decoder decoder) throws Exception {
-            return new FileValueSnapshot(decoder.readString());
-        }
-
-        @Override
-        public Class<FileValueSnapshot> getIsolatableClass() {
-            return FileValueSnapshot.class;
-        }
-
-        @Override
-        public byte getSerializerIndex() {
-            return FILE_VALUE;
-        }
-    }
-
-    private static class IsolatedJavaSerializedValueSnapshotSerializer extends IsolatableSerializer<IsolatedJavaSerializedValueSnapshot> {
-
-        @Override
-        protected void serialize(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
-            encoder.writeString(value.getOriginalClass().getName());
-            HashCode implementationHash = value.getImplementationHash();
-            if (implementationHash == null) {
-                encoder.writeBoolean(false);
-            } else {
-                encoder.writeBoolean(true);
-                encoder.writeBinary(implementationHash.toByteArray());
-            }
-            encoder.writeBinary(value.getValue());
-        }
-
-        @Override
-        protected IsolatedJavaSerializedValueSnapshot deserialize(Decoder decoder) throws Exception {
-            String originalClassName = decoder.readString();
-            Class<?> originalClass = fromClassName(originalClassName);
-            HashCode implementationHash = null;
-            if (decoder.readBoolean()) {
-                implementationHash = HashCode.fromBytes(decoder.readBinary());
-            }
-            byte[] serializedBytes = decoder.readBinary();
-            return new IsolatedJavaSerializedValueSnapshot(implementationHash, serializedBytes, originalClass);
-        }
-
-        @Override
-        public Class<IsolatedJavaSerializedValueSnapshot> getIsolatableClass() {
-            return IsolatedJavaSerializedValueSnapshot.class;
-        }
-
-        @Override
-        public byte getSerializerIndex() {
-            return SERIALIZED_VALUE;
-        }
-    }
-
-    private static class NullValueSnapshotSerializer extends IsolatableSerializer<NullValueSnapshot> {
-        @Override
-        protected void serialize(Encoder encoder, NullValueSnapshot value) {
-        }
-
-        @Override
-        protected NullValueSnapshot deserialize(Decoder decoder) {
-            return NullValueSnapshot.INSTANCE;
-        }
-
-        @Override
-        public Class<NullValueSnapshot> getIsolatableClass() {
-            return NullValueSnapshot.class;
-        }
-
-        @Override
-        public byte getSerializerIndex() {
-            return NULL_VALUE;
-        }
-    }
-
-
-    public static class IsolatedEnumValueSnapshotSerializer extends IsolatableSerializer<IsolatedEnumValueSnapshot> {
-
-        @Override
-        protected void serialize(Encoder encoder, IsolatedEnumValueSnapshot value) throws Exception {
-            encoder.writeString(value.getClassName());
-            encoder.writeString(value.getName());
-        }
-
-        @Override
-        protected IsolatedEnumValueSnapshot deserialize(Decoder decoder) throws Exception {
-            String className = decoder.readString();
-            String name = decoder.readString();
-            Class<? extends Enum<?>> enumClass = Cast.uncheckedCast(fromClassName(className));
-            return new IsolatedEnumValueSnapshot(Enum.valueOf(Cast.uncheckedCast(enumClass), name));
-        }
-
-        @Override
-        public Class<IsolatedEnumValueSnapshot> getIsolatableClass() {
-            return IsolatedEnumValueSnapshot.class;
-        }
-
-        @Override
-        public byte getSerializerIndex() {
-            return ENUM_VALUE;
-        }
-    }
-
     private abstract class AbstractIsolatedMapSerializer<T extends AbstractIsolatedMap<?>> extends IsolatableSerializer<T> {
         protected abstract T getIsolatedObject(ImmutableList<MapEntrySnapshot<Isolatable<?>>> entries);
 
@@ -617,30 +640,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         @Override
         public byte getSerializerIndex() {
             return ISOLATED_PROPERTIES;
-        }
-    }
-
-    @NullMarked
-    private static class IsolatedArrayOfPrimitiveSerializer extends IsolatableSerializer<ArrayOfPrimitiveValueSnapshot> {
-
-        @Override
-        protected void serialize(Encoder encoder, ArrayOfPrimitiveValueSnapshot value) throws Exception {
-            value.encode(encoder);
-        }
-
-        @Override
-        protected ArrayOfPrimitiveValueSnapshot deserialize(Decoder decoder) throws Exception {
-            return ArrayOfPrimitiveValueSnapshot.decode(decoder);
-        }
-
-        @Override
-        public Class<ArrayOfPrimitiveValueSnapshot> getIsolatableClass() {
-            return ArrayOfPrimitiveValueSnapshot.class;
-        }
-
-        @Override
-        public byte getSerializerIndex() {
-            return ISOLATED_ARRAY_OF_PRIMITIVE;
         }
     }
 

@@ -172,15 +172,6 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Specifies whether HTTP expect-continue should be used for store requests.
      *
-     * @since 7.2
-     */
-    public void setUseExpectContinue(boolean useExpectContinue) {
-        this.useExpectContinue = useExpectContinue;
-    }
-
-    /**
-     * Specifies whether HTTP expect-continue should be used for store requests.
-     *
      * This value defaults to {@code false}.
      *
      * When enabled, whether or not a store request would succeed is checked with the server before attempting.
@@ -197,5 +188,14 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     @ToBeReplacedByLazyProperty
     public boolean isUseExpectContinue() {
         return useExpectContinue;
+    }
+
+    /**
+     * Specifies whether HTTP expect-continue should be used for store requests.
+     *
+     * @since 7.2
+     */
+    public void setUseExpectContinue(boolean useExpectContinue) {
+        this.useExpectContinue = useExpectContinue;
     }
 }

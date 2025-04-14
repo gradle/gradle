@@ -95,7 +95,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         result == 'result'
 
         and:
-        1 * target.run({it instanceof InternalBuildActionVersion2}, _, parameters) >> { InternalBuildActionVersion2 protocolAction, InternalCancellationToken cancel, def params ->
+        1 * target.run({ it instanceof InternalBuildActionVersion2 }, _, parameters) >> { InternalBuildActionVersion2 protocolAction, InternalCancellationToken cancel, def params ->
             def actionResult = protocolAction.execute(buildController)
             return Stub(BuildResult) {
                 getModel() >> actionResult
@@ -118,7 +118,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         e.cause == failure
 
         and:
-        1 * target.run({it instanceof InternalBuildActionVersion2}, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
+        1 * target.run({ it instanceof InternalBuildActionVersion2 }, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
     }
 
     def "adapts implementation-specific cancellation failure when running build action"() {
@@ -134,7 +134,7 @@ class ParameterAcceptingConsumerConnectionTest extends Specification {
         e.cause == failure
 
         and:
-        1 * target.run({it instanceof InternalBuildActionVersion2}, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
+        1 * target.run({ it instanceof InternalBuildActionVersion2 }, _, parameters) >> { throw new InternalBuildActionFailureException(failure) }
     }
 
     def "cannot run phased action"() {

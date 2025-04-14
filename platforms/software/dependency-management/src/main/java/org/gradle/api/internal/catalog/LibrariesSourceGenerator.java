@@ -67,8 +67,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
-    private static final int MAX_ENTRIES = 30000;
     public static final String ERROR_HEADER = "Cannot generate dependency accessors";
+    private static final int MAX_ENTRIES = 30000;
     private final DefaultVersionCatalog config;
     private final InternalProblems problemsService;
 
@@ -119,6 +119,65 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
+    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
+        return spec
+            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
+            .severity(ERROR);
+    }
+
+    private static String coordinatesDescriptorFor(DependencyModel dependencyData) {
+        return dependencyData.getGroup() + ":" + dependencyData.getName();
+    }
+
+    private static String leafNodeForAlias(String alias) {
+        List<String> split = nameSplitter().splitToList(alias);
+        return split.get(split.size() - 1);
+    }
+
+    private static String throwForUnsupportedFeatureInPluginsBlockOr(boolean inPluginsBlock, String or) {
+        return inPluginsBlock ? "    throw new GradleException(" +
+            "\"Accessing libraries or bundles from version catalogs in the plugins block is not allowed. " +
+            "Only use versions or plugins from catalogs in the plugins block.\");"
+            : or;
+    }
+
+    /**
+     * Java compiler would fail to compile sources that have illegal unicode escape characters, including in the comments.
+     * Such characters could be accidentally introduced by a backslash followed by {@code 'u'},
+     * e.g. in Windows path {@code '..\\user\dir'}.
+     */
+    private static String sanitizeUnicodeEscapes(String s) {
+        // If a backslash precedes 'u', then we replace the backslash with its unicode notation '\\u005c'
+        return s.replace("\\u", "\\u005cu");
+    }
+
+    private static ClassNode rootNode(AccessorKind kind) {
+        return new ClassNode(kind, null, null);
+    }
+
+    private static ClassNode rootNode(AccessorKind kind, String nest) {
+        ClassNode root = rootNode(kind);
+        ClassNode wrappingNode = root.child(nest);
+        wrappingNode.wrapping = true;
+        return wrappingNode;
+    }
+
+    private static ClassNode toClassNode(List<String> aliases, ClassNode root) {
+        for (String alias : aliases) {
+            ClassNode current = root;
+            // foo -> foo is the alias
+            // foo.bar.baz --> baz is the alias
+            List<String> dotted = nameSplitter().splitToList(alias);
+            int last = dotted.size() - 1;
+            for (int i = 0; i < last; i++) {
+                current = current.child(dotted.get(i));
+            }
+            current.addAlias(alias);
+        }
+        return root;
+    }
+
     private void generateProjectExtensionFactoryClass(String packageName, String className) throws IOException {
         generateFactoryClass(packageName, entryPoints ->
             writeEntryPoints(className, entryPoints, false)
@@ -129,30 +188,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         generateFactoryClass(packageName, entryPoints ->
             writeEntryPoints(className, entryPoints, true)
         );
-    }
-
-    private static class EntryPoints {
-
-        private final ClassNode librariesEntryPoint;
-        private final ClassNode versionsEntryPoint;
-        private final ClassNode bundlesEntryPoint;
-        private final ClassNode pluginsEntryPoint;
-
-        private EntryPoints(
-            ClassNode librariesEntryPoint,
-            ClassNode versionsEntryPoint,
-            ClassNode bundlesEntryPoint,
-            ClassNode pluginsEntryPoint
-        ) {
-            this.librariesEntryPoint = librariesEntryPoint;
-            this.versionsEntryPoint = versionsEntryPoint;
-            this.bundlesEntryPoint = bundlesEntryPoint;
-            this.pluginsEntryPoint = pluginsEntryPoint;
-        }
-    }
-
-    private interface ThrowingConsumer<T> {
-        void accept(T t) throws IOException;
     }
 
     private void generateFactoryClass(String packageName, ThrowingConsumer<EntryPoints> entryPointsConsumer) throws IOException {
@@ -514,13 +549,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
-        return spec
-            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
-            .severity(ERROR);
-    }
-
     private void assertUnique(List<String> names, String prefix, String suffix) {
         List<InternalProblem> errors = names.stream()
             .collect(groupingBy(AbstractSourceGenerator::toJavaName))
@@ -540,10 +568,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private String getProblemPrefix() {
         return getProblemInVersionCatalog(config.getName()) + ", ";
-    }
-
-    private static String coordinatesDescriptorFor(DependencyModel dependencyData) {
-        return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
     private void writeDependencyAccessor(String alias, DependencyModel dependency, boolean asProvider, boolean inPluginsBlock) throws IOException {
@@ -575,11 +599,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 writeLn(" * with version <b>" + versionDisplay + "</b>");
             }
         }
-    }
-
-    private static String leafNodeForAlias(String alias) {
-        List<String> split = nameSplitter().splitToList(alias);
-        return split.get(split.size() - 1);
     }
 
     private void writeSubAccessor(ClassNode classNode, AccessorKind kind) throws IOException {
@@ -637,47 +656,61 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
     }
 
-    private static String throwForUnsupportedFeatureInPluginsBlockOr(boolean inPluginsBlock, String or) {
-        return inPluginsBlock ? "    throw new GradleException(" +
-            "\"Accessing libraries or bundles from version catalogs in the plugins block is not allowed. " +
-            "Only use versions or plugins from catalogs in the plugins block.\");"
-            : or;
-    }
+    private enum AccessorKind {
+        library("libraries", "owner"),
+        version("versions", "providers, config"),
+        bundle("bundles", "objects, providers, config, attributesFactory, capabilityNotationParser"),
+        plugin("plugins", "providers, config");
 
-    /**
-     * Java compiler would fail to compile sources that have illegal unicode escape characters, including in the comments.
-     * Such characters could be accidentally introduced by a backslash followed by {@code 'u'},
-     * e.g. in Windows path {@code '..\\user\dir'}.
-     */
-    private static String sanitizeUnicodeEscapes(String s) {
-        // If a backslash precedes 'u', then we replace the backslash with its unicode notation '\\u005c'
-        return s.replace("\\u", "\\u005cu");
-    }
+        private final String description;
+        private final String constructorParams;
+        private final String variablePrefix;
 
-    private static ClassNode rootNode(AccessorKind kind) {
-        return new ClassNode(kind, null, null);
-    }
-
-    private static ClassNode rootNode(AccessorKind kind, String nest) {
-        ClassNode root = rootNode(kind);
-        ClassNode wrappingNode = root.child(nest);
-        wrappingNode.wrapping = true;
-        return wrappingNode;
-    }
-
-    private static ClassNode toClassNode(List<String> aliases, ClassNode root) {
-        for (String alias : aliases) {
-            ClassNode current = root;
-            // foo -> foo is the alias
-            // foo.bar.baz --> baz is the alias
-            List<String> dotted = nameSplitter().splitToList(alias);
-            int last = dotted.size() - 1;
-            for (int i = 0; i < last; i++) {
-                current = current.child(dotted.get(i));
-            }
-            current.addAlias(alias);
+        AccessorKind(String description, String constructorParams) {
+            this.description = description;
+            this.constructorParams = constructorParams;
+            this.variablePrefix = name().charAt(0) + "acc";
         }
-        return root;
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getClassNameSuffix() {
+            return StringUtils.capitalize(name()) + "Accessors";
+        }
+
+        public String getConstructorParams() {
+            return constructorParams;
+        }
+
+        public String accessorVariableNameFor(String className) {
+            return variablePrefix + "For" + className;
+        }
+    }
+
+    private interface ThrowingConsumer<T> {
+        void accept(T t) throws IOException;
+    }
+
+    private static class EntryPoints {
+
+        private final ClassNode librariesEntryPoint;
+        private final ClassNode versionsEntryPoint;
+        private final ClassNode bundlesEntryPoint;
+        private final ClassNode pluginsEntryPoint;
+
+        private EntryPoints(
+            ClassNode librariesEntryPoint,
+            ClassNode versionsEntryPoint,
+            ClassNode bundlesEntryPoint,
+            ClassNode pluginsEntryPoint
+        ) {
+            this.librariesEntryPoint = librariesEntryPoint;
+            this.versionsEntryPoint = versionsEntryPoint;
+            this.bundlesEntryPoint = bundlesEntryPoint;
+            this.pluginsEntryPoint = pluginsEntryPoint;
+        }
     }
 
     private static class ClassNode {
@@ -755,39 +788,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 "name='" + name + '\'' +
                 ", aliases=" + aliases +
                 '}';
-        }
-    }
-
-    private enum AccessorKind {
-        library("libraries", "owner"),
-        version("versions", "providers, config"),
-        bundle("bundles", "objects, providers, config, attributesFactory, capabilityNotationParser"),
-        plugin("plugins", "providers, config");
-
-        private final String description;
-        private final String constructorParams;
-        private final String variablePrefix;
-
-        AccessorKind(String description, String constructorParams) {
-            this.description = description;
-            this.constructorParams = constructorParams;
-            this.variablePrefix = name().charAt(0) + "acc";
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getClassNameSuffix() {
-            return StringUtils.capitalize(name()) + "Accessors";
-        }
-
-        public String getConstructorParams() {
-            return constructorParams;
-        }
-
-        public String accessorVariableNameFor(String className) {
-            return variablePrefix + "For" + className;
         }
     }
 }

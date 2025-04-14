@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.nativeplatform.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile

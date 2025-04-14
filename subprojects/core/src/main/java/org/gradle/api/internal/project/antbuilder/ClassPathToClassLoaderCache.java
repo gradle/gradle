@@ -95,11 +95,13 @@ public class ClassPathToClassLoaderCache implements Stoppable {
      * @param factory the factory to create a new class loader on cache miss
      * @param action the action to execute with the cached class loader
      */
-    public void withCachedClassLoader(ClassPath libClasspath,
-                                      GroovySystemLoader gradleApiGroovy,
-                                      GroovySystemLoader antBuilderAdapterGroovy,
-                                      Factory<? extends ClassLoader> factory,
-                                      Action<? super CachedClassLoader> action) {
+    public void withCachedClassLoader(
+        ClassPath libClasspath,
+        GroovySystemLoader gradleApiGroovy,
+        GroovySystemLoader antBuilderAdapterGroovy,
+        Factory<? extends ClassLoader> factory,
+        Action<? super CachedClassLoader> action
+    ) {
         CachedClassLoader cachedClassLoader;
         lock.lock();
         try {

@@ -130,7 +130,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     def "can override attributes"() {
         given:
         withDefaultVariantToTest()
-        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy() ? 'default' : variantToTest
         buildFile << """
             class AttributeRule implements ComponentMetadataRule {
                 Attribute attribute

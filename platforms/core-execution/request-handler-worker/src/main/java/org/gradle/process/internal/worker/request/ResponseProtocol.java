@@ -30,12 +30,12 @@ import org.gradle.process.internal.worker.problem.WorkerProblemProtocol;
  */
 public interface ResponseProtocol extends WorkerLoggingProtocol, WorkerProblemProtocol {
     /**
-     Called when the method completes successfully
+     * Called when the method completes successfully
      */
     void completed(Object result);
 
     /**
-     Called when the method throws an exception
+     * Called when the method throws an exception
      */
     void failed(Throwable failure);
 

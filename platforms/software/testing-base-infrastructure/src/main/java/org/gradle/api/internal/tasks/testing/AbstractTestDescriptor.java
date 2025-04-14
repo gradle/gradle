@@ -54,8 +54,8 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
      *  TODO: move it to TestDescriptor interface with 9.0
      *
      * @return The method name. May return null.
-     * @since 8.8
      * @see org.gradle.tooling.internal.provider.runner.TestOperationMapper#getLegacyOperationDisplayName(String, TestDescriptor)
+     * @since 8.8
      */
     @Incubating
     @Nullable

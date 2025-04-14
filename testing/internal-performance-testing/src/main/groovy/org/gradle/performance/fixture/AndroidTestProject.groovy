@@ -71,7 +71,7 @@ class AndroidTestProject implements TestProject {
     static String useKotlinLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
         def version = KGP_VERSIONS.latestStableOrRC
         configureForKotlinVersion(runner, version)
-        runner.args.add("-DkotlinVersion=${ version}")
+        runner.args.add("-DkotlinVersion=${version}")
         version
     }
 

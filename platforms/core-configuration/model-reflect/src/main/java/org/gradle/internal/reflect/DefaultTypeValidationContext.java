@@ -33,8 +33,14 @@ import static java.util.stream.Collectors.toList;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
+    public static final ProblemId MISSING_NORMALIZATION_ID = ProblemId.create("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
     private final boolean reportCacheabilityProblems;
     private final ImmutableList.Builder<InternalProblem> problems = ImmutableList.builder();
+
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
+        super(rootType, Optional::empty, problems);
+        this.reportCacheabilityProblems = reportCacheabilityProblems;
+    }
 
     public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
         return new DefaultTypeValidationContext(rootType, cacheable, problems);
@@ -44,28 +50,8 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         return new DefaultTypeValidationContext(null, reportCacheabilityProblems, problems);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
-        super(rootType, Optional::empty, problems);
-        this.reportCacheabilityProblems = reportCacheabilityProblems;
-    }
-
-    public static final ProblemId MISSING_NORMALIZATION_ID = ProblemId.create("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
-
     public static boolean onlyAffectsCacheableWork(ProblemId id) {
         return MISSING_NORMALIZATION_ID.equals(id);
-    }
-
-
-    @Override
-    protected void recordProblem(InternalProblem problem) {
-        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) {
-            return;
-        }
-        problems.add(problem);
-    }
-
-    public ImmutableList<InternalProblem> getProblems() {
-        return problems.build();
     }
 
     public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<InternalProblem> validationMessages) {
@@ -82,6 +68,18 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
                     .collect(toList())
             );
         }
+    }
+
+    @Override
+    protected void recordProblem(InternalProblem problem) {
+        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) {
+            return;
+        }
+        problems.add(problem);
+    }
+
+    public ImmutableList<InternalProblem> getProblems() {
+        return problems.build();
     }
 
 }

@@ -36,14 +36,13 @@ import java.util.Map;
 public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     private final Project project;
-
+    private final DirectoryProperty configDirectory;
+    private final Property<Boolean> enableExternalDtdLoad;
     private TextResource config;
     private Map<String, Object> configProperties = new LinkedHashMap<>();
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private final DirectoryProperty configDirectory;
-    private final Property<Boolean> enableExternalDtdLoad;
 
     public CheckstyleExtension(Project project) {
         this.project = project;
@@ -186,7 +185,6 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
      *
      * @return The property controlling whether to enable the ability to use custom DTD files
-     *
      * @since 7.6
      */
     @Incubating

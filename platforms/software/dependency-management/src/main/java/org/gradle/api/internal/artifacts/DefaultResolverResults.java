@@ -43,26 +43,6 @@ public class DefaultResolverResults implements ResolverResults {
         this.fullyResolved = fullyResolved;
     }
 
-    @Override
-    public LegacyResolverResults getLegacyResults() {
-        return legacyResolverResults;
-    }
-
-    @Override
-    public VisitedGraphResults getVisitedGraph() {
-        return graphResults;
-    }
-
-    @Override
-    public VisitedArtifactSet getVisitedArtifacts() {
-        return visitedArtifacts;
-    }
-
-    @Override
-    public boolean isFullyResolved() {
-        return fullyResolved;
-    }
-
     /**
      * Create a new result representing the result of resolving build dependencies.
      */
@@ -95,6 +75,26 @@ public class DefaultResolverResults implements ResolverResults {
         );
     }
 
+    @Override
+    public LegacyResolverResults getLegacyResults() {
+        return legacyResolverResults;
+    }
+
+    @Override
+    public VisitedGraphResults getVisitedGraph() {
+        return graphResults;
+    }
+
+    @Override
+    public VisitedArtifactSet getVisitedArtifacts() {
+        return visitedArtifacts;
+    }
+
+    @Override
+    public boolean isFullyResolved() {
+        return fullyResolved;
+    }
+
     /**
      * Default implementation of {@link LegacyResolverResults}.
      */
@@ -104,15 +104,6 @@ public class DefaultResolverResults implements ResolverResults {
 
         private DefaultLegacyResolverResults(@Nullable ResolvedConfiguration configuration) {
             this.configuration = configuration;
-        }
-
-        @Override
-        public ResolvedConfiguration getResolvedConfiguration() {
-            if (configuration == null) {
-                throw new IllegalStateException("Cannot get resolved configuration when only build dependencies are resolved.");
-            }
-
-            return configuration;
         }
 
         /**
@@ -127,6 +118,15 @@ public class DefaultResolverResults implements ResolverResults {
          */
         public static LegacyResolverResults graphResolved(ResolvedConfiguration configuration) {
             return new DefaultLegacyResolverResults(configuration);
+        }
+
+        @Override
+        public ResolvedConfiguration getResolvedConfiguration() {
+            if (configuration == null) {
+                throw new IllegalStateException("Cannot get resolved configuration when only build dependencies are resolved.");
+            }
+
+            return configuration;
         }
 
     }

@@ -84,12 +84,11 @@ import java.util.Map;
 @SuppressWarnings("deprecation")
 @ServiceScope(Scope.Build.class)
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
-    private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private static final int EMPTY_FLAG = 1;
     private static final int HAS_METHODS_FLAG = 2;
-
+    private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private final Deleter deleter;
     private final Map<String, List<String>> simpleNameToFQN;
 
@@ -97,6 +96,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     public DefaultScriptCompilationHandler(Deleter deleter, ImportsReader importsReader) {
         this.deleter = deleter;
         this.simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
+    }
+
+    private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
+        CompilerConfiguration configuration = new CompilerConfiguration();
+        configuration.setScriptBaseClass(scriptBaseClass.getName());
+        configuration.setTargetBytecode(CompilerConfiguration.JDK8);
+        return configuration;
     }
 
     @Override
@@ -227,13 +233,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             .severity(Severity.ERROR)
             .withException(new ScriptCompilationException(message, e, source, lineNumber))
         );
-    }
-
-    private static CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
-        CompilerConfiguration configuration = new CompilerConfiguration();
-        configuration.setScriptBaseClass(scriptBaseClass.getName());
-        configuration.setTargetBytecode(CompilerConfiguration.JDK8);
-        return configuration;
     }
 
     @Override

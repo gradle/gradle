@@ -53,10 +53,12 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
             append(indent())
             append(value)
         }
+
         fun appendNextIndented(value: Any) {
             append(nextIndent())
             append(value)
         }
+
         fun recurseDeeper(next: LanguageResult<*>) = recurse(next, depth + 1)
         when (current) {
             is MultipleFailuresResult -> {
@@ -67,6 +69,7 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
                 }
                 appendIndented(")")
             }
+
             is ParsingError -> {
                 appendIndented("ParsingError(")
                 appendLine()
@@ -78,6 +81,7 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
                 appendLine()
                 appendIndented(")")
             }
+
             is UnsupportedConstruct -> {
                 appendIndented("UnsupportedConstruct(")
                 appendLine()
@@ -89,10 +93,14 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
                 appendLine()
                 appendIndented(")")
             }
+
             is Element -> {
                 append(prettyPrintLanguageTree(current.element as LanguageTreeElement))
             }
-            else -> { error("Unhandled language result type: ${current.javaClass.simpleName}") }
+
+            else -> {
+                error("Unhandled language result type: ${current.javaClass.simpleName}")
+            }
         }
     }
     return buildString { recurse(languageResult, startDepth) }
@@ -139,6 +147,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
                 appendLine()
                 appendIndented(")")
             }
+
             is AugmentingAssignment -> {
                 append("AugmentingAssignment [${source()}] (\n")
                 appendNextIndented("lhs = ")

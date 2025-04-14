@@ -27,9 +27,9 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>Consumer compatibility: This interface is used by all consumer versions from 2.1-rc-1.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 2.1-rc-1. Methods have different version compatibilities.</p>
  *
- * @since 2.1-rc-1
  * @see InternalParameterAcceptingConnection
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
+ * @since 2.1-rc-1
  */
 public interface InternalCancellableConnection extends InternalProtocolInterface {
     /**
@@ -47,13 +47,15 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @throws IllegalStateException When this connection has been stopped.
      * @since 2.1-rc-1
      */
-    BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken,
-                            BuildParameters operationParameters) throws
-            BuildExceptionVersion1,
-            InternalUnsupportedModelException,
-            InternalUnsupportedBuildArgumentException,
-            InternalBuildCancelledException,
-            IllegalStateException;
+    BuildResult<?> getModel(
+        ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken,
+        BuildParameters operationParameters
+    ) throws
+        BuildExceptionVersion1,
+        InternalUnsupportedModelException,
+        InternalUnsupportedBuildArgumentException,
+        InternalBuildCancelledException,
+        IllegalStateException;
 
     /**
      * Performs some action against a build and returns the result.
@@ -72,12 +74,14 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @deprecated 4.4. Use {@link InternalParameterAcceptingConnection#run(InternalBuildActionVersion2, InternalCancellationToken, BuildParameters)} instead.
      */
     @Deprecated
-    <T> BuildResult<T> run(InternalBuildAction<T> action,
-                           InternalCancellationToken cancellationToken,
-                           BuildParameters operationParameters) throws
-            BuildExceptionVersion1,
-            InternalUnsupportedBuildArgumentException,
-            InternalBuildActionFailureException,
-            InternalBuildCancelledException,
-            IllegalStateException;
+    <T> BuildResult<T> run(
+        InternalBuildAction<T> action,
+        InternalCancellationToken cancellationToken,
+        BuildParameters operationParameters
+    ) throws
+        BuildExceptionVersion1,
+        InternalUnsupportedBuildArgumentException,
+        InternalBuildActionFailureException,
+        InternalBuildCancelledException,
+        IllegalStateException;
 }

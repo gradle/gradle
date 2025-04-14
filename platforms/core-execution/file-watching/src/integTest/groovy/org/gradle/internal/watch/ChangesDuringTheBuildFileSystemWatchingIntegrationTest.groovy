@@ -37,7 +37,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
             vfsLogs = enableVerboseVfsLogs()
         }
         server.start()
-        settingsFile  << """
+        settingsFile << """
             import org.gradle.internal.file.FileType
             import org.gradle.internal.snapshot.*
             import org.gradle.internal.vfs.*

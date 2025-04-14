@@ -129,11 +129,11 @@ public class WeaklyTypeReferencingMethod<T, R> {
         // there's a risk, for some methods, that the hash is always
         // recomputed but it won't be worse than before
         cachedHashCode = new HashCodeBuilder()
-                .append(declaringType)
-                .append(returnType)
-                .append(name)
-                .append(paramTypes)
-                .toHashCode();
+            .append(declaringType)
+            .append(returnType)
+            .append(name)
+            .append(paramTypes)
+            .toHashCode();
         return cachedHashCode;
     }
 
@@ -149,11 +149,11 @@ public class WeaklyTypeReferencingMethod<T, R> {
         WeaklyTypeReferencingMethod<?, ?> other = Cast.uncheckedCast(obj);
 
         return new EqualsBuilder()
-                .append(declaringType, other.declaringType)
-                .append(returnType, other.returnType)
-                .append(name, other.name)
-                .append(paramTypes, other.paramTypes)
-                .isEquals();
+            .append(declaringType, other.declaringType)
+            .append(returnType, other.returnType)
+            .append(name, other.name)
+            .append(paramTypes, other.paramTypes)
+            .isEquals();
     }
 
     @Override

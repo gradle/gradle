@@ -36,7 +36,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
 
     def "defaults to Kotlin build scripts"() {
         when:
-        run ('init', '--type', 'java-application')
+        run('init', '--type', 'java-application')
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
@@ -76,7 +76,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
+        run('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -97,7 +97,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
 
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
-        run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
+        run('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         gradlePropertiesGenerated {

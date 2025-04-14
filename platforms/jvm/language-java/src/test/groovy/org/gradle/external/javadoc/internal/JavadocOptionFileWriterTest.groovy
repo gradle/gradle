@@ -25,7 +25,8 @@ import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class JavadocOptionFileWriterTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     JavadocOptionFile optionfile = Mock()
     JavadocOptionFileWriter javadocOptionFileWriter = new JavadocOptionFileWriter(optionfile)

@@ -50,6 +50,10 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
         super(resultsStore, resultJsons, performanceTestBuildIds);
     }
 
+    public static boolean isFlaky(PerformanceReportScenario scenario) {
+        return scenario.getCurrentExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
+    }
+
     @Override
     protected TreeSet<PerformanceReportScenario> queryExecutionData(List<PerformanceTestExecutionResult> scenarioList) {
         Set<PerformanceTestExecutionResult> distinctScenarios = scenarioList
@@ -73,9 +77,5 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
             history instanceof CrossBuildPerformanceTestHistory,
             false
         );
-    }
-
-    public static boolean isFlaky(PerformanceReportScenario scenario) {
-        return scenario.getCurrentExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }
 }

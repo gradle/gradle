@@ -40,7 +40,6 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     /**
      * Adds an entry task to the execution plan. If called multiple times then execution plan follows the method invocation order.
-     *
      */
     void addEntryTask(Task task);
 

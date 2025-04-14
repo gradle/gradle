@@ -28,10 +28,7 @@ import java.util.List;
  * The objects contain the problem id that exceeded the threshold and the amount by how much it exceeded it.
  * Before the build finishes this event will be received event if the list is empty.
  *
- *
- *
  * @see ProblemSummary
- *
  * @since 8.12
  */
 @Incubating

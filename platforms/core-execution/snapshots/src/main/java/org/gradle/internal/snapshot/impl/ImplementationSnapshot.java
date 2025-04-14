@@ -35,6 +35,10 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
 
     protected final String classIdentifier;
 
+    protected ImplementationSnapshot(String classIdentifier) {
+        this.classIdentifier = classIdentifier;
+    }
+
     public static ImplementationSnapshot of(Class<?> type, ClassLoaderHierarchyHasher classLoaderHasher) {
         String className = type.getName();
         HashCode classLoaderHash = classLoaderHasher.getClassLoaderHash(type.getClassLoader());
@@ -66,10 +70,6 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         return new ClassImplementationSnapshot(classIdentifier, classLoaderHash);
-    }
-
-    protected ImplementationSnapshot(String classIdentifier) {
-        this.classIdentifier = classIdentifier;
     }
 
     public String getClassIdentifier() {

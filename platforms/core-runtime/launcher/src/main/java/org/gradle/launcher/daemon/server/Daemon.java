@@ -65,11 +65,8 @@ public class Daemon implements Stoppable {
     private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorFactory executorFactory;
     private final ListenerManager listenerManager;
-
-    private DaemonStateCoordinator stateCoordinator;
-
     private final Lock lifecycleLock = new ReentrantLock();
-
+    private DaemonStateCoordinator stateCoordinator;
     private Address connectorAddress;
     private DaemonRegistryUpdater registryUpdater;
     private DefaultIncomingConnectionHandler connectionHandler;

@@ -1,4 +1,3 @@
-
 <section>
     <section>
         <title>Properties</title>
@@ -6,16 +5,21 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>allJava</td>
-                <td><literal>[java]</literal></td>
+                <td>
+                    <literal>[java]</literal>
+                </td>
             </tr>
             <tr>
                 <td>allSource</td>
-                <td><literal>[java, resources]</literal></td>
+                <td>
+                    <literal>[java, resources]</literal>
+                </td>
             </tr>
             <tr>
                 <td>name</td>
@@ -23,23 +27,37 @@
             </tr>
             <tr>
                 <td>output</td>
-                <td>See <apilink class="org.gradle.api.tasks.SourceSetOutput"/></td>
+                <td>See
+                    <apilink class="org.gradle.api.tasks.SourceSetOutput"/>
+                </td>
             </tr>
             <tr>
                 <td>compileClasspath</td>
-                <td><literal>project.configurations.compileClasspath</literal> (or <literal>project.configurations.testCompileClasspath</literal> for the <literal>test</literal> source set).</td>
+                <td>
+                    <literal>project.configurations.compileClasspath</literal>
+                    (or <literal>project.configurations.testCompileClasspath</literal> for the <literal>test</literal> source set).
+                </td>
             </tr>
             <tr>
                 <td>java</td>
-                <td><literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/java]</literal></td>
+                <td>
+                    <literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/java]
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>resources</td>
-                <td><literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/resources]</literal></td>
+                <td>
+                    <literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/resources]
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>runtimeClasspath</td>
-                <td><literal>sourceSet.output + project.configurations.runtimeClasspath</literal> (or <literal>sourceSet.output + project.configurations.testRuntimeClasspath</literal> for the <literal>test</literal> source set).</td>
+                <td>
+                    <literal>sourceSet.output + project.configurations.runtimeClasspath</literal>
+                    (or <literal>sourceSet.output + project.configurations.testRuntimeClasspath</literal> for the <literal>test</literal> source set).
+                </td>
             </tr>
         </table>
     </section>

@@ -34,7 +34,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "defaults to Kotlin build scripts"() {
         when:
-        run ('init', '--type', 'java-library' )
+        run('init', '--type', 'java-library')
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
@@ -68,7 +68,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
-        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
+        run('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -89,7 +89,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
-        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
+        run('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         gradlePropertiesGenerated {
@@ -197,8 +197,8 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
         where:
         [scriptDsl, testFramework] << [
-                ScriptDslFixture.SCRIPT_DSLS,
-                [ BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER ]
+            ScriptDslFixture.SCRIPT_DSLS,
+            [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER]
         ].combinations()
     }
 
@@ -224,8 +224,8 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
         where:
         [scriptDsl, testFramework] << [
-                ScriptDslFixture.SCRIPT_DSLS,
-                [ BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER ]
+            ScriptDslFixture.SCRIPT_DSLS,
+            [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG, BuildInitTestFramework.JUNIT_JUPITER]
         ].combinations()
     }
 

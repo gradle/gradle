@@ -67,6 +67,6 @@ public class DaemonJvmPropertiesAccessor {
     public Map<BuildPlatform, String> getToolchainDownloadUrls() {
         return properties.entrySet().stream()
             .filter(entry -> entry.getKey().startsWith(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_PREFIX))
-                .collect(Collectors.toMap(entry -> getPlatformFromToolchainProperty(entry.getKey()), Map.Entry::getValue));
+            .collect(Collectors.toMap(entry -> getPlatformFromToolchainProperty(entry.getKey()), Map.Entry::getValue));
     }
 }

@@ -34,10 +34,9 @@ public class ExecHandleRunner implements Runnable {
     private final Lock lock = new ReentrantLock();
     private final ProcessLauncher processLauncher;
     private final Executor executor;
-
+    private final StreamsHandler streamsHandler;
     private Process process;
     private boolean aborted;
-    private final StreamsHandler streamsHandler;
     private volatile BuildOperationRef associatedBuildOperation;
 
     public ExecHandleRunner(

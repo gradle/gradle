@@ -19,8 +19,8 @@ package org.gradle.testkit.runner;
 /**
  * The outcome of executing a task during a build.
  *
- * @since 2.6
  * @see BuildTask#getOutcome()
+ * @since 2.6
  */
 public enum TaskOutcome {
 

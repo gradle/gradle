@@ -35,6 +35,7 @@ class WindowsSymbolicLinkUtil {
 
     // See: https://support.microsoft.com/en-us/help/243330/well-known-security-identifiers-in-windows-operating-systems
     private static final String WELL_KNOWN_ADMINISTRATORS_GROUP_SID = "S-1-5-32-544"
+
     private static void assertAdministrator() {
         assert ["cmd.exe", "/d", "/c", "whoami", "/groups"].execute().text.contains(WELL_KNOWN_ADMINISTRATORS_GROUP_SID)
     }

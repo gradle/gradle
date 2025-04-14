@@ -35,7 +35,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 
 class TestNGXmlResultAndHtmlReportIntegrationTest extends
-        AbstractIntegrationSpec {
+    AbstractIntegrationSpec {
 
     static class Mode {
         String name
@@ -48,7 +48,8 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
     @Shared
     Mode outputAtSuite = new Mode(name: "output-at-suite", outputAssociation: WITH_SUITE, config: "reports.junitXml.outputPerTestCase = false")
 
-    @Shared List<Mode> modes = [outputAtSuite, outputPerTestCase]
+    @Shared
+    List<Mode> modes = [outputAtSuite, outputPerTestCase]
 
     def setup() {
         executer.noExtraLogging()
@@ -112,144 +113,144 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         executionResult.assertTestClassesExecuted("org.FailingTest", "org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest", "org.EncodingTest", "org.ParameterizedTest", "org.OutputLifecycleTest")
 
         def mixedMethods = executionResult.testClass("org.MixedMethodsTest")
-                .assertTestCount(4, 2, 0)
-                .assertTestsExecuted("passing", "passing2", "failing", "failing2")
-                .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing!'))
-                .assertTestFailed("failing2", equalTo('java.lang.AssertionError: failing2!'))
-                .assertTestPassed("passing")
-                .assertTestPassed("passing2")
-                .assertTestsSkipped()
+            .assertTestCount(4, 2, 0)
+            .assertTestsExecuted("passing", "passing2", "failing", "failing2")
+            .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing!'))
+            .assertTestFailed("failing2", equalTo('java.lang.AssertionError: failing2!'))
+            .assertTestPassed("passing")
+            .assertTestPassed("passing2")
+            .assertTestsSkipped()
 
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
             mixedMethods
-                    .assertStderr(allOf(containsString("err.fail"), containsString("err.fail2"), containsString("err.pass"), containsString("err.pass2")))
-                    .assertStderr(not(containsString("out.")))
-                    .assertStdout(allOf(containsString("out.fail"), containsString("out.fail2"), containsString("out.pass"), containsString("out.pass2")))
-                    .assertStdout(not(containsString("err.")))
+                .assertStderr(allOf(containsString("err.fail"), containsString("err.fail2"), containsString("err.pass"), containsString("err.pass2")))
+                .assertStderr(not(containsString("out.")))
+                .assertStdout(allOf(containsString("out.fail"), containsString("out.fail2"), containsString("out.pass"), containsString("out.pass2")))
+                .assertStdout(not(containsString("err.")))
         } else {
             mixedMethods
-                    .assertTestCaseStdout("passing", equalTo("out.pass\n"))
-                    .assertTestCaseStderr("passing", equalTo("err.pass\n"))
-                    .assertTestCaseStdout("failing", equalTo("out.fail\n"))
-                    .assertTestCaseStderr("failing", equalTo("err.fail\n"))
-                    .assertTestCaseStdout("passing2", equalTo("out.pass2\n"))
-                    .assertTestCaseStderr("passing2", equalTo("err.pass2\n"))
-                    .assertTestCaseStdout("failing2", equalTo("out.fail2\n"))
-                    .assertTestCaseStderr("failing2", equalTo("err.fail2\n"))
+                .assertTestCaseStdout("passing", equalTo("out.pass\n"))
+                .assertTestCaseStderr("passing", equalTo("err.pass\n"))
+                .assertTestCaseStdout("failing", equalTo("out.fail\n"))
+                .assertTestCaseStderr("failing", equalTo("err.fail\n"))
+                .assertTestCaseStdout("passing2", equalTo("out.pass2\n"))
+                .assertTestCaseStderr("passing2", equalTo("err.pass2\n"))
+                .assertTestCaseStdout("failing2", equalTo("out.fail2\n"))
+                .assertTestCaseStderr("failing2", equalTo("err.fail2\n"))
         }
 
         def passing = executionResult.testClass("org.PassingTest")
-                .assertTestCount(2, 0, 0)
-                .assertTestsExecuted("passing", "passing2")
-                .assertTestPassed("passing").assertTestPassed("passing2")
+            .assertTestCount(2, 0, 0)
+            .assertTestsExecuted("passing", "passing2")
+            .assertTestPassed("passing").assertTestPassed("passing2")
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
             passing
-                    .assertStdout(equalTo("out\n"))
-                    .assertStderr(equalTo(""))
+                .assertStdout(equalTo("out\n"))
+                .assertStderr(equalTo(""))
         } else {
             passing
-                    .assertTestCaseStdout("passing", equalTo("out\n"))
-                    .assertTestCaseStderr("passing", equalTo(""))
-                    .assertTestCaseStdout("passing2", equalTo(""))
-                    .assertTestCaseStderr("passing2", equalTo(""))
+                .assertTestCaseStdout("passing", equalTo("out\n"))
+                .assertTestCaseStderr("passing", equalTo(""))
+                .assertTestCaseStdout("passing2", equalTo(""))
+                .assertTestCaseStderr("passing2", equalTo(""))
         }
 
         def failing = executionResult.testClass("org.FailingTest")
-                .assertTestCount(2, 2, 0)
-                .assertTestsExecuted("failing", "failing2")
-                .assertTestFailed("failing", anything()).assertTestFailed("failing2", anything())
+            .assertTestCount(2, 2, 0)
+            .assertTestsExecuted("failing", "failing2")
+            .assertTestFailed("failing", anything()).assertTestFailed("failing2", anything())
 
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
             failing
-                    .assertStdout(equalTo(""))
-                    .assertStderr(equalTo("err\n"))
+                .assertStdout(equalTo(""))
+                .assertStderr(equalTo("err\n"))
         } else {
             failing
-                    .assertTestCaseStdout("failing", equalTo(""))
-                    .assertTestCaseStderr("failing", equalTo("err\n"))
-                    .assertTestCaseStdout("failing2", equalTo(""))
-                    .assertTestCaseStderr("failing2", equalTo(""))
+                .assertTestCaseStdout("failing", equalTo(""))
+                .assertTestCaseStderr("failing", equalTo("err\n"))
+                .assertTestCaseStdout("failing2", equalTo(""))
+                .assertTestCaseStderr("failing2", equalTo(""))
 
         }
 
         def noOutputs = executionResult.testClass("org.NoOutputsTest")
-                .assertTestCount(1, 0, 0)
-                .assertTestsExecuted("passing").assertTestPassed("passing")
+            .assertTestCount(1, 0, 0)
+            .assertTestsExecuted("passing").assertTestPassed("passing")
 
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
             noOutputs
-                    .assertStdout(equalTo(""))
-                    .assertStderr(equalTo(""))
+                .assertStdout(equalTo(""))
+                .assertStderr(equalTo(""))
         } else {
             noOutputs
-                    .assertTestCaseStdout("passing", equalTo(""))
-                    .assertTestCaseStderr("passing", equalTo(""))
+                .assertTestCaseStdout("passing", equalTo(""))
+                .assertTestCaseStderr("passing", equalTo(""))
         }
 
         def encoding = executionResult.testClass("org.EncodingTest")
-                .assertTestCount(2, 1, 0)
-                .assertTestPassed("encodesCdata")
-                .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
+            .assertTestCount(2, 1, 0)
+            .assertTestPassed("encodesCdata")
+            .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
 
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
             encoding
-                    .assertStdout(equalTo("""< html allowed, cdata closing token ]]> encoded!
+                .assertStdout(equalTo("""< html allowed, cdata closing token ]]> encoded!
 no EOL, non-ascii char: ż
 xml entity: &amp;
 """))
-                    .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+                .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
         } else {
             encoding
-                    .assertTestCaseStdout("encodesCdata", equalTo("""< html allowed, cdata closing token ]]> encoded!
+                .assertTestCaseStdout("encodesCdata", equalTo("""< html allowed, cdata closing token ]]> encoded!
 no EOL, non-ascii char: ż
 xml entity: &amp;
 """))
-                    .assertTestCaseStderr("encodesCdata", equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+                .assertTestCaseStderr("encodesCdata", equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
         }
 
         def parameterized = executionResult.testClass("org.ParameterizedTest")
-                .assertTestCount(6, 4, 0)
-                .assertTestsExecuted(
+            .assertTestCount(6, 4, 0)
+            .assertTestsExecuted(
                 "p1[0](1, 2)", "p4[0](1, \">…Ú)", "p1[1](3, 4)", "p3[0]", "p3[1]", "p4[1](2, \">…Ú)"
-        )
-                .assertTestFailed("p1[1](3, 4)", anything())
-                .assertTestFailed("p3[0]", containsString("Parameter 2 of iteration 1 of method 'p3' toString() method threw exception"))
-                .assertTestFailed("p3[1]", containsString("Parameter 2 of iteration 2 of method 'p3' toString() method threw exception"))
-                .assertTestFailed("p4[1](2, \">…Ú)", anything())
+            )
+            .assertTestFailed("p1[1](3, 4)", anything())
+            .assertTestFailed("p3[0]", containsString("Parameter 2 of iteration 1 of method 'p3' toString() method threw exception"))
+            .assertTestFailed("p3[1]", containsString("Parameter 2 of iteration 2 of method 'p3' toString() method threw exception"))
+            .assertTestFailed("p4[1](2, \">…Ú)", anything())
 
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
             parameterized
-                    .assertStdout(equalTo("var1 is: 1\nvar1 is: 3\n"))
-                    .assertStderr(equalTo("var2 is: 2\nvar2 is: 4\n"))
+                .assertStdout(equalTo("var1 is: 1\nvar1 is: 3\n"))
+                .assertStderr(equalTo("var2 is: 2\nvar2 is: 4\n"))
         } else {
             parameterized
-                    .assertTestCaseStdout("p1[0](1, 2)", equalTo("var1 is: 1\n"))
-                    .assertTestCaseStdout("p1[1](3, 4)", equalTo("var1 is: 3\n"))
-                    .assertTestCaseStderr("p1[0](1, 2)", equalTo("var2 is: 2\n"))
-                    .assertTestCaseStderr("p1[1](3, 4)", equalTo("var2 is: 4\n"))
+                .assertTestCaseStdout("p1[0](1, 2)", equalTo("var1 is: 1\n"))
+                .assertTestCaseStdout("p1[1](3, 4)", equalTo("var1 is: 3\n"))
+                .assertTestCaseStderr("p1[0](1, 2)", equalTo("var2 is: 2\n"))
+                .assertTestCaseStderr("p1[1](3, 4)", equalTo("var2 is: 4\n"))
         }
 
         def outputLifecycle = executionResult.testClass("org.OutputLifecycleTest")
-                .assertTestCount(2, 0, 0)
-                .assertTestsExecuted("m1", "m2")
-                .assertTestPassed("m1")
-                .assertTestPassed("m1")
-                .assertTestsSkipped()
+            .assertTestCount(2, 0, 0)
+            .assertTestsExecuted("m1", "m2")
+            .assertTestPassed("m1")
+            .assertTestPassed("m1")
+            .assertTestsSkipped()
 
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
             outputLifecycle
-                    .assertStdout(allOf(containsString("m1 out"), containsString("m2 out")))
-                    .assertStderr(allOf(containsString("m1 err"), containsString("m2 err")))
+                .assertStdout(allOf(containsString("m1 out"), containsString("m2 out")))
+                .assertStderr(allOf(containsString("m1 err"), containsString("m2 err")))
 
-                    // We don't capture anything outside of test methods for TestNG
-                    .assertStdout(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
-                    .assertStderr(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
+            // We don't capture anything outside of test methods for TestNG
+                .assertStdout(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
+                .assertStderr(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
         } else {
             outputLifecycle
-                    .assertTestCaseStdout("m1", equalTo("m1 out\n"))
-                    .assertTestCaseStderr("m1", equalTo("m1 err\n"))
-                    .assertTestCaseStdout("m2", equalTo("m2 out\n"))
-                    .assertTestCaseStderr("m2", equalTo("m2 err\n"))
+                .assertTestCaseStdout("m1", equalTo("m1 out\n"))
+                .assertTestCaseStderr("m1", equalTo("m1 err\n"))
+                .assertTestCaseStdout("m2", equalTo("m2 out\n"))
+                .assertTestCaseStderr("m2", equalTo("m2 err\n"))
         }
 
         true
@@ -384,7 +385,7 @@ public class ParameterizedTest {
 }
 """
 
-    file("src/test/java/org/OutputLifecycleTest.java") << """package org;
+        file("src/test/java/org/OutputLifecycleTest.java") << """package org;
 
 import org.testng.annotations.*;
 import static org.testng.Assert.*;

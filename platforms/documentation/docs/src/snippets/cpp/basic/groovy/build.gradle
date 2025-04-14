@@ -1,4 +1,5 @@
 import org.gradle.internal.os.OperatingSystem
+
 // tag::apply-cpp-plugin[]
 plugins {
     id 'cpp-application' // or 'cpp-library'
@@ -9,7 +10,7 @@ version = '1.2.1'
 
 if (OperatingSystem.current().isWindows()) {
 // tag::cpp-toolchain[]
-    toolChains{
+    toolChains {
         withType(VisualCpp).configureEach {
             setInstallDir('C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools')
         }
@@ -35,7 +36,7 @@ tasks.withType(CppCompile).configureEach {
 
     // Define toolchain-specific compiler options
     compilerArgs.addAll toolChain.map { toolChain ->
-        if (toolChain in [ Gcc, Clang ]) {
+        if (toolChain in [Gcc, Clang]) {
             return ['-O2', '-fno-access-control']
         } else if (toolChain in VisualCpp) {
             return ['/Zi']
@@ -55,7 +56,7 @@ application {
         compileTask.get().compilerArgs.add '-W3'
 
         // Define toolchain-specific compiler options
-        if (toolChain in [ Gcc, Clang ]) {
+        if (toolChain in [Gcc, Clang]) {
             compileTask.get().compilerArgs.addAll(['-O2', '-fno-access-control'])
         } else if (toolChain in VisualCpp) {
             compileTask.get().compilerArgs.add('/Zi')

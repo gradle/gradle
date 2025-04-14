@@ -37,7 +37,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutionDataProvider {
-    private static final int DEFAULT_RETRY_COUNT = 3;
     @VisibleForTesting
     static final Comparator<PerformanceReportScenario> SCENARIO_COMPARATOR = comparing(PerformanceReportScenario::isBuildFailed).reversed()
         .thenComparing(comparing(PerformanceReportScenario::isFlaky).reversed())
@@ -47,6 +46,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
         .thenComparing(comparing(PerformanceReportScenario::getDifferenceSortKey).reversed())
         .thenComparing(comparing(PerformanceReportScenario::getDifferencePercentage).reversed())
         .thenComparing(PerformanceReportScenario::getName);
+    private static final int DEFAULT_RETRY_COUNT = 3;
 
     public DefaultPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons, Set<String> performanceTestBuildIds) {
         super(resultsStore, resultJsons, performanceTestBuildIds);

@@ -55,6 +55,12 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         this.objectFactory = objectFactory;
     }
 
+    private static void validateIdentity(@Nullable String identity) {
+        if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
+            throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends Credentials> Provider<T> provide(Class<T> credentialsType, String identity) {
         validateIdentity(identity);
@@ -85,6 +91,10 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             throw new ProjectConfigurationException("Credentials required for this build could not be resolved.",
                 missingProviderErrors.stream().map(MissingValueException::new).collect(Collectors.toList()));
         }
+    }
+
+    private <T extends Credentials> Provider<T> evaluateAtConfigurationTime(Callable<T> provider) {
+        return new InterceptingProvider<>(provider);
     }
 
     private abstract class CredentialsProvider<T extends Credentials> implements Callable<T> {
@@ -190,16 +200,6 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             credentials.setValue(value);
             return credentials;
         }
-    }
-
-    private static void validateIdentity(@Nullable String identity) {
-        if (identity == null || identity.isEmpty() || !identity.chars().allMatch(Character::isLetterOrDigit)) {
-            throw new IllegalArgumentException("Identity may contain only letters and digits, received: " + identity);
-        }
-    }
-
-    private <T extends Credentials> Provider<T> evaluateAtConfigurationTime(Callable<T> provider) {
-        return new InterceptingProvider<>(provider);
     }
 
     private class InterceptingProvider<T> extends DefaultProvider<T> {

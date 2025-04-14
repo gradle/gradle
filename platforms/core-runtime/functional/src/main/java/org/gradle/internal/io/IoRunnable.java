@@ -24,8 +24,6 @@ import java.io.UncheckedIOException;
  */
 @FunctionalInterface
 public interface IoRunnable {
-    void run() throws IOException;
-
     /**
      * Wraps an {@link IOException}-throwing {@link IoRunnable} into a regular {@link Runnable}.
      *
@@ -40,4 +38,6 @@ public interface IoRunnable {
             }
         };
     }
+
+    void run() throws IOException;
 }

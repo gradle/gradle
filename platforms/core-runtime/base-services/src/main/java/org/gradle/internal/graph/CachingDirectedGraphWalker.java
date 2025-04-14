@@ -38,14 +38,13 @@ import java.util.Set;
  */
 public class CachingDirectedGraphWalker<N, T> {
     private final DirectedGraphWithEdgeValues<N, T> graph;
-    private List<N> startNodes = new ArrayList<N>();
-    private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<NodeDetails<N, T>>();
-
     /**
      * We use an immutable set for cached node values since the cache can become quite large
      * for very large graphs, and immutable sets are much more memory efficient than LinkedHashSets.
      */
     private final Map<N, ImmutableSet<T>> cachedNodeValues = new HashMap<N, ImmutableSet<T>>();
+    private List<N> startNodes = new ArrayList<N>();
+    private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<NodeDetails<N, T>>();
 
     public CachingDirectedGraphWalker(DirectedGraph<N, T> graph) {
         this.graph = new GraphWithEmptyEdges<N, T>(graph);

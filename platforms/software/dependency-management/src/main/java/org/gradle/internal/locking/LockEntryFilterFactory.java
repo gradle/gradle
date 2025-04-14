@@ -26,11 +26,10 @@ import java.util.Set;
 
 class LockEntryFilterFactory {
 
+    public static final String MODULE_SEPARATOR = ":";
     protected static final LockEntryFilter FILTERS_NONE = element -> false;
     private static final LockEntryFilter FILTERS_ALL = element -> true;
-
     private static final String WILDCARD_SUFFIX = "*";
-    public static final String MODULE_SEPARATOR = ":";
 
     static LockEntryFilter forParameter(List<String> dependencyNotations, String context, boolean allowFullWildcard) {
         if (dependencyNotations.isEmpty()) {

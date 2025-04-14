@@ -24,5 +24,5 @@ interface ProjectTopLevelReceiver {
 
     @get:Restricted
     val layout: ProjectLayout
-    
+
 }

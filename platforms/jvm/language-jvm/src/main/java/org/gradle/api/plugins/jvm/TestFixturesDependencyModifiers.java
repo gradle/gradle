@@ -27,7 +27,6 @@ import org.gradle.internal.component.external.model.TestFixturesSupport;
  *
  * @apiNote This interface is intended to be used to mix-in methods that modify dependencies into the DSL.
  * @implSpec The default implementation of all methods should not be overridden.
- *
  * @since 8.0
  */
 @Incubating
@@ -37,7 +36,6 @@ public interface TestFixturesDependencyModifiers {
      *
      * @return the dependency modifier
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-     *
      * @see TestFixturesDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
@@ -46,8 +44,8 @@ public interface TestFixturesDependencyModifiers {
     /**
      * Implementation for the test fixtures dependency modifier.
      *
-     * @since 8.0
      * @see #modifyImplementation(ModuleDependency)
+     * @since 8.0
      */
     @Incubating
     abstract class TestFixturesDependencyModifier extends DependencyModifier {

@@ -52,9 +52,9 @@ public interface ExecutorFactory {
      * @param displayName The display name for this executor. Used for thread names, logging and error message.
      * @param corePoolSize The number of threads to keep in the pool
      * @param maximumPoolSize The maximum number of threads allowed
-     * @param keepAliveTime  when the number of threads is greater than
-     *        the core, this is the maximum time that excess idle threads
-     *        will wait for new tasks before terminating.
+     * @param keepAliveTime when the number of threads is greater than
+     * the core, this is the maximum time that excess idle threads
+     * will wait for new tasks before terminating.
      * @param timeUnit the time unit for the {@code keepAliveTime} argument
      * @return The executor.
      */

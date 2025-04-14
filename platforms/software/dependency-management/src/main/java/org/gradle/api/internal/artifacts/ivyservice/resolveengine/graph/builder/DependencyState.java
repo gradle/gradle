@@ -60,9 +60,8 @@ class DependencyState {
     private final List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final int hashCode;
-
-    private ModuleIdentifier moduleIdentifier;
     public ModuleVersionResolveException failure;
+    private ModuleIdentifier moduleIdentifier;
     private boolean reasonsAlreadyAdded;
     private Map<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> substitutionResultMap;
 
@@ -76,6 +75,26 @@ class DependencyState {
         this.ruleDescriptors = ruleDescriptors;
         this.componentSelectorConverter = componentSelectorConverter;
         this.hashCode = computeHashCode();
+    }
+
+    private static String nameOf(ComponentSelector target) {
+        if (target instanceof ModuleComponentSelector) {
+            return ((ModuleComponentSelector) target).getModule();
+        }
+        throw new IllegalStateException("Substitution with artifacts for something else than a module is not supported");
+    }
+
+    private static void maybeAddReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
+        if (reasons.isEmpty()) {
+            reasons.add(reason);
+        } else if (isNewReason(reasons, reason)) {
+            reasons.add(reason);
+        }
+    }
+
+    private static boolean isNewReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
+        return (reasons.size() == 1 && !reason.equals(reasons.get(0)))
+            || !reasons.contains(reason);
     }
 
     private int computeHashCode() {
@@ -104,7 +123,6 @@ class DependencyState {
         return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
     }
 
-
     public DependencyState withTargetAndArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
         DependencyMetadata targeted = dependency.withTargetAndArtifacts(target, toIvyArtifacts(target, targetSelectors));
         return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
@@ -125,14 +143,6 @@ class DependencyState {
             avs.getClassifier()
         );
     }
-
-    private static String nameOf(ComponentSelector target) {
-        if (target instanceof ModuleComponentSelector) {
-            return ((ModuleComponentSelector) target).getModule();
-        }
-        throw new IllegalStateException("Substitution with artifacts for something else than a module is not supported");
-    }
-
 
     public boolean isForced() {
         if (!ruleDescriptors.isEmpty()) {
@@ -186,19 +196,6 @@ class DependencyState {
             dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
         }
         maybeAddReason(reasons, dependencyDescriptor);
-    }
-
-    private static void maybeAddReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
-        if (reasons.isEmpty()) {
-            reasons.add(reason);
-        } else if (isNewReason(reasons, reason)) {
-            reasons.add(reason);
-        }
-    }
-
-    private static boolean isNewReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
-        return (reasons.size() == 1 && !reason.equals(reasons.get(0)))
-            || !reasons.contains(reason);
     }
 
     @Override

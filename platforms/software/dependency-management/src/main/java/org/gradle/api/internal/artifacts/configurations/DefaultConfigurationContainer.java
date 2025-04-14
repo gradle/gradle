@@ -95,6 +95,16 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
 
+    private static void validateNameIsAllowed(String name) {
+        if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
+            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
+                .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "reserved_configuration_names")
+                .nagUser();
+        }
+    }
+
     @Override
     @SuppressWarnings("deprecation")
     protected Configuration doCreate(String name) {
@@ -439,14 +449,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return configuration;
     }
 
-    private static void validateNameIsAllowed(String name) {
-        if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
-            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
-                .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "reserved_configuration_names")
-                .nagUser();
-        }
+    @Override
+    public String getDisplayName() {
+        return "configuration container for " + owner.getDisplayName();
     }
 
     // Cannot be private due to reflective instantiation
@@ -463,10 +468,5 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         protected I createDomainObject() {
             return factory.apply(getName());
         }
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "configuration container for " + owner.getDisplayName();
     }
 }

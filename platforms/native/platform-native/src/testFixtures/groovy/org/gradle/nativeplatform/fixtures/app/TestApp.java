@@ -25,7 +25,9 @@ import java.util.List;
 
 public abstract class TestApp extends TestNativeComponent {
     public abstract SourceFile getMainSource();
+
     public abstract SourceFile getLibraryHeader();
+
     public abstract List<SourceFile> getLibrarySources();
 
     public TestNativeComponent getLibrary() {

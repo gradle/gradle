@@ -40,17 +40,22 @@ public class DefaultBuildInvocations implements Serializable, GradleProjectIdent
         return selectors;
     }
 
+    public List<? extends LaunchableGradleTask> getTasks() {
+        return tasks;
+    }
+
     public DefaultBuildInvocations setTasks(List<? extends LaunchableGradleTask> tasks) {
         this.tasks = ImmutableList.copyOf(tasks);
         return this;
     }
 
-    public List<? extends LaunchableGradleTask> getTasks() {
-        return tasks;
-    }
-
     public DefaultProjectIdentifier getProjectIdentifier() {
         return projectIdentifier;
+    }
+
+    public DefaultBuildInvocations setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+        this.projectIdentifier = projectIdentifier;
+        return this;
     }
 
     @Override
@@ -61,10 +66,5 @@ public class DefaultBuildInvocations implements Serializable, GradleProjectIdent
     @Override
     public File getRootDir() {
         return projectIdentifier.getBuildIdentifier().getRootDir();
-    }
-
-    public DefaultBuildInvocations setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
-        this.projectIdentifier = projectIdentifier;
-        return this;
     }
 }

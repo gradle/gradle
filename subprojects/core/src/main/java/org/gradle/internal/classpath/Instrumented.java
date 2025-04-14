@@ -60,6 +60,14 @@ import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDe
 import static org.gradle.internal.classpath.intercept.CallInterceptorRegistry.getGroovyCallDecorator;
 
 public class Instrumented {
+    private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
+        lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
+    // These are initialized lazily, as we may be running a Java version < 11 which does not have the APIs.
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class)));
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH_CHARSET =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class, Charset.class)));
+
     @SuppressWarnings("deprecation")
     private static InstrumentedInputsListener listener() {
         return InstrumentedInputs.listener();
@@ -363,9 +371,6 @@ public class Instrumented {
         return (String) FILESKT_READ_TEXT_DEFAULT.get().invokeExact(receiver, charset, defaultMask, defaultMarker);
     }
 
-    private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
-        lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
-
     public static String filesReadString(Path file, String consumer) throws Throwable {
         FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
@@ -375,12 +380,6 @@ public class Instrumented {
         FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH_CHARSET.get().invokeExact(file, charset);
     }
-
-    // These are initialized lazily, as we may be running a Java version < 11 which does not have the APIs.
-    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH =
-        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class)));
-    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH_CHARSET =
-        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class, Charset.class)));
 
     public static String groovyFileGetText(File file, String consumer) throws IOException {
         listener().fileOpened(file, consumer);

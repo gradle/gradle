@@ -24,9 +24,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class GradlePropertiesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<GradlePropertiesPrefixedByValueSource.Parameters> {
-    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
-    }
-
     @Inject
     protected abstract GradleProperties getGradleProperties();
 
@@ -40,5 +37,8 @@ public abstract class GradlePropertiesPrefixedByValueSource extends MapWithPrefi
                 Map.Entry<String, String> stringEntry = (Map.Entry<String, String>) untypedEntry;
                 return stringEntry;
             });
+    }
+
+    public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
     }
 }

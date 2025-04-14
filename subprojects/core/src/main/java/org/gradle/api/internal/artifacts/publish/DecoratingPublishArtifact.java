@@ -25,11 +25,11 @@ import java.io.File;
 import java.util.Date;
 
 public class DecoratingPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
+    private final PublishArtifact publishArtifact;
     private String name;
     private String extension;
     private String type;
     private String classifier;
-    private final PublishArtifact publishArtifact;
     private boolean classifierSet;
 
     public DecoratingPublishArtifact(TaskDependencyFactory taskDependencyFactory, PublishArtifact publishArtifact) {
@@ -53,13 +53,28 @@ public class DecoratingPublishArtifact extends AbstractPublishArtifact implement
     }
 
     @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
     public String getExtension() {
         return GUtil.getOrDefault(extension, publishArtifact::getExtension);
     }
 
     @Override
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    @Override
     public String getType() {
         return GUtil.getOrDefault(type, publishArtifact::getType);
+    }
+
+    @Override
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override
@@ -71,6 +86,12 @@ public class DecoratingPublishArtifact extends AbstractPublishArtifact implement
     }
 
     @Override
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+        this.classifierSet = true;
+    }
+
+    @Override
     public File getFile() {
         return publishArtifact.getFile();
     }
@@ -78,27 +99,6 @@ public class DecoratingPublishArtifact extends AbstractPublishArtifact implement
     @Override
     public Date getDate() {
         return publishArtifact.getDate();
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public void setExtension(String extension) {
-        this.extension = extension;
-    }
-
-    @Override
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    @Override
-    public void setClassifier(String classifier) {
-        this.classifier = classifier;
-        this.classifierSet = true;
     }
 
     @Override

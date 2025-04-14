@@ -21,6 +21,8 @@ import org.gradle.declarative.dsl.schema.AnalysisSchema;
 
 public interface DeclarativeSchemaModel {
     InterpretationSequence getSettingsSequence();
+
     InterpretationSequence getProjectSequence();
+
     AnalysisSchema getProjectSchema();
 }

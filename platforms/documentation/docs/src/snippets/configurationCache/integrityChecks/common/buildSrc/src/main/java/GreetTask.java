@@ -8,7 +8,7 @@ public abstract class GreetTask extends DefaultTask {
     @TaskAction
     public void greet() {
         System.out.println("Hello, " + user.getName() + "!");
-        System.out.println("Have a wonderful " + (user.getAge() + 1) +"th birthday!");
+        System.out.println("Have a wonderful " + (user.getAge() + 1) + "th birthday!");
     }
 }
 // end::task-with-broken-type[]

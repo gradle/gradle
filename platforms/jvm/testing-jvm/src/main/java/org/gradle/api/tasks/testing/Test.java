@@ -170,12 +170,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
-
-    private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
+    private FileCollection testClassesDirs;
+    private FileCollection classpath;
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -275,15 +274,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test executable(Object executable) {
-        forkOptions.executable(executable);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void setExecutable(String executable) {
         forkOptions.setExecutable(executable);
     }
@@ -294,6 +284,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     public void setExecutable(Object executable) {
         forkOptions.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Test executable(Object executable) {
+        forkOptions.executable(executable);
+        return this;
     }
 
     /**
@@ -370,6 +369,14 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setMinHeapSize(String heapSize) {
+        forkOptions.setMinHeapSize(heapSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @ToBeReplacedByLazyProperty
     public String getDefaultCharacterEncoding() {
         return forkOptions.getDefaultCharacterEncoding();
@@ -381,14 +388,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
         forkOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setMinHeapSize(String heapSize) {
-        forkOptions.setMinHeapSize(heapSize);
     }
 
     /**
@@ -421,15 +420,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return forkOptions.getJvmArgumentProviders();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void setJvmArgs(List<String> arguments) {
         forkOptions.setJvmArgs(arguments);
     }
@@ -440,6 +430,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     public void setJvmArgs(Iterable<?> arguments) {
         forkOptions.setJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ToBeReplacedByLazyProperty
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return forkOptions.getJvmArgumentProviders();
     }
 
     /**
@@ -513,15 +512,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
-     * Enables fail fast behavior causing the task to fail on the first failed test.
-     */
-    @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")
-    @Override
-    public void setFailFast(boolean failFast) {
-        super.setFailFast(failFast);
-    }
-
-    /**
      * Indicates if this task will fail on the first failed test
      *
      * @return whether this task will fail on the first failed test
@@ -530,6 +520,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ToBeReplacedByLazyProperty
     public boolean getFailFast() {
         return super.getFailFast();
+    }
+
+    /**
+     * Enables fail fast behavior causing the task to fail on the first failed test.
+     */
+    @Option(option = "fail-fast", description = "Stops test execution after the first failed test.")
+    @Override
+    public void setFailFast(boolean failFast) {
+        super.setFailFast(failFast);
     }
 
     /**
@@ -591,6 +590,14 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        forkOptions.setEnvironment(environmentVariables);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Test environment(Map<String, ?> environmentVariables) {
         forkOptions.environment(environmentVariables);
         return this;
@@ -603,14 +610,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test environment(String name, Object value) {
         forkOptions.environment(name, value);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        forkOptions.setEnvironment(environmentVariables);
     }
 
     /**

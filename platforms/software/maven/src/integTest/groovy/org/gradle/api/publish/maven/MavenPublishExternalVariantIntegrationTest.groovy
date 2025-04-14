@@ -111,15 +111,15 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         buildFile << """
             ${header()}
             ${multiCoordinateComponent {
-                compilation("first") {
-                    attributes = """
+            compilation("first") {
+                attributes = """
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-api"))
                         attribute(Attribute.of("org.jetbrains.kotlin.native.target", String), "ios_x64")
                         attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "native")
                     """
-                }
-            }}
+            }
+        }}
             ${mavenCentralRepository()}
             dependencies {
                 firstImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2"
@@ -162,15 +162,15 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         buildFile << """
             ${header()}
             ${multiCoordinateComponent {
-                compilation("first") {
-                    attributes = """
+            compilation("first") {
+                attributes = """
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-api"))
                         attribute(Attribute.of("org.jetbrains.kotlin.native.target", String), "ios_x64")
                         attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "native")
                     """
-                }
-            }}
+            }
+        }}
             ${mavenCentralRepository()}
             dependencies {
                 firstImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2") {
@@ -221,15 +221,15 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         buildFile << """
             ${header()}
             ${multiCoordinateComponent {
-                compilation("first") {
-                    attributes = """
+            compilation("first") {
+                attributes = """
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-api"))
                         attribute(Attribute.of("org.jetbrains.kotlin.native.target", String), "ios_x64")
                         attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String), "native")
                     """
-                }
-            }}
+            }
+        }}
             ${mavenCentralRepository()}
             dependencies {
                 firstImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2") {
@@ -646,8 +646,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         buildFile << """
             ${header()}
             ${multiCoordinateComponent {
-                compilation("first")
-            }}
+            compilation("first")
+        }}
             repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 firstImplementation project(":other")
@@ -721,8 +721,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         file("third/build.gradle") << """
             ${header()}
             ${multiCoordinateComponent {
-                compilation("first")
-            }}
+            compilation("first")
+        }}
         """
 
         buildFile << """
@@ -885,6 +885,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
     class RootComponentDetails {
         Map<String, CompilationDetails> compilations = [:]
+
         void compilation(String name, @DelegatesTo(CompilationDetails) Closure<?> spec = {}) {
             def compilationDetails = new CompilationDetails()
             compilationDetails.attributes = """
@@ -924,7 +925,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         """
             def root = project.objects.newInstance(RootComponent, "root")
 
-            ${details.compilations.entrySet().collect { newCompilation(it.getKey(), it.getValue(), "root")}.join("\n")}
+            ${details.compilations.entrySet().collect { newCompilation(it.getKey(), it.getValue(), "root") }.join("\n")}
 
             publishing {
                 publications {

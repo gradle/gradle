@@ -37,6 +37,32 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
         this.documentationRegistry = documentationRegistry;
     }
 
+    static String buildNativeHostTargetDefinition(DefaultNativePlatform host) {
+        String definition = "machines.";
+
+        if (host.getOperatingSystem().isWindows()) {
+            definition += "windows";
+        } else if (host.getOperatingSystem().isMacOsX()) {
+            definition += "macOS";
+        } else if (host.getOperatingSystem().isLinux()) {
+            definition += "linux";
+        } else {
+            definition += "os(\"" + host.getOperatingSystem().toFamilyName() + "\")";
+        }
+
+        definition += ".";
+
+        if (host.getArchitecture().isI386()) {
+            definition += "x86";
+        } else if (host.getArchitecture().isAmd64()) {
+            definition += "x86_64";
+        } else {
+            definition += "architecture(\"" + host.getArchitecture().getName() + "\")";
+        }
+
+        return definition;
+    }
+
     @Override
     public Language getLanguage() {
         return Language.CPP;
@@ -95,32 +121,6 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     protected String getHostTargetMachineDefinition() {
         DefaultNativePlatform host = DefaultNativePlatform.host();
         return buildNativeHostTargetDefinition(host);
-    }
-
-    static String buildNativeHostTargetDefinition(DefaultNativePlatform host) {
-        String definition = "machines.";
-
-        if (host.getOperatingSystem().isWindows()) {
-            definition += "windows";
-        } else if (host.getOperatingSystem().isMacOsX()) {
-            definition += "macOS";
-        } else if (host.getOperatingSystem().isLinux()) {
-            definition += "linux";
-        } else {
-            definition += "os(\"" + host.getOperatingSystem().toFamilyName() + "\")";
-        }
-
-        definition += ".";
-
-        if (host.getArchitecture().isI386()) {
-            definition += "x86";
-        } else if (host.getArchitecture().isAmd64()) {
-            definition += "x86_64";
-        } else {
-            definition += "architecture(\"" + host.getArchitecture().getName() + "\")";
-        }
-
-        return definition;
     }
 
     TemplateOperation fromCppTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {

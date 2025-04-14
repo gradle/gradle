@@ -537,7 +537,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             @Restricted
-            public interface DependenciesExtension ${(extendDependencies) ? "extends Dependencies" : "" } {
+            public interface DependenciesExtension ${(extendDependencies) ? "extends Dependencies" : ""} {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
             }
@@ -699,25 +699,25 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         return """
             plugins {
                 id('java-gradle-plugin')
-                ${ if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + new KotlinGradlePluginVersions().latestStableOrRC + '")' } else { '' } }
+                ${if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + new KotlinGradlePluginVersions().latestStableOrRC + '")' } else { '' }}
             }
 
             ${mavenCentralRepository()}
 
             ${if (kotlin) {
-                def majorJavaVersion = JavaVersion.current().majorVersion
-                def jvmTarget = JvmTarget.fromString(majorJavaVersion)
+            def majorJavaVersion = JavaVersion.current().majorVersion
+            def jvmTarget = JvmTarget.fromString(majorJavaVersion)
 
-                if (jvmTarget == null) {
-                    if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
-                        jvmTarget = JvmTarget.JVM_1_8
-                    } else {
-                        jvmTarget = JvmTarget.entries.last()
-                    }
+            if (jvmTarget == null) {
+                if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+                    jvmTarget = JvmTarget.JVM_1_8
+                } else {
+                    jvmTarget = JvmTarget.entries.last()
                 }
-                def lastSupportedVersion = jvmTarget.description
+            }
+            def lastSupportedVersion = jvmTarget.description
 
-                """
+            """
                 java {
                     sourceCompatibility = "${lastSupportedVersion}"
                     targetCompatibility = "${lastSupportedVersion}"
@@ -726,9 +726,9 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                     kotlinOptions.jvmTarget = "${lastSupportedVersion}"
                 }
                 """
-            } else {
-                ''
-            }}
+        } else {
+            ''
+        }}
 
             gradlePlugin {
                 plugins {
@@ -844,7 +844,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             }
 
             rootProject.name = 'example'
-            ${ if (typeSafeProjectAccessors) { 'enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")' }  }
+            ${if (typeSafeProjectAccessors) { 'enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")' }}
         """
     }
 }

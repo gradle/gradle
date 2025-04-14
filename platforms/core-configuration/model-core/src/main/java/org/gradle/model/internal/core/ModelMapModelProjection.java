@@ -35,6 +35,16 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ModelMapModelProjection<I> implements ModelProjection {
     private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
+    private final ModelType<?> publicType;
+    private final ModelType<I> baseItemModelType;
+    private final ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor;
+    private final boolean managed;
+    private ModelMapModelProjection(ModelType<?> publicType, ModelType<I> baseItemModelType, boolean managed, ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor) {
+        this.publicType = publicType;
+        this.baseItemModelType = baseItemModelType;
+        this.managed = managed;
+        this.creatorStrategyAccessor = creatorStrategyAccessor;
+    }
 
     public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
         return new ModelMapModelProjection<T>(ModelTypes.modelMap(itemType), itemType, false, creatorStrategyAccessor);
@@ -46,18 +56,6 @@ public class ModelMapModelProjection<I> implements ModelProjection {
 
     public static <T> ModelProjection managed(ModelType<?> publicType, ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
         return new ModelMapModelProjection<T>(publicType, itemType, true, creatorStrategyAccessor);
-    }
-
-    private final ModelType<?> publicType;
-    private final ModelType<I> baseItemModelType;
-    private final ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor;
-    private final boolean managed;
-
-    private ModelMapModelProjection(ModelType<?> publicType, ModelType<I> baseItemModelType, boolean managed, ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor) {
-        this.publicType = publicType;
-        this.baseItemModelType = baseItemModelType;
-        this.managed = managed;
-        this.creatorStrategyAccessor = creatorStrategyAccessor;
     }
 
     private Collection<? extends Class<?>> getCreatableTypes() {

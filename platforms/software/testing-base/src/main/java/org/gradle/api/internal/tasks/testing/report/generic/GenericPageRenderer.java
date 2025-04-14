@@ -32,6 +32,18 @@ import java.util.List;
 
 final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private static final URL STYLE_URL = Resources.getResource(GenericPageRenderer.class, "style.css");
+    private final List<SerializableTestResultStore.OutputReader> outputReaders;
+    private final List<String> rootDisplayNames;
+    private final MetadataRendererRegistry metadataRendererRegistry;
+    GenericPageRenderer(
+        List<SerializableTestResultStore.OutputReader> outputReaders,
+        List<String> rootDisplayNames,
+        MetadataRendererRegistry metadataRendererRegistry
+    ) {
+        this.outputReaders = outputReaders;
+        this.rootDisplayNames = rootDisplayNames;
+        this.metadataRendererRegistry = metadataRendererRegistry;
+    }
 
     public static String getUrlTo(Path originatingPath, Path targetPath) {
         if (originatingPath.equals(targetPath)) {
@@ -49,20 +61,6 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         }
         // Remove trailing `/`
         return url.substring(0, url.length() - 1);
-    }
-
-    private final List<SerializableTestResultStore.OutputReader> outputReaders;
-    private final List<String> rootDisplayNames;
-    private final MetadataRendererRegistry metadataRendererRegistry;
-
-    GenericPageRenderer(
-        List<SerializableTestResultStore.OutputReader> outputReaders,
-        List<String> rootDisplayNames,
-        MetadataRendererRegistry metadataRendererRegistry
-    ) {
-        this.outputReaders = outputReaders;
-        this.rootDisplayNames = rootDisplayNames;
-        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     private void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {

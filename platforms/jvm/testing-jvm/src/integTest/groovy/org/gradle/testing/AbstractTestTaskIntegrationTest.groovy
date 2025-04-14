@@ -25,6 +25,7 @@ import spock.lang.Issue
 
 abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getStandaloneTestClass()
+
     abstract String testClass(String className)
 
     def setup() {

@@ -45,41 +45,6 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerConfigSerializer.class);
 
-    @Override
-    public WorkerConfig read(Decoder decoder) throws IOException {
-        LogLevel logLevel = LogLevel.values()[decoder.readSmallInt()];
-        boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
-        NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
-        String gradleUserHomeDirPath = decoder.readString();
-        MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
-        final long workerId = decoder.readSmallLong();
-        final String displayName = decoder.readString();
-        Action<? super WorkerProcessContext> workerAction = deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
-
-        return new WorkerConfig(
-            logLevel,
-            shouldPublishJvmMemoryInfo,
-            gradleUserHomeDirPath,
-            serverAddress,
-            workerId,
-            displayName,
-            workerAction,
-            nativeServicesMode
-        );
-    }
-
-    @Override
-    public void write(Encoder encoder, WorkerConfig config) throws IOException {
-        encoder.writeSmallInt(config.getLogLevel().ordinal());
-        encoder.writeBoolean(config.shouldPublishJvmMemoryInfo());
-        encoder.writeSmallInt(config.getNativeServicesMode().ordinal());
-        encoder.writeString(config.getGradleUserHomeDirPath());
-        new MultiChoiceAddressSerializer().write(encoder, config.getServerAddress());
-        encoder.writeSmallLong(config.getWorkerId());
-        encoder.writeString(config.getDisplayName());
-        encoder.writeBinary(serializeWorker(config.getWorkerAction()));
-    }
-
     private static Action<? super WorkerProcessContext> deserializeWorker(byte[] serializedWorker, ClassLoader loader) throws IOException {
         ByteArrayInputStream bais = new ByteArrayInputStream(serializedWorker);
         ObjectInputStream in = null;
@@ -131,5 +96,40 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
                 }
             }
         }
+    }
+
+    @Override
+    public WorkerConfig read(Decoder decoder) throws IOException {
+        LogLevel logLevel = LogLevel.values()[decoder.readSmallInt()];
+        boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
+        NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
+        String gradleUserHomeDirPath = decoder.readString();
+        MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
+        final long workerId = decoder.readSmallLong();
+        final String displayName = decoder.readString();
+        Action<? super WorkerProcessContext> workerAction = deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
+
+        return new WorkerConfig(
+            logLevel,
+            shouldPublishJvmMemoryInfo,
+            gradleUserHomeDirPath,
+            serverAddress,
+            workerId,
+            displayName,
+            workerAction,
+            nativeServicesMode
+        );
+    }
+
+    @Override
+    public void write(Encoder encoder, WorkerConfig config) throws IOException {
+        encoder.writeSmallInt(config.getLogLevel().ordinal());
+        encoder.writeBoolean(config.shouldPublishJvmMemoryInfo());
+        encoder.writeSmallInt(config.getNativeServicesMode().ordinal());
+        encoder.writeString(config.getGradleUserHomeDirPath());
+        new MultiChoiceAddressSerializer().write(encoder, config.getServerAddress());
+        encoder.writeSmallLong(config.getWorkerId());
+        encoder.writeString(config.getDisplayName());
+        encoder.writeBinary(serializeWorker(config.getWorkerAction()));
     }
 }

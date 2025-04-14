@@ -172,7 +172,7 @@ public class ThingTest {
     }
 """
         when:
-        succeeds  'mergedReport'
+        succeeds 'mergedReport'
 
         then:
         executedAndNotSkipped(":test")

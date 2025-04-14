@@ -42,6 +42,22 @@ class CustomCompilationUnit extends CompilationUnit {
         installCustomCodegen(customVerifier);
     }
 
+    private static IPrimaryClassNodeOperation decoratedNodeOperation(Action<? super ClassNode> customVerifier, IPrimaryClassNodeOperation realClassgen) {
+        return new IPrimaryClassNodeOperation() {
+
+            @Override
+            public boolean needSortedInput() {
+                return realClassgen.needSortedInput();
+            }
+
+            @Override
+            public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
+                customVerifier.execute(classNode);
+                realClassgen.call(source, context, classNode);
+            }
+        };
+    }
+
     private void installCustomCodegen(Action<? super ClassNode> customVerifier) {
         final IPrimaryClassNodeOperation nodeOperation = prepareCustomCodegen(customVerifier);
         addFirstPhaseOperation(nodeOperation, Phases.CLASS_GENERATION);
@@ -76,22 +92,6 @@ class CustomCompilationUnit extends CompilationUnit {
         } catch (NoSuchFieldException e) {
             throw new GradleException("Unable to detect class generation in Groovy CompilationUnit", e);
         }
-    }
-
-    private static IPrimaryClassNodeOperation decoratedNodeOperation(Action<? super ClassNode> customVerifier, IPrimaryClassNodeOperation realClassgen) {
-        return new IPrimaryClassNodeOperation() {
-
-            @Override
-            public boolean needSortedInput() {
-                return realClassgen.needSortedInput();
-            }
-
-            @Override
-            public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
-                customVerifier.execute(classNode);
-                realClassgen.call(source, context, classNode);
-            }
-        };
     }
 
 }

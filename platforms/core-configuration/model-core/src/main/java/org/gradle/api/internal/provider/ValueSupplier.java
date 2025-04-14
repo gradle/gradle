@@ -58,6 +58,33 @@ public interface ValueSupplier {
         NoProducer NO_PRODUCER = new NoProducer();
         UnknownProducer UNKNOWN_PRODUCER = new UnknownProducer();
 
+        static ValueProducer noProducer() {
+            return NO_PRODUCER;
+        }
+
+        static ValueProducer unknown() {
+            return UNKNOWN_PRODUCER;
+        }
+
+        static ValueProducer externalValue() {
+            // At the moment, external values do not differ from values without the producer.
+            return NO_PRODUCER;
+        }
+
+        /**
+         * Value and its contents are produced by task.
+         */
+        static ValueProducer task(Task task) {
+            return new TaskProducer(task, true);
+        }
+
+        /**
+         * Value is produced from the properties of the task, and carries an implicit dependency on the task
+         */
+        static ValueProducer taskState(Task task) {
+            return new TaskProducer(task, false);
+        }
+
         default boolean isKnown() {
             return true;
         }
@@ -85,93 +112,6 @@ public interface ValueSupplier {
             }
             return new PlusProducer(this, producer);
         }
-
-        static ValueProducer noProducer() {
-            return NO_PRODUCER;
-        }
-
-        static ValueProducer unknown() {
-            return UNKNOWN_PRODUCER;
-        }
-
-        static ValueProducer externalValue() {
-            // At the moment, external values do not differ from values without the producer.
-            return NO_PRODUCER;
-        }
-
-        /**
-         * Value and its contents are produced by task.
-         */
-        static ValueProducer task(Task task) {
-            return new TaskProducer(task, true);
-        }
-
-        /**
-         * Value is produced from the properties of the task, and carries an implicit dependency on the task
-         */
-        static ValueProducer taskState(Task task) {
-            return new TaskProducer(task, false);
-        }
-    }
-
-    class TaskProducer implements ValueProducer {
-        private final Task task;
-        private final boolean content;
-
-        public TaskProducer(Task task, boolean content) {
-            this.task = task;
-            this.content = content;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            visitor.execute(task);
-        }
-
-        @Override
-        public void visitContentProducerTasks(Action<? super Task> visitor) {
-            if (content) {
-                visitor.execute(task);
-            }
-        }
-    }
-
-    class PlusProducer implements ValueProducer {
-        private final ValueProducer left;
-        private final ValueProducer right;
-
-        public PlusProducer(ValueProducer left, ValueProducer right) {
-            this.left = left;
-            this.right = right;
-        }
-
-        @Override
-        public boolean isKnown() {
-            return left.isKnown() || right.isKnown();
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            left.visitProducerTasks(visitor);
-            right.visitProducerTasks(visitor);
-        }
-    }
-
-    class UnknownProducer implements ValueProducer {
-        @Override
-        public boolean isKnown() {
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-    }
-
-    class NoProducer implements ValueProducer {
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
     }
 
     /**
@@ -179,11 +119,6 @@ public interface ValueSupplier {
      * to a {@code Provider} to be executed when the underlying value is accessed.
      */
     interface SideEffect<T> extends Serializable {
-
-        /**
-         * Executes this side effect against the provided value.
-         */
-        void execute(T t);
 
         /**
          * Creates a new side effect that ignores its argument
@@ -251,109 +186,11 @@ public interface ValueSupplier {
         static <T> SideEffectBuilder<T> builder() {
             return new SideEffectBuilder<>();
         }
-    }
 
-    /**
-     * A side effect that ignores its argument and always runs on a fixed value instead.
-     */
-    class FixedSideEffect<T, A> implements SideEffect<T> {
-
-        @Nullable
-        private static <T, A> FixedSideEffect<T, A> of(A value, @Nullable SideEffect<? super A> sideEffect) {
-            if (sideEffect == null) {
-                return null;
-            }
-
-            if (sideEffect instanceof FixedSideEffect) {
-                // Optimization to not nest fixed side effect, since they ignore the argument
-                return Cast.uncheckedNonnullCast(sideEffect);
-            }
-
-            return new FixedSideEffect<>(value, sideEffect);
-        }
-
-        private final A value;
-        private final SideEffect<? super A> sideEffect;
-
-        private FixedSideEffect(A value, SideEffect<? super A> sideEffect) {
-            this.value = value;
-            this.sideEffect = sideEffect;
-        }
-
-        @Override
-        public void execute(T t) {
-            sideEffect.execute(value);
-        }
-
-        @Override
-        public String toString() {
-            return "fixed(" + value + ", " + sideEffect + ")";
-        }
-    }
-
-    class CompositeSideEffect<T> implements SideEffect<T> {
-
-        @Nullable
-        private static <T> SideEffect<T> of(Iterable<SideEffect<T>> sideEffects) {
-            List<SideEffect<? super T>> flatSideEffects = new ArrayList<>();
-
-            for (SideEffect<? super T> sideEffect : sideEffects) {
-                if (sideEffect == null) {
-                    continue;
-                }
-
-                if (sideEffect instanceof CompositeSideEffect) {
-                    CompositeSideEffect<? super T> compositeSideEffect = Cast.uncheckedNonnullCast(sideEffect);
-                    flatSideEffects.addAll(compositeSideEffect.sideEffects);
-                } else {
-                    flatSideEffects.add(sideEffect);
-                }
-            }
-
-            if (flatSideEffects.isEmpty()) {
-                return null;
-            } else if (flatSideEffects.size() == 1) {
-                return Cast.uncheckedNonnullCast(flatSideEffects.get(0));
-            } else {
-                return new CompositeSideEffect<>(flatSideEffects);
-            }
-        }
-
-        private final List<SideEffect<? super T>> sideEffects;
-
-        private CompositeSideEffect(Iterable<SideEffect<? super T>> sideEffects) {
-            this.sideEffects = ImmutableList.copyOf(sideEffects);
-        }
-
-        @Override
-        public void execute(T t) {
-            for (SideEffect<? super T> sideEffect : sideEffects) {
-                sideEffect.execute(t);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "composite(" + sideEffects + ")";
-        }
-    }
-
-    class SideEffectBuilder<T> {
-
-        List<SideEffect<T>> sideEffects = new ArrayList<>();
-
-        void add(@Nullable SideEffect<? super T> sideEffect) {
-            if (sideEffect == null) {
-                return;
-            }
-
-            sideEffects.add(Cast.uncheckedCast(sideEffect));
-        }
-
-        @Nullable
-        public SideEffect<T> build() {
-            return sideEffects.isEmpty() ? null : SideEffect.composite(sideEffects);
-        }
+        /**
+         * Executes this side effect against the provided value.
+         */
+        void execute(T t);
     }
 
     /**
@@ -472,6 +309,168 @@ public interface ValueSupplier {
         Value<T> pushWhenMissing(@Nullable DisplayName displayName);
 
         Value<T> addPathsFrom(Value<?> rightValue);
+    }
+
+    class TaskProducer implements ValueProducer {
+        private final Task task;
+        private final boolean content;
+
+        public TaskProducer(Task task, boolean content) {
+            this.task = task;
+            this.content = content;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            visitor.execute(task);
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            if (content) {
+                visitor.execute(task);
+            }
+        }
+    }
+
+    class PlusProducer implements ValueProducer {
+        private final ValueProducer left;
+        private final ValueProducer right;
+
+        public PlusProducer(ValueProducer left, ValueProducer right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public boolean isKnown() {
+            return left.isKnown() || right.isKnown();
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            left.visitProducerTasks(visitor);
+            right.visitProducerTasks(visitor);
+        }
+    }
+
+    class UnknownProducer implements ValueProducer {
+        @Override
+        public boolean isKnown() {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+    }
+
+    class NoProducer implements ValueProducer {
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+    }
+
+    /**
+     * A side effect that ignores its argument and always runs on a fixed value instead.
+     */
+    class FixedSideEffect<T, A> implements SideEffect<T> {
+
+        private final A value;
+        private final SideEffect<? super A> sideEffect;
+        private FixedSideEffect(A value, SideEffect<? super A> sideEffect) {
+            this.value = value;
+            this.sideEffect = sideEffect;
+        }
+
+        @Nullable
+        private static <T, A> FixedSideEffect<T, A> of(A value, @Nullable SideEffect<? super A> sideEffect) {
+            if (sideEffect == null) {
+                return null;
+            }
+
+            if (sideEffect instanceof FixedSideEffect) {
+                // Optimization to not nest fixed side effect, since they ignore the argument
+                return Cast.uncheckedNonnullCast(sideEffect);
+            }
+
+            return new FixedSideEffect<>(value, sideEffect);
+        }
+
+        @Override
+        public void execute(T t) {
+            sideEffect.execute(value);
+        }
+
+        @Override
+        public String toString() {
+            return "fixed(" + value + ", " + sideEffect + ")";
+        }
+    }
+
+    class CompositeSideEffect<T> implements SideEffect<T> {
+
+        private final List<SideEffect<? super T>> sideEffects;
+
+        private CompositeSideEffect(Iterable<SideEffect<? super T>> sideEffects) {
+            this.sideEffects = ImmutableList.copyOf(sideEffects);
+        }
+
+        @Nullable
+        private static <T> SideEffect<T> of(Iterable<SideEffect<T>> sideEffects) {
+            List<SideEffect<? super T>> flatSideEffects = new ArrayList<>();
+
+            for (SideEffect<? super T> sideEffect : sideEffects) {
+                if (sideEffect == null) {
+                    continue;
+                }
+
+                if (sideEffect instanceof CompositeSideEffect) {
+                    CompositeSideEffect<? super T> compositeSideEffect = Cast.uncheckedNonnullCast(sideEffect);
+                    flatSideEffects.addAll(compositeSideEffect.sideEffects);
+                } else {
+                    flatSideEffects.add(sideEffect);
+                }
+            }
+
+            if (flatSideEffects.isEmpty()) {
+                return null;
+            } else if (flatSideEffects.size() == 1) {
+                return Cast.uncheckedNonnullCast(flatSideEffects.get(0));
+            } else {
+                return new CompositeSideEffect<>(flatSideEffects);
+            }
+        }
+
+        @Override
+        public void execute(T t) {
+            for (SideEffect<? super T> sideEffect : sideEffects) {
+                sideEffect.execute(t);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "composite(" + sideEffects + ")";
+        }
+    }
+
+    class SideEffectBuilder<T> {
+
+        List<SideEffect<T>> sideEffects = new ArrayList<>();
+
+        void add(@Nullable SideEffect<? super T> sideEffect) {
+            if (sideEffect == null) {
+                return;
+            }
+
+            sideEffects.add(Cast.uncheckedCast(sideEffect));
+        }
+
+        @Nullable
+        public SideEffect<T> build() {
+            return sideEffects.isEmpty() ? null : SideEffect.composite(sideEffects);
+        }
     }
 
     class Present<T> implements Value<T> {
@@ -678,6 +677,35 @@ public interface ValueSupplier {
     abstract class ExecutionTimeValue<T> {
         private static final MissingExecutionTimeValue MISSING = new MissingExecutionTimeValue();
 
+        public static <T> ExecutionTimeValue<T> missing() {
+            return Cast.uncheckedCast(MISSING);
+        }
+
+        public static <T> ExecutionTimeValue<T> fixedValue(T value) {
+            assert value != null;
+            return new FixedExecutionTimeValue<>(value, false, null);
+        }
+
+        public static <T> ExecutionTimeValue<T> ofNullable(@Nullable T value) {
+            if (value == null) {
+                return missing();
+            } else {
+                return fixedValue(value);
+            }
+        }
+
+        public static <T> ExecutionTimeValue<T> value(Value<T> value) {
+            if (value.isMissing()) {
+                return missing();
+            } else {
+                return fixedValue(value.getWithoutSideEffect()).withSideEffect(value.getSideEffect());
+            }
+        }
+
+        public static <T> ExecutionTimeValue<T> changingValue(ProviderInternal<T> provider) {
+            return new ChangingExecutionTimeValue<>(provider);
+        }
+
         /**
          * Returns {@code true} when the value is <b>definitely</b> missing.
          * <p>
@@ -724,35 +752,6 @@ public interface ValueSupplier {
         public abstract ExecutionTimeValue<T> withChangingContent();
 
         public abstract ExecutionTimeValue<T> withSideEffect(@Nullable SideEffect<? super T> sideEffect);
-
-        public static <T> ExecutionTimeValue<T> missing() {
-            return Cast.uncheckedCast(MISSING);
-        }
-
-        public static <T> ExecutionTimeValue<T> fixedValue(T value) {
-            assert value != null;
-            return new FixedExecutionTimeValue<>(value, false, null);
-        }
-
-        public static <T> ExecutionTimeValue<T> ofNullable(@Nullable T value) {
-            if (value == null) {
-                return missing();
-            } else {
-                return fixedValue(value);
-            }
-        }
-
-        public static <T> ExecutionTimeValue<T> value(Value<T> value) {
-            if (value.isMissing()) {
-                return missing();
-            } else {
-                return fixedValue(value.getWithoutSideEffect()).withSideEffect(value.getSideEffect());
-            }
-        }
-
-        public static <T> ExecutionTimeValue<T> changingValue(ProviderInternal<T> provider) {
-            return new ChangingExecutionTimeValue<>(provider);
-        }
     }
 
     class MissingExecutionTimeValue extends ExecutionTimeValue<Object> {

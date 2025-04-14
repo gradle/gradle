@@ -29,8 +29,8 @@ import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec, CheckableComponentSpec {
     private final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
-    private Task buildTask;
     private final DefaultTaskDependency checkTaskDependencies = new DefaultTaskDependency();
+    private Task buildTask;
     private Task checkTask;
 
     public AbstractBuildableComponentSpec(ComponentSpecIdentifier identifier, Class<? extends BuildableComponentSpec> publicType) {

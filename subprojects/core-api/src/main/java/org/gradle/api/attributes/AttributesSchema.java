@@ -27,12 +27,12 @@ import java.util.Set;
  * can be matched together.
  *
  * @since 3.3
- *
  */
 public interface AttributesSchema {
 
     /**
      * Returns the matching strategy for a given attribute.
+     *
      * @param attribute the attribute
      * @param <T> the type of the attribute
      * @return the matching strategy for this attribute.
@@ -46,7 +46,6 @@ public interface AttributesSchema {
      *
      * @param attribute the attribute to declare in the schema
      * @param <T> the concrete type of the attribute
-     *
      * @return the matching strategy for this attribute
      */
     <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute);
@@ -79,12 +78,20 @@ public interface AttributesSchema {
      * will fail.
      *
      * @param attributes the attributes in order
-     *
-     * @since 7.5
      * @see #setAttributeDisambiguationPrecedence(List)
+     * @since 7.5
      */
     @Incubating
     void attributeDisambiguationPrecedence(Attribute<?>... attributes);
+
+    /**
+     * Returns the order that attributes should be considered when resolving ambiguity.
+     *
+     * @return an <strong>immutable</strong> list of the attributes in precedence order, with the highest priority first
+     * @since 7.5
+     */
+    @Incubating
+    List<Attribute<?>> getAttributeDisambiguationPrecedence();
 
     /**
      * Sets the order of precedence of attributes when resolving ambiguity. Attributes listed first have higher precedence.
@@ -96,13 +103,4 @@ public interface AttributesSchema {
      */
     @Incubating
     void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes);
-
-    /**
-     * Returns the order that attributes should be considered when resolving ambiguity.
-     *
-     * @return an <strong>immutable</strong> list of the attributes in precedence order, with the highest priority first
-     * @since 7.5
-     */
-    @Incubating
-    List<Attribute<?>> getAttributeDisambiguationPrecedence();
 }

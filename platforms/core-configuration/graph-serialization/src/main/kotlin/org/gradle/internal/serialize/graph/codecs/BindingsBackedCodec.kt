@@ -95,8 +95,10 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                     val sentinel = readByte()
 
                     if (tag != tagGuard || sentinel != SENTINEL_VALUE) {
-                        onError(IllegalArgumentException(
-                            "Tag guard mismatch for ${decoding.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>")
+                        onError(
+                            IllegalArgumentException(
+                                "Tag guard mismatch for ${decoding.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>"
+                            )
                         ) {
                             text("The value cannot be decoded properly with ")
                             reference(decoding.displayName)

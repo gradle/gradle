@@ -17,9 +17,9 @@ class FunctionalTestProject(
     val testCoverage: TestCoverage,
     val stage: Stage,
 ) : Project({
-        this.id(testCoverage.asId(model))
-        this.name = testCoverage.asName()
-    }) {
+    this.id(testCoverage.asId(model))
+    this.name = testCoverage.asName()
+}) {
     val functionalTests: List<BaseGradleBuildType> = functionalTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
 
     init {

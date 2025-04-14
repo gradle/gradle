@@ -44,12 +44,12 @@ class JarTestFixture extends ZipTestFixture {
      * Creates the fixture.
      */
     JarTestFixture(File file, String metadataCharset, String contentCharset, boolean checkManifest) {
-         super(file, metadataCharset, contentCharset)
-         this.file = file
-         if (checkManifest) {
-             assertManifestPresentAndFirstEntry()
-         }
-     }
+        super(file, metadataCharset, contentCharset)
+        this.file = file
+        if (checkManifest) {
+            assertManifestPresentAndFirstEntry()
+        }
+    }
 
     /**
      * Asserts that the given service is defined in this jar file.
@@ -66,7 +66,7 @@ class JarTestFixture extends ZipTestFixture {
         try {
             def entries = zipFile.getEntries()
             def zipEntry = entries.nextElement()
-            if(zipEntry.getName().equalsIgnoreCase('META-INF/')) {
+            if (zipEntry.getName().equalsIgnoreCase('META-INF/')) {
                 zipEntry = entries.nextElement()
             }
             def firstEntryName = zipEntry.getName()

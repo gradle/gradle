@@ -49,7 +49,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
-                "Toolchain auto-provisioning is not enabled.")
+            "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP

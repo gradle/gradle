@@ -77,6 +77,66 @@ public class DefaultManifest implements ManifestInternal {
         read(manifestPath);
     }
 
+    static Manifest generateJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest) {
+        Manifest javaManifest = new Manifest();
+        addMainAttributesToJavaManifest(gradleManifest, javaManifest);
+        addSectionAttributesToJavaManifest(gradleManifest, javaManifest);
+        return javaManifest;
+    }
+
+    private static void addMainAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
+        fillAttributes(gradleManifest.getAttributes(), javaManifest.getMainAttributes());
+    }
+
+    private static void addSectionAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
+        for (Map.Entry<String, Attributes> entry : gradleManifest.getSections().entrySet()) {
+            String sectionName = entry.getKey();
+            java.util.jar.Attributes targetAttributes = new java.util.jar.Attributes();
+            fillAttributes(entry.getValue(), targetAttributes);
+            javaManifest.getEntries().put(sectionName, targetAttributes);
+        }
+    }
+
+    private static void fillAttributes(Attributes attributes, java.util.jar.Attributes targetAttributes) {
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            String mainAttributeName = entry.getKey();
+            String mainAttributeValue = resolveValueToString(entry.getValue());
+            if (mainAttributeValue != null) {
+                targetAttributes.putValue(mainAttributeName, mainAttributeValue);
+            }
+        }
+    }
+
+    private static String resolveValueToString(Object value) {
+        Object underlyingValue = value;
+        if (value instanceof Provider) {
+            Provider<?> provider = uncheckedCast(value);
+            if (!provider.isPresent()) {
+                return null;
+            }
+            underlyingValue = provider.get();
+        }
+        return underlyingValue.toString();
+    }
+
+    static void writeTo(org.gradle.api.java.archives.Manifest manifest, OutputStream outputStream, String contentCharset) {
+        try {
+            Manifest javaManifest = generateJavaManifest(manifest.getEffectiveManifest());
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            javaManifest.write(buffer);
+            byte[] manifestBytes;
+            if (DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
+                manifestBytes = buffer.toByteArray();
+            } else {
+                // Convert the UTF-8 manifest bytes to the requested content charset
+                manifestBytes = buffer.toString(DEFAULT_CONTENT_CHARSET).getBytes(contentCharset);
+            }
+            outputStream.write(manifestBytes);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     private void init() {
         getAttributes().put("Manifest-Version", "1.0");
     }
@@ -134,48 +194,6 @@ public class DefaultManifest implements ManifestInternal {
         return this;
     }
 
-    static Manifest generateJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest) {
-        Manifest javaManifest = new Manifest();
-        addMainAttributesToJavaManifest(gradleManifest, javaManifest);
-        addSectionAttributesToJavaManifest(gradleManifest, javaManifest);
-        return javaManifest;
-    }
-
-    private static void addMainAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
-        fillAttributes(gradleManifest.getAttributes(), javaManifest.getMainAttributes());
-    }
-
-    private static void addSectionAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
-        for (Map.Entry<String, Attributes> entry : gradleManifest.getSections().entrySet()) {
-            String sectionName = entry.getKey();
-            java.util.jar.Attributes targetAttributes = new java.util.jar.Attributes();
-            fillAttributes(entry.getValue(), targetAttributes);
-            javaManifest.getEntries().put(sectionName, targetAttributes);
-        }
-    }
-
-    private static void fillAttributes(Attributes attributes, java.util.jar.Attributes targetAttributes) {
-        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-            String mainAttributeName = entry.getKey();
-            String mainAttributeValue = resolveValueToString(entry.getValue());
-            if (mainAttributeValue != null) {
-                targetAttributes.putValue(mainAttributeName, mainAttributeValue);
-            }
-        }
-    }
-
-    private static String resolveValueToString(Object value) {
-        Object underlyingValue = value;
-        if (value instanceof Provider) {
-            Provider<?> provider = uncheckedCast(value);
-            if (!provider.isPresent()) {
-                return null;
-            }
-            underlyingValue = provider.get();
-        }
-        return underlyingValue.toString();
-    }
-
     @Override
     public DefaultManifest from(Object... mergePaths) {
         return from(mergePaths, Actions.<ManifestMergeSpec>doNothing());
@@ -212,24 +230,6 @@ public class DefaultManifest implements ManifestInternal {
     public org.gradle.api.java.archives.Manifest writeTo(OutputStream outputStream) {
         writeTo(this, outputStream, contentCharset);
         return this;
-    }
-
-    static void writeTo(org.gradle.api.java.archives.Manifest manifest, OutputStream outputStream, String contentCharset) {
-        try {
-            Manifest javaManifest = generateJavaManifest(manifest.getEffectiveManifest());
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            javaManifest.write(buffer);
-            byte[] manifestBytes;
-            if (DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
-                manifestBytes = buffer.toByteArray();
-            } else {
-                // Convert the UTF-8 manifest bytes to the requested content charset
-                manifestBytes = buffer.toString(DEFAULT_CONTENT_CHARSET).getBytes(contentCharset);
-            }
-            outputStream.write(manifestBytes);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     @Override

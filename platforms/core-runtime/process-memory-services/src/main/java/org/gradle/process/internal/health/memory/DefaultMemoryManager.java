@@ -31,8 +31,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultMemoryManager.class);
     public static final int STATUS_INTERVAL_SECONDS = 5;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultMemoryManager.class);
     private static final double DEFAULT_MIN_FREE_MEMORY_PERCENTAGE = 0.1D; // 10%
     private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024; // 384M
 
@@ -47,8 +47,8 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     private final Object holdersLock = new Object();
     private final Object memoryLock = new Object();
     private final List<MemoryHolder> holders = new ArrayList<MemoryHolder>();
-    private OsMemoryStatus currentOsMemoryStatus;
     private final OsMemoryStatusListener osMemoryStatusListener;
+    private OsMemoryStatus currentOsMemoryStatus;
 
     public DefaultMemoryManager(OsMemoryInfo osMemoryInfo, JvmMemoryInfo jvmMemoryInfo, ListenerManager listenerManager, ExecutorFactory executorFactory) {
         this(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory, DEFAULT_MIN_FREE_MEMORY_PERCENTAGE, true);
@@ -149,40 +149,6 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
         return Math.max(MIN_THRESHOLD_BYTES, (long) (totalMemory * minFreeMemoryPercentage));
     }
 
-    private class MemoryCheck implements Runnable {
-        @Override
-        public void run() {
-            try {
-                if (osMemoryStatusSupported) {
-                    OsMemoryStatus os = osMemoryInfo.getOsSnapshot();
-                    osBroadcast.onOsMemoryStatus(os);
-                }
-                JvmMemoryStatus jvm = jvmMemoryInfo.getJvmSnapshot();
-                jvmBroadcast.onJvmMemoryStatus(jvm);
-            } catch (Throwable t) {
-                // this class is used as task in a scheduled executor service, so it must not throw any throwable,
-                // otherwise the further invocations of this task get automatically and silently cancelled
-                LOGGER.debug("Failed to collect memory status: {}", t.getMessage(), t);
-            }
-        }
-    }
-
-    private class OsMemoryListener implements OsMemoryStatusListener {
-        private final boolean autoFree;
-
-        private OsMemoryListener(boolean autoFree) {
-            this.autoFree = autoFree;
-        }
-
-        @Override
-        public void onOsMemoryStatus(OsMemoryStatus os) {
-            currentOsMemoryStatus = os;
-            if (autoFree) {
-                requestFreeMemory(0);
-            }
-        }
-    }
-
     @Override
     public void addMemoryHolder(MemoryHolder holder) {
         synchronized (holdersLock) {
@@ -215,5 +181,39 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
     @Override
     public void removeListener(OsMemoryStatusListener listener) {
         listenerManager.removeListener(listener);
+    }
+
+    private class MemoryCheck implements Runnable {
+        @Override
+        public void run() {
+            try {
+                if (osMemoryStatusSupported) {
+                    OsMemoryStatus os = osMemoryInfo.getOsSnapshot();
+                    osBroadcast.onOsMemoryStatus(os);
+                }
+                JvmMemoryStatus jvm = jvmMemoryInfo.getJvmSnapshot();
+                jvmBroadcast.onJvmMemoryStatus(jvm);
+            } catch (Throwable t) {
+                // this class is used as task in a scheduled executor service, so it must not throw any throwable,
+                // otherwise the further invocations of this task get automatically and silently cancelled
+                LOGGER.debug("Failed to collect memory status: {}", t.getMessage(), t);
+            }
+        }
+    }
+
+    private class OsMemoryListener implements OsMemoryStatusListener {
+        private final boolean autoFree;
+
+        private OsMemoryListener(boolean autoFree) {
+            this.autoFree = autoFree;
+        }
+
+        @Override
+        public void onOsMemoryStatus(OsMemoryStatus os) {
+            currentOsMemoryStatus = os;
+            if (autoFree) {
+                requestFreeMemory(0);
+            }
+        }
     }
 }

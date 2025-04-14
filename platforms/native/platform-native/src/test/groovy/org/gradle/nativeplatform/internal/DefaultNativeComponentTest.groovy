@@ -25,7 +25,7 @@ class DefaultNativeComponentTest extends Specification {
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def component
 
-    def setup(){
+    def setup() {
         component = BaseComponentFixtures.create(NativeComponentSpec, TestNativeComponentSpec, id)
     }
 

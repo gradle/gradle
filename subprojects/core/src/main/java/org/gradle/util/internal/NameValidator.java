@@ -23,10 +23,10 @@ import java.util.Arrays;
 
 public final class NameValidator {
 
-    private static final char[] FORBIDDEN_CHARACTERS = new char[] {'/', '\\', ':', '<', '>', '"', '?', '*', '|'};
+    private static final char[] FORBIDDEN_CHARACTERS = new char[]{'/', '\\', ':', '<', '>', '"', '?', '*', '|'};
     private static final char FORBIDDEN_LEADING_AND_TRAILING_CHARACTER = '.';
 
-    private NameValidator() { }
+    private NameValidator() {}
 
     /**
      * Validates that a given name string does not contain any forbidden characters.

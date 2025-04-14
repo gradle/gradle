@@ -44,7 +44,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         then:
         !model.scriptModels.isEmpty()
         model.scriptModels.each {
-            assert it.value.exceptions.isEmpty() : it.value.exceptions
+            assert it.value.exceptions.isEmpty(): it.value.exceptions
         }
     }
 }

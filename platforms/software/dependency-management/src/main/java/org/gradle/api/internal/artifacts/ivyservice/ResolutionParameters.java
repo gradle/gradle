@@ -134,50 +134,6 @@ public class ResolutionParameters {
         return moduleVersionLocks;
     }
 
-    public static class ModuleVersionLock  {
-
-        private final ModuleIdentifier module;
-        private final String version;
-        private final String reason;
-        private final boolean strict;
-
-        public ModuleVersionLock(ModuleIdentifier module, String version, String consistentResolutionReason, boolean strict) {
-            this.module = module;
-            this.version = version;
-            this.reason = consistentResolutionReason;
-            this.strict = strict;
-        }
-
-        /**
-         * The module to lock.
-         */
-        public ModuleIdentifier getModuleId() {
-            return module;
-        }
-
-        /**
-         * The version to enforce.
-         */
-        public String getVersion() {
-            return version;
-        }
-
-        /**
-         * Why this version is enforced.
-         */
-        public String getReason() {
-            return reason;
-        }
-
-        /**
-         * Whether the version be enforced as a strict constraint.
-         */
-        public boolean isStrict() {
-            return strict;
-        }
-
-    }
-
     /**
      * The default sort ordering of artifacts. May be overridden during artifact selection.
      */
@@ -278,6 +234,13 @@ public class ResolutionParameters {
     }
 
     /**
+     * Controls the caching behavior for external dependencies.
+     */
+    public CacheExpirationControl getCacheExpirationControl() {
+        return cacheExpirationControl;
+    }
+
+    /**
      * Details about this resolution to provide additional context during failure cases.
      */
     public interface FailureResolutions {
@@ -290,11 +253,48 @@ public class ResolutionParameters {
 
     }
 
-    /**
-     * Controls the caching behavior for external dependencies.
-     */
-    public CacheExpirationControl getCacheExpirationControl() {
-        return cacheExpirationControl;
+    public static class ModuleVersionLock {
+
+        private final ModuleIdentifier module;
+        private final String version;
+        private final String reason;
+        private final boolean strict;
+
+        public ModuleVersionLock(ModuleIdentifier module, String version, String consistentResolutionReason, boolean strict) {
+            this.module = module;
+            this.version = version;
+            this.reason = consistentResolutionReason;
+            this.strict = strict;
+        }
+
+        /**
+         * The module to lock.
+         */
+        public ModuleIdentifier getModuleId() {
+            return module;
+        }
+
+        /**
+         * The version to enforce.
+         */
+        public String getVersion() {
+            return version;
+        }
+
+        /**
+         * Why this version is enforced.
+         */
+        public String getReason() {
+            return reason;
+        }
+
+        /**
+         * Whether the version be enforced as a strict constraint.
+         */
+        public boolean isStrict() {
+            return strict;
+        }
+
     }
 
 }

@@ -28,6 +28,7 @@ import static org.gradle.api.internal.tasks.compile.incremental.processing.Incre
 
 /**
  * The strategy used for non-incremental annotation processors.
+ *
  * @see NonIncrementalProcessor
  */
 public class NonIncrementalProcessingStrategy extends IncrementalProcessingStrategy {

@@ -42,6 +42,20 @@ class GradleVersionResolver {
     private GradleVersion gradleVersion;
     private String gradleVersionString = GradleVersion.current().getVersion();
 
+    static String getVersion(String json, String placeHolder) {
+        Type type = new TypeToken<Map<String, String>>() {}.getType();
+        Map<String, String> map = new Gson().fromJson(json, type);
+        String version = map.get("version");
+        if (version == null) {
+            throw new GradleException("There is currently no version information available for '" + placeHolder + "'.");
+        }
+        return version;
+    }
+
+    static boolean isPlaceHolder(String version) {
+        return DefaultWrapperVersionsResources.PLACE_HOLDERS.contains(version);
+    }
+
     void setTextResources(TextResource latest, TextResource releaseCandidate, TextResource nightly, TextResource releaseNightly) {
         this.latest = latest;
         this.releaseCandidate = releaseCandidate;
@@ -65,20 +79,6 @@ class GradleVersionResolver {
             default:
                 return version;
         }
-    }
-
-    static String getVersion(String json, String placeHolder) {
-        Type type = new TypeToken<Map<String, String>>() {}.getType();
-        Map<String, String> map = new Gson().fromJson(json, type);
-        String version = map.get("version");
-        if (version == null) {
-            throw new GradleException("There is currently no version information available for '" + placeHolder + "'.");
-        }
-        return version;
-    }
-
-    static boolean isPlaceHolder(String version) {
-        return DefaultWrapperVersionsResources.PLACE_HOLDERS.contains(version);
     }
 
     GradleVersion getGradleVersion() {

@@ -33,17 +33,11 @@ import java.util.Deque;
  */
 public class SimpleMarkupWriter extends Writer {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
-
-    private enum Context {
-        Outside, Text, CData, StartTag, ElementContent
-    }
-
     private final Writer output;
     private final Deque<String> elements = new ArrayDeque<String>();
+    private final String indent;
     private Context context = Context.Outside;
     private int squareBrackets;
-    private final String indent;
-
     protected SimpleMarkupWriter(Writer writer, String indent) throws IOException {
         this.indent = indent;
         this.output = writer;
@@ -162,7 +156,7 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeCDATA(char[] cdata, int offset, int count) throws IOException {
         int end = offset + count;
-        for (int i = offset; i < end;) {
+        for (int i = offset; i < end; ) {
             int codePoint = Character.codePointAt(cdata, i);
             i += Character.charCount(codePoint);
             writeCDATA(codePoint);
@@ -171,7 +165,7 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeCDATA(CharSequence cdata) throws IOException {
         int len = cdata.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(cdata, i);
             i += Character.charCount(codePoint);
             writeCDATA(codePoint);
@@ -295,7 +289,7 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeXmlEncoded(char[] message, int offset, int count) throws IOException {
         int end = offset + count;
-        for (int i = offset; i < end;) {
+        for (int i = offset; i < end; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeXmlEncoded(codePoint);
@@ -305,7 +299,7 @@ public class SimpleMarkupWriter extends Writer {
     private void writeXmlAttributeEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeXmlAttributeEncoded(codePoint);
@@ -327,7 +321,7 @@ public class SimpleMarkupWriter extends Writer {
     private void writeXmlEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeXmlEncoded(codePoint);
@@ -337,7 +331,7 @@ public class SimpleMarkupWriter extends Writer {
     private void writeSafeCharacters(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len;) {
+        for (int i = 0; i < len; ) {
             int codePoint = Character.codePointAt(message, i);
             i += Character.charCount(codePoint);
             writeSafeCharacter(codePoint);
@@ -366,5 +360,9 @@ public class SimpleMarkupWriter extends Writer {
         } else {
             writeRaw((char) ch);
         }
+    }
+
+    private enum Context {
+        Outside, Text, CData, StartTag, ElementContent
     }
 }

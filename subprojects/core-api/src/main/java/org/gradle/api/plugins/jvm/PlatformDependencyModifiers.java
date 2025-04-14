@@ -32,7 +32,6 @@ import javax.inject.Inject;
  *
  * @apiNote This interface is intended to be used to mix-in methods that modify dependencies into the DSL.
  * @implSpec The default implementation of all methods should not be overridden.
- *
  * @since 8.0
  */
 @Incubating
@@ -41,13 +40,21 @@ public interface PlatformDependencyModifiers {
      * A dependency modifier that can modify a dependency to select a platform variant.
      *
      * @return the dependency modifier
-     *
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-     *
      * @see PlatformDependencyModifiers.PlatformDependencyModifier#modifyImplementation(ModuleDependency)
      */
     @Nested
     PlatformDependencyModifier getPlatform();
+
+    /**
+     * A dependency modifier that can modify a dependency to select an enforced platform variant.
+     *
+     * @return the dependency modifier
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modifyImplementation(ModuleDependency)
+     */
+    @Nested
+    EnforcedPlatformDependencyModifier getEnforcedPlatform();
 
     /**
      * Implementation for the platform dependency modifier.
@@ -77,18 +84,6 @@ public interface PlatformDependencyModifiers {
             dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
         }
     }
-
-    /**
-     * A dependency modifier that can modify a dependency to select an enforced platform variant.
-     *
-     * @return the dependency modifier
-     *
-     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-     *
-     * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modifyImplementation(ModuleDependency)
-     */
-    @Nested
-    EnforcedPlatformDependencyModifier getEnforcedPlatform();
 
     /**
      * Implementation for the enforced platform dependency modifier.

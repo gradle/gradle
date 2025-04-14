@@ -149,9 +149,9 @@ class TreeFormatterTest extends Specification {
         formatter.toString() == toPlatformLineSeparators(expectation)
 
         where:
-        alwaysChildrenOnNewLines    || expectation
-        true                        || "introduction:\n  - hello = world"
-        false                       || "introduction: hello = world"
+        alwaysChildrenOnNewLines || expectation
+        true                     || "introduction:\n  - hello = world"
+        false                    || "introduction: hello = world"
     }
 
     def "formats node with trailing '.'"() {

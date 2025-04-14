@@ -87,9 +87,11 @@ class GcsClientTest extends Specification {
 
         gcsStorageClient.objects(*_) >> Mock(Storage.Objects) {
             get(*_) >> Mock(Storage.Objects.Get) {
-                execute() >> { throw Mock(GoogleJsonResponseException) {
-                    getStatusCode() >> 404
-                } }
+                execute() >> {
+                    throw Mock(GoogleJsonResponseException) {
+                        getStatusCode() >> 404
+                    }
+                }
             }
         }
 

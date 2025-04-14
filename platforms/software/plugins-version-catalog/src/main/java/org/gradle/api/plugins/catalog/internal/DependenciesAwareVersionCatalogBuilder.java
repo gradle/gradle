@@ -53,14 +53,48 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
     private boolean shouldAmendModel = true;
 
     @Inject
-    public DependenciesAwareVersionCatalogBuilder(String name,
-                                                  Interner<String> strings,
-                                                  Interner<ImmutableVersionConstraint> versionConstraintInterner,
-                                                  ObjectFactory objects,
-                                                  Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
-                                                  Configuration dependenciesConfiguration) {
+    public DependenciesAwareVersionCatalogBuilder(
+        String name,
+        Interner<String> strings,
+        Interner<ImmutableVersionConstraint> versionConstraintInterner,
+        ObjectFactory objects,
+        Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier,
+        Configuration dependenciesConfiguration
+    ) {
         super(name, strings, versionConstraintInterner, objects, dependencyResolutionServicesSupplier);
         this.dependenciesConfiguration = dependenciesConfiguration;
+    }
+
+    private static String normalizeName(String name) {
+        return name.replace('.', '-');
+    }
+
+    private static void copyDependencyVersion(Dependency dependency, String group, String name, MutableVersionConstraint v) {
+        if (dependency instanceof ExternalModuleDependency) {
+            VersionConstraint vc = ((ExternalModuleDependency) dependency).getVersionConstraint();
+            copyConstraint(vc, v);
+        } else {
+            String version = dependency.getVersion();
+            if (version == null || version.isEmpty()) {
+                throw new InvalidUserDataException("Version for dependency " + group + ":" + name + " must not be empty");
+            }
+            v.require(version);
+        }
+    }
+
+    private static void copyConstraint(VersionConstraint from, MutableVersionConstraint into) {
+        if (!from.getRequiredVersion().isEmpty()) {
+            into.require(from.getRequiredVersion());
+        }
+        if (!from.getStrictVersion().isEmpty()) {
+            into.strictly(from.getStrictVersion());
+        }
+        if (!from.getPreferredVersion().isEmpty()) {
+            into.prefer(from.getPreferredVersion());
+        }
+        if (!from.getRejectedVersions().isEmpty()) {
+            into.reject(from.getRejectedVersions().toArray(new String[0]));
+        }
     }
 
     @Override
@@ -87,10 +121,6 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
         library(alias, group, name).version(versionSpec);
     }
 
-    private static String normalizeName(String name) {
-        return name.replace('.', '-');
-    }
-
     private void collectDependencies(DependencySet allDependencies, Set<ModuleIdentifier> seen) {
         for (Dependency dependency : allDependencies) {
             String group = dependency.getGroup();
@@ -111,19 +141,6 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
         }
     }
 
-    private static void copyDependencyVersion(Dependency dependency, String group, String name, MutableVersionConstraint v) {
-        if (dependency instanceof ExternalModuleDependency) {
-            VersionConstraint vc = ((ExternalModuleDependency) dependency).getVersionConstraint();
-            copyConstraint(vc, v);
-        } else {
-            String version = dependency.getVersion();
-            if (version == null || version.isEmpty()) {
-                throw new InvalidUserDataException("Version for dependency " + group + ":" + name + " must not be empty");
-            }
-            v.require(version);
-        }
-    }
-
     private void collectConstraints(DependencyConstraintSet allConstraints, Set<ModuleIdentifier> seen) {
         for (DependencyConstraint constraint : allConstraints) {
             String group = constraint.getGroup();
@@ -139,21 +156,6 @@ abstract public class DependenciesAwareVersionCatalogBuilder extends DefaultVers
             } else {
                 LOGGER.warn("Duplicate entry for constraint " + group + ":" + name);
             }
-        }
-    }
-
-    private static void copyConstraint(VersionConstraint from, MutableVersionConstraint into) {
-        if (!from.getRequiredVersion().isEmpty()) {
-            into.require(from.getRequiredVersion());
-        }
-        if (!from.getStrictVersion().isEmpty()) {
-            into.strictly(from.getStrictVersion());
-        }
-        if (!from.getPreferredVersion().isEmpty()) {
-            into.prefer(from.getPreferredVersion());
-        }
-        if (!from.getRejectedVersions().isEmpty()) {
-            into.reject(from.getRejectedVersions().toArray(new String[0]));
         }
     }
 

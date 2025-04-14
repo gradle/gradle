@@ -53,7 +53,7 @@ fun checkCleanDirWindows(
     dir: String,
     exitOnFailure: Boolean = true,
 ) = """
-    
+
     IF exist $dir (
         TREE $dir
         RMDIR /S /Q $dir
@@ -141,7 +141,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
                 listOf(extraParameters) +
                 buildScanTags.map { buildScanTagParam(it) } +
                 functionalTestParameters(os, arch)
-        ).joinToString(separator = " ")
+            ).joinToString(separator = " ")
 
     steps {
         gradleWrapper(this@gradleRunnerStep) {

@@ -76,9 +76,9 @@ class JvmArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection { ProjectConnection connection ->
             def build = connection
-                    .newBuild()
-                    .forTasks("help")
-                    .setJvmArguments(setProperties)
+                .newBuild()
+                .forTasks("help")
+                .setJvmArguments(setProperties)
             if (additionalProperties != null) {
                 build.addJvmArguments(additionalProperties)
             }
@@ -118,9 +118,9 @@ class JvmArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection { ProjectConnection connection ->
             def build = connection
-                    .newBuild()
-                    .forTasks("help")
-                    .setJvmArguments(setProperties)
+                .newBuild()
+                .forTasks("help")
+                .setJvmArguments(setProperties)
             if (additionalProperties != null) {
                 build.addJvmArguments(additionalProperties)
             }
@@ -150,7 +150,8 @@ class JvmArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         JVMARG_A           | [JVMARG_B]         | [JVMARG_C]           || []                       | [JVMARG_B, JVMARG_C]
     }
 
-    @TargetGradleVersion(">=7.6") // LongRunningOperation.withSystemProperties() was introduced in Gradle 7.6
+    @TargetGradleVersion(">=7.6")
+    // LongRunningOperation.withSystemProperties() was introduced in Gradle 7.6
     def "build launcher also sets system properties"() {
         // NOTE The system properties defined in gradle.properties files take precedence over the ones defined in the TAPI client config (ie via LongRunningOperation.withSystemProperties).
         // This is not correct. This test only ensures, that the fix for https://github.com/gradle/gradle/issues/31462 does not change the existing behaviour.
@@ -161,10 +162,10 @@ class JvmArgumentPassingCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection { ProjectConnection connection ->
             def build = connection
-                    .newBuild()
-                    .forTasks("help")
-                    .withSystemProperties(SYSPROP_A_FROM_TAPI_AS_MAP)
-                    .setJvmArguments(setProperties)
+                .newBuild()
+                .forTasks("help")
+                .withSystemProperties(SYSPROP_A_FROM_TAPI_AS_MAP)
+                .setJvmArguments(setProperties)
             if (additionalProperties != null) {
                 build.addJvmArguments(additionalProperties)
             }

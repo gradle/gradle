@@ -3,6 +3,7 @@ package org.example;
 import org.junit.Test;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.gradle.api.Project;
+
 import static org.junit.Assert.assertTrue;
 
 // tag::test-plugin[]

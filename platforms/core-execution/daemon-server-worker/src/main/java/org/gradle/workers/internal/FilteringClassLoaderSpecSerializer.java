@@ -60,7 +60,7 @@ public class FilteringClassLoaderSpecSerializer implements Serializer<FilteringC
     private List<String> decodeStrings(Decoder decoder) throws Exception {
         List<String> strings = new ArrayList<>();
         int size = decoder.readInt();
-        for (int i=0; i<size; i++) {
+        for (int i = 0; i < size; i++) {
             strings.add(decoder.readString());
         }
         return strings;

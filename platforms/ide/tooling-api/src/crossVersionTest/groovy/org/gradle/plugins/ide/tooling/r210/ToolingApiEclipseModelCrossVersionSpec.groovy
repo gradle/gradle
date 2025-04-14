@@ -24,7 +24,7 @@ import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVers
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    def setup(){
+    def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 

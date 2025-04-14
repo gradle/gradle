@@ -259,14 +259,17 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         //by command line
-        when: failsWithTestTaskArguments("test", "--tests", pattern)
-        then: failure.assertHasCause("No tests found for given includes: [${pattern}](--tests filter)")
+        when:
+        failsWithTestTaskArguments("test", "--tests", pattern)
+        then:
+        failure.assertHasCause("No tests found for given includes: [${pattern}](--tests filter)")
 
         //by build script
         when:
         buildFile << "test.filter.includeTestsMatching '${pattern}'"
         failsWithTestTaskArguments("test")
-        then: failure.assertHasCause("No tests found for given includes: [${pattern}](filter.includeTestsMatching)")
+        then:
+        failure.assertHasCause("No tests found for given includes: [${pattern}](filter.includeTestsMatching)")
 
         where:
         pattern << ['FooTest.missingMethod', 'org.gradle.FooTest.missingMethod']
@@ -288,7 +291,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
             }
         """
         failsWithTestTaskArguments("test", "--tests", 'FooTest.missingMethod')
-        then: failure.assertHasCause("No tests found for given includes: [FooTest*](include rules) [NotImportant*](exclude rules) [FooTest.missingMethod](--tests filter)")
+        then:
+        failure.assertHasCause("No tests found for given includes: [FooTest*](include rules) [NotImportant*](exclude rules) [FooTest.missingMethod](--tests filter)")
     }
 
     def "does not report when matching method has been filtered before via include/exclude"() { //current behavior, not necessarily desired
@@ -314,11 +318,15 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
             }
         """
 
-        when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
-        then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcomes(passedTestOutcome, "pass")
+        when:
+        succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
+        then:
+        new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcomes(passedTestOutcome, "pass")
 
-        when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
-        then: skipped(":test") //up-to-date
+        when:
+        succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
+        then:
+        skipped(":test") //up-to-date
 
         when:
         succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass*")

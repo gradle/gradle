@@ -22,5 +22,5 @@ import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 
 @TargetCoverage({ [LATEST_JUNIT4_VERSION] })
-class JUnit4FailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnit4MultiVersionTest{
+class JUnit4FailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnit4MultiVersionTest {
 }

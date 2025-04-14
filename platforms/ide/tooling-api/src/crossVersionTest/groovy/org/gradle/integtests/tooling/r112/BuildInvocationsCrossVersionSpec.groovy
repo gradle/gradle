@@ -79,7 +79,8 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def "can request task selectors in action"() {
         when:
         Map<String, Set<String>> result = withConnection { connection ->
-            connection.action(new FetchAllTaskSelectorsBuildAction()).run() }
+            connection.action(new FetchAllTaskSelectorsBuildAction()).run()
+        }
 
         then:
         result != null
@@ -93,8 +94,9 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def "can run build using task selectors from action"() {
         when:
         BuildInvocations projectSelectors = withConnection { connection ->
-            connection.action(new FetchTaskSelectorsBuildAction('b')).run() }
-        TaskSelector selector = projectSelectors.taskSelectors.find { it -> it.name == 't1'}
+            connection.action(new FetchTaskSelectorsBuildAction('b')).run()
+        }
+        TaskSelector selector = projectSelectors.taskSelectors.find { it -> it.name == 't1' }
         withBuild { BuildLauncher it ->
             it.forLaunchables(selector)
         }
@@ -124,7 +126,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         BuildInvocations model = withConnection { connection ->
             connection.getModel(BuildInvocations)
         }
-        TaskSelector selectorT1 = model.taskSelectors.find {  it.name == 't1' }
+        TaskSelector selectorT1 = model.taskSelectors.find { it.name == 't1' }
         TaskSelector selectorT2 = model.taskSelectors.find { it.name == 't2' }
         withBuild { BuildLauncher it ->
             it.forLaunchables(selectorT1, selectorT2)
@@ -178,7 +180,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         List<Task> tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':b')).run()
         }
-        Launchable task = tasks.find { it -> it.name == 't2'}
+        Launchable task = tasks.find { it -> it.name == 't2' }
         withBuild { BuildLauncher it ->
             it.forLaunchables(task)
         }

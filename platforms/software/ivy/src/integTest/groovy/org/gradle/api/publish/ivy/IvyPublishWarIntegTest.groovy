@@ -62,7 +62,7 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
         ivyModule.assertPublishedAsWebModule()
 
         and: "correct configurations and dependencies declared"
-        with (ivyModule.parsedIvy) {
+        with(ivyModule.parsedIvy) {
             configurations.keySet() == ["default", "master"] as Set
             configurations.default.extend == ["master"] as Set
             configurations.master.extend == null

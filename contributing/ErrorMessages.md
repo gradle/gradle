@@ -23,5 +23,5 @@ To influence the generic suggestions Gradle displays, the NonGradleCause interfa
 If an exception implements this interface, Gradle will not display the `--stacktrace` option.
 
 Another more targeted interface is `CompilationFailedIndicator`.
-This interface is used to indicate that the exception is caused by a compilation failure. 
+This interface is used to indicate that the exception is caused by a compilation failure.
 This will not show the `--stacktrace` option, but it will show the `--info` option since this can help with parameters passed to the compiler.

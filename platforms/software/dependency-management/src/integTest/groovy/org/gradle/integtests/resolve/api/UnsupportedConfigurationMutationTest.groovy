@@ -31,8 +31,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolve()
             dependencies { a files("some.jar") }
         """
-        when: fails()
-        then: failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow adding artifacts to a configuration that has been resolved"() {
@@ -41,8 +43,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolve()
             artifacts { a file("some.jar") }
         """
-        when: fails()
-        then: failure.assertHasCause("Cannot change artifacts of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change artifacts of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow changing excludes on a configuration that has been resolved"() {
@@ -51,8 +55,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolve()
             configurations.a.exclude group: 'someGroup'
         """
-        when: fails()
-        then: failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow changing conflict resolution on a configuration that has been resolved"() {
@@ -62,8 +68,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolutionStrategy.failOnVersionConflict()
         """
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow changing forced versions on a configuration that has been resolved"() {
@@ -73,8 +81,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolutionStrategy.force "org.utils:api:1.3"
         """
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow changing cache policy on a configuration that has been resolved"() {
@@ -85,8 +95,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow changing resolution rules on a configuration that has been resolved"() {
@@ -97,8 +109,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow changing substitution rules on a configuration that has been resolved"() {
@@ -109,8 +123,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
     }
 
     def "does not allow changing component selection rules on a configuration that has been resolved"() {
@@ -121,8 +137,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change resolution strategy of dependency configuration ':a' after it has been resolved")
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
@@ -297,9 +315,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-
-        when: fails()
-        then: failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been included in dependency resolution.")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been included in dependency resolution.")
     }
 
     @Issue("GRADLE-3155")
@@ -315,9 +334,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-
-        when: fails()
-        then: failure.assertHasCause("Cannot change artifacts of dependency configuration ':a' after it has been included in dependency resolution.")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change artifacts of dependency configuration ':a' after it has been included in dependency resolution.")
     }
 
     @Issue("GRADLE-3155")
@@ -333,9 +353,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-
-        when: fails()
-        then: failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been included in dependency resolution.")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been included in dependency resolution.")
     }
 
     def "allows changing resolution strategy of a configuration whose child has been resolved"() {
@@ -354,7 +375,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolutionStrategy.cacheChangingModulesFor 0, "seconds"
             configurations.a.resolutionStrategy.componentSelection.all {}
         """
-        expect: succeeds()
+        expect:
+        succeeds()
     }
 
     def "fails when configuration is resolved"() {
@@ -370,9 +392,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         """
 
 
-
-        when: fails()
-        then: failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been included in dependency resolution.")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':a' after it has been included in dependency resolution.")
     }
 
     @Issue("GRADLE-3155")
@@ -385,7 +408,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 a.description = 'some conf'
             }
         """
-        expect: succeeds()
+        expect:
+        succeeds()
     }
 
     @Issue("GRADLE-3155")
@@ -398,7 +422,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             }
             dependencies { a "a:b:c" }
         """
-        expect: succeeds()
+        expect:
+        succeeds()
     }
 
     def "allows changing a non-empty configuration that does not affect a resolved configuration"() {
@@ -411,7 +436,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.b.resolve()
             dependencies { a "a:b:c" }
         """
-        expect: succeeds()
+        expect:
+        succeeds()
     }
 
     def "does not allow changing a dependency project's dependencies after included in resolution"() {
@@ -450,8 +476,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: fails()
-        then: failure.assertHasCause("Cannot change dependencies of dependency configuration ':api:compile' after it has been included in dependency resolution.")
+        when:
+        fails()
+        then:
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':api:compile' after it has been included in dependency resolution.")
     }
 
     @Issue("GRADLE-3297")

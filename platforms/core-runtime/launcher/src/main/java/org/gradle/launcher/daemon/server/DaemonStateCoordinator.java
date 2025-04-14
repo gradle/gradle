@@ -53,18 +53,16 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final long cancelTimeoutMs;
-
-    private DaemonState state = DaemonState.Idle;
     private final Timer idleTimer;
-    private String currentCommandExecution;
-    private Object result;
-    private String stopReason;
-    private volatile DefaultBuildCancellationToken cancellationToken;
-
     private final ManagedExecutor executor;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private final Runnable onCancelCommand;
+    private DaemonState state = DaemonState.Idle;
+    private String currentCommandExecution;
+    private Object result;
+    private String stopReason;
+    private volatile DefaultBuildCancellationToken cancellationToken;
 
     public DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand) {
         this(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, 10 * 1000L);
@@ -78,11 +76,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         this.cancelTimeoutMs = cancelTimeoutMs;
         idleTimer = Time.startTimer();
         updateCancellationToken();
-    }
-
-    private void setState(DaemonState state) {
-        this.state = state;
-        condition.signalAll();
     }
 
     DaemonStopState awaitStop() {
@@ -481,5 +474,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     @Override
     public DaemonState getState() {
         return state;
+    }
+
+    private void setState(DaemonState state) {
+        this.state = state;
+        condition.signalAll();
     }
 }

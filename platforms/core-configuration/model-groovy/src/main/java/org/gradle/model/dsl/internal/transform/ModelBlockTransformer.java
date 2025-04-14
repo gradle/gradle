@@ -32,22 +32,20 @@ import java.util.Collections;
 import java.util.List;
 
 public class ModelBlockTransformer extends AbstractScriptTransformer {
-    @Override
-    protected int getPhase() {
-        return Phases.CANONICALIZATION;
-    }
-
     public static final String MODEL = "model";
-    private static final List<String> SCRIPT_BLOCK_NAMES = Collections.singletonList(MODEL);
-
     public static final String NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE = "The top level model() method can only be called with a literal closure argument";
-
+    private static final List<String> SCRIPT_BLOCK_NAMES = Collections.singletonList(MODEL);
     private final String scriptSourceDescription;
-    private @Nullable final URI location;
-
+    private @Nullable
+    final URI location;
     public ModelBlockTransformer(String scriptSourceDescription, @Nullable URI location) {
         this.scriptSourceDescription = scriptSourceDescription;
         this.location = location;
+    }
+
+    @Override
+    protected int getPhase() {
+        return Phases.CANONICALIZATION;
     }
 
     /*
@@ -85,8 +83,8 @@ public class ModelBlockTransformer extends AbstractScriptTransformer {
 
                 if (methodName.equals(MODEL)) {
                     source.getErrorCollector().addError(
-                            new SyntaxException(NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE, statement.getLineNumber(), statement.getColumnNumber()),
-                            source
+                        new SyntaxException(NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE, statement.getLineNumber(), statement.getColumnNumber()),
+                        source
                     );
                 }
             } else {

@@ -112,22 +112,6 @@ public class IvyComponentParser {
         this.dependencyCoordinateResolverFactory = dependencyCoordinateResolverFactory;
     }
 
-    public IvyConfigurationContainer parseConfigurations(SoftwareComponentInternal component) {
-        IvyConfigurationContainer configurations
-            = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
-
-        IvyConfiguration defaultConfiguration = configurations.maybeCreate("default");
-        for (SoftwareComponentVariant variant : component.getUsages()) {
-            String conf = mapVariantNameToIvyConfiguration(variant.getName());
-            configurations.maybeCreate(conf);
-            if (defaultShouldExtend(variant)) {
-                defaultConfiguration.extend(conf);
-            }
-        }
-
-        return configurations;
-    }
-
     /**
      * In general, default extends all configurations such that you get 'everything' when depending on default.
      * If a variant is optional, however it is not included.
@@ -152,57 +136,8 @@ public class IvyComponentParser {
         return API_VARIANT.equals(variantName) || API_ELEMENTS_VARIANT.equals(variantName);
     }
 
-    public Set<IvyArtifact> parseArtifacts(SoftwareComponentInternal component) {
-        Set<IvyArtifact> artifacts = new LinkedHashSet<>();
-
-        Map<String, IvyArtifact> seenArtifacts = new HashMap<>();
-        for (SoftwareComponentVariant variant : component.getUsages()) {
-            String conf = mapVariantNameToIvyConfiguration(variant.getName());
-            for (PublishArtifact publishArtifact : variant.getArtifacts()) {
-                String key = artifactKey(publishArtifact);
-                IvyArtifact ivyArtifact = seenArtifacts.get(key);
-                if (ivyArtifact == null) {
-                    ivyArtifact = ivyArtifactParser.parseNotation(publishArtifact);
-                    ivyArtifact.setConf(conf);
-                    seenArtifacts.put(key, ivyArtifact);
-                    artifacts.add(ivyArtifact);
-                } else {
-                    ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
-                }
-            }
-        }
-
-        return artifacts;
-    }
-
     private static String artifactKey(PublishArtifact publishArtifact) {
         return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
-    }
-
-    public Provider<ParsedDependencyResult> parseDependencies(SoftwareComponentInternal component, VersionMappingStrategyInternal versionMappingStrategy) {
-        PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
-
-        List<Provider<ParsedVariantDependencyResult>> parsedVariants = component.getUsages().stream()
-            .map(variant -> dependencyCoordinateResolverFactory
-                .createCoordinateResolvers(variant, versionMappingStrategy)
-                .map(resolvers -> getDependenciesForVariant(variant, resolvers.getVariantResolver(), platformSupport))
-            )
-            .collect(ImmutableList.toImmutableList());
-
-        return new MergeProvider<>(parsedVariants).map(variants -> {
-            DefaultIvyDependencySet ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
-            Map<String, VariantWarningCollector> warnings = new HashMap<>();
-
-            for (ParsedVariantDependencyResult variant : variants) {
-                ivyDependencies.addAll(variant.dependencies);
-                warnings.put(variant.name, variant.warnings);
-            }
-
-            return new ParsedDependencyResult(
-                ivyDependencies,
-                new PublicationWarningsCollector(warnings, LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor")
-            );
-        });
     }
 
     private static ParsedVariantDependencyResult getDependenciesForVariant(
@@ -236,19 +171,6 @@ public class IvyComponentParser {
         }
 
         return new ParsedVariantDependencyResult(variant.getName(), ivyDependencies, warnings);
-    }
-
-    public Set<IvyExcludeRule> parseGlobalExcludes(SoftwareComponentInternal component) {
-        Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<>();
-
-        for (SoftwareComponentVariant variant : component.getUsages()) {
-            String conf = mapVariantNameToIvyConfiguration(variant.getName());
-            for (ExcludeRule excludeRule : variant.getGlobalExcludes()) {
-                globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
-            }
-        }
-
-        return globalExcludes;
     }
 
     private static String confMappingFor(SoftwareComponentVariant variant, ModuleDependency dependency) {
@@ -289,6 +211,84 @@ public class IvyComponentParser {
         return variantName;
     }
 
+    public IvyConfigurationContainer parseConfigurations(SoftwareComponentInternal component) {
+        IvyConfigurationContainer configurations
+            = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
+
+        IvyConfiguration defaultConfiguration = configurations.maybeCreate("default");
+        for (SoftwareComponentVariant variant : component.getUsages()) {
+            String conf = mapVariantNameToIvyConfiguration(variant.getName());
+            configurations.maybeCreate(conf);
+            if (defaultShouldExtend(variant)) {
+                defaultConfiguration.extend(conf);
+            }
+        }
+
+        return configurations;
+    }
+
+    public Set<IvyArtifact> parseArtifacts(SoftwareComponentInternal component) {
+        Set<IvyArtifact> artifacts = new LinkedHashSet<>();
+
+        Map<String, IvyArtifact> seenArtifacts = new HashMap<>();
+        for (SoftwareComponentVariant variant : component.getUsages()) {
+            String conf = mapVariantNameToIvyConfiguration(variant.getName());
+            for (PublishArtifact publishArtifact : variant.getArtifacts()) {
+                String key = artifactKey(publishArtifact);
+                IvyArtifact ivyArtifact = seenArtifacts.get(key);
+                if (ivyArtifact == null) {
+                    ivyArtifact = ivyArtifactParser.parseNotation(publishArtifact);
+                    ivyArtifact.setConf(conf);
+                    seenArtifacts.put(key, ivyArtifact);
+                    artifacts.add(ivyArtifact);
+                } else {
+                    ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
+                }
+            }
+        }
+
+        return artifacts;
+    }
+
+    public Provider<ParsedDependencyResult> parseDependencies(SoftwareComponentInternal component, VersionMappingStrategyInternal versionMappingStrategy) {
+        PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
+
+        List<Provider<ParsedVariantDependencyResult>> parsedVariants = component.getUsages().stream()
+            .map(variant -> dependencyCoordinateResolverFactory
+                .createCoordinateResolvers(variant, versionMappingStrategy)
+                .map(resolvers -> getDependenciesForVariant(variant, resolvers.getVariantResolver(), platformSupport))
+            )
+            .collect(ImmutableList.toImmutableList());
+
+        return new MergeProvider<>(parsedVariants).map(variants -> {
+            DefaultIvyDependencySet ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
+            Map<String, VariantWarningCollector> warnings = new HashMap<>();
+
+            for (ParsedVariantDependencyResult variant : variants) {
+                ivyDependencies.addAll(variant.dependencies);
+                warnings.put(variant.name, variant.warnings);
+            }
+
+            return new ParsedDependencyResult(
+                ivyDependencies,
+                new PublicationWarningsCollector(warnings, LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor")
+            );
+        });
+    }
+
+    public Set<IvyExcludeRule> parseGlobalExcludes(SoftwareComponentInternal component) {
+        Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<>();
+
+        for (SoftwareComponentVariant variant : component.getUsages()) {
+            String conf = mapVariantNameToIvyConfiguration(variant.getName());
+            for (ExcludeRule excludeRule : variant.getGlobalExcludes()) {
+                globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
+            }
+        }
+
+        return globalExcludes;
+    }
+
     private static class VariantDependencyFactory {
 
         private final VariantDependencyResolver dependencyResolver;
@@ -300,6 +300,10 @@ public class IvyComponentParser {
         ) {
             this.dependencyResolver = dependencyResolver;
             this.warnings = warnings;
+        }
+
+        private static boolean isDynamicVersion(String version) {
+            return !ExactVersionSelector.isExact(version);
         }
 
         private IvyDependency convertDependency(ModuleDependency dependency, String confMapping) {
@@ -354,10 +358,6 @@ public class IvyComponentParser {
             }
 
             return ResolvedCoordinates.create(organization, module, version);
-        }
-
-        private static boolean isDynamicVersion(String version) {
-            return !ExactVersionSelector.isExact(version);
         }
     }
 

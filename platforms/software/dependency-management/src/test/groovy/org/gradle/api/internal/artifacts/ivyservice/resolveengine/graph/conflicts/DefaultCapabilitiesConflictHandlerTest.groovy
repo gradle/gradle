@@ -90,7 +90,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         }
     }
 
-    ComponentState component(String group="group", String name="name", String version="1.0") {
+    ComponentState component(String group = "group", String name = "name", String version = "1.0") {
         ModuleIdentifier module = DefaultModuleIdentifier.newId(group, name)
         ModuleVersionIdentifier mvi = DefaultModuleVersionIdentifier.newId(module, version)
         Mock(ComponentState) {
@@ -102,7 +102,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         }
     }
 
-    CapabilityInternal capability(String group="org", String name="cap") {
+    CapabilityInternal capability(String group = "org", String name = "cap") {
         new DefaultImmutableCapability(group, name, null)
     }
 

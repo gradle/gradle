@@ -110,32 +110,6 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
         return true;
     }
 
-    /**
-     * Matches two attribute values, one from the consumer and one from the producer,
-     * that share a common attribute type.
-     */
-    private interface CoercingAttributeValuePredicate {
-
-        /**
-         * Test that the candidate attribute value satisfies the requested attribute value.
-         */
-        <A> boolean test(Attribute<A> attribute, A requested, A candidate);
-
-        /**
-         * Coerce the candidate and requested attribute values to the type of the attribute
-         * and test that they match.
-         */
-        default <T> boolean test(
-            Attribute<T> attribute,
-            AttributeValue<?> requested,
-            AttributeValue<?> candidate
-        ) {
-            T requestedValue = requested.coerce(attribute);
-            T candidateValue = candidate.coerce(attribute);
-            return test(attribute, requestedValue, candidateValue);
-        }
-    }
-
     @Override
     @SuppressWarnings({"unchecked", "rawtypes", "MixedMutabilityReturnType"})
     public List<AttributeMatcher.MatchingDescription<?>> describeMatching(ImmutableAttributes candidate, ImmutableAttributes requested) {
@@ -199,6 +173,32 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
         int[] matches = new MultipleCandidateMatcher<>(schema, key.candidates, key.requestedAttributes, explanationBuilder).getMatches();
         LOGGER.debug("Selected matches {} from candidates {} for {}", Ints.asList(matches), key.candidates, key.requestedAttributes);
         return matches;
+    }
+
+    /**
+     * Matches two attribute values, one from the consumer and one from the producer,
+     * that share a common attribute type.
+     */
+    private interface CoercingAttributeValuePredicate {
+
+        /**
+         * Test that the candidate attribute value satisfies the requested attribute value.
+         */
+        <A> boolean test(Attribute<A> attribute, A requested, A candidate);
+
+        /**
+         * Coerce the candidate and requested attribute values to the type of the attribute
+         * and test that they match.
+         */
+        default <T> boolean test(
+            Attribute<T> attribute,
+            AttributeValue<?> requested,
+            AttributeValue<?> candidate
+        ) {
+            T requestedValue = requested.coerce(attribute);
+            T candidateValue = candidate.coerce(attribute);
+            return test(attribute, requestedValue, candidateValue);
+        }
     }
 
     private static class CachedQuery {

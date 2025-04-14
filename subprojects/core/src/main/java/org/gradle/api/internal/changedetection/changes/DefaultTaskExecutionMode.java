@@ -42,48 +42,6 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
         this.allowedToUseCachedResults = allowedToUseCachedResults;
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Optional<String> getRebuildReason() {
-        return rebuildReason;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isTaskHistoryMaintained() {
-        return taskHistoryMaintained;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isAllowedToUseCachedResults() {
-        return allowedToUseCachedResults;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DefaultTaskExecutionMode that = (DefaultTaskExecutionMode) o;
-        return taskHistoryMaintained == that.taskHistoryMaintained && allowedToUseCachedResults == that.allowedToUseCachedResults && Objects.equals(rebuildReason, that.rebuildReason);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(rebuildReason, taskHistoryMaintained, allowedToUseCachedResults);
-    }
-
     /**
      * The execution mode for incremental tasks.
      */
@@ -129,5 +87,46 @@ public class DefaultTaskExecutionMode implements TaskExecutionMode {
      */
     public static TaskExecutionMode untracked(String reason) {
         return new DefaultTaskExecutionMode("Task is untracked because: " + reason, false, false);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<String> getRebuildReason() {
+        return rebuildReason;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isTaskHistoryMaintained() {
+        return taskHistoryMaintained;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isAllowedToUseCachedResults() {
+        return allowedToUseCachedResults;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultTaskExecutionMode that = (DefaultTaskExecutionMode) o;
+        return taskHistoryMaintained == that.taskHistoryMaintained && allowedToUseCachedResults == that.allowedToUseCachedResults && Objects.equals(rebuildReason, that.rebuildReason);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rebuildReason, taskHistoryMaintained, allowedToUseCachedResults);
     }
 }

@@ -113,7 +113,7 @@ class DependencyTreeTest extends Specification {
         when:
 
         for (int i = 0; i < projectCount; i++) {
-            tree.calculateClassDependencies(i, i * classPerProjectCount, ((i+1) * classPerProjectCount) - 1)
+            tree.calculateClassDependencies(i, i * classPerProjectCount, ((i + 1) * classPerProjectCount) - 1)
         }
         tree.calculateProjectDependencies()
 
@@ -146,7 +146,7 @@ class DependencyTreeTest extends Specification {
         when:
 
         for (int i = 0; i < projectCount; i++) {
-            tree.calculateClassDependencies(i, i * classPerProjectCount, ((i+1) * classPerProjectCount) - 1)
+            tree.calculateClassDependencies(i, i * classPerProjectCount, ((i + 1) * classPerProjectCount) - 1)
         }
         tree.calculateProjectDependencies()
 

@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import spock.lang.Ignore
 import spock.lang.Issue
 
-class DeferredTaskCreationIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest{
+class DeferredTaskCreationIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest {
 
     def "task is created and configured when included directly in task graph"() {
         buildFile << '''

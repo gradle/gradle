@@ -52,7 +52,7 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         succeeds ":extractSymbolsDebug"
 
         then:
-        executedAndNotSkipped":extractSymbolsDebug"
+        executedAndNotSkipped ":extractSymbolsDebug"
         fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
@@ -61,13 +61,13 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         succeeds ":extractSymbolsDebug"
 
         then:
-        executedAndNotSkipped":extractSymbolsDebug"
+        executedAndNotSkipped ":extractSymbolsDebug"
 
         when:
         succeeds ":extractSymbolsDebug"
 
         then:
-        skipped":extractSymbolsDebug"
+        skipped ":extractSymbolsDebug"
         fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.original))
     }
 
@@ -76,14 +76,14 @@ class ExtractSymbolsIntegrationTest extends AbstractInstalledToolChainIntegratio
         succeeds ":extractSymbolsDebug"
 
         then:
-        executedAndNotSkipped":extractSymbolsDebug"
+        executedAndNotSkipped ":extractSymbolsDebug"
 
         when:
         app.applyChangesToProject(testDirectory)
         succeeds ":extractSymbolsDebug"
 
         then:
-        executedAndNotSkipped":extractSymbolsDebug"
+        executedAndNotSkipped ":extractSymbolsDebug"
         fixture("build/symbols").assertHasDebugSymbolsFor(withoutHeaders(app.alternate))
     }
 

@@ -60,6 +60,19 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         this.buildOperationProgressEmitter = buildOperationProgressEmitter;
     }
 
+    private static BuildCacheServicesConfiguration toConfiguration(
+        Path buildPath,
+        @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
+        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote
+    ) {
+        boolean localPush = local != null && local.config.isPush();
+        boolean remotePush = remote != null && remote.config.isPush();
+        return new BuildCacheServicesConfiguration(
+            buildPath.getPath(),
+            local != null ? local.service : null, localPush,
+            remote != null ? remote.service : null, remotePush);
+    }
+
     @Override
     protected BuildCacheController doCreateController(
         Path buildPath,
@@ -85,18 +98,5 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
             originMetadataFactory,
             stringInterner
         );
-    }
-
-    private static BuildCacheServicesConfiguration toConfiguration(
-        Path buildPath,
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote
-    ) {
-        boolean localPush = local != null && local.config.isPush();
-        boolean remotePush = remote != null && remote.config.isPush();
-        return new BuildCacheServicesConfiguration(
-            buildPath.getPath(),
-            local != null ? local.service : null, localPush,
-            remote != null ? remote.service : null, remotePush);
     }
 }

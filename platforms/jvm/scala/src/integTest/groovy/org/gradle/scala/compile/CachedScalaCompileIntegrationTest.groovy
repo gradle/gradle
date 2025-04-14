@@ -44,7 +44,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             }
         """.stripIndent()
 
-        file('src/main/scala/Hello.scala').text = """
+            file('src/main/scala/Hello.scala').text = """
             object Hello {
                 def main(args: Array[String]): Unit = {
                     print("Hello!")

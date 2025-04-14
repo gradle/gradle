@@ -25,12 +25,6 @@ import org.gradle.plugin.use.PluginDependency;
 
 public abstract class PluginDependencyValueSource implements ValueSource<PluginDependency, PluginDependencyValueSource.Params> {
 
-    interface Params extends ValueSourceParameters {
-        Property<String> getPluginName();
-
-        Property<DefaultVersionCatalog> getConfig();
-    }
-
     @Override
     public PluginDependency obtain() {
         String pluginName = getParameters().getPluginName().get();
@@ -39,5 +33,11 @@ public abstract class PluginDependencyValueSource implements ValueSource<PluginD
         return new DefaultPluginDependency(
             data.getId(), new DefaultMutableVersionConstraint(version)
         );
+    }
+
+    interface Params extends ValueSourceParameters {
+        Property<String> getPluginName();
+
+        Property<DefaultVersionCatalog> getConfig();
     }
 }

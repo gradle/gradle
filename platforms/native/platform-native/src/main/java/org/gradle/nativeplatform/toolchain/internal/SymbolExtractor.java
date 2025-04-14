@@ -47,7 +47,7 @@ public class SymbolExtractor extends AbstractCompiler<SymbolExtractorSpec> {
     }
 
     @Override
-    protected void addOptionsFileArgs(List<String> args, File tempDir) { }
+    protected void addOptionsFileArgs(List<String> args, File tempDir) {}
 
     private static class SymbolExtractorArgsTransformer implements ArgsTransformer<SymbolExtractorSpec> {
         @Override

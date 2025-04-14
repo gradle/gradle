@@ -37,6 +37,7 @@ public class PBXGroup extends PBXReference {
     // Unfortunately, we can't determine this at constructor time, because CacheBuilder
     // calls our constructor and it's not easy to pass arguments to it.
     private SortPolicy sortPolicy;
+
     public PBXGroup(String name, @Nullable String path, SourceTree sourceTree) {
         super(name, path, sourceTree);
 

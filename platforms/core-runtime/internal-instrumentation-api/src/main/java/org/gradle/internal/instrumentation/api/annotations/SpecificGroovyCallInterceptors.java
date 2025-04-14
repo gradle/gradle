@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface SpecificGroovyCallInterceptors {
     String generatedClassName();
+
     BytecodeInterceptorType type() default BytecodeInterceptorType.INSTRUMENTATION;
 }
 

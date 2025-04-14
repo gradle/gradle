@@ -31,12 +31,12 @@ public class CachingServiceLocator implements ServiceLocator {
     private final Map<Class<?>, Object> services = new HashMap<Class<?>, Object>();
     private final Map<Class<?>, List<?>> allServices = new HashMap<Class<?>, List<?>>();
 
-    public static CachingServiceLocator of(ServiceLocator other) {
-        return new CachingServiceLocator(other);
-    }
-
     private CachingServiceLocator(ServiceLocator delegate) {
         this.delegate = delegate;
+    }
+
+    public static CachingServiceLocator of(ServiceLocator other) {
+        return new CachingServiceLocator(other);
     }
 
     @Override

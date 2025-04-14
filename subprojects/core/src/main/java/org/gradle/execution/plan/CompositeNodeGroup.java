@@ -29,6 +29,12 @@ public class CompositeNodeGroup extends HasFinalizers {
     private final Set<FinalizerGroup> finalizerGroups;
     private final boolean reachableFromEntryPoint;
 
+    public CompositeNodeGroup(boolean reachableFromEntryPoint, NodeGroup newOrdinal, Set<FinalizerGroup> finalizerGroups) {
+        this.ordinalGroup = newOrdinal;
+        this.finalizerGroups = finalizerGroups;
+        this.reachableFromEntryPoint = reachableFromEntryPoint;
+    }
+
     public static HasFinalizers mergeInto(OrdinalGroup original, HasFinalizers finalizers) {
         return new CompositeNodeGroup(original.isReachableFromEntryPoint() || finalizers.isReachableFromEntryPoint(), original, finalizers.getFinalizerGroups());
     }
@@ -42,12 +48,6 @@ public class CompositeNodeGroup extends HasFinalizers {
         builder.addAll(original.getFinalizerGroups());
         builder.addAll(finalizers.getFinalizerGroups());
         return new CompositeNodeGroup(reachableFromEntryPoint, original.getOrdinalGroup(), builder.build());
-    }
-
-    public CompositeNodeGroup(boolean reachableFromEntryPoint, NodeGroup newOrdinal, Set<FinalizerGroup> finalizerGroups) {
-        this.ordinalGroup = newOrdinal;
-        this.finalizerGroups = finalizerGroups;
-        this.reachableFromEntryPoint = reachableFromEntryPoint;
     }
 
     @Override

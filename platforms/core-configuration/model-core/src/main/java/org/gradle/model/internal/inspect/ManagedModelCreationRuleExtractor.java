@@ -42,6 +42,14 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         this.schemaStore = schemaStore;
     }
 
+    private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
+        try {
+            return nodeInitializerRegistry.getNodeInitializer(forType(modelSchema.getType()));
+        } catch (ModelTypeInitializationException e) {
+            throw new InvalidModelRuleDeclarationException(descriptor, e);
+        }
+    }
+
     @Override
     public String getDescription() {
         return String.format("%s and taking a managed model element", super.getDescription());
@@ -64,14 +72,6 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         ModelType<S> modelType = ruleDefinition.getSubjectReference().getType();
         final ModelSchema<S> modelSchema = getModelSchema(modelType, ruleDefinition);
         return new ExtractedManagedCreationRule<R, S>(modelPath, ruleDefinition, modelSchema);
-    }
-
-    private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
-        try {
-            return nodeInitializerRegistry.getNodeInitializer(forType(modelSchema.getType()));
-        } catch (ModelTypeInitializationException e) {
-            throw new InvalidModelRuleDeclarationException(descriptor, e);
-        }
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {
@@ -115,7 +115,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             }
 
             registration.action(ModelActionRole.Initialize,
-                    context.contextualize(new MethodBackedModelAction<S>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
+                context.contextualize(new MethodBackedModelAction<S>(descriptor, ModelReference.of(modelPath, modelSchema.getType()), inputs)));
         }
 
     }

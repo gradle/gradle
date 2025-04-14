@@ -63,18 +63,18 @@ import java.util.concurrent.locks.ReentrantLock;
 public class MultithreadedTestRule extends ExternalResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(MultithreadedTestRule.class);
     private static final int MAX_WAIT_TIME = 5000;
-    private ExecutorImpl executor;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final Set<Thread> active = new HashSet<Thread>();
     private final Set<Thread> synching = new HashSet<Thread>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private final Map<Integer, ClockTickImpl> ticks = new HashMap<Integer, ClockTickImpl>();
+    private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
+        = new ThreadLocal<Matcher<? extends Throwable>>();
+    private final SyncPoint syncPoint = new SyncPoint();
+    private ExecutorImpl executor;
     private ClockTickImpl currentTick = getTick(0);
     private boolean stopped;
-    private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
-            = new ThreadLocal<Matcher<? extends Throwable>>();
-    private final SyncPoint syncPoint = new SyncPoint();
 
     /**
      * Creates an Executor which the test can control.
@@ -135,11 +135,11 @@ public class MultithreadedTestRule extends ExternalResource {
         long expected = units.toMillis(value);
         if (actual < expected - 200) {
             throw new RuntimeException(String.format(
-                    "Action did not block for expected time. Expected ~ %d ms, was %d ms.", expected, actual));
+                "Action did not block for expected time. Expected ~ %d ms, was %d ms.", expected, actual));
         }
         if (actual > expected + 1200) {
             throw new RuntimeException(String.format(
-                    "Action did not complete within expected time. Expected ~ %d ms, was %d ms.", expected, actual));
+                "Action did not complete within expected time. Expected ~ %d ms, was %d ms.", expected, actual));
         }
         return threadHandle;
     }
@@ -311,7 +311,7 @@ public class MultithreadedTestRule extends ExternalResource {
             ClockTickImpl clockTick = getTick(tick);
             if (!clockTick.isImmediatelyAfter(currentTick)) {
                 throw new RuntimeException(String.format("Cannot wait for %s, as clock is currently at %s.", clockTick,
-                        currentTick));
+                    currentTick));
             }
             if (!active.contains(Thread.currentThread())) {
                 throw new RuntimeException("Cannot wait for clock tick from a thread which is not a test thread.");
@@ -325,8 +325,8 @@ public class MultithreadedTestRule extends ExternalResource {
                     boolean signalled = condition.awaitUntil(expiry);
                     if (!signalled) {
                         throw new RuntimeException(String.format(
-                                "Timeout waiting for all threads to reach %s. Currently at %s.", clockTick,
-                                currentTick));
+                            "Timeout waiting for all threads to reach %s. Currently at %s.", clockTick,
+                            currentTick));
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -334,8 +334,8 @@ public class MultithreadedTestRule extends ExternalResource {
             }
             if (!failures.isEmpty()) {
                 throw new RuntimeException(String.format(
-                        "Could not wait for all threads to reach %s, as a failure has occurred in another test thread.",
-                        clockTick));
+                    "Could not wait for all threads to reach %s, as a failure has occurred in another test thread.",
+                    clockTick));
             }
             if (clockTick.isImmediatelyAfter(currentTick)) {
                 currentTick = clockTick;
@@ -370,11 +370,11 @@ public class MultithreadedTestRule extends ExternalResource {
                     ClockTickImpl clockTick = getTick(tick);
                     if (!clockTick.isImmediatelyAfter(currentTick)) {
                         throw new RuntimeException(String.format("Cannot wait for %s, as clock is currently at %s.",
-                                clockTick, currentTick));
+                            clockTick, currentTick));
                     }
                     if (!active.contains(targetThread)) {
                         throw new RuntimeException(
-                                "Cannot wait for clock tick from a thread which is not a test thread.");
+                            "Cannot wait for clock tick from a thread which is not a test thread.");
                     }
 
                     synching.add(targetThread);
@@ -408,7 +408,7 @@ public class MultithreadedTestRule extends ExternalResource {
         try {
             if (currentTick != getTick(tick)) {
                 throw new RuntimeException(String.format("Expected clock to be at %s, but is at %s.", tick,
-                        currentTick));
+                    currentTick));
             }
         } finally {
             lock.unlock();
@@ -442,43 +442,8 @@ public class MultithreadedTestRule extends ExternalResource {
         syncPoint.expectUnblocks(action);
     }
 
-    private class ExecutorImpl extends AbstractExecutorService {
-        private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
-
-        @Override
-        public void execute(Runnable command) {
-            threads.add(start(command));
-        }
-
-        @Override
-        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-            Date expiry = new Date(System.currentTimeMillis() + unit.toMillis(timeout));
-            for (ThreadHandle thread : threads) {
-                if (!thread.waitUntil(expiry)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public void shutdown() {
-        }
-
-        @Override
-        public List<Runnable> shutdownNow() {
-            return new ArrayList<Runnable>();
-        }
-
-        @Override
-        public boolean isShutdown() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isTerminated() {
-            throw new UnsupportedOperationException();
-        }
+    private enum State {
+        Idle, Blocking, Blocked, Unblocking, Unblocked, Failed
     }
 
     public interface ThreadHandle {
@@ -526,8 +491,43 @@ public class MultithreadedTestRule extends ExternalResource {
         }
     }
 
-    private enum State {
-        Idle, Blocking, Blocked, Unblocking, Unblocked, Failed
+    private class ExecutorImpl extends AbstractExecutorService {
+        private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
+
+        @Override
+        public void execute(Runnable command) {
+            threads.add(start(command));
+        }
+
+        @Override
+        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+            Date expiry = new Date(System.currentTimeMillis() + unit.toMillis(timeout));
+            for (ThreadHandle thread : threads) {
+                if (!thread.waitUntil(expiry)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public void shutdown() {
+        }
+
+        @Override
+        public List<Runnable> shutdownNow() {
+            return new ArrayList<Runnable>();
+        }
+
+        @Override
+        public boolean isShutdown() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isTerminated() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private class SyncPoint {
@@ -602,7 +602,7 @@ public class MultithreadedTestRule extends ExternalResource {
                 while (!expectedStates.contains(state)) {
                     if (!condition.awaitUntil(expiry)) {
                         throw new IllegalStateException(String.format("Timeout waiting for one of: %s",
-                                expectedStates));
+                            expectedStates));
                     }
                 }
                 return state;
@@ -616,7 +616,7 @@ public class MultithreadedTestRule extends ExternalResource {
             try {
                 if (state != expected) {
                     throw new IllegalStateException(String.format("In unexpected state. Expected %s, actual %s",
-                            expected, state));
+                        expected, state));
                 }
                 state = newState;
                 condition.signalAll();
@@ -629,7 +629,7 @@ public class MultithreadedTestRule extends ExternalResource {
     private class ThreadHandleImpl implements ThreadHandle {
         private final Thread thread;
         private final Set<Thread.State> blockedStates = EnumSet.of(Thread.State.BLOCKED, Thread.State.TIMED_WAITING,
-                Thread.State.WAITING);
+            Thread.State.WAITING);
 
         public ThreadHandleImpl(Thread thread) {
             this.thread = thread;

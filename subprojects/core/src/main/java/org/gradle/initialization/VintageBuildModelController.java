@@ -27,16 +27,11 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.Nullable;
 
 public class VintageBuildModelController implements BuildModelController {
-    private enum Stage implements StateTransitionController.State {
-        Created, SettingsLoaded, Configured
-    }
-
     private final ProjectsPreparer projectsPreparer;
     private final GradleInternal gradle;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
     private final StateTransitionController<Stage> state;
-
     public VintageBuildModelController(
         GradleInternal gradle,
         ProjectsPreparer projectsPreparer,
@@ -81,6 +76,10 @@ public class VintageBuildModelController implements BuildModelController {
 
     private void prepareProjects() {
         state.transitionIfNotPreviously(Stage.SettingsLoaded, Stage.Configured, () -> projectsPreparer.prepareProjects(gradle));
+    }
+
+    private enum Stage implements StateTransitionController.State {
+        Created, SettingsLoaded, Configured
     }
 
 }

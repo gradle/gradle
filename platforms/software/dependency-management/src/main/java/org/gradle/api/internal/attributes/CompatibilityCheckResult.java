@@ -20,5 +20,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 
 public interface CompatibilityCheckResult<T> extends CompatibilityCheckDetails<T> {
     boolean hasResult();
+
     boolean isCompatible();
 }

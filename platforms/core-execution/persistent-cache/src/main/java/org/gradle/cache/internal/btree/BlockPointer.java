@@ -20,6 +20,11 @@ import com.google.common.primitives.Longs;
 public class BlockPointer implements Comparable<BlockPointer> {
 
     private static final BlockPointer NULL = new BlockPointer(-1);
+    private final long pos;
+
+    private BlockPointer(long pos) {
+        this.pos = pos;
+    }
 
     public static BlockPointer start() {
         return NULL;
@@ -33,12 +38,6 @@ public class BlockPointer implements Comparable<BlockPointer> {
             return NULL;
         }
         return new BlockPointer(pos);
-    }
-
-    private final long pos;
-
-    private BlockPointer(long pos) {
-        this.pos = pos;
     }
 
     public boolean isNull() {

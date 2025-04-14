@@ -28,7 +28,8 @@ import java.util.Collection;
 /**
  * Represents a binary artifact that is the result of building a native component.
  */
-@Incubating @HasInternalProtocol
+@Incubating
+@HasInternalProtocol
 public interface NativeBinarySpec extends BinarySpec {
     /**
      * The component that this binary was built from.
@@ -85,6 +86,7 @@ public interface NativeBinarySpec extends BinarySpec {
     NativeToolChain getToolChain();
 
     // TODO It would be better if these were added via a separate managed view, rather than hard coded.
+
     /**
      * The configuration of the linker used when linking this binary.
      *

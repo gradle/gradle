@@ -34,7 +34,8 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getAvailableJdk
 @MultiVersionTest
 class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
     static def version
-    @Rule IgnoreIfJdkNotFound ignoreRule = new IgnoreIfJdkNotFound()
+    @Rule
+    IgnoreIfJdkNotFound ignoreRule = new IgnoreIfJdkNotFound()
 
     JavaInfo jdk
 
@@ -49,7 +50,7 @@ class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
                 @Override
                 boolean isSatisfiedBy(JvmInstallationMetadata install) {
                     if (version.hasProperty("vendor")) {
-                        if(install.getVendor().getKnownVendor() != version.vendor) {
+                        if (install.getVendor().getKnownVendor() != version.vendor) {
                             return false
                         }
                     }

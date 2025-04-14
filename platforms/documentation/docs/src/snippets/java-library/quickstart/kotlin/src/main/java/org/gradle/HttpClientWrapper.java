@@ -1,6 +1,7 @@
 // tag::sample[]
 // The following types can appear anywhere in the code
 // but say nothing about API or implementation usage
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

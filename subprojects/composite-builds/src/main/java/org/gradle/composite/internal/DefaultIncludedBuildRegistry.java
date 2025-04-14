@@ -56,20 +56,33 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final IncludedBuildFactory includedBuildFactory;
     private final BuildAddedListener buildAddedBroadcaster;
     private final BuildStateFactory buildStateFactory;
-
-    // TODO: Locking around the following state
-    private RootBuildState rootBuild;
     private final Map<BuildIdentifier, BuildState> buildsByIdentifier = new HashMap<>();
     private final Map<BuildState, StandAloneNestedBuild> buildSrcBuildsByOwner = new HashMap<>();
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<File, NestedBuildState> nestedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<Path, File> nestedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
+    // TODO: Locking around the following state
+    private RootBuildState rootBuild;
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
         this.includedBuildFactory = includedBuildFactory;
         this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
         this.buildStateFactory = buildStateFactory;
+    }
+
+    private static void validateNameIsNotBuildSrc(String name, File dir) {
+        if (SettingsInternal.BUILD_SRC.equals(name)) {
+            throw new GradleException("Included build " + dir + " has build name 'buildSrc' which cannot be used as it is a reserved name.");
+        }
+    }
+
+    private static BuildIdentifier idFor(Path absoluteBuildPath) {
+        return new DefaultBuildIdentifier(absoluteBuildPath);
+    }
+
+    private static boolean isPrefix(File prefix, File toCheck) {
+        return toCheck.toPath().toAbsolutePath().startsWith(prefix.toPath().toAbsolutePath());
     }
 
     @Override
@@ -206,12 +219,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
     }
 
-    private static void validateNameIsNotBuildSrc(String name, File dir) {
-        if (SettingsInternal.BUILD_SRC.equals(name)) {
-            throw new GradleException("Included build " + dir + " has build name 'buildSrc' which cannot be used as it is a reserved name.");
-        }
-    }
-
     private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit, @Nullable Path buildPath) {
         // TODO: synchronization
         File buildDir = buildDefinition.getBuildRootDir();
@@ -245,10 +252,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         return includedBuild;
     }
 
-    private static BuildIdentifier idFor(Path absoluteBuildPath) {
-        return new DefaultBuildIdentifier(absoluteBuildPath);
-    }
-
     private Path assignPath(BuildState owner, String name, File dir) {
         // Get the closest ancestor build of the build directory which we are currently adding
         Optional<Map.Entry<File, NestedBuildState>> parentBuild = nestedBuildsByRootDir.entrySet().stream()
@@ -267,10 +270,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
 
         return requestedPath;
-    }
-
-    private static boolean isPrefix(File prefix, File toCheck) {
-        return toCheck.toPath().toAbsolutePath().startsWith(prefix.toPath().toAbsolutePath());
     }
 
     @Override

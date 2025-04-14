@@ -55,19 +55,6 @@ public class ExhaustiveLinesSearcher {
         return new ExhaustiveLinesSearcher(false);
     }
 
-    public void assertLinesContainedIn(List<String> expectedLines, List<String> actualLines) throws LineSearchFailures.AbstractLineListComparisonFailure {
-        assert !expectedLines.isEmpty() : "there must be expected text";
-        assert !actualLines.isEmpty() : "there must be output text";
-
-        if (actualLines.size() < expectedLines.size()) {
-            LineSearchFailures.insufficientSize(expectedLines, actualLines);
-        }
-
-        if (!findFirstCompleteMatch(expectedLines, actualLines).isPresent()) {
-            exhaustiveSearch(expectedLines, actualLines, useUnifiedDiff);
-        }
-    }
-
     /**
      * Quickly attempts to find a complete match of the expected lines in the actual lines.
      *
@@ -145,5 +132,18 @@ public class ExhaustiveLinesSearcher {
             }
         }
         return potentialMatches;
+    }
+
+    public void assertLinesContainedIn(List<String> expectedLines, List<String> actualLines) throws LineSearchFailures.AbstractLineListComparisonFailure {
+        assert !expectedLines.isEmpty() : "there must be expected text";
+        assert !actualLines.isEmpty() : "there must be output text";
+
+        if (actualLines.size() < expectedLines.size()) {
+            LineSearchFailures.insufficientSize(expectedLines, actualLines);
+        }
+
+        if (!findFirstCompleteMatch(expectedLines, actualLines).isPresent()) {
+            exhaustiveSearch(expectedLines, actualLines, useUnifiedDiff);
+        }
     }
 }

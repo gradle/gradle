@@ -61,13 +61,53 @@ public class DependencyVerifier {
         this.topLevelComments = topLevelComments;
     }
 
-    public void verify(ChecksumService checksumService,
-                       SignatureVerificationService signatureVerificationService,
-                       ArtifactVerificationOperation.ArtifactKind kind,
-                       ModuleComponentArtifactIdentifier foundArtifact,
-                       File artifactFile,
-                       File signatureFile,
-                       ArtifactVerificationResultBuilder builder) {
+    private static void verifyChecksum(ChecksumKind algorithm, File file, String expected, Set<String> alternatives, ChecksumService cache, ArtifactVerificationResultBuilder builder) {
+        String actualChecksum = checksumOf(algorithm, file, cache);
+        if (expected.equals(actualChecksum)) {
+            return;
+        }
+        if (alternatives != null) {
+            for (String alternative : alternatives) {
+                if (actualChecksum.equals(alternative)) {
+                    return;
+                }
+            }
+        }
+        builder.failWith(new ChecksumVerificationFailure(file, algorithm, expected, actualChecksum));
+    }
+
+    private static String checksumOf(ChecksumKind algorithm, File file, ChecksumService cache) {
+        HashCode hashValue = null;
+        switch (algorithm) {
+            case md5:
+                hashValue = cache.md5(file);
+                break;
+            case sha1:
+                hashValue = cache.sha1(file);
+                break;
+            case sha256:
+                hashValue = cache.sha256(file);
+                break;
+            case sha512:
+                hashValue = cache.sha512(file);
+                break;
+        }
+        return hashValue.toString();
+    }
+
+    private static SignatureVerificationFailure.SignatureError error(@Nullable PGPPublicKey key, SignatureVerificationFailure.FailureKind kind) {
+        return new SignatureVerificationFailure.SignatureError(key, kind);
+    }
+
+    public void verify(
+        ChecksumService checksumService,
+        SignatureVerificationService signatureVerificationService,
+        ArtifactVerificationOperation.ArtifactKind kind,
+        ModuleComponentArtifactIdentifier foundArtifact,
+        File artifactFile,
+        File signatureFile,
+        ArtifactVerificationResultBuilder builder
+    ) {
         if (shouldSkipVerification(kind)) {
             return;
         }
@@ -200,40 +240,6 @@ public class DependencyVerifier {
         }
     }
 
-    private static void verifyChecksum(ChecksumKind algorithm, File file, String expected, Set<String> alternatives, ChecksumService cache, ArtifactVerificationResultBuilder builder) {
-        String actualChecksum = checksumOf(algorithm, file, cache);
-        if (expected.equals(actualChecksum)) {
-            return;
-        }
-        if (alternatives != null) {
-            for (String alternative : alternatives) {
-                if (actualChecksum.equals(alternative)) {
-                    return;
-                }
-            }
-        }
-        builder.failWith(new ChecksumVerificationFailure(file, algorithm, expected, actualChecksum));
-    }
-
-    private static String checksumOf(ChecksumKind algorithm, File file, ChecksumService cache) {
-        HashCode hashValue = null;
-        switch (algorithm) {
-            case md5:
-                hashValue = cache.md5(file);
-                break;
-            case sha1:
-                hashValue = cache.sha1(file);
-                break;
-            case sha256:
-                hashValue = cache.sha256(file);
-                break;
-            case sha512:
-                hashValue = cache.sha512(file);
-                break;
-        }
-        return hashValue.toString();
-    }
-
     public Collection<ComponentVerificationMetadata> getVerificationMetadata() {
         return verificationMetadata.values();
     }
@@ -362,9 +368,5 @@ public class DependencyVerifier {
         public boolean hasError() {
             return failedKeys != null || validNotTrusted != null || missingKeys != null || !hasValidSignatures || hasOnlyIgnoredKeys();
         }
-    }
-
-    private static SignatureVerificationFailure.SignatureError error(@Nullable PGPPublicKey key, SignatureVerificationFailure.FailureKind kind) {
-        return new SignatureVerificationFailure.SignatureError(key, kind);
     }
 }

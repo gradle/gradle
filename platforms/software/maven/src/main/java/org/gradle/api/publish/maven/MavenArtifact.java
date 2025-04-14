@@ -32,6 +32,7 @@ public interface MavenArtifact extends PublicationArtifact {
 
     /**
      * Sets the extension used to publish the artifact file.
+     *
      * @param extension The extension.
      */
     void setExtension(String extension);
@@ -46,6 +47,7 @@ public interface MavenArtifact extends PublicationArtifact {
 
     /**
      * Sets the classifier used to publish the artifact file.
+     *
      * @param classifier The classifier.
      */
     void setClassifier(@Nullable String classifier);

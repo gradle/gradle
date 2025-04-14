@@ -42,6 +42,11 @@ public class GitVersionRef implements VersionRef {
         return new GitVersionRef(version, canonicalId);
     }
 
+    private static String extractName(Ref ref) {
+        List<String> parts = Splitter.on("/").splitToList(ref.getName());
+        return parts.get(parts.size() - 1);
+    }
+
     @Override
     public String getVersion() {
         return version;
@@ -69,10 +74,5 @@ public class GitVersionRef implements VersionRef {
     @Override
     public String toString() {
         return version + ": " + canonicalId;
-    }
-
-    private static String extractName(Ref ref) {
-        List<String> parts = Splitter.on("/").splitToList(ref.getName());
-        return parts.get(parts.size()-1);
     }
 }

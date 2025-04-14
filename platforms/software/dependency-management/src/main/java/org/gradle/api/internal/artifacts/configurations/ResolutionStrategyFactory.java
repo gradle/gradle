@@ -93,6 +93,16 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         this.componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create();
     }
 
+    private static CachePolicy createCachePolicy(StartParameter startParameter) {
+        CachePolicy cachePolicy = new DefaultCachePolicy();
+        if (startParameter.isOffline()) {
+            cachePolicy.setOffline();
+        } else if (startParameter.isRefreshDependencies()) {
+            cachePolicy.setRefreshDependencies();
+        }
+        return cachePolicy;
+    }
+
     @Override
     public ResolutionStrategyInternal create() {
         CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(
@@ -118,15 +128,5 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
             capabilitiesResolutionInternal,
             objectFactory
         );
-    }
-
-    private static CachePolicy createCachePolicy(StartParameter startParameter) {
-        CachePolicy cachePolicy = new DefaultCachePolicy();
-        if (startParameter.isOffline()) {
-            cachePolicy.setOffline();
-        } else if (startParameter.isRefreshDependencies()) {
-            cachePolicy.setRefreshDependencies();
-        }
-        return cachePolicy;
     }
 }

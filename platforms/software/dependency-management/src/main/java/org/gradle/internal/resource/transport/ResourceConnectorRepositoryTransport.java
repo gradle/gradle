@@ -39,17 +39,19 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
     private final ExternalResourceRepository repository;
     private final DefaultCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public ResourceConnectorRepositoryTransport(String name,
-                                                TemporaryFileProvider temporaryFileProvider,
-                                                CachedExternalResourceIndex<String> cachedExternalResourceIndex,
-                                                BuildCommencedTimeProvider timeProvider,
-                                                ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-                                                ExternalResourceConnector connector,
-                                                BuildOperationRunner buildOperationRunner,
-                                                ExternalResourceCachePolicy cachePolicy,
-                                                ProducerGuard<ExternalResourceName> producerGuard,
-                                                FileResourceRepository fileResourceRepository,
-                                                ChecksumService checksumService) {
+    public ResourceConnectorRepositoryTransport(
+        String name,
+        TemporaryFileProvider temporaryFileProvider,
+        CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+        BuildCommencedTimeProvider timeProvider,
+        ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
+        ExternalResourceConnector connector,
+        BuildOperationRunner buildOperationRunner,
+        ExternalResourceCachePolicy cachePolicy,
+        ProducerGuard<ExternalResourceName> producerGuard,
+        FileResourceRepository fileResourceRepository,
+        ChecksumService checksumService
+    ) {
         super(name);
         ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, buildOperationRunner);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, buildOperationRunner);

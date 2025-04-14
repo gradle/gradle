@@ -1,15 +1,30 @@
-package ${packageName};
+package $
+
+{packageName};
 
 import static org.junit.Assert.*;
 
-public class ${testClassName} {
+private final $ {productionClassName} {
 
-    private final ${productionClassName} production = new ${productionClassName}("value");
+$ {productionClassName}
 
-<% (binding.hasVariable("testMethodCount") ? testMethodCount : 20).times { index ->  %>
+production =new
+
+hasVariable("testMethodCount")("value");
+
+<%(binding.
+
+times {
+    index -> % >
     @org.junit.Test
-    public void test${index}() {
+    public void test$ {
+        index
+    } () {
         assertEquals(production.getProperty(), "value");
     }
-<% } %>
-}
+<%} ?testMethodCount :20).
+
+public class $ {
+    testClassName
+} %>
+    }

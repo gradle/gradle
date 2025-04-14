@@ -32,20 +32,8 @@ import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
 import static org.junit.Assert.assertTrue;
 
 public class XcodebuildExecutor {
-    public enum XcodeAction {
-        BUILD,
-        CLEAN,
-        TEST;
-
-        @Override
-        public String toString() {
-            return this.name().toLowerCase();
-        }
-    }
-
     private final List<String> args = new ArrayList<String>();
     private final TestFile testDirectory;
-
     public XcodebuildExecutor(TestFile testDirectory) {
         this(testDirectory, testDirectory.file(".xcode-derived"));
     }
@@ -122,5 +110,16 @@ public class XcodebuildExecutor {
         TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
         assertTrue("This test requires xcode to be installed in " + xcodebuild.getAbsolutePath(), xcodebuild.exists());
         return xcodebuild;
+    }
+
+    public enum XcodeAction {
+        BUILD,
+        CLEAN,
+        TEST;
+
+        @Override
+        public String toString() {
+            return this.name().toLowerCase();
+        }
     }
 }

@@ -20,22 +20,6 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 
 public interface PendingDependenciesVisitor {
 
-    enum PendingState {
-        PENDING(true),
-        NOT_PENDING(false),
-        NOT_PENDING_ACTIVATING(false);
-
-        private final boolean pending;
-
-        PendingState(boolean pending) {
-            this.pending = pending;
-        }
-
-        boolean isPending() {
-            return this.pending;
-        }
-    }
-
     /**
      * If this dependency declaration is not a constraint, indicate whether an edge should be created.
      *
@@ -56,4 +40,20 @@ public interface PendingDependenciesVisitor {
     boolean markNotPending(ModuleIdentifier id);
 
     void complete();
+
+    enum PendingState {
+        PENDING(true),
+        NOT_PENDING(false),
+        NOT_PENDING_ACTIVATING(false);
+
+        private final boolean pending;
+
+        PendingState(boolean pending) {
+            this.pending = pending;
+        }
+
+        boolean isPending() {
+            return this.pending;
+        }
+    }
 }

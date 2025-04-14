@@ -25,21 +25,6 @@ abstract class AbstractFailure implements ResponseProducer, Failure {
         this.failure = failure;
     }
 
-    @Override
-    public boolean isFailure() {
-        return true;
-    }
-
-    @Override
-    public RuntimeException getFailure() {
-        return failure;
-    }
-
-    @Override
-    public void writeTo(int requestId, HttpExchange exchange) {
-        throw new IllegalStateException();
-    }
-
     protected static String withLeadingSlash(String path) {
         if (path.startsWith("/")) {
             return path;
@@ -53,5 +38,20 @@ abstract class AbstractFailure implements ResponseProducer, Failure {
             return context;
         }
         return ". " + context;
+    }
+
+    @Override
+    public boolean isFailure() {
+        return true;
+    }
+
+    @Override
+    public RuntimeException getFailure() {
+        return failure;
+    }
+
+    @Override
+    public void writeTo(int requestId, HttpExchange exchange) {
+        throw new IllegalStateException();
     }
 }

@@ -27,7 +27,8 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForFileS
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForMatchingTask
 import static org.gradle.util.internal.WrapUtil.toSet
 
-@UsesNativeServices // via DirectoryFileTree
+@UsesNativeServices
+// via DirectoryFileTree
 abstract class FileCollectionSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())

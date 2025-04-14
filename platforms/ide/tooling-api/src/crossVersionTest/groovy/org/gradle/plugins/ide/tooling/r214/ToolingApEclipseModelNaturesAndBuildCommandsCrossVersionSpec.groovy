@@ -35,10 +35,10 @@ class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends Tooli
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        def natures = rootProject.projectNatures.collect{ it.id }
+        def natures = rootProject.projectNatures.collect { it.id }
 
         then:
-        if (plugins.contains('ear') && targetVersion < GradleVersion.version("8.0") ) {
+        if (plugins.contains('ear') && targetVersion < GradleVersion.version("8.0")) {
             assert natures == WTP_NATURES
         } else {
             assert natures == JAVA_NATURES + WTP_NATURES
@@ -61,7 +61,7 @@ class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends Tooli
 
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
-        def buildCommandNames = rootProject.buildCommands.collect{ it.name }
+        def buildCommandNames = rootProject.buildCommands.collect { it.name }
 
         then:
         buildCommandNames == expectedBuildCommandNames

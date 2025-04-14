@@ -90,8 +90,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         ClassPath compilerClasspath = classPathRegistry.getClassPath("SCALA-COMPILER").plus(DefaultClassPath.of(zincClasspath));
 
         HierarchicalClassLoaderStructure classLoaderStructure = new HierarchicalClassLoaderStructure(classLoaderRegistry.getGradleWorkerExtensionSpec())
-                .withChild(getScalaFilterSpec())
-                .withChild(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
+            .withChild(getScalaFilterSpec())
+            .withChild(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)

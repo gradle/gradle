@@ -51,6 +51,10 @@ public final class BuildOperationDescriptor {
         this.totalProgress = totalProgress;
     }
 
+    public static Builder displayName(String displayName) {
+        return new Builder(displayName);
+    }
+
     @Nullable
     public OperationIdentifier getId() {
         return id;
@@ -106,10 +110,6 @@ public final class BuildOperationDescriptor {
 
     public int getTotalProgress() {
         return totalProgress;
-    }
-
-    public static Builder displayName(String displayName) {
-        return new Builder(displayName);
     }
 
     @Override

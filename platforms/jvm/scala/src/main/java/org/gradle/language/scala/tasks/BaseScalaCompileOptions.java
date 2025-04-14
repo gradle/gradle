@@ -40,34 +40,20 @@ import java.util.List;
 public abstract class BaseScalaCompileOptions implements Serializable {
 
     private static final long serialVersionUID = 0;
-
-    private boolean failOnError = true;
-
-    private boolean deprecation = true;
-
-    private boolean unchecked = true;
-
-    private String debugLevel;
-
-    private boolean optimize;
-
-    private String encoding;
-
-    private boolean force;
-
     private final List<String> additionalParameters = new ArrayList<>();
-
-    private boolean listFiles;
-
-    private String loggingLevel;
-
-    private List<String> loggingPhases;
-
-    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
-
-    private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
-
     private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
+    private boolean failOnError = true;
+    private boolean deprecation = true;
+    private boolean unchecked = true;
+    private String debugLevel;
+    private boolean optimize;
+    private String encoding;
+    private boolean force;
+    private boolean listFiles;
+    private String loggingLevel;
+    private List<String> loggingPhases;
+    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
+    private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
     @Inject
     protected ObjectFactory getObjectFactory() {
@@ -146,7 +132,9 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Encoding of source files.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getEncoding() {
         return encoding;
     }
@@ -226,7 +214,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     /**
      * Phases of the compiler to log.
      * Legal values: namer, typer, pickler, uncurry, tailcalls, transmatch, explicitouter, erasure,
-     *               lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
+     * lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
      */
     @Console
     @ToBeReplacedByLazyProperty

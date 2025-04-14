@@ -41,27 +41,19 @@ public class BuildStatusRenderer implements OutputEventListener {
     public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
     public static final char PROGRESS_BAR_INCOMPLETE_CHAR = '-';
     public static final String PROGRESS_BAR_SUFFIX = ">";
-
-    private enum Phase {
-        Initializing, Configuring, Executing
-    }
-
     private final OutputEventListener listener;
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
+    private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
     private OperationIdentifier buildProgressOperationId;
     private Phase currentPhase;
-    private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
     private long currentTimePeriod;
-
     // What actually shows up on the console
     private ProgressBar progressBar;
-
     // Used to maintain timer
     private long buildStartTimestamp;
     private boolean timerEnabled;
-
     public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
@@ -159,5 +151,9 @@ public class BuildStatusRenderer implements OutputEventListener {
             PROGRESS_BAR_COMPLETE_CHAR,
             PROGRESS_BAR_INCOMPLETE_CHAR,
             initialSuffix, initialProgress, totalProgress);
+    }
+
+    private enum Phase {
+        Initializing, Configuring, Executing
     }
 }

@@ -20,5 +20,6 @@ import org.gradle.test.fixtures.resource.RemoteArtifact
 
 interface RemoteIvyModule extends IvyModule {
     RemoteArtifact getIvy()
+
     RemoteArtifact getJar()
 }

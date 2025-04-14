@@ -475,7 +475,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         given:
         ignoreCleanupAssertions = true // We just care that there are problems in this test, we don't need to verify their contents
 
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
             val shape = Attribute.of("shape", String::class.java)
             val matter = Attribute.of("state", String::class.java)
@@ -705,7 +705,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupAmbiguousArtifactTransformFailureForProject() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
             val shape = Attribute.of("shape", String::class.java)
             val matter = Attribute.of("state", String::class.java)
@@ -810,7 +810,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupAmbiguousGraphVariantFailureForProjectWithSingleDisambiguatingAttribute() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
             val shape = Attribute.of("shape", String::class.java)
 
@@ -884,7 +884,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupAmbiguousGraphVariantFailureForExternalDep() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations {
@@ -936,7 +936,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupNoMatchingGraphVariantsFailureForExternalDep() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations {
@@ -990,7 +990,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupConfigurationNotCompatibleFailureForProject() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             plugins {
                 id("base")
             }
@@ -1019,7 +1019,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupIncompatibleMultipleNodesValidationFailureForProject() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             group = "org.example"
             version = "1.0"
 
@@ -1088,7 +1088,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void setupDependencyInsightFailure() {
-        buildKotlinFile <<  """
+        buildKotlinFile << """
             plugins {
                 `java-library`
                 `java-test-fixtures`

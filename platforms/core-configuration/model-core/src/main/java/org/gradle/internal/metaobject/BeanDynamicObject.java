@@ -64,18 +64,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private static final Field MISSING_PROPERTY_GET_METHOD;
     private static final Field MISSING_PROPERTY_SET_METHOD;
     private static final Field MISSING_METHOD_METHOD;
-    private final Object bean;
-    private final boolean includeProperties;
-    private final MetaClassAdapter delegate;
-    private final boolean implementsMissing;
-    @Nullable
-    private final Class<?> publicType;
-
-    private final MethodArgumentsTransformer argsTransformer;
-    private final PropertySetTransformer propertySetTransformer;
-
-    private BeanDynamicObject withNoProperties;
-    private BeanDynamicObject withNoImplementsMissing;
+    private static final MethodHandle ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD;
 
     static {
         try {
@@ -91,6 +80,30 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
+    static {
+        try {
+            Class<?> metaClassHelperClass = Class.forName("org.gradle.internal.classpath.InstrumentedGroovyMetaClassHelper");
+            ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD = MethodHandles.lookup().findStatic(metaClassHelperClass, "addInvocationHooksToMetaClassIfInstrumented", MethodType.methodType(void.class, Class.class, String.class));
+        } catch (NoSuchMethodException e) {
+            throw new NoSuchMethodError(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessError(e.getMessage());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final Object bean;
+    private final boolean includeProperties;
+    private final MetaClassAdapter delegate;
+    private final boolean implementsMissing;
+    @Nullable
+    private final Class<?> publicType;
+    private final MethodArgumentsTransformer argsTransformer;
+    private final PropertySetTransformer propertySetTransformer;
+    private BeanDynamicObject withNoProperties;
+    private BeanDynamicObject withNoImplementsMissing;
 
     public BeanDynamicObject(Object bean) {
         this(bean, null, true, true, StringToEnumTransformer.INSTANCE, StringToEnumTransformer.INSTANCE);
@@ -111,21 +124,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this.propertySetTransformer = propertySetTransformer;
         this.argsTransformer = methodArgumentsTransformer;
         this.delegate = determineDelegate(bean);
-    }
-
-    private static final MethodHandle ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD;
-
-    static {
-        try {
-            Class<?> metaClassHelperClass = Class.forName("org.gradle.internal.classpath.InstrumentedGroovyMetaClassHelper");
-            ADD_INVOCATION_HOOKS_TO_META_CLASS_METHOD = MethodHandles.lookup().findStatic(metaClassHelperClass, "addInvocationHooksToMetaClassIfInstrumented", MethodType.methodType(void.class, Class.class, String.class));
-        } catch (NoSuchMethodException e) {
-            throw new NoSuchMethodError(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new IllegalAccessError(e.getMessage());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public MetaClassAdapter determineDelegate(Object bean) {
@@ -175,7 +173,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     @Override
     public boolean hasUsefulDisplayName() {
         if (bean instanceof ModelObject) {
-            return ((ModelObject)bean).hasUsefulDisplayName();
+            return ((ModelObject) bean).hasUsefulDisplayName();
         }
         return !JavaPropertyReflectionUtil.hasDefaultToString(bean);
     }

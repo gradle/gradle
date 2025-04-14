@@ -73,7 +73,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         classPathClassesDir = userHomeDir.file("caches/$version/groovy-dsl").listFiles().find { it.file("classes/cp_proj").isDirectory() }?.file("classes/cp_proj")
         def candidates = userHomeDir.file("caches/$version/groovy-dsl").listFiles().findAll { it.file("classes/proj").isDirectory() }
         // when there are multiple candidates, assume that a different entry to that used last time is the one required
-        def baseDir = candidates.size() == 1 ? candidates.first() : candidates.find {it !in visitedBaseDirs }
+        def baseDir = candidates.size() == 1 ? candidates.first() : candidates.find { it !in visitedBaseDirs }
         visitedBaseDirs.add(baseDir)
         classFile = baseDir.file("classes/proj/_BuildScript_.class")
     }

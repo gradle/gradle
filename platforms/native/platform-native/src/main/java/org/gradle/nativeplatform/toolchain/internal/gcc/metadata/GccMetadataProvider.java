@@ -58,17 +58,17 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
     private static final String FRAMEWORK_INCLUDE = " (framework directory)";
     private final GccCompilerType compilerType;
 
+    GccMetadataProvider(ExecActionFactory execActionFactory, GccCompilerType compilerType) {
+        super(execActionFactory);
+        this.compilerType = compilerType;
+    }
+
     public static GccMetadataProvider forGcc(ExecActionFactory execActionFactory) {
         return new GccMetadataProvider(execActionFactory, GccCompilerType.GCC);
     }
 
     public static GccMetadataProvider forClang(ExecActionFactory execActionFactory) {
         return new GccMetadataProvider(execActionFactory, GccCompilerType.CLANG);
-    }
-
-    GccMetadataProvider(ExecActionFactory execActionFactory, GccCompilerType compilerType) {
-        super(execActionFactory);
-        this.compilerType = compilerType;
     }
 
     @Override

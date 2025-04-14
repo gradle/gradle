@@ -29,7 +29,9 @@ public interface ResolvedVersionConstraint {
     VersionSelector getRejectedSelector();
 
     boolean isRejectAll();
+
     boolean isDynamic();
+
     boolean isStrict();
 
     boolean accepts(String version);

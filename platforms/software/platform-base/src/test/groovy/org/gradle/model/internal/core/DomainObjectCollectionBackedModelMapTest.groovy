@@ -37,7 +37,7 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
         modelMap.create("alma")
 
         then:
-        1 * instantiator.create("alma", SomeType) >>  { new SomeType(name: "alma") }
+        1 * instantiator.create("alma", SomeType) >> { new SomeType(name: "alma") }
         1 * backingCollection.add({ item -> item.name == "alma" })
         1 * backingCollection.iterator() >> { Collections.emptyIterator() }
         0 * _
@@ -51,7 +51,7 @@ class DomainObjectCollectionBackedModelMapTest extends Specification {
         given:
         def backingCollection = new DefaultDomainObjectSet(SomeType, CollectionCallbackActionDecorator.NOOP)
         def instantiator = new DefaultPolymorphicNamedEntityInstantiator(SomeType, "the collection")
-        instantiator.registerFactory(SomeType, new NamedDomainObjectFactory<SomeType>(){
+        instantiator.registerFactory(SomeType, new NamedDomainObjectFactory<SomeType>() {
             SomeType create(String name) {
                 return new SomeType(name: name)
             }

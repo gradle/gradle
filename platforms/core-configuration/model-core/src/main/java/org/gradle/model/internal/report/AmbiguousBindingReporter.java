@@ -17,7 +17,9 @@
 package org.gradle.model.internal.report;
 
 import com.google.common.collect.ImmutableList;
+
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -43,28 +45,10 @@ public class AmbiguousBindingReporter {
     private final String referenceDescription;
     private final List<Provider> providers;
 
-    public static class Provider {
-        private final String description;
-        private final String path;
-
-        public Provider(String path, String description) {
-            this.description = description;
-            this.path = path;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getPath() {
-            return path;
-        }
-    }
-
     public AmbiguousBindingReporter(ModelReference<?> reference, ModelPath path1, ModelRuleDescriptor creator1, ModelPath path2, ModelRuleDescriptor creator2) {
         this(reference.getType().toString(), reference.getDescription(), ImmutableList.of(
-                new Provider(String.valueOf(path1), String.valueOf(creator1)),
-                new Provider(String.valueOf(path2), String.valueOf(creator2))
+            new Provider(String.valueOf(path1), String.valueOf(creator1)),
+            new Provider(String.valueOf(path2), String.valueOf(creator2))
         ));
     }
 
@@ -103,6 +87,24 @@ public class AmbiguousBindingReporter {
             writer.print(provider.getDescription());
             writer.print(")");
             first = false;
+        }
+    }
+
+    public static class Provider {
+        private final String description;
+        private final String path;
+
+        public Provider(String path, String description) {
+            this.description = description;
+            this.path = path;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getPath() {
+            return path;
         }
     }
 

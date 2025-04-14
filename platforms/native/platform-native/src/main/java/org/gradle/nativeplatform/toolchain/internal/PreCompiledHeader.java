@@ -47,15 +47,15 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         return pchObjects == null ? null : pchObjects.getSingleFile();
     }
 
-    public void setPchObjects(FileCollection pchObjects) {
-        this.pchObjects = pchObjects;
-    }
-
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.ABSOLUTE)
     @InputFiles
     public FileCollection getPchObjects() {
         return pchObjects;
+    }
+
+    public void setPchObjects(FileCollection pchObjects) {
+        this.pchObjects = pchObjects;
     }
 
     @Nullable
@@ -70,7 +70,9 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         this.prefixHeaderFile = prefixHeaderFile;
     }
 
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getIncludeString() {
         return includeString;
     }

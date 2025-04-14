@@ -29,6 +29,7 @@ public interface VersionCatalogsExtension extends Iterable<VersionCatalog> {
 
     /**
      * Tries to find a catalog with the corresponding name
+     *
      * @param name the name of the catalog
      */
     Optional<VersionCatalog> find(String name);

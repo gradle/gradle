@@ -20,13 +20,15 @@ import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
-@ToolingModelContract(subTypes = [
-    SchemaMemberFunction::class,
+@ToolingModelContract(
+    subTypes = [
+        SchemaMemberFunction::class,
         DataBuilderFunction::class,
         DataMemberFunction::class,
-    DataTopLevelFunction::class,
-    DataConstructor::class
-])
+        DataTopLevelFunction::class,
+        DataConstructor::class
+    ]
+)
 sealed interface SchemaFunction : Serializable {
     val simpleName: String
     val semantics: FunctionSemantics

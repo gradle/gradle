@@ -21,6 +21,7 @@ import java.util.Optional;
 
 public interface DependencyAttributesValidator {
     String getSuppressor();
+
     String getExplanation();
 
     Optional<String> validationErrorFor(String group, String name, AttributeContainer attributes);

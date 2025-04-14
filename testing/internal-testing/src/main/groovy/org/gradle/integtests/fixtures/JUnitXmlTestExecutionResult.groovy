@@ -110,7 +110,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
 
         Map<String, File> classes = [:]
         testResultsDir.eachFile { File file ->
-            def matcher = (file.name=~/TEST-(.+)\.xml/)
+            def matcher = (file.name =~ /TEST-(.+)\.xml/)
             if (matcher.matches()) {
                 classes[fromFileToTestClass(file)] = file
             }

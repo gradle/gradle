@@ -364,10 +364,6 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             this.excludeClass = excludeClass;
         }
 
-        public <T extends ExcludeSpec> List<T> fromMap(Map<UnionOf, List<ExcludeSpec>> from) {
-            return Cast.uncheckedCast(from.getOrDefault(this, Collections.emptyList()));
-        }
-
         public static UnionOf typeOf(ExcludeSpec spec) {
             for (UnionOf unionOf : UnionOf.values()) {
                 if (unionOf.excludeClass.isInstance(spec)) {
@@ -375,6 +371,10 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                 }
             }
             return null;
+        }
+
+        public <T extends ExcludeSpec> List<T> fromMap(Map<UnionOf, List<ExcludeSpec>> from) {
+            return Cast.uncheckedCast(from.getOrDefault(this, Collections.emptyList()));
         }
     }
 

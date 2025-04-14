@@ -51,9 +51,9 @@ public class DefaultGradleModuleVersion implements GradleModuleVersion, Serializ
     @Override
     public String toString() {
         return "GradleModuleVersion{"
-                 + "group='" + group + '\''
-                 + ", name='" + name + '\''
-                 + ", version='" + version + '\''
-                 + '}';
+            + "group='" + group + '\''
+            + ", name='" + name + '\''
+            + ", version='" + version + '\''
+            + '}';
     }
 }

@@ -22,7 +22,8 @@ import org.junit.Rule
 import spock.lang.Issue
 
 class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpec {
-    @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
+    @Rule
+    ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
     @Issue('GRADLE-3534')
     def "configures only requested projects when the #plugin plugin is applied"() {

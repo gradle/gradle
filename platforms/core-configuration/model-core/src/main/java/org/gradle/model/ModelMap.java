@@ -161,6 +161,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * <li>input by-path bindings are of inner scope</li>
      * <li>input by-type bindings are of outer scope</li>
      * </ul>
+     *
      * @param name The name.
      * @param ruleSource A rule source class.
      */

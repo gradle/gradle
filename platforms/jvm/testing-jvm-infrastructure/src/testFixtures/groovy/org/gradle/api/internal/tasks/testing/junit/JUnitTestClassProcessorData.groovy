@@ -273,19 +273,33 @@ public class ATestClassWhichCannotBeLoaded {
         throw new NoClassDefFoundError()
     }
 
-    @Test public void pass() {}
+    @Test
+    public void pass() {}
 }
 
 public class ATestClassWithSeveralMethods {
-    @Test public void pass() {}
-    @Test public void pass2() {}
-    @Test public void passSlowly() {}
-    @Test public void passSlowly2() {}
-    @Test public void fail() { throw new RuntimeException("Boo!") }
+    @Test
+    public void pass() {}
+
+    @Test
+    public void pass2() {}
+
+    @Test
+    public void passSlowly() {}
+
+    @Test
+    public void passSlowly2() {}
+
+    @Test
+    public void fail() { throw new RuntimeException("Boo!") }
 }
+
 public class ATestClassWithSlowMethods {
-    @Test public void pass() {}
-    @Test public void passSlowly() {}
+    @Test
+    public void pass() {}
+
+    @Test
+    public void passSlowly() {}
 }
 
 @RunWith(Suite.class)
@@ -317,8 +331,11 @@ public class AParameterizedTest {
 
     public AParameterizedTest(Integer parameter) {}
 
-    @Test public void helpfulTest() {}
-    @Test public void unhelpfulTest() {}
+    @Test
+    public void helpfulTest() {}
+
+    @Test
+    public void unhelpfulTest() {}
 }
 
 @RunWith(Parameterized.class)
@@ -330,6 +347,9 @@ public class AnEmptyParameterizedTest {
 
     public AnEmptyParameterizedTest(Integer parameter) {}
 
-    @Test public void helpfulTest() {}
-    @Test public void unhelpfulTest() {}
+    @Test
+    public void helpfulTest() {}
+
+    @Test
+    public void unhelpfulTest() {}
 }

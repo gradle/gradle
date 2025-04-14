@@ -101,7 +101,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             dependencyNotation = "${dependencyNotation}, ext: '${sq(params.ext)}'"
         }
 
-        def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
+        def externalRepo = requiresExternalDependencies ? mavenCentralRepositoryDefinition() : ''
         def optional = params.optionalFeatureCapabilities.collect {
             "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
         }.join('\n')
@@ -116,8 +116,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
                 maven {
                     url = "${mavenRepo.uri}"
                     metadataSources {
-                        ${params.resolveModuleMetadata?'gradleMetadata':'mavenPom'}()
-                        ${params.resolveModuleMetadata?'':'ignoreGradleMetadataRedirection()'}
+                        ${params.resolveModuleMetadata ? 'gradleMetadata' : 'mavenPom'}()
+                        ${params.resolveModuleMetadata ? '' : 'ignoreGradleMetadataRedirection()'}
                     }
                 }
                 ${externalRepo}
@@ -192,7 +192,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
                 expectFailure: !expectationSpec.expectSuccess,
                 optionalFeatureCapabilities: optionalFeatureCapabilities,
             )
-            println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
+            println "Checking ${additionalArtifacts ? 'additional artifacts' : 'artifacts'} when resolving ${withModuleMetadata ? 'with' : 'without'} Gradle module metadata"
             def resolutionResult = test.doResolveArtifacts(params)
             expectationSpec.with {
                 if (expectSuccess) {

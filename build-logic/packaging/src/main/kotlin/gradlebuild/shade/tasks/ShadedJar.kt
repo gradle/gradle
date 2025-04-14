@@ -44,12 +44,15 @@ abstract class ShadedJar : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
     abstract val relocatedClassesConfiguration: ConfigurableFileCollection
+
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputFiles
     abstract val classTreesConfiguration: ConfigurableFileCollection
+
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputFiles
     abstract val entryPointsConfiguration: ConfigurableFileCollection
+
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputFiles
     abstract val manifests: ConfigurableFileCollection

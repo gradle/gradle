@@ -25,13 +25,15 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class ResolveArtifactsBuildOperationType implements BuildOperationType<ResolveArtifactsBuildOperationType.Details, ResolveArtifactsBuildOperationType.Result> {
 
+    private ResolveArtifactsBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
          * This method is not called on the Develocity side, at least in DV plugin &gt;= 3.0.
          *
          * @return An empty string.
-         *
          * @deprecated This method will be removed in Gradle 9.0
          */
         @Deprecated
@@ -41,9 +43,6 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
 
     public interface Result {
 
-    }
-
-    private ResolveArtifactsBuildOperationType() {
     }
 
 }

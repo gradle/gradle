@@ -31,11 +31,11 @@ class TaskNameComparatorTest extends Specification {
         comparator.compare(second, second) == 0
 
         where:
-        first | second
-        ':t1' | ':t2'
+        first   | second
+        ':t1'   | ':t2'
         ':a:t1' | ':a:t2'
         ':a:t1' | ':a1:t1'
-        ':t1' | ':a:t2'
+        ':t1'   | ':a:t2'
         ':b:t2' | ':b:c:t2'
     }
 }

@@ -23,9 +23,6 @@ import javax.inject.Inject;
 
 public abstract class GradlePropertyValueSource extends AbstractPropertyValueSource<GradlePropertyValueSource.Parameters> {
 
-    public interface Parameters extends AbstractPropertyValueSource.Parameters {
-    }
-
     @Inject
     protected abstract GradleProperties getGradleProperties();
 
@@ -42,5 +39,8 @@ public abstract class GradlePropertyValueSource extends AbstractPropertyValueSou
     @Override
     public String getDisplayName() {
         return String.format("Gradle property '%s'", propertyNameOrNull());
+    }
+
+    public interface Parameters extends AbstractPropertyValueSource.Parameters {
     }
 }

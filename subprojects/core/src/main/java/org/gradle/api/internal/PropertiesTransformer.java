@@ -32,6 +32,7 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
 
     /**
      * Adds an action to be executed when properties are transformed.
+     *
      * @param action the action to add
      */
     public void addAction(Action<? super Properties> action) {
@@ -41,6 +42,7 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
     /**
      * Transforms a properties object.  This will modify the
      * original.
+     *
      * @param original the properties to transform
      * @return the transformed properties
      */
@@ -52,6 +54,7 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
     /**
      * Transforms a properties object and write them out to a stream.
      * This will modify the original properties.
+     *
      * @param original the properties to transform
      * @param destination the stream to write the properties to
      */
@@ -66,6 +69,7 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
     /**
      * Transforms a properties object.  This will modify the
      * original.
+     *
      * @param original the properties to transform
      * @return the transformed properties
      */

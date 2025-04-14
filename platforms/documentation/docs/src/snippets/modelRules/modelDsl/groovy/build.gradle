@@ -1,15 +1,18 @@
 @Managed
 interface Address {
     String getCity()
+
     void setCity(String city)
 }
 
 @Managed
 interface Person {
     String getFirstName()
+
     void setFirstName(String n)
 
     String getLastName()
+
     void setLastName(String n)
 
     Address getAddress()

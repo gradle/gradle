@@ -27,6 +27,12 @@ public class Trie implements Comparable<Trie> {
     private final boolean terminal;
     private final Trie[] transitions;
 
+    private Trie(char c, boolean terminal, Trie[] transitions) {
+        this.c = c;
+        this.terminal = terminal;
+        this.transitions = transitions;
+    }
+
     public static Trie from(String... words) {
         return from(Arrays.asList(words));
     }
@@ -41,12 +47,6 @@ public class Trie implements Comparable<Trie> {
 
     public static Builder builder() {
         return new Trie.Builder();
-    }
-
-    private Trie(char c, boolean terminal, Trie[] transitions) {
-        this.c = c;
-        this.terminal = terminal;
-        this.transitions = transitions;
     }
 
     @Override

@@ -28,13 +28,13 @@ public class DefaultFileLocation implements FileLocation, Serializable {
         this.path = path;
     }
 
+    public static FileLocation from(String path) {
+        return new DefaultFileLocation(path);
+    }
+
     @Override
     public String getPath() {
         return path;
-    }
-
-    public static FileLocation from(String path) {
-        return new DefaultFileLocation(path);
     }
 
     @Override

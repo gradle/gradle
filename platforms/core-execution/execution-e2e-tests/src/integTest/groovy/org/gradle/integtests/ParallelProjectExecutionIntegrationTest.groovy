@@ -22,10 +22,12 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 
-@Requires(IntegTestPreconditions.NotParallelExecutor) // no point, always runs in parallel
+@Requires(IntegTestPreconditions.NotParallelExecutor)
+// no point, always runs in parallel
 public class ParallelProjectExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule
+    public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         blockingServer.start()

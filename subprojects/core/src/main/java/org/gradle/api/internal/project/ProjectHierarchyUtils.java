@@ -28,7 +28,6 @@ public class ProjectHierarchyUtils {
      *
      * @param thisProject the project to get the children from. Expected to be {@link ProjectInternal}.
      * @return the collection of the child projects
-     *
      * @see Project#getChildProjects()
      * @see ProjectInternal#getChildProjectsUnchecked()
      */

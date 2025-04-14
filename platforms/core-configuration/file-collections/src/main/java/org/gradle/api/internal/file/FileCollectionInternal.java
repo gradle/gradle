@@ -28,6 +28,11 @@ import java.util.function.Supplier;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
     String DEFAULT_COLLECTION_DISPLAY_NAME = "file collection";
+    /**
+     * An opaque source of files.
+     */
+    Source OTHER = new Source() {
+    };
 
     @Override
     FileCollectionInternal filter(Spec<? super File> filterSpec);
@@ -74,10 +79,4 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
      */
     interface Source {
     }
-
-    /**
-     * An opaque source of files.
-     */
-    Source OTHER = new Source() {
-    };
 }

@@ -1,4 +1,4 @@
-logger.lifecycle ("Hello from the custom Gradle distribution")
+logger.lifecycle("Hello from the custom Gradle distribution")
 
 gradle.projectsLoaded { Gradle gradle ->
     gradle.allprojects {

@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Implementations of this type should be immutable and thread safe.</p>
  *
  * This type is being replaced by several other interfaces. Try to avoid this interface.
+ *
  * @see ComponentGraphResolveMetadata
  * @see ExternalModuleComponentGraphResolveMetadata
  * @see ComponentArtifactResolveMetadata

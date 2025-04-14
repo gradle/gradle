@@ -32,8 +32,74 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final boolean verboseLogging;
     private final File distributionBaseDir;
 
+    private DefaultConnectionParameters(
+        File projectDir, File gradleUserHomeDir, Boolean embedded,
+        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
+        boolean verboseLogging, Boolean searchUpwards, File distributionBaseDir
+    ) {
+        this.projectDir = projectDir;
+        this.gradleUserHomeDir = gradleUserHomeDir;
+        this.embedded = embedded;
+        this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
+        this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
+        this.daemonBaseDir = daemonBaseDir;
+        this.verboseLogging = verboseLogging;
+        this.searchUpwards = searchUpwards;
+        this.distributionBaseDir = distributionBaseDir;
+    }
+
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public File getProjectDir() {
+        return projectDir;
+    }
+
+    @Override
+    public File getDaemonBaseDir() {
+        return daemonBaseDir;
+    }
+
+    @Override
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
+    }
+
+    @Override
+    public Boolean isEmbedded() {
+        return embedded;
+    }
+
+    @Override
+    public Integer getDaemonMaxIdleTimeValue() {
+        return daemonMaxIdleTimeValue;
+    }
+
+    @Override
+    public TimeUnit getDaemonMaxIdleTimeUnits() {
+        return daemonMaxIdleTimeUnits;
+    }
+
+    @Override
+    public String getConsumerVersion() {
+        return GradleVersion.current().getVersion();
+    }
+
+    @Override
+    public boolean getVerboseLogging() {
+        return verboseLogging;
+    }
+
+    @Override
+    public Boolean isSearchUpwards() {
+        return searchUpwards;
+    }
+
+    @Override
+    public File getDistributionBaseDir() {
+        return distributionBaseDir;
     }
 
     public static class Builder {
@@ -97,69 +163,5 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         public DefaultConnectionParameters build() {
             return new DefaultConnectionParameters(projectDir, gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, searchUpwards, distributionBaseDir);
         }
-    }
-
-    private DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean embedded,
-                                        Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                        boolean verboseLogging, Boolean searchUpwards, File distributionBaseDir) {
-        this.projectDir = projectDir;
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        this.embedded = embedded;
-        this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
-        this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
-        this.daemonBaseDir = daemonBaseDir;
-        this.verboseLogging = verboseLogging;
-        this.searchUpwards = searchUpwards;
-        this.distributionBaseDir = distributionBaseDir;
-    }
-
-    @Override
-    public File getProjectDir() {
-        return projectDir;
-    }
-
-    @Override
-    public File getDaemonBaseDir() {
-        return daemonBaseDir;
-    }
-
-    @Override
-    public File getGradleUserHomeDir() {
-        return gradleUserHomeDir;
-    }
-
-    @Override
-    public Boolean isEmbedded() {
-        return embedded;
-    }
-
-    @Override
-    public Integer getDaemonMaxIdleTimeValue() {
-        return daemonMaxIdleTimeValue;
-    }
-
-    @Override
-    public TimeUnit getDaemonMaxIdleTimeUnits() {
-        return daemonMaxIdleTimeUnits;
-    }
-
-    @Override
-    public String getConsumerVersion() {
-        return GradleVersion.current().getVersion();
-    }
-
-    @Override
-    public boolean getVerboseLogging() {
-        return verboseLogging;
-    }
-
-    @Override
-    public Boolean isSearchUpwards() {
-        return searchUpwards;
-    }
-
-    @Override
-    public File getDistributionBaseDir() {
-        return distributionBaseDir;
     }
 }

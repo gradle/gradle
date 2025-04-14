@@ -188,40 +188,12 @@ public class GradlePomModuleDescriptorBuilder {
      * @param type Type
      */
     private String getClassifierForType(String type) {
-        if(JarDependencyType.TEST_JAR.getName().equals(type)) {
+        if (JarDependencyType.TEST_JAR.getName().equals(type)) {
             return "tests";
-        } else if(JarDependencyType.EJB_CLIENT.getName().equals(type)) {
+        } else if (JarDependencyType.EJB_CLIENT.getName().equals(type)) {
             return "client";
         }
         return null;
-    }
-
-    private enum JarDependencyType {
-        TEST_JAR("test-jar"), EJB_CLIENT("ejb-client"), EJB("ejb"), BUNDLE("bundle"), MAVEN_PLUGIN("maven-plugin"), ECLIPSE_PLUGIN("eclipse-plugin");
-
-        private static final Map<String, JarDependencyType> TYPES;
-
-        static {
-            TYPES = new HashMap<>();
-
-            for(JarDependencyType type : values()) {
-                TYPES.put(type.name, type);
-            }
-        }
-
-        private final String name;
-
-        private JarDependencyType(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public static boolean isJarExtension(String type) {
-            return TYPES.containsKey(type);
-        }
     }
 
     /**
@@ -280,5 +252,33 @@ public class GradlePomModuleDescriptorBuilder {
 
     private PomDependencyMgt findDependencyDefault(PomDependencyMgt dependency) {
         return pomReader.findDependencyDefaults(dependency.getId());
+    }
+
+    private enum JarDependencyType {
+        TEST_JAR("test-jar"), EJB_CLIENT("ejb-client"), EJB("ejb"), BUNDLE("bundle"), MAVEN_PLUGIN("maven-plugin"), ECLIPSE_PLUGIN("eclipse-plugin");
+
+        private static final Map<String, JarDependencyType> TYPES;
+
+        static {
+            TYPES = new HashMap<>();
+
+            for (JarDependencyType type : values()) {
+                TYPES.put(type.name, type);
+            }
+        }
+
+        private final String name;
+
+        private JarDependencyType(String name) {
+            this.name = name;
+        }
+
+        public static boolean isJarExtension(String type) {
+            return TYPES.containsKey(type);
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 }

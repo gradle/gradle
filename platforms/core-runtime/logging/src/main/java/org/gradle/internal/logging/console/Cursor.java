@@ -26,6 +26,25 @@ public class Cursor {
     int col; // count from left of screen, 0 = left most
     int row; // count from bottom of screen, 0 = bottom most, 1 == 2nd from bottom
 
+    public static Cursor at(int row, int col) {
+        Cursor result = new Cursor();
+        result.row = row;
+        result.col = col;
+        return result;
+    }
+
+    public static Cursor newBottomLeft() {
+        Cursor result = new Cursor();
+        result.bottomLeft();
+        return result;
+    }
+
+    public static Cursor from(Cursor position) {
+        Cursor result = new Cursor();
+        result.copyFrom(position);
+        return result;
+    }
+
     @SuppressWarnings("ReferenceEquality")
     public void copyFrom(Cursor position) {
         if (position == this) {
@@ -67,24 +86,5 @@ public class Cursor {
             .add("row", row)
             .add("col", col)
             .toString();
-    }
-
-    public static Cursor at(int row, int col) {
-        Cursor result = new Cursor();
-        result.row = row;
-        result.col = col;
-        return result;
-    }
-
-    public static Cursor newBottomLeft() {
-        Cursor result = new Cursor();
-        result.bottomLeft();
-        return result;
-    }
-
-    public static Cursor from(Cursor position) {
-        Cursor result = new Cursor();
-        result.copyFrom(position);
-        return result;
     }
 }

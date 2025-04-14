@@ -31,12 +31,12 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
 
     private static final NoOpDependencyLockingProvider INSTANCE = new NoOpDependencyLockingProvider();
 
-    public static DependencyLockingProvider getInstance() {
-        return INSTANCE;
-    }
-
     private NoOpDependencyLockingProvider() {
         // Prevent construction
+    }
+
+    public static DependencyLockingProvider getInstance() {
+        return INSTANCE;
     }
 
     @Override

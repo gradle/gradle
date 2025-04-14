@@ -46,6 +46,7 @@ public class TypeInspectorTestHelper {
 
     interface GenericThing {
         Item3[] method1(String p);
+
         List<Item5>[] method2(String p);
     }
 
@@ -59,6 +60,7 @@ public class TypeInspectorTestHelper {
 
     interface Child {
         Parent getParent();
+
         Child getNextSibling();
     }
 
@@ -68,7 +70,7 @@ public class TypeInspectorTestHelper {
     interface GenericItem2<T> {
     }
 
-    interface  GenericChild<T extends GenericItem1<? extends T>> extends GenericItem1<T> {
+    interface GenericChild<T extends GenericItem1<? extends T>> extends GenericItem1<T> {
         <U extends GenericItem2<? super U>> void method(GenericItem2<U> p);
     }
 }

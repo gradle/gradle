@@ -20,7 +20,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DistributionInitScriptFinderTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final def distDir = tmpDir.createDir("gradle-home")
     final DistributionInitScriptFinder finder = new DistributionInitScriptFinder(distDir)
 

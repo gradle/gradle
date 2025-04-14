@@ -73,8 +73,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
                     doLast { conf.files }
                 }
             """
-        }
-        else if (dsl == 'kotlin') {
+        } else if (dsl == 'kotlin') {
             return """
                 configurations { create("conf") }
                 repositories { maven { url = uri("${mavenRepo.uri}") } }

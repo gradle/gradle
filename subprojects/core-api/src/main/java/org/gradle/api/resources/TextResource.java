@@ -59,7 +59,6 @@ public interface TextResource extends Buildable {
      * returned. Otherwise, a temporary file will be created and returned.
      *
      * @param charset a character encoding (e.g. {@code "utf-8"})
-     *
      * @return a file containing the resource's text and using the given character encoding
      */
     File asFile(String charset);

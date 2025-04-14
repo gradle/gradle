@@ -28,21 +28,6 @@ import org.gradle.platform.base.BinaryTasksCollection;
 public interface NativeExecutableBinarySpec extends NativeBinarySpec, ApplicationBinarySpec {
 
     /**
-     * Provides access to key tasks used for building the binary.
-     */
-    interface TasksCollection extends BinaryTasksCollection {
-        /**
-         * The link task.
-         */
-        Task getLink();
-
-        /**
-         * The install task.
-         */
-        Task getInstall();
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -69,4 +54,19 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
      */
     @Override
     TasksCollection getTasks();
+
+    /**
+     * Provides access to key tasks used for building the binary.
+     */
+    interface TasksCollection extends BinaryTasksCollection {
+        /**
+         * The link task.
+         */
+        Task getLink();
+
+        /**
+         * The install task.
+         */
+        Task getInstall();
+    }
 }

@@ -28,10 +28,8 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     private final String name;
     private final Class<? extends Credentials> supportedCredentialType;
     private final Class<? extends Authentication> type;
-
-    private Credentials credentials;
-
     private final Set<HostAndPort> hosts;
+    private Credentials credentials;
 
     public AbstractAuthentication(String name, Class<? extends Authentication> type) {
         this(name, type, null);
@@ -115,7 +113,7 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
             }
             DefaultHostAndPort that = (DefaultHostAndPort) o;
             return getPort() == that.getPort() &&
-                    Objects.equals(getHost(), that.getHost());
+                Objects.equals(getHost(), that.getHost());
         }
 
         @Override

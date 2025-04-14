@@ -42,15 +42,15 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
         ComponentSelector requested = dependency.getRequested();
         ComponentSelector attempted = dependency.getAttempted();
 
-        if(requested.equals(attempted)) {
+        if (requested.equals(attempted)) {
             return requested.getDisplayName();
         }
 
-        if(requested instanceof ModuleComponentSelector && attempted instanceof ModuleComponentSelector) {
-            ModuleComponentSelector requestedSelector = (ModuleComponentSelector)requested;
-            ModuleComponentSelector attemptedSelector = (ModuleComponentSelector)attempted;
+        if (requested instanceof ModuleComponentSelector && attempted instanceof ModuleComponentSelector) {
+            ModuleComponentSelector requestedSelector = (ModuleComponentSelector) requested;
+            ModuleComponentSelector attemptedSelector = (ModuleComponentSelector) attempted;
 
-            if(requestedSelector.getGroup().equals(attemptedSelector.getGroup())
+            if (requestedSelector.getGroup().equals(attemptedSelector.getGroup())
                 && requestedSelector.getModule().equals(attemptedSelector.getModule())) {
 
                 return requested.getDisplayName() + " -> " + attemptedSelector.getVersionConstraint().getDisplayName();

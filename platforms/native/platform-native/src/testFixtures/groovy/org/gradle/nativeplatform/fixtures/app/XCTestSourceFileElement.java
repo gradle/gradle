@@ -75,7 +75,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
     @Override
     public SourceFile getSourceFile() {
         return sourceFile("swift", getTestSuiteName() + ".swift",
-                renderImports()
+            renderImports()
                 + "\n"
                 + "class " + getTestSuiteName() + ": XCTestCase {\n"
                 + "    " + renderTestCases() + "\n"

@@ -21,5 +21,6 @@ import java.io.InputStream;
 
 public interface DataSource extends DataItem {
     InputStream openInput() throws IOException;
+
     long getLength() throws IOException;
 }

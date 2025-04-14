@@ -8,6 +8,7 @@ import org.gradle.api.tasks.Nested;
  */
 public interface ExampleExtension {
     // tag::dependencies-accessors[]
+
     /**
      * Custom dependencies for this extension.
      */

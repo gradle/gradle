@@ -34,9 +34,9 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
     private final Method globalClassSetIteratorMethod;
     private final Object globalClassValue;
     private final Object globalClassSetItems;
+    private final ClassLoader leakingLoader;
     private Field clazzField;
     private Field classRefField;
-    private final ClassLoader leakingLoader;
 
     public ClassInfoCleaningGroovySystemLoader(ClassLoader leakingLoader) throws Exception {
         this.leakingLoader = leakingLoader;

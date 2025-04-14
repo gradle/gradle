@@ -27,11 +27,11 @@ import java.util.Map;
 
 public class DefaultGradlePropertiesController implements GradlePropertiesController {
 
-    private State state = new NotLoaded();
     private final GradleProperties sharedGradleProperties = new SharedGradleProperties();
     private final IGradlePropertiesLoader propertiesLoader;
     private final SystemPropertiesInstaller systemPropertiesInstaller;
     private final ProjectPropertiesLoader projectPropertiesLoader;
+    private State state = new NotLoaded();
 
     public DefaultGradlePropertiesController(IGradlePropertiesLoader propertiesLoader, SystemPropertiesInstaller systemPropertiesInstaller, ProjectPropertiesLoader projectPropertiesLoader) {
         this.propertiesLoader = propertiesLoader;
@@ -58,29 +58,6 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         state = state.overrideWith(gradleProperties);
     }
 
-    private class SharedGradleProperties implements GradleProperties {
-
-        @Nullable
-        @Override
-        public Object find(String propertyName) {
-            return gradleProperties().find(propertyName);
-        }
-
-        @Override
-        public Map<String, Object> mergeProperties(Map<String, Object> properties) {
-            return gradleProperties().mergeProperties(properties);
-        }
-
-        @Override
-        public Map<String, Object> getProperties() {
-            return gradleProperties().getProperties();
-        }
-
-        private GradleProperties gradleProperties() {
-            return state.gradleProperties();
-        }
-    }
-
     private interface State {
 
         GradleProperties gradleProperties();
@@ -88,32 +65,6 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties);
 
         State overrideWith(GradleProperties gradleProperties);
-    }
-
-    private class NotLoaded implements State {
-
-        @Override
-        public GradleProperties gradleProperties() {
-            throw new IllegalStateException("GradleProperties has not been loaded yet.");
-        }
-
-        @Override
-        public State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
-            MutableGradleProperties loadedProperties = propertiesLoader.loadGradleProperties(settingsDir);
-
-            if (setSystemProperties) {
-                systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties);
-            }
-
-            Map<String, Object> projectProperties = projectPropertiesLoader.loadProjectProperties();
-            loadedProperties.updateOverrideProperties(projectProperties);
-            return new Loaded(loadedProperties, settingsDir);
-        }
-
-        @Override
-        public State overrideWith(GradleProperties gradleProperties) {
-            return new Overridden(gradleProperties);
-        }
     }
 
     private static class Loaded implements State {
@@ -166,6 +117,55 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         @Override
         public State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
             throw new IllegalStateException();
+        }
+
+        @Override
+        public State overrideWith(GradleProperties gradleProperties) {
+            return new Overridden(gradleProperties);
+        }
+    }
+
+    private class SharedGradleProperties implements GradleProperties {
+
+        @Nullable
+        @Override
+        public Object find(String propertyName) {
+            return gradleProperties().find(propertyName);
+        }
+
+        @Override
+        public Map<String, Object> mergeProperties(Map<String, Object> properties) {
+            return gradleProperties().mergeProperties(properties);
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return gradleProperties().getProperties();
+        }
+
+        private GradleProperties gradleProperties() {
+            return state.gradleProperties();
+        }
+    }
+
+    private class NotLoaded implements State {
+
+        @Override
+        public GradleProperties gradleProperties() {
+            throw new IllegalStateException("GradleProperties has not been loaded yet.");
+        }
+
+        @Override
+        public State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
+            MutableGradleProperties loadedProperties = propertiesLoader.loadGradleProperties(settingsDir);
+
+            if (setSystemProperties) {
+                systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties);
+            }
+
+            Map<String, Object> projectProperties = projectPropertiesLoader.loadProjectProperties();
+            loadedProperties.updateOverrideProperties(projectProperties);
+            return new Loaded(loadedProperties, settingsDir);
         }
 
         @Override

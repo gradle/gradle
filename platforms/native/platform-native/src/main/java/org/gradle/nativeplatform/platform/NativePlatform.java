@@ -49,6 +49,7 @@ public interface NativePlatform extends Platform, Describable {
      * <p>
      * The architecture is provided as a string name, which is translated into one of the supported architecture types.
      * </p>
+     *
      * @see Architecture Supported notations.
      */
     void architecture(String name);
@@ -65,6 +66,7 @@ public interface NativePlatform extends Platform, Describable {
      * <p>
      * The operating system is provided as a string name, which is translated into one of the supported operating system types.
      * </p>
+     *
      * @see OperatingSystem Supported notations.
      */
     void operatingSystem(String name);

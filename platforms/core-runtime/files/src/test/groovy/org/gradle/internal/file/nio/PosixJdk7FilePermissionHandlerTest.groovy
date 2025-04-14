@@ -24,7 +24,8 @@ import spock.lang.Specification
 
 @Requires(UnitTestPreconditions.NotWindows)
 class PosixJdk7FilePermissionHandlerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "test chmod on non windows platforms with JDK7"() {
         setup:

@@ -29,6 +29,20 @@ public class JavaMethod<T, R> {
     private final Method method;
     private final Class<R> returnType;
 
+    public JavaMethod(Class<T> target, Class<R> returnType, String name, boolean allowStatic, Class<?>... paramTypes) {
+        this(returnType, findMethod(target, name, allowStatic, paramTypes));
+    }
+
+    public JavaMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
+        this(target, returnType, name, false, paramTypes);
+    }
+
+    public JavaMethod(Class<R> returnType, Method method) {
+        this.returnType = returnType;
+        this.method = method;
+        method.setAccessible(true);
+    }
+
     /**
      * Locates the given method. Searches all methods, including private methods.
      */
@@ -57,20 +71,6 @@ public class JavaMethod<T, R> {
      */
     public static <T, R> JavaMethod<T, R> of(Class<R> returnType, Method method) throws NoSuchMethodException {
         return new JavaMethod<T, R>(returnType, method);
-    }
-
-    public JavaMethod(Class<T> target, Class<R> returnType, String name, boolean allowStatic, Class<?>... paramTypes) {
-        this(returnType, findMethod(target, name, allowStatic, paramTypes));
-    }
-
-    public JavaMethod(Class<T> target, Class<R> returnType, String name, Class<?>... paramTypes) {
-        this(target, returnType, name, false, paramTypes);
-    }
-
-    public JavaMethod(Class<R> returnType, Method method) {
-        this.returnType = returnType;
-        this.method = method;
-        method.setAccessible(true);
     }
 
     private static Method findMethod(Class<?> target, String name, boolean allowStatic, Class<?>[] paramTypes) {

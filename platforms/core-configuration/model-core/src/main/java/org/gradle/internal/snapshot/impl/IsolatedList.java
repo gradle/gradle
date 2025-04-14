@@ -57,7 +57,7 @@ public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements
     @Override
     public <S> S coerce(Class<S> type) {
         S result = null;
-        if  (List.class.isAssignableFrom(type)) {
+        if (List.class.isAssignableFrom(type)) {
             try {
                 result = type.getConstructor().newInstance();
                 for (Isolatable<?> element : elements) {

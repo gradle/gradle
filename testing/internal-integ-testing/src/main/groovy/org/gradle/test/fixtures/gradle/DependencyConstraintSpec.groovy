@@ -35,7 +35,7 @@ class DependencyConstraintSpec {
         version = v
         this.preferredVersion = preferredVersion
         this.strictVersion = strictVersion
-        rejects = r?:Collections.<String>emptyList()
+        rejects = r ?: Collections.<String> emptyList()
         reason = desc
         attributes = attrs
     }

@@ -34,10 +34,10 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 public class DefaultTextReportBuilder implements TextReportBuilder {
     public static final String SEPARATOR = "------------------------------------------------------------";
     public static final String INDENT = "    ";
+    private final FileResolver fileResolver;
     private int depth;
     private boolean hasTitledItems;
     private StyledTextOutput textOutput;
-    private final FileResolver fileResolver;
 
     public DefaultTextReportBuilder(StyledTextOutput textOutput, FileResolver fileResolver) {
         this.textOutput = textOutput;

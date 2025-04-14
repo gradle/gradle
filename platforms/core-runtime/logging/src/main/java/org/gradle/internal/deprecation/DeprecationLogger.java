@@ -283,7 +283,7 @@ public class DeprecationLogger {
         try {
             toUncheckedThrowingRunnable(runnable).run();
         } finally {
-           maybeEnable();
+            maybeEnable();
         }
     }
 
@@ -298,14 +298,6 @@ public class DeprecationLogger {
     private static boolean isEnabled() {
         // log deprecation messages only after the outermost whileDisabled finished execution
         return DISABLE_COUNT.get() == 0;
-    }
-
-    public interface ThrowingFactory<T, E extends Exception> {
-        T create() throws E;
-    }
-
-    public interface ThrowingRunnable<E extends Exception> {
-        void run() throws E;
     }
 
     /**
@@ -345,6 +337,14 @@ public class DeprecationLogger {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
     }
 
+    public interface ThrowingFactory<T, E extends Exception> {
+        T create() throws E;
+    }
+
+    public interface ThrowingRunnable<E extends Exception> {
+        void run() throws E;
+    }
+
     private static class ExplicitDeprecationMessageBuilder extends DeprecationMessageBuilder<ExplicitDeprecationMessageBuilder> {
         private final String feature;
 
@@ -355,7 +355,7 @@ public class DeprecationLogger {
 
         @Override
         DeprecationMessage build() {
-            if(problemId == null) {
+            if (problemId == null) {
                 setProblemId(createDefaultDeprecationId(feature));
             }
             return super.build();

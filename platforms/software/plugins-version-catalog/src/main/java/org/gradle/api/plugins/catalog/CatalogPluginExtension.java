@@ -28,6 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface CatalogPluginExtension {
     /**
      * Configures the version catalog.
+     *
      * @param spec the spec used to configure the dependencies
      */
     void versionCatalog(Action<? super VersionCatalogBuilder> spec);

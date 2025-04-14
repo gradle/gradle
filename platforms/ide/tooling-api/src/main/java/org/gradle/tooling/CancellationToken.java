@@ -26,6 +26,7 @@ package org.gradle.tooling;
 public interface CancellationToken {
     /**
      * Gets whether cancellation has been requested for this token.
+     *
      * @return Cancellation status.
      */
     boolean isCancellationRequested();

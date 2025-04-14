@@ -19,7 +19,7 @@ package org.gradle.api.problems
 
 import spock.lang.Specification
 
-class SeverityTest extends Specification{
+class SeverityTest extends Specification {
     def "severity toString() should be a capitalized word"() {
         expect:
         Severity.ERROR.toString() == "Error"

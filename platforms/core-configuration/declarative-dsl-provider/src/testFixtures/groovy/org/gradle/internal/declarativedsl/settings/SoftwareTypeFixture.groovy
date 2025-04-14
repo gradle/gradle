@@ -399,8 +399,8 @@ trait SoftwareTypeFixture {
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
 
                 @SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
-                                    .modelPublicType(publicTypeClassName)
-                                    .build()})
+            .modelPublicType(publicTypeClassName)
+            .build()})
                 abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
 
                 @Override
@@ -443,8 +443,8 @@ trait SoftwareTypeFixture {
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
 
                 @SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
-                                    .disableModelManagement(true)
-                                    .build()})
+            .disableModelManagement(true)
+            .build()})
                 abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
 
                 @Override

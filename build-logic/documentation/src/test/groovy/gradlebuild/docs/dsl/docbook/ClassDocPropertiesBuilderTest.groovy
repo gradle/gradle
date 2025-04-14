@@ -172,7 +172,7 @@ class ClassDocPropertiesBuilderTest extends XmlSpecification {
         def type = args.type instanceof TypeMetaData ? args.type : new TypeMetaData(args.type ?: 'org.gradle.Type')
         _ * property.type >> type
         _ * property.signature >> "$name-signature"
-        _ * javadocConverter.parse(property, !null) >> ({[parse("<para>${args.comment ?: 'comment'}</para>")]} as DocComment)
+        _ * javadocConverter.parse(property, !null) >> ({ [parse("<para>${args.comment ?: 'comment'}</para>")] } as DocComment)
         return property
     }
 

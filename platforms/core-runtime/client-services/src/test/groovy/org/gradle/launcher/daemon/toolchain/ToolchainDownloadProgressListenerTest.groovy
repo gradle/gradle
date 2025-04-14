@@ -103,7 +103,7 @@ class ToolchainDownloadProgressListenerTest extends Specification {
         progressListener.downloadStarted(uri, 4096, 50)
 
         when:
-        progressListener.downloadFailed(uri, new Exception("download failed"),4096, 100, 101)
+        progressListener.downloadFailed(uri, new Exception("download failed"), 4096, 100, 101)
 
         then:
         1 * progressLogger.completed("Failed to download toolchain $uri", true)

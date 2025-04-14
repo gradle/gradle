@@ -26,8 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 class ServiceAccess {
 
-    private ServiceAccess() {}
-
     private static final ServiceAccessScope PUBLIC = new ServiceAccessScope() {
         @Override
         public boolean contains(@Nullable ServiceAccessToken token) {
@@ -39,8 +37,9 @@ class ServiceAccess {
             return "Public";
         }
     };
-
     private static final AtomicInteger NEXT_ID = new AtomicInteger(0);
+
+    private ServiceAccess() {}
 
     /**
      * Creates a new unique token.

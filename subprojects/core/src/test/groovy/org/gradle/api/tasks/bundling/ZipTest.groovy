@@ -19,7 +19,7 @@ package org.gradle.api.tasks.bundling
 class ZipTest extends AbstractArchiveTaskTest {
     Zip zip
 
-    def setup()  {
+    def setup() {
         zip = createTask(Zip)
         configure(zip)
     }

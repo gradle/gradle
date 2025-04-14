@@ -30,12 +30,21 @@ import java.util.Map;
  */
 @ServiceScope(Scope.Build.class)
 public interface DynamicLookupRoutine {
-    @Nullable Object property(DynamicObject receiver, String propertyName) throws MissingPropertyException;
-    @Nullable Object findProperty(DynamicObject receiver, String propertyName);
+    @Nullable
+    Object property(DynamicObject receiver, String propertyName) throws MissingPropertyException;
+
+    @Nullable
+    Object findProperty(DynamicObject receiver, String propertyName);
+
     void setProperty(DynamicObject receiver, String name, @Nullable Object value);
+
     boolean hasProperty(DynamicObject receiver, String propertyName);
-    @Nullable Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver);
-    @Nullable Object invokeMethod(DynamicObject receiver, String name, Object... args);
+
+    @Nullable
+    Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver);
+
+    @Nullable
+    Object invokeMethod(DynamicObject receiver, String name, Object... args);
 
     DynamicInvokeResult tryGetProperty(DynamicObject receiver, String name);
 }

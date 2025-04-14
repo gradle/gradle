@@ -49,8 +49,8 @@ import java.util.Set;
  * for Java, which are usually published as BOM files (for Maven)
  * or Gradle platforms (Gradle metadata).
  *
- * @since 5.2
  * @see <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html">Java Platform plugin reference</a>
+ * @since 5.2
  */
 public abstract class JavaPlatformPlugin implements Plugin<Project> {
     // Dependency scopes

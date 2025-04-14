@@ -36,10 +36,10 @@ public interface JavaToolchainResolver extends BuildService<BuildServiceParamete
      * Returns a {@link JavaToolchainDownload} if a Java toolchain matching the provided
      * specification can be provided.
      *
-     * @param request   information about the toolchain needed and the environment it's
-     *                  needed in
-     * @return          empty Optional if and only if the provided specification can't be
-     *                  matched
+     * @param request information about the toolchain needed and the environment it's
+     * needed in
+     * @return empty Optional if and only if the provided specification can't be
+     * matched
      */
     Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request);
 

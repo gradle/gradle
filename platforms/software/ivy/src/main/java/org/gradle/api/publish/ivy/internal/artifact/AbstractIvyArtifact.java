@@ -45,36 +45,36 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return name != null ? name : getDefaultName();
     }
 
-    protected abstract String getDefaultName();
-
     @Override
     public void setName(String name) {
         this.name = Strings.nullToEmpty(name);
     }
+
+    protected abstract String getDefaultName();
 
     @Override
     public String getType() {
         return type != null ? type : getDefaultType();
     }
 
-    protected abstract String getDefaultType();
-
     @Override
     public void setType(String type) {
         this.type = Strings.nullToEmpty(type);
     }
+
+    protected abstract String getDefaultType();
 
     @Override
     public String getExtension() {
         return extension != null ? extension : getDefaultExtension();
     }
 
-    protected abstract String getDefaultExtension();
-
     @Override
     public void setExtension(String extension) {
         this.extension = Strings.nullToEmpty(extension);
     }
+
+    protected abstract String getDefaultExtension();
 
     @Nullable
     @Override
@@ -82,13 +82,13 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return Strings.emptyToNull(classifier != null ? classifier : getDefaultClassifier());
     }
 
-    @Nullable
-    protected abstract String getDefaultClassifier();
-
     @Override
     public void setClassifier(@Nullable String classifier) {
         this.classifier = Strings.nullToEmpty(classifier);
     }
+
+    @Nullable
+    protected abstract String getDefaultClassifier();
 
     @Nullable
     @Override
@@ -96,13 +96,13 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return Strings.emptyToNull(conf != null ? conf : getDefaultConf());
     }
 
-    @Nullable
-    protected abstract String getDefaultConf();
-
     @Override
     public void setConf(@Nullable String conf) {
         this.conf = Strings.nullToEmpty(conf);
     }
+
+    @Nullable
+    protected abstract String getDefaultConf();
 
     @Override
     public void builtBy(Object... tasks) {

@@ -32,7 +32,7 @@ public class ModuleFactoryHelper {
         }
         if (actualArtifactType != null) {
             moduleDependency.addArtifact(new DefaultDependencyArtifact(moduleDependency.getName(),
-                    actualArtifactType, actualArtifactType, classifier, null));
+                actualArtifactType, actualArtifactType, classifier, null));
         }
     }
 }

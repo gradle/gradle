@@ -20,9 +20,9 @@ function populateFooter(report) {
 }
 
 function initializeProjectPage(report) {
-    $(document).ready(function() {
+    $(document).ready(function () {
         // event handling to close the insight div
-        $('#insight').on('click', '#dismissInsight', function(event) {
+        $('#insight').on('click', '#dismissInsight', function (event) {
             $('#insight').fadeOut();
             event.preventDefault();
         });
@@ -30,10 +30,10 @@ function initializeProjectPage(report) {
         // creates a node of a dependency tree
         function createDependencyNode(dependency) {
             var node = {
-                data : dependency.name,
-                state : "open",
-                attr : {'data-module' : dependency.module},
-                children : []
+                data: dependency.name,
+                state: "open",
+                attr: {'data-module': dependency.module},
+                children: []
             };
             var classes = [];
             if (dependency.alreadyRendered) {
@@ -48,7 +48,7 @@ function initializeProjectPage(report) {
             if (classes.length > 0) {
                 node.attr['class'] = classes.join(' ');
             }
-            $.each(dependency.children, function(index, dependency) {
+            $.each(dependency.children, function (index, dependency) {
                 var dependencyNode = createDependencyNode(dependency);
                 node.children.push(dependencyNode);
             });
@@ -68,10 +68,10 @@ function initializeProjectPage(report) {
         // creates a node of the insight tree
         function createInsightNode(dependency) {
             var node = {
-                data : dependency.name + (dependency.description ? ' (' + dependency.description + ')' : ''),
-                state : "open",
-                attr : {},
-                children : []
+                data: dependency.name + (dependency.description ? ' (' + dependency.description + ')' : ''),
+                state: "open",
+                attr: {},
+                children: []
             }
             var classes = [];
             if (dependency.alreadyRendered) {
@@ -89,7 +89,7 @@ function initializeProjectPage(report) {
             if (classes.length > 0) {
                 node.attr['class'] = classes.join(' ');
             }
-            $.each(dependency.children, function(index, dependency) {
+            $.each(dependency.children, function (index, dependency) {
                 var dependencyNode = createInsightNode(dependency);
                 node.children.push(dependencyNode);
             });
@@ -106,26 +106,26 @@ function initializeProjectPage(report) {
             var $tree = $('<div>').addClass('insightTree');
             var insight = findInsight(moduleInsights, module);
             var nodes = [];
-            $.each(insight, function(index, dependency) {
+            $.each(insight, function (index, dependency) {
                 var dependencyNode = createInsightNode(dependency);
                 nodes.push(dependencyNode);
             });
             $tree.append($('<img>').attr('src', 'throbber.gif')).append('Loading...');
             $tree.jstree({
-                json_data : {
-                    data : nodes
+                json_data: {
+                    data: nodes
                 },
-                themes : {
-                    url : 'css/tree.css',
-                    icons : false
+                themes: {
+                    url: 'css/tree.css',
+                    icons: false
                 },
-                plugins : ['json_data', 'themes']
+                plugins: ['json_data', 'themes']
             }).bind("loaded.jstree", function (event, data) {
-                        $('li.unresolvable a').attr('title', 'This dependency could not be resolved');
-                        $('li.alreadyRendered a').attr('title', 'The children of this dependency are not displayed because they have already been displayed before');
-                    });
+                $('li.unresolvable a').attr('title', 'This dependency could not be resolved');
+                $('li.alreadyRendered a').attr('title', 'The children of this dependency are not displayed because they have already been displayed before');
+            });
             $insightDiv.append($tree);
-            $tree.on('click', 'a', function(event) {
+            $tree.on('click', 'a', function (event) {
                 event.preventDefault();
             });
             $insightDiv.fadeIn();
@@ -140,7 +140,7 @@ function initializeProjectPage(report) {
             $dependencies.append($('<p>').addClass('projectDescription').text(project.name));
         }
 
-        $.each(project.configurations, function(index, configuration) {
+        $.each(project.configurations, function (index, configuration) {
             var $configurationDiv = $('<div/>').addClass('configuration');
             var $configurationTitle = $('<h3/>').addClass('closed').append($('<ins/>')).append(configuration.name);
             if (configuration.description) {
@@ -153,30 +153,29 @@ function initializeProjectPage(report) {
             $contentDiv.append($tree);
             if (configuration.dependencies && configuration.dependencies.length > 0) {
                 var nodes = [];
-                $.each(configuration.dependencies, function(index, dependency) {
+                $.each(configuration.dependencies, function (index, dependency) {
                     var dependencyNode = createDependencyNode(dependency);
                     nodes.push(dependencyNode);
                 });
                 $tree.append($('<img>').attr('src', 'throbber.gif')).append('Loading...');
                 $tree.jstree({
-                    json_data : {
-                        data : nodes
+                    json_data: {
+                        data: nodes
                     },
-                    themes : {
-                        url : 'css/tree.css',
-                        icons : false
+                    themes: {
+                        url: 'css/tree.css',
+                        icons: false
                     },
-                    plugins : ['json_data', 'themes']
+                    plugins: ['json_data', 'themes']
                 }).bind("loaded.jstree", function (event, data) {
-                            $('li.unresolvable a').attr('title', 'This dependency could not be resolved');
-                            $('li.alreadyRendered a').attr('title', 'The children of this dependency are not displayed because they have already been displayed before');
-                        });
-            }
-            else {
+                    $('li.unresolvable a').attr('title', 'This dependency could not be resolved');
+                    $('li.alreadyRendered a').attr('title', 'The children of this dependency are not displayed because they have already been displayed before');
+                });
+            } else {
                 $tree.append($('<p/>').text("No dependency"));
             }
 
-            $tree.on('click', 'a', function(event) {
+            $tree.on('click', 'a', function (event) {
                 event.preventDefault();
                 var module = $(this).closest('li').attr('data-module');
                 showModuleInsight(module, configuration.moduleInsights);
@@ -187,7 +186,7 @@ function initializeProjectPage(report) {
         });
 
         // allows the titles of each dependency tree to toggle the visibility of their tree
-        $dependencies.on('click', 'h3', function(event) {
+        $dependencies.on('click', 'h3', function (event) {
             $('div.configurationContent', $(this).parent()).slideToggle();
             $(this).toggleClass('closed');
         });

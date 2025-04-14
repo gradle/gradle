@@ -59,18 +59,6 @@ public final class GcsConnectionProperties {
         this.disableAuthentication = disableAuthentication;
     }
 
-    Optional<URI> getEndpoint() {
-        return Optional.fromNullable(endpoint);
-    }
-
-    Optional<String> getServicePath() {
-        return Optional.fromNullable(servicePath);
-    }
-
-    boolean requiresAuthentication() {
-        return !disableAuthentication;
-    }
-
     private static URI configureEndpoint(String property) {
         URI uri = null;
         if (StringUtils.isNotBlank(property)) {
@@ -88,7 +76,7 @@ public final class GcsConnectionProperties {
 
     private static String configureServicePath(String property) {
         if (StringUtils.isNotBlank(property)) {
-           return property;
+            return property;
         } else {
             return null;
         }
@@ -96,5 +84,17 @@ public final class GcsConnectionProperties {
 
     private static boolean configureDisableAuthentication(String property) {
         return StringUtils.isNotBlank(property) && Boolean.parseBoolean(property);
+    }
+
+    Optional<URI> getEndpoint() {
+        return Optional.fromNullable(endpoint);
+    }
+
+    Optional<String> getServicePath() {
+        return Optional.fromNullable(servicePath);
+    }
+
+    boolean requiresAuthentication() {
+        return !disableAuthentication;
     }
 }

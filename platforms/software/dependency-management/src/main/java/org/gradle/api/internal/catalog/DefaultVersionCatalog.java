@@ -32,12 +32,14 @@ public class DefaultVersionCatalog implements Serializable {
 
     private final int hashCode;
 
-    public DefaultVersionCatalog(String name,
-                                 String description,
-                                 Map<String, DependencyModel> libraries,
-                                 Map<String, BundleModel> bundles,
-                                 Map<String, VersionModel> versions,
-                                 Map<String, PluginModel> plugins) {
+    public DefaultVersionCatalog(
+        String name,
+        String description,
+        Map<String, DependencyModel> libraries,
+        Map<String, BundleModel> bundles,
+        Map<String, VersionModel> versions,
+        Map<String, PluginModel> plugins
+    ) {
         this.name = name;
         this.description = description;
         this.libraries = libraries;

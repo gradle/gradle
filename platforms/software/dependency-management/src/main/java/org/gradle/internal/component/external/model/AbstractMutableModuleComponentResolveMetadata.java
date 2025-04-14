@@ -55,7 +55,9 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private static final String DEFAULT_STATUS = "integration";
 
     private final AttributesFactory attributesFactory;
-
+    private final ImmutableAttributesSchema schema;
+    private final VariantMetadataRules variantMetadataRules;
+    private final VariantDerivationStrategy variantDerivationStrategy;
     private ModuleComponentIdentifier componentId;
     private ModuleVersionIdentifier moduleVersionId;
     private boolean changing;
@@ -64,12 +66,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private boolean isComponentMetadataRuleCachingEnabled;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private MutableModuleSources moduleSources;
-    private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
-    private final ImmutableAttributesSchema schema;
-
-    private final VariantMetadataRules variantMetadataRules;
-    private final VariantDerivationStrategy variantDerivationStrategy;
-
+    private /*Mutable*/ AttributeContainerInternal componentLevelAttributes;
     private List<MutableComponentVariant> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
     private Set<VirtualComponentIdentifier> owners;
@@ -78,7 +75,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         AttributesFactory attributesFactory,
         ModuleVersionIdentifier moduleVersionId,
         ModuleComponentIdentifier componentIdentifier,
-        ImmutableAttributesSchema schema) {
+        ImmutableAttributesSchema schema
+    ) {
         this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
@@ -117,14 +115,14 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public ModuleVersionIdentifier getModuleVersionId() {
-        return moduleVersionId;
-    }
-
-    @Override
     public void setId(ModuleComponentIdentifier componentId) {
         this.componentId = componentId;
         this.moduleVersionId = DefaultModuleVersionIdentifier.newId(componentId);
+    }
+
+    @Override
+    public ModuleVersionIdentifier getModuleVersionId() {
+        return moduleVersionId;
     }
 
     public VariantDerivationStrategy getVariantDerivationStrategy() {
@@ -136,14 +134,14 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         return componentLevelAttributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
     }
 
-    protected abstract ImmutableMap<String, Configuration> getConfigurationDefinitions();
-
     @Override
     public void setStatus(String status) {
         AttributeContainerInternal attributes = this.componentLevelAttributes;
         attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
         componentLevelAttributes = attributes;
     }
+
+    protected abstract ImmutableMap<String, Configuration> getConfigurationDefinitions();
 
     @Override
     public List<String> getStatusScheme() {
@@ -206,17 +204,17 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
+    public AttributeContainer getAttributes() {
+        return componentLevelAttributes;
+    }
+
+    @Override
     public void setAttributes(AttributeContainer attributes) {
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) attributes);
         // the "status" attribute is mandatory, so if it's missing, we need to add it
         if (!attributes.contains(ProjectInternal.STATUS_ATTRIBUTE)) {
             componentLevelAttributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, DEFAULT_STATUS);
         }
-    }
-
-    @Override
-    public AttributeContainer getAttributes() {
-        return componentLevelAttributes;
     }
 
     @Override
@@ -608,14 +606,16 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         private final ImmutableCapabilities capabilities;
         private final boolean externalVariant;
 
-        ImmutableVariantImpl(ModuleComponentIdentifier componentId,
-                             String name,
-                             ImmutableAttributes attributes,
-                             ImmutableList<? extends Dependency> dependencies,
-                             ImmutableList<? extends DependencyConstraint> dependencyConstraints,
-                             ImmutableList<? extends File> files,
-                             ImmutableCapabilities capabilities,
-                             boolean externalVariant) {
+        ImmutableVariantImpl(
+            ModuleComponentIdentifier componentId,
+            String name,
+            ImmutableAttributes attributes,
+            ImmutableList<? extends Dependency> dependencies,
+            ImmutableList<? extends DependencyConstraint> dependencyConstraints,
+            ImmutableList<? extends File> files,
+            ImmutableCapabilities capabilities,
+            boolean externalVariant
+        ) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;

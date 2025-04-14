@@ -47,6 +47,44 @@ abstract class AbstractValueProcessor {
         this.valueSnapshotterSerializerRegistryList = valueSnapshotterSerializerRegistryList;
     }
 
+    private static <T> T gradleSerialization(Object value, Serializer<?> serializer, ValueVisitor<T> visitor) {
+        return visitor.gradleSerialized(value, gradleSerialized(value, serializer));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static byte[] gradleSerialized(Object value, Serializer serializer) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
+            serializer.write(encoder, Cast.uncheckedCast(value));
+            encoder.flush();
+        } catch (Exception e) {
+            throw newValueSerializationException(value.getClass(), e);
+        }
+        return outputStream.toByteArray();
+    }
+
+    private static <T> T javaSerialization(Object value, ValueVisitor<T> visitor) {
+        return visitor.javaSerialized(value, javaSerialized(value));
+    }
+
+    private static byte[] javaSerialized(Object value) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
+            oos.writeObject(value);
+            oos.flush();
+        } catch (IOException e) {
+            throw newValueSerializationException(value.getClass(), e);
+        }
+        return outputStream.toByteArray();
+    }
+
+    private static ValueSnapshottingException newValueSerializationException(Class<?> valueType, Throwable cause) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Could not serialize value of type ");
+        formatter.appendType(valueType);
+        return new ValueSnapshottingException(formatter.toString(), cause);
+    }
+
     protected <T> T processValue(@Nullable Object value, ValueVisitor<T> visitor) {
         if (value == null) {
             return visitor.nullValue();
@@ -183,44 +221,6 @@ abstract class AbstractValueProcessor {
             builder.add(processValue(element, visitor));
         }
         return builder.build();
-    }
-
-    private static <T> T gradleSerialization(Object value, Serializer<?> serializer, ValueVisitor<T> visitor) {
-        return visitor.gradleSerialized(value, gradleSerialized(value, serializer));
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static byte[] gradleSerialized(Object value, Serializer serializer) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
-            serializer.write(encoder, Cast.uncheckedCast(value));
-            encoder.flush();
-        } catch (Exception e) {
-            throw newValueSerializationException(value.getClass(), e);
-        }
-        return outputStream.toByteArray();
-    }
-
-    private static <T> T javaSerialization(Object value, ValueVisitor<T> visitor) {
-        return visitor.javaSerialized(value, javaSerialized(value));
-    }
-
-    private static byte[] javaSerialized(Object value) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
-            oos.writeObject(value);
-            oos.flush();
-        } catch (IOException e) {
-            throw newValueSerializationException(value.getClass(), e);
-        }
-        return outputStream.toByteArray();
-    }
-
-    private static ValueSnapshottingException newValueSerializationException(Class<?> valueType, Throwable cause) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Could not serialize value of type ");
-        formatter.appendType(valueType);
-        return new ValueSnapshottingException(formatter.toString(), cause);
     }
 
     protected interface ValueVisitor<T> {

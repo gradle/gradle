@@ -41,6 +41,13 @@ class RuleBindings {
         rulesByInput = new NodeAtStateIndex("rulesByInput");
     }
 
+    private static void unbind(RuleBinder rule, ModelNodeInternal node) {
+        rule.getSubjectBinding().onUnbind(node);
+        for (ModelBinding binding : rule.getInputBindings()) {
+            binding.onUnbind(node);
+        }
+    }
+
     public void nodeCreated(ModelNodeInternal node) {
         untypedPathReferences.addNode(node);
     }
@@ -92,13 +99,6 @@ class RuleBindings {
         }
     }
 
-    private static void unbind(RuleBinder rule, ModelNodeInternal node) {
-        rule.getSubjectBinding().onUnbind(node);
-        for (ModelBinding binding : rule.getInputBindings()) {
-            binding.onUnbind(node);
-        }
-    }
-
     /**
      * Returns the set of rules with the given target as their subject.
      */
@@ -127,6 +127,68 @@ class RuleBindings {
         @Override
         public String toString() {
             return binding + " in " + index.name;
+        }
+    }
+
+    private static class NodeAtStateIndex {
+        private final EnumMap<ModelNode.State, Map<String, List<RuleBinder>>> boundAtState = Maps.newEnumMap(ModelNode.State.class);
+
+        private final String name;
+
+        private NodeAtStateIndex(String name) {
+            this.name = name;
+        }
+
+        private Map<String, List<RuleBinder>> getByState(ModelNode.State state) {
+            Map<String, List<RuleBinder>> map = boundAtState.get(state);
+            if (map == null) {
+                map = new HashMap<String, List<RuleBinder>>(64);
+                boundAtState.put(state, map);
+            }
+            return map;
+        }
+
+        public void nodeRemoved(ModelNodeInternal node) {
+            // This could be more efficient; assume that removal happens much less often than addition
+            for (ModelNode.State state : ModelNode.State.values()) {
+                Map<String, List<RuleBinder>> byState = getByState(state);
+                List<RuleBinder> remove = byState.remove(node.getPath().toString());
+                if (remove != null) {
+                    for (RuleBinder rule : remove) {
+                        unbind(rule, node);
+                    }
+                }
+            }
+        }
+
+        public void put(NodeAtState nodeAtState, RuleBinder binder) {
+            Map<String, List<RuleBinder>> byState = getByState(nodeAtState.state);
+            String path = nodeAtState.path.toString();
+            List<RuleBinder> byPath = getByPath(byState, path);
+            if (!byPath.contains(binder)) {
+                byPath.add(binder);
+            }
+        }
+
+        private List<RuleBinder> getByPath(Map<String, List<RuleBinder>> byState, String path) {
+            List<RuleBinder> ruleBinders = byState.get(path);
+            if (ruleBinders == null) {
+                ruleBinders = new ArrayList<>();
+                byState.put(path, ruleBinders);
+            }
+            return ruleBinders;
+        }
+
+        /**
+         * Returns rules for given target at state.
+         */
+        public Collection<RuleBinder> get(NodeAtState nodeAtState) {
+            return getByPath(getByState(nodeAtState.state), nodeAtState.path.toString());
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
 
@@ -243,68 +305,6 @@ class RuleBindings {
                 scopes.put(path, scope);
             }
             return scope;
-        }
-    }
-
-    private static class NodeAtStateIndex {
-        private final EnumMap<ModelNode.State, Map<String, List<RuleBinder>>> boundAtState = Maps.newEnumMap(ModelNode.State.class);
-
-        private final String name;
-
-        private NodeAtStateIndex(String name) {
-            this.name = name;
-        }
-
-        private Map<String, List<RuleBinder>> getByState(ModelNode.State state) {
-            Map<String, List<RuleBinder>> map = boundAtState.get(state);
-            if (map == null) {
-                map = new HashMap<String, List<RuleBinder>>(64);
-                boundAtState.put(state, map);
-            }
-            return map;
-        }
-
-        public void nodeRemoved(ModelNodeInternal node) {
-            // This could be more efficient; assume that removal happens much less often than addition
-            for (ModelNode.State state : ModelNode.State.values()) {
-                Map<String, List<RuleBinder>> byState = getByState(state);
-                List<RuleBinder> remove = byState.remove(node.getPath().toString());
-                if (remove != null) {
-                    for (RuleBinder rule : remove) {
-                        unbind(rule, node);
-                    }
-                }
-            }
-        }
-
-        public void put(NodeAtState nodeAtState, RuleBinder binder) {
-            Map<String, List<RuleBinder>> byState = getByState(nodeAtState.state);
-            String path = nodeAtState.path.toString();
-            List<RuleBinder> byPath = getByPath(byState, path);
-            if (!byPath.contains(binder)) {
-                byPath.add(binder);
-            }
-        }
-
-        private List<RuleBinder> getByPath(Map<String, List<RuleBinder>> byState, String path) {
-            List<RuleBinder> ruleBinders = byState.get(path);
-            if (ruleBinders == null) {
-                ruleBinders = new ArrayList<>();
-                byState.put(path, ruleBinders);
-            }
-            return ruleBinders;
-        }
-
-        /**
-         * Returns rules for given target at state.
-         */
-        public Collection<RuleBinder> get(NodeAtState nodeAtState) {
-            return getByPath(getByState(nodeAtState.state), nodeAtState.path.toString());
-        }
-
-        @Override
-        public String toString() {
-            return name;
         }
     }
 }

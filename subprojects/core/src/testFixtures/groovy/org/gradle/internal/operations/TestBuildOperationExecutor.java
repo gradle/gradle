@@ -26,8 +26,8 @@ import java.util.List;
  */
 public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
-    private final TestBuildOperationRunner runner;
     public final TestBuildOperationRunner.Log log;
+    private final TestBuildOperationRunner runner;
 
     public TestBuildOperationExecutor() {
         this(new TestBuildOperationRunner());
@@ -72,6 +72,10 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         throw new UnsupportedOperationException();
     }
 
+    public void reset() {
+        runner.reset();
+    }
+
     public static class TestBuildOperationQueue<O extends RunnableBuildOperation> implements BuildOperationQueue<O> {
 
         public final BuildOperationRunner runner;
@@ -103,9 +107,5 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         public void setLogLocation(String logLocation) {
             throw new UnsupportedOperationException();
         }
-    }
-
-    public void reset() {
-        runner.reset();
     }
 }

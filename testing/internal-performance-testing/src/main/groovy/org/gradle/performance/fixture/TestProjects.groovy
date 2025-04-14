@@ -23,7 +23,7 @@ class TestProjects {
             throw new IllegalArgumentException("Every test project needs to provide a gradle.properties file with memory and parallelism settings")
         }
         def gradleProperties = new Properties()
-        gradlePropertiesFile.withInputStream {gradleProperties.load(it) }
+        gradlePropertiesFile.withInputStream { gradleProperties.load(it) }
         verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.jvmargs")
         def jvmArgs = gradleProperties.getProperty("org.gradle.jvmargs")?.split(' ')
         if (!jvmArgs.find { it.startsWith("-Xmx") }) {

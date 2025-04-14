@@ -84,7 +84,8 @@ public class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrati
             }
         """
 
-        when: succeeds "test"
+        when:
+        succeeds "test"
 
         then:
         outputContains("""

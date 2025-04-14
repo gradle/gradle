@@ -37,7 +37,8 @@ import java.nio.file.Files
 import java.util.function.Supplier
 
 class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
-    @TempDir File tmpdir
+    @TempDir
+    File tmpdir
     Map<String, ResourceEntryFilter> filters = new HashMap<>()
     ResourceHasher delegate = new RuntimeClasspathResourceHasher()
     ResourceHasher unfilteredHasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)
@@ -248,7 +249,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
 
     def "delegates to file hasher when bad unicode escape sequences are present (error in: #location, context: #context)"() {
         given:
-        filters = [ '**/*.properties': ResourceEntryFilter.FILTER_NOTHING ]
+        filters = ['**/*.properties': ResourceEntryFilter.FILTER_NOTHING]
         def properties = contextFor(context, 'some/path/to/foo.properties', property.bytes)
 
         expect:
@@ -304,7 +305,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
     }
 
     def contextFor(SnapshotContext context, String path, Map<String, String> attributes, String comments = "") {
-        switch(context) {
+        switch (context) {
             case SnapshotContext.ZIP_ENTRY:
                 return zipEntry(path, attributes, comments)
             case SnapshotContext.FILE_SNAPSHOT:
@@ -315,7 +316,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
     }
 
     def contextFor(SnapshotContext context, String path, byte[] bytes) {
-        switch(context) {
+        switch (context) {
             case SnapshotContext.ZIP_ENTRY:
                 return zipEntry(path, bytes)
             case SnapshotContext.FILE_SNAPSHOT:

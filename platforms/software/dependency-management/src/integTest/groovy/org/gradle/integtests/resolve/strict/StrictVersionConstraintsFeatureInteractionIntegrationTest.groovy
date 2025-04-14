@@ -81,7 +81,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         }
     }
 
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can turn strict constraint into normal constraint by using a component metadata rule"() {
         given:
         repository {

@@ -27,6 +27,30 @@ import java.util.List;
 import java.util.Set;
 
 class RejectedModuleMessageBuilder {
+    private static void renderSelector(StringBuilder sb, SelectorState selectorState) {
+        sb.append('\'').append(selectorState.getRequested()).append('\'');
+    }
+
+    private static void renderReason(StringBuilder sb, SelectorState selector) {
+        ComponentSelectionReasonInternal selectionReason = selector.getSelectionReason();
+        if (selectionReason.hasCustomDescriptions()) {
+            sb.append(" because of the following reason");
+            List<String> reasons = new ArrayList<>(1);
+            for (ComponentSelectionDescriptor componentSelectionDescriptor : selectionReason.getDescriptions()) {
+                ComponentSelectionDescriptorInternal next = (ComponentSelectionDescriptorInternal) componentSelectionDescriptor;
+                if (next.hasCustomDescription()) {
+                    reasons.add(next.getDescription());
+                }
+            }
+            if (reasons.size() == 1) {
+                sb.append(": ").append(reasons.get(0));
+            } else {
+                sb.append("s: ");
+                Joiner.on(", ").appendTo(sb, reasons);
+            }
+        }
+    }
+
     String buildFailureMessage(ModuleResolveState module) {
         boolean hasRejectAll = false;
         for (SelectorState candidate : module.getSelectors()) {
@@ -58,30 +82,6 @@ class RejectedModuleMessageBuilder {
                 renderSelector(sb, selector);
                 renderReason(sb, selector);
                 sb.append("\n");
-            }
-        }
-    }
-
-    private static void renderSelector(StringBuilder sb, SelectorState selectorState) {
-        sb.append('\'').append(selectorState.getRequested()).append('\'');
-    }
-
-    private static void renderReason(StringBuilder sb, SelectorState selector) {
-        ComponentSelectionReasonInternal selectionReason = selector.getSelectionReason();
-        if (selectionReason.hasCustomDescriptions()) {
-            sb.append(" because of the following reason");
-            List<String> reasons = new ArrayList<>(1);
-            for (ComponentSelectionDescriptor componentSelectionDescriptor : selectionReason.getDescriptions()) {
-                ComponentSelectionDescriptorInternal next = (ComponentSelectionDescriptorInternal) componentSelectionDescriptor;
-                if (next.hasCustomDescription()) {
-                    reasons.add(next.getDescription());
-                }
-            }
-            if (reasons.size() == 1) {
-                sb.append(": ").append(reasons.get(0));
-            } else {
-                sb.append("s: ");
-                Joiner.on(", ").appendTo(sb, reasons);
             }
         }
     }

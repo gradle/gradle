@@ -77,14 +77,14 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public void source(Iterable<File> sources) {
-        addAll(sourceFiles, sources);
-    }
-
-    @Override
     public void setSourceFiles(Collection<File> sources) {
         sourceFiles.clear();
         sourceFiles.addAll(sources);
+    }
+
+    @Override
+    public void source(Iterable<File> sources) {
+        addAll(sourceFiles, sources);
     }
 
     @Override
@@ -93,14 +93,14 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public void removedSource(Iterable<File> sources) {
-        addAll(removedSourceFiles, sources);
-    }
-
-    @Override
     public void setRemovedSourceFiles(Collection<File> sources) {
         removedSourceFiles.clear();
         removedSourceFiles.addAll(sources);
+    }
+
+    @Override
+    public void removedSource(Iterable<File> sources) {
+        addAll(removedSourceFiles, sources);
     }
 
     @Override

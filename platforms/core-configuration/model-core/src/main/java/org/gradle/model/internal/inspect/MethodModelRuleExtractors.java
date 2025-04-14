@@ -17,7 +17,9 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
+
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 import java.util.List;

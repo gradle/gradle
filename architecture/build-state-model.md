@@ -68,7 +68,7 @@ An instance is created at the start of a build execution and discarded at the en
 The "build state" holds the state for a build within the build definition for a single build execution, and is contained by the build tree state.
 
 The build state is managed by the `BuildState` class.
-An instance is created for each build in the build definition, once per build execution and is discarded at the end of the execution. 
+An instance is created for each build in the build definition, once per build execution and is discarded at the end of the execution.
 
 The build state also includes what is currently called the "Gradle state". The Gradle state is being merged into the build state and is mostly empty.
 

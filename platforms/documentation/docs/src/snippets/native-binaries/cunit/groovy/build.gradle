@@ -27,7 +27,7 @@ model {
                 binaries.withType(StaticLibraryBinary) {
                     staticLibraryFile =
                         file("libs/cunit/2.1-2/lib/" +
-                             findCUnitLibForPlatform(targetPlatform))
+                            findCUnitLibForPlatform(targetPlatform))
                 }
             }
         }

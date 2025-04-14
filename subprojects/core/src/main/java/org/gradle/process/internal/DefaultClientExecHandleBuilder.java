@@ -47,15 +47,14 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private final ProcessStreamsSpec streamsSpec;
     private final ProcessArgumentsSpec argumentsSpec;
     private final PathToFileResolver fileResolver;
-
+    private final Executor executor;
+    protected boolean daemon;
     private Map<String, Object> environment;
     private StreamsHandler inputHandler = DEFAULT_STDIN;
     private String displayName;
     private boolean redirectErrorStream;
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
-    protected boolean daemon;
-    private final Executor executor;
     private String executable;
     private File workingDir;
 
@@ -69,6 +68,26 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         streamsSpec.setStandardOutput(SafeStreams.systemOut());
         streamsSpec.setErrorOutput(SafeStreams.systemErr());
         streamsSpec.setStandardInput(SafeStreams.emptyInput());
+    }
+
+    private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {
+        Map<String, String> effectiveEnvironment = Maps.newLinkedHashMapWithExpectedSize(environment.size());
+        for (Map.Entry<String, Object> entry : environment.entrySet()) {
+            effectiveEnvironment.put(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        return effectiveEnvironment;
+    }
+
+    private static StreamsHandler getEffectiveStreamsHandler(@Nullable StreamsHandler streamsHandler, ProcessStreamsSpec streamsSpec, boolean redirectErrorStream) {
+        if (streamsHandler != null) {
+            return streamsHandler;
+        }
+        boolean shouldReadErrorStream = !redirectErrorStream;
+        return new OutputStreamsForwarder(
+            streamsSpec.getStandardOutput(),
+            streamsSpec.getErrorOutput(),
+            shouldReadErrorStream
+        );
     }
 
     @Override
@@ -211,14 +230,14 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public ClientExecHandleBuilder environment(String key, Object value) {
-        getEnvironment().put(key, value);
-        return this;
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        environment = Maps.newHashMap(environmentVariables);
     }
 
     @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        environment = Maps.newHashMap(environmentVariables);
+    public ClientExecHandleBuilder environment(String key, Object value) {
+        getEnvironment().put(key, value);
+        return this;
     }
 
     @Override
@@ -242,7 +261,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public ClientExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        this.workingDir = dir == null ? null:  fileResolver.resolve(dir);
+        this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
     }
 
@@ -257,26 +276,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         options.setExecutable(executable);
         options.setWorkingDir(getWorkingDir());
         options.setEnvironment(getEnvironment());
-    }
-
-    private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {
-        Map<String, String> effectiveEnvironment = Maps.newLinkedHashMapWithExpectedSize(environment.size());
-        for (Map.Entry<String, Object> entry : environment.entrySet()) {
-            effectiveEnvironment.put(entry.getKey(), String.valueOf(entry.getValue()));
-        }
-        return effectiveEnvironment;
-    }
-
-    private static StreamsHandler getEffectiveStreamsHandler(@Nullable StreamsHandler streamsHandler, ProcessStreamsSpec streamsSpec, boolean redirectErrorStream) {
-        if (streamsHandler != null) {
-            return streamsHandler;
-        }
-        boolean shouldReadErrorStream = !redirectErrorStream;
-        return new OutputStreamsForwarder(
-            streamsSpec.getStandardOutput(),
-            streamsSpec.getErrorOutput(),
-            shouldReadErrorStream
-        );
     }
 
     @Override

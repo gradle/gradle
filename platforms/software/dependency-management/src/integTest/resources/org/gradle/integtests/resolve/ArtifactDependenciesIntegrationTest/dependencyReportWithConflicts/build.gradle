@@ -1,4 +1,3 @@
-
 configurations {
     evictedTransitive
     evictedDirect

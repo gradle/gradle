@@ -125,8 +125,7 @@ public interface BuildLauncher extends ConfigurableLauncher<BuildLauncher> {
      * Executes the build, blocking until it is complete.
      *
      * @throws UnsupportedVersionException When the target Gradle version does not support build execution.
-     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
-     *          When the target Gradle version does not support some requested configuration option such as {@link #withArguments(String...)}.
+     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException When the target Gradle version does not support some requested configuration option such as {@link #withArguments(String...)}.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.

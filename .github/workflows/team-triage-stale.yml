@@ -4,7 +4,7 @@ on:
     # Execute every day at 00:05 to avoid conflicts with other workflows
     - cron: '5 0 * * *'
 
-permissions: {}
+permissions: { }
 
 jobs:
   requeue:

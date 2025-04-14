@@ -40,11 +40,11 @@ class AssemblerTest extends VisualCppNativeCompilerTest {
 
     def "check that position sensitive arguments are in the right order"() {
         given:
-        def genericArgs = [ '/c' ]
-        def sourceArgs = [ 'path/to/source.s' ]
-        def outputArgs = [ 'path/to/output.o' ]
+        def genericArgs = ['/c']
+        def sourceArgs = ['path/to/source.s']
+        def outputArgs = ['path/to/output.o']
         def compiler = getCompiler()
         expect:
-        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, []) as List == [ 'path/to/output.o', '/c', 'path/to/source.s' ]
+        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, []) as List == ['path/to/output.o', '/c', 'path/to/source.s']
     }
 }

@@ -302,7 +302,7 @@ Things:
 """
     }
 
-    def "formats item with multiline string value" () {
+    def "formats item with multiline string value"() {
         when:
         builder.item("first line${eol}  second line${eol}  third line")
 
@@ -313,7 +313,7 @@ Things:
 """
     }
 
-    def "formats item with title and multiline string value" () {
+    def "formats item with title and multiline string value"() {
         when:
         builder.item("the title", "first line${eol}  second line${eol}  third line")
 

@@ -67,27 +67,19 @@ import static org.apache.commons.lang.ArrayUtils.contains;
 import static org.gradle.internal.hash.Hashing.sha512;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
-    private ScriptSource settingsScript;
-
-    private StartParameter startParameter;
-
-    private File settingsDir;
-
-    private DefaultProjectDescriptor rootProjectDescriptor;
-
-    private DefaultProjectDescriptor defaultProjectDescriptor;
-
     private final GradleInternal gradle;
-
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
     private final ScriptHandler scriptHandler;
     private final ServiceRegistry services;
-
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
-
     private final ToolchainManagementInternal toolchainManagement;
+    private ScriptSource settingsScript;
+    private StartParameter startParameter;
+    private File settingsDir;
+    private DefaultProjectDescriptor rootProjectDescriptor;
+    private DefaultProjectDescriptor defaultProjectDescriptor;
 
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
@@ -116,7 +108,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         if (contains(File.listRoots(), settingsDir)) {
             String rootIndicator = settingsDir.toPath().getRoot().toString().replaceAll("[\\\\:\\/]*", "");
             // using "-" to separate the parts of the root project name to allow easier usage in the CLI, just in case.
-            return "generated-" + rootIndicator  + (rootIndicator.isEmpty() ? "" : "-") +
+            return "generated-" + rootIndicator + (rootIndicator.isEmpty() ? "" : "-") +
                 sha512().hashString(now().toString()).toString().substring(0, 6);
         }
         return settingsDir.getName();

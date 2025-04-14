@@ -145,7 +145,7 @@ class DistributionBasePluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Distribution 'custom' must not have an empty distributionBaseName."
     }
 
-    def createCreateArchiveForCustomDistribution(){
+    def createCreateArchiveForCustomDistribution() {
         given:
         createDir('src/custom/dist') {
             file 'file1.txt'
@@ -173,7 +173,7 @@ class DistributionBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def includeFileFromSrcMainCustom() {
         given:
-        createDir('src/custom/dist'){
+        createDir('src/custom/dist') {
             file 'file1.txt'
             dir {
                 file 'file2.txt'
@@ -202,14 +202,14 @@ class DistributionBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def includeFileFromDistContent() {
         given:
-        createDir('src/custom/dist'){
+        createDir('src/custom/dist') {
             file 'file1.txt'
             dir {
                 file 'file2.txt'
             }
         }
 
-        createDir("docs"){
+        createDir("docs") {
             file 'file3.txt'
             dir2 {
                 file 'file4.txt'
@@ -248,13 +248,13 @@ class DistributionBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def installFromDistContent() {
         given:
-        createDir('src/custom/dist'){
+        createDir('src/custom/dist') {
             file 'file1.txt'
             dir {
                 file 'file2.txt'
             }
         }
-        createDir("docs"){
+        createDir("docs") {
             file 'file3.txt'
             dir2 {
                 file 'file4.txt'

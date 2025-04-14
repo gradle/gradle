@@ -59,44 +59,27 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private static final String OPEN_INC_PATTERN = "\\" + OPEN_INC;
 
     private static final String OPEN_EXC_PATTERN = "\\" + OPEN_EXC + "\\" + OPEN_EXC_MAVEN;
-
-    private static final String CLOSE_INC_PATTERN = "\\" + CLOSE_INC;
-
-    private static final String CLOSE_EXC_PATTERN = "\\" + CLOSE_EXC + "\\" + CLOSE_EXC_MAVEN;
-
-    private static final String LI_PATTERN = "\\" + LOWER_INFINITE;
-
-    private static final String UI_PATTERN = "\\" + UPPER_INFINITE;
-
-    private static final String SEP_PATTERN = "\\s*\\" + SEPARATOR + "\\s*";
-
     private static final String OPEN_PATTERN = "[" + OPEN_INC_PATTERN + OPEN_EXC_PATTERN + "]";
-
+    private static final String CLOSE_INC_PATTERN = "\\" + CLOSE_INC;
+    private static final String CLOSE_EXC_PATTERN = "\\" + CLOSE_EXC + "\\" + CLOSE_EXC_MAVEN;
     private static final String CLOSE_PATTERN = "[" + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + "]";
-
+    private static final String LI_PATTERN = "\\" + LOWER_INFINITE;
+    private static final String UI_PATTERN = "\\" + UPPER_INFINITE;
     private static final String ANY_NON_SPECIAL_PATTERN = "[^\\s" + SEPARATOR + OPEN_INC_PATTERN
         + OPEN_EXC_PATTERN + CLOSE_INC_PATTERN + CLOSE_EXC_PATTERN + LI_PATTERN + UI_PATTERN
         + "]";
-
+    private static final String SINGLE_VALUE_PATTERN = OPEN_INC_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + CLOSE_INC_PATTERN;
+    private static final Pattern SINGLE_VALUE_RANGE = Pattern.compile(SINGLE_VALUE_PATTERN);
+    private static final String SEP_PATTERN = "\\s*\\" + SEPARATOR + "\\s*";
     private static final String FINITE_PATTERN = OPEN_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN
         + "+)" + SEP_PATTERN + "(" + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
-
+    private static final Pattern FINITE_RANGE = Pattern.compile(FINITE_PATTERN);
     private static final String LOWER_INFINITE_PATTERN = LI_PATTERN + SEP_PATTERN + "("
         + ANY_NON_SPECIAL_PATTERN + "+)\\s*" + CLOSE_PATTERN;
-
+    private static final Pattern LOWER_INFINITE_RANGE = Pattern.compile(LOWER_INFINITE_PATTERN);
     private static final String UPPER_INFINITE_PATTERN = OPEN_PATTERN + "\\s*("
         + ANY_NON_SPECIAL_PATTERN + "+)" + SEP_PATTERN + UI_PATTERN;
-
-    private static final String SINGLE_VALUE_PATTERN = OPEN_INC_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + CLOSE_INC_PATTERN;
-
-    private static final Pattern FINITE_RANGE = Pattern.compile(FINITE_PATTERN);
-
-    private static final Pattern LOWER_INFINITE_RANGE = Pattern.compile(LOWER_INFINITE_PATTERN);
-
     private static final Pattern UPPER_INFINITE_RANGE = Pattern.compile(UPPER_INFINITE_PATTERN);
-
-    private static final Pattern SINGLE_VALUE_RANGE = Pattern.compile(SINGLE_VALUE_PATTERN);
-
     public static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
         + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN + "|" + SINGLE_VALUE_RANGE);
 

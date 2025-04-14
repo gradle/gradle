@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.model.Defaults;
 import org.gradle.model.internal.core.ModelActionRole;
 

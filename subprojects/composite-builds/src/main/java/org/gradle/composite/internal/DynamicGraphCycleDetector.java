@@ -46,30 +46,6 @@ import java.util.function.Function;
  */
 class DynamicGraphCycleDetector<T> {
 
-    public static class Cycle<T> {
-
-        private final PersistentList<T> path;
-
-        public Cycle(PersistentList<T> path) {
-            this.path = path;
-        }
-
-        public String format(Function<T, String> toString) {
-            StringBuilder builder = new StringBuilder();
-            for (T segment : path) {
-                if (builder.length() > 0) {
-                    builder.append(" -> ");
-                }
-                builder.append(toString.apply(segment));
-            }
-            return builder.toString();
-        }
-
-        public Cycle<T> plus(T from) {
-            return new Cycle<>(path.plus(from));
-        }
-    }
-
     private final Map<T, Set<T>> graph = new HashMap<>();
     private final Set<T> acyclicNodes = new LinkedHashSet<>();
 
@@ -118,5 +94,29 @@ class DynamicGraphCycleDetector<T> {
 
     private Set<T> referrersOf(T from) {
         return graph.computeIfAbsent(from, k -> new LinkedHashSet<>());
+    }
+
+    public static class Cycle<T> {
+
+        private final PersistentList<T> path;
+
+        public Cycle(PersistentList<T> path) {
+            this.path = path;
+        }
+
+        public String format(Function<T, String> toString) {
+            StringBuilder builder = new StringBuilder();
+            for (T segment : path) {
+                if (builder.length() > 0) {
+                    builder.append(" -> ");
+                }
+                builder.append(toString.apply(segment));
+            }
+            return builder.toString();
+        }
+
+        public Cycle<T> plus(T from) {
+            return new Cycle<>(path.plus(from));
+        }
     }
 }

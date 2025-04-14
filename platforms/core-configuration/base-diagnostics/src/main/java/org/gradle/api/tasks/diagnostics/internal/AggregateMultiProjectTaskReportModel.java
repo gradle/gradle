@@ -32,17 +32,17 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private final List<TaskReportModel> projects = new ArrayList<>();
-    private SetMultimap<String, TaskDetails> groups;
     private final boolean mergeTasksWithSameName;
     private final boolean detail;
     private final List<String> groupsOfInterest;
+    private SetMultimap<String, TaskDetails> groups;
 
     public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group, List<String> groups) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
         this.groupsOfInterest = Stream.concat(isNullOrEmpty(group) ? Stream.empty() : Stream.of(group), groups.stream())
-                .map(String::toLowerCase)
-                .collect(Collectors.toList());
+            .map(String::toLowerCase)
+            .collect(Collectors.toList());
     }
 
     public void add(TaskReportModel project) {

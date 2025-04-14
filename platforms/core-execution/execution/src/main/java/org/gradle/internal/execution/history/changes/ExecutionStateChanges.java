@@ -24,13 +24,6 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
  */
 public interface ExecutionStateChanges {
 
-    /**
-     * Returns all change messages for inputs and outputs.
-     */
-    ImmutableList<String> getChangeDescriptions();
-
-    InputChangesInternal createInputChanges();
-
     static ExecutionStateChanges incremental(
         ImmutableList<String> changeDescriptions,
         InputFileChanges inputFileChanges,
@@ -66,4 +59,11 @@ public interface ExecutionStateChanges {
             }
         };
     }
+
+    /**
+     * Returns all change messages for inputs and outputs.
+     */
+    ImmutableList<String> getChangeDescriptions();
+
+    InputChangesInternal createInputChanges();
 }

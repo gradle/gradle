@@ -358,10 +358,10 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         when:
         debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("DebugX86-64")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("DebugX86-64")
+            .succeeds()
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
@@ -372,10 +372,10 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         when:
         releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("ReleaseX86-64")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("ReleaseX86-64")
+            .succeeds()
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
@@ -446,10 +446,10 @@ apply plugin: 'cpp-library'
         when:
         debugBinary.assertDoesNotExist()
         def resultDebug = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("DebugX86-64")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("DebugX86-64")
+            .succeeds()
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
@@ -460,10 +460,10 @@ apply plugin: 'cpp-library'
         when:
         releaseBinary.assertDoesNotExist()
         def resultRelease = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme('App')
-                .withConfiguration("ReleaseX86-64")
-                .succeeds()
+            .withProject(rootXcodeProject)
+            .withScheme('App')
+            .withConfiguration("ReleaseX86-64")
+            .succeeds()
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')

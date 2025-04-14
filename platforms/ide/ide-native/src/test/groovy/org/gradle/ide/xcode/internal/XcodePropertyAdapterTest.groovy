@@ -61,10 +61,10 @@ class XcodePropertyAdapterTest extends Specification {
     def "getAdapterCommandLine"() {
         expect:
         XcodePropertyAdapter.adapterCommandLine == [
-                '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}"',
-                '-Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}"',
-                '-Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}"',
-                '-Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}"',
+            '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}"',
+            '-Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}"',
+            '-Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}"',
+            '-Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}"',
         ]
     }
 

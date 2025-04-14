@@ -70,7 +70,7 @@ public abstract class GradlePluginDevelopmentExtension {
         testSourceSets(testSourceSet);
     }
 
-     /**
+    /**
      * Adds some source sets to the collection which will be using TestKit.
      *
      * Calling this method multiple times with different source sets is <strong>additive</strong> - this method
@@ -103,7 +103,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the plugin source set
      */
-    @NotToBeReplacedByLazyProperty(because="this property will be made non-configurable")
+    @NotToBeReplacedByLazyProperty(because = "this property will be made non-configurable")
     public SourceSet getPluginSourceSet() {
         return pluginSourceSet;
     }
@@ -113,7 +113,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the test source sets
      */
-    @NotToBeReplacedByLazyProperty(because="this property will be replaced by another API")
+    @NotToBeReplacedByLazyProperty(because = "this property will be replaced by another API")
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
     }
@@ -150,6 +150,7 @@ public abstract class GradlePluginDevelopmentExtension {
 
     /**
      * Whether the plugin should automatically configure the publications for the plugins.
+     *
      * @return true if publishing should be automated, false otherwise
      */
     @ToBeReplacedByLazyProperty
@@ -159,6 +160,7 @@ public abstract class GradlePluginDevelopmentExtension {
 
     /**
      * Configures whether the plugin should automatically configure the publications for the plugins.
+     *
      * @param automatedPublishing whether to automated publication
      */
     public void setAutomatedPublishing(boolean automatedPublishing) {

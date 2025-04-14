@@ -44,8 +44,8 @@ repositories {
 
     def "resolve sources artifacts"() {
         fixture.requestingSource()
-                .expectSourceArtifact("my-sources")
-                .prepare()
+            .expectSourceArtifact("my-sources")
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -57,8 +57,8 @@ repositories {
 
     def "resolve javadoc artifacts"() {
         fixture.requestingJavadoc()
-                .expectJavadocArtifact("my-javadoc")
-                .prepare()
+            .expectJavadocArtifact("my-javadoc")
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -70,8 +70,8 @@ repositories {
 
     def "resolve all artifacts"() {
         fixture.expectSourceArtifact("my-sources")
-                .expectJavadocArtifact("my-javadoc")
-                .prepare()
+            .expectJavadocArtifact("my-javadoc")
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -89,10 +89,10 @@ repositories {
         module.publish()
 
         fixture.expectSourceArtifact("my-sources")
-                .expectSourceArtifact("other-sources")
-                .expectJavadocArtifact("my-javadoc")
-                .expectJavadocArtifact("other-javadoc")
-                .prepare()
+            .expectSourceArtifact("other-sources")
+            .expectJavadocArtifact("my-javadoc")
+            .expectJavadocArtifact("other-javadoc")
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -126,8 +126,8 @@ repositories {
 
     def "fetches missing artifacts for module #condition"() {
         fixture.requestingSource()
-                .expectSourceArtifactNotFound("my-sources")
-                .prepare()
+            .expectSourceArtifactNotFound("my-sources")
+            .prepare()
         buildFile << """
 class ChangingRule implements ComponentMetadataRule {
     @Override
@@ -172,8 +172,8 @@ Searched in the following locations:
         when:
         module.publishWithChangedContent()
         fixture.clearExpectations()
-                .expectSourceArtifact("my-sources")
-                .createVerifyTask("verifyRefresh")
+            .expectSourceArtifact("my-sources")
+            .createVerifyTask("verifyRefresh")
 
         and:
         server.resetExpectations()
@@ -216,8 +216,8 @@ if (project.hasProperty('nocache')) {
 
         final sourceArtifact = module.getArtifact(classifier: "my-sources")
         fixture.requestingSource()
-                .expectSourceArtifact("my-sources")
-                .prepare()
+            .expectSourceArtifact("my-sources")
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -276,8 +276,8 @@ Searched in the following locations:
 
     def "reports failure to resolve missing artifacts"() {
         fixture.expectSourceArtifactNotFound("my-sources")
-                .expectJavadocArtifactNotFound("my-javadoc")
-                .prepare()
+            .expectJavadocArtifactNotFound("my-javadoc")
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -310,8 +310,8 @@ Searched in the following locations:
 
     def "resolves when some artifacts are missing"() {
         fixture.expectSourceArtifact("my-sources")
-                .expectJavadocArtifactNotFound("my-javadoc")
-                .prepare()
+            .expectJavadocArtifactNotFound("my-javadoc")
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -341,9 +341,9 @@ Searched in the following locations:
         module.publish()
 
         fixture.expectSourceArtifact("my-sources")
-                .expectSourceArtifactFailure()
-                .expectJavadocArtifactFailure()
-                .prepare()
+            .expectSourceArtifactFailure()
+            .expectJavadocArtifactFailure()
+            .prepare()
 
         when:
         module.ivy.expectGet()
@@ -364,10 +364,10 @@ Searched in the following locations:
 
         when:
         fixture.clearExpectations()
-                .expectSourceArtifact("my-sources")
-                .expectSourceArtifact("broken-sources")
-                .expectJavadocArtifact("my-javadoc")
-                .createVerifyTask("verifyFixed")
+            .expectSourceArtifact("my-sources")
+            .expectSourceArtifact("broken-sources")
+            .expectJavadocArtifact("my-javadoc")
+            .createVerifyTask("verifyFixed")
 
         and:
         server.resetExpectations()
@@ -383,8 +383,8 @@ Searched in the following locations:
         initBuild(fileRepo)
 
         fixture.expectSourceArtifact("my-sources")
-                .expectJavadocArtifact("my-javadoc")
-                .prepare()
+            .expectJavadocArtifact("my-javadoc")
+            .prepare()
 
         when:
         succeeds("verify")
@@ -407,9 +407,9 @@ Searched in the following locations:
         moduleWithMavenScheme.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.1")
-                .requestingSource().requestingJavadoc()
-                .expectSourceArtifact("sources")
-                .prepare()
+            .requestingSource().requestingJavadoc()
+            .expectSourceArtifact("sources")
+            .prepare()
 
         when:
         moduleWithMavenScheme.ivy.expectGet()

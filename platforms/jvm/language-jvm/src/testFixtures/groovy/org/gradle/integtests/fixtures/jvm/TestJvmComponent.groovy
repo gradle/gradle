@@ -24,10 +24,10 @@ abstract class TestJvmComponent {
     abstract String getLanguageName()
 
     List<JvmSourceFile> getExpectedClasses() {
-        return getSources().collect{it.classFile}
+        return getSources().collect { it.classFile }
     }
 
-    List<JvmSourceFile> getExpectedOutputs(){
+    List<JvmSourceFile> getExpectedOutputs() {
         return getSources().collect { it.classFile } + resources;
     }
 
@@ -36,8 +36,8 @@ abstract class TestJvmComponent {
     }
 
     List<JvmSourceFile> resources = [
-            new JvmSourceFile("", "one.txt", "Here is a resource"),
-            new JvmSourceFile("sub-dir", "two.txt", "Here is another resource")
+        new JvmSourceFile("", "one.txt", "Here is a resource"),
+        new JvmSourceFile("sub-dir", "two.txt", "Here is another resource")
     ]
 
     List<TestFile> writeResources(TestFile testFile) {

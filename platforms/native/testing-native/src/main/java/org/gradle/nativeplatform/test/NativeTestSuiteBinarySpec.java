@@ -31,24 +31,9 @@ import java.io.File;
  *
  * @since 4.2
  */
-@Incubating @HasInternalProtocol
+@Incubating
+@HasInternalProtocol
 public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBinarySpec {
-
-    /**
-     * Provides access to key tasks used for building the binary.
-     */
-    interface TasksCollection extends TestSuiteTaskCollection {
-        /**
-         * The link task.
-         */
-        Task getLink();
-
-        /**
-         * The install task.
-         */
-        Task getInstall();
-
-    }
 
     /**
      * {@inheritDoc}
@@ -79,4 +64,20 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     NativeInstallationSpec getInstallation();
 
     NativeExecutableFileSpec getExecutable();
+
+    /**
+     * Provides access to key tasks used for building the binary.
+     */
+    interface TasksCollection extends TestSuiteTaskCollection {
+        /**
+         * The link task.
+         */
+        Task getLink();
+
+        /**
+         * The install task.
+         */
+        Task getInstall();
+
+    }
 }

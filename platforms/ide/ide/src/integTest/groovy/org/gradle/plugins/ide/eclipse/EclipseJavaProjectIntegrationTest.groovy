@@ -33,7 +33,7 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
 
         then:
         def classpath = classpath
-        classpath.containers == [ "org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/$expectedContainer/" ]
+        classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/$expectedContainer/"]
 
         where:
         version | expectedContainer

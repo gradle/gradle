@@ -1,6 +1,7 @@
 package org.gradle.junit;
 
 import org.junit.Test;
+
 import java.lang.System;
 
 public class SimpleJUnitTest {

@@ -53,11 +53,42 @@ import static java.util.stream.Collectors.toList;
 
 public class SourceFoldersCreator {
 
+    private static final Joiner COMMA_JOINER = Joiner.on(',');
+
+    private static SourceFolder createSourceFolder(Function<File, String> provideRelativePath, File dir) {
+        SourceFolder folder = new SourceFolder(provideRelativePath.apply(dir), null);
+        folder.setDir(dir);
+        folder.setName(dir.getName());
+        return folder;
+    }
+
+    private static Integer toComparable(SourceSet sourceSet) {
+        String name = sourceSet.getName();
+        if (SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
+            return 0;
+        } else if (SourceSet.TEST_SOURCE_SET_NAME.equals(name)) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
+    private static Integer toComparable(DirectoryTree tree) {
+        String path = tree.getDir().getPath();
+        if (path.endsWith("java")) {
+            return 0;
+        } else if (path.endsWith("resources")) {
+            return 2;
+        } else {
+            return 1;
+        }
+    }
+
     public List<SourceFolder> createSourceFolders(final EclipseClasspath classpath) {
 
         List<SourceFolder> sourceFolders = configureProjectRelativeFolders(classpath.getSourceSets(),
             classpath.getTestSourceSets().getOrElse(emptySet()),
-            input-> PathUtil.normalizePath(classpath.getProject().relativePath(input)),
+            input -> PathUtil.normalizePath(classpath.getProject().relativePath(input)),
             classpath.getDefaultOutputDir(),
             classpath.getBaseSourceOutputDir().get().getAsFile());
 
@@ -79,7 +110,7 @@ public class SourceFoldersCreator {
     }
 
     private <T> T collectRegularAndExternalSourceFolders(List<SourceFolder> sourceFolder, BiFunction<Collection<SourceFolder>, Collection<SourceFolder>, T> collector) {
-        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(sourceFolder,  sf-> sf.getPath().contains(".."));
+        Pair<Collection<SourceFolder>, Collection<SourceFolder>> partitionedFolders = CollectionUtils.partition(sourceFolder, sf -> sf.getPath().contains(".."));
 
         Collection<SourceFolder> externalSourceFolders = partitionedFolders.getLeft();
         Collection<SourceFolder> regularSourceFolders = partitionedFolders.getRight();
@@ -90,11 +121,13 @@ public class SourceFoldersCreator {
         return collector.apply(regularSourceFolders, dedupedExternalSourceFolders);
     }
 
-    private List<SourceFolder> configureProjectRelativeFolders(Iterable<SourceSet> sourceSets,
-                                                               Collection<SourceSet> testSourceSets,
-                                                               Function<File, String> provideRelativePath,
-                                                               File defaultOutputDir,
-                                                               File baseSourceOutputDir) {
+    private List<SourceFolder> configureProjectRelativeFolders(
+        Iterable<SourceSet> sourceSets,
+        Collection<SourceSet> testSourceSets,
+        Function<File, String> provideRelativePath,
+        File defaultOutputDir,
+        File baseSourceOutputDir
+    ) {
         String defaultOutputPath = provideRelativePath.apply(defaultOutputDir);
         ImmutableList.Builder<SourceFolder> entries = ImmutableList.builder();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
@@ -141,13 +174,6 @@ public class SourceFoldersCreator {
         return entries.build();
     }
 
-    private static SourceFolder createSourceFolder(Function<File, String> provideRelativePath, File dir) {
-        SourceFolder folder = new SourceFolder(provideRelativePath.apply(dir), null);
-        folder.setDir(dir);
-        folder.setName(dir.getName());
-        return folder;
-    }
-
     private List<SourceFolder> trimAndDedup(Collection<SourceFolder> externalSourceFolders, List<String> givenSources) {
         // externals are mapped to linked resources so we just need a name of the resource, without full path
         // non-unique folder names are naively deduped by adding parent filename as a prefix till unique
@@ -166,7 +192,6 @@ public class SourceFoldersCreator {
         return trimmedSourceFolders;
     }
 
-        private static final Joiner COMMA_JOINER = Joiner.on(',');
     private void addScopeAttributes(SourceFolder folder, SourceSet sourceSet, Multimap<SourceSet, SourceSet> sourceSetUsages) {
         folder.getEntryAttributes().put(EclipsePluginConstants.GRADLE_SCOPE_ATTRIBUTE_NAME, sanitizeNameForAttribute(sourceSet));
         folder.getEntryAttributes().put(EclipsePluginConstants.GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME, COMMA_JOINER.join(getUsingSourceSetNames(sourceSet, sourceSetUsages)));
@@ -241,7 +266,7 @@ public class SourceFoldersCreator {
 
     private List<String> getIncludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {
         List<Set<String>> includesByType = getFiltersForTreeGroupedByType(sourceSet, directoryTree, "includes");
-        if(includesByType.stream().anyMatch(Set::isEmpty)) {
+        if (includesByType.stream().anyMatch(Set::isEmpty)) {
             return emptyList();
         }
 
@@ -283,27 +308,5 @@ public class SourceFoldersCreator {
 
     private List<DirectoryTree> sortSourceDirsAsPerUsualConvention(Iterable<DirectoryTree> sourceDirs) {
         return CollectionUtils.sort(sourceDirs, Comparator.comparing(SourceFoldersCreator::toComparable));
-    }
-
-    private static Integer toComparable(SourceSet sourceSet) {
-        String name = sourceSet.getName();
-        if (SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
-            return 0;
-        } else if (SourceSet.TEST_SOURCE_SET_NAME.equals(name)) {
-            return 1;
-        } else {
-            return 2;
-        }
-    }
-
-    private static Integer toComparable(DirectoryTree tree) {
-        String path = tree.getDir().getPath();
-        if (path.endsWith("java")) {
-            return 0;
-        } else if (path.endsWith("resources")) {
-            return 2;
-        } else {
-            return 1;
-        }
     }
 }

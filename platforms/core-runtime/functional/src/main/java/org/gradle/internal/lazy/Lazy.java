@@ -32,6 +32,37 @@ import java.util.function.Supplier;
  */
 public interface Lazy<T> extends Supplier<T> {
     /**
+     * Constructs a lazy value that always returns the given value.
+     *
+     * @param <V> the type of the lazy value
+     */
+    static <V> Lazy<V> fixed(V value) {
+        return new FixedLazy<>(value);
+    }
+
+    static Factory unsafe() {
+        return UnsafeLazy::new;
+    }
+
+    /**
+     * An atomic {@link Lazy} allows concurrent access from multiple threads without locking.
+     * <br>
+     * The given {@code Supplier} might be executed more than once when multiple threads access a
+     * non-initialized {@link Lazy} at the same time but one value will eventually be cached and
+     * published to all threads.
+     * <br>
+     * <b>WARNING:</b> Given the above, this flavor of {@code Lazy} initialization should not be used
+     * with a {@code Supplier} that can have undesirable side effects if executed more than once.
+     */
+    static Factory atomic() {
+        return AtomicLazy::new;
+    }
+
+    static Factory locking() {
+        return LockingLazy::new;
+    }
+
+    /**
      * Executes an operation on the lazily computed value
      *
      * @param consumer the consumer
@@ -61,37 +92,6 @@ public interface Lazy<T> extends Supplier<T> {
      */
     default <V> Lazy<V> map(Function<? super T, V> mapper) {
         return unsafe().of(() -> mapper.apply(get()));
-    }
-
-    /**
-     * Constructs a lazy value that always returns the given value.
-     *
-     * @param <V> the type of the lazy value
-     */
-    static <V> Lazy<V> fixed(V value) {
-        return new FixedLazy<>(value);
-    }
-
-    static Factory unsafe() {
-        return UnsafeLazy::new;
-    }
-
-    /**
-     * An atomic {@link Lazy} allows concurrent access from multiple threads without locking.
-     * <br>
-     * The given {@code Supplier} might be executed more than once when multiple threads access a
-     * non-initialized {@link Lazy} at the same time but one value will eventually be cached and
-     * published to all threads.
-     * <br>
-     * <b>WARNING:</b> Given the above, this flavor of {@code Lazy} initialization should not be used
-     * with a {@code Supplier} that can have undesirable side effects if executed more than once.
-     */
-    static Factory atomic() {
-        return AtomicLazy::new;
-    }
-
-    static Factory locking() {
-        return LockingLazy::new;
     }
 
     interface Factory {

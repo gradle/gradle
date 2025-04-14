@@ -59,6 +59,15 @@ public class TransformErrorHandler {
         this.classLoaderName = classLoaderName;
     }
 
+    @SuppressWarnings("Since15")
+    private static void addSuppressedIfAvailable(Throwable th, Throwable suppressed) {
+        try {
+            th.addSuppressed(suppressed);
+        } catch (NoSuchMethodError ignored) {
+            // addSuppressed is Java 7+
+        }
+    }
+
     /**
      * Marks the beginning of code where a transformation exception may occur.
      *
@@ -126,14 +135,5 @@ public class TransformErrorHandler {
         ClassNotFoundException th = lastError.get();
         lastError.remove();
         return th;
-    }
-
-    @SuppressWarnings("Since15")
-    private static void addSuppressedIfAvailable(Throwable th, Throwable suppressed) {
-        try {
-            th.addSuppressed(suppressed);
-        } catch (NoSuchMethodError ignored) {
-            // addSuppressed is Java 7+
-        }
     }
 }

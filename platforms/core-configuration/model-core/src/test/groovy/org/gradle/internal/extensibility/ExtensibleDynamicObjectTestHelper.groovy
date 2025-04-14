@@ -19,14 +19,14 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
 
 public class ExtensibleDynamicObjectTestHelper {
-    public static void assertCanGetAllProperties (ExtensibleDynamicObjectTest.Bean bean) {
+    public static void assertCanGetAllProperties(ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'readWrite'
         bean.defineProperty('additional', 'additional')
         assertEquals(bean.getProperties().readWriteProperty, 'readWrite')
         assertEquals(bean.getProperties().additional, 'additional')
     }
 
-    public static void assertCanGetProperties (ExtensibleDynamicObjectTest.Bean bean) {
+    public static void assertCanGetProperties(ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'value'
         assertEquals(bean.readWriteProperty, 'value')
 
@@ -36,8 +36,8 @@ public class ExtensibleDynamicObjectTestHelper {
         bean.defineProperty('additional', 'value')
         assertEquals(bean.additional, 'value')
     }
-    
-    public static void assertCanGetAndSetProperties (ExtensibleDynamicObjectTest.Bean bean) {
+
+    public static void assertCanGetAndSetProperties(ExtensibleDynamicObjectTest.Bean bean) {
         bean.readWriteProperty = 'value'
         assertEquals(bean.readWriteProperty, 'value')
 
@@ -48,7 +48,7 @@ public class ExtensibleDynamicObjectTestHelper {
         assertEquals(bean.additional, 'value')
     }
 
-    public static void assertCanCallMethods (ExtensibleDynamicObjectTest.Bean bean) {
+    public static void assertCanCallMethods(ExtensibleDynamicObjectTest.Bean bean) {
         assertEquals(bean.javaMethod('a', 'b'), 'java:a.b')
         assertTrue(bean.hasMethod('conventionMethod', 'a', 'b'))
         assertEquals(bean.conventionMethod('a', 'b'), 'convention:a.b')
@@ -56,9 +56,9 @@ public class ExtensibleDynamicObjectTestHelper {
 
     public static void decorateGroovyBean(bean) {
         Map values = [:]
-        bean.metaClass.getDynamicGroovyProperty << {-> values.dynamicGroovyProperty }
-        bean.metaClass.setDynamicGroovyProperty << {value -> values.dynamicGroovyProperty = value}
-        bean.metaClass.dynamicGroovyMethod << {a, b -> "dynamicGroovy:$a.$b".toString() }
+        bean.metaClass.getDynamicGroovyProperty << { -> values.dynamicGroovyProperty }
+        bean.metaClass.setDynamicGroovyProperty << { value -> values.dynamicGroovyProperty = value }
+        bean.metaClass.dynamicGroovyMethod << { a, b -> "dynamicGroovy:$a.$b".toString() }
     }
 }
 
@@ -85,11 +85,11 @@ public class GroovyBean extends DynamicBean {
 }
 
 class DynamicGroovyBean {
-    
+
     private holder = null;
-    
+
     Map called = [:]
-    
+
     def propertyMissing(String name) {
         if (name == "foo") {
             return holder;
@@ -106,10 +106,10 @@ class DynamicGroovyBean {
         }
 
     }
-    
+
     def methodMissing(String name, args) {
         if (name == "bar") {
-            args[0] * 2   
+            args[0] * 2
         } else {
             throw new groovy.lang.MissingMethodException(name, getClass(), args)
         }

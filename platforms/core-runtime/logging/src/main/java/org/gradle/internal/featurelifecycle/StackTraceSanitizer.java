@@ -28,6 +28,15 @@ class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
         this.calledFrom = calledFrom;
     }
 
+    private static boolean isSystemStackFrame(String className) {
+        return className.startsWith("jdk.internal.") ||
+            className.startsWith("sun.") ||
+            className.startsWith("com.sun.") ||
+            className.startsWith("org.codehaus.groovy.") ||
+            className.startsWith("org.gradle.internal.metaobject.") ||
+            className.startsWith("org.gradle.kotlin.dsl.execution.");
+    }
+
     @Override
     public List<StackTraceElement> transform(StackTraceElement[] originalStack) {
         List<StackTraceElement> result = new ArrayList<StackTraceElement>();
@@ -53,14 +62,5 @@ class StackTraceSanitizer implements ProblemStream.StackTraceTransformer {
             }
         }
         return result;
-    }
-
-    private static boolean isSystemStackFrame(String className) {
-        return className.startsWith("jdk.internal.") ||
-            className.startsWith("sun.") ||
-            className.startsWith("com.sun.") ||
-            className.startsWith("org.codehaus.groovy.") ||
-            className.startsWith("org.gradle.internal.metaobject.") ||
-            className.startsWith("org.gradle.kotlin.dsl.execution.");
     }
 }

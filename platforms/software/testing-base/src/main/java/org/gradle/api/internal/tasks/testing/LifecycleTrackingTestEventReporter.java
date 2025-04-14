@@ -26,11 +26,6 @@ import java.util.Map;
 @NullMarked
 class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
     protected final T delegate;
-
-    @NullMarked
-    private enum State {
-        CREATED, STARTED, COMPLETED, CLOSED;
-    }
     private State state = State.CREATED;
 
     LifecycleTrackingTestEventReporter(T delegate) {
@@ -121,5 +116,10 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     @Override
     public String toString() {
         return delegate.toString();
+    }
+
+    @NullMarked
+    private enum State {
+        CREATED, STARTED, COMPLETED, CLOSED;
     }
 }

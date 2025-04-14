@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.api.reporting.components.internal
 
 import org.gradle.api.Project
@@ -99,7 +98,7 @@ binary: dBinary
     }
 
     def binary(String name) {
-        Mock(BinarySpec){
+        Mock(BinarySpec) {
             _ * getName() >> name
         }
     }

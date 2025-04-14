@@ -39,14 +39,18 @@ public interface JvmTestToolchain<T extends JvmTestToolchainParameters> {
      */
     default Iterable<Dependency> getCompileOnlyDependencies() {
         return Collections.emptyList();
-    };
+    }
+
+    ;
 
     /**
      * Returns the dependencies required only when executing the tests associated with this toolchain.
      */
     default Iterable<Dependency> getRuntimeOnlyDependencies() {
         return Collections.emptyList();
-    };
+    }
+
+    ;
 
     /**
      * Returns the dependencies required to compile and execute the tests associated with this toolchain.

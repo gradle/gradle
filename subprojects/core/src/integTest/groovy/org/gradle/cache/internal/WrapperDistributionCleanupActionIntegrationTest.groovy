@@ -22,7 +22,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // tests a real Gradle distribution
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+// tests a real Gradle distribution
 class WrapperDistributionCleanupActionIntegrationTest extends AbstractIntegrationSpec {
 
     def "reads Gradle version from actual distribution"() {

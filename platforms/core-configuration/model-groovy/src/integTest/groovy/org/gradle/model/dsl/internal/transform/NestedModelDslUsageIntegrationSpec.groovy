@@ -52,9 +52,9 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         code << [
-                "subprojects",
-                "project(':a')",
-                "if (true)"
+            "subprojects",
+            "project(':a')",
+            "if (true)"
         ]
     }
 
@@ -107,9 +107,9 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         code << [
-                "subprojects",
-                "project(':a')",
-                "if (true)"
+            "subprojects",
+            "project(':a')",
+            "if (true)"
         ]
     }
 
@@ -140,9 +140,9 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         code << [
-                "subprojects",
-                "project(':a')",
-                "if (true)"
+            "subprojects",
+            "project(':a')",
+            "if (true)"
         ]
     }
 

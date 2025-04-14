@@ -92,7 +92,7 @@ public class Resources implements MethodRule {
         try {
             switch (resource.getProtocol()) {
                 case "jar":
-                        return fromWithinJar(resource);
+                    return fromWithinJar(resource);
                 case "file":
                     return fromFile(resource);
                 default:

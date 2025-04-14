@@ -37,6 +37,7 @@ import org.gradle.api.problems.internal.TaskLocation
 /*
  * A deserialized representation of a problem received from the build operation trace.
  */
+
 @CompileStatic
 class ReceivedProblem implements InternalProblem {
     private final long operationId
@@ -53,7 +54,7 @@ class ReceivedProblem implements InternalProblem {
         this.operationId = operationId
         this.definition = new ReceivedProblemDefinition(problemDetails['definition'] as Map<String, Object>)
         this.contextualLabel = problemDetails['contextualLabel'] as String
-        this.details =  problemDetails['details'] as String
+        this.details = problemDetails['details'] as String
         this.solutions = problemDetails['solutions'] as List<String>
         this.originLocations = fromList(problemDetails['originLocations'] as List<Object>)
         this.contextualLocations = fromList(problemDetails['contextualLocations'] as List<Object>)
@@ -121,12 +122,12 @@ class ReceivedProblem implements InternalProblem {
 
     @Override
     String getContextualLabel() {
-       contextualLabel
+        contextualLabel
     }
 
     @Override
     String getDetails() {
-       details
+        details
     }
 
     @Override
@@ -156,13 +157,13 @@ class ReceivedProblem implements InternalProblem {
         def location = locations.find {
             locationType.isInstance(it)
         }
-        assert location != null : "Expected a location of type $locationType, but found none. Available locations: ${locations.collect { it.getClass().name }}"
+        assert location != null: "Expected a location of type $locationType, but found none. Available locations: ${locations.collect { it.getClass().name }}"
         return locationType.cast(location)
     }
 
     @Override
     ReceivedAdditionalData getAdditionalData() {
-       additionalData
+        additionalData
     }
 
 
@@ -225,7 +226,7 @@ class ReceivedProblem implements InternalProblem {
         ReceivedProblemDefinition(Map<String, Object> definition) {
             id = new ReceivedProblemId(definition['id'] as Map<String, Object>)
             severity = Severity.valueOf(definition['severity'] as String)
-            documentationLink = definition['documentationLink'] ==  null ? null : new ReceivedDocumentationLink(definition['documentationLink'] as Map<String, Object>)
+            documentationLink = definition['documentationLink'] == null ? null : new ReceivedDocumentationLink(definition['documentationLink'] as Map<String, Object>)
         }
 
         @Override
@@ -273,7 +274,7 @@ class ReceivedProblem implements InternalProblem {
 
         @Override
         String getName() {
-           name
+            name
         }
 
         @Override

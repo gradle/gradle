@@ -2,7 +2,7 @@ name: Close linked issues when PR merged into release
 
 on:
   pull_request:
-    types: [closed]
+    types: [ closed ]
     branches:
       - release
       - release7x

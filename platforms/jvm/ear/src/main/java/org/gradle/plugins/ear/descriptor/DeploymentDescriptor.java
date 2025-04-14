@@ -100,10 +100,8 @@ public interface DeploymentDescriptor {
     /**
      * Add a module to the deployment descriptor.
      *
-     * @param module
-     *            The module to add.
-     * @param type
-     *            The type of the module, such as "ejb", "java", etc.
+     * @param module The module to add.
+     * @param type The type of the module, such as "ejb", "java", etc.
      * @return this.
      */
     DeploymentDescriptor module(EarModule module, String type);
@@ -111,10 +109,8 @@ public interface DeploymentDescriptor {
     /**
      * Add a module to the deployment descriptor.
      *
-     * @param path
-     *            The path of the module to add.
-     * @param type
-     *            The type of the module, such as "ejb", "java", etc.
+     * @param path The path of the module to add.
+     * @param type The type of the module, such as "ejb", "java", etc.
      * @return this.
      */
     DeploymentDescriptor module(String path, String type);
@@ -122,10 +118,8 @@ public interface DeploymentDescriptor {
     /**
      * Add a web module to the deployment descriptor.
      *
-     * @param path
-     *            The path of the module to add.
-     * @param contextRoot
-     *            The context root type of the web module.
+     * @param path The path of the module to add.
+     * @param contextRoot The context root type of the web module.
      * @return this.
      */
     DeploymentDescriptor webModule(String path, String contextRoot);
@@ -141,8 +135,7 @@ public interface DeploymentDescriptor {
     /**
      * Add a security role to the deployment descriptor.
      *
-     * @param role
-     *            The security role to add.
+     * @param role The security role to add.
      * @return this.
      */
     DeploymentDescriptor securityRole(EarSecurityRole role);
@@ -150,8 +143,7 @@ public interface DeploymentDescriptor {
     /**
      * Add a security role to the deployment descriptor.
      *
-     * @param role
-     *            The name of the security role to add.
+     * @param role The name of the security role to add.
      * @return this.
      */
     DeploymentDescriptor securityRole(String role);
@@ -179,8 +171,7 @@ public interface DeploymentDescriptor {
      * output file. This allows additional JavaEE version 6 elements like "data-source" or "resource-ref" to be
      * included.
      *
-     * @param closure
-     *            The closure to execute when the XML has been created
+     * @param closure The closure to execute when the XML has been created
      * @return this
      */
     DeploymentDescriptor withXml(@DelegatesTo(XmlProvider.class) Closure closure);
@@ -190,8 +181,7 @@ public interface DeploymentDescriptor {
      * parameter in form of a {@link groovy.util.Node}. The action can modify the XML before it is written to the output
      * file. This allows additional JavaEE version 6 elements like "data-source" or "resource-ref" to be included.
      *
-     * @param action
-     *            The action to execute when the XML has been created
+     * @param action The action to execute when the XML has been created
      * @return this
      */
     DeploymentDescriptor withXml(Action<? super XmlProvider> action);
@@ -199,8 +189,7 @@ public interface DeploymentDescriptor {
     /**
      * Reads the deployment descriptor from a reader.
      *
-     * @param reader
-     *            The reader to read the deployment descriptor from
+     * @param reader The reader to read the deployment descriptor from
      * @return this
      */
     DeploymentDescriptor readFrom(Reader reader);
@@ -209,8 +198,7 @@ public interface DeploymentDescriptor {
      * Reads the deployment descriptor from a file. The paths are resolved as defined by
      * {@link org.gradle.api.Project#file(Object)}
      *
-     * @param path
-     *            The path of the file to read the deployment descriptor from
+     * @param path The path of the file to read the deployment descriptor from
      * @return whether the descriptor could be read from the given path
      */
     boolean readFrom(Object path);
@@ -218,8 +206,7 @@ public interface DeploymentDescriptor {
     /**
      * Writes the deployment descriptor into a writer.
      *
-     * @param writer
-     *            The writer to write the deployment descriptor to
+     * @param writer The writer to write the deployment descriptor to
      * @return this
      */
     DeploymentDescriptor writeTo(Writer writer);
@@ -228,8 +215,7 @@ public interface DeploymentDescriptor {
      * Writes the deployment descriptor into a file. The paths are resolved as defined by
      * {@link org.gradle.api.Project#file(Object)}
      *
-     * @param path
-     *            The path of the file to write the deployment descriptor into.
+     * @param path The path of the file to write the deployment descriptor into.
      * @return this
      */
     DeploymentDescriptor writeTo(Object path);

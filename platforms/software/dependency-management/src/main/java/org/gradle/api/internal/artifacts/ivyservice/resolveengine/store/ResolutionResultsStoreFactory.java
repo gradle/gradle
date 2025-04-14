@@ -41,16 +41,15 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private final TemporaryFileProvider temp;
     private final int maxSize;
-
+    private final AtomicInteger storeSetBaseId = new AtomicInteger();
+    private final Map<String, DefaultBinaryStore> stores = new HashMap<>();
+    private final CompositeStoppable cleanUpLater = new CompositeStoppable();
     private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
     private CachedStoreFactory<ResolvedComponentResultInternal> newModelCache;
-
-    private final AtomicInteger storeSetBaseId = new AtomicInteger();
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this(temp, DEFAULT_MAX_SIZE);
     }
-
     /**
      * @param temp - Provider of temporary files.
      * @param maxSize - indicates the approx. maximum size of the binary store that will trigger rolling of the file
@@ -59,9 +58,6 @@ public class ResolutionResultsStoreFactory implements Closeable {
         this.temp = temp;
         this.maxSize = maxSize;
     }
-
-    private final Map<String, DefaultBinaryStore> stores = new HashMap<>();
-    private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
     private synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
         DefaultBinaryStore store = stores.get(storeKey);
@@ -95,6 +91,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return new StoreSet() {
             final int storeSetId = storeSetBaseId.getAndIncrement();
             int binaryStoreId;
+
             @Override
             public DefaultBinaryStore nextBinaryStore() {
                 //one binary store per id+threadId

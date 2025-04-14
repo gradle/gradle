@@ -29,8 +29,9 @@ class CodeAnalyzerImpl(
         }
     }
 
-    private val AnalysisContextView.isTopLevelScope get() =
-        currentScopes.last().receiver is ObjectOrigin.TopLevelReceiver
+    private val AnalysisContextView.isTopLevelScope
+        get() =
+            currentScopes.last().receiver is ObjectOrigin.TopLevelReceiver
 
     private
     fun doResolveStatement(context: AnalysisContext, statement: DataStatement) {

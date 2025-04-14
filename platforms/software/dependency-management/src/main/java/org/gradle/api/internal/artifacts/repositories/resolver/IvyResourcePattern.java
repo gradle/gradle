@@ -73,10 +73,10 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
     protected String getPathWithoutArtifactPart() {
         String path = getBase().getPath();
         int i = path.lastIndexOf('/');
-        if (i>0) {
+        if (i > 0) {
             i = path.indexOf("/[artifact]", i);
         }
-        if (i<0) {
+        if (i < 0) {
             throw new UnsupportedOperationException("Cannot locate module version for non standard Ivy layout.");
         }
         return path.substring(0, i);

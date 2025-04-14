@@ -89,8 +89,8 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
 
     private void readPlatformOwners(Decoder decoder, MutableModuleComponentResolveMetadata mutable) throws IOException {
         int len = decoder.readSmallInt();
-        if (len>0) {
-            for (int i=0; i<len; i++) {
+        if (len > 0) {
+            for (int i = 0; i < len; i++) {
                 VirtualComponentIdentifier moduleComponentIdentifier = readModuleIdentifier(decoder);
                 mutable.belongsTo(moduleComponentIdentifier);
             }

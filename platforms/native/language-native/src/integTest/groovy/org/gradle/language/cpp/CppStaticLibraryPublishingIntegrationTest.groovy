@@ -176,7 +176,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
 
     @Override
     List<String> getMainModuleArtifacts(String module, String version) {
-        return  ["${module}-${version}.pom", "${module}-${version}.module", "${module}-${version}-cpp-api-headers.zip"]
+        return ["${module}-${version}.pom", "${module}-${version}.module", "${module}-${version}-cpp-api-headers.zip"]
     }
 
     @Override

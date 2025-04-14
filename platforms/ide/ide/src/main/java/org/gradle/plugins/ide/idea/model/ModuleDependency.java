@@ -37,6 +37,16 @@ public class ModuleDependency implements Dependency {
         this.exported = false;
     }
 
+    private static boolean scopeEquals(String lhs, String rhs) {
+        if ("COMPILE".equals(lhs)) {
+            return Strings.isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
+        } else if ("COMPILE".equals(rhs)) {
+            return Strings.isNullOrEmpty(lhs);
+        } else {
+            return Objects.equal(lhs, rhs);
+        }
+    }
+
     /**
      * The name of the module the module depends on.
      * Must not be null.
@@ -94,16 +104,6 @@ public class ModuleDependency implements Dependency {
         }
         ModuleDependency that = (ModuleDependency) o;
         return Objects.equal(name, that.name) && scopeEquals(scope, that.scope);
-    }
-
-    private static boolean scopeEquals(String lhs, String rhs) {
-        if ("COMPILE".equals(lhs)) {
-            return Strings.isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
-        } else if ("COMPILE".equals(rhs)) {
-            return Strings.isNullOrEmpty(lhs);
-        } else {
-            return Objects.equal(lhs, rhs);
-        }
     }
 
     @Override

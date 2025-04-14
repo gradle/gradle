@@ -85,9 +85,9 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
 
         when:
         def result = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme("App")
-                .fails()
+            .withProject(rootXcodeProject)
+            .withScheme("App")
+            .fails()
 
         then:
         result.error.contains('The project named "app" does not contain a scheme named "App".')

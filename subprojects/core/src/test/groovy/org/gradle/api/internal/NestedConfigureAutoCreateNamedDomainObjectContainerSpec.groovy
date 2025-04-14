@@ -26,6 +26,7 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
     static class Container extends FactoryNamedDomainObjectContainer {
         String parentName
         String name
+
         Container(String parentName, String name, Closure factory) {
             super(Object, TestUtil.instantiatorFactory().decorateLenient(), new DynamicPropertyNamer(), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP)
             this.parentName = parentName
@@ -89,7 +90,7 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
             c1 {
                 m1 {
                     prop = "c1c1m1"
-                    
+
                     // Should throw mme because map doesn't have this method
                     somethingThatDoesntExist {
 
@@ -103,7 +104,7 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
         def e = thrown(groovy.lang.MissingMethodException)
         e.method == "somethingThatDoesntExist"
         parent.c1.m1.prop == "c1c1m1"
-        
+
         // make sure the somethingThatDoesntExist() call didn't resolve against any of the root containers, creating an entry
         parent.size() == 1
         parent.c1.size() == 1

@@ -28,7 +28,8 @@ Map<String, Counter> excludeCounters = [:].withDefault { new Counter(uniqueExclu
 
 class Counter {
     final int id
-    Counter(int id) { this.id = id}
+
+    Counter(int id) { this.id = id }
 
     int counter = -1
 
@@ -44,7 +45,7 @@ class Counter {
 logFile.eachLine { line ->
     if (line.contains('org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.LoggingExcludeFactory')) {
         line = line.substring(line.indexOf('LoggingExcludeFactory] ') + 23)
-        String opName = line.contains('"name": "allOf"') ?  'allOf' : 'anyOf'
+        String opName = line.contains('"name": "allOf"') ? 'allOf' : 'anyOf'
         File outDir = opName == 'allOf' ? allOfDir : anyOfDir
         def sorted = sort(line)
         String opNameWithHash = "${opName}-${sorted.hashCode()}"

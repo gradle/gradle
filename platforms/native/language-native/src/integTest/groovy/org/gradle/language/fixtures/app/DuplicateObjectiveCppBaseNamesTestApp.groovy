@@ -19,8 +19,9 @@ package org.gradle.language.fixtures.app
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
-class DuplicateObjectiveCppBaseNamesTestApp extends TestNativeComponent{
+class DuplicateObjectiveCppBaseNamesTestApp extends TestNativeComponent {
     def plugins = ["objective-cpp"]
+
     @Override
     List<SourceFile> getSourceFiles() {
         [sourceFile("objcpp", "main.mm", """
@@ -36,7 +37,7 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestNativeComponent{
                 return 0;
             }
         """),
-            sourceFile("objcpp/foo1", "foo.mm", """
+         sourceFile("objcpp/foo1", "foo.mm", """
             #define __STDC_LIMIT_MACROS
             #include <stdint.h>
             #import <Foundation/Foundation.h>
@@ -49,7 +50,7 @@ class DuplicateObjectiveCppBaseNamesTestApp extends TestNativeComponent{
                 [stdout writeData: strData];
             }
         """),
-                sourceFile("objcpp/foo2", "foo.mm", """
+         sourceFile("objcpp/foo2", "foo.mm", """
             #import <iostream>
             #import "foo.h"
 

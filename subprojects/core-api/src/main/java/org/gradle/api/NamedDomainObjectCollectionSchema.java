@@ -21,8 +21,8 @@ import org.gradle.api.reflect.TypeOf;
 /**
  * Schema of named domain object collections.
  *
- * @since 4.10
  * @see NamedDomainObjectCollection
+ * @since 4.10
  */
 public interface NamedDomainObjectCollectionSchema {
     /**

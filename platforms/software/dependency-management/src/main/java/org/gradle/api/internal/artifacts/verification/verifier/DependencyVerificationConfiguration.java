@@ -62,6 +62,19 @@ public class DependencyVerificationConfiguration {
         this.keyringFormat = keyringFormat;
     }
 
+    private static int compareNullableStrings(@Nullable String first, @Nullable String second) {
+        if (first == null) {
+            if (second == null) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } else if (second == null) {
+            return 1;
+        }
+        return first.compareTo(second);
+    }
+
     @Nullable
     public KeyringFormat getKeyringFormat() {
         return keyringFormat;
@@ -93,6 +106,12 @@ public class DependencyVerificationConfiguration {
 
     public boolean isUseKeyServers() {
         return useKeyServers;
+    }
+
+    @NullMarked
+    public enum KeyringFormat {
+        ARMORED,
+        BINARY
     }
 
     public abstract static class TrustCoordinates {
@@ -292,24 +311,5 @@ public class DependencyVerificationConfiguration {
             return internalCompareTo(other);
         }
 
-    }
-
-    @NullMarked
-    public enum KeyringFormat {
-        ARMORED,
-        BINARY
-    }
-
-    private static int compareNullableStrings(@Nullable String first, @Nullable String second) {
-        if (first == null) {
-            if (second == null) {
-                return 0;
-            } else {
-                return -1;
-            }
-        } else if (second == null) {
-            return 1;
-        }
-        return first.compareTo(second);
     }
 }

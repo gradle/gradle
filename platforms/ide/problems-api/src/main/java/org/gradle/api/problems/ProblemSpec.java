@@ -106,7 +106,7 @@ public interface ProblemSpec {
     ProblemSpec stackLocation();
 
     /**
-      Declares a long description detailing the problem.
+     * Declares a long description detailing the problem.
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.
      * They can be multiple lines long, but should not detail solutions; for that, use {@link #solution(String)}.
@@ -151,9 +151,7 @@ public interface ProblemSpec {
      *       </ul>
      *     </li>
      * </ul>
-     *
      * @param config The configuration action for the additional data.
-     *
      * @return this
      * @since 8.13
      */

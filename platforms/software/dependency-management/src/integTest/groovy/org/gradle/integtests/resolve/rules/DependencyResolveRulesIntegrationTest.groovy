@@ -114,7 +114,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkDeps")
         resolve.expectGraph {
             root(":", ":test:") {
-                 module("org.stuff:foo:2.0") {
+                module("org.stuff:foo:2.0") {
                     module("org.utils:api:1.5") {
                         selectedByRule()
                     }
@@ -369,9 +369,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void "can deny a version"() {
-        mavenRepo.module("org.utils", "a",  '1.4').publish()
-        mavenRepo.module("org.utils", "a",  '1.3').publish()
-        mavenRepo.module("org.utils", "a",  '1.2').publish()
+        mavenRepo.module("org.utils", "a", '1.4').publish()
+        mavenRepo.module("org.utils", "a", '1.3').publish()
+        mavenRepo.module("org.utils", "a", '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
 
         buildFile << """
@@ -406,8 +406,8 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void "can deny a version that is not used"() {
-        mavenRepo.module("org.utils", "a",  '1.3').publish()
-        mavenRepo.module("org.utils", "a",  '1.2').publish()
+        mavenRepo.module("org.utils", "a", '1.3').publish()
+        mavenRepo.module("org.utils", "a", '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
 
         buildFile << """
@@ -442,7 +442,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can use custom versioning scheme"() {
-        mavenRepo.module("org.utils", "api",  '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.3').publish()
 
         buildFile << """
             $common
@@ -471,7 +471,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can use custom versioning scheme for transitive dependencies"() {
-        mavenRepo.module("org.utils", "api",  '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', 'default').publish()
 
         buildFile << """
@@ -626,9 +626,9 @@ Required by:
     }
 
     void "can substitute module name and resolve conflict"() {
-        mavenRepo.module("org.utils", "a",  '1.2').publish()
-        mavenRepo.module("org.utils", "b",  '2.0').publish()
-        mavenRepo.module("org.utils", "b",  '2.1').publish()
+        mavenRepo.module("org.utils", "a", '1.2').publish()
+        mavenRepo.module("org.utils", "b", '2.0').publish()
+        mavenRepo.module("org.utils", "b", '2.1').publish()
 
         buildFile << """
             $common

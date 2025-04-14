@@ -45,8 +45,8 @@ import java.util.Set;
  * @see JsonProjectDependencyRenderer
  */
 public class HtmlDependencyReporter extends ReportRenderer<ProjectsWithConfigurations<ProjectNameAndPath, ConfigurationDetails>, File> {
-    private File outputDirectory;
     private final JsonProjectDependencyRenderer renderer;
+    private File outputDirectory;
 
     public HtmlDependencyReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         renderer = new JsonProjectDependencyRenderer(versionSelectorScheme, versionComparator, versionParser);

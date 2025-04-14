@@ -75,7 +75,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
-        this.cacheDirProvider = (DefaultJdkCacheDirectory)cacheDirProvider;
+        this.cacheDirProvider = (DefaultJdkCacheDirectory) cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.buildOperationRunner = executor;
         this.currentBuildPlatform = currentBuildPlatform;
@@ -207,6 +207,10 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         private final Map<String, Exception> resolveFailures = new TreeMap<>();
         private final Map<String, Exception> provisioningFailures = new TreeMap<>();
 
+        private static String failureMessage(Map<String, Exception> failures) {
+            return failures.entrySet().stream().map(e -> e.getKey() + " (" + e.getValue().getMessage() + ")").collect(Collectors.joining(", "));
+        }
+
         public void addResolveFailure(String repositoryName, Exception failure) {
             resolveFailures.put(repositoryName, failure);
         }
@@ -270,10 +274,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                     .append(".");
             }
             return sb.toString();
-        }
-
-        private static String failureMessage(Map<String, Exception> failures) {
-            return failures.entrySet().stream().map(e -> e.getKey() + " (" + e.getValue().getMessage() + ")").collect(Collectors.joining(", "));
         }
     }
 }

@@ -26,11 +26,16 @@ import java.util.Set;
 public class NotationParserBuilder<N, T> {
     private final Class<N> notationType;
     private final TypeInfo<T> resultingType;
+    private final List<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<>();
     private String invalidNotationMessage;
     private Object typeDisplayName;
     private boolean implicitConverters = true;
     private boolean allowNullInput;
-    private final List<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<>();
+
+    private NotationParserBuilder(Class<N> notationType, TypeInfo<T> resultingType) {
+        this.notationType = notationType;
+        this.resultingType = resultingType;
+    }
 
     public static <T> NotationParserBuilder<Object, T> toType(Class<T> resultingType) {
         return new NotationParserBuilder<>(Object.class, new TypeInfo<>(resultingType));
@@ -42,11 +47,6 @@ public class NotationParserBuilder<N, T> {
 
     public static <N, T> NotationParserBuilder<N, T> builder(Class<N> notationType, Class<T> resultingType) {
         return new NotationParserBuilder<>(notationType, new TypeInfo<>(resultingType));
-    }
-
-    private NotationParserBuilder(Class<N> notationType, TypeInfo<T> resultingType) {
-        this.notationType = notationType;
-        this.resultingType = resultingType;
     }
 
     /**

@@ -31,6 +31,15 @@ import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 public class PathNotationConverter implements NotationConverter<Object, String> {
 
+    public static NotationParser<Object, String> parser() {
+        return NotationParserBuilder
+            .toType(String.class)
+            .noImplicitConverters()
+            .allowNullInput()
+            .converter(new PathNotationConverter())
+            .toComposite();
+    }
+
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate("String or CharSequence instances").example("\"some/path\"");
@@ -42,23 +51,14 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
         visitor.candidate("A Provider that provides any supported value.");
     }
 
-    public static NotationParser<Object, String> parser() {
-        return NotationParserBuilder
-                .toType(String.class)
-                .noImplicitConverters()
-                .allowNullInput()
-                .converter(new PathNotationConverter())
-                .toComposite();
-    }
-
     @Override
     public void convert(Object notation, NotationConvertResult<? super String> result) throws TypeConversionException {
         if (notation == null) {
             result.converted(null);
         } else if (notation instanceof CharSequence
-                || notation instanceof File
-                || notation instanceof Number
-                || notation instanceof Boolean) {
+            || notation instanceof File
+            || notation instanceof Number
+            || notation instanceof Boolean) {
             result.converted(notation.toString());
         } else if (notation instanceof Callable) {
             final Callable<?> callableNotation = (Callable<?>) notation;

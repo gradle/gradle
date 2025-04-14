@@ -28,6 +28,10 @@ import java.util.Map;
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface DependencyFactoryInternal extends DependencyFactory {
+    Dependency createDependency(Object dependencyNotation);
+
+    ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
+
     //for gradle distribution specific dependencies
     enum ClassPathNotation {
         GRADLE_API("Gradle API"),
@@ -43,8 +47,4 @@ public interface DependencyFactoryInternal extends DependencyFactory {
             this.displayName = displayName;
         }
     }
-
-    Dependency createDependency(Object dependencyNotation);
-
-    ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
 }

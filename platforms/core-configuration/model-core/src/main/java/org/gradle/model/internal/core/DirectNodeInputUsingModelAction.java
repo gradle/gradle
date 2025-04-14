@@ -26,14 +26,18 @@ import java.util.List;
 public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithView<T> {
     private final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action;
 
-    public DirectNodeInputUsingModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
-                                           TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
+    public DirectNodeInputUsingModelAction(
+        ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
+        TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action
+    ) {
         super(subject, descriptor, inputs);
         this.action = action;
     }
 
-    public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
-                                                      TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
+    public static <T> DirectNodeInputUsingModelAction<T> of(
+        ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
+        TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action
+    ) {
         return new DirectNodeInputUsingModelAction<T>(modelReference, descriptor, inputs, action);
     }
 

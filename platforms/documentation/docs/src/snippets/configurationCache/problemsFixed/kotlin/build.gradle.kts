@@ -1,11 +1,14 @@
 // tag::fixed[]
 abstract class MyCopyTask : DefaultTask() { // <1>
 
-    @get:InputDirectory abstract val source: DirectoryProperty // <2>
+    @get:InputDirectory
+    abstract val source: DirectoryProperty // <2>
 
-    @get:OutputDirectory abstract val destination: DirectoryProperty // <2>
+    @get:OutputDirectory
+    abstract val destination: DirectoryProperty // <2>
 
-    @get:Inject abstract val fs: FileSystemOperations // <3>
+    @get:Inject
+    abstract val fs: FileSystemOperations // <3>
 
     @TaskAction
     fun action() {

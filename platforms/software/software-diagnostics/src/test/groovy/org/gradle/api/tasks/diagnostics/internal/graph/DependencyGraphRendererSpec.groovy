@@ -45,11 +45,11 @@ class DependencyGraphRendererSpec extends Specification {
 
         then:
         textOutput.value.readLines() == [
-                '+--- dep1',
-                '|    \\--- dep1.1',
-                '\\--- dep2',
-                '     +--- dep2.1',
-                '     \\--- dep2.2'
+            '+--- dep1',
+            '|    \\--- dep1.1',
+            '\\--- dep2',
+            '     +--- dep2.1',
+            '     \\--- dep2.2'
         ]
     }
 
@@ -70,13 +70,13 @@ class DependencyGraphRendererSpec extends Specification {
 
         then:
         textOutput.value.readLines() == [
-                '+--- dep1',
-                '|    \\--- dep1.1',
-                '\\--- dep2',
-                '     +--- dep1 (*)',
-                '     \\--- dep2.2',
-                '',
-                '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
+            '+--- dep1',
+            '|    \\--- dep1.1',
+            '\\--- dep2',
+            '     +--- dep1 (*)',
+            '     \\--- dep2.2',
+            '',
+            '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
         ]
     }
 }

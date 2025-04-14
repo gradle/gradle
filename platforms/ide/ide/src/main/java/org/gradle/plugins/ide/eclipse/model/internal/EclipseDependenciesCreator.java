@@ -74,6 +74,12 @@ public class EclipseDependenciesCreator {
         this.inferModulePath = inferModulePath;
     }
 
+    private static boolean isNotJar(ResolvedArtifactResult artifact) {
+        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        return libraryElements == null
+            || !libraryElements.getName().equals(LibraryElements.JAR);
+    }
+
     public List<AbstractClasspathEntry> createDependencyEntries() {
         EclipseDependenciesVisitor visitor = new EclipseDependenciesVisitor(classpath.getProject());
         Set<Configuration> testConfigurations = classpath.getTestConfigurations().getOrElse(Collections.emptySet());
@@ -254,11 +260,5 @@ public class EclipseDependenciesCreator {
 
             return out;
         }
-    }
-
-    private static boolean isNotJar(ResolvedArtifactResult artifact) {
-        LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        return libraryElements == null
-            || !libraryElements.getName().equals(LibraryElements.JAR);
     }
 }

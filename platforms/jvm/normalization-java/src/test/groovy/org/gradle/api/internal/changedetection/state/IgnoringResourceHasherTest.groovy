@@ -29,7 +29,7 @@ class IgnoringResourceHasherTest extends Specification {
     def resourceFilter = Mock(ResourceFilter)
     def hasher = new IgnoringResourceHasher(delegate, resourceFilter)
     def snapshot = new RegularFileSnapshot("path", "path", TestHashCodes.hashCodeFrom(456), DefaultFileMetadata.file(3456, 456, FileMetadata.AccessType.DIRECT))
-    def snapshotContext = new DefaultRegularFileSnapshotContext({path.split('/')}, snapshot)
+    def snapshotContext = new DefaultRegularFileSnapshotContext({ path.split('/') }, snapshot)
 
     def "allows all resources when resource filter does not match"() {
         when:

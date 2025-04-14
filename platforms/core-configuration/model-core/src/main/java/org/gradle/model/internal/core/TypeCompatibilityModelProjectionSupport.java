@@ -34,6 +34,13 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         this.type = type;
     }
 
+    public static String description(ModelType<?> type) {
+        if (type.getRawClass().getSuperclass() == null && type.getRawClass().getInterfaces().length == 0) {
+            return type.toString();
+        }
+        return type + " (or assignment compatible type thereof)";
+    }
+
     protected ModelType<M> getType() {
         return type;
     }
@@ -79,13 +86,6 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
             return valueDescription;
         }
         return type + "#toString() returned null";
-    }
-
-    public static String description(ModelType<?> type) {
-        if (type.getRawClass().getSuperclass() == null && type.getRawClass().getInterfaces().length == 0) {
-            return type.toString();
-        }
-        return type + " (or assignment compatible type thereof)";
     }
 
     @Override

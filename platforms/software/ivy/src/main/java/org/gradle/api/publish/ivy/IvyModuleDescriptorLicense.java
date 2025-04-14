@@ -21,8 +21,8 @@ import org.gradle.api.provider.Property;
 /**
  * A license of an Ivy publication.
  *
- * @since 4.8
  * @see IvyModuleDescriptorSpec
+ * @since 4.8
  */
 public interface IvyModuleDescriptorLicense {
 

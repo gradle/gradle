@@ -64,13 +64,6 @@ public class ExceptionProblemRegistry {
             this.problemsForThrowables = ImmutableMultimap.copyOf(problemsForThrowables);
         }
 
-        Multimap<String, Throwable> exceptionLookup() {
-            if (exceptionLookup == null) {
-                exceptionLookup = initLookup(this.problemsForThrowables.keySet());
-            }
-            return exceptionLookup;
-        }
-
         private static Multimap<String, Throwable> initLookup(Set<Throwable> exceptions) {
             Multimap<String, Throwable> lookup = ArrayListMultimap.create();
             for (Throwable exception : exceptions) {
@@ -92,6 +85,13 @@ public class ExceptionProblemRegistry {
                 // ignore exceptions with faulty getMessage() implementation
             }
             return result;
+        }
+
+        Multimap<String, Throwable> exceptionLookup() {
+            if (exceptionLookup == null) {
+                exceptionLookup = initLookup(this.problemsForThrowables.keySet());
+            }
+            return exceptionLookup;
         }
 
         @Override

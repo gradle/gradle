@@ -9,12 +9,14 @@ println "Settings Directory: ${settings.layout.settingsDirectory}"
 abstract class MyBuildLayoutPlugin implements Plugin<Settings> {
     private BuildLayout buildLayout
 
-    @Inject //@javax.inject.Inject
+    @Inject
+    //@javax.inject.Inject
     MyBuildLayoutPlugin(BuildLayout buildLayout) {
         this.buildLayout = buildLayout
     }
 
-    @Override void apply(Settings settings) {
+    @Override
+    void apply(Settings settings) {
         // the meat and potatoes of the plugin
         println buildLayout.rootDirectory
     }

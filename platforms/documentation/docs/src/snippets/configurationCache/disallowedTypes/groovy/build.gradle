@@ -5,7 +5,8 @@ plugins {
 // tag::task-type[]
 abstract class SomeTask extends DefaultTask {
 
-    @Input SourceSet sourceSet // <1>
+    @Input
+    SourceSet sourceSet // <1>
 
     @TaskAction
     void action() {

@@ -86,7 +86,7 @@ class LockfileFixture {
 
     private void internalVerifyLockfile(Map<String, List<String>> expected, LockScope lockScope) {
         def fileName
-        switch(lockScope) {
+        switch (lockScope) {
             case LockScope.SETTINGS:
                 fileName = LockFileReaderWriter.SETTINGS_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
                 break

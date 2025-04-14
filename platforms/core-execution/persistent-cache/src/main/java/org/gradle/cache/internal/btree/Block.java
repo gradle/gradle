@@ -38,7 +38,11 @@ public abstract class Block {
 
     public abstract BlockPointer getPos();
 
+    public abstract void setPos(BlockPointer pos);
+
     public abstract int getSize();
+
+    public abstract void setSize(int size);
 
     public abstract RuntimeException blockCorruptedException();
 
@@ -52,8 +56,4 @@ public abstract class Block {
     }
 
     public abstract boolean hasPos();
-
-    public abstract void setPos(BlockPointer pos);
-
-    public abstract void setSize(int size);
 }

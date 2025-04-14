@@ -76,6 +76,24 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
             .toComposite();
     }
 
+    private static class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
+        private final NotationParser<Object, MavenArtifact> sourceNotationParser;
+
+        private MavenArtifactMapNotationConverter(NotationParser<Object, MavenArtifact> sourceNotationParser) {
+            this.sourceNotationParser = sourceNotationParser;
+        }
+
+        @SuppressWarnings("UnusedMethod") //used org.gradle.internal.typeconversion.MapNotationConverter.ConvertMethodCache.findConvertMethod
+        protected MavenArtifact parseMap(@MapKey("source") Object source) {
+            return sourceNotationParser.parseNotation(source);
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
+        }
+    }
+
     private class ArchiveTaskNotationConverter implements NotationConverter<AbstractArchiveTask, MavenArtifact> {
         @Override
         public void convert(AbstractArchiveTask archiveTask, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
@@ -143,24 +161,6 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             fileResolverNotationParser.describe(visitor);
-        }
-    }
-
-    private static class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
-        private final NotationParser<Object, MavenArtifact> sourceNotationParser;
-
-        private MavenArtifactMapNotationConverter(NotationParser<Object, MavenArtifact> sourceNotationParser) {
-            this.sourceNotationParser = sourceNotationParser;
-        }
-
-        @SuppressWarnings("UnusedMethod") //used org.gradle.internal.typeconversion.MapNotationConverter.ConvertMethodCache.findConvertMethod
-        protected MavenArtifact parseMap(@MapKey("source") Object source) {
-            return sourceNotationParser.parseNotation(source);
-        }
-
-        @Override
-        public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
         }
     }
 }

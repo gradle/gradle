@@ -751,7 +751,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
     // region dependencies - dependency objects
     def 'can add dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
-        given :
+        given:
         buildKotlinFile << """
             plugins {
               `java-library`
@@ -1039,7 +1039,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         """
 
         expect: "test runs successfully"
-        succeeds( ":consumer:$suiteName")
+        succeeds(":consumer:$suiteName")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration
@@ -1092,7 +1092,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         """
 
         expect: "test runs successfully"
-        succeeds( suiteName)
+        succeeds(suiteName)
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration

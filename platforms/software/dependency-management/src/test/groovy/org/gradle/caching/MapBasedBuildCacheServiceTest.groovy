@@ -47,7 +47,7 @@ class MapBasedBuildCacheServiceTest extends Specification {
         when:
         def found = cache.load(cacheKey, reader)
         then:
-        ! found
+        !found
         1 * delegate.get(hashCode) >> null
         0 * _
     }

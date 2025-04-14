@@ -105,13 +105,13 @@ import static org.gradle.util.internal.CollectionUtils.join;
 import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
-    private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
-    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     public static final int DAEMON_DEBUG_PORT = 5005;
     public static final int LAUNCHER_DEBUG_PORT = 5006;
+    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
+    private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
-
     protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
         true,
         AgentStatus.of(isAgentInstrumentationEnabled()),
@@ -120,38 +120,34 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         NativeServicesTestFixture.getInstance(),
         ValidationServicesFixture.getServices()
     ).getServices();
-
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(GLOBAL_SERVICES.get(ClientExecHandleBuilderFactory.class), GLOBAL_SERVICES.get(TemporaryFileProvider.class))));
-
-    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
-
-    // TODO - don't use statics to communicate between the test runner and executer
-    public static void propagateSystemProperty(String name) {
-        PROPAGATED_SYSTEM_PROPERTIES.add(name);
-    }
-
-    public static void doNotPropagateSystemProperty(String name) {
-        PROPAGATED_SYSTEM_PROPERTIES.remove(name);
-    }
-
-    private final Logger logger;
-
     protected final IntegrationTestBuildContext buildContext;
-
+    protected final GradleVersion gradleVersion;
+    protected final TestDirectoryProvider testDirectoryProvider;
+    protected final GradleDistribution distribution;
+    private final Logger logger;
     private final Set<File> isolatedDaemonBaseDirs = new HashSet<>();
     private final Set<File> daemonCrashLogsBeforeTest;
     private final Set<GradleHandle> running = new HashSet<>();
     private final List<ExecutionResult> results = new ArrayList<>();
     private final List<String> args = new ArrayList<>();
     private final List<String> tasks = new ArrayList<>();
-    private boolean allowExtraLogging = true;
+    private final Map<String, String> environmentVars = new HashMap<>();
+    private final List<File> initScripts = new ArrayList<>();
+    private final List<String> buildJvmOpts = new ArrayList<>();
+    private final List<String> commandLineJvmOpts = new ArrayList<>();
+    private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
+    private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     protected ConsoleAttachment consoleAttachment = ConsoleAttachment.NOT_ATTACHED;
+    protected boolean requireDaemon;
+    protected WarningMode warningMode = WarningMode.All;
+    protected boolean interactive;
+    protected boolean noExplicitNativeServicesDir;
+    private boolean allowExtraLogging = true;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
     private boolean dependencyList;
-    private final Map<String, String> environmentVars = new HashMap<>();
-    private final List<File> initScripts = new ArrayList<>();
     private String executable;
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
@@ -166,32 +162,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private String defaultCharacterEncoding;
     private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 120;
-    protected boolean requireDaemon;
     private File daemonBaseDir;
-    private final List<String> buildJvmOpts = new ArrayList<>();
-    private final List<String> commandLineJvmOpts = new ArrayList<>();
     private boolean useOnlyRequestedJvmOpts;
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
-    protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = false;
     private boolean renderWelcomeMessage;
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
-
     private int expectedGenericDeprecationWarnings;
-    private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private boolean jdkWarningChecksOn = false;
-
-    private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
-
-    protected final GradleVersion gradleVersion;
-    protected final TestDirectoryProvider testDirectoryProvider;
-    protected final GradleDistribution distribution;
     private GradleVersion gradleVersionOverride;
 
     private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DAEMON_DEBUG_PORT);
@@ -199,23 +183,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
 
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
-
-    protected boolean interactive;
-
-    protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
     private boolean useInternalDeprecationStackTraceFlag = true;
     private boolean checkDeprecations = true;
     private boolean filterJavaVersionDeprecation = true;
     private boolean checkDaemonCrash = true;
-
     private TestFile tmpDir;
     private DurationMeasurement durationMeasurement;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this(distribution, testDirectoryProvider, GradleVersion.current());
     }
-
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion) {
         this(distribution, testDirectoryProvider, gradleVersion, IntegrationTestBuildContext.INSTANCE);
     }
@@ -233,6 +211,47 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (gradleVersion.compareTo(GradleVersion.version("4.5.0")) < 0) {
             warningMode = null;
         }
+    }
+
+    // TODO - don't use statics to communicate between the test runner and executer
+    public static void propagateSystemProperty(String name) {
+        PROPAGATED_SYSTEM_PROPERTIES.add(name);
+    }
+
+    public static void doNotPropagateSystemProperty(String name) {
+        PROPAGATED_SYSTEM_PROPERTIES.remove(name);
+    }
+
+    protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
+        return join(" ", buildJvmArgs, input -> {
+            if (input.contains("'")) {
+                throw new IllegalArgumentException("Cannot handle JVM args containing single quotes: " + input);
+            }
+            return "'" + input + "'";
+        });
+    }
+
+    public static boolean isAgentInstrumentationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(ALLOW_INSTRUMENTATION_AGENT_SYSPROP, "true"));
+    }
+
+    private static boolean hasSettingsFile(TestFile dir) {
+        if (dir.isDirectory()) {
+            String[] settingsFileNames = ScriptFileUtil.getValidSettingsFileNames();
+            for (String settingsFileName : settingsFileNames) {
+                if (dir.file(settingsFileName).isFile()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static ServiceRegistry newCommandLineProcessLogging() {
+        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
+        rootLoggingManager.attachSystemOutAndErr();
+        return loggingServices;
     }
 
     protected Logger getLogger() {
@@ -620,15 +639,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
     }
 
-    protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
-        return join(" ", buildJvmArgs, input -> {
-            if (input.contains("'")) {
-                throw new IllegalArgumentException("Cannot handle JVM args containing single quotes: " + input);
-            }
-            return "'" + input + "'";
-        });
-    }
-
     /**
      * Returns additional JVM args that should be used to start the build JVM.
      */
@@ -920,10 +930,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return resolveCliDaemonArgument() == NO_DAEMON && requireDaemon;
     }
 
-    public static boolean isAgentInstrumentationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(ALLOW_INSTRUMENTATION_AGENT_SYSPROP, "true"));
-    }
-
     @Override
     public GradleExecuter withOwnUserHomeServices() {
         useOwnUserHomeServices = true;
@@ -1068,13 +1074,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
     }
 
-    enum CliDaemonArgument {
-        NOT_DEFINED,
-        DAEMON,
-        NO_DAEMON,
-        FOREGROUND
-    }
-
     protected CliDaemonArgument resolveCliDaemonArgument() {
         for (int i = args.size() - 1; i >= 0; i--) {
             final String arg = args.get(i);
@@ -1187,18 +1186,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             dir = dir.getParentFile();
         }
         workingDir.createFile("settings.gradle");
-    }
-
-    private static boolean hasSettingsFile(TestFile dir) {
-        if (dir.isDirectory()) {
-            String[] settingsFileNames = ScriptFileUtil.getValidSettingsFileNames();
-            for (String settingsFileName : settingsFileNames) {
-                if (dir.file(settingsFileName).isFile()) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -1612,6 +1599,64 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return !profiler.isEmpty();
     }
 
+    @Override
+    public void stop() {
+        cleanup();
+    }
+
+    @Override
+    public GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement) {
+        this.durationMeasurement = durationMeasurement;
+        return this;
+    }
+
+    protected void startMeasurement() {
+        if (durationMeasurement != null) {
+            durationMeasurement.start();
+        }
+    }
+
+    protected void stopMeasurement() {
+        if (durationMeasurement != null) {
+            durationMeasurement.stop();
+        }
+    }
+
+    protected DurationMeasurement getDurationMeasurement() {
+        return durationMeasurement;
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttached() {
+        return withTestConsoleAttached(ConsoleAttachment.ATTACHED);
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment) {
+        this.consoleAttachment = consoleAttachment;
+        return configureConsoleCommandLineArgs();
+    }
+
+    protected GradleExecuter configureConsoleCommandLineArgs() {
+        if (consoleAttachment == ConsoleAttachment.NOT_ATTACHED) {
+            return this;
+        } else {
+            return withCommandLineGradleOpts(consoleAttachment.getConsoleMetaData().getCommandLineArgument());
+        }
+    }
+
+    private boolean errorsShouldAppearOnStdout() {
+        // If stdout and stderr are attached to the console
+        return consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached();
+    }
+
+    enum CliDaemonArgument {
+        NOT_DEFINED,
+        DAEMON,
+        NO_DAEMON,
+        FOREGROUND
+    }
+
     protected static class GradleInvocation {
         final Map<String, String> environmentVars = new HashMap<>();
         final List<String> args = new ArrayList<>();
@@ -1641,64 +1686,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         protected List<String> getImplicitLauncherJvmArgs() {
             return implicitLauncherJvmArgs;
         }
-    }
-
-    @Override
-    public void stop() {
-        cleanup();
-    }
-
-    @Override
-    public GradleExecuter withDurationMeasurement(DurationMeasurement durationMeasurement) {
-        this.durationMeasurement = durationMeasurement;
-        return this;
-    }
-
-    protected void startMeasurement() {
-        if (durationMeasurement != null) {
-            durationMeasurement.start();
-        }
-    }
-
-    protected void stopMeasurement() {
-        if (durationMeasurement != null) {
-            durationMeasurement.stop();
-        }
-    }
-
-    protected DurationMeasurement getDurationMeasurement() {
-        return durationMeasurement;
-    }
-
-    private static ServiceRegistry newCommandLineProcessLogging() {
-        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
-        rootLoggingManager.attachSystemOutAndErr();
-        return loggingServices;
-    }
-
-    @Override
-    public GradleExecuter withTestConsoleAttached() {
-        return withTestConsoleAttached(ConsoleAttachment.ATTACHED);
-    }
-
-    @Override
-    public GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment) {
-        this.consoleAttachment = consoleAttachment;
-        return configureConsoleCommandLineArgs();
-    }
-
-    protected GradleExecuter configureConsoleCommandLineArgs() {
-        if (consoleAttachment == ConsoleAttachment.NOT_ATTACHED) {
-            return this;
-        } else {
-            return withCommandLineGradleOpts(consoleAttachment.getConsoleMetaData().getCommandLineArgument());
-        }
-    }
-
-    private boolean errorsShouldAppearOnStdout() {
-        // If stdout and stderr are attached to the console
-        return consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached();
     }
 
     private class ResultCollectingHandle implements GradleHandle {

@@ -30,16 +30,18 @@ import spock.lang.Subject
 
 class ModuleMetadataStoreTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def pathKeyFileStore = Mock(PathKeyFileStore)
     def repository = "repositoryId"
     def fileStoreEntry = Mock(LocallyAvailableResource)
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
-        module(_,_) >> { args -> DefaultModuleIdentifier.newId(*args)}
+        module(_, _) >> { args -> DefaultModuleIdentifier.newId(*args) }
     }
     def moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
     def serializer = Mock(ModuleMetadataSerializer)
-    @Subject ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
+    @Subject
+    ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {

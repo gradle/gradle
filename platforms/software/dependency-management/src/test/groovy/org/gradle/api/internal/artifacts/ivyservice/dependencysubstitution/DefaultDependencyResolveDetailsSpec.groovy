@@ -113,7 +113,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.target.toString() == 'org:bar:2.0'
-        with (getReason(details)) {
+        with(getReason(details)) {
             cause == ComponentSelectionCause.SELECTED_BY_RULE
             description == "forcefully upgrade dependency"
         }
@@ -128,7 +128,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.target.toString() == 'org:foo:2.0'
-        with (getReason(details)) {
+        with(getReason(details)) {
             cause == ComponentSelectionCause.SELECTED_BY_RULE
             description == "forcefully upgrade dependency"
         }
@@ -143,7 +143,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.target.toString() == 'org:bar:2.0'
-        with (getReason(details)) {
+        with(getReason(details)) {
             cause == ComponentSelectionCause.SELECTED_BY_RULE
             description == "forcefully upgrade dependency"
         }
@@ -158,7 +158,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.target.toString() == 'org:foo:2.0'
-        with (getReason(details)) {
+        with(getReason(details)) {
             cause == ComponentSelectionCause.SELECTED_BY_RULE
             description == "forcefully upgrade dependency"
         }
@@ -174,7 +174,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.target.toString() == 'org:foo:2.0'
-        with (getReason(details)) {
+        with(getReason(details)) {
             cause == ComponentSelectionCause.SELECTED_BY_RULE
             description == "forcefully upgrade dependency"
         }

@@ -32,16 +32,6 @@ public class DefaultTestAssertionFailure extends AbstractTestFailure implements 
         this.actual = actual;
     }
 
-    @Override
-    public String getExpected() {
-        return expected;
-    }
-
-    @Override
-    public String getActual() {
-        return actual;
-    }
-
     public static DefaultTestAssertionFailure create(Throwable t, String message, String className, String stacktrace, String expected, String actual, List<InternalFailure> causes) {
         List<InternalFailure> causeFailure;
         if (causes.isEmpty()) {
@@ -51,5 +41,15 @@ public class DefaultTestAssertionFailure extends AbstractTestFailure implements 
             causeFailure = causes;
         }
         return new DefaultTestAssertionFailure(message, stacktrace, causeFailure, expected, actual, className, stacktrace);
+    }
+
+    @Override
+    public String getExpected() {
+        return expected;
+    }
+
+    @Override
+    public String getActual() {
+        return actual;
     }
 }

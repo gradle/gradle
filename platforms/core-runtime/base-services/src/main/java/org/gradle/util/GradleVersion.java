@@ -54,7 +54,6 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      * For example, if the version is {@code "9.3-rc-1"}, the major version is {@code 9}.
      *
      * @return The major version.
-     *
      * @since 9.0
      */
     public abstract int getMajorVersion();

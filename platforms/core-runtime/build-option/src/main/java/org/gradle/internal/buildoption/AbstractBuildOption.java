@@ -73,7 +73,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         CommandLineOption option = parser.option(options)
             .hasDescription(description);
 
-        if(deprecated) {
+        if (deprecated) {
             option.deprecated();
         }
 
@@ -110,6 +110,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         public T getValue() {
             return value;
         }
+
         public Origin getOrigin() {
             return origin;
         }

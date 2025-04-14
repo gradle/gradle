@@ -22,5 +22,6 @@ import org.gradle.model.ModelMap;
 @Managed
 public interface ManagedWithReferenceOfInvalidManagedType {
     ModelMap<?> getInvalidManaged();
+
     void setInvalidManaged(ModelMap<?> invalidManaged);
 }

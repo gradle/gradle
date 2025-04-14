@@ -39,6 +39,7 @@ public interface JvmEcosystemAttributesDetails {
 
     /**
      * Provides or requires documentation
+     *
      * @param docsType the documentation type (javadoc, sources, ...)
      */
     JvmEcosystemAttributesDetails documentation(String docsType);

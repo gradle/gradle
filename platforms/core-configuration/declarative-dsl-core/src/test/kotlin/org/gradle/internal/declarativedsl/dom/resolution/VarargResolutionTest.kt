@@ -73,8 +73,9 @@ class VarargResolutionTest {
 
     @Test
     fun `rejects as ambiguous calls resolving to multiple overloads where one is vararg`() {
-        assertTrue(schemaFromTypes.resolve("listStringProperty = myListOf(ambiguous(\"test\"))")
-            .errors.any { it.errorReason is ErrorReason.AmbiguousFunctions && (it.element as FunctionCall).name == "ambiguous"})
+        assertTrue(
+            schemaFromTypes.resolve("listStringProperty = myListOf(ambiguous(\"test\"))")
+                .errors.any { it.errorReason is ErrorReason.AmbiguousFunctions && (it.element as FunctionCall).name == "ambiguous" })
     }
 
     @Test
@@ -93,7 +94,7 @@ class VarargResolutionTest {
     }
 
     private fun assertUnresolvedFunctionSignature(resolution: ResolutionResult, functionName: String) {
-        assertTrue(resolution.errors.any { it.errorReason is ErrorReason.UnresolvedFunctionCallSignature && (it.element as FunctionCall).name == functionName})
+        assertTrue(resolution.errors.any { it.errorReason is ErrorReason.UnresolvedFunctionCallSignature && (it.element as FunctionCall).name == functionName })
     }
 
 

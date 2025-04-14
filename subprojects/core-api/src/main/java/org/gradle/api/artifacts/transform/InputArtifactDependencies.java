@@ -29,11 +29,11 @@ import java.lang.annotation.Target;
  * Attach this annotation to an abstract getter that should receive the <em>artifact dependencies</em> of the {@link InputArtifact} of an artifact transform.
  *
  * <p>
- *     For example, when a project depends on {@code spring-web}, when the project is transformed (i.e. the project is the input artifact),
- *     the input artifact dependencies are the file collection containing the {@code spring-web} JAR and all its dependencies like e.g. the {@code spring-core} JAR.
+ * For example, when a project depends on {@code spring-web}, when the project is transformed (i.e. the project is the input artifact),
+ * the input artifact dependencies are the file collection containing the {@code spring-web} JAR and all its dependencies like e.g. the {@code spring-core} JAR.
  *
- *     The abstract getter must be declared as type {@link org.gradle.api.file.FileCollection}.
- *     The order of the files matches that of the dependencies declared for the input artifact.
+ * The abstract getter must be declared as type {@link org.gradle.api.file.FileCollection}.
+ * The order of the files matches that of the dependencies declared for the input artifact.
  * </p>
  *
  * <p>Example usage:</p>

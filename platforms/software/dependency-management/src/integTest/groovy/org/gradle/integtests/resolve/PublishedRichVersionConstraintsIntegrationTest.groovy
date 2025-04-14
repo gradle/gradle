@@ -342,7 +342,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         repository {
             'org' {
                 'a:1.0' {
-                    dependsOn (group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
+                    dependsOn(group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
                 }
                 'b' {
                     '1.0'()
@@ -400,7 +400,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         repository {
             'org' {
                 'a:1.0' {
-                    dependsOn (group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
+                    dependsOn(group: 'org', artifact: 'b', version: '1.0', strictly: '1.0', reason: 'Not following semantic versioning')
                 }
                 'b' {
                     '1.0'()

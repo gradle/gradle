@@ -50,12 +50,14 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
     private final ConstantDependentsConsumer constantDependentsConsumer;
     private final JavacTask delegate;
 
-    public IncrementalCompileTask(JavaCompiler.CompilationTask delegate,
-                                  Function<File, Optional<String>> relativize,
-                                  Consumer<String> classBackupService,
-                                  Consumer<Map<String, Set<String>>> classNamesConsumer,
-                                  BiConsumer<String, String> publicDependentDelegate,
-                                  BiConsumer<String, String> privateDependentDelegate) {
+    public IncrementalCompileTask(
+        JavaCompiler.CompilationTask delegate,
+        Function<File, Optional<String>> relativize,
+        Consumer<String> classBackupService,
+        Consumer<Map<String, Set<String>>> classNamesConsumer,
+        BiConsumer<String, String> publicDependentDelegate,
+        BiConsumer<String, String> privateDependentDelegate
+    ) {
         this.relativize = relativize;
         this.classBackupService = classBackupService;
         this.classNameConsumer = classNamesConsumer;

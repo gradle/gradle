@@ -94,6 +94,19 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
             this.exclusions = exclusions;
         }
 
+        private static boolean areIdsEqual(
+            VariantResolveMetadata.@Nullable Identifier id1,
+            VariantResolveMetadata.@Nullable Identifier id2
+        ) {
+            // Artifact sets without ID are adhoc.
+            // We cannot compare them by ID so assume they are not equal.
+            if (id1 == null || id2 == null) {
+                return false;
+            }
+
+            return id1.equals(id2);
+        }
+
         @Override
         public int hashCode() {
             int result = Objects.hashCode(identifier);
@@ -114,19 +127,6 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
             return areIdsEqual(identifier, other.identifier) &&
                 moduleId.equals(other.moduleId) &&
                 exclusions.equals(other.exclusions);
-        }
-
-        private static boolean areIdsEqual(
-            VariantResolveMetadata.@Nullable Identifier id1,
-            VariantResolveMetadata.@Nullable Identifier id2
-        ) {
-            // Artifact sets without ID are adhoc.
-            // We cannot compare them by ID so assume they are not equal.
-            if (id1 == null || id2 == null) {
-                return false;
-            }
-
-            return id1.equals(id2);
         }
     }
 }

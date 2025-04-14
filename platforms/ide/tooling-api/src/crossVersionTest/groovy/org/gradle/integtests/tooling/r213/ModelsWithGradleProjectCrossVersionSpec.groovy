@@ -154,10 +154,10 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private static void hasProject(def projects, File rootDir, String path, String name, String parentPath, List<String> childPaths) {
-        def project = projects.find {it.name == name}
-        assert project != null :  "No project with name $name found"
+        def project = projects.find { it.name == name }
+        assert project != null: "No project with name $name found"
         assertProject(project, rootDir, path, name, parentPath, childPaths)
-     }
+    }
 
     private static void assertProject(def project, File rootDir, String path, String name, String parentPath, List<String> childPaths) {
         assert project.path == path

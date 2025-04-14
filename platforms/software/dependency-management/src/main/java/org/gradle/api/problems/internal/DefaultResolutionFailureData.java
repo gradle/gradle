@@ -25,15 +25,15 @@ import org.jspecify.annotations.Nullable;
 public class DefaultResolutionFailureData implements ResolutionFailureData {
     private final ResolutionFailure resolutionFailure;
 
+    public DefaultResolutionFailureData(ResolutionFailure resolutionFailure) {
+        this.resolutionFailure = resolutionFailure;
+    }
+
     public static AdditionalDataBuilder<ResolutionFailureData> builder(@Nullable ResolutionFailureData resolutionFailure) {
         if (resolutionFailure == null) {
             return new DefaultResolutionFailureDataBuilder();
         }
         return new DefaultResolutionFailureDataBuilder(resolutionFailure);
-    }
-
-    public DefaultResolutionFailureData(ResolutionFailure resolutionFailure) {
-        this.resolutionFailure = resolutionFailure;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class DefaultResolutionFailureData implements ResolutionFailureData {
         public DefaultResolutionFailureDataBuilder() { /* empty */ }
 
         @Override
-        public ResolutionFailureDataSpec from(ResolutionFailure failure){
+        public ResolutionFailureDataSpec from(ResolutionFailure failure) {
             this.failure = failure;
             return this;
         }

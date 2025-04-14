@@ -208,7 +208,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         javaLibrary instanceof AdhocComponentWithVariants
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
-        runtime.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
+        runtime.artifacts.collect { it.file } == [jarTask.archiveFile.get().asFile]
         runtime.dependencies == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
     }
 
@@ -226,9 +226,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         mainSourceSet.annotationProcessorPath.is(project.configurations.annotationProcessor)
         mainSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
         mainSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/main')
-        mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME ] as Set
+        mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME] as Set
         mainSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
-        mainSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JvmConstants.COMPILE_JAVA_TASK_NAME ]
+        mainSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [JvmConstants.COMPILE_JAVA_TASK_NAME]
         mainSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
         mainSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
 
@@ -243,9 +243,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testSourceSet.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
         testSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
         testSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/test')
-        testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JvmConstants.TEST_CLASSES_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME ] as Set
+        testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [JvmConstants.TEST_CLASSES_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME] as Set
         testSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
-        testSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JvmConstants.COMPILE_TEST_JAVA_TASK_NAME ]
+        testSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [JvmConstants.COMPILE_TEST_JAVA_TASK_NAME]
         testSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
         testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
         testSourceSet.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
@@ -264,9 +264,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.compileClasspath.is(project.configurations.customCompileClasspath)
         set.annotationProcessorPath.is(project.configurations.customAnnotationProcessor)
         set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/custom'))
-        set.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ 'customClasses', 'compileCustomJava' ] as Set
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == ['customClasses', 'compileCustomJava'] as Set
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
-        set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ 'compileCustomJava' ]
+        set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == ['compileCustomJava']
         assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 

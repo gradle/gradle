@@ -116,11 +116,11 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         when:
         def resultDebug = msbuild
-                .withWorkingDir(testDirectory)
-                .withSolution(solutionFile)
-                .withConfiguration("debugX86")
-                .withProject(visualStudioProjectName)
-                .succeeds()
+            .withWorkingDir(testDirectory)
+            .withSolution(solutionFile)
+            .withConfiguration("debugX86")
+            .withProject(visualStudioProjectName)
+            .succeeds()
 
         then:
         resultDebug.size() == 1
@@ -129,11 +129,11 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         when:
         def resultRelease = msbuild
-                .withWorkingDir(testDirectory)
-                .withSolution(solutionFile)
-                .withConfiguration("releaseX86-64")
-                .withProject(visualStudioProjectName)
-                .succeeds()
+            .withWorkingDir(testDirectory)
+            .withSolution(solutionFile)
+            .withConfiguration("releaseX86-64")
+            .withProject(visualStudioProjectName)
+            .succeeds()
 
         then:
         resultRelease.size() == 1
@@ -211,9 +211,9 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         when:
         def resultSolution = msbuild
-                .withWorkingDir(testDirectory)
-                .withSolution(solutionFile)
-                .succeeds()
+            .withWorkingDir(testDirectory)
+            .withSolution(solutionFile)
+            .succeeds()
 
         then:
         resultSolution.size() == 1
@@ -221,10 +221,10 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         when:
         def resultProject = msbuild
-                .withWorkingDir(testDirectory)
-                .withSolution(solutionFile)
-                .withProject(visualStudioProjectName)
-                .run()
+            .withWorkingDir(testDirectory)
+            .withSolution(solutionFile)
+            .withProject(visualStudioProjectName)
+            .run()
 
         then:
         resultProject.assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
@@ -246,10 +246,10 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         when:
         def result = msbuild
-                .withWorkingDir(testDirectory)
-                .withSolution(solutionFile)
-                .withProject(visualStudioProjectName)
-                .fails()
+            .withWorkingDir(testDirectory)
+            .withSolution(solutionFile)
+            .withProject(visualStudioProjectName)
+            .fails()
 
         then:
         result.assertHasCause("No tool chain is available to build C++")

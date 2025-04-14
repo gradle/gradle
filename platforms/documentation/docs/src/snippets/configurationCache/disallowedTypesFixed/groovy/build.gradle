@@ -5,7 +5,8 @@ plugins {
 // tag::task-type[]
 abstract class SomeTask extends DefaultTask {
 
-    @InputFiles @Classpath
+    @InputFiles
+    @Classpath
     abstract ConfigurableFileCollection getClasspath() // <1>
 
     @TaskAction

@@ -23,7 +23,9 @@ import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip
 
 abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIntegrationSpec {
     protected abstract void makeExecProject()
+
     protected abstract void writeSucceedingExec()
+
     protected abstract void writeFailingExec()
 
     protected String getTaskUnderTestDsl() {

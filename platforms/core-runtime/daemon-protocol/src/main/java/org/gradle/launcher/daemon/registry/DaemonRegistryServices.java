@@ -32,13 +32,12 @@ import java.util.Properties;
  * Takes care of instantiating and wiring together the services required for a daemon registry.
  */
 public class DaemonRegistryServices implements ServiceRegistrationProvider {
-    private final File daemonBaseDir;
-    private final Cache<File, DaemonRegistry> daemonRegistryCache;
-
     private static final Map<File, DaemonRegistry> REGISTRY_STORAGE = new HashMap<>();
     private static final Cache<File, DaemonRegistry> REGISTRY_CACHE = new CacheAccessSerializer<>(
         new MapBackedCache<>(REGISTRY_STORAGE)
     );
+    private final File daemonBaseDir;
+    private final Cache<File, DaemonRegistry> daemonRegistryCache;
 
     public DaemonRegistryServices(File daemonBaseDir) {
         this(daemonBaseDir, REGISTRY_CACHE);

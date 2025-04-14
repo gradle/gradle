@@ -117,6 +117,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
     /**
      * Declares that this repository will only be searched if the consumer requires a
      * specific attribute.
+     *
      * @param attribute the attribute
      * @param validValues the list of accepted values
      * @param <T> the type of the attribute

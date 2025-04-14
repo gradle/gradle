@@ -153,7 +153,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
             }
 
         """
-        file('auto-module/src/main/java/auto/AutoClass.java')  << """
+        file('auto-module/src/main/java/auto/AutoClass.java') << """
             package auto;
 
             public class AutoClass {

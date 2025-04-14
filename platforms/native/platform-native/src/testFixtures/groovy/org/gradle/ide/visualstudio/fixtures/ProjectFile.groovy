@@ -52,7 +52,7 @@ class ProjectFile extends IdeProjectFixture {
     }
 
     Node getGlobals() {
-        return projectXml.PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
+        return projectXml.PropertyGroup.find({ it.'@Label' == 'Globals' }) as Node
     }
 
     String getToolsVersion() {
@@ -79,11 +79,11 @@ class ProjectFile extends IdeProjectFixture {
     }
 
     private static List<String> normalise(List<String> files) {
-        return files.collect({ TextUtil.normaliseFileSeparators(it)}).sort()
+        return files.collect({ TextUtil.normaliseFileSeparators(it) }).sort()
     }
 
     private Node itemGroup(String label) {
-        return projectXml.ItemGroup.find({it.'@Label' == label}) as Node
+        return projectXml.ItemGroup.find({ it.'@Label' == label }) as Node
     }
 
     class Configuration {
@@ -134,11 +134,11 @@ class ProjectFile extends IdeProjectFixture {
         }
 
         private Node getBuildConfiguration() {
-            projectXml.PropertyGroup.find({ it.'@Label' == 'NMakeConfiguration' && it.'@Condition' == condition}) as Node
+            projectXml.PropertyGroup.find({ it.'@Label' == 'NMakeConfiguration' && it.'@Condition' == condition }) as Node
         }
 
         private Node getConfiguration() {
-            projectXml.PropertyGroup.find({ it.'@Label' == 'Configuration' && it.'@Condition' == condition}) as Node
+            projectXml.PropertyGroup.find({ it.'@Label' == 'Configuration' && it.'@Condition' == condition }) as Node
         }
 
         private String getCondition() {

@@ -20,7 +20,9 @@ import java.util.Map;
 
 public abstract class AbstractPropertiesCommandLineConverter extends AbstractCommandLineConverter<Map<String, String>> {
     protected abstract String getPropertyOption();
+
     protected abstract String getPropertyOptionDetailed();
+
     protected abstract String getPropertyOptionDescription();
 
     @Override
@@ -37,7 +39,7 @@ public abstract class AbstractPropertiesCommandLineConverter extends AbstractCom
             if (pos < 0) {
                 properties.put(keyValueExpression, "");
             } else {
-                properties.put(keyValueExpression.substring(0, pos), keyValueExpression.substring(pos+1));
+                properties.put(keyValueExpression.substring(0, pos), keyValueExpression.substring(pos + 1));
             }
         }
         return properties;

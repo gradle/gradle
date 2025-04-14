@@ -53,10 +53,17 @@ public interface JavaPluginExtension {
      * This property cannot be set if a {@link #getToolchain() toolchain} has been configured.
      *
      * @param value The value for the source compatibility
-     *
      * @see #toolchain(Action)
      */
     void setSourceCompatibility(JavaVersion value);
+
+    /**
+     * Sets the source compatibility used for compiling Java sources.
+     *
+     * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     * @since 7.1
+     */
+    void setSourceCompatibility(Object value);
 
     /**
      * Returns the target compatibility used for compiling Java sources.
@@ -70,10 +77,17 @@ public interface JavaPluginExtension {
      * This property cannot be set if a {@link #getToolchain() toolchain} has been configured.
      *
      * @param value The value for the target compatibility
-     *
      * @see #toolchain(Action)
      */
     void setTargetCompatibility(JavaVersion value);
+
+    /**
+     * Sets the target compatibility used for compiling Java sources.
+     *
+     * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
+     * @since 7.1
+     */
+    void setTargetCompatibility(Object value);
 
     /**
      * Registers a feature.
@@ -102,7 +116,6 @@ public interface JavaPluginExtension {
      *
      * @param name the name of the feature
      * @param configureAction the configuration for the feature
-     *
      * @since 5.3
      */
     void registerFeature(String name, Action<? super FeatureSpec> configureAction);
@@ -193,7 +206,6 @@ public interface JavaPluginExtension {
      * The given {@link JavaResolutionConsistency} is used to configure consistent resolution for this project.
      *
      * @param action the configuration action
-     *
      * @since 6.8
      */
     @Incubating
@@ -230,40 +242,28 @@ public interface JavaPluginExtension {
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.
+     *
      * @since 7.1
      */
     DirectoryProperty getDocsDir();
 
     /**
      * Returns a file pointing to the root directory of the test results.
+     *
      * @since 7.1
      */
     DirectoryProperty getTestResultsDir();
 
     /**
      * Returns a file pointing to the root directory to be used for reports.
+     *
      * @since 7.1
      */
     DirectoryProperty getTestReportDir();
 
     /**
-     * Sets the source compatibility used for compiling Java sources.
-     *
-     * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
-     * @since 7.1
-     */
-    void setSourceCompatibility(Object value);
-
-    /**
-     * Sets the target compatibility used for compiling Java sources.
-     *
-     * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
-     * @since 7.1
-     */
-    void setTargetCompatibility(Object value);
-
-    /**
      * Creates a new instance of a {@link Manifest}.
+     *
      * @since 7.1
      */
     Manifest manifest();
@@ -281,7 +281,6 @@ public interface JavaPluginExtension {
      * Creates and configures a new instance of a {@link Manifest}.
      *
      * @param action The action to use to configure the manifest.
-     *
      * @since 7.1
      */
     Manifest manifest(Action<? super Manifest> action);

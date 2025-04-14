@@ -59,12 +59,11 @@ import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
-
-    private String libDirName;
     private final Property<Boolean> generateDeploymentDescriptor;
+    private final DirectoryProperty appDir;
+    private String libDirName;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
-    private final DirectoryProperty appDir;
 
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);

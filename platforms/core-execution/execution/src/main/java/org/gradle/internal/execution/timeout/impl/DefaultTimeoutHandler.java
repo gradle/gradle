@@ -39,28 +39,16 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTimeoutHandler.class);
-
     // Only intended to be used for integration testing
     public static final String POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".postTimeoutCheckFrequency";
     public static final String SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY = DefaultTimeoutHandler.class.getName() + ".slowStopLogStacktraceFrequency";
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTimeoutHandler.class);
     private final ManagedScheduledExecutor executor;
     private final CurrentBuildOperationRef currentBuildOperationRef;
 
     public DefaultTimeoutHandler(ManagedScheduledExecutor executor, CurrentBuildOperationRef currentBuildOperationRef) {
         this.executor = executor;
         this.currentBuildOperationRef = currentBuildOperationRef;
-    }
-
-    @Override
-    public Timeout start(Thread taskExecutionThread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
-        return new DefaultTimeout(taskExecutionThread, timeout, workUnitDescription, buildOperationRef);
-    }
-
-    @Override
-    public void stop() {
-        executor.stop();
     }
 
     // Value is queried "dynamically" to support testing
@@ -71,6 +59,16 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
     // Value is queried "dynamically" to support testing
     private static long slowStopLogStacktraceFrequency() {
         return Integer.parseInt(System.getProperty(SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY, "10000"));
+    }
+
+    @Override
+    public Timeout start(Thread taskExecutionThread, Duration timeout, Describable workUnitDescription, @Nullable BuildOperationRef buildOperationRef) {
+        return new DefaultTimeout(taskExecutionThread, timeout, workUnitDescription, buildOperationRef);
+    }
+
+    @Override
+    public void stop() {
+        executor.stop();
     }
 
     private final class DefaultTimeout implements Timeout {

@@ -18,8 +18,8 @@
     <info organisation="org.sample"
           module="api"
           revision="1.3.0"
-          status="milestone" />
+          status="milestone"/>
     <publications>
-        <artifact />
+        <artifact/>
     </publications>
 </ivy-module>

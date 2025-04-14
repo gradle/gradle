@@ -43,6 +43,42 @@ public class ComponentModuleMetadataContainer {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
+    private static void detectCycles(Map<ModuleIdentifier, ImmutableModuleReplacements.Replacement> replacements, ModuleIdentifier source, ModuleIdentifier target) {
+        if (source.equals(target)) {
+            throw new InvalidUserDataException(String.format("Cannot declare module replacement that replaces self: %s->%s", source, target));
+        }
+
+        ModuleIdentifier m = unwrap(replacements.get(target));
+        if (m == null) {
+            //target does not exist in the map, there's no cycle for sure
+            return;
+        }
+        Set<ModuleIdentifier> visited = new LinkedHashSet<>();
+        visited.add(source);
+        visited.add(target);
+
+        while (m != null) {
+            if (!visited.add(m)) {
+                //module was already visited, there is a cycle
+                throw new InvalidUserDataException(
+                    format("Cannot declare module replacement %s->%s because it introduces a cycle: %s",
+                        source, target, Joiner.on("->").join(visited) + "->" + source));
+            }
+            m = unwrap(replacements.get(m));
+        }
+    }
+
+    private static ModuleIdentifier unwrap(ImmutableModuleReplacements.Replacement replacement) {
+        return replacement == null ? null : replacement.getTarget();
+    }
+
+    private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        return NotationParserBuilder
+            .toType(ModuleIdentifier.class)
+            .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
+            .toComposite();
+    }
+
     public ComponentModuleMetadataDetails module(final Object sourceModule) {
         final NotationParser<Object, ModuleIdentifier> parser = parser(moduleIdentifierFactory);
         final ModuleIdentifier source = parser.parseNotation(sourceModule);
@@ -74,41 +110,5 @@ public class ComponentModuleMetadataContainer {
 
     public ImmutableModuleReplacements getReplacements() {
         return new ImmutableModuleReplacements(ImmutableMap.copyOf(replacements));
-    }
-
-    private static void detectCycles(Map<ModuleIdentifier, ImmutableModuleReplacements.Replacement> replacements, ModuleIdentifier source, ModuleIdentifier target) {
-        if (source.equals(target)) {
-            throw new InvalidUserDataException(String.format("Cannot declare module replacement that replaces self: %s->%s", source, target));
-        }
-
-        ModuleIdentifier m = unwrap(replacements.get(target));
-        if (m == null) {
-            //target does not exist in the map, there's no cycle for sure
-            return;
-        }
-        Set<ModuleIdentifier> visited = new LinkedHashSet<>();
-        visited.add(source);
-        visited.add(target);
-
-        while(m != null) {
-            if (!visited.add(m)) {
-                //module was already visited, there is a cycle
-                throw new InvalidUserDataException(
-                        format("Cannot declare module replacement %s->%s because it introduces a cycle: %s",
-                                source, target, Joiner.on("->").join(visited) + "->" + source));
-            }
-            m = unwrap(replacements.get(m));
-        }
-    }
-
-    private static ModuleIdentifier unwrap(ImmutableModuleReplacements.Replacement replacement) {
-        return replacement == null ? null : replacement.getTarget();
-    }
-
-    private static NotationParser<Object, ModuleIdentifier> parser(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-        return NotationParserBuilder
-                .toType(ModuleIdentifier.class)
-                .fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
-                .toComposite();
     }
 }

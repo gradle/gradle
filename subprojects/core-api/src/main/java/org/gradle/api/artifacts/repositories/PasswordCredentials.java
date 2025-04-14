@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * A username/password credentials that can be used to login to password-protected remote repository.
  */
-public interface PasswordCredentials extends org.gradle.api.credentials.PasswordCredentials  {
+public interface PasswordCredentials extends org.gradle.api.credentials.PasswordCredentials {
     /**
      * Returns the user name to use when authenticating to this repository.
      *

@@ -70,7 +70,7 @@ class IdeaDependenciesOptimizer {
     }
 
     private void applyScopesToDependencies(Collection<Dependency> deps, Multimap<Object, GeneratedIdeaScope> scopesByDependencyKey) {
-        for (Iterator<Dependency> iterator = deps.iterator(); iterator.hasNext();) {
+        for (Iterator<Dependency> iterator = deps.iterator(); iterator.hasNext(); ) {
             applyScopeToNextDependency(iterator, scopesByDependencyKey);
         }
     }
@@ -93,8 +93,8 @@ class IdeaDependenciesOptimizer {
             return ((ModuleDependency) dep).getName();
         } else if (dep instanceof SingleEntryModuleLibrary) {
             return ((SingleEntryModuleLibrary) dep).getLibraryFile();
-        }  else if (dep instanceof ModuleLibrary) {
-            return ((ModuleLibrary)dep).getClasses();
+        } else if (dep instanceof ModuleLibrary) {
+            return ((ModuleLibrary) dep).getClasses();
         } else {
             throw new IllegalArgumentException("Unsupported type: " + dep.getClass().getName());
         }

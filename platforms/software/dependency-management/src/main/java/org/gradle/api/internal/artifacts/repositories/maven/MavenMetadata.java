@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MavenMetadata {
+    public final List<String> versions = new ArrayList<>();
     public String timestamp;
     public String buildNumber;
-    public final List<String> versions = new ArrayList<>();
 }

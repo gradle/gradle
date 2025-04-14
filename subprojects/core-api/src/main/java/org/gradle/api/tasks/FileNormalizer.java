@@ -20,7 +20,6 @@ package org.gradle.api.tasks;
  * The default behavior without specifying a normalizer is to ignore the order of the files.
  *
  * @see TaskInputFilePropertyBuilder#withNormalizer(Class)
- *
  * @since 4.3
  */
 public interface FileNormalizer {

@@ -87,6 +87,16 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         this.providerFactory = providerFactory;
     }
 
+    private static void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
+        Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
+        generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
+    }
+
+    private static boolean hasStandardPattern(ArtifactRepository ivyArtifactRepository) {
+        DefaultIvyArtifactRepository repo = (DefaultIvyArtifactRepository) ivyArtifactRepository;
+        return repo.hasStandardPattern();
+    }
+
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(PublishingPlugin.class);
@@ -173,11 +183,6 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         publication.setModuleDescriptorGenerator(generatorTask);
     }
 
-    private static void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
-        Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
-        generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
-    }
-
     private static class CheckStandardLayoutSpec implements Spec<GenerateModuleMetadata> {
         private final Provider<Boolean> standard;
         private final AtomicBoolean didWarn = new AtomicBoolean();
@@ -193,11 +198,6 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             }
             return standard.get();
         }
-    }
-
-    private static boolean hasStandardPattern(ArtifactRepository ivyArtifactRepository) {
-        DefaultIvyArtifactRepository repo = (DefaultIvyArtifactRepository) ivyArtifactRepository;
-        return repo.hasStandardPattern();
     }
 
     private static class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {

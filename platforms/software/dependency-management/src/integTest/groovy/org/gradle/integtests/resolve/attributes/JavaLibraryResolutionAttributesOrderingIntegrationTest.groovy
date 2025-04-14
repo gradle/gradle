@@ -73,6 +73,7 @@ class JavaLibraryResolutionAttributesOrderingIntegrationTest extends AbstractInt
         expect:
         succeeds ':verifyFiles'
     }
+
     def "resolve the main classes through incoming.artifacts"() {
         buildFile << """
             task verifyFiles(type: FilesVerificationTask) {
@@ -82,6 +83,7 @@ class JavaLibraryResolutionAttributesOrderingIntegrationTest extends AbstractInt
         expect:
         succeeds ':verifyFiles'
     }
+
     def "resolve the main classes through artifactView.files"() {
         buildFile << """
             task verifyFiles(type: FilesVerificationTask) {
@@ -91,6 +93,7 @@ class JavaLibraryResolutionAttributesOrderingIntegrationTest extends AbstractInt
         expect:
         succeeds ':verifyFiles'
     }
+
     def "resolve the main classes through artifactView.artifact"() {
         buildFile << """
             task verifyFiles(type: FilesVerificationTask) {

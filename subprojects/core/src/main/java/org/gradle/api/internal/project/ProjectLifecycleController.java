@@ -42,10 +42,6 @@ public class ProjectLifecycleController implements Closeable {
     private ProjectInternal project;
     private CloseableServiceRegistry projectScopeServices;
 
-    private enum State implements StateTransitionController.State {
-        NotCreated, Created, Configured
-    }
-
     public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ServiceRegistry buildServices) {
         this.buildServices = buildServices;
         controller = factory.newController(displayName, State.NotCreated);
@@ -104,5 +100,9 @@ public class ProjectLifecycleController implements Closeable {
                 projectScopeServices = null;
             }
         }
+    }
+
+    private enum State implements StateTransitionController.State {
+        NotCreated, Created, Configured
     }
 }

@@ -36,7 +36,8 @@ tasks.register("addBad2", BadCalculatorTask) {
 // end::avoid-this[]
 
 // tag::do-this[]
-@CacheableTask // <1>
+@CacheableTask
+// <1>
 abstract class GoodCalculatorTask extends DefaultTask {
     @Input
     abstract Property<Integer> getFirst()

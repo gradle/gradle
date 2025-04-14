@@ -59,6 +59,24 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
+    private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules, Map<ModuleComponentIdentifier, String> forcedModules) {
+        Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
+        for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
+            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
+                new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")));
+        }
+        for (ModuleComponentIdentifier extraModule : extraModules) {
+            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion()),
+                new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")));
+        }
+        for (Map.Entry<ModuleComponentIdentifier, String> entry : forcedModules.entrySet()) {
+            ModuleComponentIdentifier forcedModule = entry.getKey();
+            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(forcedModule.getModuleIdentifier(), forcedModule.getVersion()),
+                new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'")));
+        }
+        return completedFailures;
+    }
+
     @Override
     public void start(RootGraphNode root) {
         dependencyLockingState = dependencyLockingProvider.loadLockState(lockId, lockOwner);
@@ -144,23 +162,5 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
             }
         }
         return Collections.emptySet();
-    }
-
-    private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules, Map<ModuleComponentIdentifier, String> forcedModules) {
-        Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
-        for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
-                                  new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")));
-        }
-        for (ModuleComponentIdentifier extraModule : extraModules) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion()),
-                new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")));
-        }
-        for (Map.Entry<ModuleComponentIdentifier, String> entry : forcedModules.entrySet()) {
-            ModuleComponentIdentifier forcedModule = entry.getKey();
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(forcedModule.getModuleIdentifier(), forcedModule.getVersion()),
-                new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'")));
-        }
-        return completedFailures;
     }
 }

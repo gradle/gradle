@@ -41,6 +41,17 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
     public static final String HTML_DEPENDENCY_REPORT = "htmlDependencyReport";
     public static final String PROJECT_REPORT = "projectReport";
 
+    private static File getProjectFile(Project project) {
+        return project.getExtensions().getByType(ReportingExtension.class).file("project");
+    }
+
+    private static void configureReportTask(Project project, ConventionReportTask reportTask, String outputFileName, String description) {
+        reportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> getProjectFile(project))));
+        reportTask.setDescription("Generates a report about your " + description + " project.");
+        reportTask.conventionMapping("outputFile", () -> reportTask.getProjectReportDirectory().file(outputFileName).get().getAsFile());
+        reportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
+    }
+
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
@@ -68,16 +79,5 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
             projectReportTask.setDescription("Generates a report about your project.");
             projectReportTask.setGroup("reporting");
         });
-    }
-
-    private static File getProjectFile(Project project) {
-        return project.getExtensions().getByType(ReportingExtension.class).file("project");
-    }
-
-    private static void configureReportTask(Project project, ConventionReportTask reportTask, String outputFileName, String description) {
-        reportTask.getProjectReportDirectory().convention(project.getLayout().dir(project.provider(() -> getProjectFile(project))));
-        reportTask.setDescription("Generates a report about your " + description + " project.");
-        reportTask.conventionMapping("outputFile", () -> reportTask.getProjectReportDirectory().file(outputFileName).get().getAsFile());
-        reportTask.conventionMapping("projects", () -> WrapUtil.toSet(project));
     }
 }

@@ -7,7 +7,8 @@ import spock.lang.TempDir
 import spock.lang.Specification
 
 class BuildLogicFunctionalTest extends Specification {
-    @TempDir File testProjectDir
+    @TempDir
+    File testProjectDir
     File settingsFile
     File buildFile
 

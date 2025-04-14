@@ -44,7 +44,7 @@ class ChainingTransformerTest extends Specification {
 
     def 'can use a Closure as a Transformer'() {
         when:
-        transformer.add { it + ' transformed'}
+        transformer.add { it + ' transformed' }
 
         then:
         transformer.transform('original') == 'original transformed'

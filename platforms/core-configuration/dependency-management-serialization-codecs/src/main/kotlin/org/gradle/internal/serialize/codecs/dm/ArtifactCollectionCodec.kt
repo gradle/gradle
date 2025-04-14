@@ -59,7 +59,8 @@ class ArtifactCollectionCodec(
         val lenient = readBoolean()
         val elements = readList().uncheckedCast<List<Any>>()
 
-        val files = artifactSetConverter.asFileCollection(displayName, lenient,
+        val files = artifactSetConverter.asFileCollection(
+            displayName, lenient,
             elements.map { element ->
                 when (element) {
                     is Throwable -> artifactSetConverter.asResolvedArtifactSet(element)

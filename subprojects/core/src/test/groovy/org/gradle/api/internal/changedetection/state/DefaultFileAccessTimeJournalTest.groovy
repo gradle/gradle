@@ -37,7 +37,8 @@ import static org.gradle.util.internal.GUtil.loadProperties
 
 class DefaultFileAccessTimeJournalTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def cachesDir = tmpDir.createDir("caches")
     def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
@@ -51,7 +52,8 @@ class DefaultFileAccessTimeJournalTest extends Specification {
         }
     }
 
-    @Subject FileAccessTimeJournal journal = new DefaultFileAccessTimeJournal(globalScopedCache, cacheDecoratorFactory)
+    @Subject
+    FileAccessTimeJournal journal = new DefaultFileAccessTimeJournal(globalScopedCache, cacheDecoratorFactory)
 
     def file = tmpDir.createFile("a/1.txt").makeOlder()
 

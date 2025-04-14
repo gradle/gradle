@@ -64,13 +64,10 @@ import javax.inject.Inject;
  */
 public abstract class EclipseJdt {
 
-    private JavaVersion sourceCompatibility = JavaVersion.current();
-
-    private JavaVersion targetCompatibility = JavaVersion.current();
-
-    private String javaRuntimeName;
-
     private final PropertiesFileContentMerger file;
+    private JavaVersion sourceCompatibility = JavaVersion.current();
+    private JavaVersion targetCompatibility = JavaVersion.current();
+    private String javaRuntimeName;
 
     @Inject
     public EclipseJdt(PropertiesFileContentMerger file) {

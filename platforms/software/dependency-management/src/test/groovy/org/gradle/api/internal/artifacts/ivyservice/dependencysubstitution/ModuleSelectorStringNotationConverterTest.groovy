@@ -16,6 +16,7 @@
 
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
+
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -33,7 +34,8 @@ class ModuleSelectorStringNotationConverterTest extends Specification {
         }
     }
 
-    @Subject parser = NotationParserBuilder.toType(ComponentSelector).converter(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory)).toComposite()
+    @Subject
+        parser = NotationParserBuilder.toType(ComponentSelector).converter(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory)).toComposite()
 
     def "parses module identifier notation"() {
         expect:
@@ -48,20 +50,29 @@ class ModuleSelectorStringNotationConverterTest extends Specification {
     }
 
     def "reports invalid notation"() {
-        when: parser.parseNotation(notation)
-        then: thrown(UnsupportedNotationException)
-        where: notation << [null, "", ":", "foo", "foo:", "foo:bar:x:2", "  :", ":  ", "  :  "]
+        when:
+        parser.parseNotation(notation)
+        then:
+        thrown(UnsupportedNotationException)
+        where:
+        notation << [null, "", ":", "foo", "foo:", "foo:bar:x:2", "  :", ":  ", "  :  "]
     }
 
     def "reports notation with invalid character for module"() {
-        when: parser.parseNotation("group:module${character}")
-        then: thrown(UnsupportedNotationException)
-        where: character << ["+", "*", "[", "]", "(", ")", ","]
+        when:
+        parser.parseNotation("group:module${character}")
+        then:
+        thrown(UnsupportedNotationException)
+        where:
+        character << ["+", "*", "[", "]", "(", ")", ","]
     }
 
     def "reports notation with invalid character for module component"() {
-        when: parser.parseNotation("group:module${character}:1.0")
-        then: thrown(UnsupportedNotationException)
-        where: character << ["+", "*", "[", "]", "(", ")", ","]
+        when:
+        parser.parseNotation("group:module${character}:1.0")
+        then:
+        thrown(UnsupportedNotationException)
+        where:
+        character << ["+", "*", "[", "]", "(", ")", ","]
     }
 }

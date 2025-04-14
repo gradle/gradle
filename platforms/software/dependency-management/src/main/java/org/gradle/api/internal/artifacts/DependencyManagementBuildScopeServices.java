@@ -128,6 +128,15 @@ import java.util.List;
  * The set of dependency management services that are created per build in the tree.
  */
 class DependencyManagementBuildScopeServices implements ServiceRegistrationProvider {
+    private static void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
+        listenerManager.addListener(new BuildModelLifecycleListener() {
+            @Override
+            public void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
+                dependencyVerificationOverride.buildFinished(model);
+            }
+        });
+    }
+
     void configure(ServiceRegistration registration) {
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(FileResourceRepository.class, FileResourceConnector.class);
@@ -161,13 +170,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProviderImpl();
-    }
-
-    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        @Override
-        public Module getModule() {
-            return new AnonymousModule();
-        }
     }
 
     @Provides
@@ -385,15 +387,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         return new DefaultSignatureVerificationServiceFactory(transportFactory, cacheBuilderFactory, decoratorFactory, buildOperationRunner, fileHasher, buildScopedCacheBuilderFactory, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
     }
 
-    private static void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
-        listenerManager.addListener(new BuildModelLifecycleListener() {
-            @Override
-            public void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
-                dependencyVerificationOverride.buildFinished(model);
-            }
-        });
-    }
-
     @Provides
     DependenciesAccessors createDependenciesAccessorGenerator(
         ObjectFactory objectFactory,
@@ -413,5 +406,12 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     TransformExecutionListener createTransformExecutionListener(ListenerManager listenerManager) {
         return listenerManager.getBroadcaster(TransformExecutionListener.class);
+    }
+
+    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
+        @Override
+        public Module getModule() {
+            return new AnonymousModule();
+        }
     }
 }

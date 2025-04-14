@@ -58,6 +58,17 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
+    private static String quote(String arg) {
+        if (arg.isEmpty()) {
+            return "\"\"";
+        }
+        if (arg.contains(" ")) {
+            return "\"" + arg + "\"";
+
+        }
+        return arg;
+    }
+
     @Override
     protected boolean isSingleUseDaemonRequested() {
         if (!requireDaemon) {
@@ -135,7 +146,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<>(super.getAllArgs());
         addPropagatedSystemProperties(args);
-        if(!isQuiet() && isAllowExtraLogging()) {
+        if (!isQuiet() && isAllowExtraLogging()) {
             if (!containsLoggingArgument(args)) {
                 args.add(0, "-i");
             }
@@ -277,17 +288,6 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
             builder.environment("PATH", path);
             builder.environment("Path", path);
         }
-    }
-
-    private static String quote(String arg) {
-        if(arg.isEmpty()){
-            return "\"\"";
-        }
-        if (arg.contains(" ")) {
-            return "\"" + arg + "\"";
-
-        }
-        return arg;
     }
 
     private class UnixConfigurer implements ExecHandlerConfigurer {

@@ -42,10 +42,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class JvmOptions {
-    private static final String XMS_PREFIX = "-Xms";
-    private static final String XMX_PREFIX = "-Xmx";
-    private static final String BOOTCLASSPATH_PREFIX = "-Xbootclasspath:";
-
     public static final String FILE_ENCODING_KEY = "file.encoding";
     public static final String USER_LANGUAGE_KEY = "user.language";
     public static final String USER_COUNTRY_KEY = "user.country";
@@ -53,39 +49,34 @@ public class JvmOptions {
     public static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
     public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
     public static final String JDK_ENABLE_ADS_KEY = "jdk.io.File.enableADS";
-
     public static final String SSL_KEYSTORE_KEY = "javax.net.ssl.keyStore";
     public static final String SSL_KEYSTOREPASSWORD_KEY = "javax.net.ssl.keyStorePassword";
     public static final String SSL_KEYSTORETYPE_KEY = "javax.net.ssl.keyStoreType";
     public static final String SSL_TRUSTSTORE_KEY = "javax.net.ssl.trustStore";
     public static final String SSL_TRUSTPASSWORD_KEY = "javax.net.ssl.trustStorePassword";
     public static final String SSL_TRUSTSTORETYPE_KEY = "javax.net.ssl.trustStoreType";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
-
     public static final Collection<String> IMMUTABLE_SYSTEM_PROPERTIES = Arrays.asList(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JDK_ENABLE_ADS_KEY,
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
         // Gradle specific
         HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
     );
-
+    private static final String XMS_PREFIX = "-Xms";
+    private static final String XMX_PREFIX = "-Xmx";
+    private static final String BOOTCLASSPATH_PREFIX = "-Xbootclasspath:";
+    private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
     // Store this because Locale.default is mutable and we want the unchanged default
     // We are assuming this class will be initialized before any code has a chance to change the default
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
-
+    protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
     private final FileCollectionFactory fileCollectionFactory;
-
+    private final JvmDebugSpec debugSpec;
     private ConfigurableFileCollection bootstrapClasspath;
     private String minHeapSize;
     private String maxHeapSize;
     private boolean assertionsEnabled;
-
-    private final JvmDebugSpec debugSpec;
-
-    protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
     public JvmOptions(FileCollectionFactory fileCollectionFactory) {
         this(fileCollectionFactory, new DefaultJvmDebugSpec());
@@ -100,6 +91,52 @@ public class JvmOptions {
         immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
     }
 
+    public static String getDebugArgument(JvmDebugSpec options) {
+        boolean server = options.isServer();
+        boolean suspend = options.isSuspend();
+        int port = options.getPort();
+        String host = options.getHost() == null ? "" : options.getHost() + ":";
+        String address = host + port;
+        return getDebugArgument(server, suspend, address);
+    }
+
+    public static String getDebugArgument(boolean server, boolean suspend, String address) {
+        return "-agentlib:jdwp=transport=dt_socket," +
+            "server=" + (server ? 'y' : 'n') +
+            ",suspend=" + (suspend ? 'y' : 'n') +
+            ",address=" + address;
+    }
+
+    private static List<String> collectDebugArgs(Iterable<?> arguments) {
+        List<String> debugArgs = new ArrayList<>();
+        for (Object extraJvmArg : arguments) {
+            String extraJvmArgString = extraJvmArg.toString();
+            if (isDebugArg(extraJvmArgString)) {
+                debugArgs.add(extraJvmArgString);
+            }
+        }
+        return debugArgs;
+    }
+
+    private static boolean isDebugArg(String extraJvmArgString) {
+        return extraJvmArgString.equals("-Xdebug")
+            || extraJvmArgString.startsWith("-Xrunjdwp")
+            || extraJvmArgString.startsWith("-agentlib:jdwp");
+    }
+
+    private static void copyDebugOptions(JvmDebugSpec from, JvmDebugSpec to) {
+        // This severs the connection between from this debugOptions to the other debugOptions
+        to.setEnabled(from.isEnabled());
+        to.setHost(from.getHost());
+        to.setPort(from.getPort());
+        to.setServer(from.isServer());
+        to.setSuspend(from.isSuspend());
+    }
+
+    public static List<String> fromString(String input) {
+        return ArgumentsSplitter.split(input);
+    }
+
     /**
      * @return all jvm args including system properties
      */
@@ -112,6 +149,16 @@ public class JvmOptions {
         args.addAll(getAllImmutableJvmArgs());
 
         return Collections.unmodifiableList(args);
+    }
+
+    public void setAllJvmArgs(Iterable<?> arguments) {
+        mutableSystemProperties.clear();
+        minHeapSize = null;
+        maxHeapSize = null;
+        extraJvmArgs.clear();
+        assertionsEnabled = false;
+        debugSpec.setEnabled(false);
+        jvmArgs(arguments);
     }
 
     protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
@@ -169,32 +216,6 @@ public class JvmOptions {
         return getDebugArgument(debugSpec);
     }
 
-    public static String getDebugArgument(JvmDebugSpec options) {
-        boolean server = options.isServer();
-        boolean suspend = options.isSuspend();
-        int port = options.getPort();
-        String host = options.getHost() == null ? "" : options.getHost() + ":";
-        String address = host + port;
-        return getDebugArgument(server, suspend, address);
-    }
-
-    public static String getDebugArgument(boolean server, boolean suspend, String address) {
-        return "-agentlib:jdwp=transport=dt_socket," +
-            "server=" + (server ? 'y' : 'n') +
-            ",suspend=" + (suspend ? 'y' : 'n') +
-            ",address=" + address;
-    }
-
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        mutableSystemProperties.clear();
-        minHeapSize = null;
-        maxHeapSize = null;
-        extraJvmArgs.clear();
-        assertionsEnabled = false;
-        debugSpec.setEnabled(false);
-        jvmArgs(arguments);
-    }
-
     public List<String> getJvmArgs() {
         return extraJvmArgs.stream().map(Object::toString).collect(Collectors.toList());
     }
@@ -204,13 +225,13 @@ public class JvmOptions {
         jvmArgs(arguments);
     }
 
+    public List<Object> getExtraJvmArgs() {
+        return extraJvmArgs;
+    }
+
     public void setExtraJvmArgs(Iterable<?> arguments) {
         extraJvmArgs.clear();
         addExtraJvmArgs(arguments);
-    }
-
-    public List<Object> getExtraJvmArgs() {
-        return extraJvmArgs;
     }
 
     public void checkDebugConfiguration(Iterable<?> arguments) {
@@ -219,23 +240,6 @@ public class JvmOptions {
             LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
             debugSpec.setEnabled(false);
         }
-    }
-
-    private static List<String> collectDebugArgs(Iterable<?> arguments) {
-        List<String> debugArgs = new ArrayList<>();
-        for (Object extraJvmArg : arguments) {
-            String extraJvmArgString = extraJvmArg.toString();
-            if (isDebugArg(extraJvmArgString)) {
-                debugArgs.add(extraJvmArgString);
-            }
-        }
-        return debugArgs;
-    }
-
-    private static boolean isDebugArg(String extraJvmArgString) {
-        return extraJvmArgString.equals("-Xdebug")
-            || extraJvmArgString.startsWith("-Xrunjdwp")
-            || extraJvmArgString.startsWith("-agentlib:jdwp");
     }
 
     /**
@@ -310,19 +314,19 @@ public class JvmOptions {
         return internalGetBootstrapClasspath();
     }
 
-    private ConfigurableFileCollection internalGetBootstrapClasspath() {
-        if (bootstrapClasspath == null) {
-            bootstrapClasspath = fileCollectionFactory.configurableFiles("bootstrap classpath");
-        }
-        return bootstrapClasspath;
-    }
-
     public void setBootstrapClasspath(FileCollection classpath) {
         internalGetBootstrapClasspath().setFrom(classpath);
     }
 
     public void setBootstrapClasspath(Object... classpath) {
         internalGetBootstrapClasspath().setFrom(classpath);
+    }
+
+    private ConfigurableFileCollection internalGetBootstrapClasspath() {
+        if (bootstrapClasspath == null) {
+            bootstrapClasspath = fileCollectionFactory.configurableFiles("bootstrap classpath");
+        }
+        return bootstrapClasspath;
     }
 
     public void bootstrapClasspath(Object... classpath) {
@@ -401,18 +405,5 @@ public class JvmOptions {
 
     private void copyDebugOptionsTo(JvmDebugSpec otherOptions) {
         copyDebugOptions(debugSpec, otherOptions);
-    }
-
-    private static void copyDebugOptions(JvmDebugSpec from, JvmDebugSpec to) {
-        // This severs the connection between from this debugOptions to the other debugOptions
-        to.setEnabled(from.isEnabled());
-        to.setHost(from.getHost());
-        to.setPort(from.getPort());
-        to.setServer(from.isServer());
-        to.setSuspend(from.isSuspend());
-    }
-
-    public static List<String> fromString(String input) {
-        return ArgumentsSplitter.split(input);
     }
 }

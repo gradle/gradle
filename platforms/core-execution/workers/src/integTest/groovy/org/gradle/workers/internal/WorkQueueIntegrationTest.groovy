@@ -25,7 +25,8 @@ import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/4648")
 class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
     WorkerExecutorFixture.WorkParameterClass parallelParameterType
     WorkerExecutorFixture.WorkActionClass parallelWorkAction
 
@@ -33,8 +34,8 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
         blockingHttpServer.start()
 
         parallelParameterType = fixture.workParameterClass("ParallelParameter", "org.gradle.test").withFields([
-                "itemName": "String",
-                "shouldFail": "Boolean"
+            "itemName": "String",
+            "shouldFail": "Boolean"
         ])
 
         parallelWorkAction = fixture.workActionClass("ParallelWorkAction", "org.gradle.test", parallelParameterType)

@@ -46,37 +46,6 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
         asHex = toHex(asLong);
     }
 
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof PgpKeyId
-            && ((PgpKeyId) other).asHex.equals(this.asHex);
-    }
-
-    @Override
-    public int hashCode() {
-        return asHex.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return asHex;
-    }
-
-    @Override
-    public int compareTo(PgpKeyId other) {
-        return other == null
-            ? -1
-            : this.asHex.compareTo(other.asHex);
-    }
-
-    public final String getAsHex() {
-        return asHex;
-    }
-
-    public final long getAsLong() {
-        return asLong;
-    }
-
     public static String toHex(long keyId) {
         return String.format("%08X", 0xFFFFFFFFL & keyId);
     }
@@ -110,5 +79,36 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
             default:
                 throw new IllegalStateException("The key ID must be in a valid form (eg 00B5050F or 0x00B5050F), given value: " + keyId);
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof PgpKeyId
+            && ((PgpKeyId) other).asHex.equals(this.asHex);
+    }
+
+    @Override
+    public int hashCode() {
+        return asHex.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return asHex;
+    }
+
+    @Override
+    public int compareTo(PgpKeyId other) {
+        return other == null
+            ? -1
+            : this.asHex.compareTo(other.asHex);
+    }
+
+    public final String getAsHex() {
+        return asHex;
+    }
+
+    public final long getAsLong() {
+        return asLong;
     }
 }

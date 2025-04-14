@@ -75,7 +75,6 @@ public interface ResolvedComponentResult extends ComponentResult {
      * "configuration" (for an Ivy dependency) or "scope" (for a Maven dependency).
      *
      * @return the resolved variants for this component
-     *
      * @since 5.2
      */
     List<ResolvedVariantResult> getVariants();

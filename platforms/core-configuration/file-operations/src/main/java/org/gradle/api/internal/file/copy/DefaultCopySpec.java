@@ -82,13 +82,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
     private final Property<ConfigurableFilePermissions> dirPermissions;
     private final Property<ConfigurableFilePermissions> filePermissions;
+    private final List<CopySpecListener> listeners = new LinkedList<>();
     private Object destDir;
     private boolean hasCustomActions;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
-    private final List<CopySpecListener> listeners = new LinkedList<>();
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
@@ -627,6 +627,70 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
     }
 
+    private static class DefaultCopySpecAddress implements CopySpecAddress {
+        private final DefaultCopySpecAddress parent;
+        private final CopySpecInternal spec;
+        private final int additionIndex;
+
+        public DefaultCopySpecAddress(@Nullable DefaultCopySpecAddress parent, CopySpecInternal spec, int additionIndex) {
+            this.parent = parent;
+            this.spec = spec;
+            this.additionIndex = additionIndex;
+        }
+
+        @Override
+        public CopySpecAddress getParent() {
+            return parent;
+        }
+
+        @Override
+        public CopySpecInternal getSpec() {
+            return spec;
+        }
+
+        @Override
+        public int getAdditionIndex() {
+            return additionIndex;
+        }
+
+        @Override
+        public DefaultCopySpecAddress append(CopySpecInternal spec, int additionIndex) {
+            return new DefaultCopySpecAddress(this, spec, additionIndex);
+        }
+
+        @Override
+        public DefaultCopySpecAddress append(CopySpecAddress relativeAddress) {
+            CopySpecAddress parent = relativeAddress.getParent();
+            DefaultCopySpecAddress newParent;
+            if (parent == null) {
+                newParent = this;
+            } else {
+                newParent = append(parent);
+            }
+            return new DefaultCopySpecAddress(newParent, relativeAddress.getSpec(), relativeAddress.getAdditionIndex());
+        }
+
+        @Override
+        public CopySpecResolver unroll(StringBuilder path) {
+            CopySpecResolver resolver;
+            if (parent != null) {
+                resolver = spec.buildResolverRelativeToParent(parent.unroll(path));
+            } else {
+                resolver = spec.buildRootResolver();
+            }
+            path.append("$").append(additionIndex + 1);
+            return resolver;
+        }
+
+        @Override
+        public String toString() {
+            String parentPath = parent == null
+                ? ""
+                : parent.toString();
+            return parentPath + "$" + (additionIndex + 1);
+        }
+    }
+
     public class DefaultCopySpecResolver implements CopySpecResolver {
         @Nullable
         private final CopySpecResolver parentResolver;
@@ -820,70 +884,6 @@ public class DefaultCopySpec implements CopySpecInternal {
                 return parentResolver.getFilteringCharset();
             }
             return Charset.defaultCharset().name();
-        }
-    }
-
-    private static class DefaultCopySpecAddress implements CopySpecAddress {
-        private final DefaultCopySpecAddress parent;
-        private final CopySpecInternal spec;
-        private final int additionIndex;
-
-        public DefaultCopySpecAddress(@Nullable DefaultCopySpecAddress parent, CopySpecInternal spec, int additionIndex) {
-            this.parent = parent;
-            this.spec = spec;
-            this.additionIndex = additionIndex;
-        }
-
-        @Override
-        public CopySpecAddress getParent() {
-            return parent;
-        }
-
-        @Override
-        public CopySpecInternal getSpec() {
-            return spec;
-        }
-
-        @Override
-        public int getAdditionIndex() {
-            return additionIndex;
-        }
-
-        @Override
-        public DefaultCopySpecAddress append(CopySpecInternal spec, int additionIndex) {
-            return new DefaultCopySpecAddress(this, spec, additionIndex);
-        }
-
-        @Override
-        public DefaultCopySpecAddress append(CopySpecAddress relativeAddress) {
-            CopySpecAddress parent = relativeAddress.getParent();
-            DefaultCopySpecAddress newParent;
-            if (parent == null) {
-                newParent = this;
-            } else {
-                newParent = append(parent);
-            }
-            return new DefaultCopySpecAddress(newParent, relativeAddress.getSpec(), relativeAddress.getAdditionIndex());
-        }
-
-        @Override
-        public CopySpecResolver unroll(StringBuilder path) {
-            CopySpecResolver resolver;
-            if (parent != null) {
-                resolver = spec.buildResolverRelativeToParent(parent.unroll(path));
-            } else {
-                resolver = spec.buildRootResolver();
-            }
-            path.append("$").append(additionIndex + 1);
-            return resolver;
-        }
-
-        @Override
-        public String toString() {
-            String parentPath = parent == null
-                ? ""
-                : parent.toString();
-            return parentPath + "$" + (additionIndex + 1);
         }
     }
 }

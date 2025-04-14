@@ -26,9 +26,17 @@ public class DefaultEclipseJavaSourceSettings implements Serializable {
     private JavaVersion targetBytecodeVersion;
     private DefaultInstalledJdk jdk;
 
+    public JavaVersion getSourceLanguageLevel() {
+        return sourceLanguageLevel;
+    }
+
     public DefaultEclipseJavaSourceSettings setSourceLanguageLevel(JavaVersion sourceLanguageLevel) {
         this.sourceLanguageLevel = sourceLanguageLevel;
         return this;
+    }
+
+    public JavaVersion getTargetBytecodeVersion() {
+        return targetBytecodeVersion;
     }
 
     public DefaultEclipseJavaSourceSettings setTargetBytecodeVersion(JavaVersion targetBytecodeLevel) {
@@ -36,20 +44,12 @@ public class DefaultEclipseJavaSourceSettings implements Serializable {
         return this;
     }
 
+    public DefaultInstalledJdk getJdk() {
+        return jdk;
+    }
+
     public DefaultEclipseJavaSourceSettings setJdk(DefaultInstalledJdk targetRuntime) {
         this.jdk = targetRuntime;
         return this;
-    }
-
-    public JavaVersion getSourceLanguageLevel() {
-        return sourceLanguageLevel;
-    }
-
-    public JavaVersion getTargetBytecodeVersion() {
-        return targetBytecodeVersion;
-    }
-
-    public DefaultInstalledJdk getJdk() {
-        return jdk;
     }
 }

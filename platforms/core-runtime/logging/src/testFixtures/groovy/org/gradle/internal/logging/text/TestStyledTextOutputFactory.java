@@ -67,7 +67,7 @@ public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory
      */
     public String getOutput() {
         StringBuilder builder = new StringBuilder();
-        for (StyledTextOutput textOutput: textOutputs) {
+        for (StyledTextOutput textOutput : textOutputs) {
             builder.append(textOutput);
         }
         return TextUtil.normaliseLineSeparators(builder.toString());

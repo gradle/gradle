@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.jvm.IncrementalTestJvmComponent
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.test.fixtures.file.TestFile
 
-class TestJavaComponent extends IncrementalTestJvmComponent{
+class TestJavaComponent extends IncrementalTestJvmComponent {
     String languageName = "java"
 
     List<JvmSourceFile> sources = [
@@ -47,7 +47,7 @@ public class Person2 {
 
 
     @Override
-    void changeSources(List<TestFile> sourceFiles){
+    void changeSources(List<TestFile> sourceFiles) {
         def personJavaFile = sourceFiles.find { it.name == "Person.java" }
         personJavaFile.text = personJavaFile.text.replace("String name;", "String name; String anotherName;")
     }
@@ -62,10 +62,10 @@ interface Extra {
     }
 
     List<JvmSourceFile> expectedOutputs = [
-            sources[0].classFile,
-            sources[1].classFile,
-            resources[0],
-            resources[1]
+        sources[0].classFile,
+        sources[1].classFile,
+        resources[0],
+        resources[1]
     ]
 
     @Override

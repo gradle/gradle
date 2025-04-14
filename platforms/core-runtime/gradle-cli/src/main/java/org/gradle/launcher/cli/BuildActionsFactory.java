@@ -77,6 +77,23 @@ class BuildActionsFactory implements CommandLineActionCreator {
         this.fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
     }
 
+    @VisibleForTesting
+    static DaemonContext buildDaemonContextForCurrentProcess(DaemonRequestContext requestContext, CurrentProcess currentProcess) {
+        return new DefaultDaemonContext(
+            UUID.randomUUID().toString(),
+            currentProcess.getJvm().getJavaHome(),
+            JavaLanguageVersion.current(),
+            Jvm.current().getVendor(),
+            null, 0L, 0,
+            currentProcess.getJvmOptions().getAllImmutableJvmArgs(),
+            AgentStatus.allowed().isAgentInstrumentationEnabled(),
+            // These aren't being properly checked.
+            // We assume the current process is compatible when considering these properties.
+            requestContext.getNativeServicesMode(),
+            requestContext.getPriority()
+        );
+    }
+
     @Override
     public void configureCommandLineParser(CommandLineParser parser) {
     }
@@ -142,23 +159,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
             return comparison.isSatisfiedBy(contextForCurrentProcess);
         }
         return false;
-    }
-
-    @VisibleForTesting
-    static DaemonContext buildDaemonContextForCurrentProcess(DaemonRequestContext requestContext, CurrentProcess currentProcess) {
-        return new DefaultDaemonContext(
-            UUID.randomUUID().toString(),
-            currentProcess.getJvm().getJavaHome(),
-            JavaLanguageVersion.current(),
-            Jvm.current().getVendor(),
-            null, 0L, 0,
-            currentProcess.getJvmOptions().getAllImmutableJvmArgs(),
-            AgentStatus.allowed().isAgentInstrumentationEnabled(),
-            // These aren't being properly checked.
-            // We assume the current process is compatible when considering these properties.
-            requestContext.getNativeServicesMode(),
-            requestContext.getPriority()
-        );
     }
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {

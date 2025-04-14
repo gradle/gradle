@@ -20,7 +20,6 @@ package org.gradle.api.tasks;
  * Enumeration of different path handling strategies for task properties.
  *
  * @see PathSensitive
- *
  * @since 3.1
  */
 public enum PathSensitivity {
@@ -35,9 +34,9 @@ public enum PathSensitivity {
      * Use the location of the file related to a hierarchy.
      *
      * <p>
-     *     For files in the root of the file collection, the file name is used as the normalized path.
-     *     For directories in the root of the file collection, an empty string is used as normalized path.
-     *     For files in directories in the root of the file collection, the normalized path is the relative path of the file to the root directory containing it.
+     * For files in the root of the file collection, the file name is used as the normalized path.
+     * For directories in the root of the file collection, an empty string is used as normalized path.
+     * For files in directories in the root of the file collection, the normalized path is the relative path of the file to the root directory containing it.
      * </p>
      *
      * <br>
@@ -58,11 +57,11 @@ public enum PathSensitivity {
      * Ignore file paths and directories altogether.
      *
      * <p>
-     *     When used on an {@literal @}{@link org.gradle.work.Incremental} input, instead of
-     *     {@link org.gradle.work.ChangeType#MODIFIED} events Gradle may produce
-     *     {@link org.gradle.work.ChangeType#ADDED} and {@link org.gradle.work.ChangeType#REMOVED} events.
-     *     This is because by ignoring the path of the individual inputs it cannot identify <em>what</em>
-     *     has been modified.
+     * When used on an {@literal @}{@link org.gradle.work.Incremental} input, instead of
+     * {@link org.gradle.work.ChangeType#MODIFIED} events Gradle may produce
+     * {@link org.gradle.work.ChangeType#ADDED} and {@link org.gradle.work.ChangeType#REMOVED} events.
+     * This is because by ignoring the path of the individual inputs it cannot identify <em>what</em>
+     * has been modified.
      * </p>
      */
     NONE

@@ -36,14 +36,14 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import static org.gradle.internal.versionedcache.CacheVersionMapping.introducedIn;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
+    @VisibleForTesting
+    static final String CACHE_NAME = "jars";
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("2.2")
         .incrementedIn("3.2-rc-1")
         .incrementedIn("3.5-rc-1")
         .changedTo(8, "6.5-rc-1")
         .incrementedIn("7.1")
         .build();
-    @VisibleForTesting
-    static final String CACHE_NAME = "jars";
     @VisibleForTesting
     static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;

@@ -711,8 +711,8 @@ class VersionRangeResolveTestScenarios {
             if (!config.ignore) {
                 List<RenderableVersion> versions = config.versions
                 String expected = config.expected
-                List<String> expectedStrictSingle = config.expectedStrict?:config.expectedStrictSingle
-                List<String> expectedStrictMulti = config.expectedStrict?:config.expectedStrictMulti
+                List<String> expectedStrictSingle = config.expectedStrict ?: config.expectedStrictSingle
+                List<String> expectedStrictMulti = config.expectedStrict ?: config.expectedStrictMulti
                 boolean expectConflict = config.conflicts as boolean
                 List<Batch> iterations = []
                 String batchName = config.description ?: "#${batchCount} (${versions})"
@@ -776,7 +776,7 @@ class VersionRangeResolveTestScenarios {
                     }
                     Object nextExpectedSingle = expectedSingle instanceof String ? expectedSingle : expectedSingle.next()
                     Object nextExpectedMulti = expectedMulti instanceof String ? expectedMulti : expectedMulti.next()
-                    def candidate = new Candidate(idx: idx++, batch: currentBatch, candidates: current.next() as RenderableVersion[], expectedSingle: nextExpectedSingle, expectedMulti:nextExpectedMulti, conflicts: expectConflictResolution)
+                    def candidate = new Candidate(idx: idx++, batch: currentBatch, candidates: current.next() as RenderableVersion[], expectedSingle: nextExpectedSingle, expectedMulti: nextExpectedMulti, conflicts: expectConflictResolution)
                     return candidate
                 }
                 Batch nextBatch = batchesIterator.next()

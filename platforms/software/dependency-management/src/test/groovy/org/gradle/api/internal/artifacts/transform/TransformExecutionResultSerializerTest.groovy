@@ -121,7 +121,7 @@ class TransformExecutionResultSerializerTest extends Specification {
     }
 
     private void assertCanWriteAndReadResult(File... files) {
-        ImmutableList<File> resultFiles = ImmutableList.<File>builder().add(files).build()
+        ImmutableList<File> resultFiles = ImmutableList.<File> builder().add(files).build()
         def initialResults = buildTransformExecutionResult(resultFiles)
         assert initialResults.resolveForWorkspace(outputDir).resolveForInputArtifact(inputArtifact) == resultFiles
 

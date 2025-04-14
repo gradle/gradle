@@ -38,6 +38,14 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         this(DefaultModuleIdentifier.newId(group, name), version);
     }
 
+    public static ModuleVersionSelector newSelector(ModuleIdentifier module, String version) {
+        return new DefaultModuleVersionSelector(module, version);
+    }
+
+    public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
+        return new DefaultModuleVersionSelector(selector.getModuleIdentifier(), selector.getVersion());
+    }
+
     @Override
     public String getGroup() {
         return module.getGroup();
@@ -85,13 +93,5 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     @Override
     public int hashCode() {
         return Objects.hashCode(module, version);
-    }
-
-    public static ModuleVersionSelector newSelector(ModuleIdentifier module, String version) {
-        return new DefaultModuleVersionSelector(module, version);
-    }
-
-    public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
-        return new DefaultModuleVersionSelector(selector.getModuleIdentifier(), selector.getVersion());
     }
 }

@@ -234,7 +234,7 @@ class SelectorStateResolverTest extends Specification {
         then:
         selected.version == "10"
         missingLow.requireResult.failure instanceof ModuleVersionNotFoundException
-         missingHigh.requireResult.failure instanceof ModuleVersionNotFoundException
+        missingHigh.requireResult.failure instanceof ModuleVersionNotFoundException
     }
 
     def "rethrows failure when all selectors fail to resolve"() {
@@ -307,7 +307,7 @@ class SelectorStateResolverTest extends Specification {
     static class FailingConflictResolver<T> implements ModuleConflictResolver<T> {
         @Override
         void select(ConflictResolverDetails<T> details) {
-            assert false : "Unexpected conflict resolution: " + details.candidates.collect {it.id}
+            assert false: "Unexpected conflict resolution: " + details.candidates.collect { it.id }
         }
     }
 

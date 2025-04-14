@@ -116,7 +116,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         assert callbackScriptChildren.every { it.details.applicationId == callbackScriptApplication.details.applicationId }
 
         where:
-        callbackName         | containerName             | requiresPlugins                | containerAccess                          | containerItemCreation
+        callbackName                         | containerName              | requiresPlugins                | containerAccess                               | containerItemCreation
         'all'                                | 'create tasks'             | []                             | 'tasks'                                       | "p.tasks.create('foo')"
         'withType(Task)'                     | 'create tasks'             | []                             | 'tasks'                                       | "p.tasks.create('foo')"
         'matching{true}.all'                 | 'create tasks'             | []                             | 'tasks'                                       | "p.tasks.create('foo')"
@@ -141,13 +141,13 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         'all'                                | 'artifactTypes'            | []                             | 'dependencies.artifactTypes'                  | createArtifactTypeSnippet()
         'all'                                | 'distributions'            | ['distribution']               | 'distributions'                               | createFooDistributions()
         "matching{it.name == 'foo'}.all"     | 'distributions'            | ['distribution']               | 'distributions'                               | createFooDistributions()
-        "matching{true}.all" | 'test reports'            | ['java-library']               | 'test.reports'                           | ''
-        "matching{true}.all" | 'checkstyle reports'      | ['java-library', 'checkstyle'] | 'checkstyleMain.reports'                 | ''
-        "matching{true}.all" | 'pmd reports'             | ['java-library', 'pmd']        | 'pmdMain.reports'                        | ''
-        "matching{true}.all" | 'codenarc reports'        | ['groovy', 'codenarc']         | 'codenarcMain.reports'                   | ''
-        "matching{true}.all" | 'html dependency reports' | ['project-report']             | 'htmlDependencyReport.reports'           | ''
-        "matching{true}.all" | 'build dashboard reports' | ['build-dashboard']            | 'buildDashboard.reports'                 | ''
-        "matching{true}.all" | 'jacoco reports'          | ['java-library', 'jacoco']     | 'jacocoTestReport.reports'               | ''
+        "matching{true}.all"                 | 'test reports'             | ['java-library']               | 'test.reports'                                | ''
+        "matching{true}.all"                 | 'checkstyle reports'       | ['java-library', 'checkstyle'] | 'checkstyleMain.reports'                      | ''
+        "matching{true}.all"                 | 'pmd reports'              | ['java-library', 'pmd']        | 'pmdMain.reports'                             | ''
+        "matching{true}.all"                 | 'codenarc reports'         | ['groovy', 'codenarc']         | 'codenarcMain.reports'                        | ''
+        "matching{true}.all"                 | 'html dependency reports'  | ['project-report']             | 'htmlDependencyReport.reports'                | ''
+        "matching{true}.all"                 | 'build dashboard reports'  | ['build-dashboard']            | 'buildDashboard.reports'                      | ''
+        "matching{true}.all"                 | 'jacoco reports'           | ['java-library', 'jacoco']     | 'jacocoTestReport.reports'                    | ''
     }
 
     def "task registration callback action executions emit build operation with script applicationId"() {

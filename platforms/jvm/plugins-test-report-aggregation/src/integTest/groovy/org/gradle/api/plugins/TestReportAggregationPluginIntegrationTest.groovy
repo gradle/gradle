@@ -346,7 +346,8 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
     }
 
     def 'test verification failure prevents creation of aggregated report'() {
-        given:file("application/build.gradle") << """
+        given:
+        file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
         """
         file("direct/src/test/java/direct/MultiplierTest.java").java """
@@ -368,14 +369,15 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
-               .assertThatCause(startsWith("There were failing tests"))
+            .assertThatCause(startsWith("There were failing tests"))
         result.assertTaskNotExecuted(':application:testAggregateTestReport')
 
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
     }
 
     def 'test verification failure creates aggregated report with --continue flag'() {
-        given:file("application/build.gradle") << """
+        given:
+        file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
         """
         file("direct/src/test/java/direct/MultiplierTest.java").java """

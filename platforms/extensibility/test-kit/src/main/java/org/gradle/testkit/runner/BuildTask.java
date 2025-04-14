@@ -19,8 +19,8 @@ package org.gradle.testkit.runner;
 /**
  * A task that was executed when running a specific build.
  *
- * @since 2.6
  * @see BuildResult
+ * @since 2.6
  */
 public interface BuildTask {
 

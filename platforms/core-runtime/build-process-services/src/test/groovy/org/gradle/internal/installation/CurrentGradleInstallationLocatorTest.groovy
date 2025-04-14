@@ -15,6 +15,7 @@
  */
 
 package org.gradle.internal.installation
+
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile

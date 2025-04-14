@@ -31,6 +31,9 @@ import java.util.Set;
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
+    private CalculateTaskGraphBuildOperationType() {
+    }
+
     /**
      * An identifiable node in the execution graph with its dependencies.
      *
@@ -134,9 +137,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          * @since 8.1
          */
         List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types);
-    }
-
-    private CalculateTaskGraphBuildOperationType() {
     }
 
 }

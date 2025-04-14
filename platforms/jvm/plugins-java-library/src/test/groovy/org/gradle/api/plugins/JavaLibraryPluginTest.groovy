@@ -224,13 +224,13 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def apiVariant = javaLibrary.usages.find { it.name == 'apiElements' }
 
         then:
-        runtimeVariant.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
+        runtimeVariant.artifacts.collect { it.file } == [jarTask.archiveFile.get().asFile]
         runtimeVariant.dependencies.size() == 2
         runtimeVariant.dependencies == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeVariant.dependencyConstraints.size() == 2
         runtimeVariant.dependencyConstraints == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
 
-        apiVariant.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
+        apiVariant.artifacts.collect { it.file } == [jarTask.archiveFile.get().asFile]
         apiVariant.dependencies.size() == 1
         apiVariant.dependencies == project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiVariant.dependencyConstraints.size() == 1

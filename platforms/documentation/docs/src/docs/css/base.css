@@ -5,7 +5,7 @@
     font-weight: 500;
     font-style: normal;
     src: url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff2") format("woff2"),
-         url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
+    url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
 }
 
 * {
@@ -266,13 +266,16 @@ blockquote p:last-child {
     .container, .footer {
         max-width: 100%;
     }
+
     .content {
         display: block;
         width: auto;
     }
+
     .sidebar {
         display: none;
     }
+
     .container,
     .main-content > .appendix,
     .main-content > .book,
@@ -762,6 +765,7 @@ h3.releaseinfo {
     margin-top: 0.3334em;
     line-height: 1.3334;
 }
+
 .docs-navigation li:last-of-type {
     margin-bottom: 0;
 }
@@ -826,20 +830,25 @@ h3.releaseinfo {
 .toc p {
     font-size: 1em;
 }
+
 .toc dl dt,
 .toc a {
     line-height: 1.0;
 }
+
 .toc dl dt {
     padding-bottom: 0.625rem;
 }
+
 .toc a {
     color: #1DA2BD;
 }
+
 .toc p {
     font-size: 1.5em;
     margin-bottom: 0.5em;
 }
+
 .toc dl, .list-of-examples dl {
     margin-left: 0;
 }
@@ -868,10 +877,12 @@ h3.releaseinfo {
 .rating {
     direction: rtl;
 }
+
 .rating > .star {
     cursor: pointer;
     padding: 3px;
 }
+
 .rating > .star:hover > svg > g,
 .rating > .star:hover ~ .star > svg > g,
 .rating > .star.selected > svg > g,
@@ -924,11 +935,13 @@ h3.releaseinfo {
     margin: 2px 0 0 2px;
     opacity: 0.7;
 }
+
 .site-footer__subscribe-newsletter .disclaimer {
     color: #ddd;
     font-size: 0.75rem;
     opacity: 0.55;
 }
+
 .site-footer__subscribe-newsletter .newsletter-form {
     padding-top: 6px;
     display: flex;
@@ -1177,7 +1190,7 @@ h3.releaseinfo {
 
 .note, .tip, .exampleLocation {
     border-left: 1px solid #ddddd8;
-    color: rgba(0,0,0,0.6);
+    color: rgba(0, 0, 0, 0.6);
     margin: 0 0 1.5em 1.25em;
     padding-left: 1.125em;
     padding-right: 1.25em;
@@ -1344,7 +1357,7 @@ div.example code.filename {
     font-weight: 500;
 }
 
-.site-header  {
+.site-header {
     margin-bottom: 1rem;
 }
 
@@ -1370,7 +1383,7 @@ div.example code.filename {
         margin-bottom: 20px;
     }
 
-    .site-header  {
+    .site-header {
         margin-bottom: 0;
         z-index: 2;
     }

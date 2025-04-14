@@ -51,6 +51,71 @@ public class OptionReader {
     private final Map<OptionElement, JavaMethod<Object, ?>> cachedOptionValueMethods = new HashMap<>();
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
 
+    private static JavaMethod<Object, ?> getOptionValueMethodForOption(List<JavaMethod<Object, ?>> optionValueMethods, OptionElement optionElement) {
+        JavaMethod<Object, ?> valueMethod = null;
+        for (JavaMethod<Object, ?> optionValueMethod : optionValueMethods) {
+            String[] optionNames = getOptionNames(optionValueMethod);
+            if (CollectionUtils.toList(optionNames).contains(optionElement.getOptionName())) {
+                if (valueMethod == null) {
+                    valueMethod = optionValueMethod;
+                } else {
+                    throw new OptionValidationException(
+                        String.format("@OptionValues for '%s' cannot be attached to multiple methods in class '%s'.",
+                            optionElement.getOptionName(),
+                            optionValueMethod.getMethod().getDeclaringClass().getName()));
+                }
+            }
+        }
+        return valueMethod;
+    }
+
+    private static String[] getOptionNames(JavaMethod<Object, ?> optionValueMethod) {
+        OptionValues optionValues = optionValueMethod.getMethod().getAnnotation(OptionValues.class);
+        return optionValues.value();
+    }
+
+    private static List<JavaMethod<Object, ?>> loadValueMethodForOption(Class<?> declaredClass) {
+        List<JavaMethod<Object, ?>> methods = new ArrayList<>();
+        for (Class<?> type = declaredClass; type != Object.class && type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                JavaMethod<Object, ?> optionValuesMethod = getAsOptionValuesMethod(type, method);
+                if (optionValuesMethod != null) {
+                    methods.add(optionValuesMethod);
+                }
+            }
+        }
+        return methods;
+    }
+
+    private static JavaMethod<Object, ?> getAsOptionValuesMethod(Class<?> type, Method method) {
+        OptionValues optionValues = method.getAnnotation(OptionValues.class);
+        if (optionValues == null) {
+            return null;
+        }
+        if (method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers())) {
+            if (Collection.class.isAssignableFrom(method.getReturnType())) {
+                return JavaMethod.of(Collection.class, method);
+            } else if (Provider.class.equals(method.getReturnType())
+                && Collection.class.isAssignableFrom(getProviderNestedRawType(method.getGenericReturnType()))) {
+                return JavaMethod.of(Provider.class, method);
+            }
+        }
+        throw new OptionValidationException(
+            String.format("@OptionValues annotation not supported on method '%s' in class '%s'. " +
+                    "Supported method must be non-static, return a Collection<String> or Provider<Collection<String>> and take no parameters.",
+                method.getName(),
+                type.getName())
+        );
+    }
+
+    /**
+     * Returns Provider's nested raw type.
+     */
+    @SuppressWarnings("unchecked")
+    private static Class<?> getProviderNestedRawType(Type providerType) {
+        TypeToken<Provider<?>> typeToken = (TypeToken<Provider<?>>) TypeToken.of(providerType);
+        return JavaReflectionUtil.extractNestedType(typeToken, Provider.class, 0).getRawType();
+    }
 
     public Map<String, OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
@@ -86,40 +151,6 @@ public class OptionReader {
 
             cachedOptionElements.put(target.getClass(), optionElement);
             cachedOptionValueMethods.put(optionElement, optionValueMethodForOption);
-        }
-    }
-
-    private static JavaMethod<Object, ?> getOptionValueMethodForOption(List<JavaMethod<Object, ?>> optionValueMethods, OptionElement optionElement) {
-        JavaMethod<Object, ?> valueMethod = null;
-        for (JavaMethod<Object, ?> optionValueMethod : optionValueMethods) {
-            String[] optionNames = getOptionNames(optionValueMethod);
-            if (CollectionUtils.toList(optionNames).contains(optionElement.getOptionName())) {
-                if (valueMethod == null) {
-                    valueMethod = optionValueMethod;
-                } else {
-                    throw new OptionValidationException(
-                            String.format("@OptionValues for '%s' cannot be attached to multiple methods in class '%s'.",
-                                    optionElement.getOptionName(),
-                                    optionValueMethod.getMethod().getDeclaringClass().getName()));
-                }
-            }
-        }
-        return valueMethod;
-    }
-
-    private static String[] getOptionNames(JavaMethod<Object, ?> optionValueMethod) {
-        OptionValues optionValues = optionValueMethod.getMethod().getAnnotation(OptionValues.class);
-        return optionValues.value();
-    }
-
-    private static final class OptionElementAndSignature {
-        final OptionElement element;
-        @Nullable
-        final MethodSignature signature;
-
-        OptionElementAndSignature(OptionElement element, @Nullable MethodSignature signature) {
-            this.element = element;
-            this.signature = signature;
         }
     }
 
@@ -198,46 +229,14 @@ public class OptionReader {
         return option;
     }
 
-    private static List<JavaMethod<Object, ?>> loadValueMethodForOption(Class<?> declaredClass) {
-        List<JavaMethod<Object, ?>> methods = new ArrayList<>();
-        for (Class<?> type = declaredClass; type != Object.class && type != null; type = type.getSuperclass()) {
-            for (Method method : type.getDeclaredMethods()) {
-                JavaMethod<Object, ?> optionValuesMethod = getAsOptionValuesMethod(type, method);
-                if (optionValuesMethod != null) {
-                    methods.add(optionValuesMethod);
-                }
-            }
-        }
-        return methods;
-    }
+    private static final class OptionElementAndSignature {
+        final OptionElement element;
+        @Nullable
+        final MethodSignature signature;
 
-    private static JavaMethod<Object, ?> getAsOptionValuesMethod(Class<?> type, Method method) {
-        OptionValues optionValues = method.getAnnotation(OptionValues.class);
-        if (optionValues == null) {
-            return null;
+        OptionElementAndSignature(OptionElement element, @Nullable MethodSignature signature) {
+            this.element = element;
+            this.signature = signature;
         }
-        if (method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers())) {
-            if (Collection.class.isAssignableFrom(method.getReturnType())) {
-                return JavaMethod.of(Collection.class, method);
-            } else if (Provider.class.equals(method.getReturnType())
-                && Collection.class.isAssignableFrom(getProviderNestedRawType(method.getGenericReturnType()))) {
-                return JavaMethod.of(Provider.class, method);
-            }
-        }
-        throw new OptionValidationException(
-            String.format("@OptionValues annotation not supported on method '%s' in class '%s'. " +
-                    "Supported method must be non-static, return a Collection<String> or Provider<Collection<String>> and take no parameters.",
-                method.getName(),
-                type.getName())
-        );
-    }
-
-    /**
-     * Returns Provider's nested raw type.
-     */
-    @SuppressWarnings("unchecked")
-    private static Class<?> getProviderNestedRawType(Type providerType) {
-        TypeToken<Provider<?>> typeToken = (TypeToken<Provider<?>>) TypeToken.of(providerType);
-        return JavaReflectionUtil.extractNestedType(typeToken, Provider.class, 0).getRawType();
     }
 }

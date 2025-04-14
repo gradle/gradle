@@ -20,6 +20,7 @@ enum class ProblemSeverity {
     Info,
     Failure,
     Warning,
+
     /**
      * A problem produced by a task marked as [notCompatibleWithConfigurationCache][Task.notCompatibleWithConfigurationCache].
      */

@@ -35,7 +35,7 @@ public class GradlePluginVariantsSupport {
         strategy.getDisambiguationRules().add(TargetGradleVersionDisambiguationRule.class);
     }
 
-    public static void configureFailureHandler(ResolutionFailureHandler handler)  {
+    public static void configureFailureHandler(ResolutionFailureHandler handler) {
         handler.addFailureDescriber(NoCompatibleVariantsFailure.class, NewerGradleNeededByPluginFailureDescriber.class);
         handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnPluginTooNewFailureDescriber.class);
     }
@@ -66,7 +66,7 @@ public class GradlePluginVariantsSupport {
             GradleVersion bestMatchVersion = GradleVersion.version("0.0");
             GradlePluginApiVersion bestMatchAttribute = null;
 
-            for(GradlePluginApiVersion candidate : details.getCandidateValues()) {
+            for (GradlePluginApiVersion candidate : details.getCandidateValues()) {
                 GradleVersion producer = GradleVersion.version(candidate.getName());
                 if (producer.compareTo(consumer) <= 0 && producer.compareTo(bestMatchVersion) > 0) {
                     bestMatchVersion = producer;

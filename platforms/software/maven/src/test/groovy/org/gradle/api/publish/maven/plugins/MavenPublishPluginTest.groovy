@@ -181,16 +181,16 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         publishing.publications.create("test", MavenPublication)
         publishing.publications.create("test2", MavenPublication)
         publishing.repositories { maven { url = "http://foo.com" } }
-        publishing.repositories { maven { name='other'; url = "http://bar.com" } }
+        publishing.repositories { maven { name = 'other'; url = "http://bar.com" } }
 
         then:
         project.tasks["publishAllPublicationsToMavenRepository"].dependsOn.containsAll([
-                "publishTestPublicationToMavenRepository",
-                "publishTest2PublicationToMavenRepository"
+            "publishTestPublicationToMavenRepository",
+            "publishTest2PublicationToMavenRepository"
         ])
         project.tasks["publishAllPublicationsToOtherRepository"].dependsOn.containsAll([
-                "publishTestPublicationToOtherRepository",
-                "publishTest2PublicationToOtherRepository"
+            "publishTestPublicationToOtherRepository",
+            "publishTest2PublicationToOtherRepository"
         ])
     }
 

@@ -19,8 +19,8 @@ package org.gradle.testkit.runner;
 /**
  * Thrown when the plugin under test metadata cannot be read.
  *
- * @since 2.13
  * @see GradleRunner#withPluginClasspath()
+ * @since 2.13
  */
 public class InvalidPluginMetadataException extends IllegalStateException {
 

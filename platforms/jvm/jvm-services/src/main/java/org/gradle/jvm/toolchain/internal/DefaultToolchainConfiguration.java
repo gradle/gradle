@@ -27,14 +27,13 @@ import java.util.Collections;
 import java.util.Map;
 
 public class DefaultToolchainConfiguration implements ToolchainConfiguration {
+    private final SystemProperties systemProperties;
+    private final Map<String, String> environment;
     private Collection<String> javaInstallationsFromEnvironment;
     private Collection<String> installationsFromPaths;
     private boolean autoDetectEnabled;
     private boolean downloadEnabled;
     private File intellijInstallationDirectory;
-
-    private final SystemProperties systemProperties;
-    private final Map<String, String> environment;
 
     @Inject
     public DefaultToolchainConfiguration() {

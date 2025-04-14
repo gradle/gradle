@@ -156,7 +156,8 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
-    @Category(Flaky.class) // https://github.com/gradle/gradle-private/issues/4442
+    @Category(Flaky.class)
+    // https://github.com/gradle/gradle-private/issues/4442
     void "can recursively build dependent and dependee projects"() {
         createDirs("a", "b", "c")
         testFile("settings.gradle") << "include 'a', 'b', 'c'"
@@ -231,7 +232,8 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
-    @Category(Flaky.class) // https://github.com/gradle/gradle-private/issues/4442
+    @Category(Flaky.class)
+    // https://github.com/gradle/gradle-private/issues/4442
     void "project dependency does not drag in source jar from target project"() {
         createDirs("a", "b")
         testFile("settings.gradle") << "include 'a', 'b'"

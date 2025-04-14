@@ -118,8 +118,6 @@ import static org.junit.Assert.assertNull;
  * are correctly in place.
  */
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
-    private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
-
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
 
     static {
@@ -128,6 +126,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         GLOBAL_SERVICES.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
     }
+
+    private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -488,10 +488,9 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private static class InProcessExecutionResult implements DelegatingExecutionResult {
         protected static final Spec<String> NOT_BUILD_SRC_TASK = t -> !t.startsWith(":buildSrc:");
-
-        private final ExecutionResult delegate;
         protected final List<String> executedTasks;
         protected final Set<String> skippedTasks;
+        private final ExecutionResult delegate;
 
 
         public InProcessExecutionResult(ExecutionResult delegate, List<String> executedTasks, Set<String> skippedTasks) {

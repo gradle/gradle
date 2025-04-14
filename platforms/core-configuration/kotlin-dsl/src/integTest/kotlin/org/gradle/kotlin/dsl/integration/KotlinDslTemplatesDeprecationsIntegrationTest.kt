@@ -25,7 +25,8 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
     @Test
     @Suppress("DEPRECATION")
     fun `InitScriptApi deprecation`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             import org.gradle.api.internal.file.FileOperations
             import org.gradle.api.internal.ProcessOperations
             import org.gradle.kotlin.dsl.support.serviceOf
@@ -36,7 +37,8 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
             }
 
             DeprecationTrigger(gradle)
-        """)
+        """
+        )
         executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.InitScriptApi type has been deprecated. This is scheduled to be removed in Gradle 9.0.")
         build("help")
     }
@@ -45,7 +47,8 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
     @Test
     @Suppress("DEPRECATION")
     fun `SettingsScriptApi deprecation`() {
-        withSettings("""
+        withSettings(
+            """
             import org.gradle.api.internal.file.FileOperations
             import org.gradle.api.internal.ProcessOperations
             import org.gradle.kotlin.dsl.support.serviceOf
@@ -56,7 +59,8 @@ class KotlinDslTemplatesDeprecationsIntegrationTest : AbstractKotlinIntegrationT
             }
 
             DeprecationTrigger(settings)
-        """)
+        """
+        )
         executer.expectDeprecationWarning("The org.gradle.kotlin.dsl.SettingsScriptApi type has been deprecated. This is scheduled to be removed in Gradle 9.0.")
         build("help")
     }

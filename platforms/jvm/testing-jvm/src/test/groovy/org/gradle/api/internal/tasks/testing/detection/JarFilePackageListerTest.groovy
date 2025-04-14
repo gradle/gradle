@@ -24,6 +24,7 @@ import spock.lang.Specification
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+
 @Issue("https://github.com/gradle/gradle/issues/18486")
 class JarFilePackageListerTest extends Specification {
     @Rule

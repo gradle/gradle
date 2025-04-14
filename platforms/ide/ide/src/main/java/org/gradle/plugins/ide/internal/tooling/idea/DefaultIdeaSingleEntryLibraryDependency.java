@@ -53,12 +53,17 @@ public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependen
         return javadoc;
     }
 
+    public DefaultIdeaSingleEntryLibraryDependency setJavadoc(File javadoc) {
+        this.javadoc = javadoc;
+        return this;
+    }
+
     public GradleModuleVersion getGradleModuleVersion() {
         return moduleVersion;
     }
 
-    public DefaultIdeaSingleEntryLibraryDependency setJavadoc(File javadoc) {
-        this.javadoc = javadoc;
+    public DefaultIdeaSingleEntryLibraryDependency setGradleModuleVersion(GradleModuleVersion moduleVersion) {
+        this.moduleVersion = moduleVersion;
         return this;
     }
 
@@ -80,20 +85,15 @@ public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependen
         return this;
     }
 
-    public DefaultIdeaSingleEntryLibraryDependency setGradleModuleVersion(GradleModuleVersion moduleVersion) {
-        this.moduleVersion = moduleVersion;
-        return this;
-    }
-
     @Override
     public String toString() {
         return "IdeaLibraryDependency{"
-                + "file=" + file
-                + ", source=" + source
-                + ", javadoc=" + javadoc
-                + ", exported=" + exported
-                + ", scope='" + scope + '\''
-                + ", id='" + moduleVersion + '\''
-                + '}';
+            + "file=" + file
+            + ", source=" + source
+            + ", javadoc=" + javadoc
+            + ", exported=" + exported
+            + ", scope='" + scope + '\''
+            + ", id='" + moduleVersion + '\''
+            + '}';
     }
 }

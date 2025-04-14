@@ -46,6 +46,11 @@ public class SnapshotTaskInputsResultFilePropertyVisitState extends BaseFileProp
         .build();
     private final SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor;
 
+    private SnapshotTaskInputsResultFilePropertyVisitState(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor, Map<String, InputFilePropertySpec> propertySpecsByName) {
+        super(propertySpecsByName);
+        this.visitor = visitor;
+    }
+
     public static void visitInputFileProperties(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor, Set<InputFilePropertySpec> inputFilePropertySpecs) {
         ImmutableMap<String, InputFilePropertySpec> propertySpecsByName = Maps.uniqueIndex(inputFilePropertySpecs, PropertySpec::getPropertyName);
         SnapshotTaskInputsResultFilePropertyVisitState state = new SnapshotTaskInputsResultFilePropertyVisitState(visitor, propertySpecsByName);
@@ -60,11 +65,6 @@ public class SnapshotTaskInputsResultFilePropertyVisitState extends BaseFileProp
             fingerprint.getSnapshot().accept(state);
             visitor.postProperty();
         }
-    }
-
-    private SnapshotTaskInputsResultFilePropertyVisitState(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor visitor, Map<String, InputFilePropertySpec> propertySpecsByName) {
-        super(propertySpecsByName);
-        this.visitor = visitor;
     }
 
     @Override

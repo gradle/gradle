@@ -3,29 +3,41 @@
         <title>Properties</title>
         <table>
             <thead>
-                <tr><td>Name</td>
+                <tr>
+                    <td>Name</td>
                     <td>Default value</td>
                 </tr>
             </thead>
             <tr>
                 <td>applicationName</td>
-                <td><literal>project.name</literal></td>
+                <td>
+                    <literal>project.name</literal>
+                </td>
             </tr>
             <tr>
                 <td>mainClassName</td>
-                <td><literal>null</literal></td>
+                <td>
+                    <literal>null</literal>
+                </td>
             </tr>
             <tr>
                 <td>applicationDefaultJvmArgs</td>
-                <td><literal>[]</literal></td>
+                <td>
+                    <literal>[]</literal>
+                </td>
             </tr>
             <tr>
                 <td>applicationDistribution</td>
-                <td>A copy spec that includes all of the contents of <literal>src/dist</literal>, copies the start scripts into <literal>bin</literal>, and copies the built jar and all dependencies into <literal>lib</literal></td>
+                <td>A copy spec that includes all of the contents of <literal>src/dist</literal>, copies the start scripts into <literal>bin</literal>, and copies the built jar and all dependencies
+                    into
+                    <literal>lib</literal>
+                </td>
             </tr>
             <tr>
                 <td>executableDir</td>
-                <td><literal>"bin"</literal></td>
+                <td>
+                    <literal>"bin"</literal>
+                </td>
             </tr>
         </table>
     </section>
@@ -33,7 +45,9 @@
         <title>Methods</title>
         <table>
             <thead>
-                <tr><td>Name</td></tr>
+                <tr>
+                    <td>Name</td>
+                </tr>
             </thead>
         </table>
     </section>

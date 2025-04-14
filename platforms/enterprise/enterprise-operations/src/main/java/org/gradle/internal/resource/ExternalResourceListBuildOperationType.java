@@ -27,6 +27,9 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class ExternalResourceListBuildOperationType implements BuildOperationType<ExternalResourceListBuildOperationType.Details, ExternalResourceListBuildOperationType.Result> {
 
+    private ExternalResourceListBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -37,13 +40,9 @@ public final class ExternalResourceListBuildOperationType implements BuildOperat
 
     }
 
+
     public interface Result {
 
-    }
-
-
-
-    private ExternalResourceListBuildOperationType() {
     }
 
 }

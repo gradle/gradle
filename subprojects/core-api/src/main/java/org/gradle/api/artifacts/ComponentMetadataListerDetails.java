@@ -27,16 +27,16 @@ public interface ComponentMetadataListerDetails {
     /**
      * Gives access to the module identifier for which the version lister should
      * return the list of versions.
-     * @return the module identifier for which versions are requested
      *
+     * @return the module identifier for which versions are requested
      * @since 4.9
      */
     ModuleIdentifier getModuleIdentifier();
 
     /**
      * List the versions of the requested component.
-     * @param versions the list of versions for the requested component.
      *
+     * @param versions the list of versions for the requested component.
      * @since 4.9
      */
     void listed(List<String> versions);

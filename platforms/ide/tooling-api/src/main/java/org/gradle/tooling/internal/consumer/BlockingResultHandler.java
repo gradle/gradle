@@ -26,12 +26,23 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class BlockingResultHandler<T> implements ResultHandler<T> {
+    private static final Object NULL = new Object();
     private final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(1);
     private final Class<T> resultType;
-    private static final Object NULL = new Object();
 
     public BlockingResultHandler(Class<T> resultType) {
         this.resultType = resultType;
+    }
+
+    public static Throwable attachCallerThreadStackTrace(Throwable failure) {
+        List<StackTraceElement> adjusted = new ArrayList<StackTraceElement>();
+        adjusted.addAll(Arrays.asList(failure.getStackTrace()));
+        List<StackTraceElement> currentThreadStack = Arrays.asList(Thread.currentThread().getStackTrace());
+        if (!currentThreadStack.isEmpty()) {
+            adjusted.addAll(currentThreadStack.subList(2, currentThreadStack.size()));
+        }
+        failure.setStackTrace(adjusted.toArray(new StackTraceElement[0]));
+        return failure;
     }
 
     public T getResult() {
@@ -49,17 +60,6 @@ public class BlockingResultHandler<T> implements ResultHandler<T> {
             return null;
         }
         return resultType.cast(result);
-    }
-
-    public static Throwable attachCallerThreadStackTrace(Throwable failure) {
-        List<StackTraceElement> adjusted = new ArrayList<StackTraceElement>();
-        adjusted.addAll(Arrays.asList(failure.getStackTrace()));
-        List<StackTraceElement> currentThreadStack = Arrays.asList(Thread.currentThread().getStackTrace());
-        if (!currentThreadStack.isEmpty()) {
-            adjusted.addAll(currentThreadStack.subList(2, currentThreadStack.size()));
-        }
-        failure.setStackTrace(adjusted.toArray(new StackTraceElement[0]));
-        return failure;
     }
 
     @Override

@@ -31,6 +31,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface VersionMappingStrategy {
     /**
      * Configures the version mapping strategy for all variants
+     *
      * @param action the configuration action
      */
     void allVariants(Action<? super VariantVersionMappingStrategy> action);
@@ -38,6 +39,7 @@ public interface VersionMappingStrategy {
     /**
      * Configures the version mapping strategy for the variant which matches the provided
      * attribute value.
+     *
      * @param attribute the attribute to find
      * @param attributeValue the attribute value
      * @param action the configuration action
@@ -47,6 +49,7 @@ public interface VersionMappingStrategy {
     /**
      * A short hand method to configure the variants which matches the provided Usage attribute.
      * This is the recommended way to configure the mapping strategy for the general case.
+     *
      * @param usage the usage to look for
      * @param action the configuration action
      */

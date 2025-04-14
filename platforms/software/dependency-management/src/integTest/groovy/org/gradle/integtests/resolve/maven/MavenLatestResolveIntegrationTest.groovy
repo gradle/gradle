@@ -36,6 +36,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         executer.withArgument("--no-problems-report")
         run 'retrieve'
     }
+
     def "latest selector works correctly when no snapshot versions are present"() {
         given:
         mavenRepo().module('group', 'projectA', '1.0').publish()

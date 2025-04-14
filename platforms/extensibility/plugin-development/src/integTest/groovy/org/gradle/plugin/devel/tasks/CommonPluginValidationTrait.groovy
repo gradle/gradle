@@ -40,7 +40,7 @@ trait CommonPluginValidationTrait {
     }
 
     TestFile getGroovyTaskSource() {
-        buildFile  """
+        buildFile """
             apply plugin: "groovy"
         """
         source("src/main/groovy/MyTask.groovy")

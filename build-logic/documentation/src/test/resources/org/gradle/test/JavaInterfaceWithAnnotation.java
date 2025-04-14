@@ -16,11 +16,14 @@
 
 package org.gradle.test;
 
-@Deprecated @JavaAnnotation
+@Deprecated
+@JavaAnnotation
 public interface JavaInterfaceWithAnnotation {
-    @Deprecated @JavaAnnotation
+    @Deprecated
+    @JavaAnnotation
     String getAnnotatedProperty();
 
-    @Deprecated @JavaAnnotation
+    @Deprecated
+    @JavaAnnotation
     void annotatedMethod();
 }

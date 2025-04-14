@@ -21,5 +21,6 @@ import org.gradle.model.Managed;
 @Managed
 public interface ManagedWithNestedReferenceOfInvalidManagedType {
     ManagedWithReferenceOfInvalidManagedType getManagedWithNestedInvalidManagedType();
+
     void setManagedWithNestedInvalidManagedType(ManagedWithReferenceOfInvalidManagedType managedWithNestedManagedType);
 }

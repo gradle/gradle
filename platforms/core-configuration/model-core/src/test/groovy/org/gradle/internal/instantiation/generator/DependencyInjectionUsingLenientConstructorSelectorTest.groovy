@@ -202,9 +202,11 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         HasSeveralParameters(String a, int b, String x, boolean d) {
             this("String a, int b, String x, boolean d")
         }
+
         HasSeveralParameters(String a, int b, int c, boolean d) {
             this("String a, int b, int c, boolean d")
         }
+
         HasSeveralParameters(String a, int b, boolean d) {
             this("String a, int b, boolean d")
         }
@@ -217,9 +219,11 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
             assert usedConstructor == expectedConstructor
         }
     }
+
     static class HasConstructors {
         HasConstructors(String param1, Number param2) {
         }
+
         HasConstructors(String param1, boolean param2) {
         }
     }

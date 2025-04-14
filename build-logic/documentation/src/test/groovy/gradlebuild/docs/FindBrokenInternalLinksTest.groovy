@@ -35,10 +35,10 @@ class FindBrokenInternalLinksTest extends Specification {
         new File(docsRoot, 'javadoc').mkdirs()
         sampleDoc = new File(docsRoot, "sample.adoc")
 
-        new File(projectDir,"build/working/samples/docs").mkdirs()
+        new File(projectDir, "build/working/samples/docs").mkdirs()
         sampleSampleDoc = new File(projectDir, "build/working/samples/docs/sample_sample.adoc")
 
-        new File(projectDir,"build/working/release-notes").mkdirs()
+        new File(projectDir, "build/working/release-notes").mkdirs()
         releaseNotes = new File(projectDir, "build/working/release-notes/raw.html")
 
         linkErrors = new File(projectDir, "build/reports/dead-internal-links.txt")

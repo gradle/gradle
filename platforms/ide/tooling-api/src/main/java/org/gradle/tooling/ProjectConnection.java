@@ -141,8 +141,8 @@ public interface ProjectConnection extends Closeable {
      * @param buildAction The action to run.
      * @param <T> The result type.
      * @return The builder.
-     * @since 1.8
      * @see #action() if you want to hook into different points of the build lifecycle.
+     * @since 1.8
      */
     <T> BuildActionExecuter<T> action(BuildAction<T> buildAction);
 
@@ -193,6 +193,7 @@ public interface ProjectConnection extends Closeable {
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
+     *
      * @since 1.0-milestone-3
      */
     @Override

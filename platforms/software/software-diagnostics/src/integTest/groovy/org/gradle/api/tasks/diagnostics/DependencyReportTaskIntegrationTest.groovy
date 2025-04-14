@@ -746,7 +746,7 @@ compileClasspath - Compile classpath for source set 'main'.
     }
 
     def "reports external dependency replaced with project dependency"() {
-        mavenRepo.module("org.utils", "api",  '1.3').publish()
+        mavenRepo.module("org.utils", "api", '1.3').publish()
 
         createDirs("client", "api2", "impl")
         file("settings.gradle") << "include 'client', 'api2', 'impl'"

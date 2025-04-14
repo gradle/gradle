@@ -22,18 +22,18 @@ import spock.lang.Specification
 
 
 class DefaultSourceIncludesTest extends Specification {
-    List<Include> includes = [ '"quoted1"', "<system1>", '"quoted2"', "macro1", "<system2>", "macro2" ].collect { TestIncludeParser.parse(it, false) }
+    List<Include> includes = ['"quoted1"', "<system1>", '"quoted2"', "macro1", "<system2>", "macro2"].collect { TestIncludeParser.parse(it, false) }
     DefaultIncludeDirectives sourceIncludes = DefaultIncludeDirectives.of(ImmutableList.copyOf(includes), ImmutableList.of(), ImmutableList.of())
 
-    def "can filter includes" () {
+    def "can filter includes"() {
         expect:
-        sourceIncludes.quotedIncludes.collect { it.value } == [ "quoted1", "quoted2" ]
-        sourceIncludes.systemIncludes.collect { it.value } == [ "system1", "system2" ]
-        sourceIncludes.macroIncludes.collect { it.value } == [ "macro1", "macro2" ]
+        sourceIncludes.quotedIncludes.collect { it.value } == ["quoted1", "quoted2"]
+        sourceIncludes.systemIncludes.collect { it.value } == ["system1", "system2"]
+        sourceIncludes.macroIncludes.collect { it.value } == ["macro1", "macro2"]
     }
 
-    def "order of includes is preserved" () {
+    def "order of includes is preserved"() {
         expect:
-        sourceIncludes.all.collect { it.value } == ["quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
+        sourceIncludes.all.collect { it.value } == ["quoted1", "system1", "quoted2", "macro1", "system2", "macro2"]
     }
 }

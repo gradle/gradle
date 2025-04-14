@@ -79,6 +79,6 @@ class MavenJavaPlatformModule extends DelegatingMavenModule<MavenFileModule> imp
     }
 
     private static String[] mavenizeDependencies(String[] input) {
-        return input.collect {it.replace("latest.integration", "LATEST").replace("latest.release", "RELEASE")}
+        return input.collect { it.replace("latest.integration", "LATEST").replace("latest.release", "RELEASE") }
     }
 }

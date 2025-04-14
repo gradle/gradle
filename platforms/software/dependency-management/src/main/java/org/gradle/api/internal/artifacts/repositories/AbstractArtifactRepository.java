@@ -53,18 +53,24 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, MetadataSupplierAware {
+    private final ObjectFactory objectFactory;
+    private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
     private String name;
     private boolean isPartOfContainer;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierRuleClass;
     private Class<? extends ComponentMetadataVersionLister> componentMetadataListerRuleClass;
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
-    private final ObjectFactory objectFactory;
-    private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
         this.objectFactory = objectFactory;
         this.repositoryContentDescriptor = createRepositoryDescriptor(versionParser);
+    }
+
+    private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
+        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {
+            throw UncheckedException.throwAsUncheckedException(throwable);
+        });
     }
 
     @Override
@@ -191,12 +197,5 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
     protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
-    }
-
-
-    private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
-        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {
-            throw UncheckedException.throwAsUncheckedException(throwable);
-        });
     }
 }

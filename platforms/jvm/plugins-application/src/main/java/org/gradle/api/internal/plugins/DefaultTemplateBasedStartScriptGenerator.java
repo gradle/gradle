@@ -49,6 +49,19 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
         this.template = template;
     }
 
+    protected static TextResource utf8ClassPathResource(final Class<?> clazz, final String filename) {
+        return new CharSourceBackedTextResource("Classpath resource '" + filename + "'", new CharSource() {
+            @Override
+            public Reader openStream() throws IOException {
+                InputStream stream = clazz.getResourceAsStream(filename);
+                if (stream == null) {
+                    throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
+                }
+                return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+            }
+        });
+    }
+
     @Override
     public void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {
@@ -61,13 +74,13 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
     }
 
     @Override
-    public void setTemplate(TextResource template) {
-        this.template = template;
+    public TextResource getTemplate() {
+        return template;
     }
 
     @Override
-    public TextResource getTemplate() {
-        return template;
+    public void setTemplate(TextResource template) {
+        this.template = template;
     }
 
     private String generateStartScriptContentFromTemplate(final Map<String, String> binding) {
@@ -79,19 +92,6 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    protected static TextResource utf8ClassPathResource(final Class<?> clazz, final String filename) {
-        return new CharSourceBackedTextResource("Classpath resource '" + filename + "'", new CharSource() {
-            @Override
-            public Reader openStream() throws IOException {
-                InputStream stream = clazz.getResourceAsStream(filename);
-                if (stream == null) {
-                    throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
-                }
-                return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
-            }
-        });
     }
 
 }

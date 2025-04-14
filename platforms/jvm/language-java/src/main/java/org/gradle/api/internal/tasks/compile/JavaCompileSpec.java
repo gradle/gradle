@@ -42,11 +42,9 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     void setAnnotationProcessorPath(List<File> path);
 
-    void setEffectiveAnnotationProcessors(Set<AnnotationProcessorDeclaration> annotationProcessors);
-
     Set<AnnotationProcessorDeclaration> getEffectiveAnnotationProcessors();
 
-    void setClassesToProcess(Set<String> classes);
+    void setEffectiveAnnotationProcessors(Set<AnnotationProcessorDeclaration> annotationProcessors);
 
     /**
      * Classes to process are already compiled classes that are passed to Java compiler.
@@ -54,7 +52,7 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
      */
     Set<String> getClassesToProcess();
 
-    void setClassesToCompile(Set<String> classes);
+    void setClassesToProcess(Set<String> classes);
 
     /**
      * Classes to compile are all classes that we know from Java sources that will be compiled.
@@ -62,6 +60,8 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
      * We only need them in {@link CompilationClassBackupService} so we know what files don't need a backup.
      */
     Set<String> getClassesToCompile();
+
+    void setClassesToCompile(Set<String> classes);
 
     List<File> getModulePath();
 

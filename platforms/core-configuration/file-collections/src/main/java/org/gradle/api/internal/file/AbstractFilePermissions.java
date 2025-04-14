@@ -20,14 +20,6 @@ import org.gradle.api.file.FilePermissions;
 
 public abstract class AbstractFilePermissions implements FilePermissions {
 
-    @Override
-    public int toUnixNumeric() {
-        AbstractUserClassFilePermissions user = (AbstractUserClassFilePermissions) getUser();
-        AbstractUserClassFilePermissions group = (AbstractUserClassFilePermissions) getGroup();
-        AbstractUserClassFilePermissions other = (AbstractUserClassFilePermissions) getOther();
-        return 64 * user.toUnixNumeric() + 8 * group.toUnixNumeric() + other.toUnixNumeric();
-    }
-
     @SuppressWarnings("OctalInteger")
     protected static int getUserPartOf(int unixNumeric) {
         return (unixNumeric & 0_700) >> 6;
@@ -53,6 +45,14 @@ public abstract class AbstractFilePermissions implements FilePermissions {
 
     protected static String getOtherPartOf(String unixSymbolic) {
         return unixSymbolic.substring(6, 9);
+    }
+
+    @Override
+    public int toUnixNumeric() {
+        AbstractUserClassFilePermissions user = (AbstractUserClassFilePermissions) getUser();
+        AbstractUserClassFilePermissions group = (AbstractUserClassFilePermissions) getGroup();
+        AbstractUserClassFilePermissions other = (AbstractUserClassFilePermissions) getOther();
+        return 64 * user.toUnixNumeric() + 8 * group.toUnixNumeric() + other.toUnixNumeric();
     }
 
 }

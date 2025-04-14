@@ -222,13 +222,15 @@ fun BufferedWriter.appendSourceCodeForVersionCatalogAccessors(
     fun appendCatalogExtension(extSpec: ExtensionSpec, receiverInternalType: KClass<*>, internalMethodName: String) {
         write("\n\n")
         appendReproducibleNewLine(
-            format("""
+            format(
+                """
                 /**
                  * The `${extSpec.name}` version catalog.
                  */
                 val ${extSpec.receiverType.sourceName}.`${extSpec.name}`: ${extSpec.returnType.sourceName}
                     get() = (this as ${receiverInternalType.simpleName}).$internalMethodName("${extSpec.name}") as ${extSpec.returnType.sourceName}
-            """)
+            """
+            )
         )
     }
 

@@ -38,31 +38,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFactory {
 
-    private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer {
-        @Override
-        public List<StackTraceElement> transform(StackTraceElement[] original) {
-            return ImmutableList.copyOf(original);
-        }
-
-    }
-
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
-
     private static final Supplier<Throwable> EXCEPTION_FACTORY = new Supplier<Throwable>() {
         @Override
         public Throwable get() {
             return new Exception();
         }
     };
-
     private static final int MAX_STACKTRACE_COUNT = 50;
     private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
-
     private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
     private final UserCodeApplicationContext userCodeContext;
     private final int maxStackTraces;
-
     @Inject
     public DefaultProblemDiagnosticsFactory(
         FailureFactory failureFactory,
@@ -71,10 +59,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         BuildModelParameters buildModelParameters
     ) {
         this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters));
-    }
-
-    private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
-        return buildModelParameters.isIsolatedProjects() ? ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT : MAX_STACKTRACE_COUNT;
     }
 
     @VisibleForTesting
@@ -88,6 +72,10 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         this.locationAnalyzer = locationAnalyzer;
         this.userCodeContext = userCodeContext;
         this.maxStackTraces = maxStackTraces;
+    }
+
+    private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
+        return buildModelParameters.isIsolatedProjects() ? ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT : MAX_STACKTRACE_COUNT;
     }
 
     @Override
@@ -127,46 +115,12 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         return new DefaultProblemDiagnostics(stackTracingFailure, keepException ? throwable : null, stackTrace, location, source);
     }
 
-    @NullMarked
-    private class DefaultProblemStream implements ProblemStream {
-        private final AtomicInteger remainingStackTraces = new AtomicInteger();
-
-        public DefaultProblemStream() {
-            remainingStackTraces.set(maxStackTraces);
-        }
-
+    private static class CopyStackTraceTransFormer implements ProblemStream.StackTraceTransformer {
         @Override
-        public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
-            if (exception == null) {
-                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
-            } else {
-                return locationFromStackTrace(exception, true, true, NO_OP);
-            }
+        public List<StackTraceElement> transform(StackTraceElement[] original) {
+            return ImmutableList.copyOf(original);
         }
 
-        @Override
-        public ProblemDiagnostics forCurrentCaller() {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
-        }
-
-        @Override
-        public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
-            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true, NO_OP);
-        }
-
-        @Override
-        public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, transformer);
-        }
-
-        @Nullable
-        private Throwable getImplicitThrowable(Supplier<? extends Throwable> factory) {
-            if (remainingStackTraces.getAndDecrement() > 0) {
-                return factory.get();
-            } else {
-                return null;
-            }
-        }
     }
 
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
@@ -217,6 +171,48 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         @Override
         public UserCodeSource getSource() {
             return source;
+        }
+    }
+
+    @NullMarked
+    private class DefaultProblemStream implements ProblemStream {
+        private final AtomicInteger remainingStackTraces = new AtomicInteger();
+
+        public DefaultProblemStream() {
+            remainingStackTraces.set(maxStackTraces);
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
+            if (exception == null) {
+                return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+            } else {
+                return locationFromStackTrace(exception, true, true, NO_OP);
+            }
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCaller() {
+            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, NO_OP);
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
+            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true, NO_OP);
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
+            return locationFromStackTrace(getImplicitThrowable(EXCEPTION_FACTORY), false, false, transformer);
+        }
+
+        @Nullable
+        private Throwable getImplicitThrowable(Supplier<? extends Throwable> factory) {
+            if (remainingStackTraces.getAndDecrement() > 0) {
+                return factory.get();
+            } else {
+                return null;
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor(@Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects =  ["largeJavaMultiProject", "largeMonolithicJavaProject"]))
+@RunFor(@Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"]))
 class TaskAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "help with lazy and eager tasks"() {

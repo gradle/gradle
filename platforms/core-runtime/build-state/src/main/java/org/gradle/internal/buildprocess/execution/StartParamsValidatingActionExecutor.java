@@ -36,6 +36,15 @@ public class StartParamsValidatingActionExecutor implements BuildActionExecutor<
         this.delegate = delegate;
     }
 
+    private static void validateIsFileAndExists(File file, String fileType) {
+        if (!file.isFile()) {
+            if (!file.exists()) {
+                throw new IllegalArgumentException(String.format("The specified %s '%s' does not exist.", fileType, file));
+            }
+            throw new IllegalArgumentException(String.format("The specified %s '%s' is not a file.", fileType, file));
+        }
+    }
+
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameter startParameter = action.getStartParameter();
@@ -62,14 +71,5 @@ public class StartParamsValidatingActionExecutor implements BuildActionExecutor<
         }
 
         return delegate.execute(action, actionParameters, requestContext);
-    }
-
-    private static void validateIsFileAndExists(File file, String fileType) {
-        if (!file.isFile()) {
-            if (!file.exists()) {
-                throw new IllegalArgumentException(String.format("The specified %s '%s' does not exist.", fileType, file));
-            }
-            throw new IllegalArgumentException(String.format("The specified %s '%s' is not a file.", fileType, file));
-        }
     }
 }

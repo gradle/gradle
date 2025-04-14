@@ -59,6 +59,32 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         this.objectFactory = objectFactory;
     }
 
+    @VisibleForTesting
+    static HttpBuildCacheCredentials extractCredentialsFromUserInfo(ObjectFactory objectFactory, URI url) {
+        HttpBuildCacheCredentials credentials = objectFactory.newInstance(HttpBuildCacheCredentials.class);
+        String userInfo = url.getUserInfo();
+        int indexOfSeparator = userInfo.indexOf(':');
+        if (indexOfSeparator > -1) {
+            String username = userInfo.substring(0, indexOfSeparator);
+            String password = userInfo.substring(indexOfSeparator + 1);
+            credentials.setUsername(username);
+            credentials.setPassword(password);
+        }
+        return credentials;
+    }
+
+    private static URI stripUserInfo(URI uri) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new GradleException("Error constructing URL for http build cache", e);
+        }
+    }
+
+    private static boolean credentialsPresent(HttpBuildCacheCredentials credentials) {
+        return credentials.getUsername() != null && credentials.getPassword() != null;
+    }
+
     @Override
     public BuildCacheService createBuildCacheService(HttpBuildCache configuration, Describer describer) {
         URI url = configuration.getUrl();
@@ -126,32 +152,6 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                 redirect -> {
                     throw new IllegalStateException("Redirects are unsupported by the build cache.");
                 });
-    }
-
-    @VisibleForTesting
-    static HttpBuildCacheCredentials extractCredentialsFromUserInfo(ObjectFactory objectFactory, URI url) {
-        HttpBuildCacheCredentials credentials = objectFactory.newInstance(HttpBuildCacheCredentials.class);
-        String userInfo = url.getUserInfo();
-        int indexOfSeparator = userInfo.indexOf(':');
-        if (indexOfSeparator > -1) {
-            String username = userInfo.substring(0, indexOfSeparator);
-            String password = userInfo.substring(indexOfSeparator + 1);
-            credentials.setUsername(username);
-            credentials.setPassword(password);
-        }
-        return credentials;
-    }
-
-    private static URI stripUserInfo(URI uri) {
-        try {
-            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
-        } catch (URISyntaxException e) {
-            throw new GradleException("Error constructing URL for http build cache", e);
-        }
-    }
-
-    private static boolean credentialsPresent(HttpBuildCacheCredentials credentials) {
-        return credentials.getUsername() != null && credentials.getPassword() != null;
     }
 
 }

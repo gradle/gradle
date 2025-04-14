@@ -147,7 +147,7 @@ class TypeSafeProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAcc
         outputDoesNotContain('it was probably created by a plugin using internal APIs')
 
         where:
-        notation << [ 'platform', 'testFixtures']
+        notation << ['platform', 'testFixtures']
     }
 
     def "buildSrc project accessors are independent from the main build accessors"() {

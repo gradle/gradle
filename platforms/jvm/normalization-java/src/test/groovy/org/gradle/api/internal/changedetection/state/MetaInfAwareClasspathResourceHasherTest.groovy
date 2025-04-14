@@ -37,7 +37,8 @@ import java.util.jar.Manifest
 class MetaInfAwareClasspathResourceHasherTest extends Specification {
     public static final String MANIFEST_PATH = 'META-INF/MANIFEST.MF'
 
-    @TempDir File tmpDir
+    @TempDir
+    File tmpDir
 
     ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
 

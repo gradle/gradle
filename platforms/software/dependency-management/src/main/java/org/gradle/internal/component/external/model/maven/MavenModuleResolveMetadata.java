@@ -31,10 +31,15 @@ public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetada
     @Override
     MutableMavenModuleResolveMetadata asMutable();
 
-    @NonNull String getPackaging();
+    @NonNull
+    String getPackaging();
+
     boolean isRelocated();
+
     boolean isPomPackaging();
+
     boolean isKnownJarPackaging();
+
     @Nullable
     String getSnapshotTimestamp();
 

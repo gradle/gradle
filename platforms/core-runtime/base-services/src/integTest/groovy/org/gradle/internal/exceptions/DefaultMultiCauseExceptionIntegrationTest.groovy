@@ -18,7 +18,7 @@ package org.gradle.internal.exceptions
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec {
+class DefaultMultiCauseExceptionIntegrationTest extends AbstractIntegrationSpec {
     def 'when tasks throw exceptions that offer resolutions, those resolutions are included'() {
         given:
         buildFile << """

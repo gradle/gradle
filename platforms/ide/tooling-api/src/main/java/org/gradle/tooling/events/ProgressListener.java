@@ -29,7 +29,7 @@ public interface ProgressListener {
      * Called when the execution of an operation progresses.
      * <p>
      * The possible progress event types are listed in {@link OperationType}'s documentation.
-     *</p>
+     * </p>
      * <p>
      * You can find out more about the operation for which progress is reported
      * by querying the descriptor using {@link org.gradle.tooling.events.ProgressEvent#getDescriptor()}.

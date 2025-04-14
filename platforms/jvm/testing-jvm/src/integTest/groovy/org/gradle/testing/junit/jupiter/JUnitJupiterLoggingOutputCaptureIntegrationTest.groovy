@@ -84,24 +84,24 @@ class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggi
 
         outputContains(
             "Test class OkTest -> class loaded\n" +
-            "Test class OkTest -> before class out\n" +
-            "Test class OkTest -> before class err\n" +
-            "Test class OkTest -> test constructed\n" +
-            "Test anotherOk(OkTest) -> before out\n" +
-            "Test anotherOk(OkTest) -> before err\n" +
-            "Test anotherOk(OkTest) -> ok out\n" +
-            "Test anotherOk(OkTest) -> ok err\n" +
-            "Test anotherOk(OkTest) -> after out\n" +
-            "Test anotherOk(OkTest) -> after err\n" +
-            "Test class OkTest -> test constructed\n" +
-            "Test ok(OkTest) -> before out\n" +
-            "Test ok(OkTest) -> before err\n" +
-            "Test ok(OkTest) -> test out: \u03b1</html>\n" +
-            "Test ok(OkTest) -> test err\n" +
-            "Test ok(OkTest) -> after out\n" +
-            "Test ok(OkTest) -> after err\n" +
-            "Test class OkTest -> after class out\n" +
-            "Test class OkTest -> after class err\n"
+                "Test class OkTest -> before class out\n" +
+                "Test class OkTest -> before class err\n" +
+                "Test class OkTest -> test constructed\n" +
+                "Test anotherOk(OkTest) -> before out\n" +
+                "Test anotherOk(OkTest) -> before err\n" +
+                "Test anotherOk(OkTest) -> ok out\n" +
+                "Test anotherOk(OkTest) -> ok err\n" +
+                "Test anotherOk(OkTest) -> after out\n" +
+                "Test anotherOk(OkTest) -> after err\n" +
+                "Test class OkTest -> test constructed\n" +
+                "Test ok(OkTest) -> before out\n" +
+                "Test ok(OkTest) -> before err\n" +
+                "Test ok(OkTest) -> test out: \u03b1</html>\n" +
+                "Test ok(OkTest) -> test err\n" +
+                "Test ok(OkTest) -> after out\n" +
+                "Test ok(OkTest) -> after err\n" +
+                "Test class OkTest -> after class out\n" +
+                "Test class OkTest -> after class err\n"
         )
 
         // This test covers current behaviour, not necessarily desired behaviour
@@ -110,24 +110,24 @@ class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggi
         def classResult = xmlReport.testClass("OkTest")
         classResult.assertTestCaseStdout("ok", containsString(
             "before out\n" +
-            "test out: \u03b1</html>\n" +
-            "after out\n"
+                "test out: \u03b1</html>\n" +
+                "after out\n"
         ))
         classResult.assertTestCaseStderr("ok", containsString(
             "before err\n" +
-            "test err\n" +
-            "after err\n"
+                "test err\n" +
+                "after err\n"
         ))
         classResult.assertStdout(containsString(
             "class loaded\n" +
-            "before class out\n" +
-            "test constructed\n" +
-            "test constructed\n" +
-            "after class out\n"
+                "before class out\n" +
+                "test constructed\n" +
+                "test constructed\n" +
+                "after class out\n"
         ))
         classResult.assertStderr(containsString(
             "before class err\n" +
-            "after class err\n"
+                "after class err\n"
         ))
 
 
@@ -135,26 +135,26 @@ class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggi
         def classReport = htmlReport.testClass("OkTest")
         classReport.assertStdout(containsString(
             "class loaded\n" +
-            "before class out\n" +
-            "test constructed\n" +
-            "before out\n" +
-            "ok out\n" +
-            "after out\n" +
-            "test constructed\n" +
-            "before out\n" +
-            "test out: \u03b1</html>\n" +
-            "after out\n" +
-            "after class out\n"
+                "before class out\n" +
+                "test constructed\n" +
+                "before out\n" +
+                "ok out\n" +
+                "after out\n" +
+                "test constructed\n" +
+                "before out\n" +
+                "test out: \u03b1</html>\n" +
+                "after out\n" +
+                "after class out\n"
         ))
         classReport.assertStderr(containsString(
             "before class err\n" +
-            "before err\n" +
-            "ok err\n" +
-            "after err\n" +
-            "before err\n" +
-            "test err\n" +
-            "after err\n" +
-            "after class err\n"
+                "before err\n" +
+                "ok err\n" +
+                "after err\n" +
+                "before err\n" +
+                "test err\n" +
+                "after err\n" +
+                "after class err\n"
         ))
     }
 
@@ -212,11 +212,11 @@ class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggi
         result.assertHasErrorOutput("test method error")
 
         where:
-        includeSystemOutConf                | includeSystemErrConf              || standardOutIncluded || standardErrIncluded
-        "// default includeSystemOutLog"    | "// default includeSystemErrLog"  || true                || true
-        "includeSystemOutLog = true"        | "includeSystemErrLog = true"      || true                || true
-        "includeSystemOutLog = false"       | "includeSystemErrLog = true"      || false               || true
-        "includeSystemOutLog = true"        | "includeSystemErrLog = false"     || true                || false
-        "includeSystemOutLog = false"       | "includeSystemErrLog = false"     || false               || false
+        includeSystemOutConf             | includeSystemErrConf             || standardOutIncluded || standardErrIncluded
+        "// default includeSystemOutLog" | "// default includeSystemErrLog" || true                || true
+        "includeSystemOutLog = true"     | "includeSystemErrLog = true"     || true                || true
+        "includeSystemOutLog = false"    | "includeSystemErrLog = true"     || false               || true
+        "includeSystemOutLog = true"     | "includeSystemErrLog = false"    || true                || false
+        "includeSystemOutLog = false"    | "includeSystemErrLog = false"    || false               || false
     }
 }

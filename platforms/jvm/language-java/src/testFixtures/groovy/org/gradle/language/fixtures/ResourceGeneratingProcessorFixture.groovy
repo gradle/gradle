@@ -48,7 +48,8 @@ class ResourceGeneratingProcessorFixture extends AnnotationProcessorFixture {
     }
 
     String getGeneratorCode() {
-        def outputs = outputLocations.collect { """
+        def outputs = outputLocations.collect {
+            """
         resourceFile = filer.createResource($it, \"\", resourceName${providesNoOriginatingElements ? '' : ', element'});
         writer = resourceFile.openWriter();
         try {
@@ -56,7 +57,8 @@ class ResourceGeneratingProcessorFixture extends AnnotationProcessorFixture {
         } finally {
             writer.close();
         }
-""" }.join("\n        ")
+"""
+        }.join("\n        ")
 
         """
 for (Element element : elements) {

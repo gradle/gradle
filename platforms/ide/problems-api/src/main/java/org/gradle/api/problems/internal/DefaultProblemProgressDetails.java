@@ -38,6 +38,32 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         this.problem = problem;
     }
 
+    @Nullable
+    private static ProblemLocation convertToLocation(final org.gradle.api.problems.ProblemLocation location) {
+        if (location instanceof org.gradle.api.problems.FileLocation) {
+            return convertToDevelocityFileLocation(location);
+        } else if (location instanceof TaskLocation) {
+            // The Develocity plugin will infer the task location from the build operation hierarchy - no need to send this contextual information
+            return null;
+        } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
+            return new DevelocityPluginIdLocation((PluginIdLocation) location);
+        } else if (location instanceof org.gradle.api.problems.internal.StackTraceLocation) {
+            return new DevelocityStackTraceLocation((StackTraceLocation) location);
+        }
+        throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
+    }
+
+    @NonNull
+    private static FileLocation convertToDevelocityFileLocation(org.gradle.api.problems.ProblemLocation location) {
+        if (location instanceof org.gradle.api.problems.LineInFileLocation) {
+            return new DevelocityLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);
+        } else if (location instanceof org.gradle.api.problems.OffsetInFileLocation) {
+            return new DevelocityOffsetInFileLocation((org.gradle.api.problems.OffsetInFileLocation) location);
+        } else {
+            return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
+        }
+    }
+
     public InternalProblem getProblem() {
         return problem;
     }
@@ -98,32 +124,6 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
             }
         }
         return builder.build();
-    }
-
-    @Nullable
-    private static ProblemLocation convertToLocation(final org.gradle.api.problems.ProblemLocation location) {
-        if (location instanceof org.gradle.api.problems.FileLocation) {
-            return convertToDevelocityFileLocation(location);
-        } else if (location instanceof TaskLocation) {
-            // The Develocity plugin will infer the task location from the build operation hierarchy - no need to send this contextual information
-            return null;
-        } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
-            return new DevelocityPluginIdLocation((PluginIdLocation) location);
-        } else if (location instanceof org.gradle.api.problems.internal.StackTraceLocation) {
-            return new DevelocityStackTraceLocation((StackTraceLocation) location);
-        }
-        throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
-    }
-
-    @NonNull
-    private static FileLocation convertToDevelocityFileLocation(org.gradle.api.problems.ProblemLocation location) {
-        if (location instanceof org.gradle.api.problems.LineInFileLocation) {
-            return new DevelocityLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);
-        } else if (location instanceof org.gradle.api.problems.OffsetInFileLocation) {
-            return new DevelocityOffsetInFileLocation((org.gradle.api.problems.OffsetInFileLocation) location);
-        } else {
-            return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
-        }
     }
 
     @Nullable

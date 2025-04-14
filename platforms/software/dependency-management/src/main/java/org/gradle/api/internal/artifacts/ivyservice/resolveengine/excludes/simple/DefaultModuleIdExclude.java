@@ -23,13 +23,13 @@ final class DefaultModuleIdExclude implements ModuleIdExclude {
     private final ModuleIdentifier moduleId;
     private final int hashCode;
 
-    static ModuleIdExclude of(ModuleIdentifier id) {
-        return new DefaultModuleIdExclude(id);
-    }
-
     private DefaultModuleIdExclude(ModuleIdentifier moduleId) {
         this.moduleId = moduleId;
         this.hashCode = moduleId.hashCode();
+    }
+
+    static ModuleIdExclude of(ModuleIdentifier id) {
+        return new DefaultModuleIdExclude(id);
     }
 
     @Override

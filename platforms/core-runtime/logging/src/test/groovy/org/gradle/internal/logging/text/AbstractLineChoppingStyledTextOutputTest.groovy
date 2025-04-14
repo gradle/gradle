@@ -30,7 +30,8 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         ["*nix", NIX_EOL],
         ["Windows", WINDOWS_EOL]
     ]
-    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule
+    final SetSystemProperties systemProperties = new SetSystemProperties()
     final StringBuilder result = new StringBuilder()
 
     def "appends text to current line"() {

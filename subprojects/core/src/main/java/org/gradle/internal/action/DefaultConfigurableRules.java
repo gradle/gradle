@@ -24,17 +24,16 @@ import static java.util.Collections.singletonList;
 
 public class DefaultConfigurableRules<DETAILS> implements ConfigurableRules<DETAILS> {
 
-    public static <T> ConfigurableRules<T> of(ConfigurableRule<T> unique) {
-        return new DefaultConfigurableRules<T>(singletonList(unique));
-    }
-
     private final List<ConfigurableRule<DETAILS>> configurableRules;
     private final boolean cacheable;
-
     public DefaultConfigurableRules(List<ConfigurableRule<DETAILS>> rules) {
         this.configurableRules = ImmutableList.copyOf(rules);
 
         cacheable = computeCacheable();
+    }
+
+    public static <T> ConfigurableRules<T> of(ConfigurableRule<T> unique) {
+        return new DefaultConfigurableRules<T>(singletonList(unique));
     }
 
     private boolean computeCacheable() {

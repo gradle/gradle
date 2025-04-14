@@ -18,7 +18,7 @@ package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class JavaIncompatiblePluginsIntegrationTest  extends AbstractIntegrationSpec {
+class JavaIncompatiblePluginsIntegrationTest extends AbstractIntegrationSpec {
 
     def "cannot apply both the java-platform and #plugin"() {
         given:

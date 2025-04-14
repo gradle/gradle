@@ -30,20 +30,20 @@ public enum Destination implements Serializable {
 
     private final int code;
 
-     Destination(int code) {
+    Destination(int code) {
         this.code = code;
-    }
-
-    public int getCode() {
-        return code;
     }
 
     public static Destination fromCode(int code) {
         for (Destination d : Destination.values()) {
             if (d.code == code) {
-                 return d;
+                return d;
             }
         }
         throw new IllegalArgumentException("Cannot find destination with code " + code);
+    }
+
+    public int getCode() {
+        return code;
     }
 }

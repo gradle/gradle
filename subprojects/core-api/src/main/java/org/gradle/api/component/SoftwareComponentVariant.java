@@ -34,8 +34,12 @@ import java.util.Set;
  */
 public interface SoftwareComponentVariant extends HasAttributes, Named {
     Set<? extends PublishArtifact> getArtifacts();
+
     Set<? extends ModuleDependency> getDependencies();
+
     Set<? extends DependencyConstraint> getDependencyConstraints();
+
     Set<? extends Capability> getCapabilities();
+
     Set<ExcludeRule> getGlobalExcludes();
 }

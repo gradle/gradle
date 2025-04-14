@@ -81,8 +81,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static final Method EQUALS_METHOD;
     private static final Method HASHCODE_METHOD;
 
-    private final TargetTypeProvider targetTypeProvider;
-
     static {
         Method equalsMethod;
         Method hashCodeMethod;
@@ -96,49 +94,14 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         HASHCODE_METHOD = hashCodeMethod;
     }
 
+    private final TargetTypeProvider targetTypeProvider;
+
     public ProtocolToModelAdapter() {
         this(IDENTITY_TYPE_PROVIDER);
     }
 
     public ProtocolToModelAdapter(TargetTypeProvider targetTypeProvider) {
         this.targetTypeProvider = targetTypeProvider;
-    }
-
-    /**
-     * Creates an adapter for a single object graph. Each object adapted by the returned adapter is treated as part of the same object graph, for the purposes of caching etc.
-     */
-    public ObjectGraphAdapter newGraph() {
-        final ViewGraphDetails graphDetails = new ViewGraphDetails(targetTypeProvider);
-        return new ObjectGraphAdapter() {
-            @Override
-            public <T> T adapt(Class<T> targetType, Object sourceObject) {
-                return createView(targetType, sourceObject, NO_OP_MAPPER, graphDetails);
-            }
-
-            @Override
-            public <T> ViewBuilder<T> builder(Class<T> viewType) {
-                return new DefaultViewBuilder<T>(viewType, graphDetails);
-            }
-        };
-    }
-
-    /**
-     * Adapts the source object to a view object.
-     */
-    @Override
-    public <T> T adapt(Class<T> targetType, @Nullable Object sourceObject) {
-        if (sourceObject == null) {
-            return null;
-        }
-        return createView(targetType, sourceObject, NO_OP_MAPPER, new ViewGraphDetails(targetTypeProvider));
-    }
-
-    /**
-     * Creates a builder for views of the given type.
-     */
-    @Override
-    public <T> ViewBuilder<T> builder(final Class<T> viewType) {
-        return new DefaultViewBuilder<T>(viewType);
     }
 
     @Nullable
@@ -406,6 +369,43 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     /**
+     * Creates an adapter for a single object graph. Each object adapted by the returned adapter is treated as part of the same object graph, for the purposes of caching etc.
+     */
+    public ObjectGraphAdapter newGraph() {
+        final ViewGraphDetails graphDetails = new ViewGraphDetails(targetTypeProvider);
+        return new ObjectGraphAdapter() {
+            @Override
+            public <T> T adapt(Class<T> targetType, Object sourceObject) {
+                return createView(targetType, sourceObject, NO_OP_MAPPER, graphDetails);
+            }
+
+            @Override
+            public <T> ViewBuilder<T> builder(Class<T> viewType) {
+                return new DefaultViewBuilder<T>(viewType, graphDetails);
+            }
+        };
+    }
+
+    /**
+     * Adapts the source object to a view object.
+     */
+    @Override
+    public <T> T adapt(Class<T> targetType, @Nullable Object sourceObject) {
+        if (sourceObject == null) {
+            return null;
+        }
+        return createView(targetType, sourceObject, NO_OP_MAPPER, new ViewGraphDetails(targetTypeProvider));
+    }
+
+    /**
+     * Creates a builder for views of the given type.
+     */
+    @Override
+    public <T> ViewBuilder<T> builder(final Class<T> viewType) {
+        return new DefaultViewBuilder<T>(viewType);
+    }
+
+    /**
      * Unpacks the source object from a given view object.
      */
     public Object unpack(Object viewObject) {
@@ -416,10 +416,21 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return handler.sourceObject;
     }
 
+    private interface ViewDecoration {
+        void collectInvokers(Object sourceObject, Class<?> viewType, List<MethodInvoker> invokers);
+
+        boolean isNoOp();
+
+        /**
+         * Filter this decoration to apply only to the given view types. Return {@link #NO_OP_MAPPER} if this decoration does not apply to any of the types.
+         */
+        ViewDecoration restrictTo(Set<Class<?>> viewTypes);
+    }
+
     private static class ViewGraphDetails implements Serializable {
+        private final TargetTypeProvider typeProvider;
         // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
         private transient WeakIdentityHashMap<Object, Map<ViewKey, WeakReference<Object>>> views = new WeakIdentityHashMap<>();
-        private final TargetTypeProvider typeProvider;
 
         ViewGraphDetails(TargetTypeProvider typeProvider) {
             this.typeProvider = typeProvider;
@@ -599,10 +610,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class MethodInvocationCache {
+        private final static long MINIMAL_CLEANUP_INTERVAL = 30000;
         private final Map<MethodInvocationKey, Optional<Method>> store = new HashMap<MethodInvocationKey, Optional<Method>>();
         private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-        private final static long MINIMAL_CLEANUP_INTERVAL = 30000;
-
         // For stats we don't really care about thread safety
         private int cacheMiss;
         private int cacheHit;
@@ -610,75 +620,32 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         private CountdownTimer cleanupTimer = Time.startCountdownTimer(MINIMAL_CLEANUP_INTERVAL);
 
-        private static class MethodInvocationKey {
-            private final SoftReference<Class<?>> lookupClass;
-            private final String methodName;
-            private final SoftReference<Class<?>[]> parameterTypes;
-            private final int hashCode;
-
-            private MethodInvocationKey(@Nullable Class<?> lookupClass, @Nullable String methodName, Class<?>[] parameterTypes) {
-                this.lookupClass = new SoftReference<Class<?>>(lookupClass);
-                this.methodName = methodName;
-                this.parameterTypes = new SoftReference<Class<?>[]>(parameterTypes);
-                // hashcode will always be used, so we precompute it in order to make sure we
-                // won't compute it multiple times during comparisons
-                int result = lookupClass != null ? lookupClass.hashCode() : 0;
-                result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
-                result = 31 * result + Arrays.hashCode(parameterTypes);
-                this.hashCode = result;
+        private static Optional<Method> lookup(Class<?> sourceClass, String methodName, Class<?>[] parameterTypes) {
+            Method match;
+            try {
+                match = sourceClass.getMethod(methodName, parameterTypes);
+            } catch (NoSuchMethodException e) {
+                return Optional.absent();
             }
 
-            public boolean isDirty() {
-                return lookupClass.get() == null || parameterTypes.get() == null;
+            LinkedList<Class<?>> queue = new LinkedList<>();
+            queue.add(sourceClass);
+            while (!queue.isEmpty()) {
+                Class<?> c = queue.removeFirst();
+                try {
+                    match = c.getMethod(methodName, parameterTypes);
+                } catch (NoSuchMethodException e) {
+                    // ignore
+                }
+                for (Class<?> interfaceType : c.getInterfaces()) {
+                    queue.addFirst(interfaceType);
+                }
+                if (c.getSuperclass() != null) {
+                    queue.addFirst(c.getSuperclass());
+                }
             }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-
-                MethodInvocationKey that = (MethodInvocationKey) o;
-
-                if (isDirty() && that.isDirty()) {
-                    return true;
-                }
-                if (!eq(lookupClass, that.lookupClass)) {
-                    return false;
-                }
-                if (!methodName.equals(that.methodName)) {
-                    return false;
-                }
-                return eq(parameterTypes, that.parameterTypes);
-
-            }
-
-            private static boolean eq(SoftReference<?> aRef, SoftReference<?> bRef) {
-                Object a = aRef.get();
-                Object b = bRef.get();
-                return eq(a, b);
-            }
-
-            private static boolean eq(Object a, Object b) {
-                if (a == b) {
-                    return true;
-                }
-                if (a == null) {
-                    return false;
-                }
-                if (a.getClass().isArray()) {
-                    return Arrays.equals((Object[]) a, (Object[]) b);
-                }
-                return a.equals(b);
-            }
-
-            @Override
-            public int hashCode() {
-                return hashCode;
-            }
+            match.setAccessible(true);
+            return Optional.of(match);
         }
 
         @Nullable
@@ -742,37 +709,80 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
         }
 
-        private static Optional<Method> lookup(Class<?> sourceClass, String methodName, Class<?>[] parameterTypes) {
-            Method match;
-            try {
-                match = sourceClass.getMethod(methodName, parameterTypes);
-            } catch (NoSuchMethodException e) {
-                return Optional.absent();
-            }
-
-            LinkedList<Class<?>> queue = new LinkedList<>();
-            queue.add(sourceClass);
-            while (!queue.isEmpty()) {
-                Class<?> c = queue.removeFirst();
-                try {
-                    match = c.getMethod(methodName, parameterTypes);
-                } catch (NoSuchMethodException e) {
-                    // ignore
-                }
-                for (Class<?> interfaceType : c.getInterfaces()) {
-                    queue.addFirst(interfaceType);
-                }
-                if (c.getSuperclass() != null) {
-                    queue.addFirst(c.getSuperclass());
-                }
-            }
-            match.setAccessible(true);
-            return Optional.of(match);
-        }
-
         @Override
         public String toString() {
             return "Cache size: " + store.size() + " Hits: " + cacheHit + " Miss: " + cacheMiss + " Evicted: " + evict;
+        }
+
+        private static class MethodInvocationKey {
+            private final SoftReference<Class<?>> lookupClass;
+            private final String methodName;
+            private final SoftReference<Class<?>[]> parameterTypes;
+            private final int hashCode;
+
+            private MethodInvocationKey(@Nullable Class<?> lookupClass, @Nullable String methodName, Class<?>[] parameterTypes) {
+                this.lookupClass = new SoftReference<Class<?>>(lookupClass);
+                this.methodName = methodName;
+                this.parameterTypes = new SoftReference<Class<?>[]>(parameterTypes);
+                // hashcode will always be used, so we precompute it in order to make sure we
+                // won't compute it multiple times during comparisons
+                int result = lookupClass != null ? lookupClass.hashCode() : 0;
+                result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
+                result = 31 * result + Arrays.hashCode(parameterTypes);
+                this.hashCode = result;
+            }
+
+            private static boolean eq(SoftReference<?> aRef, SoftReference<?> bRef) {
+                Object a = aRef.get();
+                Object b = bRef.get();
+                return eq(a, b);
+            }
+
+            private static boolean eq(Object a, Object b) {
+                if (a == b) {
+                    return true;
+                }
+                if (a == null) {
+                    return false;
+                }
+                if (a.getClass().isArray()) {
+                    return Arrays.equals((Object[]) a, (Object[]) b);
+                }
+                return a.equals(b);
+            }
+
+            public boolean isDirty() {
+                return lookupClass.get() == null || parameterTypes.get() == null;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+
+                MethodInvocationKey that = (MethodInvocationKey) o;
+
+                if (isDirty() && that.isDirty()) {
+                    return true;
+                }
+                if (!eq(lookupClass, that.lookupClass)) {
+                    return false;
+                }
+                if (!methodName.equals(that.methodName)) {
+                    return false;
+                }
+                return eq(parameterTypes, that.parameterTypes);
+
+            }
+
+            @Override
+            public int hashCode() {
+                return hashCode;
+            }
         }
     }
 
@@ -803,9 +813,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class PropertyCachingMethodInvoker implements MethodInvoker {
+        private final MethodInvoker next;
         private Map<String, Object> properties = Collections.emptyMap();
         private Set<String> unknown = Collections.emptySet();
-        private final MethodInvoker next;
 
         private PropertyCachingMethodInvoker(MethodInvoker next) {
             this.next = next;
@@ -932,10 +942,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class ClassMixInMethodInvoker implements MethodInvoker {
-        private Object instance;
         private final Class<?> mixInClass;
         private final MethodInvoker next;
         private final ThreadLocal<MethodInvocation> current = new ThreadLocal<>();
+        private Object instance;
 
         ClassMixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
             this.mixInClass = mixInClass;
@@ -963,17 +973,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 invocation.setResult(beanInvocation.getResult());
             }
         }
-    }
-
-    private interface ViewDecoration {
-        void collectInvokers(Object sourceObject, Class<?> viewType, List<MethodInvoker> invokers);
-
-        boolean isNoOp();
-
-        /**
-         * Filter this decoration to apply only to the given view types. Return {@link #NO_OP_MAPPER} if this decoration does not apply to any of the types.
-         */
-        ViewDecoration restrictTo(Set<Class<?>> viewTypes);
     }
 
     private static class NoOpDecoration implements ViewDecoration, Serializable {

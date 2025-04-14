@@ -1,15 +1,30 @@
-package ${packageName};
+package $
+
+{packageName};
 
 import org.testng.annotations.*;
+
 import static org.testng.Assert.*;
 
-public class ${testClassName} {
-    private final ${productionClassName} production = new ${productionClassName}("value");
+private final $ {productionClassName} {
 
-<% 20.times { index -> %>
+$ {productionClassName}
+
+production =new
+
+times {
+    index -> % >
     @Test
-    public void test${index}() {
+    public void test$ {
+        index
+    } () {
         assertEquals(production.getProperty(), "value");
     }
-<% } %>
-}
+<%}("value");
+
+<%20.
+
+public class $ {
+    testClassName
+} %>
+    }

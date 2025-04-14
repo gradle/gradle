@@ -26,10 +26,6 @@ import java.io.File;
 
 public abstract class FileContentValueSource<T> implements ValueSource<T, FileContentValueSource.Parameters> {
 
-    public interface Parameters extends ValueSourceParameters {
-        RegularFileProperty getFile();
-    }
-
     @Nullable
     @Override
     public T obtain() {
@@ -45,4 +41,8 @@ public abstract class FileContentValueSource<T> implements ValueSource<T, FileCo
     }
 
     protected abstract T obtainFrom(File file);
+
+    public interface Parameters extends ValueSourceParameters {
+        RegularFileProperty getFile();
+    }
 }

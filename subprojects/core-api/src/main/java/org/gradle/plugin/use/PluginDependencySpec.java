@@ -62,7 +62,6 @@ public interface PluginDependencySpec {
      *
      * @param version the version provider, for example as found in a version catalog
      * @return this
-     *
      * @since 7.2
      */
     default PluginDependencySpec version(Provider<String> version) {

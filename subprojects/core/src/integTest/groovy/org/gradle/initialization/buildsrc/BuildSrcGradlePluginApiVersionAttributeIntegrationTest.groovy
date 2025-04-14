@@ -70,7 +70,7 @@ class BuildSrcGradlePluginApiVersionAttributeIntegrationTest extends AbstractInt
 
         then:
         def configurationsWithAttribute =
-            output.findAll(">>> .*").collect {it.takeAfter(">>> ").split("=") }.collectEntries()
+            output.findAll(">>> .*").collect { it.takeAfter(">>> ").split("=") }.collectEntries()
 
         configurationsWithAttribute ==
             ["buildScriptClasspath", "compileClasspath", "runtimeClasspath", "testCompileClasspath", "testRuntimeClasspath", "otherCompileClasspath", "otherRuntimeClasspath"]

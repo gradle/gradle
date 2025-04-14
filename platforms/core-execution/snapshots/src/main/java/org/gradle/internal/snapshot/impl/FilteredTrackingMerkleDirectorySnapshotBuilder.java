@@ -44,15 +44,15 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder implements Directory
     private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder;
     private final DirectorySnapshotBuilder delegate;
 
-    public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
-        return new FilteredTrackingMerkleDirectorySnapshotBuilder(unfilteredSnapshotConsumer);
-    }
-
     private FilteredTrackingMerkleDirectorySnapshotBuilder(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder) {
         this.delegate = MerkleDirectorySnapshotBuilder.sortingRequired();
         this.unfilteredSnapshotRecorder = unfilteredSnapshotRecorder;
         // The root starts out as unfiltered.
         isCurrentLevelUnfiltered.addLast(true);
+    }
+
+    public static FilteredTrackingMerkleDirectorySnapshotBuilder sortingRequired(Consumer<FileSystemLocationSnapshot> unfilteredSnapshotConsumer) {
+        return new FilteredTrackingMerkleDirectorySnapshotBuilder(unfilteredSnapshotConsumer);
     }
 
     @Override

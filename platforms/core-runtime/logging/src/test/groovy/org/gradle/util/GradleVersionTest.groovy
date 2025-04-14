@@ -33,11 +33,11 @@ class GradleVersionTest extends Specification {
 
         where:
         versionString << [
-                "",
-                "something",
-                "1",
-                "1-beta",
-                "1.0-\n"
+            "",
+            "something",
+            "1",
+            "1-beta",
+            "1.0-\n"
         ]
     }
 
@@ -74,13 +74,13 @@ class GradleVersionTest extends Specification {
 
         where:
         version << [
-                '1.0',
-                '12.4.5.67',
-                '1.0-milestone-5',
-                '1.0-milestone-5a',
-                '3.2-rc-2',
-                '3.0-snapshot-1',
-                '5.1-commit-2149a1d'
+            '1.0',
+            '12.4.5.67',
+            '1.0-milestone-5',
+            '1.0-milestone-5a',
+            '3.2-rc-2',
+            '3.0-snapshot-1',
+            '5.1-commit-2149a1d'
         ]
     }
 
@@ -92,11 +92,11 @@ class GradleVersionTest extends Specification {
 
         where:
         version << [
-                '0.9-20101220110000+1100',
-                '0.9-20101220110000-0800',
-                '1.2-20120501110000',
-                '1.2-SNAPSHOT',
-                '3.0-snapshot-1'
+            '0.9-20101220110000+1100',
+            '0.9-20101220110000-0800',
+            '1.2-20120501110000',
+            '1.2-SNAPSHOT',
+            '3.0-snapshot-1'
         ]
     }
 
@@ -106,10 +106,10 @@ class GradleVersionTest extends Specification {
 
         where:
         version << [
-                '0.9-milestone-5',
-                '2.1-rc-1',
-                '1.2',
-                '1.2.1']
+            '0.9-milestone-5',
+            '2.1-rc-1',
+            '1.2',
+            '1.2.1']
     }
 
     void canCompareTwoVersions(String a, String b) {

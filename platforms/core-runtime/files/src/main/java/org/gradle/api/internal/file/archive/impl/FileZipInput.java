@@ -32,6 +32,18 @@ import java.util.zip.ZipFile;
 
 public class FileZipInput implements ZipInput {
 
+    private final ZipFile file;
+    private final Enumeration<? extends java.util.zip.ZipEntry> entries;
+
+    private FileZipInput(File file) {
+        try {
+            this.file = new ZipFile(file);
+        } catch (IOException e) {
+            throw new FileException(e);
+        }
+        this.entries = this.file.entries();
+    }
+
     /**
      * Creates a stream of the entries in the given zip file. Caller is responsible for closing the return value.
      *
@@ -60,18 +72,6 @@ public class FileZipInput implements ZipInput {
             throw new IllegalArgumentException("Could not determine java version from '" + versionString + "'.");
         }
         return Integer.parseInt(versionParts[0]) >= 11;
-    }
-
-    private final ZipFile file;
-    private final Enumeration<? extends java.util.zip.ZipEntry> entries;
-
-    private FileZipInput(File file) {
-        try {
-            this.file = new ZipFile(file);
-        } catch (IOException e) {
-            throw new FileException(e);
-        }
-        this.entries = this.file.entries();
     }
 
     @Override

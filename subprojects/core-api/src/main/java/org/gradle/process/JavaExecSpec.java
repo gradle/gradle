@@ -80,32 +80,15 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * Returns the arguments passed to the main class to be executed.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     List<String> getArgs();
-
-    /**
-     * Adds args for the main class to be executed.
-     *
-     * @param args Args for the main class.
-     *
-     * @return this
-     */
-    JavaExecSpec args(Object... args);
-
-    /**
-     * Adds args for the main class to be executed.
-     *
-     * @param args Args for the main class.
-     *
-     * @return this
-     */
-    JavaExecSpec args(Iterable<?> args);
 
     /**
      * Sets the args for the main class to be executed.
      *
      * @param args Args for the main class.
-     *
      * @return this
      * @since 4.0
      */
@@ -115,10 +98,25 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * Sets the args for the main class to be executed.
      *
      * @param args Args for the main class.
-     *
      * @return this
      */
     JavaExecSpec setArgs(@Nullable Iterable<?> args);
+
+    /**
+     * Adds args for the main class to be executed.
+     *
+     * @param args Args for the main class.
+     * @return this
+     */
+    JavaExecSpec args(Object... args);
+
+    /**
+     * Adds args for the main class to be executed.
+     *
+     * @param args Args for the main class.
+     * @return this
+     */
+    JavaExecSpec args(Iterable<?> args);
 
     /**
      * Argument providers for the application.
@@ -133,7 +131,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * Adds elements to the classpath for executing the main class.
      *
      * @param paths classpath elements
-     *
      * @return this
      */
     JavaExecSpec classpath(Object... paths);
@@ -149,7 +146,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * Sets the classpath for executing the main class.
      *
      * @param classpath the classpath
-     *
      * @return this
      */
     JavaExecSpec setClasspath(FileCollection classpath);

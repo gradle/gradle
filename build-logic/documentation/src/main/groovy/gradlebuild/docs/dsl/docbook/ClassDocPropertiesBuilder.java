@@ -29,9 +29,9 @@ import org.gradle.api.logging.Logging;
 import java.util.*;
 
 public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
+    private static final Logger LOG = Logging.getLogger(ClassDocPropertiesBuilder.class);
     private final JavadocConverter javadocConverter;
     private final GenerationListener listener;
-    private static final Logger LOG = Logging.getLogger(ClassDocPropertiesBuilder.class);
 
     public ClassDocPropertiesBuilder(JavadocConverter javadocConverter, GenerationListener listener) {
         this.javadocConverter = javadocConverter;

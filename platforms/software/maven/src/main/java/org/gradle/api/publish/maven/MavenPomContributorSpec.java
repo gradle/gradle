@@ -21,9 +21,9 @@ import org.gradle.api.Action;
 /**
  * Allows to add contributors of a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomContributor
+ * @since 4.8
  */
 public interface MavenPomContributorSpec {
 

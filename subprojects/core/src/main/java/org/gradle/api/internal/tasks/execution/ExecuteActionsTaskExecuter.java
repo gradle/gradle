@@ -94,6 +94,22 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.fileResolver = fileResolver;
     }
 
+    private static TaskExecutionOutcome convertOutcome(ExecutionOutcome model) {
+        switch (model) {
+            case FROM_CACHE:
+                return TaskExecutionOutcome.FROM_CACHE;
+            case UP_TO_DATE:
+                return TaskExecutionOutcome.UP_TO_DATE;
+            case SHORT_CIRCUITED:
+                return TaskExecutionOutcome.NO_SOURCE;
+            case EXECUTED_INCREMENTALLY:
+            case EXECUTED_NON_INCREMENTALLY:
+                return TaskExecutionOutcome.EXECUTED;
+            default:
+                throw new AssertionError();
+        }
+    }
+
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskExecution work = new TaskExecution(
@@ -152,21 +168,5 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 return result.getCachingState();
             }
         };
-    }
-
-    private static TaskExecutionOutcome convertOutcome(ExecutionOutcome model) {
-        switch (model) {
-            case FROM_CACHE:
-                return TaskExecutionOutcome.FROM_CACHE;
-            case UP_TO_DATE:
-                return TaskExecutionOutcome.UP_TO_DATE;
-            case SHORT_CIRCUITED:
-                return TaskExecutionOutcome.NO_SOURCE;
-            case EXECUTED_INCREMENTALLY:
-            case EXECUTED_NON_INCREMENTALLY:
-                return TaskExecutionOutcome.EXECUTED;
-            default:
-                throw new AssertionError();
-        }
     }
 }

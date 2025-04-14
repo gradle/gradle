@@ -22,14 +22,14 @@ import java.net.URI;
 
 public class DefaultJavaToolchainDownload implements JavaToolchainDownload {
 
-    public static DefaultJavaToolchainDownload fromUri(URI uri) {
-        return new DefaultJavaToolchainDownload(uri);
-    }
-
     private final URI uri;
 
     private DefaultJavaToolchainDownload(URI uri) {
         this.uri = uri;
+    }
+
+    public static DefaultJavaToolchainDownload fromUri(URI uri) {
+        return new DefaultJavaToolchainDownload(uri);
     }
 
     @Override

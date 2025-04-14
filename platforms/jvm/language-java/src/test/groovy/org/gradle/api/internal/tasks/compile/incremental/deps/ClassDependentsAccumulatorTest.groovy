@@ -34,7 +34,7 @@ class ClassDependentsAccumulatorTest extends Specification {
     def "remembers if class is dependency to all"() {
         // a -> b -> c
         accumulator.addClass("a", hash, null, [], ["b"], IntSets.EMPTY_SET)
-        accumulator.addClass("b", hash, "reason",  [], ["c"], IntSets.EMPTY_SET)
+        accumulator.addClass("b", hash, "reason", [], ["c"], IntSets.EMPTY_SET)
         accumulator.addClass("c", hash, null, [], ["a"] as Set, IntSets.EMPTY_SET)
 
         expect:
@@ -56,7 +56,7 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "accumulates accessible and private dependents"() {
-        accumulator.addClass("d", hash, "reason",  [], ['x'], IntSets.EMPTY_SET)
+        accumulator.addClass("d", hash, "reason", [], ['x'], IntSets.EMPTY_SET)
         accumulator.addClass("a", hash, null, ["b"], ["c"], IntSets.EMPTY_SET)
         accumulator.addClass("b", hash, null, ["c"], ["a"], IntSets.EMPTY_SET)
         accumulator.addClass("c", hash, null, [], [] as Set, IntSets.EMPTY_SET)
@@ -74,9 +74,9 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "accumulates dependents"() {
-        accumulator.addClass("d", hash, "reason",  [], ['x'], IntSets.EMPTY_SET)
+        accumulator.addClass("d", hash, "reason", [], ['x'], IntSets.EMPTY_SET)
         accumulator.addClass("a", hash, null, [], ["b", "c"], IntSets.EMPTY_SET)
-        accumulator.addClass("b", hash, "reason",  [], ["c", "a"], IntSets.EMPTY_SET)
+        accumulator.addClass("b", hash, "reason", [], ["c", "a"], IntSets.EMPTY_SET)
         accumulator.addClass("c", hash, null, [], [] as Set, IntSets.EMPTY_SET)
 
         expect:
@@ -92,8 +92,8 @@ class ClassDependentsAccumulatorTest extends Specification {
 
     def "creates keys for all encountered classes which are dependency to another"() {
         accumulator.addClass("a", hash, null, [], ["x"], IntSets.EMPTY_SET)
-        accumulator.addClass("b", hash, "reason",  [], ["a", "b"], IntSets.EMPTY_SET)
-        accumulator.addClass("c", hash, "reason",  [], [] as Set, IntSets.EMPTY_SET)
+        accumulator.addClass("b", hash, "reason", [], ["a", "b"], IntSets.EMPTY_SET)
+        accumulator.addClass("c", hash, "reason", [], [] as Set, IntSets.EMPTY_SET)
         accumulator.addClass("e", hash, null, [], [] as Set, IntSets.EMPTY_SET)
 
         expect:
@@ -101,7 +101,7 @@ class ClassDependentsAccumulatorTest extends Specification {
     }
 
     def "knows when class is dependent to all if that class is added first"() {
-        accumulator.addClass("b", hash, "reason",  [], [] as Set, IntSets.EMPTY_SET)
+        accumulator.addClass("b", hash, "reason", [], [] as Set, IntSets.EMPTY_SET)
         accumulator.addClass("a", hash, null, [], ["b"], IntSets.EMPTY_SET)
 
         expect:
@@ -110,7 +110,7 @@ class ClassDependentsAccumulatorTest extends Specification {
 
     def "knows when class is dependent to all even if that class is added last"() {
         accumulator.addClass("a", hash, null, [], ["b"], IntSets.EMPTY_SET)
-        accumulator.addClass("b", hash, "reason",  [], [] as Set, IntSets.EMPTY_SET)
+        accumulator.addClass("b", hash, "reason", [], [] as Set, IntSets.EMPTY_SET)
 
         expect:
         accumulator.dependentsMap.b.dependencyToAll

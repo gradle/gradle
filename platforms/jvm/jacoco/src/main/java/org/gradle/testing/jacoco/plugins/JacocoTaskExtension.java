@@ -46,28 +46,10 @@ import java.util.Locale;
  */
 public abstract class JacocoTaskExtension {
 
-    /**
-     * The types of output that the agent can use for execution data.
-     */
-    public enum Output {
-        FILE,
-        TCP_SERVER,
-        TCP_CLIENT,
-        NONE;
-
-        /**
-         * Gets type in format of agent argument.
-         */
-        public String getAsArg() {
-            return toString().toLowerCase(Locale.US).replaceAll("_", "");
-        }
-    }
-
     private final JacocoAgentJar agent;
     private final JavaForkOptions task;
-
-    private boolean enabled = true;
     private final RegularFileProperty destinationFile;
+    private boolean enabled = true;
     private List<String> includes = new ArrayList<>();
     private List<String> excludes = new ArrayList<>();
     private List<String> excludeClassLoaders = new ArrayList<>();
@@ -79,7 +61,6 @@ public abstract class JacocoTaskExtension {
     private int port;
     private File classDumpDir;
     private boolean jmx;
-
     /**
      * Creates a Jacoco task extension.
      *
@@ -344,6 +325,23 @@ public abstract class JacocoTaskExtension {
         }
 
         return builder.toString();
+    }
+
+    /**
+     * The types of output that the agent can use for execution data.
+     */
+    public enum Output {
+        FILE,
+        TCP_SERVER,
+        TCP_CLIENT,
+        NONE;
+
+        /**
+         * Gets type in format of agent argument.
+         */
+        public String getAsArg() {
+            return toString().toLowerCase(Locale.US).replaceAll("_", "");
+        }
     }
 
     private static class ArgumentAppender {

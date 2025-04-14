@@ -27,9 +27,13 @@ import org.gradle.api.tasks.javadoc.GroovydocAccess;
 
 public interface GroovydocParameters extends AntWorkParameters {
     ConfigurableFileCollection getSource();
+
     DirectoryProperty getDestinationDirectory();
+
     Property<Boolean> getUse();
+
     Property<Boolean> getNoTimestamp();
+
     Property<Boolean> getNoVersionStamp();
 
     Property<String> getWindowTitle();

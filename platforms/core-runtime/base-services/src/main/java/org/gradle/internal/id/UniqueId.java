@@ -45,6 +45,10 @@ public final class UniqueId {
 
     private final String value;
 
+    private UniqueId(String value) {
+        this.value = value;
+    }
+
     public static UniqueId from(UUID uuid) {
         long msb = uuid.getMostSignificantBits();
         long lsb = uuid.getLeastSignificantBits();
@@ -70,10 +74,6 @@ public final class UniqueId {
 
     public static Factory<UniqueId> factory() {
         return FACTORY;
-    }
-
-    private UniqueId(String value) {
-        this.value = value;
     }
 
     public String asString() {

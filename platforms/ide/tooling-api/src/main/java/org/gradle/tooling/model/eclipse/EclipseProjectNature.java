@@ -25,9 +25,9 @@ public interface EclipseProjectNature {
 
     /**
      * Returns the unique identifier of the project nature.
-     *  @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/extension-points/org_eclipse_core_resources_natures.html">Definition of project natures in the Eclipse documentation</a>
      *
      * @return The project nature id.
+     * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/extension-points/org_eclipse_core_resources_natures.html">Definition of project natures in the Eclipse documentation</a>
      */
     String getId();
 }

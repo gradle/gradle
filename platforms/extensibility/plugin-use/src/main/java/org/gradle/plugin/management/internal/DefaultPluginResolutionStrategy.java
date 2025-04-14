@@ -34,7 +34,7 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
     private boolean locked;
 
     public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
-        listenerManager.addListener(new InternalBuildAdapter(){
+        listenerManager.addListener(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
                 locked = true;

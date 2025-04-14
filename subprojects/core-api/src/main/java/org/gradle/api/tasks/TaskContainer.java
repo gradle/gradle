@@ -105,7 +105,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @throws NullPointerException If any of the values in <code>{@value Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     *
      * @deprecated Use {@link #register(String, Action)} or {@link #register(String, Class, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated
@@ -124,7 +123,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     *
      * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated
@@ -142,7 +140,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     *
      * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated
@@ -159,7 +156,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     *
      * @deprecated Use {@link #register(String)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated
@@ -177,7 +173,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     *
      * @deprecated Use {@link #register(String, Class)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated
@@ -200,7 +195,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      * @since 4.7
-     *
      * @deprecated Use {@link #register(String, Class, Object...)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated
@@ -218,7 +212,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     *
      * @deprecated Use {@link #register(String, Class, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated
@@ -236,7 +229,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     *
      * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
     @Deprecated

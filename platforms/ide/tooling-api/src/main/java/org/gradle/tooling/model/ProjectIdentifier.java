@@ -20,7 +20,7 @@ package org.gradle.tooling.model;
  * Identifies a Gradle project.
  *
  * <p>
- *     A Gradle Project is a project in a multi-project Gradle build or a single "standalone" project.
+ * A Gradle Project is a project in a multi-project Gradle build or a single "standalone" project.
  * </p>
  *
  * @since 2.13

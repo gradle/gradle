@@ -32,7 +32,7 @@ public class Main {
             launcher.setStandardError(System.err);
             launcher.addProgressListener(progressEvent -> {
                 if (progressEvent instanceof TestFinishEvent testFinishEvent) {
-                    switch(testFinishEvent.getResult()) {
+                    switch (testFinishEvent.getResult()) {
                         case TestFailureResult r -> System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " failed");
                         case TestSkippedResult r -> System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " skipped");
                         case TestSuccessResult r -> System.out.println(toEventPath(testFinishEvent.getDescriptor()) + " succeeded");

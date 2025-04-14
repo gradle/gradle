@@ -40,7 +40,7 @@ class NotationConverterToNotationParserAdapterTest extends Specification {
 
     def "fails when the notation cannot be converted"() {
         given:
-        converter.convert(12, _) >> { }
+        converter.convert(12, _) >> {}
 
         when:
         parser.parseNotation(12)

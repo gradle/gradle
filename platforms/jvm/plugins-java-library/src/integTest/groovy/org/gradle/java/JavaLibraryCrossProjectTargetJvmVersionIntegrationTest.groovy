@@ -101,10 +101,10 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             root(":", ":test:") {
                 project(':producer', 'test:producer:') {
                     variant(expected, [
-                            'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': selected,
-                            'org.gradle.usage':'java-api',
-                            'org.gradle.libraryelements': 'jar'
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.jvm.version': selected,
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar'
                     ])
                     artifact(name: "producer-jdk${selected}")
                 }
@@ -159,11 +159,11 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             root(":", ":test:") {
                 project(':producer', 'test:producer:') {
                     variant("apiElements", [
-                            'org.gradle.category': 'library',
-                            'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': 7,
-                            'org.gradle.usage':'java-api',
-                            'org.gradle.libraryelements': 'jar'
+                        'org.gradle.category': 'library',
+                        'org.gradle.dependency.bundling': 'external',
+                        'org.gradle.jvm.version': 7,
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.libraryelements': 'jar'
                     ])
                     artifact name: 'main', extension: '', type: 'java-classes-directory'
                 }

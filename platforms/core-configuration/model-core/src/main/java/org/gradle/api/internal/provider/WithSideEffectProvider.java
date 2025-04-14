@@ -21,16 +21,15 @@ import org.jspecify.annotations.Nullable;
 
 public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
 
-    public static <T> ProviderInternal<T> of(ProviderInternal<T> provider, @Nullable SideEffect<? super T> sideEffect) {
-        return sideEffect == null ? provider : new WithSideEffectProvider<>(provider, sideEffect);
-    }
-
     private final ProviderInternal<T> provider;
     private final SideEffect<? super T> sideEffect;
-
     private WithSideEffectProvider(ProviderInternal<T> provider, SideEffect<? super T> sideEffect) {
         this.provider = provider;
         this.sideEffect = sideEffect;
+    }
+
+    public static <T> ProviderInternal<T> of(ProviderInternal<T> provider, @Nullable SideEffect<? super T> sideEffect) {
+        return sideEffect == null ? provider : new WithSideEffectProvider<>(provider, sideEffect);
     }
 
     @Nullable

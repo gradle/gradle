@@ -2,7 +2,7 @@ package org.gradle;
 
 import java.lang.String;
 
-public class Person{
+public class Person {
     String surname;
     int age;
 

@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * The type of a file of a transformation
- * */
+ */
 @Incubating
 public interface TransformationFileType {
 }

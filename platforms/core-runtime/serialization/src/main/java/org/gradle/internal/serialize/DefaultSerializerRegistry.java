@@ -112,6 +112,23 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         return new TaggedTypeSerializer<T>(matches, matchingJavaSerialization);
     }
 
+    private interface SerializerClassMatcherStrategy {
+        SerializerClassMatcherStrategy STRICT = new StrictSerializerMatcher();
+        SerializerClassMatcherStrategy HIERARCHY = new HierarchySerializerMatcher();
+
+        boolean matches(Class<?> baseType, Class<?> candidate);
+
+    }
+
+    /**
+     * Serializer wrapper, that allows specific instance to be created when they cannot be shared or reused.
+     *
+     * @param <S> The type supported by the serializer
+     */
+    protected interface SerializerFactory<S> {
+        Serializer<S> serializerInstance();
+    }
+
     private static class TypeInfo {
         final int tag;
         final boolean useForSubtypes;
@@ -200,23 +217,6 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             }
             throw new IllegalArgumentException(String.format("Don't know how to serialize an object of type %s.", valueType.getName()));
         }
-    }
-
-    private interface SerializerClassMatcherStrategy {
-        SerializerClassMatcherStrategy STRICT = new StrictSerializerMatcher();
-        SerializerClassMatcherStrategy HIERARCHY = new HierarchySerializerMatcher();
-
-        boolean matches(Class<?> baseType, Class<?> candidate);
-
-    }
-
-    /**
-     * Serializer wrapper, that allows specific instance to be created when they cannot be shared or reused.
-     *
-     * @param <S> The type supported by the serializer
-     */
-    protected interface SerializerFactory<S> {
-        Serializer<S> serializerInstance();
     }
 
     private static class InstanceBasedSerializerFactory<S> implements SerializerFactory<S> {

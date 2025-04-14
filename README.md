@@ -20,56 +20,61 @@
   </a>
 </div>
 
+## **Gradle Build Tool**
 
-## 🐘 **Gradle Build Tool** 
-
-**[Gradle](https://gradle.org/)** is a highly scalable build automation tool designed to handle everything from large, multi-project enterprise builds to quick development tasks across various languages. Gradle’s modular, performance-oriented architecture seamlessly integrates with development environments, making it a go-to solution for building, testing, and deploying applications on **Java**, **Kotlin**, **Scala**, **Android**, **Groovy**, **C++**, and **Swift**.
+**[Gradle](https://gradle.org/)** is a highly scalable build automation tool designed to handle everything from large, multi-project enterprise builds to quick development tasks across various
+languages. Gradle’s modular, performance-oriented architecture seamlessly integrates with development environments, making it a go-to solution for building, testing, and deploying applications on *
+*Java**, **Kotlin**, **Scala**, **Android**, **Groovy**, **C++**, and **Swift**.
 
 > For a comprehensive overview, please visit the [official Gradle project homepage](https://gradle.org).
 
 ---
 
-### 🚀 **Getting Started**
+### **Getting Started**
 
 Starting with Gradle is easy with these essential resources. Follow these to install Gradle, set up initial projects, and explore supported platforms:
 
 - **[Installing Gradle](https://docs.gradle.org/current/userguide/installation.html)**
 - **Build Projects for Popular Languages and Frameworks**:
-  - [Java Applications](https://docs.gradle.org/current/samples/sample_building_java_applications.html)
-  - [Java Modules](https://docs.gradle.org/current/samples/sample_java_modules_multi_project.html)
-  - [Android Apps](https://developer.android.com/studio/build/index.html)
-  - [Groovy Applications](https://docs.gradle.org/current/samples/sample_building_groovy_applications.html)
-  - [Kotlin Libraries](https://docs.gradle.org/current/samples/sample_building_kotlin_libraries.html)
-  - [Scala Applications](https://docs.gradle.org/current/samples/sample_building_scala_applications.html)
-  - [Spring Boot Web Apps](https://docs.gradle.org/current/samples/sample_building_spring_boot_web_applications.html)
-  - [C++ Libraries](https://docs.gradle.org/current/samples/sample_building_cpp_libraries.html)
-  - [Swift Apps](https://docs.gradle.org/current/samples/sample_building_swift_applications.html)
-  - [Swift Libraries](https://docs.gradle.org/current/samples/sample_building_swift_libraries.html)
+    - [Java Applications](https://docs.gradle.org/current/samples/sample_building_java_applications.html)
+    - [Java Modules](https://docs.gradle.org/current/samples/sample_java_modules_multi_project.html)
+    - [Android Apps](https://developer.android.com/studio/build/index.html)
+    - [Groovy Applications](https://docs.gradle.org/current/samples/sample_building_groovy_applications.html)
+    - [Kotlin Libraries](https://docs.gradle.org/current/samples/sample_building_kotlin_libraries.html)
+    - [Scala Applications](https://docs.gradle.org/current/samples/sample_building_scala_applications.html)
+    - [Spring Boot Web Apps](https://docs.gradle.org/current/samples/sample_building_spring_boot_web_applications.html)
+    - [C++ Libraries](https://docs.gradle.org/current/samples/sample_building_cpp_libraries.html)
+    - [Swift Apps](https://docs.gradle.org/current/samples/sample_building_swift_applications.html)
+    - [Swift Libraries](https://docs.gradle.org/current/samples/sample_building_swift_libraries.html)
 
-> 📘 Explore Gradle’s full array of resources through the [Gradle Documentation](https://docs.gradle.org/).
+> Explore Gradle’s full array of resources through the [Gradle Documentation](https://docs.gradle.org/).
 
 ---
 
-### 🛠 **Seamless IDE & CI Integration**
+### **Seamless IDE & CI Integration**
 
 Gradle is built to work smoothly with a variety of Integrated Development Environments (IDEs) and Continuous Integration (CI) systems, providing extensive support for a streamlined workflow:
 
--   **Supported IDEs**: Quickly integrate Gradle with [Android Studio](https://docs.gradle.org/current/userguide/gradle_ides.html), [IntelliJ IDEA](https://docs.gradle.org/current/userguide/gradle_ides.html), [Eclipse](https://docs.gradle.org/current/userguide/gradle_ides.html), [NetBeans](https://docs.gradle.org/current/userguide/gradle_ides.html), and [Visual Studio Code](https://docs.gradle.org/current/userguide/gradle_ides.html).
--   **Continuous Integration**: Gradle easily connects with popular CI tools, including Jenkins, [GitHub Actions](https://docs.github.com/actions), [GitLab CI](https://docs.gitlab.com/ee/ci/), [CircleCI](https://circleci.com/), and more, to streamline build and deployment pipelines.
+- **Supported IDEs**: Quickly integrate Gradle
+  with [Android Studio](https://docs.gradle.org/current/userguide/gradle_ides.html), [IntelliJ IDEA](https://docs.gradle.org/current/userguide/gradle_ides.html), [Eclipse](https://docs.gradle.org/current/userguide/gradle_ides.html), [NetBeans](https://docs.gradle.org/current/userguide/gradle_ides.html),
+  and [Visual Studio Code](https://docs.gradle.org/current/userguide/gradle_ides.html).
+- **Continuous Integration**: Gradle easily connects with popular CI tools, including
+  Jenkins, [GitHub Actions](https://docs.github.com/actions), [GitLab CI](https://docs.gitlab.com/ee/ci/), [CircleCI](https://circleci.com/), and more, to streamline build and deployment pipelines.
 
 ---
 
-### 🎓 **Learning Resources for Gradle**
+### **Learning Resources for Gradle**
 
 Kickstart your Gradle knowledge with courses, guides, and community support tailored to various experience levels:
 
 - **[DPE University Free Courses](https://dpeuniversity.gradle.com/app/catalog)**: A collection of hands-on courses for learning Gradle, complete with project-based tasks to improve real-world skills.
-- **[Gradle Community Resources](https://community.gradle.org/resources/)**: Discover a range of resources, tutorials, and guides to support your Gradle journey, from foundational concepts to advanced practices.
+- **[Gradle Community Resources](https://community.gradle.org/resources/)**: Discover a range of resources, tutorials, and guides to support your Gradle journey, from foundational concepts to advanced
+  practices.
 - **[Gradle Cookbook](https://cookbook.gradle.org/preface/)**: Access a practical collection of Gradle recipes and best practices to help you work efficiently with Gradle in various scenarios.
 
 ---
 
-### 💬 **Community Support & Resources**
+### **Community Support & Resources**
 
 The Gradle community offers a range of forums, documentation, and direct help to guide you through every step of your Gradle journey:
 
@@ -82,14 +87,14 @@ The Gradle community offers a range of forums, documentation, and direct help to
 
 ---
 
-### 🌱 **Contributing to Gradle**
+### **Contributing to Gradle**
 
 - **Contribution Guide**: [Contribute](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md) to Gradle by submitting patches or pull requests for code or documentation improvements.
 - **Code of Conduct**: Gradle enforces a [Code of Conduct](https://gradle.org/conduct/) to ensure a welcoming and supportive community for all contributors.
 
 ---
 
-### 🔗 **Additional Resources**
+### **Additional Resources**
 
 To make the most out of Gradle, take advantage of these additional resources:
 
@@ -97,12 +102,13 @@ To make the most out of Gradle, take advantage of these additional resources:
 - **[DPE University](https://dpeuniversity.gradle.com/app/catalog)** - Explore tutorials designed to get you started quickly.
 - **[Community Resources](https://gradle.org/resources/)** - Find more community-contributed materials to expand your knowledge.
 
-> 🌟 **Stay connected with the Gradle Community and access the latest news, training, and updates via [Slack](https://gradle.org/slack-invite), [Forum](https://discuss.gradle.org/), and our [Newsletter](https://newsletter.gradle.org)**.
+> **Stay connected with the Gradle Community and access the latest news, training, and updates via [Slack](https://gradle.org/slack-invite), [Forum](https://discuss.gradle.org/), and
+our [Newsletter](https://newsletter.gradle.org)**.
 
 <br><br>
 <div align="center" style="margin-top: 20px;">
     <a href="https://www.linkedin.com/company/gradle/">
-        <img src="https://img.shields.io/badge/-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" style="margin: 0 0px;">
+        <img src="https://img.shields.io/badge/-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" style="margin: 0 0;">
     </a>
     <a href="https://x.com/gradle">
         <img src="https://img.shields.io/badge/-000000?style=for-the-badge&logo=x&logoColor=white" alt="X (Twitter)" style="margin: 0 20px;">

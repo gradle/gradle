@@ -67,8 +67,8 @@ class InstrumentedTypesResourceGeneratorTest extends InstrumentationCodeGenTest 
         then:
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
-                .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/instrumented-classes.txt")
-                .contentsAsString(StandardCharsets.UTF_8)
-                .isEqualTo("org/gradle/api/Rule\norg/gradle/api/Task")
+            .generatedFile(CLASS_OUTPUT, "META-INF/gradle/instrumentation/instrumented-classes.txt")
+            .contentsAsString(StandardCharsets.UTF_8)
+            .isEqualTo("org/gradle/api/Rule\norg/gradle/api/Task")
     }
 }

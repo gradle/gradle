@@ -38,7 +38,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
         setup:
         settingsFile << 'rootProject.name = "root"'
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
 
            repositories { $localMaven }
@@ -60,6 +60,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
         def attributes = project.classpath[0].classpathAttributes
 
         then:
-        attributes.find { it.name == 'customkey' && it.value == 'whenMerged'}
+        attributes.find { it.name == 'customkey' && it.value == 'whenMerged' }
     }
 }

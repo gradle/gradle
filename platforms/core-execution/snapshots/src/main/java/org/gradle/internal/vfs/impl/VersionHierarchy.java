@@ -35,14 +35,14 @@ public class VersionHierarchy {
     private final long maxVersionInHierarchy;
     private final ChildMap<VersionHierarchy> children;
 
-    public static VersionHierarchy empty(long version) {
-        return new VersionHierarchy(EmptyChildMap.getInstance(), version, version);
-    }
-
     private VersionHierarchy(ChildMap<VersionHierarchy> children, long version, long maxVersionInHierarchy) {
         this.children = children;
         this.version = version;
         this.maxVersionInHierarchy = maxVersionInHierarchy;
+    }
+
+    public static VersionHierarchy empty(long version) {
+        return new VersionHierarchy(EmptyChildMap.getInstance(), version, version);
     }
 
     /**

@@ -34,7 +34,7 @@ public abstract class BuildCommandOnly implements DaemonCommandAction {
             throw new IllegalStateException(String.format("%1$s command action received a command that isn't Build (command is %2$s), this shouldn't happen", this.getClass(), command.getClass()));
         }
 
-        doBuild(execution, (Build)command);
+        doBuild(execution, (Build) command);
     }
 
     /**

@@ -31,6 +31,9 @@ import java.util.Set;
  */
 public abstract class DependentsSet {
 
+    private DependentsSet() {
+    }
+
     public static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
         return dependents(privateDependentClasses, accessibleDependentClasses, Collections.emptySet());
     }
@@ -95,9 +98,6 @@ public abstract class DependentsSet {
     public abstract boolean isDependencyToAll();
 
     public abstract String getDescription();
-
-    private DependentsSet() {
-    }
 
     public abstract Set<String> getAllDependentClasses();
 

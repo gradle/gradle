@@ -64,10 +64,10 @@ class CapabilityNotationParserFactoryTest extends Specification {
 
         where:
         notation << [
-                "foo:bar",
-                "foo:bar:",
-                "foo::1.0",
-                ":bar:1.0"
+            "foo:bar",
+            "foo:bar:",
+            "foo::1.0",
+            ":bar:1.0"
         ]
     }
 
@@ -81,10 +81,10 @@ class CapabilityNotationParserFactoryTest extends Specification {
 
         where:
         notation << [
-                "foo:",
-                "foo::",
-                "foo::1.0",
-                ":bar:1.0"
+            "foo:",
+            "foo::",
+            "foo::1.0",
+            ":bar:1.0"
         ]
     }
 

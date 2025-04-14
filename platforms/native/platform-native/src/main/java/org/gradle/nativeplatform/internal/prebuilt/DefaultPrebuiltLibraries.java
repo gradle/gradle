@@ -29,8 +29,8 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer<PrebuiltLibrary> implements PrebuiltLibraries {
     private final ObjectFactory objectFactory;
     private final Action<PrebuiltLibrary> libraryInitializer;
-    private String name;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+    private String name;
 
     public DefaultPrebuiltLibraries(String name, Instantiator instantiator, ObjectFactory objectFactory, Action<PrebuiltLibrary> libraryInitializer, CollectionCallbackActionDecorator collectionCallbackActionDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         super(PrebuiltLibrary.class, instantiator, collectionCallbackActionDecorator);

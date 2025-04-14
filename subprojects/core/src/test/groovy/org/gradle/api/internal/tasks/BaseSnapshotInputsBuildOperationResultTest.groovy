@@ -56,7 +56,7 @@ class BaseSnapshotInputsBuildOperationResultTest extends Specification implement
         fromNormalizer(normalizer) == expectedPropertyAttribute
 
         where:
-        normalizer                       | expectedPropertyAttribute
+        normalizer                        | expectedPropertyAttribute
         InputNormalizer.RUNTIME_CLASSPATH | FINGERPRINTING_STRATEGY_CLASSPATH
         InputNormalizer.COMPILE_CLASSPATH | FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH
         InputNormalizer.ABSOLUTE_PATH     | FINGERPRINTING_STRATEGY_ABSOLUTE_PATH

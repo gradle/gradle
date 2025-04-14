@@ -80,6 +80,16 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
     }
 
     public interface ExternalResourceAccessStats {
+        void resource(URI location);
+
+        void metadata(URI location);
+
+        void list(URI parent);
+
+        void upload(URI destination);
+
+        void reset();
+
         enum Mode {
             none,
             count,
@@ -97,16 +107,6 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
                 throw new UnsupportedOperationException();
             }
         }
-
-        void resource(URI location);
-
-        void metadata(URI location);
-
-        void list(URI parent);
-
-        void upload(URI destination);
-
-        void reset();
     }
 
     private static class NoOpStats implements ExternalResourceAccessStats {

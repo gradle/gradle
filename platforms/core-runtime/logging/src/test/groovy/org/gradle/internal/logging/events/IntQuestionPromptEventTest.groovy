@@ -33,11 +33,11 @@ class IntQuestionPromptEventTest extends Specification {
         result.newPrompt == null
 
         where:
-        input  | expected
-        '2'    | 2
-        '4'    | 4
-        '1209' | 1209
-        ' 2 '  | 2
+        input                        | expected
+        '2'                          | 2
+        '4'                          | 4
+        '1209'                       | 1209
+        ' 2 '                        | 2
         Integer.MAX_VALUE.toString() | Integer.MAX_VALUE
     }
 
@@ -59,10 +59,10 @@ class IntQuestionPromptEventTest extends Specification {
         result.newPrompt == null
 
         where:
-        input  | expected
+        input | expected
         ''    | -2
-        '-4'    | -4
-        '-5'    | -5
+        '-4'  | -4
+        '-5'  | -5
     }
 
     def "rejects input that is not an integer"() {
@@ -74,10 +74,10 @@ class IntQuestionPromptEventTest extends Specification {
         result.newPrompt == "Please enter an integer value (min: 2, default: 4): "
 
         where:
-        input | _
-        'bla' | ''
-        '1s'  | ''
-        '1 2' | ''
+        input                     | _
+        'bla'                     | ''
+        '1s'                      | ''
+        '1 2'                     | ''
         Long.MAX_VALUE.toString() | ''
     }
 

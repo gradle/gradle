@@ -60,6 +60,24 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         this.metadataValueContainerCache = CacheBuilder.newBuilder().weakValues().build();
     }
 
+    private static DisplayName toDisplayName(ComponentIdentifier identifier) {
+        if (DisplayName.class.isAssignableFrom(identifier.getClass())) {
+            return (DisplayName) identifier;
+        } else {
+            return new DisplayName() {
+                @Override
+                public String getDisplayName() {
+                    return identifier.getDisplayName();
+                }
+
+                @Override
+                public String getCapitalizedDisplayName() {
+                    return getDisplayName();
+                }
+            };
+        }
+    }
+
     public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository) {
         repositories.add(repository);
         repositoryNames.add(repository.getName());
@@ -189,23 +207,5 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         }
 
         return best;
-    }
-
-    private static DisplayName toDisplayName(ComponentIdentifier identifier) {
-        if (DisplayName.class.isAssignableFrom(identifier.getClass())) {
-            return (DisplayName) identifier;
-        } else {
-            return new DisplayName() {
-                @Override
-                public String getDisplayName() {
-                    return identifier.getDisplayName();
-                }
-
-                @Override
-                public String getCapitalizedDisplayName() {
-                    return getDisplayName();
-                }
-            };
-        }
     }
 }

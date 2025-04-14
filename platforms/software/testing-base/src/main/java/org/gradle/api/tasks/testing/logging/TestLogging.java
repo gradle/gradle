@@ -103,7 +103,7 @@ public interface TestLogging {
      * <p>The default granularity is -1, which specifies that test events from only the most granular level should be logged.  Setting this value to something lower will cause events
      * from a higher level to be ignored.  For example, setting the value to 3 will cause only events from the test method level to be logged and any events from iterations of a parameterized test method
      * will be ignored.
-     *<p>Note that since the default value of {@link #getMinGranularity()} is -1 (the highest level of granularity) it only makes sense to configure the maximum granularity while also setting the
+     * <p>Note that since the default value of {@link #getMinGranularity()} is -1 (the highest level of granularity) it only makes sense to configure the maximum granularity while also setting the
      * minimum granularity to a value greater than -1.
      *
      * @param granularity the maximum granularity of the events to be logged

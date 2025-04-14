@@ -24,7 +24,7 @@ class DefaultBasePluginExtensionTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(BasePlugin)
-        extension =  project.extensions.base
+        extension = project.extensions.base
     }
 
     def "default values"() {

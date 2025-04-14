@@ -37,6 +37,14 @@ public class RelativePathParser {
         this.currentPath = rootPath;
     }
 
+    private static int determineDirectoriesExited(String lastDirPath, int sizeOfCommonPrefix) {
+        if (sizeOfCommonPrefix == lastDirPath.length()) {
+            return 0;
+        }
+        int rootDirAdjustment = (sizeOfCommonPrefix == 0) ? 1 : 0;
+        return rootDirAdjustment + IS_SLASH.countIn(lastDirPath.substring(sizeOfCommonPrefix));
+    }
+
     public String getRelativePath() {
         return currentPath.substring(rootLength);
     }
@@ -72,14 +80,6 @@ public class RelativePathParser {
         }
         exitDirectoryHandler.run();
         return false;
-    }
-
-    private static int determineDirectoriesExited(String lastDirPath, int sizeOfCommonPrefix) {
-        if (sizeOfCommonPrefix == lastDirPath.length()) {
-            return 0;
-        }
-        int rootDirAdjustment = (sizeOfCommonPrefix == 0) ? 1 : 0;
-        return rootDirAdjustment + IS_SLASH.countIn(lastDirPath.substring(sizeOfCommonPrefix));
     }
 
     public boolean isRoot() {

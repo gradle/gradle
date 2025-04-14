@@ -48,6 +48,7 @@ class DefaultTestEventReporter implements TestEventReporter {
 
     /**
      * Only non-composite test events should be counted in the test result state.
+     *
      * @return true if this is a composite test event reporter
      */
     protected boolean isComposite() {
@@ -84,7 +85,7 @@ class DefaultTestEventReporter implements TestEventReporter {
         Preconditions.checkNotNull(values, "Metadata can not be null!");
         Preconditions.checkArgument(!values.isEmpty(), "Metadata can not be empty!");
         listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), values));
-}
+    }
 
     @Override
     public void succeeded(Instant endTime) {

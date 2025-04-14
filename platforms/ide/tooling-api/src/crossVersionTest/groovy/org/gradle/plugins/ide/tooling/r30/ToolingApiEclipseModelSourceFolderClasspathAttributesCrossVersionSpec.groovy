@@ -33,7 +33,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         EclipseProject project = loadToolingModel(EclipseProject)
 
         then:
-        project.sourceDirectories.find {it.path == 'src/main/java' }.classpathAttributes.isEmpty()
+        project.sourceDirectories.find { it.path == 'src/main/java' }.classpathAttributes.isEmpty()
     }
 
     @TargetGradleVersion(">=4.0 <4.4")
@@ -89,7 +89,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         then:
         project.sourceDirectories.size() == 1
         project.sourceDirectories[0].classpathAttributes.size() == 2
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key1' && it.value == 'value1'}
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key2' && it.value == 'value2'}
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key1' && it.value == 'value1' }
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'key2' && it.value == 'value2' }
     }
 }

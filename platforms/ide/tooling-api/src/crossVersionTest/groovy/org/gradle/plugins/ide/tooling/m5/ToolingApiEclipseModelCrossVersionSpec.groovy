@@ -39,12 +39,12 @@ project(':impl') {
         def root = loadToolingModel(EclipseProject)
 
         then:
-        def impl = root.children.find { it.name == 'impl'}
+        def impl = root.children.find { it.name == 'impl' }
 
         root.gradleProject.tasks.find { it.name == 'rootTask' && it.path == ':rootTask' && it.project == root.gradleProject }
         !root.gradleProject.tasks.find { it.name == 'implTask' }
 
-        impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject}
+        impl.gradleProject.tasks.find { it.name == 'implTask' && it.path == ':impl:implTask' && it.project == impl.gradleProject }
         !impl.gradleProject.tasks.find { it.name == 'rootTask' }
     }
 }

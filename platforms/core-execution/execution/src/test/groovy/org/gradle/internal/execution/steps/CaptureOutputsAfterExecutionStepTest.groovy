@@ -80,11 +80,11 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
 
     def "captured outputs are filtered"() {
         def delegateDuration = Duration.ofMillis(123)
-        def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+        def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "outputDir", Mock(FileSystemSnapshot),
             "outputFile", Mock(FileSystemSnapshot),
         )
-        def filteredOutputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+        def filteredOutputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "outputDir", Mock(FileSystemSnapshot)
         )
         def buildCacheKey = HashCode.fromString("0123456789abcdef")

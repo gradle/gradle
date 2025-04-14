@@ -86,9 +86,9 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         boolean windowsPathLimitation = OperatingSystem.current().isWindows();
 
         File outputFile = compilerOutputFileNamingSchemeFactory.create()
-                .withObjectFileNameSuffix(fileSuffix)
-                .withOutputBaseFolder(objectFileDir)
-                .map(sourceFile);
+            .withObjectFileNameSuffix(fileSuffix)
+            .withOutputBaseFolder(objectFileDir)
+            .map(sourceFile);
         File outputDirectory = outputFile.getParentFile();
         if (!outputDirectory.exists()) {
             outputDirectory.mkdirs();

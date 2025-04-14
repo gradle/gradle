@@ -139,7 +139,7 @@ abstract class PerformanceTest extends DistributionTest {
     }
 
     private Provider<Boolean> isFlakinessDetection() {
-        return channel.map {it.startsWith("flakiness-detection") }.orElse(false)
+        return channel.map { it.startsWith("flakiness-detection") }.orElse(false)
     }
 
     @Override

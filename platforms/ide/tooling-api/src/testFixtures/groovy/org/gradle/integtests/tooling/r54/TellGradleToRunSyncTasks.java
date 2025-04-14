@@ -26,7 +26,7 @@ public class TellGradleToRunSyncTasks implements BuildAction<Void>, Serializable
 
     @Override
     public Void execute(BuildController controller) {
-            controller.getModel(RunEclipseSynchronizationTasks.class);
+        controller.getModel(RunEclipseSynchronizationTasks.class);
         return null;
     }
 }

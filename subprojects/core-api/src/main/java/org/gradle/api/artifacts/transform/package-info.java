@@ -18,8 +18,8 @@
  * Provides classes, interfaces and annotations for registering and implementing artifact transforms.
  *
  * <p>
- *     To register an artifact transform, use {@link org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(java.lang.Class, org.gradle.api.Action)}.
- *     This allows you to register a {@link org.gradle.api.artifacts.transform.TransformAction} using {@link org.gradle.api.artifacts.transform.TransformSpec}.
+ * To register an artifact transform, use {@link org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(java.lang.Class, org.gradle.api.Action)}.
+ * This allows you to register a {@link org.gradle.api.artifacts.transform.TransformAction} using {@link org.gradle.api.artifacts.transform.TransformSpec}.
  * </p>
  *
  * <p>If you want to create a new artifact transform action, have a look at {@link org.gradle.api.artifacts.transform.TransformAction}.</p>

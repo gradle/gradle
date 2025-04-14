@@ -29,6 +29,10 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<CurrentApplication> currentApplication = new ThreadLocal<CurrentApplication>();
 
+    private static UserCodeApplicationId id() {
+        return new UserCodeApplicationId(COUNTER.incrementAndGet());
+    }
+
     @Override
     @Nullable
     public Application current() {
@@ -66,10 +70,6 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
             return action;
         }
         return current.reapplyLater(action);
-    }
-
-    private static UserCodeApplicationId id() {
-        return new UserCodeApplicationId(COUNTER.incrementAndGet());
     }
 
     private class CurrentApplication implements Application {

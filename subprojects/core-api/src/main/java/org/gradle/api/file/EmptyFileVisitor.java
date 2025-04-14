@@ -22,8 +22,8 @@ package org.gradle.api.file;
 public class EmptyFileVisitor implements FileVisitor {
 
     @Override
-    public void visitDir(FileVisitDetails dirDetails) { }
+    public void visitDir(FileVisitDetails dirDetails) {}
 
     @Override
-    public void visitFile(FileVisitDetails fileDetails) { }
+    public void visitFile(FileVisitDetails fileDetails) {}
 }

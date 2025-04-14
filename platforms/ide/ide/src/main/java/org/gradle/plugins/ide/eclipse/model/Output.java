@@ -32,7 +32,7 @@ public class Output implements ClasspathEntry {
     private String path;
 
     public Output(Node node) {
-        this((String)node.attribute("path"));
+        this((String) node.attribute("path"));
     }
 
     public Output(String path) {

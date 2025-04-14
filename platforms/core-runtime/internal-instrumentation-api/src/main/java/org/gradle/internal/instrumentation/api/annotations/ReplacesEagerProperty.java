@@ -69,9 +69,6 @@ public @interface ReplacesEagerProperty {
      */
     Class<?> adapter() default DefaultValue.class;
 
-    interface DefaultValue {
-    }
-
     enum BinaryCompatibility {
         /**
          * Gradle binary compatibility check will fail if the accessor was not removed
@@ -82,5 +79,8 @@ public @interface ReplacesEagerProperty {
          * Gradle binary compatibility check will fail if the accessor was not kept
          */
         ACCESSORS_KEPT
+    }
+
+    interface DefaultValue {
     }
 }

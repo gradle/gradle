@@ -63,19 +63,25 @@ public abstract class GradleCoreProblemGroup {
 
     public interface CompilationProblemGroup {
         ProblemGroup thisGroup();
+
         ProblemGroup java();
+
         ProblemGroup groovy();
+
         ProblemGroup groovyDsl();
     }
 
     public interface ValidationProblemGroup {
         ProblemGroup thisGroup();
+
         ProblemGroup property();
+
         ProblemGroup type();
     }
 
     public interface DaemonToolchainProblemGroup {
         ProblemGroup thisGroup();
+
         ProblemGroup configurationGeneration();
     }
 

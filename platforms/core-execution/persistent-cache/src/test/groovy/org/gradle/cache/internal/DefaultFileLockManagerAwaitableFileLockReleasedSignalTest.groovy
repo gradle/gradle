@@ -25,7 +25,8 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class DefaultFileLockManagerAwaitableFileLockReleasedSignalTest extends ConcurrentSpecification {
 
-    @Subject def signal = new DefaultFileLockManager.AwaitableFileLockReleasedSignal()
+    @Subject
+    def signal = new DefaultFileLockManager.AwaitableFileLockReleasedSignal()
 
     def "can reuse signal"() {
         given:

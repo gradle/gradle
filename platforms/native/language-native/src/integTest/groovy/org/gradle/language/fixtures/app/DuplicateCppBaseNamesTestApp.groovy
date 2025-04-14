@@ -62,6 +62,6 @@ class DuplicateCppBaseNamesTestApp extends TestNativeComponent {
            void foo1();
            void foo2();
            """)
-         ]
+        ]
     }
 }

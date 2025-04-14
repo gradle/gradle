@@ -53,6 +53,30 @@ public class AuthenticationSupporter {
         this.providerFactory = providerFactory;
     }
 
+    private static <T extends Credentials> Class<? extends T> getCredentialsImplType(Class<T> publicType) {
+        if (publicType == PasswordCredentials.class) {
+            return Cast.uncheckedCast(DefaultPasswordCredentials.class);
+        } else if (publicType == AwsCredentials.class) {
+            return Cast.uncheckedCast(DefaultAwsCredentials.class);
+        } else if (publicType == HttpHeaderCredentials.class) {
+            return Cast.uncheckedCast(DefaultHttpHeaderCredentials.class);
+        } else {
+            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s, %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName(), HttpHeaderCredentials.class.getName()));
+        }
+    }
+
+    private static <T extends Credentials> Class<? super T> getCredentialsPublicType(Class<T> implType) {
+        if (PasswordCredentials.class.isAssignableFrom(implType)) {
+            return Cast.uncheckedCast(PasswordCredentials.class);
+        } else if (AwsCredentials.class.isAssignableFrom(implType)) {
+            return Cast.uncheckedCast(AwsCredentials.class);
+        } else if (HttpHeaderCredentials.class.isAssignableFrom(implType)) {
+            return Cast.uncheckedCast(HttpHeaderCredentials.class);
+        } else {
+            throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName(), DefaultHttpHeaderCredentials.class.getName()));
+        }
+    }
+
     public PasswordCredentials getCredentials() {
         if (!usesCredentials()) {
             return setCredentials(PasswordCredentials.class);
@@ -89,11 +113,6 @@ public class AuthenticationSupporter {
         this.credentials.set(providerFactory.credentials(credentialsType, identity));
     }
 
-    public void setConfiguredCredentials(Credentials credentials) {
-        this.usesCredentials = true;
-        this.credentials.set(credentials);
-    }
-
     private <T extends Credentials> T setCredentials(Class<T> clazz) {
         this.usesCredentials = true;
         T t = newCredentials(clazz);
@@ -107,6 +126,11 @@ public class AuthenticationSupporter {
 
     public Property<Credentials> getConfiguredCredentials() {
         return credentials;
+    }
+
+    public void setConfiguredCredentials(Credentials credentials) {
+        this.usesCredentials = true;
+        this.credentials.set(credentials);
     }
 
     public void authentication(Action<? super AuthenticationContainer> action) {
@@ -126,6 +150,9 @@ public class AuthenticationSupporter {
         }
     }
 
+    // Mappings between public and impl types
+    // If the list of mappings grows we should move it to a data structure
+
     boolean usesCredentials() {
         return usesCredentials;
     }
@@ -134,33 +161,6 @@ public class AuthenticationSupporter {
         // TODO: This will have to be changed when we support setting credentials directly on the authentication
         for (Authentication authentication : authenticationContainer) {
             ((AuthenticationInternal) authentication).setCredentials(credentials.getOrNull());
-        }
-    }
-
-    // Mappings between public and impl types
-    // If the list of mappings grows we should move it to a data structure
-
-    private static <T extends Credentials> Class<? extends T> getCredentialsImplType(Class<T> publicType) {
-        if (publicType == PasswordCredentials.class) {
-            return Cast.uncheckedCast(DefaultPasswordCredentials.class);
-        } else if (publicType == AwsCredentials.class) {
-            return Cast.uncheckedCast(DefaultAwsCredentials.class);
-        } else if (publicType == HttpHeaderCredentials.class) {
-            return Cast.uncheckedCast(DefaultHttpHeaderCredentials.class);
-        } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s, %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName(), HttpHeaderCredentials.class.getName()));
-        }
-    }
-
-    private static <T extends Credentials> Class<? super T> getCredentialsPublicType(Class<T> implType) {
-        if (PasswordCredentials.class.isAssignableFrom(implType)) {
-            return Cast.uncheckedCast(PasswordCredentials.class);
-        } else if (AwsCredentials.class.isAssignableFrom(implType)) {
-            return Cast.uncheckedCast(AwsCredentials.class);
-        } else if (HttpHeaderCredentials.class.isAssignableFrom(implType)) {
-            return Cast.uncheckedCast(HttpHeaderCredentials.class);
-        } else {
-            throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s, %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName(), DefaultHttpHeaderCredentials.class.getName()));
         }
     }
 

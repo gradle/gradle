@@ -78,11 +78,11 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller             | larger
-        "1.0-alpha"         | "1.0.1"
-        "a.b.c"             | "a.b.123"
-        "a"                 | "123"
-        "1.0.0-alpha.beta"  | "1.0.0-alpha.1"
+        smaller            | larger
+        "1.0-alpha"        | "1.0.1"
+        "a.b.c"            | "a.b.123"
+        "a"                | "123"
+        "1.0.0-alpha.beta" | "1.0.0-alpha.1"
     }
 
     def "extra trailing parts that contain no digits make the version smaller"() {

@@ -58,12 +58,14 @@ public interface PluginManagementSpec {
 
     /**
      * Configure the default plugin versions.
+     *
      * @since 5.6
      */
     void plugins(Action<? super PluginDependenciesSpec> action);
 
     /**
      * The Plugin dependencies, permitting default plugin versions to be configured.
+     *
      * @since 5.6
      */
     PluginDependenciesSpec getPlugins();
@@ -71,8 +73,8 @@ public interface PluginManagementSpec {
     /**
      * Includes a plugin build at the specified path to the composite build.
      * Included plugin builds can contribute settings and project plugins.
-     * @param rootProject The path to the root project directory for the build.
      *
+     * @param rootProject The path to the root project directory for the build.
      * @since 7.0
      */
     @Adding
@@ -81,9 +83,9 @@ public interface PluginManagementSpec {
     /**
      * Includes a plugin build at the specified path to the composite build, with the supplied configuration.
      * Included plugin builds can contribute settings and project plugins.
+     *
      * @param rootProject The path to the root project directory for the build.
      * @param configuration An action to configure the included build.
-     *
      * @since 7.0
      */
     void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);

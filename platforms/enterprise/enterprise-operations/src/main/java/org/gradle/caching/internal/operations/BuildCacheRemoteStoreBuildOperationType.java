@@ -26,6 +26,9 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class BuildCacheRemoteStoreBuildOperationType implements BuildOperationType<BuildCacheRemoteStoreBuildOperationType.Details, BuildCacheRemoteStoreBuildOperationType.Result> {
 
+    private BuildCacheRemoteStoreBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -49,8 +52,5 @@ public final class BuildCacheRemoteStoreBuildOperationType implements BuildOpera
          */
         boolean isStored();
 
-    }
-
-    private BuildCacheRemoteStoreBuildOperationType() {
     }
 }

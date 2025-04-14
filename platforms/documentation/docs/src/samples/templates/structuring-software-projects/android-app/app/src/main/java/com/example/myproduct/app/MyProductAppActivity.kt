@@ -14,12 +14,12 @@ import com.example.myproduct.user.table.TableBuilder
 
 class MyProductAppActivity : Activity() {
 
-    class DownloadTask: AsyncTask<Void, Void, List<MutableList<String>>>() {
+    class DownloadTask : AsyncTask<Void, Void, List<MutableList<String>>>() {
         override fun doInBackground(vararg params: Void): List<MutableList<String>> {
             return TableBuilder.build()
         }
 
-        override fun onPostExecute(result: List<MutableList<String>>) { }
+        override fun onPostExecute(result: List<MutableList<String>>) {}
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

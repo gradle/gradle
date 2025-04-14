@@ -229,6 +229,28 @@ public class ResolutionExecutor {
         this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
     }
 
+    private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolutionParameters params) {
+        ImmutableAttributes requestAttributes = params.getRootVariant().getAttributes();
+        ResolutionStrategy.SortOrder sortOrder = params.getDefaultSortOrder();
+        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
+    }
+
+    private static LocalComponentDependencyMetadata asDependencyConstraintMetadata(ResolutionParameters.ModuleVersionLock lock) {
+        VersionConstraint versionConstraint = lock.isStrict()
+            ? DefaultImmutableVersionConstraint.strictly(lock.getVersion())
+            : DefaultImmutableVersionConstraint.of(lock.getVersion());
+
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+            lock.getModuleId(),
+            versionConstraint
+        );
+
+        return new LocalComponentDependencyMetadata(
+            selector, null, Collections.emptyList(), Collections.emptyList(),
+            false, false, false, true, false, true, lock.getReason()
+        );
+    }
+
     /**
      * Traverses enough of the graph to calculate the build dependencies of the graph.
      *
@@ -236,7 +258,6 @@ public class ResolutionExecutor {
      * @param params Immutable thread-safe parameters describing what and how to resolve
      * @param futureCompleteResults The future value of the output of {@link #resolveGraph(LegacyResolutionParameters, ResolutionParameters, List)}. See
      * {@link DefaultTransformUpstreamDependenciesResolver} for why this is needed.
-     *
      * @return An immutable result set, containing a subset of the graph that is sufficient to calculate the build dependencies.
      */
     public ResolverResults resolveBuildDependencies(
@@ -289,7 +310,6 @@ public class ResolutionExecutor {
      * @param legacyParams Legacy parameters describing what and how to resolve
      * @param params Immutable thread-safe parameters describing what and how to resolve
      * @param repositories The repositories used to resolve external dependencies
-     *
      * @return An immutable result set, containing the full graph of resolved components.
      */
     public ResolverResults resolveGraph(
@@ -384,12 +404,6 @@ public class ResolutionExecutor {
             visitedArtifacts,
             DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(configuration)
         );
-    }
-
-    private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolutionParameters params) {
-        ImmutableAttributes requestAttributes = params.getRootVariant().getAttributes();
-        ResolutionStrategy.SortOrder sortOrder = params.getDefaultSortOrder();
-        return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
     }
 
     private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry) {
@@ -534,22 +548,6 @@ public class ResolutionExecutor {
             ));
         }
         return locks.build();
-    }
-
-    private static LocalComponentDependencyMetadata asDependencyConstraintMetadata(ResolutionParameters.ModuleVersionLock lock) {
-        VersionConstraint versionConstraint = lock.isStrict()
-            ? DefaultImmutableVersionConstraint.strictly(lock.getVersion())
-            : DefaultImmutableVersionConstraint.of(lock.getVersion());
-
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-            lock.getModuleId(),
-            versionConstraint
-        );
-
-        return new LocalComponentDependencyMetadata(
-            selector, null, Collections.emptyList(), Collections.emptyList(),
-            false, false, false, true, false, true, lock.getReason()
-        );
     }
 
 }

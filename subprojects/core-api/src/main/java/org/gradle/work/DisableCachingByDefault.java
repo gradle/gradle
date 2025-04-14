@@ -37,7 +37,6 @@ import java.lang.annotation.Target;
  *
  * @see org.gradle.api.tasks.CacheableTask
  * @see org.gradle.api.artifacts.transform.CacheableTransform
- *
  * @since 7.0
  */
 @Documented

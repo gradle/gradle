@@ -103,13 +103,17 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
                     Constructor<?> constructor = toolClass.getConstructor(String[].class);
                     return constructor.newInstance(new Object[]{args});
                 }
-            }catch(ClassNotFoundException cnf){
+            } catch (ClassNotFoundException cnf) {
                 throw cnf;
             } catch (InvocationTargetException e) {
                 throw new GradleException("Failed to load ANTLR", e.getCause());
             } catch (Exception e) {
                 throw new GradleException("Failed to load ANTLR", e);
             }
+        }
+
+        protected static String[] toArray(List<String> strings) {
+            return strings.toArray(new String[0]);
         }
 
         public final AntlrResult process(AntlrSpec spec) {
@@ -154,13 +158,18 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
 
         public abstract boolean available();
 
-        protected static String[] toArray(List<String> strings) {
-            return strings.toArray(new String[0]);
-        }
-
     }
 
     static class Antlr4Tool extends AntlrTool {
+        private static void setField(Object object, String fieldName, File value) {
+            try {
+                Field field = object.getClass().getField(fieldName);
+                field.set(object, value);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedObject = loadTool("org.antlr.v4.Tool", toArray(arguments));
@@ -169,15 +178,6 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
             }
             JavaMethod.of(backedObject, Void.class, "processGrammarsOnCommandLine").invoke(backedObject);
             return JavaMethod.of(backedObject, Integer.class, "getNumErrors").invoke(backedObject);
-        }
-
-        private static void setField(Object object, String fieldName, File value) {
-            try {
-                Field field = object.getClass().getField(fieldName);
-                field.set(object, value);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
         }
 
         @Override
@@ -216,7 +216,7 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
 
         /**
          * inputDirectory is not used in antlr2
-         * */
+         */
         @Override
         int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedAntlrTool = loadTool("antlr.Tool", null);

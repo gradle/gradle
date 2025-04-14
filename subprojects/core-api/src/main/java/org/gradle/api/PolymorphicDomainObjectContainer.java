@@ -34,7 +34,6 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @param type the type of the domain object to be created
      * @param <U> the type of the domain object to be created
      * @return the created domain object
-     *
      * @throws InvalidUserDataException if a domain object with the specified name already exists
      * or the container does not support creating a domain object with the specified type
      */
@@ -49,7 +48,6 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @param type the type of the domain object to be created
      * @param <U> the type of the domain object to be created
      * @return the found or created domain object, never <code>null</code>.
-     *
      * @throws InvalidUserDataException if the container does not support creating a domain object with the specified type
      * @throws ClassCastException if a domain object with the specified name exists with a different type
      */
@@ -66,7 +64,6 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @param configuration an action for configuring the domain object
      * @param <U> the type of the domain object to be created
      * @return the created domain object
-     *
      * @throws InvalidUserDataException if a domain object with the specified name already exists
      * or the container does not support creating a domain object with the specified type
      */

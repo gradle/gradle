@@ -235,6 +235,13 @@ public interface MavenPublication extends Publication {
     MavenArtifact artifact(Object source, Action<? super MavenArtifact> config);
 
     /**
+     * Returns the complete set of artifacts for this publication.
+     *
+     * @return the artifacts.
+     */
+    MavenArtifactSet getArtifacts();
+
+    /**
      * Clears any previously added artifacts from {@link #getArtifacts} and creates artifacts from the specified sources.
      * Each supplied source is interpreted as per {@link #artifact(Object)}.
      *
@@ -248,7 +255,7 @@ public interface MavenPublication extends Publication {
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "sources"
      * }
-
+     *
      * publishing {
      *   publications {
      *     maven(MavenPublication) {
@@ -262,12 +269,6 @@ public interface MavenPublication extends Publication {
      * @param sources The set of artifacts for this publication.
      */
     void setArtifacts(Iterable<?> sources);
-
-    /**
-     * Returns the complete set of artifacts for this publication.
-     * @return the artifacts.
-     */
-    MavenArtifactSet getArtifacts();
 
     /**
      * Returns the groupId for this publication.
@@ -327,7 +328,6 @@ public interface MavenPublication extends Publication {
      * </pre>
      *
      * @param configureAction the configuration
-     *
      * @since 5.2
      */
     void versionMapping(Action<? super VersionMappingStrategy> configureAction);
@@ -338,7 +338,6 @@ public interface MavenPublication extends Publication {
      * Warnings are emitted when Gradle features are used that cannot be mapped completely to Maven POM.
      *
      * @param variantName the variant to silence warning for
-     *
      * @since 6.0
      */
     void suppressPomMetadataWarningsFor(String variantName);

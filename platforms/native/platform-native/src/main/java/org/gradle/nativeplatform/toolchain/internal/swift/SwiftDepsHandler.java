@@ -57,8 +57,8 @@ import java.util.Map;
  */
 @SuppressWarnings("rawtypes")
 class SwiftDepsHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SwiftDepsHandler.class);
     static final List RESET_TIMESTAMP = Arrays.asList(0L, 0L);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SwiftDepsHandler.class);
 
     SwiftDeps parse(File moduleSwiftDeps) throws FileNotFoundException {
         return IoActions.withResource(new FileInputStream(moduleSwiftDeps), fileInputStream -> {
@@ -153,11 +153,11 @@ class SwiftDepsHandler {
         @Override
         public String toString() {
             return "SwiftDeps{" +
-                    "version='" + version + '\'' +
-                    ", options='" + options + '\'' +
-                    ", build_time=" + build_time +
-                    ", inputs=" + inputs +
-                    '}';
+                "version='" + version + '\'' +
+                ", options='" + options + '\'' +
+                ", build_time=" + build_time +
+                ", inputs=" + inputs +
+                '}';
         }
     }
     //CHECKSTYLE:ON

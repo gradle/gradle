@@ -43,7 +43,6 @@ import java.io.IOException;
  * If the filter init parameter maxPutSize is set to a positive integer, then
  * only puts of known size less than maxPutSize will be accepted.
  * </p>
- *
  */
 // Copied from org.mortbay.servlet.RestFilter
 public class RestFilter implements Filter {

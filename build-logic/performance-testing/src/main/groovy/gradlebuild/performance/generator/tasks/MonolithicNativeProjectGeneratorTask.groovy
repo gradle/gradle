@@ -48,7 +48,7 @@ class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask 
     void generatePrebuiltLibrarySource() {
         templateArgs.prebuiltLibraries.times { prebuiltLib ->
             rootProject.sourceFiles.times { sourceIdx ->
-                def fileArgs = [ sourceIdx: sourceIdx, offset: (prebuiltLib+1)*rootProject.sourceFiles ]
+                def fileArgs = [sourceIdx: sourceIdx, offset: (prebuiltLib + 1) * rootProject.sourceFiles]
                 generateWithTemplate(destDir, "prebuilt/lib${prebuiltLib}/include/header${sourceIdx}.h", "native-monolithic/src/prebuilt.h", fileArgs)
             }
         }
@@ -56,7 +56,7 @@ class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask 
 
     void generateCommonLibrarySource() {
         rootProject.sourceFiles.times { sourceIdx ->
-            def fileArgs = [ sourceIdx: sourceIdx ]
+            def fileArgs = [sourceIdx: sourceIdx]
             def destination = destDir
             if (!templateArgs.overlapWithOutput) {
                 destination = new File(destDir, "common")
@@ -74,7 +74,7 @@ class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask 
 
     void generateProjectSource(File projectDir, String sourceLang, TestProject testProject, Map args) {
         testProject.sourceFiles.times { sourceIdx ->
-            def fileArgs = args + [ sourceIdx: sourceIdx, offset: (sourceIdx+1)*args.functionCount ]
+            def fileArgs = args + [sourceIdx: sourceIdx, offset: (sourceIdx + 1) * args.functionCount]
             generateWithTemplate(destDir, "modules/${testProject.name}/src/src${sourceIdx}_${sourceLang}.${sourceLang}", "native-monolithic/src/src.${sourceLang}", fileArgs)
             generateWithTemplate(destDir, "modules/${testProject.name}/src/unused${sourceIdx}.${sourceLang}", "native-monolithic/src/unused.c", fileArgs)
         }

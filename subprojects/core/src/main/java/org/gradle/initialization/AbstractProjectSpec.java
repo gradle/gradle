@@ -24,6 +24,7 @@ import java.util.List;
 
 public abstract class AbstractProjectSpec implements ProjectSpec {
     private static final String UNRELATED_BUILD_HINT = " If this is an unrelated build, it must have its own settings file.";
+
     @Override
     public boolean containsProject(ProjectRegistry<? extends ProjectIdentifier> registry) {
         checkPreconditions(registry);

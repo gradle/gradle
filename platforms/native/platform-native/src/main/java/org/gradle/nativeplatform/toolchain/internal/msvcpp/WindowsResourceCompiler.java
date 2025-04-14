@@ -48,6 +48,7 @@ class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCom
             getLanguageOption().ifPresent(args::add);
             args.add("/nologo");
         }
+
         @Override
         protected Optional<String> getLanguageOption() {
             return Optional.of("/r");

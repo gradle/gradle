@@ -44,7 +44,7 @@ class VisualCppToolChainTest extends Specification {
     final BuildOperationExecutor buildOperationExecutor = Stub(BuildOperationExecutor)
     final SearchResult<VisualStudioInstall> visualStudioLookup = Stub(SearchResult)
     final SearchResult<WindowsSdkInstall> windowsSdkLookup = Stub(SearchResult)
-	final SearchResult<UcrtInstall> ucrtLookup = Stub(SearchResult)
+    final SearchResult<UcrtInstall> ucrtLookup = Stub(SearchResult)
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
     final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     VisualCppToolChain toolChain
@@ -58,7 +58,7 @@ class VisualCppToolChainTest extends Specification {
     final UcrtLocator ucrtLocator = Stub(UcrtLocator) {
         locateComponent(_) >> ucrtLookup
     }
-	final OperatingSystem operatingSystem = Stub(OperatingSystem) {
+    final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
     }
 
@@ -70,7 +70,7 @@ class VisualCppToolChainTest extends Specification {
         given:
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
-		ucrtLookup.available >> false
+        ucrtLookup.available >> false
         def toolChain = new VisualCppToolChain("visualCpp", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator, workerLeaseService)
 
         when:
@@ -87,7 +87,7 @@ class VisualCppToolChainTest extends Specification {
         visualStudioLookup.available >> false
         visualStudioLookup.explain(_) >> { DiagnosticsVisitor visitor -> visitor.node("vs install not found anywhere") }
         windowsSdkLookup.available >> false
-		ucrtLookup.available >> false
+        ucrtLookup.available >> false
 
         and:
         def result = toolChain.select(Stub(NativePlatformInternal))
@@ -175,7 +175,7 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLocator.locateWindowsSdks(file("win-sdk")) >> windowsSdkLookup
         windowsSdkLookup.available >> true
         windowsSdkLookup.component >> Stub(WindowsSdkInstall)
-		ucrtLookup.available >> false
+        ucrtLookup.available >> false
 
         and:
         0 * _._

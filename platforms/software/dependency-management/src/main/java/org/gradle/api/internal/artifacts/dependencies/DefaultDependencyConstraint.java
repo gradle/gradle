@@ -173,13 +173,13 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
     }
 
     @Override
-    public void setForce(boolean force) {
-        validateMutation();
-        this.force = force;
+    public boolean isForce() {
+        return force;
     }
 
     @Override
-    public boolean isForce() {
-        return force;
+    public void setForce(boolean force) {
+        validateMutation();
+        this.force = force;
     }
 }

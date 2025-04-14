@@ -48,7 +48,6 @@ public interface Manifest {
      * @param attributes The values to add to the main attributes. The values can be any object. For evaluating the value objects
      * their {@link Object#toString()} method is used. This is done lazily either before writing or when {@link #getEffectiveManifest()}
      * is called.
-     *
      * @return this
      * @throws ManifestException If a key is invalid according to the manifest spec or if a key or value is null.
      */
@@ -61,7 +60,6 @@ public interface Manifest {
      * their {@link Object#toString()} method is used. This is done lazily either before writing or when {@link #getEffectiveManifest()}
      * is called.
      * @param sectionName The name of the section
-     *
      * @return this
      * @throws ManifestException If a key is invalid according to the manifest spec or if a key or value is null.
      */

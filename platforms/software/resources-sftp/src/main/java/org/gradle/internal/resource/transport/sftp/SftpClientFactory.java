@@ -44,11 +44,10 @@ import java.util.List;
 @ServiceScope(Scope.Global.class)
 public class SftpClientFactory implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SftpClientFactory.class);
-
-    private SftpClientCreator sftpClientCreator = new SftpClientCreator();
     private final Object lock = new Object();
     private final List<LockableSftpClient> allClients = new ArrayList<>();
     private final ListMultimap<SftpHost, LockableSftpClient> idleClients = ArrayListMultimap.create();
+    private SftpClientCreator sftpClientCreator = new SftpClientCreator();
 
     public LockableSftpClient createSftpClient(URI uri, PasswordCredentials credentials) {
         synchronized (lock) {
@@ -96,6 +95,24 @@ public class SftpClientFactory implements Stoppable {
         }
     }
 
+    public void releaseSftpClient(LockableSftpClient sftpClient) {
+        synchronized (lock) {
+            idleClients.put(sftpClient.getHost(), sftpClient);
+        }
+    }
+
+    @Override
+    public void stop() {
+        synchronized (lock) {
+            try {
+                CompositeStoppable.stoppable(allClients).stop();
+            } finally {
+                allClients.clear();
+                idleClients.clear();
+            }
+        }
+    }
+
     private static class SftpClientCreator {
         private JSch jsch;
 
@@ -121,12 +138,13 @@ public class SftpClientFactory implements Stoppable {
                 JSch.setConfig("PreferredAuthentications", "password");
                 JSch.setConfig("MaxAuthTries", "1");
                 jsch = new JSch();
-                if(LOGGER.isDebugEnabled()) {
+                if (LOGGER.isDebugEnabled()) {
                     JSch.setLogger(new com.jcraft.jsch.Logger() {
                         @Override
                         public boolean isEnabled(int level) {
                             return true;
                         }
+
                         @Override
                         public void log(int level, String message) {
                             LOGGER.debug(message);
@@ -168,24 +186,6 @@ public class SftpClientFactory implements Stoppable {
                 });
             }
             return jsch;
-        }
-    }
-
-    public void releaseSftpClient(LockableSftpClient sftpClient) {
-        synchronized (lock) {
-            idleClients.put(sftpClient.getHost(), sftpClient);
-        }
-    }
-
-    @Override
-    public void stop() {
-        synchronized (lock) {
-            try {
-                CompositeStoppable.stoppable(allClients).stop();
-            } finally {
-                allClients.clear();
-                idleClients.clear();
-            }
         }
     }
 

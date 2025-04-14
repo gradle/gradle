@@ -28,14 +28,16 @@ import spock.lang.Subject
 import java.util.concurrent.TimeUnit
 
 class LeastRecentlyUsedCacheCleanupTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def cleanableStore = Stub(CleanableStore) {
         getBaseDir() >> cacheDir
     }
     def fileAccessTimeJournal = Spy(ModificationTimeFileAccessTimeJournal)
     def progressMonitor = Stub(CleanupProgressMonitor)
-    @Subject def cleanupAction = new LeastRecentlyUsedCacheCleanup(
+    @Subject
+    def cleanupAction = new LeastRecentlyUsedCacheCleanup(
         new SingleDepthFilesFinder(1), fileAccessTimeJournal, TimestampSuppliers.daysAgo(1))
 
     def "finds files to delete when files are old"() {
@@ -80,6 +82,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
     }
 
     private Random r = new Random()
+
     def createCacheEntry(long timestamp) {
         def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt()))
         def data = new byte[1024]

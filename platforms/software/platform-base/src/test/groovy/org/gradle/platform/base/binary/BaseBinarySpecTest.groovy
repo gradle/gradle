@@ -108,6 +108,7 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
 
     static class MySampleBinary extends BaseBinarySpec implements SampleBinary {
     }
+
     static class MyConstructedBinary extends BaseBinarySpec implements SampleBinary {
         MyConstructedBinary(String arg) {}
     }

@@ -215,9 +215,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 ${sensitivity
-                    ? "@PathSensitive(PathSensitivity.$sensitivity)"
-                    : ""
-                }
+            ? "@PathSensitive(PathSensitivity.$sensitivity)"
+            : ""
+        }
                 abstract Provider<FileSystemLocation> getInputArtifact()
 
                 $inputChanges

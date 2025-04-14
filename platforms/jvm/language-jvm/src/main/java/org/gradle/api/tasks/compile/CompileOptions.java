@@ -57,48 +57,29 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
  */
 public abstract class CompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
-
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private boolean deprecation;
-
-    private boolean warnings = true;
-
-    private String encoding;
-
-    private boolean debug = true;
-
-    private DebugOptions debugOptions;
-
-    private boolean fork;
-
-    private ForkOptions forkOptions;
-
-    private FileCollection bootstrapClasspath;
-
-    private String extensionDirs;
-
-    private List<String> compilerArgs = new ArrayList<>();
     private final List<CommandLineArgumentProvider> compilerArgumentProviders = new ArrayList<>();
-
-    private boolean incremental = true;
-
-    private FileCollection sourcepath;
-
-    private FileCollection annotationProcessorPath;
-
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
     private final Property<Integer> release;
-
     private final DirectoryProperty generatedSourceOutputDirectory;
-
     private final DirectoryProperty headerOutputDirectory;
+    private boolean failOnError = true;
+    private boolean verbose;
+    private boolean listFiles;
+    private boolean deprecation;
+    private boolean warnings = true;
+    private String encoding;
+    private boolean debug = true;
+    private DebugOptions debugOptions;
+    private boolean fork;
+    private ForkOptions forkOptions;
+    private FileCollection bootstrapClasspath;
+    private String extensionDirs;
+    private List<String> compilerArgs = new ArrayList<>();
+    private boolean incremental = true;
+    private FileCollection sourcepath;
+    private FileCollection annotationProcessorPath;
 
     @Inject
     public CompileOptions(ObjectFactory objectFactory) {
@@ -343,6 +324,14 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Sets any additional arguments to be passed to the compiler.
+     * Defaults to the empty list.
+     */
+    public void setCompilerArgs(List<String> compilerArgs) {
+        this.compilerArgs = compilerArgs;
+    }
+
+    /**
      * Returns all compiler arguments, added to the {@link #getCompilerArgs()} or the {@link #getCompilerArgumentProviders()} property.
      *
      * @since 4.5
@@ -370,11 +359,12 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Sets any additional arguments to be passed to the compiler.
-     * Defaults to the empty list.
+     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
      */
-    public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
+    @Internal
+    @ToBeReplacedByLazyProperty
+    public boolean isIncremental() {
+        return incremental;
     }
 
     /**
@@ -383,15 +373,6 @@ public abstract class CompileOptions implements Serializable {
     public CompileOptions setIncremental(boolean incremental) {
         this.incremental = incremental;
         return this;
-    }
-
-    /**
-     * informs whether to use incremental compilation feature. See {@link #setIncremental(boolean)}
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isIncremental() {
-        return incremental;
     }
 
     /**

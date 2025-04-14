@@ -139,6 +139,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * </ul>
      *
      * This method is suitable for internal usages in the Gradle codebase.
+     *
      * @return A map where the keys are the project names and the values are the child projects
      */
     Map<String, Project> getChildProjectsUnchecked();
@@ -256,14 +257,14 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     RoleBasedConfigurationContainerInternal getConfigurations();
 
-    void setLifecycleActionsState(@Nullable Object state);
-
     /**
      * The state of the execution of {@link org.gradle.api.invocation.GradleLifecycle} actions of this project.
      * Its mutation NOT considered a mutable state access.
-     * */
+     */
     @Nullable
     Object getLifecycleActionsState();
+
+    void setLifecycleActionsState(@Nullable Object state);
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

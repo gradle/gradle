@@ -35,7 +35,6 @@ public abstract class UserManual {
 
     /**
      * Source of samples that can be inserted into the user manual
-     *
      */
     public abstract DirectoryProperty getSamples();
 

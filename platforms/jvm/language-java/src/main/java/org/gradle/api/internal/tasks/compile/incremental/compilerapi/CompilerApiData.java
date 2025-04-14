@@ -45,6 +45,18 @@ public class CompilerApiData {
         this.constantToDependentsMapping = constantToDependentsMapping;
     }
 
+    public static CompilerApiData unavailable() {
+        return new CompilerApiData(false, false, Collections.emptyMap(), ConstantToDependentsMapping.empty());
+    }
+
+    public static CompilerApiData withoutConstantsMapping(Map<String, Set<String>> sourceToClassMapping) {
+        return new CompilerApiData(true, false, sourceToClassMapping, ConstantToDependentsMapping.empty());
+    }
+
+    public static CompilerApiData withConstantsMapping(Map<String, Set<String>> sourceToClassMapping, ConstantToDependentsMapping constantToDependentsMapping) {
+        return new CompilerApiData(true, true, sourceToClassMapping, constantToDependentsMapping);
+    }
+
     public DependentsSet getConstantDependentsForClass(String constantOrigin) {
         return constantToDependentsMapping.getConstantDependentsForClass(constantOrigin);
     }
@@ -59,18 +71,6 @@ public class CompilerApiData {
 
     public boolean isSupportsConstantsMapping() {
         return supportsConstantsMapping;
-    }
-
-    public static CompilerApiData unavailable() {
-        return new CompilerApiData(false, false, Collections.emptyMap(), ConstantToDependentsMapping.empty());
-    }
-
-    public static CompilerApiData withoutConstantsMapping(Map<String, Set<String>> sourceToClassMapping) {
-        return new CompilerApiData(true, false, sourceToClassMapping, ConstantToDependentsMapping.empty());
-    }
-
-    public static CompilerApiData withConstantsMapping(Map<String, Set<String>> sourceToClassMapping, ConstantToDependentsMapping constantToDependentsMapping) {
-        return new CompilerApiData(true, true, sourceToClassMapping, constantToDependentsMapping);
     }
 
     public Map<String, Set<String>> getSourceToClassMapping() {

@@ -39,6 +39,27 @@ import java.util.stream.Stream;
 public class PackageCycleTest {
     private static final PackageMatchers IGNORED_PACKAGES_FOR_CYCLES = PackageMatchers.of(ignoredPackagesForCycles());
     private static final ImmutableSet<String> IGNORED_CLASSES_FOR_CYCLES = ImmutableSet.copyOf(ignoredClassesForCycles());
+    private static final SliceAssignment GRADLE_SLICE_ASSIGNMENT = new SliceAssignment() {
+        @Override
+        public String getDescription() {
+            return "slices matching 'org.gradle.(**)";
+        }
+
+        @Override
+        public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
+            if (isInIgnoredPackage(javaClass) || isIgnoredClass(javaClass)) {
+                return SliceIdentifier.ignore();
+            }
+            return SliceIdentifier.of(javaClass.getPackageName());
+        }
+    };
+    @ArchTest
+    public static final ArchRule there_are_no_package_cycles =
+        SlicesRuleDefinition.slices().assignedFrom(GRADLE_SLICE_ASSIGNMENT)
+            .should()
+            .beFreeOfCycles()
+            // Some projects exclude all classes, that is why we allow empty here
+            .allowEmptyShould(true);
 
     private static boolean isInIgnoredPackage(JavaClass javaClass) {
         return IGNORED_PACKAGES_FOR_CYCLES.test(javaClass.getPackageName());
@@ -74,27 +95,4 @@ public class PackageCycleTest {
             .map(pattern -> pattern.replace("*", ""))
             .collect(Collectors.toSet());
     }
-
-    private static final SliceAssignment GRADLE_SLICE_ASSIGNMENT = new SliceAssignment() {
-        @Override
-        public String getDescription() {
-            return "slices matching 'org.gradle.(**)";
-        }
-
-        @Override
-        public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
-            if (isInIgnoredPackage(javaClass) || isIgnoredClass(javaClass)) {
-                return SliceIdentifier.ignore();
-            }
-            return SliceIdentifier.of(javaClass.getPackageName());
-        }
-    };
-
-    @ArchTest
-    public static final ArchRule there_are_no_package_cycles =
-        SlicesRuleDefinition.slices().assignedFrom(GRADLE_SLICE_ASSIGNMENT)
-            .should()
-            .beFreeOfCycles()
-            // Some projects exclude all classes, that is why we allow empty here
-            .allowEmptyShould(true);
 }

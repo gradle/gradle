@@ -49,11 +49,6 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         this.buildCancellationToken = buildCancellationToken;
     }
 
-    @Override
-    public ClientExecHandleBuilder newExecHandleBuilder() {
-        return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
-    }
-
     public static DefaultClientExecHandleBuilderFactory of(
         PathToFileResolver fileResolver,
         ExecutorFactory executorFactory,
@@ -71,6 +66,11 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
     }
 
+    @Override
+    public ClientExecHandleBuilder newExecHandleBuilder() {
+        return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+    }
+
     /**
      * An instance of {@link ClientExecHandleBuilderFactory} that delegates to DefaultClientExecHandleBuilderFactory, but is also Stoppable.
      *
@@ -84,16 +84,6 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
             this.delegate = delegate;
         }
 
-        @Override
-        public ClientExecHandleBuilder newExecHandleBuilder() {
-            return delegate.newExecHandleBuilder();
-        }
-
-        @Override
-        public void stop() {
-            CompositeStoppable.stoppable(delegate.executor).stop();
-        }
-
         /**
          * Creates a new {@link RootClientExecHandleBuilderFactory} for Daemon starter.
          *
@@ -103,6 +93,16 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
             requireNonNull(gradleUserHome, "gradleUserHome");
             DefaultClientExecHandleBuilderFactory clientExecHandleBuilderFactory = DefaultClientExecHandleBuilderFactory.of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
             return new RootClientExecHandleBuilderFactory(clientExecHandleBuilderFactory);
+        }
+
+        @Override
+        public ClientExecHandleBuilder newExecHandleBuilder() {
+            return delegate.newExecHandleBuilder();
+        }
+
+        @Override
+        public void stop() {
+            CompositeStoppable.stoppable(delegate.executor).stop();
         }
     }
 }

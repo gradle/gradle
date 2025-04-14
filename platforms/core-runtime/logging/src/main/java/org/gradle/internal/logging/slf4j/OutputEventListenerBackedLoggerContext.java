@@ -31,10 +31,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
 
-    private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.LIFECYCLE;
-
     static final String HTTP_CLIENT_WIRE_LOGGER_NAME = "org.apache.http.wire";
     static final String META_INF_EXTENSION_MODULE_LOGGER_NAME = "org.codehaus.groovy.runtime.m12n.MetaInfExtensionModule";
+    private static final LogLevel DEFAULT_LOG_LEVEL = LogLevel.LIFECYCLE;
     private static final String GROOVY_VM_PLUGIN_FACTORY = "org.codehaus.groovy.vmplugin.VMPluginFactory";
 
     private final ConcurrentMap<String, Logger> loggers = new ConcurrentHashMap<String, Logger>();
@@ -64,12 +63,12 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         loggers.put(name, new NoOpLogger(name));
     }
 
-    public void setOutputEventListener(OutputEventListener outputEventListener) {
-        this.outputEventListener.set(outputEventListener);
-    }
-
     public OutputEventListener getOutputEventListener() {
         return outputEventListener.get();
+    }
+
+    public void setOutputEventListener(OutputEventListener outputEventListener) {
+        this.outputEventListener.set(outputEventListener);
     }
 
     @Override

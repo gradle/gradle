@@ -50,7 +50,8 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private final PublishArtifactSet artifacts;
 
     private Factory<List<PublishArtifact>> lazyArtifacts;
-    @Nullable private String description;
+    @Nullable
+    private String description;
 
     public DefaultVariant(
         Describable parentDisplayName,
@@ -71,13 +72,13 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     }
 
     @Override
-    public void setDescription(String description) {
-        this.description = description;
+    public Optional<String> getDescription() {
+        return Optional.ofNullable(description);
     }
 
     @Override
-    public Optional<String> getDescription() {
-        return Optional.ofNullable(description);
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

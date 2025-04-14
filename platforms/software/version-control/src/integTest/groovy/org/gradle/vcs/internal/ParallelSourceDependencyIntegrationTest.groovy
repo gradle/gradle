@@ -23,8 +23,10 @@ import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
 
 class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
-    @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
-    @Rule GitHttpRepository repo = new GitHttpRepository(httpServer, "test", temporaryFolder.getTestDirectory())
+    @Rule
+    BlockingHttpServer httpServer = new BlockingHttpServer()
+    @Rule
+    GitHttpRepository repo = new GitHttpRepository(httpServer, "test", temporaryFolder.getTestDirectory())
 
     def setup() {
         httpServer.start()

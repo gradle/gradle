@@ -31,7 +31,6 @@ public interface MutationGuard {
      * is executed, the executing thread is marked as executing a lazy operation.
      *
      * @param action the action to wrap.
-     *
      * @return an action
      */
     <T> Action<? super T> wrapLazyAction(Action<? super T> action);
@@ -41,7 +40,6 @@ public interface MutationGuard {
      * is executed, the executing thread is marked as executing an eager operation.
      *
      * @param action the action to wrap.
-     *
      * @return an action
      */
     <T> Action<? super T> wrapEagerAction(Action<? super T> action);

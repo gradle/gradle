@@ -208,7 +208,7 @@ No sub-projects
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-            import ${ RegistersSoftwareTypes.class.name};
+            import ${RegistersSoftwareTypes.class.name};
 
             @RegistersSoftwareTypes({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {

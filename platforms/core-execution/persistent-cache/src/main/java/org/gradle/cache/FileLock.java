@@ -53,7 +53,9 @@ public interface FileLock extends Closeable, FileAccess {
      */
     interface State {
         boolean canDetectChanges();
+
         boolean isInInitialState();
+
         boolean hasBeenUpdatedSince(State state);
     }
 }

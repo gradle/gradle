@@ -416,9 +416,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
         when:
         def resultUnbuildableSolution = msbuild
-                .withSolution(solutionFile('app.sln'))
-                .withConfiguration('unbuildable')
-                .succeeds()
+            .withSolution(solutionFile('app.sln'))
+            .withConfiguration('unbuildable')
+            .succeeds()
 
         then:
         resultUnbuildableSolution.size() == 1
@@ -429,9 +429,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
         when:
         def resultDebug = msbuild
-                .withSolution(solutionFile('app.sln'))
-                .withConfiguration('debug')
-                .fails()
+            .withSolution(solutionFile('app.sln'))
+            .withConfiguration('debug')
+            .fails()
 
         then:
         resultDebug.assertTasksExecuted()

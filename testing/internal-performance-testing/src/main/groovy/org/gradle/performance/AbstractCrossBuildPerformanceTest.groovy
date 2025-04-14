@@ -48,9 +48,9 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
     def setup() {
         Assume.assumeFalse(Boolean.getBoolean(CROSS_VERSION_ONLY_PROPERTY_NAME))
         runner = new CrossBuildPerformanceTestRunner(
-                new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
-                RESULTS_STORE.reportAlso(dataReporter),
-                buildContext
+            new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
+            RESULTS_STORE.reportAlso(dataReporter),
+            buildContext
         ) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {

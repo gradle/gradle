@@ -30,7 +30,7 @@ class DirectInstantiatorCacheTest extends Specification {
         given:
         def constructor = null
         int i = 0
-        while (!constructor && ++i<50) {
+        while (!constructor && ++i < 50) {
             // need a loop because IBM JDK is much more proactive in cleaning weak references
             constructor = cache.get(clazz, [] as Class[]).method
         }

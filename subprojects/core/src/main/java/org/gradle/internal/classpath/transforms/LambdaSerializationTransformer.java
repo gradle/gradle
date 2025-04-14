@@ -88,6 +88,27 @@ class LambdaSerializationTransformer extends ClassVisitor {
         super(AsmConstants.ASM_LEVEL, classVisitor);
     }
 
+    private static int getEstimatedArgumentHandlingCodeLength(Type argument) {
+        int loadSize = 7;  // size of SerializedLambda.getCapturedArg(<n>) call
+        // unboxing of a primitive adds "invokevirtual" to "checkcast".
+        int unboxingSize = isPrimitiveArgument(argument) ? 6 : 3;
+        return loadSize + unboxingSize;
+    }
+
+    private static boolean isPrimitiveArgument(Type argument) {
+        switch (argument.getSort()) {
+            case Type.BOOLEAN:
+            case Type.CHAR:
+            case Type.SHORT:
+            case Type.INT:
+            case Type.FLOAT:
+            case Type.LONG:
+            case Type.DOUBLE:
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, @Nullable String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
@@ -246,33 +267,27 @@ class LambdaSerializationTransformer extends ClassVisitor {
         return nonArgumentCodeSize + argumentHandlingLength;
     }
 
-    private static int getEstimatedArgumentHandlingCodeLength(Type argument) {
-        int loadSize = 7;  // size of SerializedLambda.getCapturedArg(<n>) call
-        // unboxing of a primitive adds "invokevirtual" to "checkcast".
-        int unboxingSize = isPrimitiveArgument(argument) ? 6 : 3;
-        return loadSize + unboxingSize;
-    }
-
-    private static boolean isPrimitiveArgument(Type argument) {
-        switch (argument.getSort()) {
-            case Type.BOOLEAN:
-            case Type.CHAR:
-            case Type.SHORT:
-            case Type.INT:
-            case Type.FLOAT:
-            case Type.LONG:
-            case Type.DOUBLE:
-                return true;
-        }
-        return false;
-    }
-
     private MethodVisitor visitStaticPrivateMethod(String name, String descriptor) {
         return super.visitMethod(ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE, name, descriptor, null, NO_EXCEPTIONS);
     }
 
     private void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
         lambdaFactories.add(lambdaFactoryDetails);
+    }
+
+    @NullMarked
+    private static class LambdaFactoryDetails {
+        final String name;
+        final String descriptor;
+        final Handle bootstrapMethodHandle;
+        final List<?> bootstrapMethodArguments;
+
+        public LambdaFactoryDetails(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
+            this.name = name;
+            this.descriptor = descriptor;
+            this.bootstrapMethodHandle = bootstrapMethodHandle;
+            this.bootstrapMethodArguments = bootstrapMethodArguments;
+        }
     }
 
     @NullMarked
@@ -300,21 +315,6 @@ class LambdaSerializationTransformer extends ClassVisitor {
             } else {
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             }
-        }
-    }
-
-    @NullMarked
-    private static class LambdaFactoryDetails {
-        final String name;
-        final String descriptor;
-        final Handle bootstrapMethodHandle;
-        final List<?> bootstrapMethodArguments;
-
-        public LambdaFactoryDetails(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
-            this.name = name;
-            this.descriptor = descriptor;
-            this.bootstrapMethodHandle = bootstrapMethodHandle;
-            this.bootstrapMethodArguments = bootstrapMethodArguments;
         }
     }
 }

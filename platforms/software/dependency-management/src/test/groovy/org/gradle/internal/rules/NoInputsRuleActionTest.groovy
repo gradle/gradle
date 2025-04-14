@@ -15,6 +15,7 @@
  */
 
 package org.gradle.internal.rules
+
 import org.gradle.api.Action
 import org.gradle.util.Matchers
 import spock.lang.Specification
@@ -46,12 +47,12 @@ class NoInputsRuleActionTest extends Specification {
     }
 
     def "equality"() {
-        def baseAction = {String val -> } as Action<String>
+        def baseAction = { String val -> } as Action<String>
         def noInputsAction = ruleAction(baseAction)
 
         expect:
         Matchers.strictlyEquals(noInputsAction, ruleAction(baseAction))
-        noInputsAction != ruleAction({String val -> } as Action<String>)
+        noInputsAction != ruleAction({ String val -> } as Action<String>)
     }
 
     RuleAction<String> ruleAction(Action<String> action) {

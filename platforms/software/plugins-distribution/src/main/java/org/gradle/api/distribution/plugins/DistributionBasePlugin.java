@@ -51,7 +51,6 @@ import java.util.concurrent.Callable;
  * The {@link DistributionPlugin} adds a {@code main} distribution as a convention.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/distribution_plugin.html">Distribution plugin reference</a>
- *
  * @since 8.13
  */
 public abstract class DistributionBasePlugin implements Plugin<Project> {
@@ -70,24 +69,6 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
         this.instantiator = instantiator;
         this.fileOperations = fileOperations;
         this.callbackActionDecorator = callbackActionDecorator;
-    }
-
-    @Override
-    public void apply(final Project project) {
-        project.getPluginManager().apply(BasePlugin.class);
-
-        DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.getObjects(), fileOperations, callbackActionDecorator);
-        distributions.all(dist -> configureDistribution((ProjectInternal) project, dist));
-
-        // TODO: Maintain old behavior of checking for empty-string distribution base names.
-        // It would be nice if we could do this as validation on the property itself.
-        project.afterEvaluate(p -> {
-            distributions.forEach(distribution -> {
-                if (distribution.getDistributionBaseName().get().equals("")) {
-                    throw new GradleException(String.format("Distribution '%s' must not have an empty distributionBaseName.", distribution.getName()));
-                }
-            });
-        });
     }
 
     /**
@@ -185,6 +166,24 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
             assembleTask.setGroup(DISTRIBUTION_GROUP);
             assembleTask.dependsOn(zipTask);
             assembleTask.dependsOn(tarTask);
+        });
+    }
+
+    @Override
+    public void apply(final Project project) {
+        project.getPluginManager().apply(BasePlugin.class);
+
+        DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.getObjects(), fileOperations, callbackActionDecorator);
+        distributions.all(dist -> configureDistribution((ProjectInternal) project, dist));
+
+        // TODO: Maintain old behavior of checking for empty-string distribution base names.
+        // It would be nice if we could do this as validation on the property itself.
+        project.afterEvaluate(p -> {
+            distributions.forEach(distribution -> {
+                if (distribution.getDistributionBaseName().get().equals("")) {
+                    throw new GradleException(String.format("Distribution '%s' must not have an empty distributionBaseName.", distribution.getName()));
+                }
+            });
         });
     }
 }

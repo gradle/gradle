@@ -27,7 +27,7 @@ class TestColorMap implements ColorMap {
         if (statusBarOn == Ansi.Attribute.RESET) {
             return {} as ColorMap.Color
         }
-        return [on : { ansi -> ansi.a(statusBarOn) },
+        return [on: { ansi -> ansi.a(statusBarOn) },
                 off: { ansi -> ansi.a(statusBarOff) }
         ] as ColorMap.Color
     }
@@ -36,7 +36,7 @@ class TestColorMap implements ColorMap {
         if (style != StyledTextOutput.Style.Header) {
             return {} as ColorMap.Color
         }
-        return [on : { ansi -> ansi.fg(Ansi.Color.YELLOW) },
+        return [on: { ansi -> ansi.fg(Ansi.Color.YELLOW) },
                 off: { ansi -> ansi.fg(Ansi.Color.DEFAULT) }
         ] as ColorMap.Color
     }

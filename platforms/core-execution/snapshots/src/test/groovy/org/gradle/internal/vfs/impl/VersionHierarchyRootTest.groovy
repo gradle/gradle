@@ -81,7 +81,7 @@ class VersionHierarchyRootTest extends Specification {
 
     List<String> locationWithAncestors(String location) {
         (location.split('/') as List)
-            .findAll {!it.empty }
+            .findAll { !it.empty }
             .inits().collect { "/${it.join('/')}".toString() }
     }
 

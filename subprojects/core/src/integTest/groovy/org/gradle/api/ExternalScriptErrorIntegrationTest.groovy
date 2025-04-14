@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -39,9 +40,9 @@ doStuff()
 
         then:
         failure.assertHasDescription('A problem occurred evaluating script.')
-                .assertHasCause('Could not find method doStuff() for arguments [] on root project')
-                .assertHasFileName("Script '${externalScript}'")
-                .assertHasLineNumber(3)
+            .assertHasCause('Could not find method doStuff() for arguments [] on root project')
+            .assertHasFileName("Script '${externalScript}'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when external script fails on compilation"() {
@@ -52,9 +53,9 @@ doStuff()
 
         then:
         failure.assertHasDescription("Could not compile script '$externalScript'.")
-                .assertThatCause(containsString("script '${externalScript}': 1: Unexpected input: '(' @ line 1, column 18."))
-                .assertHasFileName("Script '$externalScript'")
-                .assertHasLineNumber(1)
+            .assertThatCause(containsString("script '${externalScript}': 1: Unexpected input: '(' @ line 1, column 18."))
+            .assertHasFileName("Script '$externalScript'")
+            .assertHasLineNumber(1)
     }
 
     def "reports missing script"() {
@@ -63,9 +64,9 @@ doStuff()
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
-                .assertHasCause("Could not read script '${externalScript}' as it does not exist.")
-                .assertHasFileName("Build file '${buildFile}'")
-                .assertHasLineNumber(2)
+            .assertHasCause("Could not read script '${externalScript}' as it does not exist.")
+            .assertHasFileName("Build file '${buildFile}'")
+            .assertHasLineNumber(2)
     }
 
     def "produces reasonable error message when task execution fails"() {
@@ -81,9 +82,9 @@ task doStuff {
 
         then:
         failure.assertHasDescription('Execution failed for task \':doStuff\'.')
-                .assertHasCause('fail')
-                .assertHasFileName("Script '${externalScript}'")
-                .assertHasLineNumber(4)
+            .assertHasCause('fail')
+            .assertHasFileName("Script '${externalScript}'")
+            .assertHasLineNumber(4)
     }
 }
 

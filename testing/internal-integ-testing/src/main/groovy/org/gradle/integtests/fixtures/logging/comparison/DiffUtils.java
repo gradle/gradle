@@ -40,18 +40,23 @@ public final class DiffUtils {
     private final List<String> stringList = new ArrayList<>();
     // A map to record each unique string and its incremental id.
     private final Map<String, Integer> stringToId = new HashMap<>();
+    private final List<Character> unifiedDiffType = new ArrayList<>();
+    private final List<Integer> unifiedDiffContentId = new ArrayList<>();
+    private final List<String> reducedUnifiedDiff = new ArrayList<>();
     private int[] original;
     private int[] revised;
     // lcs[i][j] is the length of the longest common sequence of original[1..i] and revised[1..j].
     private int[][] lcs;
-    private final List<Character> unifiedDiffType = new ArrayList<>();
-    private final List<Integer> unifiedDiffContentId = new ArrayList<>();
-    private final List<String> reducedUnifiedDiff = new ArrayList<>();
     private int offsetHead = 0;
     private int offsetTail = 0;
 
+    public static List<String> generateUnifiedDiff(
+        List<String> original, List<String> revised, int contextSize) {
+        return new DiffUtils().diff(original, revised, contextSize);
+    }
+
     private List<String> diff(
-            List<String> originalLines, List<String> revisedLines, int contextSize) {
+        List<String> originalLines, List<String> revisedLines, int contextSize) {
         reduceEqualLinesFromHeadAndTail(originalLines, revisedLines, contextSize);
         originalLines = originalLines.subList(offsetHead, originalLines.size() - offsetTail);
         revisedLines = revisedLines.subList(offsetHead, revisedLines.size() - offsetTail);
@@ -84,7 +89,9 @@ public final class DiffUtils {
         return reducedUnifiedDiff;
     }
 
-    /** Calculate an incremental Id for a given string. */
+    /**
+     * Calculate an incremental Id for a given string.
+     */
     private Integer getIdByLine(String line) {
         int newId = stringList.size();
         Integer existingId = stringToId.put(line, newId);
@@ -97,9 +104,11 @@ public final class DiffUtils {
         }
     }
 
-    /** An optimization to reduce the problem size by removing equal lines from head and tail. */
+    /**
+     * An optimization to reduce the problem size by removing equal lines from head and tail.
+     */
     private void reduceEqualLinesFromHeadAndTail(
-            List<String> original, List<String> revised, int contextSize) {
+        List<String> original, List<String> revised, int contextSize) {
         int head = 0;
         int maxHead = min(original.size(), revised.size());
         while (head < maxHead && original.get(head).equals(revised.get(head))) {
@@ -111,9 +120,9 @@ public final class DiffUtils {
         int tail = 0;
         int maxTail = min(original.size() - head - contextSize, revised.size() - head - contextSize);
         while (tail < maxTail
-                && original
-                .get(original.size() - 1 - tail)
-                .equals(revised.get(revised.size() - 1 - tail))) {
+            && original
+            .get(original.size() - 1 - tail)
+            .equals(revised.get(revised.size() - 1 - tail))) {
             tail++;
         }
         tail = max(tail - contextSize, 0);
@@ -123,12 +132,12 @@ public final class DiffUtils {
     private void calcUnifiedDiff(int i, int j) {
         while (i > 0 || j > 0) {
             if (i > 0
-                    && j > 0
-                    && original[i] == revised[j]
-                    // Make sure the diff output is identical to the diff command line tool when there are
-                    // multiple solutions.
-                    && lcs[i - 1][j - 1] + 1 > lcs[i - 1][j]
-                    && lcs[i - 1][j - 1] + 1 > lcs[i][j - 1]) {
+                && j > 0
+                && original[i] == revised[j]
+                // Make sure the diff output is identical to the diff command line tool when there are
+                // multiple solutions.
+                && lcs[i - 1][j - 1] + 1 > lcs[i - 1][j]
+                && lcs[i - 1][j - 1] + 1 > lcs[i][j - 1]) {
                 unifiedDiffType.add(' ');
                 unifiedDiffContentId.add(original[i]);
                 i--;
@@ -213,26 +222,21 @@ public final class DiffUtils {
 
             StringBuilder header = new StringBuilder();
             header
-                    .append("@@ -")
-                    .append(startLineOrigin)
-                    .append(",")
-                    .append(blockSizeOrigin)
-                    .append(" +")
-                    .append(startLineRevised)
-                    .append(",")
-                    .append(blockSizeRevised)
-                    .append(" @@");
+                .append("@@ -")
+                .append(startLineOrigin)
+                .append(",")
+                .append(blockSizeOrigin)
+                .append(" +")
+                .append(startLineRevised)
+                .append(",")
+                .append(blockSizeRevised)
+                .append(" @@");
 
             reducedUnifiedDiff.add(header.toString());
             for (int i = start; i < end; i++) {
                 reducedUnifiedDiff.add(
-                        unifiedDiffType.get(i) + stringList.get(unifiedDiffContentId.get(i)));
+                    unifiedDiffType.get(i) + stringList.get(unifiedDiffContentId.get(i)));
             }
         }
-    }
-
-    public static List<String> generateUnifiedDiff(
-            List<String> original, List<String> revised, int contextSize) {
-        return new DiffUtils().diff(original, revised, contextSize);
     }
 }

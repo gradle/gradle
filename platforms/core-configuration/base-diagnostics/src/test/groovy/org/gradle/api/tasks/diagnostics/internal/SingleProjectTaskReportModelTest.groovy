@@ -22,7 +22,7 @@ class SingleProjectTaskReportModelTest extends AbstractTaskModelSpec {
     final TaskDetailsFactory factory = Mock()
 
     def setup() {
-        _ * factory.create(!null) >> {args ->
+        _ * factory.create(!null) >> { args ->
             def task = args[0]
             [getPath: { Path.path(task.path) }, getName: { task.name }] as TaskDetails
         }

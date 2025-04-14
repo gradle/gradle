@@ -453,8 +453,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
     }
 
     def "no name conflicting accessors of different catalogs"() {
-        def libA = mavenHttpRepo.module("com.company","libs-a").publish()
-        def libB = mavenHttpRepo.module("com.companylibs","libs-b").publish()
+        def libA = mavenHttpRepo.module("com.company", "libs-a").publish()
+        def libB = mavenHttpRepo.module("com.companylibs", "libs-b").publish()
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 versionCatalogs {

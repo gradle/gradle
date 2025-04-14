@@ -41,11 +41,11 @@ class WindowsResourceCompilerTest extends VisualCppNativeCompilerTest {
 
     def "check that position sensitive arguments are in the right order"() {
         given:
-        def genericArgs = [ '/nologo' ]
-        def sourceArgs = [ 'path/to/source.rc' ]
-        def outputArgs = [ 'path/to/output.res' ]
+        def genericArgs = ['/nologo']
+        def sourceArgs = ['path/to/source.rc']
+        def outputArgs = ['path/to/output.res']
         def compiler = getCompiler()
         expect:
-        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, []) as List == [ '/nologo', 'path/to/output.res', 'path/to/source.rc' ]
+        compiler.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, []) as List == ['/nologo', 'path/to/output.res', 'path/to/source.rc']
     }
 }

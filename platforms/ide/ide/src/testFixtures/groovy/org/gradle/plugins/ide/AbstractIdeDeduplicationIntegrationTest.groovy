@@ -228,8 +228,8 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
     @ToBeFixedForConfigurationCache
     def "removes duplicate words from project dedup prefix"() {
         given:
-        project("root"){
-            project("api"){
+        project("root") {
+            project("api") {
                 project("myproject") {
                     project("myproject-foo") {
                         project("app") {}
@@ -237,7 +237,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
                 }
 
             }
-            project("impl"){
+            project("impl") {
                 project("myproject") {
                     project("myproject-foo") {
                         project("app") {}

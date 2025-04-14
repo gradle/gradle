@@ -29,7 +29,8 @@ import spock.lang.Subject
 
 class WrapperDistributionCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def usedGradleVersions = Mock(UsedGradleVersions) {
@@ -37,7 +38,8 @@ class WrapperDistributionCleanupActionTest extends Specification implements Grad
     }
     def progressMonitor = Mock(CleanupProgressMonitor)
 
-    @Subject def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir, usedGradleVersions)
+    @Subject
+    def cleanupAction = new WrapperDistributionCleanupAction(userHomeDir, usedGradleVersions)
 
     def "deletes distributions for unused versions"() {
         given:

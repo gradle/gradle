@@ -51,10 +51,6 @@ import java.util.function.Function;
 
 @SuppressWarnings("SameNameButDifferent")
 public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphController, Closeable {
-    private enum State {
-        NotPrepared, Preparing, ReadyToRun, Running, Finished
-    }
-
     private static final int MONITORING_POLL_TIME = 30;
     private final BuildOperationRunner buildOperationRunner;
     private final BuildStateRegistry buildRegistry;
@@ -65,7 +61,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     private final TimeUnit monitoringPollTimeUnit;
     private final ManagedExecutor executorService;
     private final ThreadLocal<DefaultBuildTreeWorkGraph> current = new ThreadLocal<>();
-
     @Inject
     public DefaultIncludedBuildTaskGraph(
         ExecutorFactory executorFactory,
@@ -140,6 +135,47 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
         workGraph.assertIsOwner();
         return action.apply(workGraph);
+    }
+
+    private enum State {
+        NotPrepared, Preparing, ReadyToRun, Running, Finished
+    }
+
+    private static class TaskBackedResource implements IncludedBuildTaskResource {
+        private final DefaultBuildTreeWorkGraph workGraph;
+        private final BuildState build;
+        private final ExportedTaskNode taskNode;
+
+        public TaskBackedResource(DefaultBuildTreeWorkGraph workGraph, BuildState build, ExportedTaskNode taskNode) {
+            this.workGraph = workGraph;
+            this.build = build;
+            this.taskNode = taskNode;
+        }
+
+        @Override
+        public void queueForExecution() {
+            workGraph.queueForExecution(build, taskNode);
+        }
+
+        @Override
+        public void onComplete(Runnable action) {
+            taskNode.onComplete(action);
+        }
+
+        @Override
+        public TaskInternal getTask() {
+            return taskNode.getTask();
+        }
+
+        @Override
+        public State getTaskState() {
+            return taskNode.getTaskState();
+        }
+
+        @Override
+        public String healthDiagnostics() {
+            return taskNode.healthDiagnostics();
+        }
     }
 
     private class DefaultBuildTreeWorkGraphBuilder implements BuildTreeWorkGraph.Builder {
@@ -260,43 +296,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             if (Thread.currentThread() != owner) {
                 throw new IllegalStateException("Current thread is not the owner of this work graph.");
             }
-        }
-    }
-
-    private static class TaskBackedResource implements IncludedBuildTaskResource {
-        private final DefaultBuildTreeWorkGraph workGraph;
-        private final BuildState build;
-        private final ExportedTaskNode taskNode;
-
-        public TaskBackedResource(DefaultBuildTreeWorkGraph workGraph, BuildState build, ExportedTaskNode taskNode) {
-            this.workGraph = workGraph;
-            this.build = build;
-            this.taskNode = taskNode;
-        }
-
-        @Override
-        public void queueForExecution() {
-            workGraph.queueForExecution(build, taskNode);
-        }
-
-        @Override
-        public void onComplete(Runnable action) {
-            taskNode.onComplete(action);
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return taskNode.getTask();
-        }
-
-        @Override
-        public State getTaskState() {
-            return taskNode.getTaskState();
-        }
-
-        @Override
-        public String healthDiagnostics() {
-            return taskNode.healthDiagnostics();
         }
     }
 }

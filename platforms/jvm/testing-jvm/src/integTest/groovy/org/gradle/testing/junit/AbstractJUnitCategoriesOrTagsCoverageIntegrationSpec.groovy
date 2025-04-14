@@ -23,7 +23,9 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
     TestSourceFixture testSources = new TestSourceFixture()
 
     abstract TestSourceGenerator getTestSourceGenerator()
+
     abstract String getSingularCategoryOrTagName()
+
     abstract String getPluralCategoryOrTagName()
 
     def setup() {
@@ -285,7 +287,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         if (categories.size() == 1) {
             outputContains("The ${singularCategoryOrTagName} '${categories[0]}' is both included and excluded.")
         } else {
-            String allCategories = categories.collect {"'${it}'" }.join(", ")
+            String allCategories = categories.collect { "'${it}'" }.join(", ")
             outputContains("The ${pluralCategoryOrTagName} ${allCategories} are both included and excluded.")
         }
     }

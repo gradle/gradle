@@ -62,6 +62,13 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
+    private static void logConventionDeprecation() {
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+            .nagUser();
+    }
+
     @Deprecated
     @Override
     public Map<String, Object> getPlugins() {
@@ -230,6 +237,29 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         return instanceGenerator.newInstanceWithDisplayName(instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
     }
 
+    private void checkExtensionIsNotReassigned(String name) {
+        if (extensionsStorage.hasExtension(name)) {
+            throw new IllegalArgumentException(
+                format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
+        }
+    }
+
+    private boolean isConfigureExtensionMethod(String name, @Nullable Object[] args) {
+        return args.length == 1 &&
+            (args[0] instanceof Closure || args[0] instanceof Action) &&
+            extensionsStorage.hasExtension(name);
+    }
+
+    private Object configureExtension(String name, Object[] args) {
+        Action<Object> action;
+        if (args[0] instanceof Closure) {
+            action = ConfigureUtil.configureUsing(Cast.uncheckedCast(args[0]));
+        } else {
+            action = Cast.uncheckedCast(args[0]);
+        }
+        return extensionsStorage.configureExtension(name, action);
+    }
+
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
         @Override
         public String getDisplayName() {
@@ -373,35 +403,5 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             }
             return dynamicObject;
         }
-    }
-
-    private void checkExtensionIsNotReassigned(String name) {
-        if (extensionsStorage.hasExtension(name)) {
-            throw new IllegalArgumentException(
-                format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
-        }
-    }
-
-    private boolean isConfigureExtensionMethod(String name, @Nullable Object[] args) {
-        return args.length == 1 &&
-            (args[0] instanceof Closure || args[0] instanceof Action) &&
-            extensionsStorage.hasExtension(name);
-    }
-
-    private Object configureExtension(String name, Object[] args) {
-        Action<Object> action;
-        if (args[0] instanceof Closure) {
-            action = ConfigureUtil.configureUsing(Cast.uncheckedCast(args[0]));
-        } else {
-            action = Cast.uncheckedCast(args[0]);
-        }
-        return extensionsStorage.configureExtension(name, action);
-    }
-
-    private static void logConventionDeprecation() {
-        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
     }
 }

@@ -75,7 +75,7 @@ public interface DiagnosticsTaskNames {
      * @since 8.13
      */
     @Incubating // TODO: We should probably de-incubate this for Gradle 9.0
-    String RESOLVABLE_CONFIGURATIONS_TASK = "resolvableConfigurations";
+        String RESOLVABLE_CONFIGURATIONS_TASK = "resolvableConfigurations";
 
     /**
      * The name of the Artifact Transforms report task.

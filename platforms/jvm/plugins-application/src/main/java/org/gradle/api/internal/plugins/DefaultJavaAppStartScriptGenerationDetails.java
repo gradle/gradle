@@ -34,8 +34,10 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     private final String scriptRelPath;
     private final String appNameSystemProperty;
 
-    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, AppEntryPoint entryPoint,
-                                                      List<String> defaultJvmOpts, List<String> classpath, List<String> modulePath, String scriptRelPath, @Nullable String appNameSystemProperty) {
+    public DefaultJavaAppStartScriptGenerationDetails(
+        String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, AppEntryPoint entryPoint,
+        List<String> defaultJvmOpts, List<String> classpath, List<String> modulePath, String scriptRelPath, @Nullable String appNameSystemProperty
+    ) {
         this.applicationName = applicationName;
         this.optsEnvironmentVar = optsEnvironmentVar;
         this.exitEnvironmentVar = exitEnvironmentVar;

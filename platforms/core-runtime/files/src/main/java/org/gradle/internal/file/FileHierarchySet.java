@@ -32,6 +32,49 @@ import java.util.List;
  */
 // TODO Make this into an interface once we can migrate to Java 8+.
 public abstract class FileHierarchySet {
+    private static final FileHierarchySet EMPTY = new FileHierarchySet() {
+        @Override
+        public boolean contains(File file) {
+            return false;
+        }
+
+        @Override
+        public boolean contains(String path) {
+            return false;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public FileHierarchySet plus(File rootDir) {
+            return new PrefixFileSet(rootDir);
+        }
+
+        @Override
+        public FileHierarchySet plus(String absolutePath) {
+            return new PrefixFileSet(absolutePath);
+        }
+
+        @Override
+        public void visitRoots(RootVisitor visitor) {
+        }
+
+        @Override
+        public String toString() {
+            return "EMPTY";
+        }
+    };
+
+    /**
+     * The empty set.
+     */
+    public static FileHierarchySet empty() {
+        return EMPTY;
+    }
+
     /**
      * Checks if the given file is contained in the set.
      *
@@ -74,48 +117,9 @@ public abstract class FileHierarchySet {
         void visitRoot(String absolutePath);
     }
 
-    /**
-     * The empty set.
-     */
-    public static FileHierarchySet empty() {
-        return EMPTY;
+    private interface NodeVisitor {
+        void visitNode(int depth, Node node);
     }
-
-    private static final FileHierarchySet EMPTY = new FileHierarchySet() {
-        @Override
-        public boolean contains(File file) {
-            return false;
-        }
-
-        @Override
-        public boolean contains(String path) {
-            return false;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        @Override
-        public FileHierarchySet plus(File rootDir) {
-            return new PrefixFileSet(rootDir);
-        }
-
-        @Override
-        public FileHierarchySet plus(String absolutePath) {
-            return new PrefixFileSet(absolutePath);
-        }
-
-        @Override
-        public void visitRoots(RootVisitor visitor) {
-        }
-
-        @Override
-        public String toString() {
-            return "EMPTY";
-        }
-    };
 
     @VisibleForTesting
     static class PrefixFileSet extends FileHierarchySet {
@@ -132,6 +136,20 @@ public abstract class FileHierarchySet {
 
         PrefixFileSet(Node rootNode) {
             this.rootNode = rootNode;
+        }
+
+        private static String toAbsolutePath(File rootDir) {
+            assert rootDir.isAbsolute();
+            return rootDir.getAbsolutePath();
+        }
+
+        private static String removeTrailingSeparator(String absolutePath) {
+            if (absolutePath.equals("/")) {
+                absolutePath = "";
+            } else if (absolutePath.endsWith(File.separator)) {
+                absolutePath = absolutePath.substring(0, absolutePath.length() - 1);
+            }
+            return absolutePath;
         }
 
         @VisibleForTesting
@@ -179,20 +197,6 @@ public abstract class FileHierarchySet {
                 return this;
             }
             return new PrefixFileSet(newRoot);
-        }
-
-        private static String toAbsolutePath(File rootDir) {
-            assert rootDir.isAbsolute();
-            return rootDir.getAbsolutePath();
-        }
-
-        private static String removeTrailingSeparator(String absolutePath) {
-            if (absolutePath.equals("/")) {
-                absolutePath = "";
-            } else if (absolutePath.endsWith(File.separator)) {
-                absolutePath = absolutePath.substring(0, absolutePath.length() - 1);
-            }
-            return absolutePath;
         }
 
         @Override
@@ -411,9 +415,5 @@ public abstract class FileHierarchySet {
         public String toString() {
             return prefix;
         }
-    }
-
-    private interface NodeVisitor {
-        void visitNode(int depth, Node node);
     }
 }

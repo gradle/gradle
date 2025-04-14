@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Issue
+
 /**
  * Demonstrates the use of Ivy module excludes.
  *

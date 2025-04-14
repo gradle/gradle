@@ -30,16 +30,16 @@ public class DefaultGeneralData implements GeneralData, Serializable {
         this.map = ImmutableMap.copyOf(map);
     }
 
-    @Override
-    public Map<String, String> getAsMap() {
-        return map;
-    }
-
     public static AdditionalDataBuilder<GeneralData> builder(@Nullable GeneralData from) {
-        if(from == null) {
+        if (from == null) {
             return new DefaultGeneralDataBuilder();
         }
         return new DefaultGeneralDataBuilder(from);
+    }
+
+    @Override
+    public Map<String, String> getAsMap() {
+        return map;
     }
 
     private static class DefaultGeneralDataBuilder implements GeneralDataSpec, AdditionalDataBuilder<GeneralData> {

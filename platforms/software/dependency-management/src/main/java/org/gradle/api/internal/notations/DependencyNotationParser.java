@@ -45,12 +45,36 @@ import org.gradle.internal.typeconversion.TypeConversionException;
 import java.util.Map;
 
 public class DependencyNotationParser {
-    public static DependencyNotationParser create(Instantiator instantiator,
-                                                  DefaultProjectDependencyFactory dependencyFactory,
-                                                  ClassPathRegistry classPathRegistry,
-                                                  FileCollectionFactory fileCollectionFactory,
-                                                  RuntimeShadedJarFactory runtimeShadedJarFactory,
-                                                  Interner<String> stringInterner) {
+    private final NotationParser<Object, Dependency> notationParser;
+    private final NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser;
+    private final NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser;
+    private final NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser;
+    private final NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser;
+    private final NotationParser<Project, ? extends ProjectDependency> projectNotationParser;
+    private DependencyNotationParser(
+        NotationParser<Object, Dependency> notationParser,
+        NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser,
+        NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser,
+        NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser,
+        NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser,
+        NotationParser<Project, ? extends ProjectDependency> projectNotationParser
+    ) {
+        this.notationParser = notationParser;
+        this.stringNotationParser = stringNotationParser;
+        this.minimalExternalModuleDependencyNotationParser = minimalExternalModuleDependencyNotationParser;
+        this.mapNotationParser = mapNotationParser;
+        this.fileCollectionNotationParser = fileCollectionNotationParser;
+        this.projectNotationParser = projectNotationParser;
+    }
+
+    public static DependencyNotationParser create(
+        Instantiator instantiator,
+        DefaultProjectDependencyFactory dependencyFactory,
+        ClassPathRegistry classPathRegistry,
+        FileCollectionFactory fileCollectionFactory,
+        RuntimeShadedJarFactory runtimeShadedJarFactory,
+        Interner<String> stringInterner
+    ) {
         NotationConverter<String, ? extends ExternalModuleDependency> stringNotationConverter =
             new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner);
         NotationConverter<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalDependencyNotationConverter =
@@ -81,28 +105,6 @@ public class DependencyNotationParser {
             new NotationConverterToNotationParserAdapter<>(filesNotationConverter),
             new NotationConverterToNotationParserAdapter<>(projectNotationConverter)
         );
-    }
-
-    private final NotationParser<Object, Dependency> notationParser;
-    private final NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser;
-    private final NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser;
-    private final NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser;
-    private final NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser;
-    private final NotationParser<Project, ? extends ProjectDependency> projectNotationParser;
-
-    private DependencyNotationParser(NotationParser<Object, Dependency> notationParser,
-                                     NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser,
-                                     NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser,
-                                     NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser,
-                                     NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser,
-                                     NotationParser<Project, ? extends ProjectDependency> projectNotationParser
-    ) {
-        this.notationParser = notationParser;
-        this.stringNotationParser = stringNotationParser;
-        this.minimalExternalModuleDependencyNotationParser = minimalExternalModuleDependencyNotationParser;
-        this.mapNotationParser = mapNotationParser;
-        this.fileCollectionNotationParser = fileCollectionNotationParser;
-        this.projectNotationParser = projectNotationParser;
     }
 
     public NotationParser<Object, Dependency> getNotationParser() {

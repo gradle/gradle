@@ -74,6 +74,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean rejected;
     private boolean root;
     private Pair<Capability, Collection<NodeState>> capabilityReject;
+    private ComponentSelectionReason cachedReason;
 
     ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
@@ -256,8 +257,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         nodes.add(node);
     }
 
-    private ComponentSelectionReason cachedReason;
-
     @Override
     public ComponentSelectionReason getSelectionReason() {
         if (root) {
@@ -403,40 +402,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    /**
-     * Describes the possible states of a component in the graph.
-     */
-    enum ComponentSelectionState {
-        /**
-         * A selectable component is either new to the graph, or has been visited before,
-         * but wasn't selected because another compatible version was used.
-         */
-        Selectable(true),
-
-        /**
-         * A selected component has been chosen, at some point, as the version to use.
-         * This is not for a lifetime: a component can later be evicted through conflict resolution,
-         * or another compatible component can be chosen instead if more constraints arise.
-         */
-        Selected(true),
-
-        /**
-         * An evicted component has been evicted and will never, ever be chosen starting from the moment it is evicted.
-         * Either because it has been excluded, or because conflict resolution selected a different version.
-         */
-        Evicted(false);
-
-        private final boolean candidateForConflictResolution;
-
-        ComponentSelectionState(boolean candidateForConflictResolution) {
-            this.candidateForConflictResolution = candidateForConflictResolution;
-        }
-
-        boolean isCandidateForConflictResolution() {
-            return candidateForConflictResolution;
-        }
-    }
-
     CapabilityInternal getImplicitCapability() {
         return resolveState.getDefaultCapability();
     }
@@ -480,5 +445,39 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    /**
+     * Describes the possible states of a component in the graph.
+     */
+    enum ComponentSelectionState {
+        /**
+         * A selectable component is either new to the graph, or has been visited before,
+         * but wasn't selected because another compatible version was used.
+         */
+        Selectable(true),
+
+        /**
+         * A selected component has been chosen, at some point, as the version to use.
+         * This is not for a lifetime: a component can later be evicted through conflict resolution,
+         * or another compatible component can be chosen instead if more constraints arise.
+         */
+        Selected(true),
+
+        /**
+         * An evicted component has been evicted and will never, ever be chosen starting from the moment it is evicted.
+         * Either because it has been excluded, or because conflict resolution selected a different version.
+         */
+        Evicted(false);
+
+        private final boolean candidateForConflictResolution;
+
+        ComponentSelectionState(boolean candidateForConflictResolution) {
+            this.candidateForConflictResolution = candidateForConflictResolution;
+        }
+
+        boolean isCandidateForConflictResolution() {
+            return candidateForConflictResolution;
+        }
     }
 }

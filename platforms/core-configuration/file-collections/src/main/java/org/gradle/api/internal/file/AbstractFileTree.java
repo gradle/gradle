@@ -46,6 +46,10 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         super(taskDependencyFactory, patternSetFactory);
     }
 
+    static FileVisitor fileVisitorFrom(Closure closure) {
+        return DefaultGroovyMethods.asType(closure, FileVisitor.class);
+    }
+
     @Override
     public Set<File> getFiles() {
         final Set<File> files = new LinkedHashSet<File>();
@@ -112,10 +116,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     @Override
     public FileTree visit(Closure closure) {
         return visit(fileVisitorFrom(closure));
-    }
-
-    static FileVisitor fileVisitorFrom(Closure closure) {
-        return DefaultGroovyMethods.asType(closure, FileVisitor.class);
     }
 
     @Override

@@ -53,7 +53,7 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'io.spring.dependency-management' : Versions.of(TestedVersions.springDependencyManagement)
+            'io.spring.dependency-management': Versions.of(TestedVersions.springDependencyManagement)
         ]
     }
 }

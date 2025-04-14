@@ -92,7 +92,8 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains "hello again"
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // In embedded testing mode, the visibility constraints are not enforced
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    // In embedded testing mode, the visibility constraints are not enforced
     def "build src plugin cannot access Gradle implementation dependencies"() {
         when:
         file("buildSrc/src/main/groovy/pkg/BuildSrcPlugin.groovy") << """

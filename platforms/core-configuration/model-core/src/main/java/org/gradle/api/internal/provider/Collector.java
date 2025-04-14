@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableCollection;
 /**
  * A collector is a value supplier of zero or more values of type {@link T}.
  * <p>
- *     A <code>Collector</code> represents an increment to a collection property.
+ * A <code>Collector</code> represents an increment to a collection property.
  * </p>
  */
 public interface Collector<T> extends ValueSupplier {

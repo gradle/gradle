@@ -46,8 +46,8 @@ import java.util.Set;
  */
 public abstract class AbstractRealisedModuleComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
 
-    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> graphVariants;
     private final ImmutableMap<String, ModuleConfigurationMetadata> configurations;
+    private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> graphVariants;
 
     public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
         super(metadata, sources, derivationStrategy);

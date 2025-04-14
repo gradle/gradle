@@ -38,6 +38,9 @@ import java.util.Map;
  */
 public final class FinalizeBuildCacheConfigurationBuildOperationType implements BuildOperationType<FinalizeBuildCacheConfigurationBuildOperationType.Details, FinalizeBuildCacheConfigurationBuildOperationType.Result> {
 
+    private FinalizeBuildCacheConfigurationBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -95,9 +98,6 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
 
         }
 
-    }
-
-    private FinalizeBuildCacheConfigurationBuildOperationType() {
     }
 
 }

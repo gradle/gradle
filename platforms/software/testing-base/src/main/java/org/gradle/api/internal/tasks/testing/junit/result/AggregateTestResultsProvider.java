@@ -65,36 +65,6 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         }
     }
 
-    private static class DelegateProvider {
-        private final long id;
-        private final TestResultsProvider provider;
-
-        private DelegateProvider(long id, TestResultsProvider provider) {
-            this.id = id;
-            this.provider = provider;
-        }
-    }
-
-    private static class OverlaidIdProxyingTestClassResult extends TestClassResult {
-        private final Map<Long, TestClassResult> delegates = new LinkedHashMap<Long, TestClassResult>();
-
-        public OverlaidIdProxyingTestClassResult(long id, TestClassResult delegate) {
-            super(id, delegate.getClassName(), delegate.getStartTime());
-            addTestClassResult(delegate);
-        }
-
-        void addTestClassResult(TestClassResult delegate) {
-            Preconditions.checkArgument(delegates.isEmpty() || delegates.values().iterator().next().getClassName().equals(delegate.getClassName()));
-            delegates.put(delegate.getId(), delegate);
-            for (TestMethodResult result : delegate.getResults()) {
-                add(result);
-            }
-            if (delegate.getStartTime() < getStartTime()) {
-                setStartTime(delegate.getStartTime());
-            }
-        }
-    }
-
     @Override
     public boolean hasOutput(long classId, final TestOutputEvent.Destination destination) {
         for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
@@ -144,5 +114,35 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     @Override
     public void close() throws IOException {
         CompositeStoppable.stoppable(providers).stop();
+    }
+
+    private static class DelegateProvider {
+        private final long id;
+        private final TestResultsProvider provider;
+
+        private DelegateProvider(long id, TestResultsProvider provider) {
+            this.id = id;
+            this.provider = provider;
+        }
+    }
+
+    private static class OverlaidIdProxyingTestClassResult extends TestClassResult {
+        private final Map<Long, TestClassResult> delegates = new LinkedHashMap<Long, TestClassResult>();
+
+        public OverlaidIdProxyingTestClassResult(long id, TestClassResult delegate) {
+            super(id, delegate.getClassName(), delegate.getStartTime());
+            addTestClassResult(delegate);
+        }
+
+        void addTestClassResult(TestClassResult delegate) {
+            Preconditions.checkArgument(delegates.isEmpty() || delegates.values().iterator().next().getClassName().equals(delegate.getClassName()));
+            delegates.put(delegate.getId(), delegate);
+            for (TestMethodResult result : delegate.getResults()) {
+                add(result);
+            }
+            if (delegate.getStartTime() < getStartTime()) {
+                setStartTime(delegate.getStartTime());
+            }
+        }
     }
 }

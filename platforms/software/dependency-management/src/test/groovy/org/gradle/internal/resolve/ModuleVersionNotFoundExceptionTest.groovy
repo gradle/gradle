@@ -146,8 +146,8 @@ Required by:
 
     def "formats message for selector and locations when versions are rejected by attribute matching"() {
         def versions = [
-                rejectedByAttributes('1.1', [color: ['red', 'blue', false]]),
-                rejectedByAttributes('1.0', [color: ['red', 'green', false]]),
+            rejectedByAttributes('1.1', [color: ['red', 'blue', false]]),
+            rejectedByAttributes('1.0', [color: ['red', 'green', false]]),
         ]
         def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
 
@@ -168,8 +168,8 @@ Searched in the following locations:
 
     def "formats message for selector and locations when versions are rejected by attribute matching with multiple attributes"() {
         def versions = [
-                rejectedByAttributes('1.1', [color: ['red', 'red', true], shape: ['square', 'circle', false]]),
-                rejectedByAttributes('1.0', [color: ['red', 'green', false], shape: ['square', 'circle', false]]),
+            rejectedByAttributes('1.1', [color: ['red', 'red', true], shape: ['square', 'circle', false]]),
+            rejectedByAttributes('1.0', [color: ['red', 'green', false], shape: ['square', 'circle', false]]),
         ]
         def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
 
@@ -192,9 +192,9 @@ Searched in the following locations:
 
     def "formats message for selector and locations when versions are rejected by attribute matching and rules"() {
         def versions = [
-                reject('1.2'),
-                rejectedByAttributes('1.1', [color: ['red', 'red', true], shape: ['square', 'circle', false]]),
-                rejectedByAttributes('1.0', [color: ['red', 'green', false], shape: ['square', 'circle', false]]),
+            reject('1.2'),
+            rejectedByAttributes('1.1', [color: ['red', 'red', true], shape: ['square', 'circle', false]]),
+            rejectedByAttributes('1.0', [color: ['red', 'green', false], shape: ['square', 'circle', false]]),
         ]
         def exception = new ModuleVersionNotFoundException(newSelector(mid("org", "a"), new DefaultMutableVersionConstraint("1.+")), ["http://somewhere", "file:/somewhere"], ["0.9", "0.10"], versions)
 

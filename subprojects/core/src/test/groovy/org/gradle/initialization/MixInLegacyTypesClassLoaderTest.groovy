@@ -143,6 +143,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         then:
         thrown java.lang.NoSuchMethodException
     }
+
     def "does not mix GroovyObject into other types"() {
         given:
         def className = "org.gradle.api.plugins.Thing"

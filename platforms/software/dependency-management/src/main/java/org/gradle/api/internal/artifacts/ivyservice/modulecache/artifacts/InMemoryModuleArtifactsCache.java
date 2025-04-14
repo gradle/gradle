@@ -45,7 +45,7 @@ public class InMemoryModuleArtifactsCache extends AbstractArtifactsCache {
     @Override
     protected ModuleArtifactsCacheEntry get(ArtifactsAtRepositoryKey key) {
         ModuleArtifactsCacheEntry entry = inMemoryCache.get(key);
-        if (entry == null && delegate!=null) {
+        if (entry == null && delegate != null) {
             entry = delegate.get(key);
             if (entry != null) {
                 inMemoryCache.put(key, entry);

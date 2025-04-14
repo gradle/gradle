@@ -59,7 +59,7 @@ class ProgressCrossVersionSpec extends ToolingApiSpecification implements WithOl
         events.assertIsABuild()
     }
 
-     def "receive progress events when running a build action"() {
+    def "receive progress events when running a build action"() {
         given:
         goodCode()
 

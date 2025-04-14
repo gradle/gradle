@@ -29,10 +29,12 @@ abstract class AbstractJavaPropertyRules extends RuleSource {
 
     @RuleInput
     abstract String getValue();
+
     abstract void setValue(String value);
 
     @RuleInput
     protected abstract int getNumber();
+
     protected abstract void setNumber(int value);
 
     @Model

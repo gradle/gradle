@@ -120,7 +120,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
-        imlHasDependencies(["buildB"], ["transitive1-1.0.jar", "transitive2-1.0.jar", ])
+        imlHasDependencies(["buildB"], ["transitive1-1.0.jar", "transitive2-1.0.jar",])
     }
 
     @ToBeFixedForConfigurationCache

@@ -53,7 +53,7 @@ class HealthExpirationStrategyTest extends Specification {
         true
     )
 
-    def "daemon is not expired when memory stats are below threshold" () {
+    def "daemon is not expired when memory stats are below threshold"() {
         given:
         def underTest = new HealthExpirationStrategy(
             health(belowThreshold, belowThreshold),
@@ -67,7 +67,7 @@ class HealthExpirationStrategyTest extends Specification {
         result == DaemonExpirationResult.NOT_TRIGGERED
     }
 
-    def "daemon is expired when garbage collector is thrashing" () {
+    def "daemon is expired when garbage collector is thrashing"() {
         given:
         def underTest = new HealthExpirationStrategy(
             health(aboveThrashingThreshold, belowThreshold),
@@ -82,7 +82,7 @@ class HealthExpirationStrategyTest extends Specification {
         result.reason == "since the JVM garbage collector is thrashing"
     }
 
-    def "daemon is expired when heap space is low" () {
+    def "daemon is expired when heap space is low"() {
         given:
         def underTest = new HealthExpirationStrategy(
             health(aboveHeapThreshold, belowThreshold),
@@ -97,7 +97,7 @@ class HealthExpirationStrategyTest extends Specification {
         result.reason == "after running out of JVM heap space"
     }
 
-    def "daemon is expired when metaspace is low" () {
+    def "daemon is expired when metaspace is low"() {
         given:
         def underTest = new HealthExpirationStrategy(
             health(belowThreshold, aboveMetaspaceThreshold),

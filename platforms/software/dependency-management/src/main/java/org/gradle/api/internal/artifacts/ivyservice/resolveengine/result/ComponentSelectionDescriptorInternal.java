@@ -23,7 +23,6 @@ public interface ComponentSelectionDescriptorInternal extends ComponentSelection
      * Updates the description of this component selection descriptor.
      *
      * @param description a new textual description of the descriptor.
-     *
      * @return this descriptor
      */
     ComponentSelectionDescriptorInternal withDescription(Describable description);

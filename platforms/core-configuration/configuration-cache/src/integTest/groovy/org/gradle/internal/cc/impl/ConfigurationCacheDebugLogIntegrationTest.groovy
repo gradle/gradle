@@ -103,15 +103,15 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
         events.contains([profile: "child ':sub' state", type: "C", frame: ":sub:ok"])
 
         and: "task type frame follows task path frame follows LocalTaskNode frame"
-        ["child ':' state", "child ':sub' state"].each {profile ->
+        ["child ':' state", "child ':sub' state"].each { profile ->
             def firstTaskNodeIndex = events.findIndexOf { it.profile == profile && it.frame == LocalTaskNode.name }
             firstTaskNodeIndex > 0
             events[firstTaskNodeIndex] == [profile: "$profile", type: "O", frame: LocalTaskNode.name]
 
-            def secondTaskNodeIndex = events.findIndexOf {it.profile == profile && it.type == "O" && it.frame == ":ok" }
+            def secondTaskNodeIndex = events.findIndexOf { it.profile == profile && it.type == "O" && it.frame == ":ok" }
             firstTaskNodeIndex < secondTaskNodeIndex
 
-            def thirdTaskNodeIndex = events.findIndexOf {it.profile == profile && it.type == "O" && it.frame == DefaultTask.name }
+            def thirdTaskNodeIndex = events.findIndexOf { it.profile == profile && it.type == "O" && it.frame == DefaultTask.name }
             secondTaskNodeIndex < thirdTaskNodeIndex
         }
 

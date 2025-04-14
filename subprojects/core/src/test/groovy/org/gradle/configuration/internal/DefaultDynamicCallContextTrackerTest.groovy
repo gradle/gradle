@@ -74,12 +74,14 @@ class DefaultDynamicCallContextTrackerTest extends Specification {
 
         when:
         def failure = null
-        threads.forEach { it.uncaughtExceptionHandler = new Thread.UncaughtExceptionHandler() {
-            @Override
-            void uncaughtException(Thread t, Throwable e) {
-                failure = e
+        threads.forEach {
+            it.uncaughtExceptionHandler = new Thread.UncaughtExceptionHandler() {
+                @Override
+                void uncaughtException(Thread t, Throwable e) {
+                    failure = e
+                }
             }
-        }}
+        }
         threads.forEach { it.start() }
         threads.forEach { it.join() }
 

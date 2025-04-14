@@ -49,12 +49,13 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     private final ReadOnlyArtifactCacheLockingAccessCoordinator readOnlyCacheAccessCoordinator;
 
     public DefaultArtifactCaches(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
-            WritableArtifactCacheLockingParameters params,
-            DocumentationRegistry documentationRegistry,
-            CacheConfigurationsInternal cacheConfigurations,
-            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+        WritableArtifactCacheLockingParameters params,
+        DocumentationRegistry documentationRegistry,
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+    ) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory);
         writableCacheAccessCoordinator = new LateInitWritableArtifactCacheLockingAccessCoordinator(() -> {
             return new WritableArtifactCacheLockingAccessCoordinator(unscopedCacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cacheConfigurations, cacheCleanupStrategyFactory);

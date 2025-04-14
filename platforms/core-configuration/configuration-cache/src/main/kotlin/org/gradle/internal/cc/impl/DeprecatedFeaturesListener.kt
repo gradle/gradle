@@ -59,6 +59,7 @@ class DeprecatedFeaturesListener(
                     .withUpgradeGuideSection(8, "deprecated_use_logger")
                     .nagUser();
             }
+
             shouldNagAbout(listener) -> {
                 nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
             }

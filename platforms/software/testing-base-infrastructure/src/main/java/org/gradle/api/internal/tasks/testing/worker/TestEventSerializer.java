@@ -251,8 +251,8 @@ public class TestEventSerializer {
             String rawFailureName = decoder.readString();
             Throwable rawFailure;
             try {
-               rawFailure = throwableSerializer.read(decoder);
-            } catch(Exception e) {
+                rawFailure = throwableSerializer.read(decoder);
+            } catch (Exception e) {
                 rawFailure = new TestFailureSerializationException("An exception of type " + rawFailureName + " was thrown by the test, but Gradle was unable to recreate the exception in the build process", e);
             }
             return rawFailure;

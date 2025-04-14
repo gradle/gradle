@@ -25,10 +25,14 @@ import org.gradle.util.SetSystemProperties
 import org.hamcrest.CoreMatchers
 
 class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
-    @org.junit.Rule SetSystemProperties systemProperties = new SetSystemProperties()
-    @org.junit.Rule TestResources resources = new TestResources(temporaryFolder)
-    @org.junit.Rule TestProxyServer testProxyServer = new TestProxyServer()
-    @org.junit.Rule HttpServer server = new HttpServer()
+    @org.junit.Rule
+    SetSystemProperties systemProperties = new SetSystemProperties()
+    @org.junit.Rule
+    TestResources resources = new TestResources(temporaryFolder)
+    @org.junit.Rule
+    TestProxyServer testProxyServer = new TestProxyServer()
+    @org.junit.Rule
+    HttpServer server = new HttpServer()
 
     def setup() {
         settingsFile << "rootProject.name = 'project'"
@@ -56,7 +60,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 """
 
         when:
-        testProxyServer.configureProxy(executer,"http", userName, password)
+        testProxyServer.configureProxy(executer, "http", userName, password)
         succeeds()
 
         then:
@@ -81,7 +85,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        testProxyServer.configureProxy(executer,"http", "proxyUser", "proxyPassword")
+        testProxyServer.configureProxy(executer, "http", "proxyUser", "proxyPassword")
         succeeds()
 
         then:
@@ -109,8 +113,8 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
-                .assertHasCause("Could not get resource '${server.uri}/external.gradle'.")
-                .assertHasCause("Connect to localhost:${testProxyServer.port}")
+            .assertHasCause("Could not get resource '${server.uri}/external.gradle'.")
+            .assertHasCause("Connect to localhost:${testProxyServer.port}")
     }
 
     def "reports proxy authentication failure for script plugin"() {
@@ -130,7 +134,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
-                .assertHasCause("Could not get resource '${server.uri}/external.gradle'.")
-                .assertThatCause(CoreMatchers.containsString("Proxy Authentication Required"))
+            .assertHasCause("Could not get resource '${server.uri}/external.gradle'.")
+            .assertThatCause(CoreMatchers.containsString("Proxy Authentication Required"))
     }
 }

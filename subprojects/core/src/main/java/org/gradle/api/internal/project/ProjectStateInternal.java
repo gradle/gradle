@@ -33,14 +33,6 @@ import java.util.List;
  */
 public class ProjectStateInternal implements ProjectState {
 
-    enum State {
-        UNCONFIGURED,
-        IN_BEFORE_EVALUATE,
-        IN_EVALUATE,
-        IN_AFTER_EVALUATE,
-        CONFIGURED
-    }
-
     private State state = State.UNCONFIGURED;
     private ProjectConfigurationException failure;
 
@@ -128,5 +120,13 @@ public class ProjectStateInternal implements ProjectState {
         }
 
         return String.format("project state '%s'", state);
+    }
+
+    enum State {
+        UNCONFIGURED,
+        IN_BEFORE_EVALUATE,
+        IN_EVALUATE,
+        IN_AFTER_EVALUATE,
+        CONFIGURED
     }
 }

@@ -52,22 +52,9 @@ import static java.util.Collections.singleton;
 public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
-
+    final Cached<BuildEnvironmentReportModel> reportModel = Cached.of(this::calculateReportModel);
     private final ToolchainReportRenderer toolchainReportRenderer = new ToolchainReportRenderer();
     private final DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
-
-    final Cached<BuildEnvironmentReportModel> reportModel = Cached.of(this::calculateReportModel);
-
-    private static final class BuildEnvironmentReportModel {
-
-        private final ProjectDetails project;
-        private final ConfigurationDetails configuration;
-
-        public BuildEnvironmentReportModel(ProjectDetails project, ConfigurationDetails configuration) {
-            this.project = project;
-            this.configuration = configuration;
-        }
-    }
 
     private BuildEnvironmentReportModel calculateReportModel() {
         return new BuildEnvironmentReportModel(
@@ -113,5 +100,16 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
     private ReportGenerator reportGenerator() {
         return new ReportGenerator(renderer, getClientMetaData(), null, getTextOutputFactory());
+    }
+
+    private static final class BuildEnvironmentReportModel {
+
+        private final ProjectDetails project;
+        private final ConfigurationDetails configuration;
+
+        public BuildEnvironmentReportModel(ProjectDetails project, ConfigurationDetails configuration) {
+            this.project = project;
+            this.configuration = configuration;
+        }
     }
 }

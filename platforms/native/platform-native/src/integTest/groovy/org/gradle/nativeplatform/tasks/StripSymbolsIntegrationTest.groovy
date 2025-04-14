@@ -52,7 +52,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds ":stripSymbolsDebug"
 
         then:
-        executedAndNotSkipped":stripSymbolsDebug"
+        executedAndNotSkipped ":stripSymbolsDebug"
         executable("build/exe/main/debug/app").assertHasDebugSymbolsFor(withoutHeaders(app.original))
         binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
@@ -62,13 +62,13 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds ":stripSymbolsDebug"
 
         then:
-        executedAndNotSkipped":stripSymbolsDebug"
+        executedAndNotSkipped ":stripSymbolsDebug"
 
         when:
         succeeds ":stripSymbolsDebug"
 
         then:
-        skipped":stripSymbolsDebug"
+        skipped ":stripSymbolsDebug"
         binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 
@@ -77,14 +77,14 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
         succeeds ":stripSymbolsDebug"
 
         then:
-        executedAndNotSkipped":stripSymbolsDebug"
+        executedAndNotSkipped ":stripSymbolsDebug"
 
         when:
         app.applyChangesToProject(testDirectory)
         succeeds ":stripSymbolsDebug"
 
         then:
-        executedAndNotSkipped":stripSymbolsDebug"
+        executedAndNotSkipped ":stripSymbolsDebug"
         binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.alternate))
     }
 

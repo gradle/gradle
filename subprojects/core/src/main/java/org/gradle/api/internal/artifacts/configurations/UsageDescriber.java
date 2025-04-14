@@ -69,8 +69,10 @@ public abstract class UsageDescriber {
      * @param isDeclarationAgainstDeprecated whether the configuration's declarable behavior is deprecated
      * @return description of the given usage
      */
-    public static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarable,
-                                       boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated) {
+    public static String describeUsage(
+        boolean isConsumable, boolean isResolvable, boolean isDeclarable,
+        boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated
+    ) {
         List<String> descriptions = new ArrayList<>();
         if (isConsumable) {
             descriptions.add("\t" + CONSUMABLE + describeDeprecation(isConsumptionDeprecated));

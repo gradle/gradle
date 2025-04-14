@@ -27,7 +27,7 @@ import java.util.List;
 public class AccessIncludedBuildProjectBuildAction implements BuildAction<List<String>> {
     public List<String> execute(BuildController controller) {
         List<String> model = new ArrayList<String>();
-        for (GradleBuild included: controller.getBuildModel().getIncludedBuilds()) {
+        for (GradleBuild included : controller.getBuildModel().getIncludedBuilds()) {
             EclipseProject project = controller.getModel(included.getRootProject(), EclipseProject.class);
             model.add(project.getName());
         }

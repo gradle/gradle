@@ -35,7 +35,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
             " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows
+    @Requires(UnitTestPreconditions.UnixDerivative)
+    // all forbidden characters are illegal on Windows
     def "subproject names must not contain forbidden characters"() {
         given:
         createDirs("folder", "folder/name|with|pipes")
@@ -61,7 +62,7 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         fails 'this/is/a/hierarchy'
 
         then:
-        assertFailureContainsForbiddenCharacterMessage('task name',"this/is/a/hierarchy")
+        assertFailureContainsForbiddenCharacterMessage('task name', "this/is/a/hierarchy")
     }
 
     def "configuration names must not contain forbidden characters"() {
@@ -101,7 +102,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
             " Set the 'rootProject.name' or adjust the 'include' statement (see ${settingsDslUrl} for more details).")
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows
+    @Requires(UnitTestPreconditions.UnixDerivative)
+    // all forbidden characters are illegal on Windows
     def "does not fail when project name overrides an invalid folder name"() {
         given:
         def buildFolder = file(".folder: name")
@@ -116,7 +118,8 @@ class NameValidationIntegrationTest extends AbstractIntegrationSpec {
         output.contains("customName")
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative) // all forbidden characters are illegal on Windows
+    @Requires(UnitTestPreconditions.UnixDerivative)
+    // all forbidden characters are illegal on Windows
     def "does not assign an invalid project name from folder names"() {
         given:
         def buildFolder = file(".folder: name.")

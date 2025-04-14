@@ -4,7 +4,7 @@ on:
   issues:
     types: [ closed ]
 
-permissions: {}
+permissions: { }
 
 jobs:
   check_release_notes:

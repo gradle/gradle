@@ -51,7 +51,7 @@ class DependencyVerificationFixture {
     }
 
     void assertMetadataIsMissing() {
-        assert !verificationFile.exists() : "Expected verification file ${verificationFile} to be absent but it exists"
+        assert !verificationFile.exists(): "Expected verification file ${verificationFile} to be absent but it exists"
     }
 
     void deleteMetadataFile() {
@@ -127,7 +127,9 @@ class DependencyVerificationFixture {
             def md = verificationMetadata.find {
                 it.componentId.group == group && it.componentId.module == name && it.componentId.version == version
             }
-            assert md: "Dependency verification file contains no information about module ${group:name:version}"
+            assert md: "Dependency verification file contains no information about module ${group:
+                name:
+                version}"
             action.delegate = new ComponentVerification(md)
             action.resolveStrategy = Closure.DELEGATE_FIRST
             action()
@@ -189,7 +191,7 @@ class DependencyVerificationFixture {
                 throw new AssertionError("Expected only one artifact named ${name} for module ${metadata.componentId} but found ${artifacts}")
             }
             ArtifactVerificationMetadata md = artifacts ? artifacts[0] : null
-            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifactName } }"
+            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifactName }}"
             action.delegate = new ArtifactVerification(md)
             action.resolveStrategy = Closure.DELEGATE_FIRST
             action()
@@ -205,7 +207,7 @@ class DependencyVerificationFixture {
 
         void declaresChecksum(String checksum, String algorithm = "sha1") {
             def expectedChecksum = metadata.checksums.find { it.kind == ChecksumKind.valueOf(algorithm) }.value
-            assert expectedChecksum == checksum : "On ${metadata.artifactName}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
+            assert expectedChecksum == checksum: "On ${metadata.artifactName}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
         }
 
         void declaresChecksums(List<String> checksums, String algorithm = "sha1") {
@@ -215,7 +217,7 @@ class DependencyVerificationFixture {
                 allChecksums.addAll(expectedChecksum.alternatives)
             }
 
-            assert allChecksums == checksums as Set : "On ${metadata.artifactName}, expected ${algorithm} checksums of ${checksums} but was ${allChecksums}"
+            assert allChecksums == checksums as Set: "On ${metadata.artifactName}, expected ${algorithm} checksums of ${checksums} but was ${allChecksums}"
         }
 
         void declaresChecksums(Map<String, ?> checksums, boolean strict = true) {
@@ -300,7 +302,7 @@ class DependencyVerificationFixture {
             )
         }
 
-        void addTrustedKey(String id, String key, String type="jar", String ext="jar") {
+        void addTrustedKey(String id, String key, String type = "jar", String ext = "jar") {
             def parts = id.split(":")
             def group = parts[0]
             def name = parts[1]

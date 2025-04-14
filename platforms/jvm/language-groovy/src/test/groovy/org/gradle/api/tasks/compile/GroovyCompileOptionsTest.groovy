@@ -37,7 +37,7 @@ class GroovyCompileOptionsTest {
     GroovyCompileOptions compileOptions
 
     @Before
-    void setUp()  {
+    void setUp() {
         ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory()).add(InstantiatorFactory, TestUtil.instantiatorFactory())
         compileOptions = TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class)
     }

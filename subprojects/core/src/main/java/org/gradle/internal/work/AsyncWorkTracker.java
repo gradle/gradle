@@ -27,9 +27,6 @@ import java.util.List;
  */
 @ServiceScope(Scope.BuildSession.class)
 public interface AsyncWorkTracker {
-    enum ProjectLockRetention {
-        RETAIN_PROJECT_LOCKS, RELEASE_PROJECT_LOCKS, RELEASE_AND_REACQUIRE_PROJECT_LOCKS
-    }
     /**
      * Register a new item of asynchronous work with the provided build operation.
      *
@@ -65,4 +62,8 @@ public interface AsyncWorkTracker {
      * Returns true if the given operation has work registered that has not completed.
      */
     boolean hasUncompletedWork(BuildOperationRef operation);
+
+    enum ProjectLockRetention {
+        RETAIN_PROJECT_LOCKS, RELEASE_PROJECT_LOCKS, RELEASE_AND_REACQUIRE_PROJECT_LOCKS
+    }
 }

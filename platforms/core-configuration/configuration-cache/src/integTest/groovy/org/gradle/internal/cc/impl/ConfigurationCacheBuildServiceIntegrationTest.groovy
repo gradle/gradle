@@ -255,12 +255,12 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             );
 
             tasks.register('count', CountingTask) {
-                ${ legacy ? """
+                ${legacy ? """
                 countingService.convention(altServiceProvider)
                 usesService(altServiceProvider)
-                """ : "" }
-                ${ finalizeOnRead ? "countingService.finalizeValueOnRead()" : "" }
-                ${ finalize ? "countingService.finalizeValue()" : "" }
+                """ : ""}
+                ${finalizeOnRead ? "countingService.finalizeValueOnRead()" : ""}
+                ${finalize ? "countingService.finalizeValue()" : ""}
                 doLast {
                     assert countingService.get().increment() == 2
                     assert requiredServices.elements.size() == 1

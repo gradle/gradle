@@ -100,13 +100,131 @@ public abstract class EclipsePlugin extends IdePlugin {
     private final Set<Configuration> testConfigurationsConvention = new HashSet<>();
 
     @Inject
-    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider,
-                         IdeArtifactRegistry artifactRegistry,
-                         JvmPluginServices jvmPluginServices
+    public EclipsePlugin(
+        UniqueProjectNameProvider uniqueProjectNameProvider,
+        IdeArtifactRegistry artifactRegistry,
+        JvmPluginServices jvmPluginServices
     ) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
         this.jvmPluginServices = jvmPluginServices;
+    }
+
+    private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model, Collection<SourceSet> testSourceSetsConvention, Collection<Configuration> testConfigurationsConvention) {
+        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
+            @Override
+            public void execute(JavaPlugin javaPlugin) {
+                ((IConventionAware) model.getClasspath()).getConventionMapping().map("plusConfigurations", new Callable<Collection<Configuration>>() {
+                    @Override
+                    public Collection<Configuration> call() {
+                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                        List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
+                        ConfigurationContainer configurations = project.getConfigurations();
+                        for (SourceSet sourceSet : sourceSets) {
+                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
+                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                        }
+                        return sourceSetsConfigurations;
+                    }
+                }).cache();
+
+                ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
+                    @Override
+                    public List<File> call() {
+                        List<File> result = new ArrayList<>();
+                        for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
+                            result.addAll(sourceSet.getOutput().getDirs().getFiles());
+                        }
+                        return result;
+                    }
+                });
+
+                task.configure(new Action<GenerateEclipseClasspath>() {
+                    @Override
+                    public void execute(GenerateEclipseClasspath task) {
+                        for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
+                            task.dependsOn(sourceSet.getOutput().getDirs());
+                        }
+                    }
+                });
+
+                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                sourceSets.configureEach(new Action<SourceSet>() {
+                    @Override
+                    public void execute(SourceSet sourceSet) {
+                        if (sourceSet.getName().toLowerCase(Locale.ROOT).contains("test")) {
+                            // source sets with 'test' in their name are marked as test on the Eclipse classpath
+                            testSourceSetsConvention.add(sourceSet);
+
+                            // resolved dependencies from the source sets with 'test' in their name are marked as test on the Eclipse classpath
+                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
+                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                        }
+                    }
+                });
+
+                project.getConfigurations().all(new Action<Configuration>() {
+                    @Override
+                    public void execute(Configuration configuration) {
+                        if (configuration.isCanBeResolved() && configuration.getName().toLowerCase(Locale.ROOT).contains("test")) {
+                            // resolved dependencies from custom configurations with 'test' in their name are marked as test on the Eclipse classpath
+                            testConfigurationsConvention.add(configuration);
+                        }
+                    }
+                });
+            }
+        });
+
+        project.getPlugins().withType(JavaTestFixturesPlugin.class, new Action<JavaTestFixturesPlugin>() {
+            @Override
+            public void execute(JavaTestFixturesPlugin javaTestFixturesPlugin) {
+                model.getClasspath().getContainsTestFixtures().convention(true);
+
+                project.getPluginManager().withPlugin("java", new Action<AppliedPlugin>() {
+                    @Override
+                    public void execute(AppliedPlugin appliedPlugin) {
+                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+                        SourceSet sourceSet = sourceSets.getByName(TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME);
+                        // the testFixtures source set is marked as test on the Eclipse classpath
+                        testSourceSetsConvention.add(sourceSet);
+
+                        // resolved dependencies from the testFixtures source set are marked as test on the Eclipse classpath
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
+                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                    }
+                });
+            }
+        });
+
+        project.getPlugins().withType(TestSuiteBasePlugin.class, testSuiteBasePlugin -> {
+            TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+            ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites = testing.getSuites();
+            suites.withType(JvmTestSuite.class).configureEach(jvmTestSuite -> {
+                // jvm test suite source sets are marked as test on the Eclipse classpath
+                testSourceSetsConvention.add(jvmTestSuite.getSources());
+
+                // resolved dependencies from jvm test suites are marked as test on the Eclipse classpath
+                testConfigurationsConvention.add(project.getConfigurations().findByName(jvmTestSuite.getSources().getCompileClasspathConfigurationName()));
+                testConfigurationsConvention.add(project.getConfigurations().findByName(jvmTestSuite.getSources().getRuntimeClasspathConfigurationName()));
+            });
+        });
+    }
+
+    private static String eclipseJavaRuntimeNameFor(JavaVersion version) {
+        // Default Eclipse JRE paths:
+        // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/plugin.xml#L241-L303
+        String eclipseJavaVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(version);
+        switch (version) {
+            case VERSION_1_1:
+                return "JRE-1.1";
+            case VERSION_1_2:
+            case VERSION_1_3:
+            case VERSION_1_4:
+            case VERSION_1_5:
+                return "J2SE-" + eclipseJavaVersion;
+            default:
+                return "JavaSE-" + eclipseJavaVersion;
+        }
     }
 
     @Override
@@ -265,106 +383,6 @@ public abstract class EclipsePlugin extends IdePlugin {
         });
     }
 
-    private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model, Collection<SourceSet> testSourceSetsConvention, Collection<Configuration> testConfigurationsConvention) {
-        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
-            @Override
-            public void execute(JavaPlugin javaPlugin) {
-                ((IConventionAware) model.getClasspath()).getConventionMapping().map("plusConfigurations", new Callable<Collection<Configuration>>() {
-                    @Override
-                    public Collection<Configuration> call() {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                        List<Configuration> sourceSetsConfigurations = new ArrayList<>(sourceSets.size() * 2);
-                        ConfigurationContainer configurations = project.getConfigurations();
-                        for (SourceSet sourceSet : sourceSets) {
-                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
-                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                        }
-                        return sourceSetsConfigurations;
-                    }
-                }).cache();
-
-                ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
-                    @Override
-                    public List<File> call() {
-                        List<File> result = new ArrayList<>();
-                        for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
-                            result.addAll(sourceSet.getOutput().getDirs().getFiles());
-                        }
-                        return result;
-                    }
-                });
-
-                task.configure(new Action<GenerateEclipseClasspath>() {
-                    @Override
-                    public void execute(GenerateEclipseClasspath task) {
-                        for (SourceSet sourceSet : project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()) {
-                            task.dependsOn(sourceSet.getOutput().getDirs());
-                        }
-                    }
-                });
-
-                SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                sourceSets.configureEach(new Action<SourceSet>() {
-                    @Override
-                    public void execute(SourceSet sourceSet) {
-                        if (sourceSet.getName().toLowerCase(Locale.ROOT).contains("test")) {
-                            // source sets with 'test' in their name are marked as test on the Eclipse classpath
-                            testSourceSetsConvention.add(sourceSet);
-
-                            // resolved dependencies from the source sets with 'test' in their name are marked as test on the Eclipse classpath
-                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
-                            testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                        }
-                    }
-                });
-
-                project.getConfigurations().all(new Action<Configuration>() {
-                    @Override
-                    public void execute(Configuration configuration) {
-                        if (configuration.isCanBeResolved() && configuration.getName().toLowerCase(Locale.ROOT).contains("test")) {
-                            // resolved dependencies from custom configurations with 'test' in their name are marked as test on the Eclipse classpath
-                            testConfigurationsConvention.add(configuration);
-                        }
-                    }
-                });
-            }
-        });
-
-        project.getPlugins().withType(JavaTestFixturesPlugin.class, new Action<JavaTestFixturesPlugin>() {
-            @Override
-            public void execute(JavaTestFixturesPlugin javaTestFixturesPlugin) {
-                model.getClasspath().getContainsTestFixtures().convention(true);
-
-                project.getPluginManager().withPlugin("java", new Action<AppliedPlugin>() {
-                    @Override
-                    public void execute(AppliedPlugin appliedPlugin) {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                        SourceSet sourceSet = sourceSets.getByName(TestFixturesSupport.TEST_FIXTURE_SOURCESET_NAME);
-                        // the testFixtures source set is marked as test on the Eclipse classpath
-                        testSourceSetsConvention.add(sourceSet);
-
-                        // resolved dependencies from the testFixtures source set are marked as test on the Eclipse classpath
-                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getCompileClasspathConfigurationName()));
-                        testConfigurationsConvention.add(project.getConfigurations().findByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                    }
-                });
-            }
-        });
-
-        project.getPlugins().withType(TestSuiteBasePlugin.class, testSuiteBasePlugin -> {
-            TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-            ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites = testing.getSuites();
-            suites.withType(JvmTestSuite.class).configureEach(jvmTestSuite -> {
-                // jvm test suite source sets are marked as test on the Eclipse classpath
-                testSourceSetsConvention.add(jvmTestSuite.getSources());
-
-                // resolved dependencies from jvm test suites are marked as test on the Eclipse classpath
-                testConfigurationsConvention.add(project.getConfigurations().findByName(jvmTestSuite.getSources().getCompileClasspathConfigurationName()));
-                testConfigurationsConvention.add(project.getConfigurations().findByName(jvmTestSuite.getSources().getRuntimeClasspathConfigurationName()));
-            });
-        });
-    }
-
     private void configureScalaDependencies(final Project project, final EclipseModel model) {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
@@ -434,23 +452,6 @@ public abstract class EclipsePlugin extends IdePlugin {
                 });
             }
         });
-    }
-
-    private static String eclipseJavaRuntimeNameFor(JavaVersion version) {
-        // Default Eclipse JRE paths:
-        // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/plugin.xml#L241-L303
-        String eclipseJavaVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(version);
-        switch (version) {
-            case VERSION_1_1:
-                return "JRE-1.1";
-            case VERSION_1_2:
-            case VERSION_1_3:
-            case VERSION_1_4:
-            case VERSION_1_5:
-                return "J2SE-" + eclipseJavaVersion;
-            default:
-                return "JavaSE-" + eclipseJavaVersion;
-        }
     }
 
     private void applyEclipseWtpPluginOnWebProjects(Project project) {

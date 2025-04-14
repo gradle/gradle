@@ -20,6 +20,36 @@ import java.util.regex.Pattern;
 
 public interface JvmVendor {
 
+    static JvmVendor fromString(String vendor) {
+        return new JvmVendor() {
+
+            @Override
+            public String getRawVendor() {
+                return vendor;
+            }
+
+            @Override
+            public KnownJvmVendor getKnownVendor() {
+                return KnownJvmVendor.parse(vendor);
+            }
+
+            @Override
+            public String getDisplayName() {
+                final KnownJvmVendor knownVendor = getKnownVendor();
+                if (knownVendor != KnownJvmVendor.UNKNOWN) {
+                    return knownVendor.getDisplayName();
+                }
+                return getRawVendor();
+            }
+        };
+    }
+
+    String getRawVendor();
+
+    KnownJvmVendor getKnownVendor();
+
+    String getDisplayName();
+
     enum KnownJvmVendor {
         ADOPTIUM("adoptium", "temurin|adoptium|eclipse foundation", "Eclipse Temurin"),
         ADOPTOPENJDK("adoptopenjdk", "aoj|adoptopenjdk", "AdoptOpenJDK"),
@@ -53,10 +83,6 @@ public interface JvmVendor {
             this.displayName = displayName;
         }
 
-        private String getDisplayName() {
-            return displayName;
-        }
-
         static KnownJvmVendor parse(String rawVendor) {
             if (rawVendor == null) {
                 return UNKNOWN;
@@ -75,39 +101,13 @@ public interface JvmVendor {
             return UNKNOWN;
         }
 
+        private String getDisplayName() {
+            return displayName;
+        }
+
         public JvmVendor asJvmVendor() {
             return JvmVendor.fromString(indicatorString);
         }
-    }
-
-    String getRawVendor();
-
-    KnownJvmVendor getKnownVendor();
-
-    String getDisplayName();
-
-    static JvmVendor fromString(String vendor) {
-        return new JvmVendor() {
-
-            @Override
-            public String getRawVendor() {
-                return vendor;
-            }
-
-            @Override
-            public KnownJvmVendor getKnownVendor() {
-                return KnownJvmVendor.parse(vendor);
-            }
-
-            @Override
-            public String getDisplayName() {
-                final KnownJvmVendor knownVendor = getKnownVendor();
-                if(knownVendor != KnownJvmVendor.UNKNOWN) {
-                    return knownVendor.getDisplayName();
-                }
-                return getRawVendor();
-            }
-        };
     }
 
 }

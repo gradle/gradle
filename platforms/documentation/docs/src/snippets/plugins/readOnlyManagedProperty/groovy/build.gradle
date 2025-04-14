@@ -1,4 +1,3 @@
-
 tasks.register('download', Download) {
     location = "gradle.org"
 }

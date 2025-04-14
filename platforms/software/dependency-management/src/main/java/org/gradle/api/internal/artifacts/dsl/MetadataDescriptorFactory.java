@@ -32,6 +32,18 @@ class MetadataDescriptorFactory {
         this.metadata = metadata;
     }
 
+    public static boolean isMatchingMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
+        return isPomMetadata(descriptor, metadata) || isIvyMetadata(descriptor, metadata);
+    }
+
+    private static boolean isIvyMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
+        return IvyModuleDescriptor.class.isAssignableFrom(descriptor) && metadata instanceof IvyModuleResolveMetadata;
+    }
+
+    private static boolean isPomMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
+        return PomModuleDescriptor.class.isAssignableFrom(descriptor) && metadata instanceof MavenModuleResolveMetadata;
+    }
+
     public <T> T createDescriptor(Class<T> descriptorClass) {
         if (isIvyMetadata(descriptorClass, metadata)) {
             IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
@@ -43,18 +55,6 @@ class MetadataDescriptorFactory {
             return descriptorClass.cast(descriptor);
         }
         return null;
-    }
-
-    public static boolean isMatchingMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
-        return isPomMetadata(descriptor, metadata) || isIvyMetadata(descriptor, metadata);
-    }
-
-    private static boolean isIvyMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
-        return IvyModuleDescriptor.class.isAssignableFrom(descriptor) && metadata instanceof IvyModuleResolveMetadata;
-    }
-
-    private static boolean isPomMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
-        return PomModuleDescriptor.class.isAssignableFrom(descriptor) && metadata instanceof MavenModuleResolveMetadata;
     }
 
 }

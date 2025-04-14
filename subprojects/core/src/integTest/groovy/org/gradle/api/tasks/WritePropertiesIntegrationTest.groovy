@@ -174,7 +174,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Property 'someProp' is not allowed to have a null value.")
         where:
-        propValue << [ "null", "{ null }" ]
+        propValue << ["null", "{ null }"]
     }
 
     def "value can be provided"() {

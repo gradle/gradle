@@ -64,9 +64,22 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
         this.internalTestExecutionRequest = internalTestExecutionRequest;
     }
 
+    private static boolean emptyTest(InternalTestSpec spec) {
+        return allEmpty(spec.getClasses(), spec.getMethods().keySet(), spec.getPackages(), spec.getPatterns());
+    }
+
+    private static boolean allEmpty(Collection<?>... collections) {
+        return Arrays.stream(collections).allMatch(Collection::isEmpty);
+    }
+
+    @SuppressWarnings("InlineMeInliner")
+    private static String twoIndent() {
+        return Strings.repeat(INDENT, 2);
+    }
+
     public boolean hasUnmatchedTests() {
         if (noTestsSelected()) {
-             return false;
+            return false;
         } else {
             return resultCount.get() == 0;
         }
@@ -90,14 +103,6 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
             .filter(InternalTestSpec.class::isInstance)
             .map(InternalTestSpec.class::cast)
             .allMatch(TestExecutionResultEvaluator::emptyTest);
-    }
-
-    private static boolean emptyTest(InternalTestSpec spec) {
-        return allEmpty(spec.getClasses(), spec.getMethods().keySet(), spec.getPackages(), spec.getPatterns());
-    }
-
-    private static boolean allEmpty(Collection<?>... collections) {
-        return Arrays.stream(collections).allMatch(Collection::isEmpty);
     }
 
     public boolean hasFailedTests() {
@@ -158,11 +163,6 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
         }
 
         return requestDetails.toString();
-    }
-
-    @SuppressWarnings("InlineMeInliner")
-    private static String twoIndent() {
-        return Strings.repeat(INDENT, 2);
     }
 
     @Override

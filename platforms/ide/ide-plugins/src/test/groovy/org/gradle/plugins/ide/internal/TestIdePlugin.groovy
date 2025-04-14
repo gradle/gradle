@@ -19,11 +19,13 @@ package org.gradle.plugins.ide.internal
 import org.gradle.api.Project
 
 class TestIdePlugin extends IdePlugin {
-    @Override protected String getLifecycleTaskName() {
+    @Override
+    protected String getLifecycleTaskName() {
         return 'testIde'
     }
 
-    @Override protected void onApply(Project target) {
+    @Override
+    protected void onApply(Project target) {
         def worker = target.task('generateXml')
         addWorker(target.getTasks().named(worker.getName()), worker.getName());
     }

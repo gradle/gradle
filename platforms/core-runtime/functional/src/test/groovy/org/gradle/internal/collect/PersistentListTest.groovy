@@ -74,7 +74,7 @@ class PersistentListTest extends Specification {
     }
 
     private static PersistentList<String> listOf(List<String> elements) {
-        return elements.reverse().inject(PersistentList.<String>of()) { acc, val -> acc + val }
+        return elements.reverse().inject(PersistentList.<String> of()) { acc, val -> acc + val }
     }
 
 }

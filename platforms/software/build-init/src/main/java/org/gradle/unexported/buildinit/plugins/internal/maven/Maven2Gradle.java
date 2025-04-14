@@ -74,7 +74,7 @@ public class Maven2Gradle {
     private final InsecureProtocolOption insecureProtocolOption;
 
     public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
-        assert !mavenProjects.isEmpty(): "No Maven projects provided.";
+        assert !mavenProjects.isEmpty() : "No Maven projects provided.";
 
         this.scriptBuilderFactory = new BuildScriptBuilderFactory(new DocumentationRegistry());
         this.useIncubatingAPIs = useIncubatingAPIs;

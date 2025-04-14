@@ -22,11 +22,11 @@ import org.gradle.internal.component.model.IvyArtifactName;
 class DefaultExcludeNothing implements ExcludeNothing {
     private static final ExcludeNothing INSTANCE = new DefaultExcludeNothing();
 
-    public static ExcludeNothing get() {
-        return INSTANCE;
+    private DefaultExcludeNothing() {
     }
 
-    private DefaultExcludeNothing() {
+    public static ExcludeNothing get() {
+        return INSTANCE;
     }
 
     @Override

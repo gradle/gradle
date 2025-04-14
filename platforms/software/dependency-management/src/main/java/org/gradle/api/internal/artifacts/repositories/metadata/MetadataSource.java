@@ -37,12 +37,14 @@ import java.util.List;
 public interface MetadataSource<S extends MutableModuleComponentResolveMetadata> {
 
     @Nullable
-    S create(String repositoryName,
-             ComponentResolvers componentResolvers,
-             ModuleComponentIdentifier moduleComponentIdentifier,
-             ComponentOverrideMetadata prescribedMetaData,
-             ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
-             BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result);
+    S create(
+        String repositoryName,
+        ComponentResolvers componentResolvers,
+        ModuleComponentIdentifier moduleComponentIdentifier,
+        ComponentOverrideMetadata prescribedMetaData,
+        ExternalResourceArtifactResolver artifactResolver, // Required for MavenLocal to verify the presence of the artifact
+        BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result
+    );
 
     /**
      * Use the supplied patterns and version lister to list available versions for the supplied dependency/module.

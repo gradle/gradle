@@ -35,10 +35,10 @@ class LineEndingNormalizingInputStreamHasherTest extends Specification {
         hasher.hashContent(unnormalized).get() == hasher.hashContent(normalized).get()
 
         where:
-        eol     | description
-        '\r'    | 'CR'
-        '\r\n'  | 'CR-LF'
-        '\n'    | 'LF'
+        eol    | description
+        '\r'   | 'CR'
+        '\r\n' | 'CR-LF'
+        '\n'   | 'LF'
     }
 
     def "can normalize line endings in input streams (eol = '#description')"() {
@@ -49,10 +49,10 @@ class LineEndingNormalizingInputStreamHasherTest extends Specification {
         hasher.hashContent(unnormalized).get() == hasher.hashContent(normalized).get()
 
         where:
-        eol     | description
-        '\r'    | 'CR'
-        '\r\n'  | 'CR-LF'
-        '\n'    | 'LF'
+        eol    | description
+        '\r'   | 'CR'
+        '\r\n' | 'CR-LF'
+        '\n'   | 'LF'
     }
 
     def "does not normalize content for binary files with #description"() {

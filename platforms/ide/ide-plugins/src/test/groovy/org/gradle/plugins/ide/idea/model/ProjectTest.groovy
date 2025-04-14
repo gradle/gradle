@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea.model
+
 import org.gradle.api.JavaVersion
 import org.gradle.internal.xml.XmlTransformer
 import spock.lang.Specification

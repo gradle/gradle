@@ -28,15 +28,10 @@ import static java.util.stream.Collectors.joining;
 
 public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHandler {
 
-    protected AbstractTypeAnnotationHandler(Class<? extends Annotation> annotationType) {
-        this.annotationType = annotationType;
-    }
-
     private final Class<? extends Annotation> annotationType;
 
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return annotationType;
+    protected AbstractTypeAnnotationHandler(Class<? extends Annotation> annotationType) {
+        this.annotationType = annotationType;
     }
 
     protected static void reportInvalidUseOfTypeAnnotation(
@@ -56,5 +51,10 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
                     .collect(joining(", "))))
                 .solution("Remove the annotation")
         );
+    }
+
+    @Override
+    public Class<? extends Annotation> getAnnotationType() {
+        return annotationType;
     }
 }

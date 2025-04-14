@@ -255,7 +255,7 @@ task verify {
     }
 
     private static String toQuotedList(def values) {
-        return values.collect({"\"$it\""}).toListString()
+        return values.collect({ "\"$it\"" }).toListString()
     }
 
     private String getArtifactTypesString() {

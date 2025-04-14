@@ -53,6 +53,24 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
         this.produceFlagForGeneratedClassName = produceFlagForGeneratedClassName;
     }
 
+    public static Predicate<CallInterceptionRequest> ifHasAnnotation(Class<? extends Annotation> annotationType) {
+        return request -> {
+            Optional<ExecutableElement> maybeOriginatingElement = request.getRequestExtras()
+                .getByType(OriginatingElement.class)
+                .map(OriginatingElement::getElement);
+
+            if (!maybeOriginatingElement.isPresent()) {
+                return false;
+            }
+
+            ExecutableElement originatingElement = maybeOriginatingElement.get();
+            return AnnotationUtils.findMetaAnnotationMirror(originatingElement, annotationType).isPresent();
+        };
+    }
+
+    public static Predicate<CallInterceptionRequest> ifHasExtraOfType(Class<? extends RequestExtra> extraType) {
+        return request -> request.getRequestExtras().getByType(extraType).isPresent();
+    }
 
     @Override
     public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
@@ -78,24 +96,5 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
         });
 
         return Collections.singletonList(originalRequest);
-    }
-
-    public static Predicate<CallInterceptionRequest> ifHasAnnotation(Class<? extends Annotation> annotationType) {
-        return request -> {
-            Optional<ExecutableElement> maybeOriginatingElement = request.getRequestExtras()
-                .getByType(OriginatingElement.class)
-                .map(OriginatingElement::getElement);
-
-            if (!maybeOriginatingElement.isPresent()) {
-                return false;
-            }
-
-            ExecutableElement originatingElement = maybeOriginatingElement.get();
-            return AnnotationUtils.findMetaAnnotationMirror(originatingElement, annotationType).isPresent();
-        };
-    }
-
-    public static Predicate<CallInterceptionRequest> ifHasExtraOfType(Class<? extends RequestExtra> extraType) {
-        return request -> request.getRequestExtras().getByType(extraType).isPresent();
     }
 }

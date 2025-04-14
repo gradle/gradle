@@ -10,9 +10,8 @@ import javax.inject.Inject;
 
 public class ModelBuilderPlugin implements Plugin<Project> {
 
-    private final ToolingModelBuilderRegistry registry;
-
     public static final ProblemGroup PROBLEM_GROUP = ProblemGroup.create("sample-group", "Sample Group");
+    private final ToolingModelBuilderRegistry registry;
 
     @Inject
     public ModelBuilderPlugin(ObjectFactory factory, ToolingModelBuilderRegistry registry) {

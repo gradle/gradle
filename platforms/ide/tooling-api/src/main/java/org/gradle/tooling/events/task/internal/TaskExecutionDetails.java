@@ -36,11 +36,6 @@ public abstract class TaskExecutionDetails {
         }
     };
 
-    abstract boolean isIncremental();
-
-    @Nullable
-    abstract List<String> getExecutionReasons();
-
     public static TaskExecutionDetails of(final boolean incremental, final List<String> executionReasons) {
         return new TaskExecutionDetails() {
             @Override
@@ -58,5 +53,10 @@ public abstract class TaskExecutionDetails {
     public static TaskExecutionDetails unsupported() {
         return UNSUPPORTED;
     }
+
+    abstract boolean isIncremental();
+
+    @Nullable
+    abstract List<String> getExecutionReasons();
 
 }

@@ -48,11 +48,11 @@ import org.jspecify.annotations.Nullable;
  * cannot be found in a repository, call this method. Otherwise, Gradle will perform a request
  * to find out. It doesn't matter if the module is eventually not found, as Gradle would handle
  * this appropriately by looking at the next repository: the consequence is just a remote call.
- *
  */
 public interface ArtifactResolutionDetails {
     /**
      * The identifier of the module being looked for in this repository
+     *
      * @return the module identifier
      */
     ModuleIdentifier getModuleId();
@@ -60,6 +60,7 @@ public interface ArtifactResolutionDetails {
     /**
      * The module component identifier of the module being looked for in this repository,
      * which includes a version.
+     *
      * @return the module version identifier. If it's a version listing, then this will
      * be null.
      */

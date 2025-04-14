@@ -22,8 +22,10 @@ import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 
 class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
-    @Rule final SFTPServer sftpServer = new SFTPServer(temporaryFolder)
-    @Rule final BlockingHttpServer coordinator = new BlockingHttpServer()
+    @Rule
+    final SFTPServer sftpServer = new SFTPServer(temporaryFolder)
+    @Rule
+    final BlockingHttpServer coordinator = new BlockingHttpServer()
 
     def "does not attempt to reuse a client that has been disconnected"() {
         coordinator.start()

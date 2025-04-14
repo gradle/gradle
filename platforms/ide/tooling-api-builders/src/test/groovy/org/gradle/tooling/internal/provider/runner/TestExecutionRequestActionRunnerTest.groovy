@@ -15,6 +15,7 @@
  */
 
 package org.gradle.tooling.internal.provider.runner
+
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.operations.BuildOperationAncestryTracker
@@ -23,11 +24,11 @@ import spock.lang.Specification
 
 class TestExecutionRequestActionRunnerTest extends Specification {
 
-    def "does not handle non TestExecutionRequestAction"(){
+    def "does not handle non TestExecutionRequestAction"() {
         given:
         def runner = new TestExecutionRequestActionRunner(Mock(BuildOperationAncestryTracker), Mock(BuildOperationListenerManager))
         BuildAction buildAction = Mock(BuildAction)
-        BuildTreeLifecycleController buildController= Mock(BuildTreeLifecycleController)
+        BuildTreeLifecycleController buildController = Mock(BuildTreeLifecycleController)
         when:
         runner.run(buildAction, buildController)
         then:

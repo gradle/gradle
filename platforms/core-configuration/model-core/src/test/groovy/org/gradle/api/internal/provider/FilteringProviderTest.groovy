@@ -181,7 +181,7 @@ class FilteringProviderTest extends Specification {
     static class FilteringProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
         @Override
         ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new FilteringProvider<String>(baseProvider, { it == ""})
+            return new FilteringProvider<String>(baseProvider, { it == "" })
         }
     }
 }

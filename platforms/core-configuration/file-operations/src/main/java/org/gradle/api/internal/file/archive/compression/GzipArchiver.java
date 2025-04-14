@@ -32,11 +32,6 @@ public class GzipArchiver extends AbstractArchiver {
         super(resource);
     }
 
-    @Override
-    protected String getSchemePrefix() {
-        return "gzip:";
-    }
-
     public static ArchiveOutputStreamFactory getCompressor() {
         // this is not very beautiful but at some point we will
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
@@ -50,6 +45,11 @@ public class GzipArchiver extends AbstractArchiver {
                 throw new RuntimeException(message, e);
             }
         };
+    }
+
+    @Override
+    protected String getSchemePrefix() {
+        return "gzip:";
     }
 
     @Override

@@ -202,15 +202,15 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-                .testClass("EncodingTest")
-                .assertTestPassed("encodesCdata")
-                .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
-                .assertStdout(containsString(
-                    "< html allowed, cdata closing token ]]> encoded!\n" +
+            .testClass("EncodingTest")
+            .assertTestPassed("encodesCdata")
+            .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
+            .assertStdout(containsString(
+                "< html allowed, cdata closing token ]]> encoded!\n" +
                     "no EOL, non-asci char: ż\n" +
                     "xml entity: &amp;"
-                ))
-                .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+            ))
+            .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
     }
 
     String lineNumberOf(String text) {

@@ -83,11 +83,11 @@ class DaemonForkOptionsTest extends Specification {
         def spec3 = Mock(ClassLoaderSpec)
         def spec4 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
-                .build()
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+            .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec4))
-                .build()
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec4))
+            .build()
 
         expect:
         !settings1.isCompatibleWith(settings2)
@@ -98,11 +98,11 @@ class DaemonForkOptionsTest extends Specification {
         def spec2 = Mock(ClassLoaderSpec)
         def spec3 = Mock(ClassLoaderSpec)
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
-                .build()
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+            .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
-                .build()
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(spec1).withChild(spec2).withChild(spec3))
+            .build()
 
         expect:
         settings1.isCompatibleWith(settings2)
@@ -110,11 +110,11 @@ class DaemonForkOptionsTest extends Specification {
 
     def "is compatible when classloader structures are null"() {
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(null)
-                .build()
+            .withClassLoaderStructure(null)
+            .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(null)
-                .build()
+            .withClassLoaderStructure(null)
+            .build()
 
         expect:
         settings1.isCompatibleWith(settings2)
@@ -123,22 +123,22 @@ class DaemonForkOptionsTest extends Specification {
     def "is not compatible when one classloader structure is null"() {
         when:
         def settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(null)
-                .build()
+            .withClassLoaderStructure(null)
+            .build()
         def settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(Mock(ClassLoaderSpec)))
-                .build()
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(Mock(ClassLoaderSpec)))
+            .build()
 
         then:
         !settings1.isCompatibleWith(settings2)
 
         when:
         settings1 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(new HierarchicalClassLoaderStructure(Mock(ClassLoaderSpec)))
-                .build()
+            .withClassLoaderStructure(new HierarchicalClassLoaderStructure(Mock(ClassLoaderSpec)))
+            .build()
         settings2 = daemonForkOptionsBuilder()
-                .withClassLoaderStructure(null)
-                .build()
+            .withClassLoaderStructure(null)
+            .build()
 
         then:
         !settings1.isCompatibleWith(settings2)

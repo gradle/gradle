@@ -86,11 +86,12 @@ public class NodeState implements DependencyGraphNode {
     private final boolean isTransitive;
     private final boolean selectedByVariantAwareResolution;
     private final boolean dependenciesMayChange;
-    private boolean doesNotHaveDependencies;
-
+    // caches
+    private final Map<DependencyMetadata, DependencyState> dependencyStateCache = new HashMap<>();
+    private final Map<DependencyState, EdgeState> edgesCache = new HashMap<>();
     @Nullable
     ExcludeSpec previousTraversalExclusions;
-
+    private boolean doesNotHaveDependencies;
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
     private List<EdgeState> virtualEdges;
     private boolean queued;
@@ -100,11 +101,6 @@ public class NodeState implements DependencyGraphNode {
     private boolean virtualPlatformNeedsRefresh;
     private Set<EdgeState> edgesToRecompute;
     private Multimap<ModuleIdentifier, DependencyState> potentiallyActivatedConstraints;
-
-    // caches
-    private final Map<DependencyMetadata, DependencyState> dependencyStateCache = new HashMap<>();
-    private final Map<DependencyState, EdgeState> edgesCache = new HashMap<>();
-
     // Caches the list of dependency states for dependencies
     private List<DependencyState> cachedDependencyStates;
 
@@ -134,6 +130,53 @@ public class NodeState implements DependencyGraphNode {
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
         this.moduleExclusions = resolveState.getModuleExclusions();
         this.dependenciesMayChange = component.getModule().isVirtualPlatform();
+    }
+
+    private static DependencyMetadata makeNonTransitive(DependencyMetadata dependencyMetadata) {
+        return new NonTransitiveVariantDependencyMetadata(dependencyMetadata);
+    }
+
+    /**
+     * Execute any dependency substitution rules that apply to this dependency.
+     *
+     * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
+     */
+    static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
+        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
+        if (substitutionResult.hasFailure()) {
+            dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
+            return dependencyState;
+        }
+
+        DependencySubstitutionInternal details = substitutionResult.getResult();
+        if (details != null && details.isUpdated()) {
+            // This caching works because our substitutionResult are cached themselves
+            return dependencyState.withSubstitution(substitutionResult, result -> {
+                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
+                if (artifactSelectionDetails.isUpdated()) {
+                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
+                }
+                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
+            });
+        }
+        return dependencyState;
+    }
+
+    @Nullable
+    private static Set<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing, int incomingEdgeCount) {
+        // Constraint: only consider explicit exclusions declared for this constraint
+        ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
+        if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
+            if (excludedByEither == null) {
+                excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
+            }
+            excludedByEither.add(constraintExclusions);
+        }
+        return excludedByEither;
+    }
+
+    private static StrictVersionConstraints notNull(@Nullable StrictVersionConstraints strictVersionConstraints) {
+        return strictVersionConstraints == null ? StrictVersionConstraints.EMPTY : strictVersionConstraints;
     }
 
     // the enqueue and dequeue methods are used for performance reasons
@@ -474,10 +517,6 @@ public class NodeState implements DependencyGraphNode {
         return variantState.getDependencies();
     }
 
-    private static DependencyMetadata makeNonTransitive(DependencyMetadata dependencyMetadata) {
-        return new NonTransitiveVariantDependencyMetadata(dependencyMetadata);
-    }
-
     private List<DependencyState> dependencies(ExcludeSpec spec) {
         List<? extends DependencyMetadata> dependencies = dependencies();
         if (cachedDependencyStates == null) {
@@ -603,33 +642,6 @@ public class NodeState implements DependencyGraphNode {
         edge.markUsed();
         discoveredEdges.add(edge);
         edge.getSelector().use(false);
-    }
-
-
-    /**
-     * Execute any dependency substitution rules that apply to this dependency.
-     *
-     * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
-     */
-    static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
-        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
-        if (substitutionResult.hasFailure()) {
-            dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
-            return dependencyState;
-        }
-
-        DependencySubstitutionInternal details = substitutionResult.getResult();
-        if (details != null && details.isUpdated()) {
-            // This caching works because our substitutionResult are cached themselves
-            return dependencyState.withSubstitution(substitutionResult, result -> {
-                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
-                if (artifactSelectionDetails.isUpdated()) {
-                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
-                }
-                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
-            });
-        }
-        return dependencyState;
     }
 
     private boolean isExcluded(ExcludeSpec excludeSpec, DependencyState dependencyState) {
@@ -788,19 +800,6 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Nullable
-    private static Set<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing, int incomingEdgeCount) {
-        // Constraint: only consider explicit exclusions declared for this constraint
-        ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
-        if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
-            if (excludedByEither == null) {
-                excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
-            }
-            excludedByEither.add(constraintExclusions);
-        }
-        return excludedByEither;
-    }
-
-    @Nullable
     private ExcludeSpec joinNodeExclusions(@Nullable ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither) {
         if (excludedByEither != null) {
             if (nodeExclusions != null) {
@@ -913,10 +912,6 @@ public class NodeState implements DependencyGraphNode {
         ancestorsStrictVersionConstraints = parentStrictVersionConstraints
             .union(parentAncestorsStrictVersionConstraints)
             .union(parentEndorsedStrictVersionConstraints);
-    }
-
-    private static StrictVersionConstraints notNull(@Nullable StrictVersionConstraints strictVersionConstraints) {
-        return strictVersionConstraints == null ? StrictVersionConstraints.EMPTY : strictVersionConstraints;
     }
 
     private StrictVersionConstraints getEndorsedStrictVersions(EdgeState incomingEdge) {

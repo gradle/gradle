@@ -146,7 +146,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         expect:
         fails "customTask"
-        if(GradleContextualExecuter.configCache){
+        if (GradleContextualExecuter.configCache) {
             failure.assertThatDescription(containsString("Task `:customTask` of type `CustomTask`: cannot serialize object of type 'org.gradle.api.DefaultTask', " +
                 "a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache."))
         }

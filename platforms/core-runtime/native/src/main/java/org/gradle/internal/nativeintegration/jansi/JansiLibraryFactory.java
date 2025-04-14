@@ -36,10 +36,14 @@ public class JansiLibraryFactory {
         }
 
         switch (osSupport) {
-            case MAC_OS_X: return new JansiLibrary(os, MAC_OSX_LIB_FILENAME);
-            case LINUX: return new JansiLibrary(jansiRuntimeResolver.getPlatform(), LINUX_LIB_FILENAME);
-            case WINDOWS: return new JansiLibrary(jansiRuntimeResolver.getPlatform(), WINDOWS_LIB_FILENAME);
-            default: return null;
+            case MAC_OS_X:
+                return new JansiLibrary(os, MAC_OSX_LIB_FILENAME);
+            case LINUX:
+                return new JansiLibrary(jansiRuntimeResolver.getPlatform(), LINUX_LIB_FILENAME);
+            case WINDOWS:
+                return new JansiLibrary(jansiRuntimeResolver.getPlatform(), WINDOWS_LIB_FILENAME);
+            default:
+                return null;
         }
     }
 }

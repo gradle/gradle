@@ -36,7 +36,7 @@ public class StrictVersionParser {
         }
         if (idx > 0) {
             String strictly = stringInterner.intern(version.substring(0, idx));
-            String prefer = stringInterner.intern(version.substring(idx+2));
+            String prefer = stringInterner.intern(version.substring(idx + 2));
             return new RichVersion(null, strictly, prefer);
         }
         return new RichVersion(stringInterner.intern(version), null, null);

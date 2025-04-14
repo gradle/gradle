@@ -37,6 +37,7 @@ public interface TaskDependency {
      * @param task The task to determine the dependencies for.
      * @return The tasks which the given task depends on. Returns an empty set if the task has no dependencies.
      */
-    @ForExternalUse // see TaskDependencyInternal.getDependencies
+    @ForExternalUse
+    // see TaskDependencyInternal.getDependencies
     Set<? extends Task> getDependencies(@Nullable Task task);
 }

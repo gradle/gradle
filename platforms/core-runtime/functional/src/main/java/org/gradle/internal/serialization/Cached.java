@@ -26,10 +26,11 @@ import java.util.concurrent.Callable;
 /**
  * Represents a computation that must execute only once and
  * whose result must be cached even (or specially) at serialization time.
- *<p>
+ * <p>
  * Instances of this type are mutable and ARE NOT thread-safe,
  * so should not be used from multiple threads.
- *</p>
+ * </p>
+ *
  * @param <T> the resulting type
  */
 public abstract class Cached<T> {

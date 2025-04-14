@@ -97,53 +97,6 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
         return collection.getLazyBehaviorGuard();
     }
 
-    private static class FilteringIterator<T, S extends T> implements Iterator<S> {
-        private final CollectionFilter<S> filter;
-        private final Iterator<T> iterator;
-
-        private S next;
-
-        FilteringIterator(ElementSource<T> collection, CollectionFilter<S> filter) {
-            this.iterator = collection.iteratorNoFlush();
-            this.filter = filter;
-            this.next = findNext();
-        }
-
-        @Nullable
-        private S findNext() {
-            while (iterator.hasNext()) {
-                T potentialNext = iterator.next();
-                S filtered = filter.filter(potentialNext);
-                if (filtered != null) {
-                    return filtered;
-                }
-            }
-
-            return null;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return next != null;
-        }
-
-        @Override
-        public S next() {
-            if (next != null) {
-                S thisNext = next;
-                next = findNext();
-                return thisNext;
-            } else {
-                throw new NoSuchElementException();
-            }
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException("This iterator does not support removal");
-        }
-    }
-
     @Override
     public Iterator<S> iterator() {
         collection.realizePending(filter.getType());
@@ -205,7 +158,7 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void onPendingAdded(Action<S> action) { }
+    public void onPendingAdded(Action<S> action) {}
 
     @Override
     public void setSubscriptionVerifier(EventSubscriptionVerifier<S> immediateRealizationSpec) {
@@ -215,5 +168,52 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     @Override
     public void realizeExternal(ProviderInternal<? extends S> provider) {
         collection.realizeExternal(provider);
+    }
+
+    private static class FilteringIterator<T, S extends T> implements Iterator<S> {
+        private final CollectionFilter<S> filter;
+        private final Iterator<T> iterator;
+
+        private S next;
+
+        FilteringIterator(ElementSource<T> collection, CollectionFilter<S> filter) {
+            this.iterator = collection.iteratorNoFlush();
+            this.filter = filter;
+            this.next = findNext();
+        }
+
+        @Nullable
+        private S findNext() {
+            while (iterator.hasNext()) {
+                T potentialNext = iterator.next();
+                S filtered = filter.filter(potentialNext);
+                if (filtered != null) {
+                    return filtered;
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public S next() {
+            if (next != null) {
+                S thisNext = next;
+                next = findNext();
+                return thisNext;
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("This iterator does not support removal");
+        }
     }
 }

@@ -23,6 +23,15 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
 public class DependencyResultSpecNotationConverter implements NotationConverter<String, Spec<DependencyResult>> {
+    public static NotationParser<Object, Spec<DependencyResult>> parser() {
+        return NotationParserBuilder
+            .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
+            .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
+            .fromType(Closure.class, new ClosureToSpecNotationConverter<>(DependencyResult.class))
+            .fromCharSequence(new DependencyResultSpecNotationConverter())
+            .toComposite();
+    }
+
     @Override
     public void convert(String notation, NotationConvertResult<? super Spec<DependencyResult>> result) throws TypeConversionException {
         final String stringNotation = notation.trim();
@@ -34,14 +43,5 @@ public class DependencyResultSpecNotationConverter implements NotationConverter<
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate("Non-empty String or CharSequence value").example("'some-lib' or 'org.libs:some-lib'");
-    }
-
-    public static NotationParser<Object, Spec<DependencyResult>> parser() {
-        return NotationParserBuilder
-                .toType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
-                .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")
-                .fromType(Closure.class, new ClosureToSpecNotationConverter<>(DependencyResult.class))
-                .fromCharSequence(new DependencyResultSpecNotationConverter())
-                .toComposite();
     }
 }

@@ -6,7 +6,7 @@ abstract class Producer : DefaultTask() {
     fun produce() {
         val message = "Hello, World!"
         val output = outputFile.get().asFile
-        output.writeText( message)
+        output.writeText(message)
         logger.quiet("Wrote '${message}' to ${output}")
     }
 }

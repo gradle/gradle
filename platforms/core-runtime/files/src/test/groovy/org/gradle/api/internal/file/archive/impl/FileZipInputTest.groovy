@@ -24,7 +24,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
-class FileZipInputTest extends Specification implements ZipFileFixture{
+class FileZipInputTest extends Specification implements ZipFileFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
@@ -63,7 +63,7 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
 
         when:
         def zipInput = FileZipInput.create(file)
-        zipInput.forEach {throw new RuntimeException() }
+        zipInput.forEach { throw new RuntimeException() }
 
         then:
         noExceptionThrown()

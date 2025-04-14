@@ -24,51 +24,6 @@ package org.gradle.tooling;
  */
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
     /**
-     * Builder for a build action that hooks into different phases of the build.
-     *
-     * <p>A single {@link BuildAction} is allowed per build phase. Use composite actions if needed.
-     *
-     * @since 4.8
-     */
-    interface Builder {
-
-        /**
-         * Executes the given action after projects are loaded and sends its result to the given result handler.
-         *
-         * <p>Action will be executed after projects are loaded and Gradle will configure projects as necessary for the models requested.
-         *
-         * <p>If the operation fails, build will fail with the appropriate exception. The handler won't be notified in case of failure.
-         *
-         * @param buildAction The action to run in the specified build phase.
-         * @param handler The handler to supply the result of the given action to.
-         * @param <T> The returning type of the action.
-         * @return The builder.
-         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
-         */
-        <T> Builder projectsLoaded(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
-
-        /**
-         * Executes the given action after tasks are run and sends its result to the given result handler.
-         *
-         * <p>If the operation fails, build will fail with the appropriate exception. The handler won't be notified in case of failure.
-         *
-         * @param buildAction The action to run in the specified build phase.
-         * @param handler The handler to supply the result of the given action to.
-         * @param <T> The returning type of the action.
-         * @return The builder.
-         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
-         */
-        <T> Builder buildFinished(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
-
-        /**
-         * Builds the executer from the added actions.
-         *
-         * @return The executer.
-         */
-        BuildActionExecuter<Void> build();
-    }
-
-    /**
      * Sets the listener to use to streamed values sent from the action via {@link BuildController#send(Object)}.
      * Replaces the current listener.
      *
@@ -131,4 +86,49 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
      * @since 1.8
      */
     void run(ResultHandler<? super T> handler) throws IllegalStateException;
+
+    /**
+     * Builder for a build action that hooks into different phases of the build.
+     *
+     * <p>A single {@link BuildAction} is allowed per build phase. Use composite actions if needed.
+     *
+     * @since 4.8
+     */
+    interface Builder {
+
+        /**
+         * Executes the given action after projects are loaded and sends its result to the given result handler.
+         *
+         * <p>Action will be executed after projects are loaded and Gradle will configure projects as necessary for the models requested.
+         *
+         * <p>If the operation fails, build will fail with the appropriate exception. The handler won't be notified in case of failure.
+         *
+         * @param buildAction The action to run in the specified build phase.
+         * @param handler The handler to supply the result of the given action to.
+         * @param <T> The returning type of the action.
+         * @return The builder.
+         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         */
+        <T> Builder projectsLoaded(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
+
+        /**
+         * Executes the given action after tasks are run and sends its result to the given result handler.
+         *
+         * <p>If the operation fails, build will fail with the appropriate exception. The handler won't be notified in case of failure.
+         *
+         * @param buildAction The action to run in the specified build phase.
+         * @param handler The handler to supply the result of the given action to.
+         * @param <T> The returning type of the action.
+         * @return The builder.
+         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         */
+        <T> Builder buildFinished(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
+
+        /**
+         * Builds the executer from the added actions.
+         *
+         * @return The executer.
+         */
+        BuildActionExecuter<Void> build();
+    }
 }

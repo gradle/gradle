@@ -21,9 +21,9 @@ import org.gradle.api.Action;
 /**
  * Allows to add developers to a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomDeveloper
+ * @since 4.8
  */
 public interface MavenPomDeveloperSpec {
 

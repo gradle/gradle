@@ -98,9 +98,9 @@ class ImplementationChangesTest extends Specification {
     ) {
         def visitor = new CollectingChangeVisitor()
         new ImplementationChanges(
-                previousImpl, ImmutableList.copyOf(previousAdditionalImpls),
-                currentImpl, ImmutableList.copyOf(currentAdditionalImpls),
-                executable
+            previousImpl, ImmutableList.copyOf(previousAdditionalImpls),
+            currentImpl, ImmutableList.copyOf(currentAdditionalImpls),
+            executable
         ).accept(visitor)
         return visitor.changes*.message
     }
@@ -110,6 +110,7 @@ class ImplementationChangesTest extends Specification {
     }
 
     private class SimpleTask extends DefaultTask {}
+
     private class PreviousTask extends DefaultTask {}
 
     private static class TestAction implements InputChangesAwareTaskAction {

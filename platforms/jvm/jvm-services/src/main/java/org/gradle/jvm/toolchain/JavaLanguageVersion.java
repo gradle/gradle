@@ -64,8 +64,8 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * <p>
      * This method will return {@code 1.<version>} when the version is lower than 5.
      *
-     * @since 6.8
      * @return the version number
+     * @since 6.8
      */
     @Override
     String toString();
@@ -76,7 +76,6 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * For example, Java 14 can compile or run code from Java 11, but not the opposite.
      *
      * @param other the language version to check
-     *
      * @return {@code true} if this version can compile or run code from the other version, {@code false} otherwise
      */
     boolean canCompileOrRun(JavaLanguageVersion other);
@@ -87,7 +86,6 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * For example, Java 14 can compile or run code from Java 11, but not the opposite.
      *
      * @param otherVersion the language version to check, as an {@code int}
-     *
      * @return {@code true} if this version can compile or run code from the other version, {@code false} otherwise
      */
     boolean canCompileOrRun(int otherVersion);

@@ -37,8 +37,8 @@ import java.util.Set;
 @NullMarked
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
 public abstract class SourceTask extends ConventionTask implements PatternFilterable {
-    private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
+    private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
 
     public SourceTask() {
         patternSet = getPatternSetFactory().createPatternSet();

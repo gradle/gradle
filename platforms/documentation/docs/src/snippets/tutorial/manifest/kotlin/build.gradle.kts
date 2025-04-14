@@ -16,7 +16,7 @@ tasks.jar {
 
 // tag::custom-manifest[]
 val sharedManifest = java.manifest {
-    attributes (
+    attributes(
         "Implementation-Title" to "Gradle",
         "Implementation-Version" to version
     )

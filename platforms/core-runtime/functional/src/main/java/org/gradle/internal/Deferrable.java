@@ -29,6 +29,49 @@ import java.util.function.Supplier;
 public interface Deferrable<T> {
 
     /**
+     * An already completed result, can be successful or failed.
+     */
+    static <T> Deferrable<T> completed(T successfulResult) {
+        return new Deferrable<T>() {
+            @Override
+            public Optional<T> getCompleted() {
+                return Optional.of(successfulResult);
+            }
+
+            @Override
+            public T completeAndGet() {
+                return successfulResult;
+            }
+        };
+    }
+
+    /**
+     * An invocation with no pre-computed result, requiring to do the expensive computation on {@link #completeAndGet()}.
+     */
+    static <T> Deferrable<T> deferred(Supplier<T> result) {
+        return new Deferrable<T>() {
+            private volatile T value;
+
+            @Override
+            public Optional<T> getCompleted() {
+                return Optional.ofNullable(value);
+            }
+
+            @Override
+            public T completeAndGet() {
+                if (value == null) {
+                    synchronized (this) {
+                        if (value == null) {
+                            value = result.get();
+                        }
+                    }
+                }
+                return value;
+            }
+        };
+    }
+
+    /**
      * The result of the invocation when it is already available.
      */
     Optional<T> getCompleted();
@@ -78,48 +121,5 @@ public interface Deferrable<T> {
             .orElseGet(() -> Deferrable.deferred(() -> mapper
                 .apply(Deferrable.this.completeAndGet())
                 .completeAndGet()));
-    }
-
-    /**
-     * An already completed result, can be successful or failed.
-     */
-    static <T> Deferrable<T> completed(T successfulResult) {
-        return new Deferrable<T>() {
-            @Override
-            public Optional<T> getCompleted() {
-                return Optional.of(successfulResult);
-            }
-
-            @Override
-            public T completeAndGet() {
-                return successfulResult;
-            }
-        };
-    }
-
-    /**
-     * An invocation with no pre-computed result, requiring to do the expensive computation on {@link #completeAndGet()}.
-     */
-    static <T> Deferrable<T> deferred(Supplier<T> result) {
-        return new Deferrable<T>() {
-            private volatile T value;
-
-            @Override
-            public Optional<T> getCompleted() {
-                return Optional.ofNullable(value);
-            }
-
-            @Override
-            public T completeAndGet() {
-                if (value == null) {
-                    synchronized (this) {
-                        if (value == null) {
-                            value = result.get();
-                        }
-                    }
-                }
-                return value;
-            }
-        };
     }
 }

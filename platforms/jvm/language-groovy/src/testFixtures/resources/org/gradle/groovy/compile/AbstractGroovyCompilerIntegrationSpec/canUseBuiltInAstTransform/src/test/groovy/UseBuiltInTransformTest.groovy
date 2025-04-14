@@ -3,7 +3,8 @@ package org.gradle.groovy.compile.GroovyCompilerIntegrationSpec.canUseBuiltInAst
 import org.junit.Test
 
 class UseBuiltInTransformTest {
-    @Delegate final TestDelegate delegate = new TestDelegate()
+    @Delegate
+    final TestDelegate delegate = new TestDelegate()
 
     @Test
     void transformHasBeenApplied() {

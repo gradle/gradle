@@ -55,7 +55,8 @@ class ScopeLocationTest {
                         c { } // resolved to a#b#c
                     }
                 }
-            """.trimIndent())
+            """.trimIndent()
+        )
 
         val resolved = documentWithResolution(schema, topLevelBlock)
         val documentMemberMatcher = DocumentMemberAndTypeMatcher(schema, resolved.resolutionContainer)
@@ -143,6 +144,7 @@ class ScopeLocationTest {
                         visitNode(it)
                     }
                 }
+
                 else -> Unit
             }
         }

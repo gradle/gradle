@@ -41,8 +41,10 @@ public class JavadocLinkConverter {
     private final LinkRenderer linkRenderer;
     private final ClassMetaDataRepository<ClassMetaData> repository;
 
-    public JavadocLinkConverter(Document document, TypeNameResolver typeNameResolver, LinkRenderer linkRenderer,
-                                ClassMetaDataRepository<ClassMetaData> repository) {
+    public JavadocLinkConverter(
+        Document document, TypeNameResolver typeNameResolver, LinkRenderer linkRenderer,
+        ClassMetaDataRepository<ClassMetaData> repository
+    ) {
         this.document = document;
         this.typeNameResolver = typeNameResolver;
         this.linkRenderer = linkRenderer;

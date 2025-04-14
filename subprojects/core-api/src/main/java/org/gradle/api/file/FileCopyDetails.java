@@ -30,7 +30,6 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
  *
  * <p>Access to the source file itself after any filters have been added is not a supported operation.
  * </p>
- *
  */
 @NonExtensible
 @HasInternalProtocol
@@ -40,27 +39,6 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * Excludes this file from the copy.
      */
     void exclude();
-
-    /**
-     * Sets the destination name of this file.
-     *
-     * @param name The destination name of this file.
-     */
-    void setName(String name);
-
-    /**
-     * Sets the destination path of this file.
-     *
-     * @param path The path of this file.
-     */
-    void setPath(String path);
-
-    /**
-     * Sets the destination path of this file.
-     *
-     * @param path the new path for this file.
-     */
-    void setRelativePath(RelativePath path);
 
     /**
      * Configuration action for specifying file and directory access permissions.
@@ -81,18 +59,18 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
 
     /**
      * The strategy to use if there is already a file at this file's destination.
-     */
-    void setDuplicatesStrategy(DuplicatesStrategy strategy);
-
-    /**
-     * The strategy to use if there is already a file at this file's destination.
      * <p>
      * The value can be set with a case-insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
      *
-     * @see DuplicatesStrategy
      * @return the strategy to use for this file.
+     * @see DuplicatesStrategy
      */
     DuplicatesStrategy getDuplicatesStrategy();
+
+    /**
+     * The strategy to use if there is already a file at this file's destination.
+     */
+    void setDuplicatesStrategy(DuplicatesStrategy strategy);
 
     /**
      * Returns the base name of this file at the copy destination.
@@ -101,6 +79,13 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      */
     @Override
     String getName();
+
+    /**
+     * Sets the destination name of this file.
+     *
+     * @param name The destination name of this file.
+     */
+    void setName(String name);
 
     /**
      * Returns the path of this file, relative to the root of the copy destination.
@@ -114,12 +99,26 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
     String getPath();
 
     /**
+     * Sets the destination path of this file.
+     *
+     * @param path The path of this file.
+     */
+    void setPath(String path);
+
+    /**
      * Returns the path of this file, relative to the root of the copy destination.
      *
      * @return The path, relative to the root of the copy destination. Never returns null.
      */
     @Override
     RelativePath getRelativePath();
+
+    /**
+     * Sets the destination path of this file.
+     *
+     * @param path the new path for this file.
+     */
+    void setRelativePath(RelativePath path);
 
     /**
      * Returns the base name of this file at the copy source.

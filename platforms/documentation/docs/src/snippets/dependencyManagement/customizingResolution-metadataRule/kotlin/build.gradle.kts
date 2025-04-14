@@ -9,7 +9,8 @@ repositories {
 // tag::config-component-metadata-rule[]
 @CacheableRule
 abstract class TargetJvmVersionRule @Inject constructor(val jvmVersion: Int) : ComponentMetadataRule {
-    @get:Inject abstract val objects: ObjectFactory
+    @get:Inject
+    abstract val objects: ObjectFactory
 
     override fun execute(context: ComponentMetadataContext) {
         context.details.withVariant("compile") {
@@ -37,11 +38,11 @@ dependencies {
 
 // tag::jaxen-rule-1[]
 @CacheableRule
-abstract class JaxenDependenciesRule: ComponentMetadataRule {
+abstract class JaxenDependenciesRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withDependencies {
-                removeAll { it.group in listOf("dom4j", "jdom", "xerces",  "maven-plugins", "xml-apis", "xom") }
+                removeAll { it.group in listOf("dom4j", "jdom", "xerces", "maven-plugins", "xml-apis", "xom") }
             }
         }
     }
@@ -50,7 +51,7 @@ abstract class JaxenDependenciesRule: ComponentMetadataRule {
 
 // tag::jaxen-rule-2[]
 @CacheableRule
-abstract class JaxenCapabilitiesRule: ComponentMetadataRule {
+abstract class JaxenCapabilitiesRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.addVariant("runtime-dom4j", "runtime") {
             withCapabilities {
@@ -81,7 +82,7 @@ dependencies {
 
 // tag::guava-rule[]
 @CacheableRule
-abstract class GuavaRule: ComponentMetadataRule {
+abstract class GuavaRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         val variantVersion = context.details.id.version
         val version = variantVersion.substring(0, variantVersion.indexOf("-"))
@@ -118,7 +119,7 @@ dependencies {
 
 // tag::quasar-rule[]
 @CacheableRule
-abstract class QuasarRule: ComponentMetadataRule {
+abstract class QuasarRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         listOf("compile", "runtime").forEach { base ->
             context.details.addVariant("jdk8${base.capitalize()}", base) {
@@ -155,18 +156,19 @@ dependencies {
 
 // tag::lwgj-rule[]
 @CacheableRule
-abstract class LwjglRule: ComponentMetadataRule {
+abstract class LwjglRule : ComponentMetadataRule {
     data class NativeVariant(val os: String, val arch: String, val classifier: String)
 
     private val nativeVariants = listOf(
-        NativeVariant(OperatingSystemFamily.LINUX,   "arm32",  "natives-linux-arm32"),
-        NativeVariant(OperatingSystemFamily.LINUX,   "arm64",  "natives-linux-arm64"),
-        NativeVariant(OperatingSystemFamily.WINDOWS, "x86",    "natives-windows-x86"),
+        NativeVariant(OperatingSystemFamily.LINUX, "arm32", "natives-linux-arm32"),
+        NativeVariant(OperatingSystemFamily.LINUX, "arm64", "natives-linux-arm64"),
+        NativeVariant(OperatingSystemFamily.WINDOWS, "x86", "natives-windows-x86"),
         NativeVariant(OperatingSystemFamily.WINDOWS, "x86-64", "natives-windows"),
-        NativeVariant(OperatingSystemFamily.MACOS,   "x86-64", "natives-macos")
+        NativeVariant(OperatingSystemFamily.MACOS, "x86-64", "natives-macos")
     )
 
-    @get:Inject abstract val objects: ObjectFactory
+    @get:Inject
+    abstract val objects: ObjectFactory
 
     override fun execute(context: ComponentMetadataContext) {
         context.details.withVariant("runtime") {
@@ -205,7 +207,7 @@ dependencies {
 
 // tag::guice-rule[]
 @CacheableRule
-abstract class GuiceRule: ComponentMetadataRule {
+abstract class GuiceRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         listOf("compile", "runtime").forEach { base ->
             context.details.addVariant("noAop${base.capitalize()}", base) {

@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 public class OsXInstallationSupplier implements InstallationSupplier {
     private final OsXJavaHomeCommand javaHomeCommand;
     private final OperatingSystem os;
+
     @Inject
     public OsXInstallationSupplier(OperatingSystem os, OsXJavaHomeCommand javaHomeCommand) {
         this.javaHomeCommand = javaHomeCommand;

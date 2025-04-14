@@ -8,13 +8,6 @@ import java.net.URISyntaxException;
 
 public abstract class WebServer implements BuildService<WebServer.Params>, AutoCloseable {
 
-    // Some parameters for the web server
-    interface Params extends BuildServiceParameters {
-        Property<Integer> getPort();
-
-        DirectoryProperty getResources();
-    }
-
     private final URI uri;
 
     public WebServer() throws URISyntaxException {
@@ -35,5 +28,12 @@ public abstract class WebServer implements BuildService<WebServer.Params>, AutoC
     @Override
     public void close() {
         // Stop the server ...
+    }
+
+    // Some parameters for the web server
+    interface Params extends BuildServiceParameters {
+        Property<Integer> getPort();
+
+        DirectoryProperty getResources();
     }
 }

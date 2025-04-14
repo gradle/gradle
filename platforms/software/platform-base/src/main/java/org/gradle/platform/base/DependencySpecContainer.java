@@ -24,14 +24,14 @@ import java.util.Collection;
 /**
  * A container for dependency specifications.
  */
-@Incubating @UnmanagedStruct
+@Incubating
+@UnmanagedStruct
 public interface DependencySpecContainer {
 
     /**
      * Defines a new dependency, based on a project path. The returned dependency can be mutated.
      *
      * @param path the project path
-     *
      * @return a mutable dependency, added to this container
      */
     ProjectDependencySpecBuilder project(String path);
@@ -40,7 +40,6 @@ public interface DependencySpecContainer {
      * Defines a new dependency, based on a library name. The returned dependency can be mutated.
      *
      * @param name of the library
-     *
      * @return a mutable dependency, added to this container
      */
     ProjectDependencySpecBuilder library(String name);
@@ -49,7 +48,6 @@ public interface DependencySpecContainer {
      * Defines a new module dependency, based on a module id or a simple name. The returned dependency can be mutated.
      *
      * @param moduleIdOrName of the module
-     *
      * @return a mutable module dependency, added to this container
      */
     ModuleDependencySpecBuilder module(String moduleIdOrName);
@@ -58,7 +56,6 @@ public interface DependencySpecContainer {
      * Defines a new module dependency, based on a module group name. The returned dependency can be mutated.
      *
      * @param name of the module group
-     *
      * @return a mutable module dependency, added to this container
      */
     ModuleDependencySpecBuilder group(String name);

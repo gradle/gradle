@@ -126,7 +126,7 @@ class CompileTransactionTest extends Specification {
         then:
         thrown(CompilationFailedException)
         destinationDir.list() as Set ==~ ["file.txt", "subDir"]
-        new File(destinationDir,"subDir").list() as Set ==~ ["another-file.txt", "some-dest-file.class"]
+        new File(destinationDir, "subDir").list() as Set ==~ ["another-file.txt", "some-dest-file.class"]
         annotationOutput.list() as Set ==~ ["some-duplicated-file.class", "some-ann-file.class", "some-ann-file.ann"]
         headerOutput.list() as Set ==~ ["some-duplicated-file.class", "some-header-file.h", "some-header-file.class"]
     }

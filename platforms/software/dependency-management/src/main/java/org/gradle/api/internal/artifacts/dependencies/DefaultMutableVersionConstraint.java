@@ -27,11 +27,11 @@ import java.util.List;
 import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
+    private final List<String> rejectedVersions = new ArrayList<>(1);
     private String requiredVersion;
     private String preferredVersion;
     private String strictVersion;
     private String branch;
-    private final List<String> rejectedVersions = new ArrayList<>(1);
 
     public DefaultMutableVersionConstraint(VersionConstraint versionConstraint) {
         this(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.getBranch());
@@ -53,19 +53,19 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         this.branch = branch;
     }
 
-    private void updateVersions(@Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {
-        this.preferredVersion = nullToEmpty(preferredVersion);
-        this.requiredVersion = nullToEmpty(requiredVersion);
-        this.strictVersion = nullToEmpty(strictVersion);
-        this.rejectedVersions.clear();
-    }
-
     public static DefaultMutableVersionConstraint withVersion(String version) {
         return new DefaultMutableVersionConstraint(version);
     }
 
     public static DefaultMutableVersionConstraint withStrictVersion(String version) {
         return new DefaultMutableVersionConstraint(null, version, version);
+    }
+
+    private void updateVersions(@Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {
+        this.preferredVersion = nullToEmpty(preferredVersion);
+        this.requiredVersion = nullToEmpty(requiredVersion);
+        this.strictVersion = nullToEmpty(strictVersion);
+        this.rejectedVersions.clear();
     }
 
     @Override
@@ -128,7 +128,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public List<String> getRejectedVersions() {
-       return rejectedVersions;
+        return rejectedVersions;
     }
 
     public String getVersion() {

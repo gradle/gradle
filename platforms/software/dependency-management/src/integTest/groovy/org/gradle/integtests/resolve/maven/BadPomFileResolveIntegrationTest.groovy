@@ -142,8 +142,8 @@ dependencies { compile 'org:child:1.0' }
         then:
         failedResolve.assertFailurePresent(failure)
         failure.assertResolutionFailure(':compile')
-                .assertHasCause("Could not parse POM ${child.pom.uri}")
-                .assertHasCause("""Could not find org:parent:1.0.
+            .assertHasCause("Could not parse POM ${child.pom.uri}")
+            .assertHasCause("""Could not find org:parent:1.0.
 Searched in the following locations:
   - ${parent.pom.uri}""")
     }

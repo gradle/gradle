@@ -80,7 +80,7 @@ public class DaemonClientFactory {
                 }
             })
             .provider(new DaemonRegistryServices(daemonParameters.getBaseDir()))
-            .provider(new DaemonClientToolchainServices(daemonParameters.getToolchainConfiguration(),  daemonParameters.getToolchainDownloadUrlProvider(), buildProgressListener));
+            .provider(new DaemonClientToolchainServices(daemonParameters.getToolchainConfiguration(), daemonParameters.getToolchainDownloadUrlProvider(), buildProgressListener));
     }
 
     private ServiceRegistry createLoggingServices(ServiceLookup clientLoggingServices) {

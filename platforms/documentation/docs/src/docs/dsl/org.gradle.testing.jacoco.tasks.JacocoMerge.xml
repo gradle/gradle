@@ -21,7 +21,8 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>jacoco</literal> plugin</td>
+                    <td>Default with <literal>jacoco</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
@@ -30,7 +31,10 @@
             </tr>
             <tr>
                 <td>destinationFile</td>
-                <td><filename><replaceable>buildDir</replaceable>/jacoco/<replaceable>task.name</replaceable>.exec</filename></td>
+                <td>
+                    <filename><replaceable>buildDir</replaceable>/jacoco/<replaceable>task.name</replaceable>.exec
+                    </filename>
+                </td>
             </tr>
         </table>
     </section>

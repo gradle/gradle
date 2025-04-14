@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.internal.file.TestFiles
@@ -44,7 +43,8 @@ class TasksFromDependentProjectsTest extends AbstractProjectBuilderSpec {
             it.tasks.create "someTask"
         }
 
-        when: dep.visitDependencies(context)
+        when:
+        dep.visitDependencies(context)
 
         then:
         4 * context.getTask() >> child1.tasks["buildDependents"]

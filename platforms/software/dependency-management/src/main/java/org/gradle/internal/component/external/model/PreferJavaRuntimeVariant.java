@@ -54,10 +54,6 @@ public class PreferJavaRuntimeVariant {
         this.instance = create(instantiator, schemaFactory);
     }
 
-    public ImmutableAttributesSchema getSchema() {
-        return instance;
-    }
-
     private static ImmutableAttributesSchema create(
         NamedObjectInstantiator instantiator,
         ImmutableAttributesSchemaFactory schemaFactory
@@ -86,6 +82,10 @@ public class PreferJavaRuntimeVariant {
             strategies,
             ImmutableList.of(Usage.USAGE_ATTRIBUTE, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)
         );
+    }
+
+    public ImmutableAttributesSchema getSchema() {
+        return instance;
     }
 
     private static class PreferRuntimeVariantUsageDisambiguationRule implements Action<MultipleCandidatesDetails<Usage>> {

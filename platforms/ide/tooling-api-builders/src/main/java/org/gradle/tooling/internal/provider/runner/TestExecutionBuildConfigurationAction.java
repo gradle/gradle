@@ -56,6 +56,57 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         this.testExecutionRequest = testExecutionRequest;
     }
 
+    private static void addEntryTasksTo(ExecutionPlan plan, Set<Task> allTasksToRun) {
+        for (Task task : allTasksToRun) {
+            plan.addEntryTask(task);
+        }
+    }
+
+    private static void includeTestMatching(InternalJvmTestDescriptor descriptor, AbstractTestTask testTask) {
+        String className = descriptor.getClassName();
+        String methodName = descriptor.getMethodName();
+        if (className == null && methodName == null) {
+            testTask.getFilter().includeTestsMatching("*");
+        } else {
+            testTask.getFilter().includeTest(className, methodName);
+        }
+    }
+
+    private static Set<Task> queryTasks(Context context, String testTaskPath) {
+        TaskSelection taskSelection;
+        try {
+            taskSelection = context.getSelection(testTaskPath);
+        } catch (TaskSelectionException e) {
+            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
+        }
+
+        Set<Task> tasks = taskSelection.getTasks();
+        if (tasks.isEmpty()) {
+            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
+        }
+
+        return tasks;
+    }
+
+    private static Set<AbstractTestTask> queryTestTasks(Context context, String testTaskPath) {
+        Set<AbstractTestTask> result = new LinkedHashSet<>();
+        for (Task task : queryTasks(context, testTaskPath)) {
+            if (!(task instanceof AbstractTestTask)) {
+                throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
+            }
+            result.add((AbstractTestTask) task);
+        }
+        return result;
+    }
+
+    private static void forEachTaskIn(QueryableExecutionPlan plan, Consumer<Task> taskConsumer) {
+        plan.getTasks().forEach(taskConsumer);
+    }
+
+    private static String taskPathOf(InternalTestDescriptor descriptor) {
+        return ((DefaultTestDescriptor) descriptor).getTaskPath();
+    }
+
     @Override
     public void applyTasksTo(Context context, ExecutionPlan plan) {
         final Set<Task> allTasksToRun = new LinkedHashSet<>();
@@ -71,12 +122,6 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         configureTestTasksForTestDescriptors(context);
         configureTestTasksForInternalJvmTestRequest(plan);
         configureTestTasksInBuild(context);
-    }
-
-    private static void addEntryTasksTo(ExecutionPlan plan, Set<Task> allTasksToRun) {
-        for (Task task : allTasksToRun) {
-            plan.addEntryTask(task);
-        }
     }
 
     private void configureTestTasks(Set<Task> tasks) {
@@ -196,48 +241,11 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private static void includeTestMatching(InternalJvmTestDescriptor descriptor, AbstractTestTask testTask) {
-        String className = descriptor.getClassName();
-        String methodName = descriptor.getMethodName();
-        if (className == null && methodName == null) {
-            testTask.getFilter().includeTestsMatching("*");
-        } else {
-            testTask.getFilter().includeTest(className, methodName);
-        }
-    }
-
     private void collectTestTasks(Context context, Collection<Task> testTasksToRun) {
         for (final InternalTestDescriptor descriptor : testExecutionRequest.getTestExecutionDescriptors()) {
             final String testTaskPath = taskPathOf(descriptor);
             testTasksToRun.addAll(queryTestTasks(context, testTaskPath));
         }
-    }
-
-    private static Set<Task> queryTasks(Context context, String testTaskPath) {
-        TaskSelection taskSelection;
-        try {
-            taskSelection = context.getSelection(testTaskPath);
-        } catch (TaskSelectionException e) {
-            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
-        }
-
-        Set<Task> tasks = taskSelection.getTasks();
-        if (tasks.isEmpty()) {
-            throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
-        }
-
-        return tasks;
-    }
-
-    private static Set<AbstractTestTask> queryTestTasks(Context context, String testTaskPath) {
-        Set<AbstractTestTask> result = new LinkedHashSet<>();
-        for (Task task : queryTasks(context, testTaskPath)) {
-            if (!(task instanceof AbstractTestTask)) {
-                throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
-            }
-            result.add((AbstractTestTask) task);
-        }
-        return result;
     }
 
     private void collectTasksForInternalJvmTestRequest(GradleInternal gradle, Collection<Task> tasksToExecute) {
@@ -254,13 +262,5 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 tasksToExecute.addAll(testTasks);
             });
         }
-    }
-
-    private static void forEachTaskIn(QueryableExecutionPlan plan, Consumer<Task> taskConsumer) {
-        plan.getTasks().forEach(taskConsumer);
-    }
-
-    private static String taskPathOf(InternalTestDescriptor descriptor) {
-        return ((DefaultTestDescriptor) descriptor).getTaskPath();
     }
 }

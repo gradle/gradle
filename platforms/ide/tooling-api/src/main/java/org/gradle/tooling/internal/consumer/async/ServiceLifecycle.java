@@ -29,14 +29,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * Manages the lifecycle of some thread-safe service or resource.
  */
 public class ServiceLifecycle implements AsyncStoppable {
-    private enum State {RUNNING, STOPPING, STOPPED}
-
     private final String displayName;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final Map<Thread, Integer> usages = new HashMap<>();
     private State state = State.RUNNING;
-
     public ServiceLifecycle(String displayName) {
         this.displayName = displayName;
     }
@@ -123,4 +120,6 @@ public class ServiceLifecycle implements AsyncStoppable {
             lock.unlock();
         }
     }
+
+    private enum State {RUNNING, STOPPING, STOPPED}
 }

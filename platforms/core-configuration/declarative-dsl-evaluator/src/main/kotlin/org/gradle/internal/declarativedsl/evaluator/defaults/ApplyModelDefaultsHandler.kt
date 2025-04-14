@@ -93,7 +93,6 @@ fun defaultsForAllUsedSoftwareTypes(modelDefaultsRepository: ModelDefaultsReposi
     findUsedSoftwareTypeNames(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
 
 
-
 /**
  * Transformation logic for the kinds of resolution results that appear in defaults.
  * For any of the supported result records, supports replacing the `defaults { ... }` receiver in it with

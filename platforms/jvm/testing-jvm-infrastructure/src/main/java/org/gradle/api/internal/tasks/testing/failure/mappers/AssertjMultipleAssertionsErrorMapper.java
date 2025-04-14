@@ -31,18 +31,6 @@ import java.util.List;
  */
 public class AssertjMultipleAssertionsErrorMapper extends TestFailureMapper {
 
-    @Override
-    protected List<String> getSupportedClassNames() {
-        return Collections.singletonList(
-            "org.assertj.core.error.MultipleAssertionsError"
-        );
-    }
-
-    @Override
-    public TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception {
-        return TestFailure.fromTestAssertionFailure(throwable, null, null, mapInnerFailures(throwable, rootMapper));
-    }
-
     @SuppressWarnings("unchecked")
     protected static List<TestFailure> mapInnerFailures(Throwable throwable, ThrowableToTestFailureMapper mapper) throws Exception {
         List<TestFailure> failures = new ArrayList<TestFailure>();
@@ -53,6 +41,18 @@ public class AssertjMultipleAssertionsErrorMapper extends TestFailureMapper {
         }
 
         return failures;
+    }
+
+    @Override
+    protected List<String> getSupportedClassNames() {
+        return Collections.singletonList(
+            "org.assertj.core.error.MultipleAssertionsError"
+        );
+    }
+
+    @Override
+    public TestFailure map(Throwable throwable, ThrowableToTestFailureMapper rootMapper) throws Exception {
+        return TestFailure.fromTestAssertionFailure(throwable, null, null, mapInnerFailures(throwable, rootMapper));
     }
 
 }

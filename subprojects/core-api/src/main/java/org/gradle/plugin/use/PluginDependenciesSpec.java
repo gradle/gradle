@@ -131,9 +131,9 @@ public interface PluginDependenciesSpec {
      * Adds a plugin dependency using a notation coming from a version catalog.
      * The resulting dependency spec can be refined with a version overriding
      * what the version catalog provides.
+     *
      * @param notation the plugin reference
      * @return a mutable plugin dependency specification  that can be used to further refine the dependency
-     *
      * @since 7.2
      */
     default PluginDependencySpec alias(Provider<PluginDependency> notation) {
@@ -149,9 +149,9 @@ public interface PluginDependenciesSpec {
      * Adds a plugin dependency using a notation coming from a version catalog.
      * The resulting dependency spec can be refined with a version overriding
      * what the version catalog provides.
+     *
      * @param notation the plugin reference
      * @return a mutable plugin dependency specification  that can be used to further refine the dependency
-     *
      * @since 7.3
      */
     default PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {

@@ -54,10 +54,12 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     private final ManagedProxyFactory proxyFactory;
     private final TypeConverter typeConverter;
 
-    public ManagedModelProjection(StructSchema<M> schema,
-                                  StructBindings<?> bindings,
-                                  ManagedProxyFactory proxyFactory,
-                                  TypeConverter typeConverter) {
+    public ManagedModelProjection(
+        StructSchema<M> schema,
+        StructBindings<?> bindings,
+        ManagedProxyFactory proxyFactory,
+        TypeConverter typeConverter
+    ) {
         super(schema.getType());
         this.schema = schema;
         this.bindings = bindings;

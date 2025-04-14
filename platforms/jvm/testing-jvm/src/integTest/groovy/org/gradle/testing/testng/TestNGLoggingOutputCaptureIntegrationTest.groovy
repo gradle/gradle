@@ -99,7 +99,8 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
   <test name='The Foo Test'><classes><class name='FooTest'/></classes></test>
 </suite>"""
 
-        when: succeeds "test"
+        when:
+        succeeds "test"
 
         then:
         if (VersionNumber.parse(version.toString()) > VersionNumber.parse('5.12.1')) {
@@ -129,7 +130,8 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
     }
 
     def "attaches output events to correct test descriptors"() {
-        when: succeeds "test"
+        when:
+        succeeds "test"
 
         then:
         if (VersionNumber.parse(version.toString()) > VersionNumber.parse('5.12.1')) {
@@ -261,11 +263,11 @@ Test suite '$testSuiteName' -> afterTest err
         result.assertHasErrorOutput("m1 err")
 
         where:
-        includeSystemOutConf                | includeSystemErrConf              || standardOutIncluded || standardErrIncluded
-        "// default includeSystemOutLog"    | "// default includeSystemErrLog"  || true                || true
-        "includeSystemOutLog = true"        | "includeSystemErrLog = true"      || true                || true
-        "includeSystemOutLog = false"       | "includeSystemErrLog = true"      || false               || true
-        "includeSystemOutLog = true"        | "includeSystemErrLog = false"     || true                || false
-        "includeSystemOutLog = false"       | "includeSystemErrLog = false"     || false               || false
+        includeSystemOutConf             | includeSystemErrConf             || standardOutIncluded || standardErrIncluded
+        "// default includeSystemOutLog" | "// default includeSystemErrLog" || true                || true
+        "includeSystemOutLog = true"     | "includeSystemErrLog = true"     || true                || true
+        "includeSystemOutLog = false"    | "includeSystemErrLog = true"     || false               || true
+        "includeSystemOutLog = true"     | "includeSystemErrLog = false"    || true                || false
+        "includeSystemOutLog = false"    | "includeSystemErrLog = false"    || false               || false
     }
 }

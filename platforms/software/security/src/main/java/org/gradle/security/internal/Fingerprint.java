@@ -25,6 +25,11 @@ public class Fingerprint {
     private final byte[] fingerprint;
     private final int hashCode;
 
+    private Fingerprint(byte[] fingerprint) {
+        this.fingerprint = fingerprint;
+        this.hashCode = Arrays.hashCode(fingerprint);
+    }
+
     public static Fingerprint of(PGPPublicKey key) {
         return new Fingerprint(key.getFingerprint());
     }
@@ -59,11 +64,6 @@ public class Fingerprint {
             return ch - 'A' + 10;
         }
         throw new IllegalArgumentException("Illegal hexadecimal character: " + ch);
-    }
-
-    private Fingerprint(byte[] fingerprint) {
-        this.fingerprint = fingerprint;
-        this.hashCode = Arrays.hashCode(fingerprint);
     }
 
     @Override

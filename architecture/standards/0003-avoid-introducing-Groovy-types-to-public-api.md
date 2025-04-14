@@ -19,6 +19,7 @@ This has been mostly done, but there remain a few holdouts (fixing these is out 
 To keep the Groovy DSL ergonomic, we generate methods as necessary from the non-Groovy equivalents.
 
 Doing this provides the following specific benefits:
+
 - **Reduce the API surface** - We no longer need to maintain two methods.
 - **Consistency** - All languages have consistent access to the same APIs and ergonomics in the DSL.
 - **Reduce the size of the Gradle distribution** - We no longer need to carry multiple standard libraries for different languages.
@@ -36,5 +37,5 @@ ACCEPTED
 
 * If we would have used `Closure`, we must instead use `Action<T>`, `Spec<T>`, `Callable<T>`, or `Transformer<OUT, IN>`.
 * We need to ensure all APIs that are exposed in the Groovy DSL go through runtime decoration.
-Runtime decoration mixes in methods that use Groovy Closures to maintain consistent behavior in Groovy DSL.
-Decoration is performed on objects instantiated by `ObjectFactory`.
+  Runtime decoration mixes in methods that use Groovy Closures to maintain consistent behavior in Groovy DSL.
+  Decoration is performed on objects instantiated by `ObjectFactory`.

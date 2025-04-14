@@ -23,6 +23,22 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 public class BootstrapMainStarter {
+    static File findLauncherJar(File gradleHome) {
+        File libDirectory = new File(gradleHome, "lib");
+        if (libDirectory.exists() && libDirectory.isDirectory()) {
+            File[] launcherJars = libDirectory.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.matches("gradle-launcher-.*\\.jar");
+                }
+            });
+            if (launcherJars != null && launcherJars.length == 1) {
+                return launcherJars[0];
+            }
+        }
+        return null;
+    }
+
     public void start(String[] args, File gradleHome) throws Exception {
         File gradleJar = findLauncherJar(gradleHome);
         if (gradleJar == null) {
@@ -34,21 +50,5 @@ public class BootstrapMainStarter {
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
         ((Closeable) contextClassLoader).close();
-    }
-
-    static File findLauncherJar(File gradleHome) {
-        File libDirectory = new File(gradleHome, "lib");
-        if (libDirectory.exists() && libDirectory.isDirectory()) {
-            File[] launcherJars = libDirectory.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.matches("gradle-launcher-.*\\.jar");
-                }
-            });
-            if (launcherJars!=null && launcherJars.length==1) {
-                return launcherJars[0];
-            }
-        }
-        return null;
     }
 }

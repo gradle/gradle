@@ -21,13 +21,6 @@ import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 public interface TaskDetails {
-    Path getPath();
-
-    @Nullable
-    String getDescription();
-
-    String getTypeName();
-
     static TaskDetails of(Path path, Task task) {
         return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription());
     }
@@ -36,10 +29,18 @@ public interface TaskDetails {
         return new DefaultTaskDetails(path, typeName, description);
     }
 
+    Path getPath();
+
+    @Nullable
+    String getDescription();
+
+    String getTypeName();
+
     final class DefaultTaskDetails implements TaskDetails {
         private final Path path;
         private final String typeName;
-        @Nullable private final String description;
+        @Nullable
+        private final String description;
 
         private DefaultTaskDetails(Path path, String typeName, @Nullable String description) {
             this.path = path;

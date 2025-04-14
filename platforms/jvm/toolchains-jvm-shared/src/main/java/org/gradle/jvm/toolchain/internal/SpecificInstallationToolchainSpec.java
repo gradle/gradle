@@ -26,32 +26,6 @@ import java.util.Objects;
 
 public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
-    public static class Key implements JavaToolchainSpecInternal.Key {
-
-        private final File javaHome;
-
-        public Key(File javaHome) {
-            this.javaHome = javaHome;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            Key key = (Key) o;
-            return Objects.equals(javaHome, key.javaHome);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(javaHome);
-        }
-    }
-
     private final File javaHome;
 
     @Inject
@@ -106,5 +80,31 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
     @Override
     public String toString() {
         return getDisplayName();
+    }
+
+    public static class Key implements JavaToolchainSpecInternal.Key {
+
+        private final File javaHome;
+
+        public Key(File javaHome) {
+            this.javaHome = javaHome;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Key key = (Key) o;
+            return Objects.equals(javaHome, key.javaHome);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(javaHome);
+        }
     }
 }

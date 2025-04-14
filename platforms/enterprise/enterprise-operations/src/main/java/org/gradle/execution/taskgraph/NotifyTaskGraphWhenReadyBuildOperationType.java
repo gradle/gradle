@@ -25,6 +25,12 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public class NotifyTaskGraphWhenReadyBuildOperationType implements BuildOperationType<NotifyTaskGraphWhenReadyBuildOperationType.Details, NotifyTaskGraphWhenReadyBuildOperationType.Result> {
 
+    final static NotifyTaskGraphWhenReadyBuildOperationType.Result RESULT = new NotifyTaskGraphWhenReadyBuildOperationType.Result() {
+    };
+
+    private NotifyTaskGraphWhenReadyBuildOperationType() {
+    }
+
     public interface Details {
 
         String getBuildPath();
@@ -33,11 +39,5 @@ public class NotifyTaskGraphWhenReadyBuildOperationType implements BuildOperatio
 
     public interface Result {
 
-    }
-
-    final static NotifyTaskGraphWhenReadyBuildOperationType.Result RESULT = new NotifyTaskGraphWhenReadyBuildOperationType.Result() {
-    };
-
-    private NotifyTaskGraphWhenReadyBuildOperationType() {
     }
 }

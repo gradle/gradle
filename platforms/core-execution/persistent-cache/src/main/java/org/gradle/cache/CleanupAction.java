@@ -24,13 +24,13 @@ package org.gradle.cache;
  */
 public interface CleanupAction {
 
-    void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor);
-
     CleanupAction NO_OP = new CleanupAction() {
         @Override
         public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
             // no-op
         }
     };
+
+    void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor);
 
 }

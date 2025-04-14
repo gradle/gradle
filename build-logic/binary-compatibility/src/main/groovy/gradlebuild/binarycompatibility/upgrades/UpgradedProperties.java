@@ -45,12 +45,12 @@ import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
 
 public class UpgradedProperties {
 
-    private static final Pattern SETTER_REGEX = Pattern.compile("set[A-Z].*");
-    private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z].*");
-    private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z].*");
     public static final String OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES = "oldRemovedAccessorsOfUpgradedProperties";
     public static final String SEEN_OLD_REMOVED_ACCESSORS_OF_UPGRADED_PROPERTIES = "seenOldRemovedAccessorsOfUpgradedProperties";
     public static final String CURRENT_ACCESSORS_OF_UPGRADED_PROPERTIES = "currentAccessorsOfUpgradedProperties";
+    private static final Pattern SETTER_REGEX = Pattern.compile("set[A-Z].*");
+    private static final Pattern GETTER_REGEX = Pattern.compile("get[A-Z].*");
+    private static final Pattern BOOLEAN_GETTER_REGEX = Pattern.compile("is[A-Z].*");
 
     public static List<UpgradedProperty> parse(String path) {
         File file = new File(path);

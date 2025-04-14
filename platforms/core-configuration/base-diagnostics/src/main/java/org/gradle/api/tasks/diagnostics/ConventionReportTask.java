@@ -53,6 +53,11 @@ public abstract class ConventionReportTask extends ConventionTask {
     private final DirectoryProperty reportDir;
     private File outputFile;
 
+    protected ConventionReportTask() {
+        reportDir = getProject().getObjects().directoryProperty();
+        doNotTrackState("Uses the whole project state as an input");
+    }
+
     /**
      * Returns the project report directory.
      * <p>
@@ -66,11 +71,6 @@ public abstract class ConventionReportTask extends ConventionTask {
     @Internal
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
-    }
-
-    protected ConventionReportTask() {
-        reportDir = getProject().getObjects().directoryProperty();
-        doNotTrackState("Uses the whole project state as an input");
     }
 
     @Internal

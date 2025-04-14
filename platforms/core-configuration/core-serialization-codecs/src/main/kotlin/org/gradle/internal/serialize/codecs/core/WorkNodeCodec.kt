@@ -623,7 +623,7 @@ data class OperationInfo(
 
 
 private
-class OperationException(message: String, cause: Throwable): RuntimeException(message, cause)
+class OperationException(message: String, cause: Throwable) : RuntimeException(message, cause)
 
 
 private

@@ -38,24 +38,22 @@ import java.util.List;
 import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
 
 public class MSBuildExecutor {
-    public enum MSBuildAction {
-        BUILD,
-        CLEAN;
-
-        @Override
-        public String toString() {
-            return this.name().toLowerCase();
-        }
-    }
-
     private final List<String> args = new ArrayList<String>();
     private final AvailableToolChains.InstalledToolChain toolChain;
     private TestFile workingDir;
     private String projectName;
-
     public MSBuildExecutor(TestFile workingDir, AvailableToolChains.InstalledToolChain toolChain) {
         this.workingDir = workingDir;
         this.toolChain = toolChain;
+    }
+
+    private static String fileContents(File file) {
+        try {
+            // TODO this should not be using the default charset because it's not an input and might introduce flakiness
+            return FileUtils.readFileToString(file, Charset.defaultCharset());
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public MSBuildExecutor withWorkingDir(TestFile workingDir) {
@@ -191,15 +189,6 @@ public class MSBuildExecutor {
         return OutputScrapingExecutionResult.from(trimLines(gradleStdout), trimLines(gradleStderr));
     }
 
-    private static String fileContents(File file) {
-        try {
-            // TODO this should not be using the default charset because it's not an input and might introduce flakiness
-            return FileUtils.readFileToString(file, Charset.defaultCharset());
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
     private String trimLines(String s) {
         return s.replaceAll("\r?\n\\s+", "\n");
     }
@@ -220,6 +209,16 @@ public class MSBuildExecutor {
 
     private TestFile findMSBuild() {
         return new TestFile(new MSBuildVersionLocator(VisualStudioLocatorTestFixture.getVswhereLocator()).getMSBuildInstall(toolChain));
+    }
+
+    public enum MSBuildAction {
+        BUILD,
+        CLEAN;
+
+        @Override
+        public String toString() {
+            return this.name().toLowerCase();
+        }
     }
 
     private static class ExecutionOutput {

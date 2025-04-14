@@ -46,10 +46,12 @@ class KotlinCompileClasspathFingerprinter(
 ) : AbstractFileCollectionFingerprinter(
     ClasspathFingerprintingStrategy.compileClasspathFallbackToRuntimeClasspath(
         CachingResourceHasher(
-            AbiExtractingClasspathResourceHasher.withoutFallback(ApiClassExtractor
-                .withWriter(KotlinApiMemberWriter.adapter())
-                .includePackagePrivateMembers()
-                .build()),
+            AbiExtractingClasspathResourceHasher.withoutFallback(
+                ApiClassExtractor
+                    .withWriter(KotlinApiMemberWriter.adapter())
+                    .includePackagePrivateMembers()
+                    .build()
+            ),
             cacheService
         ),
         ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(

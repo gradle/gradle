@@ -41,7 +41,9 @@ public interface InstrumentationResourceGenerator {
     interface GenerationResult {
         interface CanGenerateResource extends GenerationResult {
             String getPackageName();
+
             String getName();
+
             void write(OutputStream outputStream);
         }
 

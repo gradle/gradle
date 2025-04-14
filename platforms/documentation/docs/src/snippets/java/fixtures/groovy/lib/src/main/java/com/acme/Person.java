@@ -20,7 +20,7 @@ public class Person {
 
     // ...
 
-// end::sample[]
+    // end::sample[]
     public boolean equals(Object object) {
         if (this == object) {
             return true;

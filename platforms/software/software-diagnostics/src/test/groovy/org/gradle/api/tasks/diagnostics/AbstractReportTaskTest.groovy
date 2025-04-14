@@ -42,7 +42,7 @@ class AbstractReportTaskTest extends Specification {
         task = TestUtil.createTask(TestReportTask.class, project)
         task.setGenerator(generator)
         task.setRenderer(renderer)
-        task.setProjects(WrapUtil.<Project>toSet(project))
+        task.setProjects(WrapUtil.<Project> toSet(project))
     }
 
     def completesRendererAtEndOfGeneration() {

@@ -38,18 +38,18 @@ class PgpKeyGrouperTest extends Specification {
         PgpKeyGrouper.tryComputeCommonPrefixes(groups) == expected
 
         where:
-        groups                                                                            | expected
-        ["org", "com"]                                                                    | []
-        ["org.foo", "com"]                                                                | []
-        ["org.foo", "org.bar"]                                                            | [] // require at least 2 group items
-        ["org.foo.a", "org.foo"]                                                          | [["org", "foo"]]
-        ["org.foo.a", "org.foo.b"]                                                        | [["org", "foo"]]
-        ["org.foo.a.b", "org.foo.a.c"]                                                    | [["org", "foo", "a"]]
-        ["org.foo.a.b", "org.foo"]                                                        | [["org", "foo"]]
-        ["org.foo.a.b", "org.foo.c.d"]                                                    | [["org", "foo"]]
-        ["org.foo.a.b", "org.bar.baz"]                                                    | []
-        ["org.a.1", "org.a.2", "org.b.1", "org.b.2"]                                      | [["org", "a"], ["org", "b"]]
-        ["org.a.1", "org.a.2", "org.a.1.c", "org.b.1", "org.b.2"]                         | [["org", "a", "1"], ["org", "b"]]
+        groups                                                    | expected
+        ["org", "com"]                                            | []
+        ["org.foo", "com"]                                        | []
+        ["org.foo", "org.bar"]                                    | [] // require at least 2 group items
+        ["org.foo.a", "org.foo"]                                  | [["org", "foo"]]
+        ["org.foo.a", "org.foo.b"]                                | [["org", "foo"]]
+        ["org.foo.a.b", "org.foo.a.c"]                            | [["org", "foo", "a"]]
+        ["org.foo.a.b", "org.foo"]                                | [["org", "foo"]]
+        ["org.foo.a.b", "org.foo.c.d"]                            | [["org", "foo"]]
+        ["org.foo.a.b", "org.bar.baz"]                            | []
+        ["org.a.1", "org.a.2", "org.b.1", "org.b.2"]              | [["org", "a"], ["org", "b"]]
+        ["org.a.1", "org.a.2", "org.a.1.c", "org.b.1", "org.b.2"] | [["org", "a", "1"], ["org", "b"]]
 
     }
 
@@ -63,7 +63,7 @@ class PgpKeyGrouperTest extends Specification {
             "info.picocli",
             "com.github.javaparser",
             "io.github.http-builder-ng.test"
-        ]) as Set == [["org", "jetbrains"], ["io","github", "http-builder-ng"]] as Set
+        ]) as Set == [["org", "jetbrains"], ["io", "github", "http-builder-ng"]] as Set
     }
 
     def "groups entries which have the same module component id"() {

@@ -46,6 +46,38 @@ public class VersionCatalogDependencyRegistry {
         this.fullyQualifiedAliases = fullyQualifiedAliases;
     }
 
+    private static String pluginIdToAlias(String pluginId) {
+        String[] pluginIdComponents = pluginId.split("\\.");
+        String pluginIdLastComponent = pluginIdComponents[pluginIdComponents.length - 1];
+        return coordinatesToAlias(pluginIdLastComponent);
+    }
+
+    private static String moduleToAlias(String module) {
+        return coordinatesToAlias(module.split(":")[1]);
+    }
+
+    private static String coordinatesToAlias(String coordinates) {
+        // not required but Groovy and Kotlin slightly differ in the handling of uppercase letters of alias parts so make everything lowercase to avoid lookup failures
+        String alias = coordinates.replaceAll("[.:_]", "-").replaceAll("-(\\d)", "-v$1").toLowerCase(Locale.ENGLISH);
+        StringBuffer resultingAlias = new StringBuffer();
+        Matcher reservedComponentsMatcher = RESERVED_ALIAS_COMPONENT.matcher(alias);
+        while (reservedComponentsMatcher.find()) {
+            reservedComponentsMatcher.appendReplacement(resultingAlias, "$1my" + reservedComponentsMatcher.group(2) + "$3");
+        }
+        reservedComponentsMatcher.appendTail(resultingAlias);
+        return resultingAlias.toString();
+    }
+
+    private static String findFreeAlias(Set<String> reservedKeys, String key) {
+        String nextKey = key;
+        int collisionCount = 0;
+        while (reservedKeys.contains(nextKey)) {
+            collisionCount += 1;
+            nextKey = key + "-x" + collisionCount;
+        }
+        return nextKey;
+    }
+
     public Collection<VersionEntry> getVersions() {
         return versions.values();
     }
@@ -123,38 +155,6 @@ public class VersionCatalogDependencyRegistry {
         p.version = version;
         plugins.put(p.alias, p);
         return p;
-    }
-
-    private static String pluginIdToAlias(String pluginId) {
-        String[] pluginIdComponents = pluginId.split("\\.");
-        String pluginIdLastComponent = pluginIdComponents[pluginIdComponents.length - 1];
-        return coordinatesToAlias(pluginIdLastComponent);
-    }
-
-    private static String moduleToAlias(String module) {
-        return coordinatesToAlias(module.split(":")[1]);
-    }
-
-    private static String coordinatesToAlias(String coordinates) {
-        // not required but Groovy and Kotlin slightly differ in the handling of uppercase letters of alias parts so make everything lowercase to avoid lookup failures
-        String alias = coordinates.replaceAll("[.:_]", "-").replaceAll("-(\\d)", "-v$1").toLowerCase(Locale.ENGLISH);
-        StringBuffer resultingAlias = new StringBuffer();
-        Matcher reservedComponentsMatcher = RESERVED_ALIAS_COMPONENT.matcher(alias);
-        while (reservedComponentsMatcher.find()) {
-            reservedComponentsMatcher.appendReplacement(resultingAlias, "$1my" + reservedComponentsMatcher.group(2) + "$3");
-        }
-        reservedComponentsMatcher.appendTail(resultingAlias);
-        return resultingAlias.toString();
-    }
-
-    private static String findFreeAlias(Set<String> reservedKeys, String key) {
-        String nextKey = key;
-        int collisionCount = 0;
-        while (reservedKeys.contains(nextKey)) {
-            collisionCount += 1;
-            nextKey = key + "-x" + collisionCount;
-        }
-        return nextKey;
     }
 
     @NullMarked

@@ -34,21 +34,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
 
-    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
-    private enum Property {
-        IVY_PATTERNS,
-        ARTIFACT_PATTERNS,
-        LAYOUT_TYPE,
-        M2_COMPATIBLE
-    }
-
     private final ImmutableList<String> ivyPatterns;
     private final ImmutableList<ResourcePattern> ivyResources;
     private final ImmutableList<String> artifactPatterns;
     private final ImmutableList<ResourcePattern> artifactResources;
     private final String layoutType;
     private final boolean m2Compatible;
-
     private IvyRepositoryDescriptor(
         String id,
         String name,
@@ -104,6 +95,14 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         builder.put(Property.M2_COMPATIBLE.name(), m2Compatible);
     }
 
+    @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
+    private enum Property {
+        IVY_PATTERNS,
+        ARTIFACT_PATTERNS,
+        LAYOUT_TYPE,
+        M2_COMPATIBLE
+    }
+
     @NullMarked
     private static class Resource {
         final URI baseUri;
@@ -118,11 +117,11 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {
         private final List<String> ivyPatterns = new ArrayList<>();
         private final List<String> artifactPatterns = new ArrayList<>();
-        private String layoutType;
-        private Boolean m2Compatible;
         // Artifact resources derived from other configuration
         private final List<Resource> ivyResources = new ArrayList<>();
         private final List<Resource> artifactResources = new ArrayList<>();
+        private String layoutType;
+        private Boolean m2Compatible;
 
         public Builder(String name, URI url) {
             super(name, url);

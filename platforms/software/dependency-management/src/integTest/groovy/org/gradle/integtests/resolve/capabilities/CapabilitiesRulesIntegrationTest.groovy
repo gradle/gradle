@@ -289,7 +289,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(conf)]""")
     }
 
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can remove a published capability"() {
         given:
         repository {
@@ -406,9 +406,9 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
         failure.assertHasCause("Module 'aligned:foo' has been rejected")
 
         where:
-        first   | second
-        'aligned:foo:1.0'   | 'indirect:bar:1.0'
-        'indirect:bar:1.0'  | 'aligned:foo:1.0'
+        first              | second
+        'aligned:foo:1.0'  | 'indirect:bar:1.0'
+        'indirect:bar:1.0' | 'aligned:foo:1.0'
     }
 
     @Issue('gradle/gradle#18494')

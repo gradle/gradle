@@ -47,8 +47,8 @@ import java.nio.charset.Charset;
  * A {@link TextResource} implementation backed by a URI. Defaults content encoding to UTF-8.
  */
 public class UriTextResource implements TextResource {
-    private static final HashCode SIGNATURE = Hashing.signature(UriTextResource.class);
     protected static final Charset DEFAULT_ENCODING = Charset.forName("utf-8");
+    private static final HashCode SIGNATURE = Hashing.signature(UriTextResource.class);
     private static final String USER_AGENT;
 
     static {
@@ -91,6 +91,84 @@ public class UriTextResource implements TextResource {
         return sourceFile.exists() ?
             new UriTextResource(description, sourceFile, resolver) :
             new EmptyFileTextResource(description, sourceFile, resolver);
+    }
+
+    public static Charset extractCharacterEncoding(String contentType, Charset defaultEncoding) {
+        if (contentType == null) {
+            return defaultEncoding;
+        }
+        int pos = findFirstParameter(0, contentType);
+        if (pos == -1) {
+            return defaultEncoding;
+        }
+        StringBuilder paramName = new StringBuilder();
+        StringBuilder paramValue = new StringBuilder();
+        pos = findNextParameter(pos, contentType, paramName, paramValue);
+        while (pos != -1) {
+            if (paramName.toString().equals("charset") && paramValue.length() > 0) {
+                return Charset.forName(paramValue.toString());
+            }
+            pos = findNextParameter(pos, contentType, paramName, paramValue);
+        }
+        return defaultEncoding;
+    }
+
+    private static int findFirstParameter(int pos, String contentType) {
+        int index = contentType.indexOf(';', pos);
+        if (index < 0) {
+            return -1;
+        }
+        return index + 1;
+    }
+
+    private static int findNextParameter(int pos, String contentType, StringBuilder paramName, StringBuilder paramValue) {
+        if (pos >= contentType.length()) {
+            return -1;
+        }
+        paramName.setLength(0);
+        paramValue.setLength(0);
+        int separator = contentType.indexOf("=", pos);
+        if (separator < 0) {
+            separator = contentType.length();
+        }
+        paramName.append(contentType.substring(pos, separator).trim());
+        if (separator >= contentType.length() - 1) {
+            return contentType.length();
+        }
+
+        int startValue = separator + 1;
+        int endValue;
+        if (contentType.charAt(startValue) == '"') {
+            startValue++;
+            int i = startValue;
+            while (i < contentType.length()) {
+                char ch = contentType.charAt(i);
+                if (ch == '\\' && i < contentType.length() - 1 && contentType.charAt(i + 1) == '"') {
+                    paramValue.append('"');
+                    i += 2;
+                } else if (ch == '"') {
+                    break;
+                } else {
+                    paramValue.append(ch);
+                    i++;
+                }
+            }
+            endValue = i + 1;
+        } else {
+            endValue = contentType.indexOf(';', startValue);
+            if (endValue < 0) {
+                endValue = contentType.length();
+            }
+            paramValue.append(contentType.substring(startValue, endValue));
+        }
+        if (endValue < contentType.length() && contentType.charAt(endValue) == ';') {
+            endValue++;
+        }
+        return endValue;
+    }
+
+    public static String getUserAgentString() {
+        return USER_AGENT;
     }
 
     @Override
@@ -249,84 +327,6 @@ public class UriTextResource implements TextResource {
     @Override
     public ResourceLocation getLocation() {
         return new UriResourceLocation();
-    }
-
-    public static Charset extractCharacterEncoding(String contentType, Charset defaultEncoding) {
-        if (contentType == null) {
-            return defaultEncoding;
-        }
-        int pos = findFirstParameter(0, contentType);
-        if (pos == -1) {
-            return defaultEncoding;
-        }
-        StringBuilder paramName = new StringBuilder();
-        StringBuilder paramValue = new StringBuilder();
-        pos = findNextParameter(pos, contentType, paramName, paramValue);
-        while (pos != -1) {
-            if (paramName.toString().equals("charset") && paramValue.length() > 0) {
-                return Charset.forName(paramValue.toString());
-            }
-            pos = findNextParameter(pos, contentType, paramName, paramValue);
-        }
-        return defaultEncoding;
-    }
-
-    private static int findFirstParameter(int pos, String contentType) {
-        int index = contentType.indexOf(';', pos);
-        if (index < 0) {
-            return -1;
-        }
-        return index + 1;
-    }
-
-    private static int findNextParameter(int pos, String contentType, StringBuilder paramName, StringBuilder paramValue) {
-        if (pos >= contentType.length()) {
-            return -1;
-        }
-        paramName.setLength(0);
-        paramValue.setLength(0);
-        int separator = contentType.indexOf("=", pos);
-        if (separator < 0) {
-            separator = contentType.length();
-        }
-        paramName.append(contentType.substring(pos, separator).trim());
-        if (separator >= contentType.length() - 1) {
-            return contentType.length();
-        }
-
-        int startValue = separator + 1;
-        int endValue;
-        if (contentType.charAt(startValue) == '"') {
-            startValue++;
-            int i = startValue;
-            while (i < contentType.length()) {
-                char ch = contentType.charAt(i);
-                if (ch == '\\' && i < contentType.length() - 1 && contentType.charAt(i + 1) == '"') {
-                    paramValue.append('"');
-                    i += 2;
-                } else if (ch == '"') {
-                    break;
-                } else {
-                    paramValue.append(ch);
-                    i++;
-                }
-            }
-            endValue = i + 1;
-        } else {
-            endValue = contentType.indexOf(';', startValue);
-            if (endValue < 0) {
-                endValue = contentType.length();
-            }
-            paramValue.append(contentType.substring(startValue, endValue));
-        }
-        if (endValue < contentType.length() && contentType.charAt(endValue) == ';') {
-            endValue++;
-        }
-        return endValue;
-    }
-
-    public static String getUserAgentString() {
-        return USER_AGENT;
     }
 
     private class UriResourceLocation implements ResourceLocation {

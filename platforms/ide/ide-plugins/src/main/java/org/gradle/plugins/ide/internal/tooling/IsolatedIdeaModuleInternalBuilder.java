@@ -36,26 +36,6 @@ import java.util.Set;
 @NullMarked
 public class IsolatedIdeaModuleInternalBuilder implements ParameterizedToolingModelBuilder<IdeaModelParameter> {
 
-    @Override
-    public Class<IdeaModelParameter> getParameterType() {
-        return IdeaModelParameter.class;
-    }
-
-    @Override
-    public boolean canBuild(String modelName) {
-        return modelName.equals(IsolatedIdeaModuleInternal.class.getName());
-    }
-
-    @Override
-    public IsolatedIdeaModuleInternal buildAll(String modelName, IdeaModelParameter parameter, Project project) {
-        return build(project, parameter.getOfflineDependencyResolution());
-    }
-
-    @Override
-    public IsolatedIdeaModuleInternal buildAll(String modelName, Project project) {
-        return build(project, false);
-    }
-
     private static IsolatedIdeaModuleInternal build(Project project, boolean offlineDependencyResolution) {
         project.getPluginManager().apply(IdeaPlugin.class);
 
@@ -88,6 +68,26 @@ public class IsolatedIdeaModuleInternalBuilder implements ParameterizedToolingMo
         model.setDependencies(IdeaModuleBuilderSupport.buildDependencies(resolvedDependencies));
 
         return model;
+    }
+
+    @Override
+    public Class<IdeaModelParameter> getParameterType() {
+        return IdeaModelParameter.class;
+    }
+
+    @Override
+    public boolean canBuild(String modelName) {
+        return modelName.equals(IsolatedIdeaModuleInternal.class.getName());
+    }
+
+    @Override
+    public IsolatedIdeaModuleInternal buildAll(String modelName, IdeaModelParameter parameter, Project project) {
+        return build(project, parameter.getOfflineDependencyResolution());
+    }
+
+    @Override
+    public IsolatedIdeaModuleInternal buildAll(String modelName, Project project) {
+        return build(project, false);
     }
 
 }

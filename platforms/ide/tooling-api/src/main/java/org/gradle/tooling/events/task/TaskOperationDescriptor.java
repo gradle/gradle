@@ -45,9 +45,9 @@ public interface TaskOperationDescriptor extends OperationDescriptor {
     /**
      * Returns the identifier of the plugin that registered this task, if available.
      *
+     * @return the origin plugin; {@code null} if unknown
      * @throws UnsupportedMethodException For Gradle versions older than 5.1, where this method is not supported.
      * @since 5.1
-     * @return the origin plugin; {@code null} if unknown
      */
     @Nullable
     PluginIdentifier getOriginPlugin();

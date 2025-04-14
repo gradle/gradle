@@ -24,6 +24,7 @@ import static org.hamcrest.CoreMatchers.containsString
 
 abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIntegrationTest {
     abstract boolean supportsSuiteOutput()
+
     abstract String getTestFrameworkJUnit3Dependencies()
 
     @Override

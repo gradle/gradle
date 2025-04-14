@@ -34,11 +34,11 @@ import java.util.function.Supplier;
 
 public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
 
-    private Object url;
-    private boolean allowInsecureProtocol;
     private final String repositoryType;
     private final FileResolver fileResolver;
     private final Supplier<String> displayNameSupplier;
+    private Object url;
+    private boolean allowInsecureProtocol;
 
     DefaultUrlArtifactRepository(
         final FileResolver fileResolver,
@@ -66,13 +66,13 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     }
 
     @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        this.allowInsecureProtocol = allowInsecureProtocol;
+    public boolean isAllowInsecureProtocol() {
+        return allowInsecureProtocol;
     }
 
     @Override
-    public boolean isAllowInsecureProtocol() {
-        return allowInsecureProtocol;
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        this.allowInsecureProtocol = allowInsecureProtocol;
     }
 
     @NonNull

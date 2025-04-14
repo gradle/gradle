@@ -7,11 +7,13 @@ class StringPrinterTest {
 
     lateinit private var stringPrinter: StringPrinterFragment
 
-    @Before fun setUp() {
+    @Before
+    fun setUp() {
         stringPrinter = StringPrinterFragment()
     }
 
-    @Test fun shouldPrintStringLength() {
+    @Test
+    fun shouldPrintStringLength() {
         stringPrinter.printStringLength("Hello world!")
     }
 }

@@ -98,6 +98,14 @@ public interface TestFilter {
     Set<String> getIncludePatterns();
 
     /**
+     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
+     *
+     * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
+     * @return this filter object
+     */
+    TestFilter setIncludePatterns(String... testNamePatterns);
+
+    /**
      * Returns the excluded test name patterns. They can be class or method names and may contain wildcard '*'.
      * Test name patterns can be appended via {@link #excludeTestsMatching(String)} or set via
      * {@link #setExcludePatterns(String...)}.
@@ -108,14 +116,6 @@ public interface TestFilter {
     @Input
     @ToBeReplacedByLazyProperty
     Set<String> getExcludePatterns();
-
-    /**
-     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
-     *
-     * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
-     * @return this filter object
-     */
-    TestFilter setIncludePatterns(String... testNamePatterns);
 
     /**
      * Sets the test name patterns to be excluded in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
@@ -146,16 +146,17 @@ public interface TestFilter {
     TestFilter excludeTest(String className, String methodName);
 
     /**
-     * Let the test task fail if a filter configuration was provided but no test matched the given configuration.
-     * @param failOnNoMatchingTests whether a test task should fail if no test is matching the filter configuration.
-     * */
-    void setFailOnNoMatchingTests(boolean failOnNoMatchingTests);
-
-    /**
      * Returns whether the task should fail if no matching tests where found.
      * The default is true.
      */
     @Input
     @ToBeReplacedByLazyProperty
     boolean isFailOnNoMatchingTests();
+
+    /**
+     * Let the test task fail if a filter configuration was provided but no test matched the given configuration.
+     *
+     * @param failOnNoMatchingTests whether a test task should fail if no test is matching the filter configuration.
+     */
+    void setFailOnNoMatchingTests(boolean failOnNoMatchingTests);
 }

@@ -46,8 +46,8 @@ repositories {
 
     def "resolves and caches source artifacts"() {
         fixture.requestingSource()
-                .expectSourceArtifact("sources")
-                .prepare()
+            .expectSourceArtifact("sources")
+            .prepare()
 
         when:
         module.pom.expectGet()
@@ -60,8 +60,8 @@ repositories {
 
     def "resolve javadoc artifacts"() {
         fixture.requestingJavadoc()
-                .expectJavadocArtifact("javadoc")
-                .prepare()
+            .expectJavadocArtifact("javadoc")
+            .prepare()
 
         when:
         module.pom.expectGet()
@@ -74,8 +74,8 @@ repositories {
 
     def "resolves and caches all artifacts"() {
         fixture.expectSourceArtifact("sources")
-                .expectJavadocArtifact("javadoc")
-                .prepare()
+            .expectJavadocArtifact("javadoc")
+            .prepare()
 
         when:
         module.pom.expectGet()
@@ -102,9 +102,9 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
-                .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
-                .requestingSource()
-                .prepare()
+            .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
+            .requestingSource()
+            .prepare()
 
         when:
         snapshotModule.metaData.expectGet()
@@ -117,9 +117,9 @@ if (project.hasProperty('nocache')) {
         when:
         snapshotModule.publishWithChangedContent()
         fixture.clearExpectations()
-                .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
-                .expectSourceArtifact("sources")
-                .createVerifyTask("verifyRefresh")
+            .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
+            .expectSourceArtifact("sources")
+            .createVerifyTask("verifyRefresh")
 
         and:
         server.resetExpectations()
@@ -136,9 +136,9 @@ if (project.hasProperty('nocache')) {
         succeeds("verifyRefresh")
 
         where:
-        condition | execArg
+        condition                     | execArg
         "with --refresh-dependencies" | "--refresh-dependencies"
-        "when snapshot pom changes" | "-Pnocache"
+        "when snapshot pom changes"   | "-Pnocache"
     }
 
     def "updates snapshot artifacts #condition"() {
@@ -155,10 +155,10 @@ if (project.hasProperty('nocache')) {
         snapshotModule.publish()
 
         fixture.withComponentVersion("some.group", "some-artifact", "1.0-SNAPSHOT")
-                .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
-                .requestingSource()
-                .expectSourceArtifact("sources")
-                .prepare()
+            .withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
+            .requestingSource()
+            .expectSourceArtifact("sources")
+            .prepare()
 
         when:
         snapshotModule.metaData.expectGet()
@@ -173,7 +173,7 @@ if (project.hasProperty('nocache')) {
         def snapshot = file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").snapshot()
         snapshotModule.publishWithChangedContent()
         fixture.withSnapshotTimestamp(snapshotModule.uniqueSnapshotVersion)
-                .createVerifyTask("verifyRefresh")
+            .createVerifyTask("verifyRefresh")
 
         and:
         server.resetExpectations()
@@ -194,7 +194,7 @@ if (project.hasProperty('nocache')) {
         file("sources/some-artifact-1.0-SNAPSHOT-sources.jar").assertHasChangedSince(snapshot)
 
         where:
-        condition | execArg
+        condition                     | execArg
         "with --refresh-dependencies" | "--refresh-dependencies"
         "when snapshot pom changes"   | "-Pnocache"
     }
@@ -237,7 +237,7 @@ Searched in the following locations:
 
     def "resolves and caches artifacts where some are present"() {
         fixture.expectSourceArtifact("sources")
-                .prepare()
+            .prepare()
 
         when:
         module.pom.expectGet()
@@ -251,8 +251,8 @@ Searched in the following locations:
 
     def "reports on failure to list artifacts and recovers on subsequent resolve"() {
         fixture.requestingSource()
-                .expectComponentResolutionFailure()
-                .prepare()
+            .expectComponentResolutionFailure()
+            .prepare()
 
         when:
         module.pom.expectGet()
@@ -265,8 +265,8 @@ Searched in the following locations:
 
         when:
         fixture.clearExpectations()
-                .expectSourceArtifact("sources")
-                .createVerifyTask("verifyFixed")
+            .expectSourceArtifact("sources")
+            .createVerifyTask("verifyFixed")
 
         and:
         server.resetExpectations()
@@ -279,8 +279,8 @@ Searched in the following locations:
 
     def "resolves and recovers from broken artifacts"() {
         fixture.requestingJavadoc()
-                .expectJavadocArtifactFailure()
-                .prepare()
+            .expectJavadocArtifactFailure()
+            .prepare()
 
         when:
         module.pom.expectGet()
@@ -295,8 +295,8 @@ Searched in the following locations:
 
         when:
         fixture.clearExpectations()
-                .expectJavadocArtifact("javadoc")
-                .createVerifyTask("verifyFixed")
+            .expectJavadocArtifact("javadoc")
+            .createVerifyTask("verifyFixed")
 
         and:
         server.resetExpectations()
@@ -310,8 +310,8 @@ Searched in the following locations:
         initBuild(fileRepo)
 
         fixture.requestingSource()
-                .expectSourceArtifact("sources")
-                .prepare()
+            .expectSourceArtifact("sources")
+            .prepare()
 
         when:
         succeeds("verify")

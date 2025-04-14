@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
@@ -38,9 +39,9 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'ProjectError'.")
-                .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'ProjectError")
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(2)
+            .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'ProjectError")
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(2)
     }
 
     def "produces reasonable error message when buildFile evaluation fails on script compilation"() {
@@ -55,9 +56,9 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Could not compile build file '${buildFile}'.")
-                .assertThatCause(containsString("build file '$buildFile': 3: unable to resolve class org.gradle.unknown.Unknown"))
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3)
+            .assertThatCause(containsString("build file '$buildFile': 3: unable to resolve class org.gradle.unknown.Unknown"))
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(3)
     }
 
     def "produces reasonable error message when buildFile evaluation fails with exception"() {
@@ -69,9 +70,9 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails('test')
         failure.assertHasDescription("A problem occurred evaluating root project 'ProjectError'.")
-                .assertHasCause("script failure")
-                .assertHasFileName("Build file '${buildFile.path}'")
-                .assertHasLineNumber(2)
+            .assertHasCause("script failure")
+            .assertHasFileName("Build file '${buildFile.path}'")
+            .assertHasLineNumber(2)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29159")
@@ -98,9 +99,9 @@ include 'child'
 
         then:
         failure.assertHasDescription("A problem occurred evaluating project ':child'.")
-                .assertHasCause("failure")
-                .assertHasFileName("Build file '$childBuildFile'")
-                .assertHasLineNumber(3)
+            .assertHasCause("failure")
+            .assertHasFileName("Build file '$childBuildFile'")
+            .assertHasLineNumber(3)
     }
 
     @Requires(
@@ -132,9 +133,9 @@ def doSomething() {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating project ':child'.")
-                .assertHasCause("failure")
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(4)
+            .assertHasCause("failure")
+            .assertHasFileName("Build file '$buildFile'")
+            .assertHasLineNumber(4)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14984")

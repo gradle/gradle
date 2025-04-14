@@ -90,7 +90,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
             include 'api'
                     """
 
-                    file("build.gradle") << """
+        file("build.gradle") << """
             allprojects {
                 apply plugin: 'java'
                 apply plugin: 'idea'
@@ -223,20 +223,20 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     @ToBeFixedForConfigurationCache
     void dealsWithDuplicatedModuleNames() {
-      /*
-      This is the multi-module project structure the integration test works with:
-      -root
-        -api
-        -shared
+        /*
+        This is the multi-module project structure the integration test works with:
+        -root
           -api
-          -model
-        -services
-          -utilities (renamed by user to 'util')
-        -util
-        -contrib
+          -shared
+            -api
+            -model
           -services
-            -util
-      */
+            -utilities (renamed by user to 'util')
+          -util
+          -contrib
+            -services
+              -util
+        */
 
         def settingsFile = file("settings.gradle")
         createDirs("api", "shared", "shared/api", "shared/model", "services", "services/utilities", "util", "contrib", "contrib/services", "contrib/services/util")
@@ -427,7 +427,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @ToBeFixedForConfigurationCache
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
-        def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
+        def someLib2Jar = mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
 
         def settingsFile = file("settings.gradle")
         createDirs("one", "two")
@@ -627,6 +627,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         dependencies.assertHasInheritedJdk()
         dependencies.assertHasSource('false')
         dependencies.assertHasModule('COMPILE', 'api')
-        dependencies.assertHasModule(['RUNTIME','TEST'], 'impl')
+        dependencies.assertHasModule(['RUNTIME', 'TEST'], 'impl')
     }
 }

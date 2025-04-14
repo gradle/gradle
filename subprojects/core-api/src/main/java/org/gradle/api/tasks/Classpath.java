@@ -29,12 +29,12 @@ import java.lang.annotation.Target;
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>
- *     For jar files, the normalized path is empty.
- *     The content of the jar file is normalized so that time stamps and order of the zip entries in the jar file do not matter.
- *     This normalization applies to not only files directly on the classpath, but also
- *     to any jar files found inside directories or nested inside other jar files.
- *     If a directory is a classpath entry, then the root directory itself is ignored.
- *     The files in the directory are sorted and the relative path to the root directory is used as normalized path.
+ * For jar files, the normalized path is empty.
+ * The content of the jar file is normalized so that time stamps and order of the zip entries in the jar file do not matter.
+ * This normalization applies to not only files directly on the classpath, but also
+ * to any jar files found inside directories or nested inside other jar files.
+ * If a directory is a classpath entry, then the root directory itself is ignored.
+ * The files in the directory are sorted and the relative path to the root directory is used as normalized path.
  * </p>
  *
  * <p><strong>Note:</strong> to stay compatible with versions prior to Gradle 3.2, classpath

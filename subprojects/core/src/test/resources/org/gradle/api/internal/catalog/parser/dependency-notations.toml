@@ -25,9 +25,9 @@ groovy-with-ref2 = { group = "org.codehaus.groovy", name = "groovy", version.ref
 groovy-with-ref3 = { group = "org.codehaus.groovy", name = "groovy", version.ref = "version-with-bang" }
 
 strict-with-bang = "g:a:1.1!!"
-strict-with-bang-and-range = { module="g:a", version="[1.0,2.0]!!1.1"}
+strict-with-bang-and-range = { module = "g:a", version = "[1.0,2.0]!!1.1" }
 
 [versions]
 groovy = "2.5.6"
 rich-groovy = { strictly = "[2.5, 3.0[", prefer = "2.5.6" }
-version-with-bang="1.7!!"
+version-with-bang = "1.7!!"

@@ -66,8 +66,8 @@ public class MavenProjectsCreator {
 
     private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
-                .setClassWorld(new ClassWorld("plexus.core", Thread.currentThread().getContextClassLoader()))
-                .setName("mavenCore").setClassPathScanning(PlexusConstants.SCANNING_INDEX).setAutoWiring(true);
+            .setClassWorld(new ClassWorld("plexus.core", Thread.currentThread().getContextClassLoader()))
+            .setName("mavenCore").setClassPathScanning(PlexusConstants.SCANNING_INDEX).setAutoWiring(true);
 
         DefaultPlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);

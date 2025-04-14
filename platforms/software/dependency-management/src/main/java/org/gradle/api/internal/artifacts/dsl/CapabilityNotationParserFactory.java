@@ -73,6 +73,12 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             this.versionIsRequired = versionIsRequired;
         }
 
+        private static void reportInvalidNotation(String notation) {
+            throw new InvalidUserDataException(
+                "Invalid format for capability: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
+                    + "e.g: 'org.group:capability:1.0'");
+        }
+
         @Override
         protected Capability parseType(CharSequence notation) {
             String stringNotation = notation.toString();
@@ -90,12 +96,6 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             String version = parts.length == 3 ? parts[2] : null;
             return new DefaultImmutableCapability(parts[0], parts[1], version);
         }
-
-        private static void reportInvalidNotation(String notation) {
-            throw new InvalidUserDataException(
-                "Invalid format for capability: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
-                    + "e.g: 'org.group:capability:1.0'");
-        }
     }
 
     private static class StrictCapabilityMapNotationParser extends MapNotationConverter<Capability> {
@@ -104,9 +104,11 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
 
-        protected Capability parseMap(@MapKey("group") String group,
-                                      @MapKey("name") String name,
-                                      @MapKey("version") String version) {
+        protected Capability parseMap(
+            @MapKey("group") String group,
+            @MapKey("name") String name,
+            @MapKey("version") String version
+        ) {
             return new DefaultImmutableCapability(group, name, version);
         }
     }
@@ -117,9 +119,11 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
 
-        protected Capability parseMap(@MapKey("group") String group,
-                                      @MapKey("name") String name,
-                                      @MapKey("version") @Nullable String version) {
+        protected Capability parseMap(
+            @MapKey("group") String group,
+            @MapKey("name") String name,
+            @MapKey("version") @Nullable String version
+        ) {
             return new DefaultImmutableCapability(group, name, version);
         }
     }

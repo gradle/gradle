@@ -24,9 +24,9 @@ class EclipseClasspathIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/10393")
     @ToBeFixedForConfigurationCache
-    def  "Does not contain duplicate project dependencies"() {
+    def "Does not contain duplicate project dependencies"() {
         setup:
-        buildFile <<  """
+        buildFile << """
             allprojects {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'

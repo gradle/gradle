@@ -89,15 +89,6 @@ public abstract class Zip extends AbstractArchiveTask {
     }
 
     /**
-     * Enables building zips with more than 65535 files or bigger than 4GB.
-     *
-     * @see #isZip64()
-     */
-    public void setZip64(boolean allowZip64) {
-        this.allowZip64 = allowZip64;
-    }
-
-    /**
      * Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
      * <p>
      * The standard zip format has hard limits on file size and count.
@@ -115,6 +106,15 @@ public abstract class Zip extends AbstractArchiveTask {
     }
 
     /**
+     * Enables building zips with more than 65535 files or bigger than 4GB.
+     *
+     * @see #isZip64()
+     */
+    public void setZip64(boolean allowZip64) {
+        this.allowZip64 = allowZip64;
+    }
+
+    /**
      * The character set used to encode ZIP metadata like file names.
      * Defaults to the platform's default character set.
      *
@@ -122,7 +122,9 @@ public abstract class Zip extends AbstractArchiveTask {
      * @since 2.14
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public String getMetadataCharset() {
         return this.metadataCharset;
     }

@@ -54,7 +54,6 @@ public enum WarningMode {
      * Indicates whether deprecation messages are to be printed in-line
      *
      * @return {@code true} if messages are to be printed, {@code false} otherwise
-     *
      * @since 5.6
      */
     public boolean shouldDisplayMessages() {

@@ -63,9 +63,9 @@ trait VersionSpecificCacheCleanupFixture {
 
         public final static MarkerFileType NOT_USED_WITHIN_7_DAYS = notUsedWithinDays(7)
 
-        public final static MarkerFileType MISSING_MARKER_FILE  = new MarkerFileType() {
+        public final static MarkerFileType MISSING_MARKER_FILE = new MarkerFileType() {
             @Override
-            void process(TestFile markerFile) { }
+            void process(TestFile markerFile) {}
         }
 
         abstract void process(TestFile markerFile)
@@ -75,7 +75,7 @@ trait VersionSpecificCacheCleanupFixture {
                 @Override
                 void process(TestFile markerFile) {
                     markerFile.createFile()
-                    markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days+1)
+                    markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days + 1)
                 }
             }
         }

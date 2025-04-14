@@ -8,14 +8,14 @@ format.version = "1.1"
 lib = "1.1"
 
 [libraries]
-junit4 = {group = "junit", name = "junit", version = { prefer = "4.13.1", require = "[4.13.1, 5[" } }
-my-lib = {group = "org", name = "foo", version = "1.0" }
-other = {group = "org", name = "bar", version.ref = "lib" }
+junit4 = { group = "junit", name = "junit", version = { prefer = "4.13.1", require = "[4.13.1, 5[" } }
+my-lib = { group = "org", name = "foo", version = "1.0" }
+other = { group = "org", name = "bar", version.ref = "lib" }
 
 [bundles]
 test = ["my-lib", "junit4"]
 
 [plugins]
-bye = {id = "org.bye", version.ref = "lib" }
-greeter = {id = "org.greeter", version = "1.5" }
+bye = { id = "org.bye", version.ref = "lib" }
+greeter = { id = "org.greeter", version = "1.5" }
 

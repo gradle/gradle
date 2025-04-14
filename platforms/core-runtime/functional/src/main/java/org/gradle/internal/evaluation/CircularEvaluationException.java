@@ -32,22 +32,6 @@ public class CircularEvaluationException extends GradleException {
         this.evaluationCycle = ImmutableList.copyOf(evaluationCycle);
     }
 
-    @Override
-    public String getMessage() {
-        return "Circular evaluation detected: " + formatEvaluationChain(evaluationCycle);
-    }
-
-    /**
-     * Returns the evaluation cycle.
-     * The list represents a "stack" of owners currently being evaluated, and is at least two elements long.
-     * The first and last elements of the list are the same owner.
-     *
-     * @return the evaluation cycle as a list
-     */
-    public List<EvaluationOwner> getEvaluationCycle() {
-        return evaluationCycle;
-    }
-
     private static String formatEvaluationChain(List<EvaluationOwner> evaluationCycle) {
         try (EvaluationScopeContext ignored = EvaluationContext.current().nested()) {
             return evaluationCycle.stream()
@@ -70,5 +54,21 @@ public class CircularEvaluationException extends GradleException {
             // A well-behaved toString should not throw anyway.
             return owner.getClass().getName() + " (toString failed with " + e.getClass() + ")";
         }
+    }
+
+    @Override
+    public String getMessage() {
+        return "Circular evaluation detected: " + formatEvaluationChain(evaluationCycle);
+    }
+
+    /**
+     * Returns the evaluation cycle.
+     * The list represents a "stack" of owners currently being evaluated, and is at least two elements long.
+     * The first and last elements of the list are the same owner.
+     *
+     * @return the evaluation cycle as a list
+     */
+    public List<EvaluationOwner> getEvaluationCycle() {
+        return evaluationCycle;
     }
 }

@@ -125,6 +125,27 @@ public class FreeListBlockStore implements BlockStore {
         }
     }
 
+    private static class FreeListEntry implements Comparable<FreeListEntry> {
+        final BlockPointer pos;
+        final int size;
+
+        private FreeListEntry(BlockPointer pos, int size) {
+            this.pos = pos;
+            this.size = size;
+        }
+
+        @Override
+        public int compareTo(FreeListEntry o) {
+            if (size > o.size) {
+                return 1;
+            }
+            if (size < o.size) {
+                return -1;
+            }
+            return 0;
+        }
+    }
+
     public class FreeListBlock extends BlockPayload {
         private List<FreeListEntry> entries = new ArrayList<FreeListEntry>();
         private int largestInNextBlock;
@@ -136,7 +157,7 @@ public class FreeListBlockStore implements BlockStore {
         @Override
         protected int getSize() {
             return Block.LONG_SIZE + Block.INT_SIZE + Block.INT_SIZE + maxBlockEntries * (Block.LONG_SIZE
-                    + Block.INT_SIZE);
+                + Block.INT_SIZE);
         }
 
         @Override
@@ -252,27 +273,6 @@ public class FreeListBlockStore implements BlockStore {
                 freeListStore.write(prev);
                 freeListStore.remove(this);
             }
-        }
-    }
-
-    private static class FreeListEntry implements Comparable<FreeListEntry> {
-        final BlockPointer pos;
-        final int size;
-
-        private FreeListEntry(BlockPointer pos, int size) {
-            this.pos = pos;
-            this.size = size;
-        }
-
-        @Override
-        public int compareTo(FreeListEntry o) {
-            if (size > o.size) {
-                return 1;
-            }
-            if (size < o.size) {
-                return -1;
-            }
-            return 0;
         }
     }
 }

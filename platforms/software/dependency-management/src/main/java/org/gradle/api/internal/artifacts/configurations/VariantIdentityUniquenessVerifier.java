@@ -77,6 +77,26 @@ public class VariantIdentityUniquenessVerifier {
             this.byIdentity = byIdentity;
         }
 
+        private static GradleException buildFailure(
+            ConfigurationInternal configuration,
+            boolean withTaskAdvice,
+            List<ConfigurationInternal> collisions
+        ) {
+            DocumentedFailure.Builder builder = DocumentedFailure.builder();
+            String advice = "Consider adding an additional attribute to one of the configurations to disambiguate them.";
+            if (withTaskAdvice) {
+                advice += "  Run the 'outgoingVariants' task for more details.";
+            }
+
+            String message = "Consumable configurations with identical capabilities within a project (other than the default configuration) " +
+                "must have unique attributes, but " + configuration.getDisplayName() + " and " + collisions + " contain identical attribute sets.";
+
+            return builder.withSummary(message)
+                .withAdvice(advice)
+                .withUserManual("upgrading_version_7", "unique_attribute_sets")
+                .build();
+        }
+
         /**
          * Get a failure that only checks variant uniqueness for the given configuration.
          */
@@ -108,29 +128,9 @@ public class VariantIdentityUniquenessVerifier {
                             .filter(it -> !it.getName().equals(configuration.getName()))
                             .collect(Collectors.toList());
 
-                    throw  buildFailure(configuration, true, filtered);
+                    throw buildFailure(configuration, true, filtered);
                 }
             }
-        }
-
-        private static GradleException buildFailure(
-            ConfigurationInternal configuration,
-            boolean withTaskAdvice,
-            List<ConfigurationInternal> collisions
-        ) {
-            DocumentedFailure.Builder builder = DocumentedFailure.builder();
-            String advice = "Consider adding an additional attribute to one of the configurations to disambiguate them.";
-            if (withTaskAdvice) {
-                advice += "  Run the 'outgoingVariants' task for more details.";
-            }
-
-            String message = "Consumable configurations with identical capabilities within a project (other than the default configuration) " +
-                "must have unique attributes, but " + configuration.getDisplayName() + " and " + collisions + " contain identical attribute sets.";
-
-            return builder.withSummary(message)
-                .withAdvice(advice)
-                .withUserManual("upgrading_version_7", "unique_attribute_sets")
-                .build();
         }
     }
 
@@ -177,7 +177,7 @@ public class VariantIdentityUniquenessVerifier {
             }
             VariantIdentity that = (VariantIdentity) o;
             return Objects.equals(attributes, that.attributes) &&
-                   Objects.equals(capabilities, that.capabilities);
+                Objects.equals(capabilities, that.capabilities);
         }
 
         @Override

@@ -56,7 +56,7 @@ class PerformanceReporter {
         boolean debugReportGeneration
     ) {
         fileOperations.delete {
-           it.delete(reportDir)
+            it.delete(reportDir)
         }
         ByteArrayOutputStream output = new ByteArrayOutputStream()
 
@@ -85,7 +85,7 @@ class PerformanceReporter {
         })
 
         String message = output.toString().readLines().findAll { line ->
-            ! [
+            ![
                 // WARNING: All illegal access operations will be denied in a future release
                 "WARNING",
                 // SLF4J: Class path contains multiple SLF4J bindings.

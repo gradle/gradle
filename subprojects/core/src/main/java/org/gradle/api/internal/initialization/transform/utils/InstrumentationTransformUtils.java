@@ -26,13 +26,6 @@ import static org.gradle.internal.classpath.TransformedClassPath.FileMarker.INST
 
 public class InstrumentationTransformUtils {
 
-    public enum InstrumentationInputType {
-        DEPENDENCY_ANALYSIS_DATA,
-        TYPE_HIERARCHY_ANALYSIS_DATA,
-        INSTRUMENTATION_MARKER,
-        ORIGINAL_ARTIFACT
-    }
-
     public static final String ANALYSIS_OUTPUT_DIR = "analysis";
     public static final String MERGE_OUTPUT_DIR = "merge";
     public static final String TYPE_HIERARCHY_ANALYSIS_FILE_NAME = "instrumentation-hierarchy.bin";
@@ -80,5 +73,12 @@ public class InstrumentationTransformUtils {
 
     public static void createInstrumentationClasspathMarker(TransformOutputs outputs) {
         createNewFile(outputs.file(INSTRUMENTATION_CLASSPATH_MARKER.getFileName()));
+    }
+
+    public enum InstrumentationInputType {
+        DEPENDENCY_ANALYSIS_DATA,
+        TYPE_HIERARCHY_ANALYSIS_DATA,
+        INSTRUMENTATION_MARKER,
+        ORIGINAL_ARTIFACT
     }
 }

@@ -17,10 +17,12 @@ java {
 }
 
 configurations.configureEach {
-    if (isCanBeConsumed && name.startsWith(gradle7.name))  {
+    if (isCanBeConsumed && name.startsWith(gradle7.name)) {
         attributes {
-            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, // <2>
-                objects.named("7.0"))
+            attribute(
+                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, // <2>
+                objects.named("7.0")
+            )
         }
     }
 }
@@ -38,10 +40,12 @@ dependencies {
 
 // tag::consume-plugin-variant[]
 configurations.configureEach {
-    if (isCanBeResolved && name.startsWith(gradle7.name))  {
+    if (isCanBeResolved && name.startsWith(gradle7.name)) {
         attributes {
-            attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
-                objects.named("7.0"))
+            attribute(
+                GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+                objects.named("7.0")
+            )
         }
     }
 }

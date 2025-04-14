@@ -47,9 +47,9 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
         getInputs().files((Callable<FileCollection>) () -> {
-            MavenPublicationInternal publicationInternal = getPublicationInternal();
-            return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-        })
+                MavenPublicationInternal publicationInternal = getPublicationInternal();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
+            })
             .withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
@@ -58,6 +58,22 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         // They *might* have input files and other dependencies as well though
         // Inputs: The credentials they need may be expressed in a file
         // Dependencies: Can't think of a case here
+    }
+
+    private static MavenPublicationInternal toPublicationInternal(MavenPublication publication) {
+        if (publication == null) {
+            return null;
+        } else if (publication instanceof MavenPublicationInternal) {
+            return (MavenPublicationInternal) publication;
+        } else {
+            throw new InvalidUserDataException(
+                String.format(
+                    "publication objects must implement the '%s' interface, implementation '%s' does not",
+                    MavenPublicationInternal.class.getName(),
+                    publication.getClass().getName()
+                )
+            );
+        }
     }
 
     /**
@@ -83,22 +99,6 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     @Internal
     protected MavenPublicationInternal getPublicationInternal() {
         return toPublicationInternal(getPublication());
-    }
-
-    private static MavenPublicationInternal toPublicationInternal(MavenPublication publication) {
-        if (publication == null) {
-            return null;
-        } else if (publication instanceof MavenPublicationInternal) {
-            return (MavenPublicationInternal) publication;
-        } else {
-            throw new InvalidUserDataException(
-                String.format(
-                    "publication objects must implement the '%s' interface, implementation '%s' does not",
-                    MavenPublicationInternal.class.getName(),
-                    publication.getClass().getName()
-                )
-            );
-        }
     }
 
     @Inject

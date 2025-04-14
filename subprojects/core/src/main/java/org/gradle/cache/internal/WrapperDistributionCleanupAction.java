@@ -131,7 +131,7 @@ public class WrapperDistributionCleanupAction implements MonitoredCleanupAction 
                 // ways.
                 File[] markerFiles = checksumDir.listFiles((dir, name) -> name.endsWith(".ok"));
                 boolean canBeDeleted = true;
-                if (markerFiles!=null) {
+                if (markerFiles != null) {
                     for (File markerFile : markerFiles) {
                         canBeDeleted &= markerFile.delete();
                     }

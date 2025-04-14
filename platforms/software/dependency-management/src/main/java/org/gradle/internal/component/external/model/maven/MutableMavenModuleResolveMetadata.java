@@ -25,18 +25,22 @@ public interface MutableMavenModuleResolveMetadata extends MutableModuleComponen
     @Override
     MavenModuleResolveMetadata asImmutable();
 
-    void setSnapshotTimestamp(@Nullable String snapshotTimestamp);
-
     @Nullable
     String getSnapshotTimestamp();
 
-    @NonNull String getPackaging();
+    void setSnapshotTimestamp(@Nullable String snapshotTimestamp);
+
+    @NonNull
+    String getPackaging();
+
     void setPackaging(@NonNull String packaging);
 
     boolean isPomPackaging();
+
     boolean isKnownJarPackaging();
 
     boolean isRelocated();
+
     void setRelocated(boolean relocated);
 
     /**

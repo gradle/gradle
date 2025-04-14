@@ -22,15 +22,15 @@ import java.util.List;
  * The execution history for a particular performance test.
  */
 public interface PerformanceTestHistory {
+    static String convertToId(String displayName) {
+        return displayName.replaceAll("[^a-zA-Z0-9]", "-");
+    }
+
     /**
      * A unique id for this performance test, must be stable over time.
      */
     default String getId() {
         return convertToId(getDisplayName());
-    }
-
-    static String convertToId(String displayName) {
-        return displayName.replaceAll("[^a-zA-Z0-9]", "-");
     }
 
     /**

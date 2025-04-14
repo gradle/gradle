@@ -105,6 +105,6 @@ class DefaultWorkerProcessBuilderSpec extends Specification {
         1 * execHandle.start() >> process.delegate.onConnect(Stub(ObjectConnection))
 
         and:
-        1 * memoryManager.requestFreeMemory(1024*1024*1024)
+        1 * memoryManager.requestFreeMemory(1024 * 1024 * 1024)
     }
 }

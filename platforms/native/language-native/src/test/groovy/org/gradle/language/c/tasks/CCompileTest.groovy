@@ -62,7 +62,7 @@ class CCompileTest extends AbstractProjectBuilderSpec {
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         2 * toolChain.select(platform) >> platformToolChain
-        2 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
+        2 * platformToolChain.newCompiler({ CCompileSpec.class.isAssignableFrom(it) }) >> cCompiler
         pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
         pch.name >> "testPch"
         pch.projectPath >> ":"
@@ -70,7 +70,7 @@ class CCompileTest extends AbstractProjectBuilderSpec {
         pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
         pch.pchObjects >> TestFiles.empty()
         1 * cCompiler.execute({ CCompileSpec spec ->
-            assert spec.sourceFiles*.name== ["sourceFile"]
+            assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']

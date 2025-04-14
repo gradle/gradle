@@ -26,6 +26,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class DefaultClassFileTransformer implements ClassFileTransformer {
     private static final AtomicBoolean INSTALLED = new AtomicBoolean();
 
+    public static boolean tryInstall() {
+        // Installing the same transformer multiple times is very problematic, so additional correctness check is worth it.
+        if (!INSTALLED.compareAndSet(false, true)) {
+            throw new IllegalStateException("The transformer is already installed in " + DefaultClassFileTransformer.class.getClassLoader());
+        }
+        return AgentControl.installTransformer(new DefaultClassFileTransformer());
+    }
+
     @Override
     public byte @Nullable [] transform(
         @Nullable ClassLoader loader,
@@ -46,13 +54,5 @@ class DefaultClassFileTransformer implements ClassFileTransformer {
             instrumentingLoader.transformFailed(className, th);
             return null;
         }
-    }
-
-    public static boolean tryInstall() {
-        // Installing the same transformer multiple times is very problematic, so additional correctness check is worth it.
-        if (!INSTALLED.compareAndSet(false, true)) {
-            throw new IllegalStateException("The transformer is already installed in " + DefaultClassFileTransformer.class.getClassLoader());
-        }
-        return AgentControl.installTransformer(new DefaultClassFileTransformer());
     }
 }

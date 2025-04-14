@@ -26,7 +26,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     def serializer = new TransportableActionExecutionSpecSerializer()
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
-    def bytes = [ (byte) 1, (byte) 2, (byte) 3 ] as byte[]
+    def bytes = [(byte) 1, (byte) 2, (byte) 3] as byte[]
     def usesInternalServices = true
 
     def "can serialize and deserialize a spec with a hierarchical classloader structure"() {
@@ -71,24 +71,24 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     }
 
     def filteringClassloaderSpec() {
-        def classNames = [ 'allowed.Class1', 'allowed.Class2' ]
-        def disallowedClassNames = [ 'disallowed.Class1', 'disallowed.Class2' ]
-        def packagePrefixes = [ 'allowed.pkgprefix1.', 'allowed.pkgprefix2' ]
-        def disallowedPackagePrefixes = [ 'disallowed.pkgprefix1.', 'disallowed.pkgprefix2.' ]
-        def packageNames = [ 'allowed.pkg1', 'allowed.pkg2' ]
-        def resourceNames = [ 'allowed.resource1', 'allowed.resource2' ]
-        def resourcePrefixes = [ 'allowed.resourcePrefix1.', 'allowed.resourcePrefix2.' ]
+        def classNames = ['allowed.Class1', 'allowed.Class2']
+        def disallowedClassNames = ['disallowed.Class1', 'disallowed.Class2']
+        def packagePrefixes = ['allowed.pkgprefix1.', 'allowed.pkgprefix2']
+        def disallowedPackagePrefixes = ['disallowed.pkgprefix1.', 'disallowed.pkgprefix2.']
+        def packageNames = ['allowed.pkg1', 'allowed.pkg2']
+        def resourceNames = ['allowed.resource1', 'allowed.resource2']
+        def resourcePrefixes = ['allowed.resourcePrefix1.', 'allowed.resourcePrefix2.']
         return new FilteringClassLoader.Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames, disallowedPackagePrefixes)
     }
 
     def visitableUrlClassloaderSpec() {
-        def urls = [ new URL("file://some/path"), new URL("file://some/other/path") ]
+        def urls = [new URL("file://some/path"), new URL("file://some/other/path")]
         return new VisitableURLClassLoader.Spec("test", urls)
     }
 
     def classLoaderStructure() {
         return new HierarchicalClassLoaderStructure(filteringClassloaderSpec())
-                .withChild(visitableUrlClassloaderSpec())
+            .withChild(visitableUrlClassloaderSpec())
     }
 
     def flatClassLoaderStructure() {

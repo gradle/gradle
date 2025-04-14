@@ -198,6 +198,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
 
         private static class Builder {
             private final Entry entry;
+
             Builder(Entry entry) {
                 this.entry = entry;
             }

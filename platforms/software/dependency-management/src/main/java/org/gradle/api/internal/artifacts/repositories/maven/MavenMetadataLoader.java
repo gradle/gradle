@@ -77,7 +77,7 @@ public class MavenMetadataLoader {
                 XMLHelper.parse(inputStream, null, new ContextualSAXHandler() {
                     @Override
                     public void endElement(String uri, String localName, String qName)
-                            throws SAXException {
+                        throws SAXException {
                         if ("metadata/versioning/snapshot/timestamp".equals(getContext())) {
                             mavenMetadata.timestamp = getText();
                         }

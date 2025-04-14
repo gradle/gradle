@@ -57,13 +57,13 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     private static final DefaultComponentSelectionDescriptor DEPENDENCY_LOCKING = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"));
     private final Long2ObjectMap<DefaultResolvedComponentResult> components = new Long2ObjectOpenHashMap<>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
+    private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
     private long id;
     private ComponentSelectionReason selectionReason;
     private ComponentIdentifier componentId;
     private ModuleVersionIdentifier moduleVersion;
     private String repoName;
     private ImmutableList<ResolvedVariantResult> allVariants;
-    private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
     public static MinimalResolutionResult empty(
         ModuleVersionIdentifier id,

@@ -24,6 +24,7 @@ import org.gradle.api.Describable;
 public interface ClassLoaderId extends Describable {
     @Override
     boolean equals(Object o);
+
     @Override
     int hashCode();
 }

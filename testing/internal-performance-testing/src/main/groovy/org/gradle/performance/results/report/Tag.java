@@ -82,17 +82,17 @@ public interface Tag {
         private String name;
         private String title;
 
+        private FlakinessInfoTag(String name, String title) {
+            this.name = name;
+            this.title = title;
+        }
+
         static FlakinessInfoTag createFlakinessRateTag(BigDecimal rate) {
             return new FlakinessInfoTag(String.format("FLAKY(%.2f%%)", rate.doubleValue() * 100), FLAKINESS_RATE_TITLE);
         }
 
         static FlakinessInfoTag createFailureThresholdTag(BigDecimal threshold) {
             return new FlakinessInfoTag(String.format("FAILURE-THRESHOLD(%.2f%%)", threshold.doubleValue() * 100), FAILURE_THRESHOLD_TITLE);
-        }
-
-        private FlakinessInfoTag(String name, String title) {
-            this.name = name;
-            this.title = title;
         }
 
         @Override

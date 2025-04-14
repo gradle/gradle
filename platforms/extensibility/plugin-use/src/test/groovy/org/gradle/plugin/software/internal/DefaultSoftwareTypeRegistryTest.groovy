@@ -143,13 +143,13 @@ class DefaultSoftwareTypeRegistryTest extends Specification {
         e.message == "Software type 'test' is registered by both '${this.class.name}\$DuplicateSoftwareTypeImpl' and '${this.class.name}\$SoftwareTypeImpl'"
     }
 
-    private static class TestModel { }
+    private static class TestModel {}
 
-    private abstract static class RegisteringPlugin implements Plugin<Settings> { }
+    private abstract static class RegisteringPlugin implements Plugin<Settings> {}
 
-    private abstract static class SoftwareTypeImpl implements Plugin<Project> { }
+    private abstract static class SoftwareTypeImpl implements Plugin<Project> {}
 
-    private abstract static class NotASoftwareTypeImpl implements Plugin<Project> { }
+    private abstract static class NotASoftwareTypeImpl implements Plugin<Project> {}
 
-    private abstract static class DuplicateSoftwareTypeImpl implements Plugin<Project> { }
+    private abstract static class DuplicateSoftwareTypeImpl implements Plugin<Project> {}
 }

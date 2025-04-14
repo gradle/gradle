@@ -41,13 +41,15 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final boolean isRunDefaultTasks;
     private final List<InternalTaskSpec> taskSpecs;
 
-    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors,
-                                Collection<String> testClassNames,
-                                Set<InternalJvmTestRequest> internalJvmTestRequests,
-                                InternalDebugOptions debugOptions,
-                                Map<String, List<InternalJvmTestRequest>> testTasks,
-                                boolean isRunDefaultTasks,
-                                List<InternalTaskSpec> taskSpecs) {
+    public TestExecutionRequest(
+        Iterable<TestOperationDescriptor> operationDescriptors,
+        Collection<String> testClassNames,
+        Set<InternalJvmTestRequest> internalJvmTestRequests,
+        InternalDebugOptions debugOptions,
+        Map<String, List<InternalJvmTestRequest>> testTasks,
+        boolean isRunDefaultTasks,
+        List<InternalTaskSpec> taskSpecs
+    ) {
         this.testDescriptors = adaptDescriptors(operationDescriptors);
         this.testClassNames = testClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
@@ -61,7 +63,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         return debugOptions;
     }
 
-    public Map<String, List<InternalJvmTestRequest>>  getTaskAndTests() {
+    public Map<String, List<InternalJvmTestRequest>> getTaskAndTests() {
         return taskAndTests;
     }
 

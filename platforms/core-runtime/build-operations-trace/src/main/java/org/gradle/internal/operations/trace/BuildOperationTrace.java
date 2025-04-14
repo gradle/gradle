@@ -116,9 +116,6 @@ import static org.gradle.internal.Cast.uncheckedCast;
 public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
-
-    private static final StringInternalOption TRACE_OPTION = new StringInternalOption(SYSPROP, null);
-
     /**
      * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
      * that will be captured by this trace. When enabled, only operations matching this filter
@@ -129,22 +126,18 @@ public class BuildOperationTrace implements Stoppable {
      * case, only the log file will be written, not the formatted tree output files.
      */
     public static final String FILTER_SYSPROP = SYSPROP + ".filter";
-
     private static final StringInternalOption FILTER_OPTION = new StringInternalOption(FILTER_SYSPROP, null);
-
     /**
      * A flag controlling whether tree generation is enabled ({@code true} by default).
      * Only application when {@link #FILTER_SYSPROP} is not set.
      */
     public static final String TREE_SYSPROP = SYSPROP + ".tree";
-
     private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, true);
-
     /**
      * Delimiter for entries in {@link #FILTER_SYSPROP}.
      */
     public static final String FILTER_SEPARATOR = ";";
-
+    private static final StringInternalOption TRACE_OPTION = new StringInternalOption(SYSPROP, null);
     private static final byte[] NEWLINE = {(byte) '\n'};
 
     private final boolean outputTree;
@@ -204,118 +197,6 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         return new HashSet<>(Arrays.asList(filterProperty.split(FILTER_SEPARATOR)));
-    }
-
-    @Override
-    public void stop() {
-        buildOperationListenerManager.removeListener(listener);
-        if (logOutputStream != null) {
-            try {
-                synchronized (logOutputStream) {
-                    logOutputStream.close();
-                }
-
-                if (outputTree) {
-                    List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), false);
-                    writeDetailTree(roots);
-                    writeSummaryTree(roots);
-                }
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-    }
-
-    private void write(SerializedOperation operation) {
-        try {
-            String json = objectMapper.writeValueAsString(operation.toMap());
-            synchronized (logOutputStream) {
-                logOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
-                logOutputStream.write(NEWLINE);
-                logOutputStream.flush();
-            }
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
-        File outputFile = file(basePath, "-tree.json");
-        objectMapper.writerWithDefaultPrettyPrinter()
-            .writeValue(outputFile, BuildOperationTree.serialize(roots));
-    }
-
-    private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
-        Path outputPath = Paths.get(basePath + "-tree.txt");
-        try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
-            Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<>(Collections.singleton(new ArrayDeque<>(roots)));
-            StringBuilder stringBuilder = new StringBuilder();
-
-            while (!stack.isEmpty()) {
-                if (stack.peek().isEmpty()) {
-                    stack.pop();
-                    continue;
-                }
-
-                Queue<BuildOperationRecord> children = stack.element();
-                BuildOperationRecord record = children.remove();
-
-                stringBuilder.setLength(0);
-
-                int indents = stack.size() - 1;
-                for (int i = 0; i < indents; ++i) {
-                    stringBuilder.append("  ");
-                }
-
-                if (!record.children.isEmpty()) {
-                    stack.addFirst(new ArrayDeque<>(record.children));
-                }
-
-                stringBuilder.append(record.displayName);
-
-                if (record.details != null) {
-                    stringBuilder.append(" ");
-                    try {
-                        stringBuilder.append(objectMapper.writeValueAsString(record.details));
-                    } catch (JsonProcessingException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-
-                if (record.result != null) {
-                    stringBuilder.append(" ");
-                    try {
-                        stringBuilder.append(objectMapper.writeValueAsString(record.result));
-                    } catch (JsonProcessingException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-
-                stringBuilder.append(" [");
-                stringBuilder.append(record.endTime - record.startTime);
-                stringBuilder.append("ms]");
-
-                stringBuilder.append(" (");
-                stringBuilder.append(record.id);
-                stringBuilder.append(")");
-
-                if (!record.progress.isEmpty()) {
-                    for (BuildOperationRecord.Progress progress : record.progress) {
-                        stringBuilder.append(System.lineSeparator());
-                        for (int i = 0; i < indents; ++i) {
-                            stringBuilder.append("  ");
-                        }
-                        stringBuilder.append("- ")
-                            .append(progress.details).append(" [")
-                            .append(progress.time - record.startTime)
-                            .append("]");
-                    }
-                }
-
-                writer.write(stringBuilder.toString());
-                writer.newLine();
-            }
-        }
     }
 
     public static BuildOperationTree read(String basePath) {
@@ -451,31 +332,11 @@ public class BuildOperationTrace implements Stoppable {
         return new File((base == null || base.trim().isEmpty() ? "operations" : base) + suffix).getAbsoluteFile();
     }
 
-    static class PendingOperation {
-
-        final SerializedOperationStart start;
-
-        final List<SerializedOperationProgress> progress = new ArrayList<>();
-
-        PendingOperation(SerializedOperationStart start) {
-            this.start = start;
-        }
-
-    }
-
     public static @Nullable Object toSerializableModel(@Nullable Object object) {
         if (object instanceof CustomOperationTraceSerialization) {
             return ((CustomOperationTraceSerialization) object).getCustomOperationTraceSerializableModel();
         } else {
             return object;
-        }
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static class JsonClassSerializer extends JsonSerializer<Class> {
-        @Override
-        public void serialize(Class aClass, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-            jsonGenerator.writeString(aClass.getName());
         }
     }
 
@@ -490,6 +351,138 @@ public class BuildOperationTrace implements Stoppable {
             .registerModule(new JavaTimeModule())
             .registerModule(new Jdk8Module())
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    }
+
+    @Override
+    public void stop() {
+        buildOperationListenerManager.removeListener(listener);
+        if (logOutputStream != null) {
+            try {
+                synchronized (logOutputStream) {
+                    logOutputStream.close();
+                }
+
+                if (outputTree) {
+                    List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), false);
+                    writeDetailTree(roots);
+                    writeSummaryTree(roots);
+                }
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
+
+    private void write(SerializedOperation operation) {
+        try {
+            String json = objectMapper.writeValueAsString(operation.toMap());
+            synchronized (logOutputStream) {
+                logOutputStream.write(json.getBytes(StandardCharsets.UTF_8));
+                logOutputStream.write(NEWLINE);
+                logOutputStream.flush();
+            }
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
+        File outputFile = file(basePath, "-tree.json");
+        objectMapper.writerWithDefaultPrettyPrinter()
+            .writeValue(outputFile, BuildOperationTree.serialize(roots));
+    }
+
+    private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
+        Path outputPath = Paths.get(basePath + "-tree.txt");
+        try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
+            Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<>(Collections.singleton(new ArrayDeque<>(roots)));
+            StringBuilder stringBuilder = new StringBuilder();
+
+            while (!stack.isEmpty()) {
+                if (stack.peek().isEmpty()) {
+                    stack.pop();
+                    continue;
+                }
+
+                Queue<BuildOperationRecord> children = stack.element();
+                BuildOperationRecord record = children.remove();
+
+                stringBuilder.setLength(0);
+
+                int indents = stack.size() - 1;
+                for (int i = 0; i < indents; ++i) {
+                    stringBuilder.append("  ");
+                }
+
+                if (!record.children.isEmpty()) {
+                    stack.addFirst(new ArrayDeque<>(record.children));
+                }
+
+                stringBuilder.append(record.displayName);
+
+                if (record.details != null) {
+                    stringBuilder.append(" ");
+                    try {
+                        stringBuilder.append(objectMapper.writeValueAsString(record.details));
+                    } catch (JsonProcessingException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+
+                if (record.result != null) {
+                    stringBuilder.append(" ");
+                    try {
+                        stringBuilder.append(objectMapper.writeValueAsString(record.result));
+                    } catch (JsonProcessingException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+
+                stringBuilder.append(" [");
+                stringBuilder.append(record.endTime - record.startTime);
+                stringBuilder.append("ms]");
+
+                stringBuilder.append(" (");
+                stringBuilder.append(record.id);
+                stringBuilder.append(")");
+
+                if (!record.progress.isEmpty()) {
+                    for (BuildOperationRecord.Progress progress : record.progress) {
+                        stringBuilder.append(System.lineSeparator());
+                        for (int i = 0; i < indents; ++i) {
+                            stringBuilder.append("  ");
+                        }
+                        stringBuilder.append("- ")
+                            .append(progress.details).append(" [")
+                            .append(progress.time - record.startTime)
+                            .append("]");
+                    }
+                }
+
+                writer.write(stringBuilder.toString());
+                writer.newLine();
+            }
+        }
+    }
+
+    static class PendingOperation {
+
+        final SerializedOperationStart start;
+
+        final List<SerializedOperationProgress> progress = new ArrayList<>();
+
+        PendingOperation(SerializedOperationStart start) {
+            this.start = start;
+        }
+
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static class JsonClassSerializer extends JsonSerializer<Class> {
+        @Override
+        public void serialize(Class aClass, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeString(aClass.getName());
+        }
     }
 
     private static class JsonThrowableSerializer extends JsonSerializer<Throwable> {

@@ -30,14 +30,14 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     @Nullable
     final String parentName;
     @Nullable
-    private final String binaryName;
-    @Nullable
     final String binaryType;
     final String dimensionPrefix;
+    final List<String> dimensions;
+    @Nullable
+    private final String binaryName;
     @Nullable
     private final String role;
     private final boolean main;
-    final List<String> dimensions;
 
     DefaultBinaryNamingScheme(@Nullable String parentName, @Nullable String binaryName, @Nullable String binaryType, @Nullable String role, boolean main, List<String> dimensions) {
         this.parentName = parentName;

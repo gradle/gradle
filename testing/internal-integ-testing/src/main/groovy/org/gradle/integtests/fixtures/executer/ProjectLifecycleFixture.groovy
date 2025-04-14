@@ -50,7 +50,7 @@ class ProjectLifecycleFixture extends InitScriptExecuterFixture {
         assert fixtureData.delete()
     }
 
-    void assertProjectsConfigured(String ... projectPaths) {
+    void assertProjectsConfigured(String... projectPaths) {
         assert configuredProjects == projectPaths
     }
 }

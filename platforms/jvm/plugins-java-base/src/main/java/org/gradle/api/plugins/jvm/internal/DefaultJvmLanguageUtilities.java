@@ -54,6 +54,30 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
         configurationToCompileTasks = new HashMap<>(5);
     }
 
+    private static <COMPILE extends AbstractCompile & HasCompileOptions> int getDefaultTargetPlatform(Configuration configuration, JavaPluginExtension java, Set<TaskProvider<COMPILE>> compileTasks) {
+        assert !compileTasks.isEmpty();
+
+        if (!configuration.isCanBeConsumed() && java.getAutoTargetJvmDisabled()) {
+            return Integer.MAX_VALUE;
+        }
+
+        return compileTasks.stream().map(provider -> {
+            COMPILE compileTask = provider.get();
+            if (compileTask.getOptions().getRelease().isPresent()) {
+                return compileTask.getOptions().getRelease().get();
+            }
+
+            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
+            int flagIndex = compilerArgs.indexOf("--release");
+
+            if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
+                return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
+            } else {
+                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
+            }
+        }).max(Comparator.naturalOrder()).get();
+    }
+
     @Override
     public <COMPILE extends AbstractCompile & HasCompileOptions> void useDefaultTargetPlatformInference(Configuration configuration, TaskProvider<COMPILE> compileTask) {
         ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
@@ -77,29 +101,5 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
             sourceSet);
         configuration.execute(builder);
         builder.build();
-    }
-
-    private static <COMPILE extends AbstractCompile & HasCompileOptions> int getDefaultTargetPlatform(Configuration configuration, JavaPluginExtension java, Set<TaskProvider<COMPILE>> compileTasks) {
-        assert !compileTasks.isEmpty();
-
-        if (!configuration.isCanBeConsumed() && java.getAutoTargetJvmDisabled()) {
-            return Integer.MAX_VALUE;
-        }
-
-        return compileTasks.stream().map(provider -> {
-            COMPILE compileTask = provider.get();
-            if (compileTask.getOptions().getRelease().isPresent()) {
-                return compileTask.getOptions().getRelease().get();
-            }
-
-            List<String> compilerArgs = compileTask.getOptions().getCompilerArgs();
-            int flagIndex = compilerArgs.indexOf("--release");
-
-            if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
-                return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
-            } else {
-                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
-            }
-        }).max(Comparator.naturalOrder()).get();
     }
 }

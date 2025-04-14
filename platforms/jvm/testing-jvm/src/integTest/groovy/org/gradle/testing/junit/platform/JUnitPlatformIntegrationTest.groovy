@@ -316,7 +316,8 @@ public class StaticInnerTest {
                 static CountDownLatch LATCH = new CountDownLatch($numTestClasses);
             }
 
-            ${(1..numTestClasses).collect { classNumber -> """
+            ${(1..numTestClasses).collect { classNumber ->
+            """
                 class Test$classNumber extends Sync {
                     @Test
                     public void test() throws Exception {
@@ -324,7 +325,7 @@ public class StaticInnerTest {
                         LATCH.await();
                     }
                 }
-            """ }.join("") }
+            """ }.join("")}
         """
 
         when:

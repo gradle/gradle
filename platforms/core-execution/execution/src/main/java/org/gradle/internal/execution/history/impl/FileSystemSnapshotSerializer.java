@@ -43,18 +43,51 @@ import java.util.Deque;
 import java.util.List;
 
 public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapshot> {
-    private enum EntryType {
-        DIR_OPEN,
-        REGULAR_FILE,
-        MISSING,
-        DIR_CLOSE,
-        END
-    }
-
     private final Interner<String> stringInterner;
 
     public FileSystemSnapshotSerializer(Interner<String> stringInterner) {
         this.stringInterner = stringInterner;
+    }
+
+    private static void writePath(Encoder encoder, boolean isRoot, FileSystemLocationSnapshot snapshot) throws IOException {
+        encoder.writeString(isRoot ? snapshot.getAbsolutePath() : snapshot.getName());
+    }
+
+    private static EntryType readEntryType(Decoder decoder) throws IOException {
+        return EntryType.values()[decoder.readByte()];
+    }
+
+    private static void writeEntryType(Encoder encoder, EntryType type) throws IOException {
+        encoder.writeByte((byte) type.ordinal());
+    }
+
+    private static FileMetadata.AccessType readAccessType(Decoder decoder) throws IOException {
+        return FileMetadata.AccessType.values()[decoder.readByte()];
+    }
+
+    private static void writeAccessType(Encoder encoder, FileMetadata.AccessType accessType) throws IOException {
+        encoder.writeByte((byte) accessType.ordinal());
+    }
+
+    private static HashCode readHashCode(Decoder decoder) throws IOException {
+        return HashCode.fromBytes(decoder.readBinary());
+    }
+
+    private static void writeHashCode(Encoder encoder, HashCode hashCode) throws IOException {
+        encoder.writeBinary(hashCode.toByteArray());
+    }
+
+    private static String toAbsolutePath(Collection<String> parents, String fileName) {
+        int length = fileName.length() + parents.size() + parents.stream()
+            .mapToInt(String::length)
+            .sum();
+        StringBuilder buffer = new StringBuilder(length);
+        for (String parent : parents) {
+            buffer.append(parent);
+            buffer.append(File.separatorChar);
+        }
+        buffer.append(fileName);
+        return buffer.toString();
     }
 
     @Override
@@ -168,32 +201,12 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
         encoder.writeByte((byte) EntryType.END.ordinal());
     }
 
-    private static void writePath(Encoder encoder, boolean isRoot, FileSystemLocationSnapshot snapshot) throws IOException {
-        encoder.writeString(isRoot ? snapshot.getAbsolutePath() : snapshot.getName());
-    }
-
-    private static EntryType readEntryType(Decoder decoder) throws IOException {
-        return EntryType.values()[decoder.readByte()];
-    }
-
-    private static void writeEntryType(Encoder encoder, EntryType type) throws IOException {
-        encoder.writeByte((byte) type.ordinal());
-    }
-
-    private static FileMetadata.AccessType readAccessType(Decoder decoder) throws IOException {
-        return FileMetadata.AccessType.values()[decoder.readByte()];
-    }
-
-    private static void writeAccessType(Encoder encoder, FileMetadata.AccessType accessType) throws IOException {
-        encoder.writeByte((byte) accessType.ordinal());
-    }
-
-    private static HashCode readHashCode(Decoder decoder) throws IOException {
-        return HashCode.fromBytes(decoder.readBinary());
-    }
-
-    private static void writeHashCode(Encoder encoder, HashCode hashCode) throws IOException {
-        encoder.writeBinary(hashCode.toByteArray());
+    private enum EntryType {
+        DIR_OPEN,
+        REGULAR_FILE,
+        MISSING,
+        DIR_CLOSE,
+        END
     }
 
     private static class SnapshotStack {
@@ -218,18 +231,5 @@ public class FileSystemSnapshotSerializer implements Serializer<FileSystemSnapsh
             }
             return popped;
         }
-    }
-
-    private static String toAbsolutePath(Collection<String> parents, String fileName) {
-        int length = fileName.length() + parents.size()  + parents.stream()
-            .mapToInt(String::length)
-            .sum();
-        StringBuilder buffer = new StringBuilder(length);
-        for (String parent : parents) {
-            buffer.append(parent);
-            buffer.append(File.separatorChar);
-        }
-        buffer.append(fileName);
-        return buffer.toString();
     }
 }

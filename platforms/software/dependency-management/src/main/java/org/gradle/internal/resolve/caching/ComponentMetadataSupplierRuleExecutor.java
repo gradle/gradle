@@ -35,11 +35,12 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
     private final static Transformer<String, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = Object::toString;
 
     public ComponentMetadataSupplierRuleExecutor(
-            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-            ValueSnapshotter snapshotter,
-            BuildCommencedTimeProvider timeProvider,
-            Serializer<ComponentMetadata> componentMetadataSerializer) {
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+        InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+        ValueSnapshotter snapshotter,
+        BuildCommencedTimeProvider timeProvider,
+        Serializer<ComponentMetadata> componentMetadataSerializer
+    ) {
         super("md-supplier", cacheBuilderFactory, cacheDecoratorFactory, snapshotter, timeProvider, createValidator(timeProvider), KEY_TO_SNAPSHOTTABLE, componentMetadataSerializer);
     }
 

@@ -51,11 +51,6 @@ public class DefaultSslContextFactory implements SslContextFactory {
         new SynchronizedSystemPropertiesCacheLoader()
     );
 
-    @Override
-    public SSLContext createSslContext() {
-        return cache.getUnchecked(getCurrentProperties());
-    }
-
     private static Map<String, String> getCurrentProperties() {
         return SystemProperties.getInstance().withSystemProperties(() -> {
             Map<String, String> currentProperties = new TreeMap<>();
@@ -64,6 +59,11 @@ public class DefaultSslContextFactory implements SslContextFactory {
             }
             return currentProperties;
         });
+    }
+
+    @Override
+    public SSLContext createSslContext() {
+        return cache.getUnchecked(getCurrentProperties());
     }
 
     private static class SynchronizedSystemPropertiesCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {

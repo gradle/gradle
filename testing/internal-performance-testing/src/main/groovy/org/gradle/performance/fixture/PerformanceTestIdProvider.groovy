@@ -49,7 +49,7 @@ class PerformanceTestIdProvider implements TestRule {
                 testSpec.displayName = methodName
             }
 
-            if(testSpec.hasProperty('testClassName') && testSpec.testClassName == null) {
+            if (testSpec.hasProperty('testClassName') && testSpec.testClassName == null) {
                 testSpec.testClassName = className
             }
         }

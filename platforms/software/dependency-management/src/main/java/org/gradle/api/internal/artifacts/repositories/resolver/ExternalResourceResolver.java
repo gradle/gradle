@@ -87,23 +87,19 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     private final String name;
     private final ImmutableList<ResourcePattern> ivyPatterns;
     private final ImmutableList<ResourcePattern> artifactPatterns;
-    private ComponentResolvers componentResolvers;
-
     private final ExternalResourceRepository repository;
     private final boolean local;
     private final CacheAwareExternalResourceAccessor cachingResourceAccessor;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
-
     private final ImmutableMetadataSources metadataSources;
     private final MetadataArtifactProvider metadataArtifactProvider;
-
     private final InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory;
     private final InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister;
     private final Instantiator injector;
     private final ChecksumService checksumService;
-
     private final String id;
+    private ComponentResolvers componentResolvers;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
 
     protected ExternalResourceResolver(
@@ -135,6 +131,10 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         this.providedVersionLister = providedVersionLister;
         this.injector = injector;
         this.checksumService = checksumService;
+    }
+
+    public static boolean disableExtraChecksums() {
+        return Boolean.getBoolean("org.gradle.internal.publish.checksums.insecure");
     }
 
     @Override
@@ -356,6 +356,52 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         return CollectionUtils.collect(artifactPatterns, ResourcePattern::getPattern);
     }
 
+    private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {
+
+        private static final NoOpResourceAwareResolveResult INSTANCE = new NoOpResourceAwareResolveResult();
+
+        @Override
+        public List<String> getAttempted() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void attempted(String locationDescription) {
+
+        }
+
+        @Override
+        public void attempted(ExternalResourceName location) {
+
+        }
+
+        @Override
+        public void applyTo(ResourceAwareResolveResult target) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class DefaultComponentVersionsLister implements ComponentMetadataListerDetails {
+
+        private final ModuleIdentifier id;
+        private final BuildableModuleVersionListingResolveResult result;
+
+        private DefaultComponentVersionsLister(ModuleIdentifier id, BuildableModuleVersionListingResolveResult result) {
+            this.id = id;
+            this.result = result;
+        }
+
+        @Override
+        public ModuleIdentifier getModuleIdentifier() {
+            return id;
+        }
+
+        @Override
+        public void listed(List<String> versions) {
+            result.listed(versions);
+        }
+    }
+
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> {
         @Override
         public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
@@ -497,56 +543,6 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
             }
             return MetadataFetchingCost.EXPENSIVE;
         }
-    }
-
-    private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {
-
-        private static final NoOpResourceAwareResolveResult INSTANCE = new NoOpResourceAwareResolveResult();
-
-        @Override
-        public List<String> getAttempted() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public void attempted(String locationDescription) {
-
-        }
-
-        @Override
-        public void attempted(ExternalResourceName location) {
-
-        }
-
-        @Override
-        public void applyTo(ResourceAwareResolveResult target) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private static class DefaultComponentVersionsLister implements ComponentMetadataListerDetails {
-
-        private final ModuleIdentifier id;
-        private final BuildableModuleVersionListingResolveResult result;
-
-        private DefaultComponentVersionsLister(ModuleIdentifier id, BuildableModuleVersionListingResolveResult result) {
-            this.id = id;
-            this.result = result;
-        }
-
-        @Override
-        public ModuleIdentifier getModuleIdentifier() {
-            return id;
-        }
-
-        @Override
-        public void listed(List<String> versions) {
-            result.listed(versions);
-        }
-    }
-
-    public static boolean disableExtraChecksums() {
-        return Boolean.getBoolean("org.gradle.internal.publish.checksums.insecure");
     }
 
 }

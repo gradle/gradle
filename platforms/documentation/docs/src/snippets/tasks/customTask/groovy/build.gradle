@@ -1,4 +1,3 @@
-
 // tag::add-action[]
 // tag::define-task[]
 abstract class GreetingTask extends DefaultTask {

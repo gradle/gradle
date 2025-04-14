@@ -33,6 +33,30 @@ import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProj
 
 public class TaskNameResolver {
 
+    private static void discoverTasks(ProjectInternal project) {
+        try {
+            project.getTasks().discoverTasks();
+        } catch (Throwable e) {
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
+        }
+    }
+
+    private static Set<String> getTaskNames(ProjectInternal project) {
+        return project.getTasks().getNames();
+    }
+
+    private static boolean hasTask(String taskName, ProjectInternal project) {
+        return project.getTasks().getNames().contains(taskName) || project.getTasks().findByName(taskName) != null;
+    }
+
+    private static TaskInternal getExistingTask(ProjectInternal project, String taskName) {
+        try {
+            return (TaskInternal) project.getTasks().getByName(taskName);
+        } catch (Throwable e) {
+            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
+        }
+    }
+
     /**
      * Non-exhaustively searches for at least one task with the given name, by not evaluating projects before searching.
      */
@@ -93,30 +117,6 @@ public class TaskNameResolver {
         }
 
         return selected;
-    }
-
-    private static void discoverTasks(ProjectInternal project) {
-        try {
-            project.getTasks().discoverTasks();
-        } catch (Throwable e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
-        }
-    }
-
-    private static Set<String> getTaskNames(ProjectInternal project) {
-        return project.getTasks().getNames();
-    }
-
-    private static boolean hasTask(String taskName, ProjectInternal project) {
-        return project.getTasks().getNames().contains(taskName) || project.getTasks().findByName(taskName) != null;
-    }
-
-    private static TaskInternal getExistingTask(ProjectInternal project, String taskName) {
-        try {
-            return (TaskInternal) project.getTasks().getByName(taskName);
-        } catch (Throwable e) {
-            throw new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
-        }
     }
 
     private void collectTaskNames(ProjectInternal project, Set<String> result) {

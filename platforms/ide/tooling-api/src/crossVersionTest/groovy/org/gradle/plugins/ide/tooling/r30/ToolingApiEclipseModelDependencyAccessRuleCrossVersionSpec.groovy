@@ -32,12 +32,12 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
 
         createDirs("sub")
         settingsFile <<
-        """rootProject.name = 'root'
+            """rootProject.name = 'root'
            include 'sub'
         """
 
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
 
            repositories {
@@ -70,7 +70,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
     def "Has some access rules"() {
         setup:
         buildFile <<
-        """import org.gradle.plugins.ide.eclipse.model.AccessRule
+            """import org.gradle.plugins.ide.eclipse.model.AccessRule
            eclipse {
                classpath {
                    containers 'classpathContainerPath'

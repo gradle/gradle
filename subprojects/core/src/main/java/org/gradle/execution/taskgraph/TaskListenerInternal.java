@@ -40,6 +40,6 @@ public interface TaskListenerInternal {
      * @param state The task state. If the task failed with an exception, the exception is available in this
      * state. Never null.
      */
-    void afterExecute(TaskIdentity<?>  taskIdentity, TaskState state);
+    void afterExecute(TaskIdentity<?> taskIdentity, TaskState state);
 
 }

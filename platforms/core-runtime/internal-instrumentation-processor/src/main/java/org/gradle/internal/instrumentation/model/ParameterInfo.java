@@ -20,6 +20,8 @@ import org.objectweb.asm.Type;
 
 public interface ParameterInfo {
     String getName();
+
     Type getParameterType();
+
     ParameterKindInfo getKind();
 }

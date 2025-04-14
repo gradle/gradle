@@ -62,7 +62,8 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
-    @Rule SetSystemProperties systemProperties
+    @Rule
+    SetSystemProperties systemProperties
 
     private ProjectInternal rootProject
     ServiceRegistry executionServices
@@ -78,7 +79,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     }
 
     final ProjectInternal getProject() {
-        assert rootProject!=null
+        assert rootProject != null
         return rootProject
     }
 

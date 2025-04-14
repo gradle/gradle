@@ -207,7 +207,7 @@ class ModuleVersionSpec {
     void build(HttpRepository repository) {
         def module = repository.module(groupId, artifactId, version)
         def legacyMetadataIsRequested = repository.providesMetadata != HttpRepository.MetadataType.ONLY_GRADLE
-        def gradleMetadataWasPublished = metadataType == MetadataType.GRADLE || (metadataType == MetadataType.REPO_DEFAULT  && repository.providesMetadata != HttpRepository.MetadataType.ONLY_ORIGINAL)
+        def gradleMetadataWasPublished = metadataType == MetadataType.GRADLE || (metadataType == MetadataType.REPO_DEFAULT && repository.providesMetadata != HttpRepository.MetadataType.ONLY_ORIGINAL)
         if (gradleMetadataWasPublished) {
             module.withModuleMetadata()
         }
@@ -340,7 +340,7 @@ class ModuleVersionSpec {
             }
         }
 
-        if(excludeFromConfig) {
+        if (excludeFromConfig) {
             excludeFromConfig.each {
                 def moduleParts = it.module.split(':') as List
                 module.excludeFromConfig(moduleParts[0], moduleParts[1], it.conf)

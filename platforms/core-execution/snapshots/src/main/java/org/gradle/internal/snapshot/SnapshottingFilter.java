@@ -37,7 +37,9 @@ public interface SnapshottingFilter {
     };
 
     boolean isEmpty();
+
     FileSystemSnapshotPredicate getAsSnapshotPredicate();
+
     DirectoryWalkerPredicate getAsDirectoryWalkerPredicate();
 
     interface DirectoryWalkerPredicate {

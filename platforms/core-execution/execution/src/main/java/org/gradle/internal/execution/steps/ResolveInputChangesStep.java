@@ -34,11 +34,6 @@ public class ResolveInputChangesStep<C extends IncrementalCachingContext, R exte
         this.delegate = delegate;
     }
 
-    @Override
-    public R execute(UnitOfWork work, C context) {
-        return delegate.execute(work, new InputChangesContext(context, determineInputChanges(work, context), context.getCachingState()));
-    }
-
     @Nullable
     private static InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
         if (work.getExecutionBehavior() == NON_INCREMENTAL) {
@@ -51,5 +46,10 @@ public class ResolveInputChangesStep<C extends IncrementalCachingContext, R exte
             LOGGER.info("The input changes require a full rebuild for incremental {}.", work.getDisplayName());
         }
         return inputChanges;
+    }
+
+    @Override
+    public R execute(UnitOfWork work, C context) {
+        return delegate.execute(work, new InputChangesContext(context, determineInputChanges(work, context), context.getCachingState()));
     }
 }

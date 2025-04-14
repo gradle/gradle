@@ -38,7 +38,7 @@ class JansiLibraryFactoryTest extends Specification {
         0 * resolver.platform
         jansiLibrary.platform == JansiOperatingSystemSupport.MAC_OS_X.identifier
         jansiLibrary.filename == MAC_OSX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath == "/META-INF/native/" + jansiLibrary.path
     }
 
     def "jansi library can be created for Linux platform #platform"() {
@@ -50,7 +50,7 @@ class JansiLibraryFactoryTest extends Specification {
         1 * resolver.platform >> platform
         jansiLibrary.platform == platform
         jansiLibrary.filename == LINUX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath == "/META-INF/native/" + jansiLibrary.path
 
         where:
         platform << ['linux32', 'linux64']
@@ -65,7 +65,7 @@ class JansiLibraryFactoryTest extends Specification {
         1 * resolver.platform >> platform
         jansiLibrary.platform == platform
         jansiLibrary.filename == WINDOWS_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath == "/META-INF/native/" + jansiLibrary.path
 
         where:
         platform << ['windows32', 'windows64']

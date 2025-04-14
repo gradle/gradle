@@ -24,9 +24,12 @@ model {
 
 
 class DummyIdlCompiler extends DefaultTask {
-    @InputFiles FileCollection idlFiles
-    @OutputDirectory File headerDir
-    @OutputDirectory File sourceDir
+    @InputFiles
+    FileCollection idlFiles
+    @OutputDirectory
+    File headerDir
+    @OutputDirectory
+    File sourceDir
 
     @TaskAction
     void processIdlFiles() {

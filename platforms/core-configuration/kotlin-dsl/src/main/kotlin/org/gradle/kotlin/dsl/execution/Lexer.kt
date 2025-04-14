@@ -148,6 +148,7 @@ fun lex(script: String, topLevelBlockIds: Array<TopLevelBlockId>): Packaged<Lexe
                                 advance()
                             }
                         }
+
                         else -> {
                             // ignore
                             advance()
@@ -175,6 +176,7 @@ fun lex(script: String, topLevelBlockIds: Array<TopLevelBlockId>): Packaged<Lexe
                                     skipWhiteSpaceAndComments()
                                     packageName = parseQualifiedName()
                                 }
+
                                 IDENTIFIER -> matchTopLevelIdentifier()
                                 LBRACE -> depth += 1
                                 RBRACE -> depth -= 1
@@ -190,6 +192,7 @@ fun lex(script: String, topLevelBlockIds: Array<TopLevelBlockId>): Packaged<Lexe
                                     state = State.SearchingBlockEnd
                                     blockStart = tokenStart
                                 }
+
                                 else -> reset()
                             }
                         }

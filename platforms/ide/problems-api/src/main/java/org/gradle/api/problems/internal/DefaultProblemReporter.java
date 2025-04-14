@@ -49,6 +49,14 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         this.exceptionAnalyser = exceptionAnalyser;
     }
 
+    private static RuntimeException runtimeException(Throwable exception) {
+        if (exception instanceof RuntimeException) {
+            return (RuntimeException) exception;
+        } else {
+            return new RuntimeException(exception);
+        }
+    }
+
     @Override
     public void report(ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
@@ -90,14 +98,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @NonNull
     private InternalProblem addExceptionToProblem(Throwable exception, Problem problem) {
         return getBuilder(problem).withException(transform(exception)).build();
-    }
-
-    private static RuntimeException runtimeException(Throwable exception) {
-        if (exception instanceof RuntimeException) {
-            return (RuntimeException) exception;
-        } else {
-            return new RuntimeException(exception);
-        }
     }
 
     @Override

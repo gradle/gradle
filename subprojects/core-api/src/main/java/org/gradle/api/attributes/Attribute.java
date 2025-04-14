@@ -26,7 +26,6 @@ import org.gradle.api.Named;
  * and can potentially be pooled. Attributes can be created using the {@link #of(String, Class) factory method}.
  *
  * @param <T> the type of the named attribute
- *
  * @since 3.3
  */
 public class Attribute<T> implements Named {
@@ -34,11 +33,20 @@ public class Attribute<T> implements Named {
     private final Class<T> type;
     private final int hashCode;
 
+    private Attribute(String name, Class<T> type) {
+        this.name = name;
+        this.type = type;
+        int hashCode = name.hashCode();
+        hashCode = 31 * hashCode + type.hashCode();
+        this.hashCode = hashCode;
+    }
+
     /**
      * Creates a new attribute of the given name with the given type. There's no guarantee that subsequent
      * calls to this method with the same attributes would either return the same instance or different instances
      * of {@link Attribute}, so consumers are required to compare the attributes with the {@link #equals(Object)}
      * method.
+     *
      * @param name the name of the attribute
      * @param type the class of the attribute
      * @param <T> the type of the attribute
@@ -55,6 +63,7 @@ public class Attribute<T> implements Named {
      * calls to this method with the same attributes would either return the same instance or different instances
      * of {@link Attribute}, so consumers are required to compare the attributes with the {@link #equals(Object)}
      * method.
+     *
      * @param type the class of the attribute
      * @param <T> the type of the attribute
      * @return an attribute with the given name and type
@@ -63,16 +72,9 @@ public class Attribute<T> implements Named {
         return of(WordUtils.uncapitalize(type.getCanonicalName()), type);
     }
 
-    private Attribute(String name, Class<T> type) {
-        this.name = name;
-        this.type = type;
-        int hashCode = name.hashCode();
-        hashCode = 31 * hashCode + type.hashCode();
-        this.hashCode = hashCode;
-    }
-
     /**
      * Returns the name of the attribute.
+     *
      * @return the name of the attribute.
      */
     @Override
@@ -82,6 +84,7 @@ public class Attribute<T> implements Named {
 
     /**
      * Returns the type of this attribute.
+     *
      * @return the type of this attribute.
      */
     public Class<T> getType() {

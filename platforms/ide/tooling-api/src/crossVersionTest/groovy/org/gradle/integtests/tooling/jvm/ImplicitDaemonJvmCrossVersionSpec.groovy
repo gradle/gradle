@@ -28,7 +28,8 @@ import org.gradle.tooling.model.GradleProject
  * Test the JVM version compatibility of the tooling API where the tooling
  * API client JVM is the same as the daemon JVM.
  */
-@TargetGradleVersion("current") // Supporting multiple Gradle versions is more work.
+@TargetGradleVersion("current")
+// Supporting multiple Gradle versions is more work.
 class ImplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
     def setup() {

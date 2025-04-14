@@ -7,8 +7,12 @@ println(providers.systemProperty("system").get())
 // end::system-properties[]
 
 abstract class PrintValue : DefaultTask() {
-    @get:Input abstract val inputValue: Property<String>
-    @TaskAction fun action() { println(inputValue.get()) }
+    @get:Input
+    abstract val inputValue: Property<String>
+    @TaskAction
+    fun action() {
+        println(inputValue.get())
+    }
 }
 
 // tag::system-properties-task-inputs[]

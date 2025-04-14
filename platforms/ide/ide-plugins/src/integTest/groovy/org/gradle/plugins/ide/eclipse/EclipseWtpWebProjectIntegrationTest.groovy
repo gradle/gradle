@@ -29,7 +29,7 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         settingsFile << "rootProject.name = 'web'"
 
         buildFile <<
-        """apply plugin: 'war'
+            """apply plugin: 'war'
            apply plugin: 'eclipse-wtp'
 
            java.sourceCompatibility = 1.6

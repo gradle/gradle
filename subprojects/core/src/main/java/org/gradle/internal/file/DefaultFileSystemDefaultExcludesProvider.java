@@ -30,9 +30,8 @@ import java.util.Set;
 
 public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefaultExcludesProvider {
 
-    private ImmutableList<String> currentDefaultExcludes = ImmutableList.copyOf(DirectoryScanner.getDefaultExcludes());
-
     private final AnonymousListenerBroadcast<FileSystemDefaultExcludesListener> broadcast;
+    private ImmutableList<String> currentDefaultExcludes = ImmutableList.copyOf(DirectoryScanner.getDefaultExcludes());
 
     public DefaultFileSystemDefaultExcludesProvider(ListenerManager listenerManager) {
         broadcast = listenerManager.createAnonymousBroadcaster(FileSystemDefaultExcludesListener.class);

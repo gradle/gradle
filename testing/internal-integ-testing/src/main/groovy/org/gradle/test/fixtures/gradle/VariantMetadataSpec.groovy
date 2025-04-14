@@ -57,7 +57,7 @@ class VariantMetadataSpec {
         dependencies << new DependencySpec(group, module, version, null, attributes)
     }
 
-    void dependsOn(String group, String module, String version, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
+    void dependsOn(String group, String module, String version, @DelegatesTo(value = DependencySpec, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
         def spec = new DependencySpec(group, module, version)
         config.delegate = spec
         config.resolveStrategy = Closure.DELEGATE_FIRST
@@ -70,7 +70,7 @@ class VariantMetadataSpec {
         dependsOn(gav[0], gav[1], gav[2])
     }
 
-    void dependsOn(String notation, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
+    void dependsOn(String notation, @DelegatesTo(value = DependencySpec, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
         def gav = notation.split(':')
         dependsOn(gav[0], gav[1], gav[2], config)
     }
@@ -79,7 +79,7 @@ class VariantMetadataSpec {
         dependsOn(module.group, module.module, module.version)
     }
 
-    void dependsOn(Module module, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
+    void dependsOn(Module module, @DelegatesTo(value = DependencySpec, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
         dependsOn(module.group, module.module, module.version, config)
     }
 

@@ -71,6 +71,35 @@ public class ShortCircuitingResolutionExecutor {
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
+    private static boolean hasDependencies(ResolutionParameters params) {
+        LocalVariantGraphResolveState rootVariant = params.getRootVariant();
+
+        if (!rootVariant.getFiles().isEmpty()) {
+            return true;
+        }
+
+        for (DependencyMetadata dependency : rootVariant.getDependencies()) {
+            if (!dependency.isConstraint()) {
+                return true;
+            }
+        }
+
+        // All dependencies are constraints
+        return false;
+    }
+
+    private static ImmutableCapabilities getCapabilities(
+        LocalComponentGraphResolveState rootComponent,
+        VariantGraphResolveState rootVariant
+    ) {
+        ImmutableCapabilities capabilities = rootVariant.getMetadata().getCapabilities();
+        if (capabilities.asSet().isEmpty()) {
+            return ImmutableCapabilities.of(rootComponent.getDefaultCapability());
+        } else {
+            return capabilities;
+        }
+    }
+
     public ResolverResults resolveBuildDependencies(LegacyResolutionParameters legacyParams, ResolutionParameters params, CalculatedValue<ResolverResults> futureCompleteResults) {
         if (hasDependencies(params)) {
             return delegate.resolveBuildDependencies(legacyParams, params, futureCompleteResults);
@@ -105,23 +134,6 @@ public class ShortCircuitingResolutionExecutor {
         );
     }
 
-    private static boolean hasDependencies(ResolutionParameters params) {
-        LocalVariantGraphResolveState rootVariant = params.getRootVariant();
-
-        if (!rootVariant.getFiles().isEmpty()) {
-            return true;
-        }
-
-        for (DependencyMetadata dependency : rootVariant.getDependencies()) {
-            if (!dependency.isConstraint()) {
-                return true;
-            }
-        }
-
-        // All dependencies are constraints
-        return false;
-    }
-
     private VisitedGraphResults emptyGraphResults(ResolutionParameters params) {
         LocalComponentGraphResolveState rootComponent = params.getRootComponent();
         VariantGraphResolveState rootVariant = params.getRootVariant();
@@ -135,18 +147,6 @@ public class ShortCircuitingResolutionExecutor {
             attributeDesugaring
         );
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet());
-    }
-
-    private static ImmutableCapabilities getCapabilities(
-        LocalComponentGraphResolveState rootComponent,
-        VariantGraphResolveState rootVariant
-    ) {
-        ImmutableCapabilities capabilities = rootVariant.getMetadata().getCapabilities();
-        if (capabilities.asSet().isEmpty()) {
-            return ImmutableCapabilities.of(rootComponent.getDefaultCapability());
-        } else {
-            return capabilities;
-        }
     }
 
     public static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, SelectedArtifactResults {

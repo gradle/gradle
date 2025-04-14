@@ -22,9 +22,9 @@ import org.gradle.api.provider.SetProperty;
 /**
  * A mailing list of a Maven publication.
  *
- * @since 4.8
  * @see MavenPom
  * @see MavenPomMailingListSpec
+ * @since 4.8
  */
 public interface MavenPomMailingList {
 

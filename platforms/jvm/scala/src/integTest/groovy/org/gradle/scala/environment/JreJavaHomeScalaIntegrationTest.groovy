@@ -28,10 +28,11 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
-@TargetCoverage({ScalaCoverage.SUPPORTED_BY_JDK})
+@TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class JreJavaHomeScalaIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     @Requires(value = [
         IntegTestPreconditions.BestJreAvailable,

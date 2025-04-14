@@ -28,18 +28,13 @@ public class ManagedThreadPoolExecutorImpl extends AbstractManagedExecutor<Threa
     }
 
     @Override
-    public void setThreadFactory(ThreadFactory threadFactory) {
-        delegate.setThreadFactory(threadFactory);
-    }
-
-    @Override
     public ThreadFactory getThreadFactory() {
         return delegate.getThreadFactory();
     }
 
     @Override
-    public void setRejectedExecutionHandler(RejectedExecutionHandler handler) {
-        delegate.setRejectedExecutionHandler(handler);
+    public void setThreadFactory(ThreadFactory threadFactory) {
+        delegate.setThreadFactory(threadFactory);
     }
 
     @Override
@@ -48,13 +43,18 @@ public class ManagedThreadPoolExecutorImpl extends AbstractManagedExecutor<Threa
     }
 
     @Override
-    public void setCorePoolSize(int corePoolSize) {
-        delegate.setCorePoolSize(corePoolSize);
+    public void setRejectedExecutionHandler(RejectedExecutionHandler handler) {
+        delegate.setRejectedExecutionHandler(handler);
     }
 
     @Override
     public int getCorePoolSize() {
         return delegate.getCorePoolSize();
+    }
+
+    @Override
+    public void setCorePoolSize(int corePoolSize) {
+        delegate.setCorePoolSize(corePoolSize);
     }
 
     @Override
@@ -78,13 +78,13 @@ public class ManagedThreadPoolExecutorImpl extends AbstractManagedExecutor<Threa
     }
 
     @Override
-    public void setMaximumPoolSize(int maximumPoolSize) {
-        delegate.setMaximumPoolSize(maximumPoolSize);
+    public int getMaximumPoolSize() {
+        return delegate.getMaximumPoolSize();
     }
 
     @Override
-    public int getMaximumPoolSize() {
-        return delegate.getMaximumPoolSize();
+    public void setMaximumPoolSize(int maximumPoolSize) {
+        delegate.setMaximumPoolSize(maximumPoolSize);
     }
 
     @Override

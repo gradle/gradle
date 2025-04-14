@@ -27,13 +27,13 @@ class FilteringClassLoaderSpecSerializerTest extends Specification {
     def encoder = new KryoBackedEncoder(outputStream)
 
     def "can serialize and deserialize a spec"() {
-        def classNames = [ 'allowed.Class1', 'allowed.Class2' ]
-        def disallowedClassNames = [ 'disallowed.Class1', 'disallowed.Class2' ]
-        def packagePrefixes = [ 'allowed.pkgprefix1.', 'allowed.pkgprefix2' ]
-        def disallowedPackagePrefixes = [ 'disallowed.pkgprefix1.', 'disallowed.pkgprefix2.' ]
-        def packageNames = [ 'allowed.pkg1', 'allowed.pkg2' ]
-        def resourceNames = [ 'allowed.resource1', 'allowed.resource2' ]
-        def resourcePrefixes = [ 'allowed.resourcePrefix1.', 'allowed.resourcePrefix2.' ]
+        def classNames = ['allowed.Class1', 'allowed.Class2']
+        def disallowedClassNames = ['disallowed.Class1', 'disallowed.Class2']
+        def packagePrefixes = ['allowed.pkgprefix1.', 'allowed.pkgprefix2']
+        def disallowedPackagePrefixes = ['disallowed.pkgprefix1.', 'disallowed.pkgprefix2.']
+        def packageNames = ['allowed.pkg1', 'allowed.pkg2']
+        def resourceNames = ['allowed.resource1', 'allowed.resource2']
+        def resourcePrefixes = ['allowed.resourcePrefix1.', 'allowed.resourcePrefix2.']
         def spec = new FilteringClassLoader.Spec(classNames, packageNames, packagePrefixes, resourcePrefixes, resourceNames, disallowedClassNames, disallowedPackagePrefixes)
 
         when:

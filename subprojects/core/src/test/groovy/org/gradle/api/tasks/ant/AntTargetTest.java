@@ -32,10 +32,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class AntTargetTest {
+    private final Target antTarget = new Target();
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
-
-    private final Target antTarget = new Target();
     private final File baseDir = testDir.getTestDirectory();
     private final ProjectInternal project = TestUtil.create(testDir).rootProject();
     private final AntTarget task = TestUtil.createTask(AntTarget.class, project);

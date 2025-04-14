@@ -55,20 +55,30 @@ import static org.gradle.internal.FileUtils.hasExtension;
 @NullMarked
 public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
-    private final ChecksumService checksumService;
-
     /*
         When writing a file into the filestore a marker file with this suffix is written alongside,
         then removed after the write. This is used to detect partially written files (due to a serious crash)
         and to silently clean them.
      */
     public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
-
+    private final ChecksumService checksumService;
     private File baseDir;
 
     public DefaultPathKeyFileStore(ChecksumService checksumService, File baseDir) {
         this.checksumService = checksumService;
         this.baseDir = baseDir;
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void deleteFileQuietly(File file) {
+        file.delete();
+    }
+
+    private static String trimLeadingSlash(String composedPath) {
+        if (!composedPath.isEmpty() && composedPath.charAt(0) == '/') {
+            return composedPath.substring(1);
+        }
+        return composedPath;
     }
 
     protected File getBaseDir() {
@@ -87,7 +97,6 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
         }
         return new File(baseDir, PathTraversalChecker.safePathName(trimLeadingSlash(composedPath)));
     }
-
 
     private File getFileWhileCleaningInProgress(String... path) {
         File file = getFile(path);
@@ -217,15 +226,4 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
             return null;
         }
     }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void deleteFileQuietly(File file) {
-        file.delete();
-    }
-
-    private static String trimLeadingSlash(String composedPath) {
-        if (!composedPath.isEmpty() && composedPath.charAt(0) == '/') {
-            return composedPath.substring(1);
-        }
-        return composedPath;
-    }}
+}

@@ -15,8 +15,6 @@
  */
 
 
-
-
 package org.gradle.integtests.tooling.r24
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification

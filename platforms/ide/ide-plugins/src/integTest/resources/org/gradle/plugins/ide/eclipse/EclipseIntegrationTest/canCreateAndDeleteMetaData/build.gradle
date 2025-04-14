@@ -33,7 +33,7 @@ subprojects {
     version = '1.0'
 }
 
-configure(subprojects.findAll{ it.path in [ ':api', ':common', ':webAppJava6', ':webAppWithVars', ':webservice' ] }){
+configure(subprojects.findAll { it.path in [':api', ':common', ':webAppJava6', ':webAppWithVars', ':webservice'] }) {
     apply plugin: 'eclipse-wtp'
 }
 

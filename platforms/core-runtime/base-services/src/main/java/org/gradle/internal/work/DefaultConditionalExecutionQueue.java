@@ -36,11 +36,6 @@ import java.util.concurrent.locks.ReentrantLock;
 // behavior and concerns - we should look for a way to generalize this pattern.
 public class DefaultConditionalExecutionQueue<T> implements ConditionalExecutionQueue<T> {
     public static final int KEEP_ALIVE_TIME_MS = 2000;
-
-    private enum QueueState {
-        Working, Stopped
-    }
-
     private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
     private final ManagedExecutor executor;
@@ -50,7 +45,6 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private QueueState queueState = QueueState.Working;
     @GuardedBy("lock")
     private int workerCount;
-
     public DefaultConditionalExecutionQueue(String displayName, WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.workerLimits = workerLimits;
         this.workerLeaseService = workerLeaseService;
@@ -118,6 +112,10 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             lock.unlock();
         }
         executor.stop();
+    }
+
+    private enum QueueState {
+        Working, Stopped
     }
 
     /**

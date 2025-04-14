@@ -31,11 +31,13 @@ class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest {
         "He's a lumberjack, and He's okay.",
         "He sleeps all night and he works all day."
     ]
-    @Rule TestResources testResources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources testResources = new TestResources(temporaryFolder)
 
     /* Relies on the resources directory:
      * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
      */
+
     def defaultLoggingConfigNoFineLevel() {
         given:
         testResources.maybeCopy('JULRedirectorIntegrationTest/loggingConfig')
@@ -53,6 +55,7 @@ class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest {
     /* Relies on the resources directory:
      * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
      */
+
     def loggingConfigRespected() {
         given:
         testResources.maybeCopy('JULRedirectorIntegrationTest/loggingConfig')

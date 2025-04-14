@@ -51,10 +51,10 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     ConcurrentTestUtil concurrent = new ConcurrentTestUtil(8000)
 
     def services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
-            .parent(NativeServicesTestFixture.getInstance())
-            .provider(LoggingServiceRegistry.NO_OP)
-            .provider(new GlobalScopeServices(false, AgentStatus.disabled()))
-            .build()
+        .parent(NativeServicesTestFixture.getInstance())
+        .provider(LoggingServiceRegistry.NO_OP)
+        .provider(new GlobalScopeServices(false, AgentStatus.disabled()))
+        .build()
 
     def factory = services.get(CacheFactory.class)
     def currentGradleVersion = GradleVersion.current()
@@ -122,7 +122,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
                     }
                 })
 
-                synchronized(jarFiles) {
+                synchronized (jarFiles) {
                     jarFiles << jarFile
                 }
             }

@@ -85,7 +85,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         archiveTask.archiveFileName.get() == "1.0-src.${archiveTask.archiveExtension.get()}".toString()
     }
 
-    def "archiveFileName with empty basename, appendix, and version" () {
+    def "archiveFileName with empty basename, appendix, and version"() {
         when:
         archiveTask.archiveBaseName.set(null)
         archiveTask.archiveAppendix.set(null)

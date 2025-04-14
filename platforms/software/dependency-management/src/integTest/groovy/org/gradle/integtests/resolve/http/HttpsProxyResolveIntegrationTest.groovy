@@ -27,7 +27,8 @@ class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTe
         return mavenHttpRepo
     }
 
-    @Rule TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore
 
     @Override

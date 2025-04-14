@@ -41,9 +41,9 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
  * The usual way to add publications is via a configuration block.
  * See the documentation for {@link PublishingExtension#publications(org.gradle.api.Action)} for examples of how to create and configure publications.
  *
- * @since 1.3
  * @see Publication
  * @see PublishingExtension
+ * @since 1.3
  */
 @SuppressWarnings("JavadocReference")
 public interface PublicationContainer extends ExtensiblePolymorphicDomainObjectContainer<Publication> {

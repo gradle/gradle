@@ -23,11 +23,15 @@ import javax.annotation.Nullable
 
 class TypesTest extends Specification {
     def "base object types are not visited"() {
-        when: Types.walkTypeHierarchy(Object, Mock(Types.TypeVisitor))
-        then: 0 * _
+        when:
+        Types.walkTypeHierarchy(Object, Mock(Types.TypeVisitor))
+        then:
+        0 * _
 
-        when: Types.walkTypeHierarchy(GroovyObject, [Object, GroovyObject], Mock(Types.TypeVisitor))
-        then: 0 * _
+        when:
+        Types.walkTypeHierarchy(GroovyObject, [Object, GroovyObject], Mock(Types.TypeVisitor))
+        then:
+        0 * _
     }
 
     class Base {
@@ -47,11 +51,16 @@ class TypesTest extends Specification {
         when:
         Types.walkTypeHierarchy(Child, [Object, GroovyObject], visitor)
 
-        then: 1 * visitor.visitType(Child) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Base) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Serializable) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Iface) >> Types.TypeVisitResult.CONTINUE
-        then: 0 * _
+        then:
+        1 * visitor.visitType(Child) >> Types.TypeVisitResult.CONTINUE
+        then:
+        1 * visitor.visitType(Base) >> Types.TypeVisitResult.CONTINUE
+        then:
+        1 * visitor.visitType(Serializable) >> Types.TypeVisitResult.CONTINUE
+        then:
+        1 * visitor.visitType(Iface) >> Types.TypeVisitResult.CONTINUE
+        then:
+        0 * _
     }
 
     def "can terminate type hierarchy walk"() {
@@ -59,8 +68,11 @@ class TypesTest extends Specification {
         when:
         Types.walkTypeHierarchy(Child, [Object, GroovyObject], visitor)
 
-        then: 1 * visitor.visitType(Child) >> Types.TypeVisitResult.CONTINUE
-        then: 1 * visitor.visitType(Base) >> Types.TypeVisitResult.TERMINATE
-        then: 0 * _
+        then:
+        1 * visitor.visitType(Child) >> Types.TypeVisitResult.CONTINUE
+        then:
+        1 * visitor.visitType(Base) >> Types.TypeVisitResult.TERMINATE
+        then:
+        0 * _
     }
 }

@@ -75,19 +75,31 @@ import static org.gradle.internal.classpath.transforms.MrJarUtils.isInUnsupporte
 @DisableCachingByDefault(because = "Not worth caching.")
 public abstract class InstrumentationAnalysisTransform implements TransformAction<InstrumentationAnalysisTransform.Parameters> {
 
+    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
+
     private static boolean isTypeAccepted(String type) {
         return type != null && !type.startsWith("java/lang/");
     }
 
-    public interface Parameters extends TransformParameters {
-        @Internal
-        Property<CacheInstrumentationDataBuildService> getBuildService();
-
-        @Internal
-        Property<Long> getContextId();
+    private static Set<String> collectSuperTypes(ClassReader reader) {
+        return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
+            .filter(InstrumentationAnalysisTransform::isTypeAccepted)
+            .collect(toImmutableSortedSet(Ordering.natural()));
     }
 
-    private final Lazy<InjectedInstrumentationServices> internalServices = Lazy.unsafe().of(() -> getObjects().newInstance(InjectedInstrumentationServices.class));
+    private static void collectArtifactClassDependencies(String className, ClassReader reader, Set<String> collector) {
+        ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
+            if (!dependencyDescriptor.equals(className) && InstrumentationAnalysisTransform.isTypeAccepted(dependencyDescriptor)) {
+                collector.add(dependencyDescriptor);
+            }
+        });
+    }
+
+    private static Map<String, Set<String>> toMapWithKeys(Set<String> keys) {
+        TreeMap<String, Set<String>> map = new TreeMap<>();
+        keys.forEach(key -> map.put(key, Collections.emptySet()));
+        return map;
+    }
 
     @Inject
     protected abstract ObjectFactory getObjects();
@@ -134,20 +146,6 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         });
     }
 
-    private static Set<String> collectSuperTypes(ClassReader reader) {
-        return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
-            .filter(InstrumentationAnalysisTransform::isTypeAccepted)
-            .collect(toImmutableSortedSet(Ordering.natural()));
-    }
-
-    private static void collectArtifactClassDependencies(String className, ClassReader reader, Set<String> collector) {
-        ClassAnalysisUtils.getClassDependencies(reader, dependencyDescriptor -> {
-            if (!dependencyDescriptor.equals(className) && InstrumentationAnalysisTransform.isTypeAccepted(dependencyDescriptor)) {
-                collector.add(dependencyDescriptor);
-            }
-        });
-    }
-
     /**
      * We write types hierarchy and metadata with dependencies as a separate file, since
      * type hierarchy is an input to {@link MergeInstrumentationAnalysisTransform}.
@@ -175,9 +173,11 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         return new InstrumentationArtifactMetadata(artifact.getName(), hash);
     }
 
-    private static Map<String, Set<String>> toMapWithKeys(Set<String> keys) {
-        TreeMap<String, Set<String>> map = new TreeMap<>();
-        keys.forEach(key -> map.put(key, Collections.emptySet()));
-        return map;
+    public interface Parameters extends TransformParameters {
+        @Internal
+        Property<CacheInstrumentationDataBuildService> getBuildService();
+
+        @Internal
+        Property<Long> getContextId();
     }
 }

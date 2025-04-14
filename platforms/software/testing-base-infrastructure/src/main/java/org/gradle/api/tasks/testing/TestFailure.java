@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 
 import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -29,29 +30,6 @@ import java.util.List;
  */
 @Incubating
 public abstract class TestFailure {
-
-    /**
-     * Returns the list of causes.
-     * <p>
-     * The result is typically non-empty for multi-assertion failures, e.g. for {@code org.test4j.MultipleFailuresError}, where the individual failures are in the returned list.
-     *
-     * @return the cause failures.
-     */
-    public abstract List<TestFailure> getCauses();
-
-    /**
-     * Returns the raw failure.
-     *
-     * @return the raw failure
-     */
-    public abstract Throwable getRawFailure();
-
-    /**
-     * Returns structural information about the failure.
-     *
-     * @return the failure structure
-     */
-    public abstract TestFailureDetails getDetails();
 
     /**
      * Creates a new TestFailure instance from an assertion failure.
@@ -80,6 +58,7 @@ public abstract class TestFailure {
 
     /**
      * Todo
+     *
      * @since 8.3
      */
     public static TestFailure fromFileComparisonFailure(Throwable failure, String expected, String actual, byte[] expectedContent, byte[] actualContent, @Nullable List<TestFailure> causes) {
@@ -106,4 +85,27 @@ public abstract class TestFailure {
     public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
         return DefaultTestFailure.fromTestFrameworkFailure(failure, causes);
     }
+
+    /**
+     * Returns the list of causes.
+     * <p>
+     * The result is typically non-empty for multi-assertion failures, e.g. for {@code org.test4j.MultipleFailuresError}, where the individual failures are in the returned list.
+     *
+     * @return the cause failures.
+     */
+    public abstract List<TestFailure> getCauses();
+
+    /**
+     * Returns the raw failure.
+     *
+     * @return the raw failure
+     */
+    public abstract Throwable getRawFailure();
+
+    /**
+     * Returns structural information about the failure.
+     *
+     * @return the failure structure
+     */
+    public abstract TestFailureDetails getDetails();
 }

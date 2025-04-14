@@ -57,9 +57,9 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * registry.getAll() >> { [daemon1] as List<DaemonInfo> }
         1 * connector.maybeConnect(daemon1) >>> connection
         _ * connection.daemon >> daemon1
-        1 * connection.dispatch({it instanceof ReportStatus})
+        1 * connection.dispatch({ it instanceof ReportStatus })
         1 * connection.receive() >> null
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
 
         and:
@@ -82,17 +82,17 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * registry.getAll() >> { [daemon1, daemon2] as List<DaemonInfo> }
         1 * connector.maybeConnect(daemon1) >>> connection
         _ * connection.daemon >> daemon1
-        1 * connection.dispatch({it instanceof ReportStatus})
+        1 * connection.dispatch({ it instanceof ReportStatus })
         1 * connection.receive() >> new Success(new Status(12345, "3.0", "BOGUS"))
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
 
         and:
         1 * connector.maybeConnect(daemon2) >>> connection
         _ * connection.daemon >> daemon2
-        1 * connection.dispatch({it instanceof ReportStatus})
+        1 * connection.dispatch({ it instanceof ReportStatus })
         1 * connection.receive() >> new Success(new Status(12346, "3.0", "BOGUS"))
-        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.dispatch({ it instanceof Finished })
         1 * connection.stop()
 
         and:

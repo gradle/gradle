@@ -33,6 +33,13 @@ import org.jspecify.annotations.Nullable;
  */
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
+
+    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, GradleLifecycleActionExecutor gradleLifecycleActionExecutor) {
+        super(delegate, referrer);
+        this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
+    }
+
     public static ProjectInternal from(
         ProjectInternal target,
         ProjectInternal referrer,
@@ -44,13 +51,6 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
             referrer,
             project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer, gradleLifecycleActionExecutor)
         );
-    }
-
-    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
-
-    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, GradleLifecycleActionExecutor gradleLifecycleActionExecutor) {
-        super(delegate, referrer);
-        this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
     }
 
     @Override

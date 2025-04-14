@@ -41,8 +41,8 @@ public interface FileChange {
      * The file type of the file.
      *
      * <p>
-     *     For {@link ChangeType#ADDED} and {@link ChangeType#MODIFIED}, the type of the file which was added/modified is reported.
-     *     For {@link ChangeType#REMOVED} the type of the file which was removed is reported.
+     * For {@link ChangeType#ADDED} and {@link ChangeType#MODIFIED}, the type of the file which was added/modified is reported.
+     * For {@link ChangeType#REMOVED} the type of the file which was removed is reported.
      * </p>
      */
     FileType getFileType();
@@ -51,7 +51,7 @@ public interface FileChange {
      * The normalized path of the file, as specified by the path normalization strategy.
      *
      * <p>
-     *    See {@link org.gradle.api.tasks.PathSensitivity}, {@link org.gradle.api.tasks.Classpath} and {@link org.gradle.api.tasks.CompileClasspath} for the different path normalization strategies.
+     * See {@link org.gradle.api.tasks.PathSensitivity}, {@link org.gradle.api.tasks.Classpath} and {@link org.gradle.api.tasks.CompileClasspath} for the different path normalization strategies.
      * </p>
      */
     String getNormalizedPath();

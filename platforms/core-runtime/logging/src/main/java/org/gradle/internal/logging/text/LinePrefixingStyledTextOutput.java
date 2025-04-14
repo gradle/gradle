@@ -26,7 +26,7 @@ public class LinePrefixingStyledTextOutput extends AbstractLineChoppingStyledTex
     private boolean prefixed;
 
     public LinePrefixingStyledTextOutput(StyledTextOutput output, CharSequence prefix) {
-       this(output, prefix, true);
+        this(output, prefix, true);
     }
 
     public LinePrefixingStyledTextOutput(StyledTextOutput output, CharSequence prefix, boolean prefixFirstLine) {

@@ -122,6 +122,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         then:
         output.contains("I'm here")
     }
+
     def "can use dynamic versions and status to depend on snapshot version"() {
         given:
         publishTestPlugin("1.1-SNAPSHOT", "from 1.1")

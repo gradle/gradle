@@ -39,6 +39,16 @@ import java.util.stream.Collectors;
  */
 public class TestTreeModel {
 
+    private final Path path;
+    private final Map<Integer, PerRootInfo> perRootInfo;
+    private final Map<String, TestTreeModel> children;
+
+    public TestTreeModel(Path path, Map<Integer, PerRootInfo> perRootInfo, Map<String, TestTreeModel> children) {
+        this.path = path;
+        this.perRootInfo = perRootInfo;
+        this.children = children;
+    }
+
     /**
      * Load and merge a list of test result stores into a single tree model.
      *
@@ -58,22 +68,41 @@ public class TestTreeModel {
         return rootModel;
     }
 
+    /**
+     * The path of this node in the tree.
+     *
+     * @return the path of this node
+     */
+    public Path getPath() {
+        return path;
+    }
+
+    /**
+     * Map from root index to the result for this node of the tree in that root.
+     *
+     * <p>
+     * This is not a {@link List} because there are no guarantees that there are results for all roots, i.e. this is a sparse list.
+     * </p>
+     *
+     * @return the results for this node of the tree
+     */
+    public Map<Integer, PerRootInfo> getPerRootInfo() {
+        return Collections.unmodifiableMap(perRootInfo);
+    }
+
+    public Map<String, TestTreeModel> getChildren() {
+        return Collections.unmodifiableMap(children);
+    }
+
+    public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
+        return Iterables.transform(perRootInfo.get(rootIndex).getChildren(), children::get);
+    }
+
     private static final class StoreLoader implements Consumer<SerializableTestResultStore.OutputTrackedResult> {
-
-        private static final class Child {
-            private final long id;
-            private final PerRootInfo info;
-
-            private Child(long id, PerRootInfo info) {
-                this.id = id;
-                this.info = info;
-            }
-        }
 
         private final int rootIndex;
         private final Map<Path, TestTreeModel> modelsByPath;
         private final ListMultimap<Long, Child> childrenByParentId;
-
         public StoreLoader(int rootIndex, Map<Path, TestTreeModel> modelsByPath) {
             this.rootIndex = rootIndex;
             this.modelsByPath = modelsByPath;
@@ -121,6 +150,16 @@ public class TestTreeModel {
                 model.children.computeIfAbsent(child.info.outputTrackedResult.getInnerResult().getName(), n -> modelsByPath.get(childPath));
             }
         }
+
+        private static final class Child {
+            private final long id;
+            private final PerRootInfo info;
+
+            private Child(long id, PerRootInfo info) {
+                this.id = id;
+                this.info = info;
+            }
+        }
     }
 
     public static final class PerRootInfo {
@@ -165,45 +204,5 @@ public class TestTreeModel {
         public List<SerializedMetadata> getMetadatas() {
             return outputTrackedResult.getInnerResult().getMetadatas();
         }
-    }
-
-    private final Path path;
-    private final Map<Integer, PerRootInfo> perRootInfo;
-    private final Map<String, TestTreeModel> children;
-
-    public TestTreeModel(Path path, Map<Integer, PerRootInfo> perRootInfo, Map<String, TestTreeModel> children) {
-        this.path = path;
-        this.perRootInfo = perRootInfo;
-        this.children = children;
-    }
-
-    /**
-     * The path of this node in the tree.
-     *
-     * @return the path of this node
-     */
-    public Path getPath() {
-        return path;
-    }
-
-    /**
-     * Map from root index to the result for this node of the tree in that root.
-     *
-     * <p>
-     * This is not a {@link List} because there are no guarantees that there are results for all roots, i.e. this is a sparse list.
-     * </p>
-     *
-     * @return the results for this node of the tree
-     */
-    public Map<Integer, PerRootInfo> getPerRootInfo() {
-        return Collections.unmodifiableMap(perRootInfo);
-    }
-
-    public Map<String, TestTreeModel> getChildren() {
-        return Collections.unmodifiableMap(children);
-    }
-
-    public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
-        return Iterables.transform(perRootInfo.get(rootIndex).getChildren(), children::get);
     }
 }

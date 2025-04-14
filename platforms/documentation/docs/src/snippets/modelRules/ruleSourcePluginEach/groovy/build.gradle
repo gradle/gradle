@@ -1,19 +1,28 @@
-@Managed interface Item extends Named {}
-@Managed interface FileItem extends Item {
+@Managed
+interface Item extends Named {}
+
+@Managed
+interface FileItem extends Item {
     void setSize(int size)
+
     int getSize()
 }
-@Managed interface DirectoryItem extends Item {
+
+@Managed
+interface DirectoryItem extends Item {
     ModelMap<Item> getChildren()
 }
 
 class PluginRules extends RuleSource {
-    @Defaults void setDefaultFileSize(@Each FileItem file) {
+    @Defaults
+    void setDefaultFileSize(@Each FileItem file) {
         file.size = 1024
     }
 
-    @Rules void applyValidateRules(ValidateRules rules, @Each DirectoryItem directory)  {}
+    @Rules
+    void applyValidateRules(ValidateRules rules, @Each DirectoryItem directory) {}
 }
+
 apply plugin: PluginRules
 
 abstract class ValidateRules extends RuleSource {

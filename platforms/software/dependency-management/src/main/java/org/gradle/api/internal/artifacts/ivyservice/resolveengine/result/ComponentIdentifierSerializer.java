@@ -46,6 +46,15 @@ import java.io.IOException;
 public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentIdentifier> {
     private final BuildIdentifierSerializer buildIdentifierSerializer = new BuildIdentifierSerializer();
 
+    private static void writeClassPathNotation(Encoder encoder, DependencyFactoryInternal.ClassPathNotation classPathNotation) throws IOException {
+        encoder.writeSmallInt(classPathNotation.ordinal());
+    }
+
+    private static DependencyFactoryInternal.ClassPathNotation readClassPathNotation(Decoder decoder) throws IOException {
+        int ordinal = decoder.readSmallInt();
+        return DependencyFactoryInternal.ClassPathNotation.values()[ordinal];
+    }
+
     @Override
     public ComponentIdentifier read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
@@ -179,15 +188,6 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
         return Objects.hashCode(super.hashCode(), buildIdentifierSerializer);
     }
 
-    private static void writeClassPathNotation(Encoder encoder, DependencyFactoryInternal.ClassPathNotation classPathNotation) throws IOException {
-        encoder.writeSmallInt(classPathNotation.ordinal());
-    }
-
-    private static DependencyFactoryInternal.ClassPathNotation readClassPathNotation(Decoder decoder) throws IOException {
-        int ordinal = decoder.readSmallInt();
-        return DependencyFactoryInternal.ClassPathNotation.values()[ordinal];
-    }
-
     private void writeBuildIdentifierOf(ProjectComponentIdentifier projectComponentIdentifier, Encoder encoder) throws IOException {
         buildIdentifierSerializer.write(encoder, projectComponentIdentifier.getBuild());
     }
@@ -234,6 +234,12 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
         OPAQUE(8),
         OPAQUE_NOTATION(9);
 
+        private final byte id;
+
+        Implementation(int id) {
+            this.id = (byte) id;
+        }
+
         @Nullable
         public static Implementation valueOf(int id) {
             Implementation[] values = values();
@@ -241,12 +247,6 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
                 return values[id - 1];
             }
             return null;
-        }
-
-        private final byte id;
-
-        Implementation(int id) {
-            this.id = (byte) id;
         }
     }
 }

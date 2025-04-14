@@ -63,6 +63,14 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         this.patternSpecFactory = patternSpecFactory;
     }
 
+    private static <T> Set<T> nullToEmptyAndUnmodifiableSet(@Nullable Set<T> set) {
+        return set == null ? Collections.emptySet() : Collections.unmodifiableSet(set);
+    }
+
+    private static Set<?> nullToEmpty(@Nullable Set<?> set) {
+        return set == null ? Collections.emptySet() : set;
+    }
+
     @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) {
@@ -101,14 +109,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         result = 31 * result + nullToEmpty(excludeSpecs).hashCode();
         result = 31 * result + (caseSensitive ? 1 : 0);
         return result;
-    }
-
-    private static <T> Set<T> nullToEmptyAndUnmodifiableSet(@Nullable Set<T> set) {
-        return set == null ? Collections.emptySet() : Collections.unmodifiableSet(set);
-    }
-
-    private static Set<?> nullToEmpty(@Nullable Set<?> set) {
-        return set == null ? Collections.emptySet() : set;
     }
 
     public PatternSet copyFrom(PatternFilterable sourcePattern) {
@@ -199,6 +199,12 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return includes;
     }
 
+    @Override
+    public PatternSet setIncludes(Iterable<String> includes) {
+        this.includes = null;
+        return include(includes);
+    }
+
     /**
      * Like {@link #getIncludeSpecs()}, but returns a unmodifiable view or empty set.
      *
@@ -217,12 +223,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
             includeSpecs = new LinkedHashSet<>();
         }
         return includeSpecs;
-    }
-
-    @Override
-    public PatternSet setIncludes(Iterable<String> includes) {
-        this.includes = null;
-        return include(includes);
     }
 
     @Override
@@ -266,6 +266,12 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return excludes;
     }
 
+    @Override
+    public PatternSet setExcludes(Iterable<String> excludes) {
+        this.excludes = null;
+        return exclude(excludes);
+    }
+
     /**
      * Like {@link #getExcludeSpecs()}, but returns a unmodifiable view or empty set.
      *
@@ -285,13 +291,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         }
         return excludeSpecs;
     }
-
-    @Override
-    public PatternSet setExcludes(Iterable<String> excludes) {
-        this.excludes = null;
-        return exclude(excludes);
-    }
-
 
     public boolean isCaseSensitive() {
         return caseSensitive;

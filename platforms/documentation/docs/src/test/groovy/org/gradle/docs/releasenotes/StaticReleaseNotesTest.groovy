@@ -22,9 +22,12 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class StaticReleaseNotesTest extends Specification {
-    @Shared File renderedFile
-    @Shared Document renderedDocument
-    @Shared String renderedText
+    @Shared
+    File renderedFile
+    @Shared
+    Document renderedDocument
+    @Shared
+    String renderedText
 
     def setupSpec() {
         def context = new ReleaseNotesTestContext()
@@ -78,7 +81,7 @@ class StaticReleaseNotesTest extends Specification {
         }
 
         then:
-        assert absoluteLinks.empty : "all links to docs.gradle.org need to be relative and not hardcode the host"
+        assert absoluteLinks.empty: "all links to docs.gradle.org need to be relative and not hardcode the host"
     }
 
     def "no root links to current"() {
@@ -91,6 +94,6 @@ class StaticReleaseNotesTest extends Specification {
         }
 
         then:
-        assert linksToCurrent.empty : "there should be no links to /current as our docs need to work on /<version> as well"
+        assert linksToCurrent.empty: "there should be no links to /current as our docs need to work on /<version> as well"
     }
 }

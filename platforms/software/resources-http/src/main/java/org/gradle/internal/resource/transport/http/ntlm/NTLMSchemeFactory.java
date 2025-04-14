@@ -41,7 +41,7 @@ public class NTLMSchemeFactory implements AuthSchemeProvider {
     private static class JCIFSEngine implements NTLMEngine {
 
         private static final int TYPE_1_FLAGS =
-                NtlmFlags.NTLMSSP_NEGOTIATE_56 |
+            NtlmFlags.NTLMSSP_NEGOTIATE_56 |
                 NtlmFlags.NTLMSSP_NEGOTIATE_128 |
                 NtlmFlags.NTLMSSP_NEGOTIATE_NTLM2 |
                 NtlmFlags.NTLMSSP_NEGOTIATE_ALWAYS_SIGN |

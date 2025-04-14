@@ -37,8 +37,8 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("enableFeaturePreview('$feature') has been deprecated. This is scheduled to be removed in Gradle 8.0. " +
-                "The feature flag is no longer relevant, please remove it from your settings file. " +
-                "See https://docs.gradle.org/current/userguide/feature_lifecycle.html#feature_preview for more details.")
+            "The feature flag is no longer relevant, please remove it from your settings file. " +
+            "See https://docs.gradle.org/current/userguide/feature_lifecycle.html#feature_preview for more details.")
 
         then:
         succeeds()

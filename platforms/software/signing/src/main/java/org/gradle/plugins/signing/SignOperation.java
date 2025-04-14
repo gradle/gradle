@@ -38,22 +38,19 @@ import java.util.List;
  */
 abstract public class SignOperation implements SignatureSpec {
 
+    private final List<Signature> signatures = new ArrayList<Signature>();
     /**
      * The file representation of the signature(s).
      */
     private SignatureType signatureType;
-
     /**
      * The signatory to the generated digital signatures.
      */
     private Signatory signatory;
-
     /**
      * Whether or not it is required that this signature be generated.
      */
     private boolean required;
-
-    private final List<Signature> signatures = new ArrayList<Signature>();
 
     @ToBeReplacedByLazyProperty
     public String getDisplayName() {
@@ -66,19 +63,14 @@ abstract public class SignOperation implements SignatureSpec {
     }
 
     @Override
-    public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
-    }
-
-    @Override
     @ToBeReplacedByLazyProperty
     public SignatureType getSignatureType() {
         return signatureType;
     }
 
     @Override
-    public void setSignatory(Signatory signatory) {
-        this.signatory = signatory;
+    public void setSignatureType(SignatureType signatureType) {
+        this.signatureType = signatureType;
     }
 
     @Override
@@ -88,14 +80,19 @@ abstract public class SignOperation implements SignatureSpec {
     }
 
     @Override
-    public void setRequired(boolean required) {
-        this.required = required;
+    public void setSignatory(Signatory signatory) {
+        this.signatory = signatory;
     }
 
     @Override
     @ToBeReplacedByLazyProperty
     public boolean isRequired() {
         return required;
+    }
+
+    @Override
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 
     /**

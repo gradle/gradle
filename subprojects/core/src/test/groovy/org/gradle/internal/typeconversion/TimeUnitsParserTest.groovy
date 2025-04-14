@@ -33,12 +33,12 @@ class TimeUnitsParserTest extends Specification {
         unit.timeUnit == parsed
 
         where:
-        value           |input          |parsed         | normalizedValue
-        10              |'nanoseconds'  |NANOSECONDS    |10
-        20              |'mILLISECONds' |MILLISECONDS   |20
-        1               |'days'         |MILLISECONDS   |1 * 24 * 60 * 60 * 1000
-        2               |'hours'        |MILLISECONDS   |2 * 60 * 60 * 1000
-        5               |'MINUTES'      |MILLISECONDS   |5 * 60 * 1000
+        value | input          | parsed       | normalizedValue
+        10    | 'nanoseconds'  | NANOSECONDS  | 10
+        20    | 'mILLISECONds' | MILLISECONDS | 20
+        1     | 'days'         | MILLISECONDS | 1 * 24 * 60 * 60 * 1000
+        2     | 'hours'        | MILLISECONDS | 2 * 60 * 60 * 1000
+        5     | 'MINUTES'      | MILLISECONDS | 5 * 60 * 1000
     }
 
     def "fails gracefully for invalid input"() {

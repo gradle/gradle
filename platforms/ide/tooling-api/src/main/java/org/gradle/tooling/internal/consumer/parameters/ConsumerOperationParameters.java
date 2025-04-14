@@ -52,233 +52,16 @@ import java.util.function.Function;
  */
 public class ConsumerOperationParameters implements BuildParameters {
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners = new ArrayList<org.gradle.tooling.ProgressListener>();
-        private final Map<OperationType, List<ProgressListener>> progressListeners = new EnumMap<OperationType, List<ProgressListener>>(OperationType.class);
-        private String entryPoint;
-        private CancellationToken cancellationToken;
-        private ConnectionParameters parameters;
-        private OutputStream stdout;
-        private OutputStream stderr;
-        private Boolean colorOutput;
-        private InputStream stdin;
-        private File javaHome;
-        private List<String> baseJvmArguments = null;
-        private List<String> additionalJvmArguments = null;
-        private Map<String, String> envVariables;
-        private List<String> arguments;
-        private List<String> tasks;
-        private List<InternalLaunchable> launchables;
-        private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
-        private Map<String, String> systemProperties;
-        @Nullable
-        private StreamedValueListener streamedValueListener;
-
-        private Builder() {
-        }
-
-        public Builder setEntryPoint(String entryPoint) {
-            this.entryPoint = entryPoint;
-            return this;
-        }
-
-        public Builder setParameters(ConnectionParameters parameters) {
-            this.parameters = parameters;
-            return this;
-        }
-
-        public Builder setStdout(OutputStream stdout) {
-            this.stdout = stdout;
-            return this;
-        }
-
-        public Builder setStderr(OutputStream stderr) {
-            this.stderr = stderr;
-            return this;
-        }
-
-        public Builder setColorOutput(Boolean colorOutput) {
-            this.colorOutput = colorOutput;
-            return this;
-        }
-
-        public Builder setStdin(InputStream stdin) {
-            this.stdin = stdin;
-            return this;
-        }
-
-        public Builder setJavaHome(File javaHome) {
-            validateJavaHome(javaHome);
-            this.javaHome = javaHome;
-            return this;
-        }
-
-        public Builder setBaseJvmArguments(@Nullable List<String> baseJvmArguments) {
-            if (baseJvmArguments != null) {
-                this.baseJvmArguments = new ArrayList<>(baseJvmArguments);
-            }
-            return this;
-        }
-
-        public Builder addJvmArguments(@Nullable List<String> jvmArguments) {
-            this.additionalJvmArguments = concat(this.additionalJvmArguments, jvmArguments);
-            return this;
-        }
-
-        public Builder setArguments(List<String> arguments) {
-            this.arguments = arguments;
-            return this;
-        }
-
-        public Builder addArguments(List<String> arguments) {
-            this.arguments = concat(this.arguments, arguments);
-            return this;
-        }
-
-        private static List<String> concat(@Nullable List<String> first, @Nullable List<String> second) {
-            List<String> result = new ArrayList<String>();
-            if (first != null) {
-                result.addAll(first);
-            }
-            if (second != null) {
-                result.addAll(second);
-            }
-            return result;
-        }
-
-        public Builder setEnvironmentVariables(Map<String, String> envVariables) {
-            this.envVariables = envVariables;
-            return this;
-        }
-
-        public Builder setTasks(List<String> tasks) {
-            this.tasks = tasks;
-            return this;
-        }
-
-        public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
-            Set<String> taskPaths = new LinkedHashSet<String>();
-            List<InternalLaunchable> launchablesParams = new ArrayList<>();
-            for (Launchable launchable : launchables) {
-                Object original = new ProtocolToModelAdapter().unpack(launchable);
-                if (original instanceof InternalLaunchable) {
-                    // A launchable created by the provider - just hand it back
-                    launchablesParams.add((InternalLaunchable) original);
-                } else if (original instanceof TaskListingLaunchable) {
-                    // A launchable synthesized by the consumer - unpack it into a set of task names
-                    taskPaths.addAll(((TaskListingLaunchable) original).getTaskNames());
-                } else if (launchable instanceof Task) {
-                    // A task created by a provider that does not understand launchables
-                    taskPaths.add(((Task) launchable).getPath());
-                } else {
-                    throw new GradleException("Only Task or TaskSelector instances are supported: "
-                        + (launchable != null ? launchable.getClass() : "null"));
-                }
-            }
-            // Tasks are ignored by providers if launchables is not null
-            this.launchables = launchablesParams.isEmpty() ? null : launchablesParams;
-            tasks = Lists.newArrayList(taskPaths);
-            return this;
-        }
-
-        public Builder setInjectedPluginClasspath(ClassPath classPath) {
-            this.injectedPluginClasspath = classPath;
-            return this;
-        }
-
-        public Builder setSystemProperties(Map<String, String> systemProperties) {
-            this.systemProperties = systemProperties;
-            return this;
-        }
-
-        public void addProgressListener(org.gradle.tooling.ProgressListener listener) {
-            legacyProgressListeners.add(listener);
-        }
-
-        public void addProgressListener(ProgressListener listener, Set<OperationType> eventTypes) {
-            for (OperationType type : eventTypes) {
-                List<ProgressListener> listeners = this.progressListeners.computeIfAbsent(type, new Function<OperationType, List<ProgressListener>>() {
-                    @Override
-                    public List<ProgressListener> apply(OperationType operationType) {
-                        return new ArrayList<ProgressListener>();
-                    }
-                });
-                listeners.add(listener);
-            }
-        }
-
-        public void setCancellationToken(CancellationToken cancellationToken) {
-            this.cancellationToken = cancellationToken;
-        }
-
-        public void setStreamedValueListener(StreamedValueListener streamedValueListener) {
-            this.streamedValueListener = streamedValueListener;
-        }
-
-        public ConsumerOperationParameters build() {
-            if (entryPoint == null) {
-                throw new IllegalStateException("No entry point specified.");
-            }
-
-            return new ConsumerOperationParameters(
-                entryPoint,
-                parameters,
-                stdout,
-                stderr,
-                colorOutput,
-                stdin,
-                javaHome,
-                baseJvmArguments,
-                additionalJvmArguments,
-                envVariables,
-                arguments,
-                tasks,
-                launchables,
-                injectedPluginClasspath,
-                legacyProgressListeners,
-                progressListeners,
-                cancellationToken,
-                systemProperties,
-                new FailsafeStreamedValueListener(streamedValueListener)
-            );
-        }
-
-        public void copyFrom(ConsumerOperationParameters operationParameters) {
-            tasks = operationParameters.tasks;
-            launchables = operationParameters.launchables;
-            cancellationToken = operationParameters.cancellationToken;
-            legacyProgressListeners.addAll(operationParameters.legacyProgressListeners);
-            progressListeners.putAll(operationParameters.progressListeners);
-            arguments = operationParameters.arguments;
-            baseJvmArguments = operationParameters.baseJvmArguments;
-            additionalJvmArguments = operationParameters.additionalJvmArguments;
-            envVariables = operationParameters.envVariables;
-            stdout = operationParameters.stdout;
-            stderr = operationParameters.stderr;
-            stdin = operationParameters.stdin;
-            colorOutput = operationParameters.colorOutput;
-            javaHome = operationParameters.javaHome;
-            injectedPluginClasspath = operationParameters.injectedPluginClasspath;
-            systemProperties = operationParameters.systemProperties;
-        }
-    }
-
     private final String entryPointName;
     private final ProgressListenerAdapter progressListener;
     private final FailsafeBuildProgressListenerAdapter buildProgressListener;
     private final CancellationToken cancellationToken;
     private final ConnectionParameters parameters;
     private final long startTime = System.currentTimeMillis();
-
     private final OutputStream stdout;
     private final OutputStream stderr;
     private final Boolean colorOutput;
     private final InputStream stdin;
-
     private final File javaHome;
     private final List<String> baseJvmArguments;
     private final List<String> additionalJvmArguments;
@@ -287,10 +70,8 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
     private final ClassPath injectedPluginClasspath;
-
     private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
     private final Map<OperationType, List<ProgressListener>> progressListeners;
-
     private final Map<String, String> systemProperties;
     private final FailsafeStreamedValueListener streamedValueListener;
 
@@ -342,6 +123,10 @@ public class ConsumerOperationParameters implements BuildParameters {
         // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
         this.progressListener = new ProgressListenerAdapter(this.legacyProgressListeners);
         this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(new BuildProgressListenerAdapter(this.progressListeners));
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     private static void validateJavaHome(File javaHome) {
@@ -545,5 +330,216 @@ public class ConsumerOperationParameters implements BuildParameters {
      */
     public void onStreamedValue(Object model) {
         streamedValueListener.onValue(model);
+    }
+
+    public static class Builder {
+        private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners = new ArrayList<org.gradle.tooling.ProgressListener>();
+        private final Map<OperationType, List<ProgressListener>> progressListeners = new EnumMap<OperationType, List<ProgressListener>>(OperationType.class);
+        private String entryPoint;
+        private CancellationToken cancellationToken;
+        private ConnectionParameters parameters;
+        private OutputStream stdout;
+        private OutputStream stderr;
+        private Boolean colorOutput;
+        private InputStream stdin;
+        private File javaHome;
+        private List<String> baseJvmArguments = null;
+        private List<String> additionalJvmArguments = null;
+        private Map<String, String> envVariables;
+        private List<String> arguments;
+        private List<String> tasks;
+        private List<InternalLaunchable> launchables;
+        private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
+        private Map<String, String> systemProperties;
+        @Nullable
+        private StreamedValueListener streamedValueListener;
+
+        private Builder() {
+        }
+
+        private static List<String> concat(@Nullable List<String> first, @Nullable List<String> second) {
+            List<String> result = new ArrayList<String>();
+            if (first != null) {
+                result.addAll(first);
+            }
+            if (second != null) {
+                result.addAll(second);
+            }
+            return result;
+        }
+
+        public Builder setEntryPoint(String entryPoint) {
+            this.entryPoint = entryPoint;
+            return this;
+        }
+
+        public Builder setParameters(ConnectionParameters parameters) {
+            this.parameters = parameters;
+            return this;
+        }
+
+        public Builder setStdout(OutputStream stdout) {
+            this.stdout = stdout;
+            return this;
+        }
+
+        public Builder setStderr(OutputStream stderr) {
+            this.stderr = stderr;
+            return this;
+        }
+
+        public Builder setColorOutput(Boolean colorOutput) {
+            this.colorOutput = colorOutput;
+            return this;
+        }
+
+        public Builder setStdin(InputStream stdin) {
+            this.stdin = stdin;
+            return this;
+        }
+
+        public Builder setJavaHome(File javaHome) {
+            validateJavaHome(javaHome);
+            this.javaHome = javaHome;
+            return this;
+        }
+
+        public Builder setBaseJvmArguments(@Nullable List<String> baseJvmArguments) {
+            if (baseJvmArguments != null) {
+                this.baseJvmArguments = new ArrayList<>(baseJvmArguments);
+            }
+            return this;
+        }
+
+        public Builder addJvmArguments(@Nullable List<String> jvmArguments) {
+            this.additionalJvmArguments = concat(this.additionalJvmArguments, jvmArguments);
+            return this;
+        }
+
+        public Builder setArguments(List<String> arguments) {
+            this.arguments = arguments;
+            return this;
+        }
+
+        public Builder addArguments(List<String> arguments) {
+            this.arguments = concat(this.arguments, arguments);
+            return this;
+        }
+
+        public Builder setEnvironmentVariables(Map<String, String> envVariables) {
+            this.envVariables = envVariables;
+            return this;
+        }
+
+        public Builder setTasks(List<String> tasks) {
+            this.tasks = tasks;
+            return this;
+        }
+
+        public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
+            Set<String> taskPaths = new LinkedHashSet<String>();
+            List<InternalLaunchable> launchablesParams = new ArrayList<>();
+            for (Launchable launchable : launchables) {
+                Object original = new ProtocolToModelAdapter().unpack(launchable);
+                if (original instanceof InternalLaunchable) {
+                    // A launchable created by the provider - just hand it back
+                    launchablesParams.add((InternalLaunchable) original);
+                } else if (original instanceof TaskListingLaunchable) {
+                    // A launchable synthesized by the consumer - unpack it into a set of task names
+                    taskPaths.addAll(((TaskListingLaunchable) original).getTaskNames());
+                } else if (launchable instanceof Task) {
+                    // A task created by a provider that does not understand launchables
+                    taskPaths.add(((Task) launchable).getPath());
+                } else {
+                    throw new GradleException("Only Task or TaskSelector instances are supported: "
+                        + (launchable != null ? launchable.getClass() : "null"));
+                }
+            }
+            // Tasks are ignored by providers if launchables is not null
+            this.launchables = launchablesParams.isEmpty() ? null : launchablesParams;
+            tasks = Lists.newArrayList(taskPaths);
+            return this;
+        }
+
+        public Builder setInjectedPluginClasspath(ClassPath classPath) {
+            this.injectedPluginClasspath = classPath;
+            return this;
+        }
+
+        public Builder setSystemProperties(Map<String, String> systemProperties) {
+            this.systemProperties = systemProperties;
+            return this;
+        }
+
+        public void addProgressListener(org.gradle.tooling.ProgressListener listener) {
+            legacyProgressListeners.add(listener);
+        }
+
+        public void addProgressListener(ProgressListener listener, Set<OperationType> eventTypes) {
+            for (OperationType type : eventTypes) {
+                List<ProgressListener> listeners = this.progressListeners.computeIfAbsent(type, new Function<OperationType, List<ProgressListener>>() {
+                    @Override
+                    public List<ProgressListener> apply(OperationType operationType) {
+                        return new ArrayList<ProgressListener>();
+                    }
+                });
+                listeners.add(listener);
+            }
+        }
+
+        public void setCancellationToken(CancellationToken cancellationToken) {
+            this.cancellationToken = cancellationToken;
+        }
+
+        public void setStreamedValueListener(StreamedValueListener streamedValueListener) {
+            this.streamedValueListener = streamedValueListener;
+        }
+
+        public ConsumerOperationParameters build() {
+            if (entryPoint == null) {
+                throw new IllegalStateException("No entry point specified.");
+            }
+
+            return new ConsumerOperationParameters(
+                entryPoint,
+                parameters,
+                stdout,
+                stderr,
+                colorOutput,
+                stdin,
+                javaHome,
+                baseJvmArguments,
+                additionalJvmArguments,
+                envVariables,
+                arguments,
+                tasks,
+                launchables,
+                injectedPluginClasspath,
+                legacyProgressListeners,
+                progressListeners,
+                cancellationToken,
+                systemProperties,
+                new FailsafeStreamedValueListener(streamedValueListener)
+            );
+        }
+
+        public void copyFrom(ConsumerOperationParameters operationParameters) {
+            tasks = operationParameters.tasks;
+            launchables = operationParameters.launchables;
+            cancellationToken = operationParameters.cancellationToken;
+            legacyProgressListeners.addAll(operationParameters.legacyProgressListeners);
+            progressListeners.putAll(operationParameters.progressListeners);
+            arguments = operationParameters.arguments;
+            baseJvmArguments = operationParameters.baseJvmArguments;
+            additionalJvmArguments = operationParameters.additionalJvmArguments;
+            envVariables = operationParameters.envVariables;
+            stdout = operationParameters.stdout;
+            stderr = operationParameters.stderr;
+            stdin = operationParameters.stdin;
+            colorOutput = operationParameters.colorOutput;
+            javaHome = operationParameters.javaHome;
+            injectedPluginClasspath = operationParameters.injectedPluginClasspath;
+            systemProperties = operationParameters.systemProperties;
+        }
     }
 }

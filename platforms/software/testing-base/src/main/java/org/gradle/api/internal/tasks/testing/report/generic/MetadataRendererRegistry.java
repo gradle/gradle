@@ -93,6 +93,14 @@ public final class MetadataRendererRegistry {
     public interface MetadataRenderer {
         int MAX_DISPLAYABLE_LENGTH = 100;
 
+        static String trimIfNecessary(String input) {
+            if (input.length() > MAX_DISPLAYABLE_LENGTH) {
+                return input.substring(0, MAX_DISPLAYABLE_LENGTH) + "...";
+            } else {
+                return input;
+            }
+        }
+
         /**
          * Returns the types of metadata that this renderer can render.
          *
@@ -109,14 +117,6 @@ public final class MetadataRendererRegistry {
          * @throws IOException if an error occurs while writing to the writer
          */
         SimpleHtmlWriter render(Object metadata, SimpleHtmlWriter htmlWriter) throws IOException;
-
-        static String trimIfNecessary(String input) {
-            if (input.length() > MAX_DISPLAYABLE_LENGTH) {
-                return input.substring(0, MAX_DISPLAYABLE_LENGTH) + "...";
-            } else {
-                return input;
-            }
-        }
     }
 
     public static final class UnknownTypeRenderer implements MetadataRenderer {
@@ -132,7 +132,9 @@ public final class MetadataRendererRegistry {
                 .characters("[unrenderable type]")
                 .endElement();
         }
-    };
+    }
+
+    ;
 
     public static final class BasicRenderer implements MetadataRenderer {
         private final Set<Class<?>> metadataTypes = ImmutableSet.of(String.class, Number.class, Boolean.class);
@@ -178,7 +180,7 @@ public final class MetadataRendererRegistry {
 
             return (SimpleHtmlWriter) htmlWriter.startElement("a").attribute("href", link)
                 .characters(MetadataRenderer.trimIfNecessary(text))
-            .endElement();
+                .endElement();
         }
     }
 }

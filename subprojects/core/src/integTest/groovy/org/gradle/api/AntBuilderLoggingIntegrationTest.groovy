@@ -38,7 +38,7 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "logs normally without lifecycle log level set" () {
+    def "logs normally without lifecycle log level set"() {
         when:
         succeeds("antTest")
 
@@ -53,7 +53,7 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
-    def "can increase verbosity of Ant logging" () {
+    def "can increase verbosity of Ant logging"() {
         buildFile << """
             ant.lifecycleLogLevel = "INFO"
         """
@@ -72,7 +72,7 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
-    def "can decrease verbosity of Ant logging" () {
+    def "can decrease verbosity of Ant logging"() {
         buildFile << """
             ant.lifecycleLogLevel = "ERROR"
         """

@@ -307,17 +307,17 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private void addResourceFilterMatcherToXml(Node parent, ResourceFilterMatcher matcher) {
-            Node matcherNode = parent.appendNode("matcher");
-             matcherNode.appendNode("id", matcher.getId());
-            // A matcher may have either arguments or children, but not both
-            if (!isNullOrEmpty(matcher.getArguments())) {
-                matcherNode.appendNode("arguments", matcher.getArguments());
-            } else if (!matcher.getChildren().isEmpty()) {
-                Node argumentsNode = matcherNode.appendNode("arguments");
-                for (ResourceFilterMatcher m : matcher.getChildren()) {
-                    addResourceFilterMatcherToXml(argumentsNode, m);
-                }
+        Node matcherNode = parent.appendNode("matcher");
+        matcherNode.appendNode("id", matcher.getId());
+        // A matcher may have either arguments or children, but not both
+        if (!isNullOrEmpty(matcher.getArguments())) {
+            matcherNode.appendNode("arguments", matcher.getArguments());
+        } else if (!matcher.getChildren().isEmpty()) {
+            Node argumentsNode = matcherNode.appendNode("arguments");
+            for (ResourceFilterMatcher m : matcher.getChildren()) {
+                addResourceFilterMatcherToXml(argumentsNode, m);
             }
+        }
     }
 
     private int getResourceFilterType(ResourceFilter resourceFilter) {

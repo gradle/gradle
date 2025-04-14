@@ -21,12 +21,12 @@ import org.gradle.process.JavaForkOptions;
 
 public interface JavaForkOptionsInternal extends JavaForkOptions {
 
+    Iterable<?> getExtraJvmArgs();
+
     /**
      * Sets extra JVM arguments to a Java process without checking debug configuration.
      */
     void setExtraJvmArgs(Iterable<?> jvmArgs);
-
-    Iterable<?> getExtraJvmArgs();
 
     /**
      * Checks supplied JVM arguments with purpose to ignore debug configuration in favor of the supplied arguments.

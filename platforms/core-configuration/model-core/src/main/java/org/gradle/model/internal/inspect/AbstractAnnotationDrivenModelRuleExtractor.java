@@ -44,7 +44,7 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
     @Override
     public String getDescription() {
         return String.format("annotated with @%s", annotationType.getSimpleName());
-   }
+    }
 
     protected void validateIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         if (!isVoidMethod(ruleDefinition)) {

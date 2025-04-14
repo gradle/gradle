@@ -16,6 +16,7 @@
 
 /**
  * APIs to influence how toolchains are resolved.
+ *
  * @since 7.6
  */
 @org.jspecify.annotations.NullMarked

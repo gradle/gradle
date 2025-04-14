@@ -34,6 +34,10 @@ public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
         this.lineEndingSensitivity = lineEndingSensitivity;
     }
 
+    public static FileNormalizationSpec from(FileNormalizer normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
+        return new DefaultFileNormalizationSpec(normalizer, directorySensitivity, lineEndingSensitivity);
+    }
+
     @Override
     public FileNormalizer getNormalizer() {
         return normalizer;
@@ -47,10 +51,6 @@ public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
     @Override
     public LineEndingSensitivity getLineEndingNormalization() {
         return lineEndingSensitivity;
-    }
-
-    public static FileNormalizationSpec from(FileNormalizer normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
-        return new DefaultFileNormalizationSpec(normalizer, directorySensitivity, lineEndingSensitivity);
     }
 
     @Override

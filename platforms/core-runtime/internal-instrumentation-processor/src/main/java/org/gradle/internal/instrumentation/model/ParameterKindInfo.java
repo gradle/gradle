@@ -23,10 +23,6 @@ import java.lang.annotation.Annotation;
 public enum ParameterKindInfo {
     RECEIVER, METHOD_PARAMETER, VARARG_METHOD_PARAMETER, CALLER_CLASS_NAME, KOTLIN_DEFAULT_MASK, INJECT_VISITOR_CONTEXT;
 
-    public boolean isSourceParameter() {
-        return this == METHOD_PARAMETER || this == VARARG_METHOD_PARAMETER;
-    }
-
     public static ParameterKindInfo fromAnnotation(Annotation annotation) {
         if (annotation instanceof ParameterKind.Receiver) {
             return RECEIVER;
@@ -44,5 +40,9 @@ public enum ParameterKindInfo {
             return INJECT_VISITOR_CONTEXT;
         }
         throw new IllegalArgumentException("Unexpected annotation " + annotation);
+    }
+
+    public boolean isSourceParameter() {
+        return this == METHOD_PARAMETER || this == VARARG_METHOD_PARAMETER;
     }
 }

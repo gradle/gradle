@@ -42,6 +42,16 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         this.threadFactoryContextClassloader = threadFactoryContextClassloader;
     }
 
+    private static ThreadPoolExecutor createThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
+        return new ThreadPoolExecutor(
+            corePoolSize,
+            maximumPoolSize,
+            keepAliveTime,
+            timeUnit,
+            new LinkedBlockingQueue<Runnable>(),
+            threadFactory);
+    }
+
     @Override
     public void stop() {
         try {
@@ -75,16 +85,6 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         TrackedThreadPoolManagedExecutor executor = new TrackedThreadPoolManagedExecutor(executorService, new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
-    }
-
-    private static ThreadPoolExecutor createThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
-        return new ThreadPoolExecutor(
-            corePoolSize,
-            maximumPoolSize,
-            keepAliveTime,
-            timeUnit,
-            new LinkedBlockingQueue<Runnable>(),
-            threadFactory);
     }
 
     protected ExecutorService createExecutor(String displayName, int fixedSize) {

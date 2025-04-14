@@ -56,7 +56,7 @@ class ApplyDevelocityPluginFixture {
 
         settingsFile.text =
             (pluginManagementBlock == null ? "" : pluginManagementBlock + "\n\n") +
-            pluginBlock + "\n\n" +
-            settingsText.trim()
+                pluginBlock + "\n\n" +
+                settingsText.trim()
     }
 }

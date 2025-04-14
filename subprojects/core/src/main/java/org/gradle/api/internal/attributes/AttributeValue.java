@@ -25,8 +25,8 @@ import org.gradle.api.attributes.Attribute;
  *     <li><i>missing</i> used whenever an attribute has no value.</li>
  * </ul>
  * During attribute matching, this can be used to implement various {@link org.gradle.api.attributes.AttributeMatchingStrategy strategies}.
- * @param <T> the type of the attribute
  *
+ * @param <T> the type of the attribute
  * @since 3.3
  */
 public interface AttributeValue<T> {

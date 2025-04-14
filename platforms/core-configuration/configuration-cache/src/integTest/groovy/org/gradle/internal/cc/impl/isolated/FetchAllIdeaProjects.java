@@ -28,6 +28,16 @@ import java.util.Map;
 
 public class FetchAllIdeaProjects implements BuildAction<FetchAllIdeaProjects.Result> {
 
+    private static void collectAllNestedBuilds(GradleBuild buildModel, BuildController controller, Result result) {
+        for (GradleBuild includedBuild : buildModel.getIncludedBuilds()) {
+            if (!result.includedBuildIdeaProjects.containsKey(includedBuild)) {
+                IdeaProject includedBuildProject = controller.getModel(includedBuild, IdeaProject.class);
+                result.includedBuildIdeaProjects.put(includedBuild, includedBuildProject);
+                collectAllNestedBuilds(includedBuild, controller, result);
+            }
+        }
+    }
+
     @Override
     public Result execute(BuildController controller) {
         Result result = new Result();
@@ -46,21 +56,11 @@ public class FetchAllIdeaProjects implements BuildAction<FetchAllIdeaProjects.Re
         return result;
     }
 
-    private static void collectAllNestedBuilds(GradleBuild buildModel, BuildController controller, Result result) {
-        for (GradleBuild includedBuild : buildModel.getIncludedBuilds()) {
-            if (!result.includedBuildIdeaProjects.containsKey(includedBuild)) {
-                IdeaProject includedBuildProject = controller.getModel(includedBuild, IdeaProject.class);
-                result.includedBuildIdeaProjects.put(includedBuild, includedBuildProject);
-                collectAllNestedBuilds(includedBuild, controller, result);
-            }
-        }
-    }
-
     public static class Result implements Serializable {
+        public final Map<GradleBuild, IdeaProject> includedBuildIdeaProjects = new LinkedHashMap<>();
         public GradleBuild rootBuild;
         public IdeaProject rootIdeaProject;
         public List<IdeaProject> allIdeaProjects = new ArrayList<>();
-        public final Map<GradleBuild, IdeaProject> includedBuildIdeaProjects = new LinkedHashMap<>();
 
         public IdeaProject getIdeaProject(String name) {
             for (IdeaProject ideaProject : allIdeaProjects) {

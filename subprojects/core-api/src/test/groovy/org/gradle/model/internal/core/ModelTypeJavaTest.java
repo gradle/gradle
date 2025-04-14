@@ -29,15 +29,22 @@ import static org.junit.Assert.assertEquals;
  * Tests that need full static typing.
  */
 public class ModelTypeJavaTest {
-    static class Nested<T> {
-        class Child<S extends Number & Runnable> { }
+    static <K, V> ModelType<Map<K, V>> buildMap(ModelType<K> k, ModelType<V> v) {
+        return new ModelType.Builder<Map<K, V>>() {}
+            .where(new ModelType.Parameter<K>() {}, k)
+            .where(new ModelType.Parameter<V>() {}, v)
+            .build();
     }
 
-    <T extends Number, S extends T, R> void m1(T t, S s, R r) { }
-    <T extends Number & Runnable, S extends T> void m1(S s) { }
-    void m2(List<String>... lists) { }
-    void m4(List<? super Number>... lists) { }
-    void m5(Collection<String>... collections) { }
+    <T extends Number, S extends T, R> void m1(T t, S s, R r) {}
+
+    <T extends Number & Runnable, S extends T> void m1(S s) {}
+
+    void m2(List<String>... lists) {}
+
+    void m4(List<? super Number>... lists) {}
+
+    void m5(Collection<String>... collections) {}
 
     @Test
     public void testNestedParameterizedType() {
@@ -60,11 +67,8 @@ public class ModelTypeJavaTest {
         assertEquals(new ModelType<Map<String, Integer>>() {}.hashCode(), buildMap(ModelType.of(String.class), ModelType.of(Integer.class)).hashCode());
     }
 
-    static <K, V> ModelType<Map<K, V>> buildMap(ModelType<K> k, ModelType<V> v) {
-        return new ModelType.Builder<Map<K, V>>() {}
-                .where(new ModelType.Parameter<K>() {}, k)
-                .where(new ModelType.Parameter<V>() {}, v)
-                .build();
+    static class Nested<T> {
+        class Child<S extends Number & Runnable> {}
     }
 
 }

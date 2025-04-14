@@ -23,6 +23,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Global.class)
 public interface ImmutableModuleIdentifierFactory {
     ModuleIdentifier module(String group, String name);
+
     ModuleVersionIdentifier moduleWithVersion(String group, String name, String version);
+
     ModuleVersionIdentifier moduleWithVersion(ModuleIdentifier targetModuleId, String version);
 }

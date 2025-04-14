@@ -61,7 +61,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
 
         when:
         async {
-            10.times {i ->
+            10.times { i ->
                 start {
                     def exception = exceptions[i]
                     def problem = Mock(InternalProblem)

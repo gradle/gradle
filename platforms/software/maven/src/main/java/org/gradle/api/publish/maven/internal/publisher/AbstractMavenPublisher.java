@@ -52,16 +52,25 @@ import java.util.regex.Pattern;
 @NullMarked
 abstract class AbstractMavenPublisher implements MavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenPublisher.class);
-
-    private final NetworkOperationBackOffAndRetry<ExternalResourceReadResult<Metadata>> metadataRetryCaller = new NetworkOperationBackOffAndRetry<>();
     private static final String POM_FILE_ENCODING = "UTF-8";
     private static final String SNAPSHOT_VERSION = "SNAPSHOT";
     private static final Pattern VERSION_FILE_PATTERN = Pattern.compile("^(.*)-([0-9]{8}.[0-9]{6})-([0-9]+)$");
+    private final NetworkOperationBackOffAndRetry<ExternalResourceReadResult<Metadata>> metadataRetryCaller = new NetworkOperationBackOffAndRetry<>();
     private final Factory<File> temporaryDirFactory;
     private final XmlTransformer xmlTransformer = new XmlTransformer();
 
     AbstractMavenPublisher(Factory<File> temporaryDirFactory) {
         this.temporaryDirFactory = temporaryDirFactory;
+    }
+
+    private static void publishArtifactsAndMetadata(MavenNormalizedPublication publication, ModuleArtifactPublisher artifactPublisher) {
+        if (publication.getMainArtifact() != null) {
+            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
+        }
+        artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
+        for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
+            artifactPublisher.publish(artifact.getClassifier(), artifact.getExtension(), artifact.getFile());
+        }
     }
 
     protected void publish(MavenNormalizedPublication publication, ExternalResourceRepository repository, URI rootUri, boolean localRepo) {
@@ -100,16 +109,6 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         ExternalResourceName externalResource = artifactPublisher.getMetadataLocation();
         Metadata metadata = createMetadata(groupId, artifactId, version, repository, externalResource);
         artifactPublisher.publish(externalResource, writeMetadataToTmpFile(metadata, "module-maven-metadata.xml"));
-    }
-
-    private static void publishArtifactsAndMetadata(MavenNormalizedPublication publication, ModuleArtifactPublisher artifactPublisher) {
-        if (publication.getMainArtifact() != null) {
-            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
-        }
-        artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
-        for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
-            artifactPublisher.publish(artifact.getClassifier(), artifact.getExtension(), artifact.getFile());
-        }
     }
 
     private Metadata createMetadata(String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource) {

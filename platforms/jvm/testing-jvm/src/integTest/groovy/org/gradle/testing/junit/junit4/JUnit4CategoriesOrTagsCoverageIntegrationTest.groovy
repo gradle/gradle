@@ -246,9 +246,9 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         executedAndNotSkipped ":$task"
 
         where:
-        suiteName   | suiteDeclaration              | task
-        'test'      | 'test'                        | 'test'
-        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest'
+        suiteName   | suiteDeclaration          | task
+        'test'      | 'test'                    | 'test'
+        'integTest' | 'integTest(JvmTestSuite)' | 'integTest'
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4924')

@@ -86,6 +86,14 @@ public class DefaultPluginRegistry implements PluginRegistry {
         });
     }
 
+    private static <K, V> V uncheckedGet(LoadingCache<K, V> cache, K key) {
+        try {
+            return cache.get(key);
+        } catch (ExecutionException | UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
+    }
+
     @Override
     public PluginRegistry createChild(final ClassLoaderScope lookupScope) {
         return new DefaultPluginRegistry(this, pluginInspector, lookupScope);
@@ -181,14 +189,6 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         return uncheckedGet(idMappings, new PluginIdLookupCacheKey(pluginId, classLoader)).orElse(null);
-    }
-
-    private static <K, V> V uncheckedGet(LoadingCache<K, V> cache, K key) {
-        try {
-            return cache.get(key);
-        } catch (ExecutionException | UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
     }
 
     static class PluginIdLookupCacheKey {

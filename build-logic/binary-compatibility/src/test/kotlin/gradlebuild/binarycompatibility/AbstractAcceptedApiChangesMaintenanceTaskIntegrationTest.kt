@@ -48,13 +48,13 @@ abstract class AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest {
                     val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
                         group = "verification"
                         description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
-                        apiChangesDirectory = layout.projectDirectory.dir("${ TextUtil.normaliseFileSeparators(firstAcceptedApiChangesFile.parentFile.absolutePath) }")
+                        apiChangesDirectory = layout.projectDirectory.dir("${TextUtil.normaliseFileSeparators(firstAcceptedApiChangesFile.parentFile.absolutePath)}")
                     }
 
                     val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
                         group = "verification"
                         description = "Sort the accepted api changes file alphabetically"
-                        apiChangesDirectory = layout.projectDirectory.dir("${ TextUtil.normaliseFileSeparators(firstAcceptedApiChangesFile.parentFile.absolutePath) }")
+                        apiChangesDirectory = layout.projectDirectory.dir("${TextUtil.normaliseFileSeparators(firstAcceptedApiChangesFile.parentFile.absolutePath)}")
                     }
                 """.trimIndent()
             )

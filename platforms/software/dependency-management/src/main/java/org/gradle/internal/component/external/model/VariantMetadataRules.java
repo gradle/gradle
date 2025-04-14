@@ -47,17 +47,15 @@ public class VariantMetadataRules {
     private final AttributesFactory attributesFactory;
     private final ModuleVersionIdentifier moduleVersionId;
     private final List<AdditionalVariant> additionalVariants = new ArrayList<>();
-
-    private DependencyMetadataRules dependencyMetadataRules;
-    private VariantAttributesRules variantAttributesRules;
-    private List<VariantMetadataRules.VariantAction<? super MutableCapabilitiesMetadata>> capabilitiesRules;
-    private VariantFilesRules variantFilesRules;
-
     private final AttributeContainerInternal baseAttributes;
     // If two configurations have a dependency on the same module, there is a chance they can be
     // resolved concurrently. Dependency resolution exercises this code when performing attribute
     // matching, so this map must support concurrent modification.
     private final Map<String, AttributeContainerInternal> variantAttributes = new ConcurrentHashMap<>();
+    private DependencyMetadataRules dependencyMetadataRules;
+    private VariantAttributesRules variantAttributesRules;
+    private List<VariantMetadataRules.VariantAction<? super MutableCapabilitiesMetadata>> capabilitiesRules;
+    private VariantFilesRules variantFilesRules;
 
     public VariantMetadataRules(AttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId) {
         this(attributesFactory, moduleVersionId, attributesFactory.mutable());
@@ -67,6 +65,10 @@ public class VariantMetadataRules {
         this.attributesFactory = attributesFactory;
         this.moduleVersionId = moduleVersionId;
         this.baseAttributes = baseAttributes;
+    }
+
+    public static VariantMetadataRules noOp() {
+        return ImmutableRules.INSTANCE;
     }
 
     public AttributeContainerInternal getAttributes(@Nullable String variantName) {
@@ -181,12 +183,9 @@ public class VariantMetadataRules {
         return additionalVariants;
     }
 
-    public static VariantMetadataRules noOp() {
-        return ImmutableRules.INSTANCE;
-    }
-
     /**
      * A variant action is an action which is only executed if it matches the name of the variant.
+     *
      * @param <T> the type of the action subject
      */
     public static class VariantAction<T> {

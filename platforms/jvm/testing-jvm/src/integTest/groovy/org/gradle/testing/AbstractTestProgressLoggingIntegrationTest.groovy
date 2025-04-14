@@ -21,7 +21,8 @@ import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.junit.Rule
 
 abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
-    @Rule ProgressLoggingFixture events = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    ProgressLoggingFixture events = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def setup() {
         buildFile << """
@@ -34,7 +35,7 @@ abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestin
         """
     }
 
-    def "captures test progress logging events" () {
+    def "captures test progress logging events"() {
         withGoodTestClasses(10)
 
         when:
@@ -48,7 +49,7 @@ abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestin
         }
     }
 
-    def "captures failing test progress logging events" () {
+    def "captures failing test progress logging events"() {
         withFailingTestClasses(10)
 
         when:
@@ -62,7 +63,7 @@ abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestin
         }
     }
 
-    def "captures skipped test progress logging events" () {
+    def "captures skipped test progress logging events"() {
         withSkippedTestClasses(10)
 
         when:
@@ -76,7 +77,7 @@ abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestin
         }
     }
 
-    def "captures mixed test progress logging events" () {
+    def "captures mixed test progress logging events"() {
         withGoodTestClasses(5)
         withFailingTestClasses(3)
         withSkippedTestClasses(2)
@@ -100,7 +101,7 @@ abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestin
         }
     }
 
-    def "captures test progress logging events when tests are run in parallel" () {
+    def "captures test progress logging events when tests are run in parallel"() {
         withGoodTestClasses(4)
         buildFile << """
             test {
@@ -132,15 +133,15 @@ abstract class AbstractTestProgressLoggingIntegrationTest extends AbstractTestin
         """
     }
 
-    def createGoodTestClass(int index=1) {
+    def createGoodTestClass(int index = 1) {
         createTestClass(index, "good", "shouldPass", "assertEquals(1,1)")
     }
 
-    def createFailingTestClass(int index=1) {
+    def createFailingTestClass(int index = 1) {
         createTestClass(index, "failing", "shouldFail", "assertEquals(1,2)")
     }
 
-    def createSkippedTestClass(int index=1) {
+    def createSkippedTestClass(int index = 1) {
         createTestClass(index, "skipped", "shouldBeSkipped", "assumeTrue(false)")
     }
 

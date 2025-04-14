@@ -78,6 +78,48 @@ public class JUnitTestEventAdapter extends RunListener {
         this.idGenerator = idGenerator;
     }
 
+    private static TestDescriptorInternal descriptor(Object id, Description description) {
+        return new DefaultTestDescriptor(id, className(description), methodName(description));
+    }
+
+    private static TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
+        String methodName = methodName(description);
+        if (methodName != null) {
+            return new DefaultTestDescriptor(id, className(description), methodName);
+        } else {
+            return new DefaultTestDescriptor(id, className(description), "classMethod");
+        }
+    }
+
+    // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
+    @Nullable
+    public static String methodName(Description description) {
+        return methodName(description.toString());
+    }
+
+    @Nullable
+    public static String methodName(String description) {
+        Matcher matcher = methodStringMatcher(description);
+        if (matcher.matches()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+    // Use this instead of Description.getClassName(), it is not available in JUnit <= 4.5
+    public static String className(Description description) {
+        return className(description.toString());
+    }
+
+    public static String className(String description) {
+        Matcher matcher = methodStringMatcher(description);
+        return matcher.matches() ? matcher.group(2) : description;
+    }
+
+    private static Matcher methodStringMatcher(String description) {
+        return DESCRIPTOR_PATTERN.matcher(description);
+    }
+
     @Override
     public void testStarted(Description description) {
         TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
@@ -181,48 +223,6 @@ public class JUnitTestEventAdapter extends RunListener {
             resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
-    }
-
-    private static TestDescriptorInternal descriptor(Object id, Description description) {
-        return new DefaultTestDescriptor(id, className(description), methodName(description));
-    }
-
-    private static TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
-        String methodName = methodName(description);
-        if (methodName != null) {
-            return new DefaultTestDescriptor(id, className(description), methodName);
-        } else {
-            return new DefaultTestDescriptor(id, className(description), "classMethod");
-        }
-    }
-
-    // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
-    @Nullable
-    public static String methodName(Description description) {
-        return methodName(description.toString());
-    }
-
-    @Nullable
-    public static String methodName(String description) {
-        Matcher matcher = methodStringMatcher(description);
-        if (matcher.matches()) {
-            return matcher.group(1);
-        }
-        return null;
-    }
-
-    // Use this instead of Description.getClassName(), it is not available in JUnit <= 4.5
-    public static String className(Description description) {
-        return className(description.toString());
-    }
-
-    public static String className(String description) {
-        Matcher matcher = methodStringMatcher(description);
-        return matcher.matches() ? matcher.group(2) : description;
-    }
-
-    private static Matcher methodStringMatcher(String description) {
-        return DESCRIPTOR_PATTERN.matcher(description);
     }
 
     private TestStartEvent startEvent() {

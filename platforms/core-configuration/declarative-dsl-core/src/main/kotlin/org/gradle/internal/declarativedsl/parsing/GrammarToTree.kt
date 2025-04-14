@@ -206,6 +206,7 @@ class GrammarToTree(
                             propertyAccessStatement(tree, it)
                                 .flatMap { e -> if (e is NamedReference) Element(e) else tree.unsupported(node, InvalidImportValue) }
                         )
+
                         MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.StarImport))
                         IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.RenamingImport))
                     }
@@ -304,9 +305,11 @@ class GrammarToTree(
                                 }
                             }
                         }
+
                         is KtSingleValueToken -> if (tokenType.value == "var") {
                             collectingFailure(tree.unsupported(node, it, LocalVarNotSupported))
                         }
+
                         IDENTIFIER -> identifier = Syntactic(it.asText)
                         COLON, TYPE_REFERENCE -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.ExplicitVariableType))
                         else -> if (it.isExpression()) {
@@ -341,6 +344,7 @@ class GrammarToTree(
                         SAFE_ACCESS -> {
                             collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.SafeNavigation))
                         }
+
                         else -> {
                             val isEffectiveSelector = isSelector && tokenType != ERROR_ELEMENT
                             if (isEffectiveSelector) {
@@ -381,7 +385,7 @@ class GrammarToTree(
         receiver: Expr?,
         name: String,
         sourceData: SourceData
-    ): ElementResult<NamedReference> = when(name) {
+    ): ElementResult<NamedReference> = when (name) {
         "_" -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedSimpleIdentifier)
         else -> Element(NamedReference(receiver, name, sourceData))
     }
@@ -429,6 +433,7 @@ class GrammarToTree(
                 hasIllegalUnderscore(text, type) -> return reportIncorrectConstant("illegal underscore")
                 else -> parseNumericLiteral(text, INTEGER_CONSTANT)
             }
+
             BOOLEAN_CONSTANT -> parseBoolean(text)
             else -> null
         }
@@ -443,6 +448,7 @@ class GrammarToTree(
                     else -> Element(Literal.IntLiteral(convertedText.toInt(), tree.sourceData(node)))
                 }
             }
+
             BOOLEAN_CONSTANT -> Element(Literal.BooleanLiteral(convertedText as Boolean, tree.sourceData(node)))
             NULL -> Element(Null(tree.sourceData(node)))
             else -> tree.parsingError(node, "Parsing failure, unsupported constant type: $type")
@@ -463,9 +469,11 @@ class GrammarToTree(
                             REFERENCE_EXPRESSION -> {
                                 name = node.asText
                             }
+
                             VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
                                 valueArguments += node
                             }
+
                             else -> collectingFailure(tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType"))
                         }
                     }
@@ -481,7 +489,6 @@ class GrammarToTree(
                 }
             }
         }
-
 
 
     private
@@ -602,6 +609,7 @@ class GrammarToTree(
                             OPERATION_REFERENCE -> {
                                 operationTokenName = it.asText
                             }
+
                             else -> if (it.isExpression()) argument = it
                         }
                     }
@@ -619,13 +627,16 @@ class GrammarToTree(
                                         is Literal.IntLiteral -> {
                                             Element(Literal.IntLiteral(-literal.value, tree.sourceData(node)))
                                         }
+
                                         is Literal.LongLiteral -> {
                                             Element(Literal.LongLiteral(-literal.value, tree.sourceData(node)))
                                         }
+
                                         else -> tree.parsingError(argument!!, "Unsupported constant in unary expression: ${literal::class.java}")
                                     }
                                 }
                             }
+
                             else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationTokenName")
                         }
                     }
@@ -659,6 +670,7 @@ class GrammarToTree(
                             isLeftArgument = false
                             operation = it
                         }
+
                         else -> if (it.isExpression()) {
                             if (isLeftArgument) {
                                 leftArg = it

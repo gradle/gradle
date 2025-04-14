@@ -67,26 +67,6 @@ public class LifecycleAwareBuildCacheControllerFactory {
     }
 
     private static abstract class DelegatingBuildCacheController implements LifecycleAwareBuildCacheController {
-        @Override
-        public boolean isEnabled() {
-            return getDelegate().isEnabled();
-        }
-
-        @Override
-        public Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
-            return getDelegate().load(cacheKey, cacheableEntity);
-        }
-
-        @Override
-        public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
-            getDelegate().store(cacheKey, entity, snapshots, executionTime);
-        }
-
-        @Override
-        public void close() {
-            resetState();
-        }
-
         protected static void createDelegate(BuildCacheConfigurationInternal configuration, AtomicReference<BuildCacheController> delegate, BuildCacheControllerFactory buildCacheControllerFactory, Path identityPath, InstanceGenerator instanceGenerator) {
             BuildCacheController controller = buildCacheControllerFactory.createController(identityPath, configuration, instanceGenerator);
             if (!delegate.compareAndSet(NoOpBuildCacheController.INSTANCE, controller)) {
@@ -106,6 +86,26 @@ public class LifecycleAwareBuildCacheControllerFactory {
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return getDelegate().isEnabled();
+        }
+
+        @Override
+        public Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+            return getDelegate().load(cacheKey, cacheableEntity);
+        }
+
+        @Override
+        public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+            getDelegate().store(cacheKey, entity, snapshots, executionTime);
+        }
+
+        @Override
+        public void close() {
+            resetState();
         }
 
         protected abstract BuildCacheController getDelegate();

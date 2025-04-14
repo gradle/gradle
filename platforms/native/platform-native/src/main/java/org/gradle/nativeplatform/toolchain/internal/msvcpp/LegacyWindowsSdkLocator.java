@@ -80,6 +80,37 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
         this.windowsRegistry = windowsRegistry;
     }
 
+    private static boolean isWindowsSdk(File candidate) {
+        boolean hasResourceCompiler = false;
+        boolean hasKernel32Lib = false;
+
+        for (String path : RESOURCE_PATHS) {
+            if (new File(candidate, path + RESOURCE_FILENAME).isFile()) {
+                hasResourceCompiler = true;
+                break;
+            }
+        }
+
+        for (String path : KERNEL32_PATHS) {
+            if (new File(candidate, path + KERNEL32_FILENAME).isFile()) {
+                hasKernel32Lib = true;
+                break;
+            }
+        }
+
+        return hasResourceCompiler && hasKernel32Lib;
+    }
+
+    private static String formatVersion(String version) {
+        int index = StringUtils.ordinalIndexOf(version, ".", 2);
+
+        if (index != -1) {
+            version = version.substring(0, index);
+        }
+
+        return version;
+    }
+
     @Override
     public SearchResult<WindowsSdkInstall> locateComponent(@Nullable File candidate) {
         initializeWindowsSdks();
@@ -145,12 +176,12 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
 
     private void locateKitsInRegistry(String baseKey) {
         String[] versions = {
-                VERSION_KIT_8,
-                VERSION_KIT_81
+            VERSION_KIT_8,
+            VERSION_KIT_81
         };
         String[] keys = {
-                REGISTRY_KIT_8,
-                REGISTRY_KIT_81
+            REGISTRY_KIT_8,
+            REGISTRY_KIT_81
         };
 
         for (int i = 0; i != keys.length; ++i) {
@@ -217,36 +248,5 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
 
     private void addSdk(File path, String version, String name) {
         foundSdks.put(path, new LegacyWindowsSdkInstall(path, VersionNumber.parse(version), name));
-    }
-
-    private static boolean isWindowsSdk(File candidate) {
-        boolean hasResourceCompiler = false;
-        boolean hasKernel32Lib = false;
-
-        for (String path : RESOURCE_PATHS) {
-            if (new File(candidate, path + RESOURCE_FILENAME).isFile()) {
-                hasResourceCompiler = true;
-                break;
-            }
-        }
-
-        for (String path : KERNEL32_PATHS) {
-            if (new File(candidate, path + KERNEL32_FILENAME).isFile()) {
-                hasKernel32Lib = true;
-                break;
-            }
-        }
-
-        return hasResourceCompiler && hasKernel32Lib;
-    }
-
-    private static String formatVersion(String version) {
-        int index = StringUtils.ordinalIndexOf(version, ".", 2);
-
-        if (index != -1) {
-            version = version.substring(0, index);
-        }
-
-        return version;
     }
 }

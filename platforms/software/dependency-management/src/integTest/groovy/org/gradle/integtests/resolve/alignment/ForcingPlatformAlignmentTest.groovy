@@ -486,10 +486,10 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-                'conf("org:core:2.9.4")',
-                'conf("org:databind:2.9.4")',
-                'conf("org:kotlin:2.9.4.1")',
-                'conf enforcedPlatform("org:platform:2.7.9")'
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.9.4")',
+            'conf("org:kotlin:2.9.4.1")',
+            'conf enforcedPlatform("org:platform:2.7.9")'
         ].permutations()*.join("\n")
     }
 
@@ -545,10 +545,10 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-                'conf("org:core:2.9.4")',
-                'conf("org:databind:2.7.9")',
-                'conf("org:kotlin:2.9.4.1")',
-                'constraints { conf enforcedPlatform("org:platform:2.7.9") }'
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4.1")',
+            'constraints { conf enforcedPlatform("org:platform:2.7.9") }'
         ].permutations()*.join("\n")
     }
 
@@ -604,10 +604,10 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-                'conf("org:core:2.9.4")',
-                'conf("org:databind:2.7.9")',
-                'conf("org:kotlin:2.9.4.1")',
-                'constraints { conf ("org:platform") { version { strictly("2.7.9") } } }'
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4.1")',
+            'constraints { conf ("org:platform") { version { strictly("2.7.9") } } }'
         ].permutations()*.join("\n")
     }
 
@@ -659,10 +659,10 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
         where: "order of dependencies doesn't matter"
         dependencies << [
-                'conf("org:core:2.7.9")',
-                'conf("org:databind:2.7.9")',
-                'conf("org:kotlin:2.9.4")',
-                'constraints { conf "org:platform:2.9.4.1" }'
+            'conf("org:core:2.7.9")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4")',
+            'constraints { conf "org:platform:2.9.4.1" }'
         ].permutations()*.join("\n")
     }
 
@@ -676,10 +676,10 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 path "kotlin:$v -> annotations:$v"
 
                 platform("org", "platform", v, [
-                        "org:core:$v",
-                        "org:databind:$v",
-                        "org:kotlin:$v",
-                        "org:annotations:$v",
+                    "org:core:$v",
+                    "org:databind:$v",
+                    "org:kotlin:$v",
+                    "org:annotations:$v",
                 ])
             }
         }
@@ -741,10 +741,10 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-                'conf("org:core:2.9.4")',
-                'conf("org:databind:2.7.9")',
-                'conf("org:kotlin:2.9.4.1")',
-                'conf enforcedPlatform("org:platform:2.7.9")',
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4.1")',
+            'conf enforcedPlatform("org:platform:2.7.9")',
         ].permutations()*.join("\n")
     }
 
@@ -760,10 +760,10 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 path "kotlin:$v -> annotations:$v"
 
                 platform("org", "platform", v, [
-                        "org:core:$v",
-                        "org:databind:$v",
-                        "org:kotlin:$v",
-                        "org:annotations:$v",
+                    "org:core:$v",
+                    "org:databind:$v",
+                    "org:kotlin:$v",
+                    "org:annotations:$v",
                 ])
             }
         }
@@ -852,8 +852,8 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         where:
         forceNotation << [
-                "configurations.all { resolutionStrategy { force 'org:databind:2.8.11.1' } }",
-                "dependencies { conf enforcedPlatform('org:platform:2.8.11.1') }",
+            "configurations.all { resolutionStrategy { force 'org:databind:2.8.11.1' } }",
+            "dependencies { conf enforcedPlatform('org:platform:2.8.11.1') }",
         ]
     }
 
@@ -918,8 +918,8 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         where:
         forceNotation << [
-                "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }",
-                "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
+            "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }",
+            "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
         ]
     }
 

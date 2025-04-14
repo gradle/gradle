@@ -20,6 +20,8 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.jspecify.annotations.Nullable;
 
 public class EvaluateSettingsBuildOperationType implements BuildOperationType<EvaluateSettingsBuildOperationType.Details, EvaluateSettingsBuildOperationType.Result> {
+    private EvaluateSettingsBuildOperationType() {}
+
     public interface Details {
         /**
          * @since 4.6
@@ -40,6 +42,4 @@ public class EvaluateSettingsBuildOperationType implements BuildOperationType<Ev
 
     public interface Result {
     }
-
-    private EvaluateSettingsBuildOperationType(){}
 }

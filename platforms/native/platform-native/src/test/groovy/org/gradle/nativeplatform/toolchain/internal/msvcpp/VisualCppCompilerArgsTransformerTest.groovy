@@ -45,8 +45,8 @@ class VisualCppCompilerArgsTransformerTest extends Specification {
 
     def "transforms system header and include args correctly"() {
         def spec = Stub(NativeCompileSpec)
-        def includes = [ new File("/foo"), new File("/bar") ]
-        def systemIncludes = [ new File("/baz") ]
+        def includes = [new File("/foo"), new File("/bar")]
+        def systemIncludes = [new File("/baz")]
         spec.includeRoots >> includes
         spec.systemIncludeRoots >> systemIncludes
 

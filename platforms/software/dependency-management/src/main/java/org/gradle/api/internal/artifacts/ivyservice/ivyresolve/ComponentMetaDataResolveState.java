@@ -25,13 +25,11 @@ import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDat
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
 class ComponentMetaDataResolveState {
+    final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository;
     private final DefaultBuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> resolveResult;
     private final VersionedComponentChooser versionedComponentChooser;
     private final ComponentOverrideMetadata componentOverrideMetadata;
     private final ModuleComponentIdentifier componentIdentifier;
-
-    final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository;
-
     private boolean searchedLocally;
     private boolean searchedRemotely;
 

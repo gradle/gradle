@@ -30,6 +30,7 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
  */
 @Incubating
 public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
+    private static final ThreadLocal<SourceSetInfo> NEXT_SOURCE_SET_INFO = new ThreadLocal<SourceSetInfo>();
     /**
      * This is here as a convenience for subclasses to create additional SourceDirectorySets
      *
@@ -37,7 +38,14 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
      */
     protected final ObjectFactory objectFactory;
 
-    private static final ThreadLocal<SourceSetInfo> NEXT_SOURCE_SET_INFO = new ThreadLocal<SourceSetInfo>();
+    public BaseLanguageSourceSet() {
+        this(NEXT_SOURCE_SET_INFO.get());
+    }
+
+    private BaseLanguageSourceSet(SourceSetInfo info) {
+        super(validate(info).identifier, info.publicType, info.objectFactory.sourceDirectorySet("source", "source"));
+        this.objectFactory = info.objectFactory;
+    }
 
     /**
      * Create a source set instance.
@@ -55,15 +63,6 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
         } finally {
             NEXT_SOURCE_SET_INFO.set(null);
         }
-    }
-
-    public BaseLanguageSourceSet() {
-        this(NEXT_SOURCE_SET_INFO.get());
-    }
-
-    private BaseLanguageSourceSet(SourceSetInfo info) {
-        super(validate(info).identifier, info.publicType, info.objectFactory.sourceDirectorySet("source", "source"));
-        this.objectFactory = info.objectFactory;
     }
 
     private static SourceSetInfo validate(SourceSetInfo info) {

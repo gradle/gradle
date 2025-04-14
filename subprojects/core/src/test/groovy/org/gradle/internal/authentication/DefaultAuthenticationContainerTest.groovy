@@ -53,6 +53,7 @@ class DefaultAuthenticationContainerTest extends Specification {
         DefaultTestAuthentication(String name) {
             super(name, TestAuthentication)
         }
+
         DefaultTestAuthentication(String name, Class type) {
             super(name, type)
         }

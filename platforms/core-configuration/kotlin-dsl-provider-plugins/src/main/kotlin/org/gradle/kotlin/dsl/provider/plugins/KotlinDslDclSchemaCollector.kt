@@ -131,7 +131,7 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
 
         return if (typeArgs.isNotEmpty()) {
             parameterizedTypeOfRawGenericClass(typeArgs, loadedClass)
-        } else{
+        } else {
             TypeOf.typeOf(loadedClass)
         }
     }

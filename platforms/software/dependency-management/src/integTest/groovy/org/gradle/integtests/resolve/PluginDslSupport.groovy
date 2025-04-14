@@ -47,8 +47,8 @@ ${text.substring(idx)}
         int idx = text.indexOf('allprojects')
         text = """${text.substring(0, idx)}
             plugins {
-                ${plugins.collect { String v = it.value?" version \"${it.value}\"":""; "id '$it.key'$v" }.join('\n')}
-                ${aliases.collect { String v = it.value?" version '${it.value}'":""; "alias($it.key)$v" }.join('\n')}
+                ${plugins.collect { String v = it.value ? " version \"${it.value}\"" : ""; "id '$it.key'$v" }.join('\n')}
+                ${aliases.collect { String v = it.value ? " version '${it.value}'" : ""; "alias($it.key)$v" }.join('\n')}
             }
 
 ${text.substring(idx)}

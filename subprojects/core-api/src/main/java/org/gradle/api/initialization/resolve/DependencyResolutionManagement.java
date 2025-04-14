@@ -28,12 +28,12 @@ import org.gradle.internal.HasInternalProtocol;
  * Allows configuring dependency resolution for all projects of the build.
  *
  * @since 6.8
- *
  */
 @HasInternalProtocol
 public interface DependencyResolutionManagement {
     /**
      * Configures the repositories used by all projects
+     *
      * @param repositoryConfiguration the repositories configuration
      */
     @Incubating
@@ -52,6 +52,7 @@ public interface DependencyResolutionManagement {
 
     /**
      * Registers component metadata rules used by all projects
+     *
      * @param registration the registration action
      */
     void components(Action<? super ComponentMetadataHandler> registration);
@@ -65,8 +66,8 @@ public interface DependencyResolutionManagement {
 
     /**
      * Configures the version catalogs which will be used to generate type safe accessors for dependencies.
-     * @param spec the spec to configure the dependencies
      *
+     * @param spec the spec to configure the dependencies
      * @since 7.0
      */
     void versionCatalogs(Action<? super MutableVersionCatalogContainer> spec);

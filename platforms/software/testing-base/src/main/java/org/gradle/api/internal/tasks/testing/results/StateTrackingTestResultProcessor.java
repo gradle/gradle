@@ -32,8 +32,8 @@ import java.util.Map;
 
 public class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
-    private TestDescriptorInternal currentParent;
     private final TestListenerInternal listener;
+    private TestDescriptorInternal currentParent;
 
     public StateTrackingTestResultProcessor(TestListenerInternal delegate) {
         this.listener = delegate;
@@ -49,7 +49,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         TestState oldState = executing.put(test.getId(), state);
         if (oldState != null) {
             throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
-                    test, test.getId()));
+                test, test.getId()));
         }
 
         listener.started(state.test, event);
@@ -78,8 +78,8 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         TestState testState = executing.remove(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
-                    "Received a completed event for test with unknown id '%s'. Registered test ids: '%s'",
-                    testId, executing.keySet()));
+                "Received a completed event for test with unknown id '%s'. Registered test ids: '%s'",
+                testId, executing.keySet()));
         }
 
         //In case the output event arrives after completion of the test
@@ -102,8 +102,8 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         TestState testState = executing.get(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
-                    "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
-                    testId, executing.keySet()));
+                "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
+                testId, executing.keySet()));
         }
         if (testFailure.getDetails().isAssumptionFailure()) {
             testState.assumptionFailure = testFailure;

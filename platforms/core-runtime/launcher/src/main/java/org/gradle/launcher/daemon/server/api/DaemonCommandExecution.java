@@ -73,21 +73,21 @@ public class DaemonCommandExecution {
     }
 
     /**
-     * Sets what is to be considered the result of executing the command.
-     * <p>
-     * This may be called multiple times to do things like wrap the result in another type.
-     */
-    public void setResult(Object result) {
-        this.result = result;
-    }
-
-    /**
      * The currently nominated result for the execution.
      *
      * <p>May be null if no action has set the result yet.
      */
     public Object getResult() {
         return this.result;
+    }
+
+    /**
+     * Sets what is to be considered the result of executing the command.
+     * <p>
+     * This may be called multiple times to do things like wrap the result in another type.
+     */
+    public void setResult(Object result) {
+        this.result = result;
     }
 
     /**

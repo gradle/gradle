@@ -54,16 +54,16 @@ import java.util.Map;
  */
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
+    private final CheckstyleReports reports;
+    private final DirectoryProperty configDirectory;
+    private final Property<Boolean> enableExternalDtdLoad;
     private FileCollection checkstyleClasspath;
     private FileCollection classpath;
     private TextResource config;
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
-    private final CheckstyleReports reports;
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private final DirectoryProperty configDirectory;
-    private final Property<Boolean> enableExternalDtdLoad;
 
     public Checkstyle() {
         super();
@@ -352,7 +352,6 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
      *
      * @return property to enable the use of external DTD files
-     *
      * @since 7.6
      */
     @Incubating

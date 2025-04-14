@@ -21,8 +21,6 @@ import java.io.UncheckedIOException;
 import java.util.function.Predicate;
 
 public interface IoPredicate<T> {
-    boolean test(T t) throws IOException;
-
     static <T> Predicate<T> wrap(IoPredicate<T> predicate) {
         return t -> {
             try {
@@ -32,4 +30,6 @@ public interface IoPredicate<T> {
             }
         };
     }
+
+    boolean test(T t) throws IOException;
 }

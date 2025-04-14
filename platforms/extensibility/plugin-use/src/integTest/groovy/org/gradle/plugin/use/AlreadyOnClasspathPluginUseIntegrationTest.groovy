@@ -177,7 +177,8 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // TestKit usage inside of the test requires distribution
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    // TestKit usage inside of the test requires distribution
     def "can request plugin from TestKit injected classpath"() {
 
         given:
@@ -359,7 +360,8 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         failureHasCause("The request for this plugin could not be satisfied because the plugin is already on the classpath with an unknown version, so compatibility cannot be checked.")
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // TestKit usage inside of the test requires distribution
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    // TestKit usage inside of the test requires distribution
     def "cannot request plugin version of plugin from TestKit injected classpath"() {
 
         given:

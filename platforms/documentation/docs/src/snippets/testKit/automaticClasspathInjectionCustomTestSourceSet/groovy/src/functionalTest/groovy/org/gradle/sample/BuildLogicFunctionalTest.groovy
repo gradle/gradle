@@ -8,13 +8,14 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
-    @TempDir File testProjectDir
+    @TempDir
+    File testProjectDir
     File settingsFile
     File buildFile
 
     def setup() {
-        settingsFile = new File(testProjectDir,'settings.gradle')
-        buildFile = new File(testProjectDir,'build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
     }
 
     def "hello world task prints hello world"() {

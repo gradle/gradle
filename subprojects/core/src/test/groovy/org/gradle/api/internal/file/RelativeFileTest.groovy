@@ -20,7 +20,7 @@ import org.gradle.api.file.RelativePath
 import spock.lang.Specification
 
 class RelativeFileTest extends Specification {
-    def "can get base directory of relative file" () {
+    def "can get base directory of relative file"() {
         File file = new File("/some/relatively/long/path/to/a/file")
         RelativePath relativePath = RelativePath.parse(true, "to/a/file")
         RelativeFile relativeFile = new RelativeFile(file, relativePath)
@@ -29,7 +29,7 @@ class RelativeFileTest extends Specification {
         relativeFile.getBaseDir() == new File("/some/relatively/long/path")
     }
 
-    def "base directory is null if either file or relativepath are null" () {
+    def "base directory is null if either file or relativepath are null"() {
         RelativeFile relativeFile = new RelativeFile(file, relativePath)
 
         expect:

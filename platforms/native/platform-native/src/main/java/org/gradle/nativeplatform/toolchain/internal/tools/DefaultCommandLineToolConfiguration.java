@@ -36,7 +36,7 @@ public class DefaultCommandLineToolConfiguration implements CommandLineToolConfi
     }
 
     @Override
-    public void withArguments(Action<? super List<String>>  action) {
+    public void withArguments(Action<? super List<String>> action) {
         argActions.add(action);
     }
 

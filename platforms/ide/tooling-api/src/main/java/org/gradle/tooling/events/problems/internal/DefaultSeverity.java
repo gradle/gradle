@@ -23,9 +23,6 @@ import org.gradle.tooling.events.problems.Severity;
 
 public class DefaultSeverity implements Severity {
 
-    private final int severity;
-    private final boolean known;
-
     // Using the loading cache ensures that there's only one object in memory per severity level even when the level is unknown by the client
     private static final LoadingCache<Integer, Severity> UNKNOWN_ENTRIES = CacheBuilder.newBuilder().build(new CacheLoader<Integer, Severity>() {
         @Override
@@ -33,20 +30,12 @@ public class DefaultSeverity implements Severity {
             return new DefaultSeverity(key, false);
         }
     });
+    private final int severity;
+    private final boolean known;
 
     public DefaultSeverity(int severity, boolean known) {
         this.severity = severity;
         this.known = known;
-    }
-
-    @Override
-    public int getSeverity() {
-        return severity;
-    }
-
-    @Override
-    public boolean isKnown() {
-        return known;
     }
 
     public static Severity from(int severity) {
@@ -59,5 +48,15 @@ public class DefaultSeverity implements Severity {
         } else {
             return UNKNOWN_ENTRIES.getUnchecked(severity);
         }
+    }
+
+    @Override
+    public int getSeverity() {
+        return severity;
+    }
+
+    @Override
+    public boolean isKnown() {
+        return known;
     }
 }

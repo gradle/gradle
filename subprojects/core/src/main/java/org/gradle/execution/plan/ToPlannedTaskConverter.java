@@ -51,6 +51,44 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         return new PlannedTaskIdentity(taskNode.getTask().getTaskIdentity());
     }
 
+    @Override
+    public boolean isInSamePlan(Node node) {
+        return node instanceof LocalTaskNode;
+    }
+
+    @Override
+    public DefaultPlannedTask convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
+        if (!isInSamePlan(node)) {
+            throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
+        }
+
+        LocalTaskNode taskNode = (LocalTaskNode) node;
+        return new DefaultPlannedTask(
+            getNodeIdentity(taskNode),
+            nodeDependencies,
+            getTaskIdentities(taskNode.getMustSuccessors()),
+            getTaskIdentities(taskNode.getShouldSuccessors()),
+            getTaskIdentities(taskNode.getFinalizers())
+        );
+    }
+
+    private List<TaskIdentity> getTaskIdentities(Collection<Node> nodes) {
+        if (nodes.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return nodes.stream()
+            .filter(TaskNode.class::isInstance)
+            .map(TaskNode.class::cast)
+            .map(this::getNodeIdentity)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return "ToPlannedTaskConverter(" + getSupportedNodeType().getSimpleName() + ")";
+    }
+
     private static class PlannedTaskIdentity implements TaskIdentity {
         private final org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate;
 
@@ -99,43 +137,5 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         public String toString() {
             return "Task " + delegate.getIdentityPath();
         }
-    }
-
-    @Override
-    public boolean isInSamePlan(Node node) {
-        return node instanceof LocalTaskNode;
-    }
-
-    @Override
-    public DefaultPlannedTask convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
-        if (!isInSamePlan(node)) {
-            throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
-        }
-
-        LocalTaskNode taskNode = (LocalTaskNode) node;
-        return new DefaultPlannedTask(
-            getNodeIdentity(taskNode),
-            nodeDependencies,
-            getTaskIdentities(taskNode.getMustSuccessors()),
-            getTaskIdentities(taskNode.getShouldSuccessors()),
-            getTaskIdentities(taskNode.getFinalizers())
-        );
-    }
-
-    private List<TaskIdentity> getTaskIdentities(Collection<Node> nodes) {
-        if (nodes.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return nodes.stream()
-            .filter(TaskNode.class::isInstance)
-            .map(TaskNode.class::cast)
-            .map(this::getNodeIdentity)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public String toString() {
-        return "ToPlannedTaskConverter(" + getSupportedNodeType().getSimpleName() + ")";
     }
 }

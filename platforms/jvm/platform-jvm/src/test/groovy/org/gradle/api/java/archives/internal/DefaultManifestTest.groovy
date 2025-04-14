@@ -48,11 +48,11 @@ class DefaultManifestTest extends Specification {
         def fileMap = [Key2: 'value2File', key4: 'value4File', key6: 'value6File']
         def fileSectionMap = [Keysec2: 'value2Secfile', keysec4: 'value5Secfile', keysec6: 'value6Secfile']
         String content = ''
-        fileMap.each {key, value ->
+        fileMap.each { key, value ->
             content += String.format("%s: %s%n", key, value)
         }
         content += String.format("Name: %s%n", 'section')
-        fileSectionMap.each {key, value ->
+        fileSectionMap.each { key, value ->
             content += String.format("%s: %s%n", key, value)
         }
         manifestFile.write(content)

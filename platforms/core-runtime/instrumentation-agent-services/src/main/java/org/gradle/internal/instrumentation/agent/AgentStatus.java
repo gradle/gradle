@@ -25,13 +25,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Global.class)
 public interface AgentStatus {
     /**
-     * Checks if the agent-based bytecode instrumentation is enabled for the current JVM process.
-     *
-     * @return {@code true} if the agent instrumentation should be used
-     */
-    boolean isAgentInstrumentationEnabled();
-
-    /**
      * Returns an AgentStatus instance that enables instrumentation if the agent is available.
      */
     static AgentStatus allowed() {
@@ -53,4 +46,11 @@ public interface AgentStatus {
     static AgentStatus of(boolean agentInstrumentationAllowed) {
         return agentInstrumentationAllowed ? allowed() : disabled();
     }
+
+    /**
+     * Checks if the agent-based bytecode instrumentation is enabled for the current JVM process.
+     *
+     * @return {@code true} if the agent instrumentation should be used
+     */
+    boolean isAgentInstrumentationEnabled();
 }

@@ -32,7 +32,7 @@ class DefaultVersionControlRepositoryTest extends Specification {
     def mapping = Mock(VcsMapping)
 
     def setup() {
-        _ * notationParser.parseNotation(_) >> { String s -> def v = s.split(':'); return DefaultModuleIdentifier.newId(v[0], v[1])}
+        _ * notationParser.parseNotation(_) >> { String s -> def v = s.split(':'); return DefaultModuleIdentifier.newId(v[0], v[1]) }
     }
 
     def "repository definition does nothing by default"() {

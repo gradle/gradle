@@ -22,7 +22,8 @@ import spock.lang.Specification
 import spock.lang.TempDir
 
 class SimpleClassMetaDataRepositoryTest extends Specification {
-    @TempDir File tmpDir
+    @TempDir
+    File tmpDir
     final SimpleClassMetaDataRepository<TestDomainObject> repository = new SimpleClassMetaDataRepository<TestDomainObject>()
 
     def canAddMetaData() {

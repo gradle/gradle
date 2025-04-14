@@ -60,9 +60,9 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
 
     void enableJvmMemoryInfoPublishing(boolean shouldPublish);
 
-    void setNativeServicesMode(NativeServicesMode mode);
-
     NativeServicesMode getNativeServicesMode();
+
+    void setNativeServicesMode(NativeServicesMode mode);
 
     /**
      * Set if Gradle should add JPMS-compatibility flags to the worker process when needed.

@@ -36,12 +36,12 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
-    private Object dir;
     private final PatternSet patternSet;
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
     private final FileCollectionObservationListener listener;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private Object dir;
 
     public DefaultConfigurableFileTree(
         PathToFileResolver resolver,
@@ -88,17 +88,17 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    public DefaultConfigurableFileTree setDir(Object dir) {
-        from(dir);
-        return this;
-    }
-
-    @Override
     public File getDir() {
         if (dir == null) {
             throw new InvalidUserDataException("A base directory must be specified in the task or via a method argument!");
         }
         return resolver.resolve(dir);
+    }
+
+    @Override
+    public DefaultConfigurableFileTree setDir(Object dir) {
+        from(dir);
+        return this;
     }
 
     @Override

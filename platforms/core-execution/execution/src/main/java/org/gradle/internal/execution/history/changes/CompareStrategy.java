@@ -45,18 +45,20 @@ public class CompareStrategy<C, S> {
         return changeDetector.visitChangesSince(indexer.apply(previous), indexer.apply(current), propertyTitle, visitor);
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
+
     public interface ChangeDetector<S> {
         boolean visitChangesSince(Map<String, S> previous, Map<String, S> current, String propertyTitle, ChangeVisitor visitor);
     }
 
     public interface ChangeFactory<S> {
         Change added(String path, String propertyTitle, S current);
-        Change removed(String path, String propertyTitle, S previous);
-        Change modified(String path, String propertyTitle, S previous, S current);
-    }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
+        Change removed(String path, String propertyTitle, S previous);
+
+        Change modified(String path, String propertyTitle, S previous, S current);
     }
 }

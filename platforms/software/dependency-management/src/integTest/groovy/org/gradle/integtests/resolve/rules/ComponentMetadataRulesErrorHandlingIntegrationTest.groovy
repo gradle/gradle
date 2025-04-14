@@ -40,7 +40,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         resolve.prepare()
     }
 
-    def "produces sensible error when bad code is supplied in component metadata rule" () {
+    def "produces sensible error when bad code is supplied in component metadata rule"() {
         def lines = buildFile.readLines().size()
         buildFile << """
             class WrongRule implements ComponentMetadataRule {
@@ -64,7 +64,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failure.assertHasCause("No signature of method: WrongRule.foo() is applicable for argument types: () values: []")
     }
 
-    def "produces sensible error for invalid component metadata rule" () {
+    def "produces sensible error for invalid component metadata rule"() {
         def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
@@ -83,14 +83,14 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failureHasCause(message)
 
         where:
-        parameters                           | message
-        "String vs ->"                       | "First parameter of rule action closure must be of type 'ComponentMetadataDetails'."
-        "ComponentMetadata cm, String s ->"  | "Rule may not have an input parameter of type: java.lang.String. " +
-                                               "Second parameter must be of type: " +
-                                               "org.gradle.api.artifacts.ivy.IvyModuleDescriptor or org.gradle.api.artifacts.maven.PomModuleDescriptor."
+        parameters                          | message
+        "String vs ->"                      | "First parameter of rule action closure must be of type 'ComponentMetadataDetails'."
+        "ComponentMetadata cm, String s ->" | "Rule may not have an input parameter of type: java.lang.String. " +
+            "Second parameter must be of type: " +
+            "org.gradle.api.artifacts.ivy.IvyModuleDescriptor or org.gradle.api.artifacts.maven.PomModuleDescriptor."
     }
 
-    def "produces sensible error when rule throws an exception" () {
+    def "produces sensible error when rule throws an exception"() {
         def lines = buildFile.readLines().size()
         buildFile << """
             class ThrowingRule implements ComponentMetadataRule {
@@ -114,7 +114,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failure.assertHasCause("From Test")
     }
 
-    def "produces sensible error for invalid module target id" () {
+    def "produces sensible error for invalid module target id"() {
         def lines = buildFile.readLines().size()
         buildFile << """
             class UnusedRule implements ComponentMetadataRule {
@@ -139,7 +139,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.test")
     }
 
-    def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter" () {
+    def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter"() {
         def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
@@ -164,7 +164,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
 
     }
 
-    def "produces sensible error when rule source throws an exception" () {
+    def "produces sensible error when rule source throws an exception"() {
         def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {

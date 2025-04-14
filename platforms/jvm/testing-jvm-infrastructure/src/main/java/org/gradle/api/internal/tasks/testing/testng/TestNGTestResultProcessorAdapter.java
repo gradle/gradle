@@ -266,7 +266,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         if (resultType == TestResult.ResultType.FAILURE) {
             Throwable rawFailure = iTestResult.getThrowable();
             reportTestFailure(testId, rawFailure);
-        } else if (resultType == TestResult.ResultType.SKIPPED && iTestResult.getThrowable()!=null) {
+        } else if (resultType == TestResult.ResultType.SKIPPED && iTestResult.getThrowable() != null) {
             Throwable rawFailure = iTestResult.getThrowable();
             resultProcessor.failure(testId, DefaultTestFailure.fromTestAssumptionFailure(rawFailure));
         }

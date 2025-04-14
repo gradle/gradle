@@ -32,8 +32,10 @@ import static org.hamcrest.CoreMatchers.containsString
 @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider)
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
     @UsesSample('scala/quickstart')
     def "can build jar with #dsl dsl"() {
@@ -49,9 +51,9 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         TestFile jarContents = file('jar')
         projectDir.file("build/libs/quickstart.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/sample/Named.class',
-                'org/gradle/sample/Person.class'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/sample/Named.class',
+            'org/gradle/sample/Person.class'
         )
 
         where:

@@ -39,7 +39,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         v.requiredVersion == '1.0'
         v.preferredVersion == '1.1'
         v.strictVersion == '1.1.1'
-        v.rejectedVersions == ['1.2','2.0']
+        v.rejectedVersions == ['1.2', '2.0']
     }
 
     def "can create an immutable version constraint that is strict"() {
@@ -49,7 +49,7 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         expect:
         v.requiredVersion == ''
         v.preferredVersion == ''
-        v.strictVersion =='1.0'
+        v.strictVersion == '1.0'
         v.rejectedVersions == []
     }
 

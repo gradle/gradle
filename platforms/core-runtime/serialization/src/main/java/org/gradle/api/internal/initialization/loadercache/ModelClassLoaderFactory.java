@@ -38,6 +38,19 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
         this.rootClassLoader = rootClassLoader;
     }
 
+    private static List<URL> convertToURLs(ClientOwnedClassLoaderSpec clSpec) {
+        List<URI> classpath = clSpec.getClasspath();
+        ImmutableList.Builder<URL> builder = ImmutableList.builderWithExpectedSize(classpath.size());
+        for (URI uri : classpath) {
+            try {
+                builder.add(uri.toURL());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return builder.build();
+    }
+
     @Override
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof SystemClassLoaderSpec) {
@@ -66,18 +79,5 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
             return new VisitableURLClassLoader(clSpec.getClass().getName(), parent, convertToURLs(clSpec));
         }
         throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
-    }
-
-    private static List<URL> convertToURLs(ClientOwnedClassLoaderSpec clSpec) {
-        List<URI> classpath = clSpec.getClasspath();
-        ImmutableList.Builder<URL> builder = ImmutableList.builderWithExpectedSize(classpath.size());
-        for (URI uri : classpath) {
-            try {
-                builder.add(uri.toURL());
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return builder.build();
     }
 }

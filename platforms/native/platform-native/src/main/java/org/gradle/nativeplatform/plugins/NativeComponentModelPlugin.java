@@ -159,11 +159,13 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
         }
 
         @Model
-        Repositories repositories(ServiceRegistry serviceRegistry,
-                                  FlavorContainer flavors,
-                                  PlatformContainer platforms,
-                                  BuildTypeContainer buildTypes,
-                                  CollectionCallbackActionDecorator callbackActionDecorator) {
+        Repositories repositories(
+            ServiceRegistry serviceRegistry,
+            FlavorContainer flavors,
+            PlatformContainer platforms,
+            BuildTypeContainer buildTypes,
+            CollectionCallbackActionDecorator callbackActionDecorator
+        ) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             ObjectFactory sourceDirectorySetFactory = serviceRegistry.get(ObjectFactory.class);
             NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
@@ -408,11 +410,12 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        void createBinaries(@Each TargetedNativeComponentInternal nativeComponent,
-                            PlatformResolvers platforms,
-                            BuildTypeContainer buildTypes,
-                            FlavorContainer flavors,
-                            ServiceRegistry serviceRegistry
+        void createBinaries(
+            @Each TargetedNativeComponentInternal nativeComponent,
+            PlatformResolvers platforms,
+            BuildTypeContainer buildTypes,
+            FlavorContainer flavors,
+            ServiceRegistry serviceRegistry
         ) {
             NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
             NativeDependencyResolver nativeDependencyResolver = serviceRegistry.get(NativeDependencyResolver.class);
@@ -429,11 +432,13 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
-        private DefaultRepositories(Instantiator instantiator,
-                                    ObjectFactory objectFactory,
-                                    Action<PrebuiltLibrary> binaryFactory,
-                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                    DomainObjectCollectionFactory domainObjectCollectionFactory) {
+        private DefaultRepositories(
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            Action<PrebuiltLibrary> binaryFactory,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            DomainObjectCollectionFactory domainObjectCollectionFactory
+        ) {
             super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer(), collectionCallbackActionDecorator);
             registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
                 @Override

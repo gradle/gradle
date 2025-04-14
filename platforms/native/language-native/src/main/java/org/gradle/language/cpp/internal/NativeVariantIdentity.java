@@ -62,7 +62,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
         if (linkVariant != null) {
             variants.add(linkVariant);
         }
-        if (runtimeVariant !=null) {
+        if (runtimeVariant != null) {
             variants.add(runtimeVariant);
         }
     }

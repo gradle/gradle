@@ -49,6 +49,14 @@ public class FileWalkingBenchmark {
     @Param({"true", "false"})
     boolean missing;
 
+    private static void mkdirs(Path path) throws IOException {
+        if (path == null || Files.isDirectory(path)) {
+            return;
+        }
+        mkdirs(path.getParent());
+        Files.createDirectory(path);
+    }
+
     @Setup(Level.Trial)
     public void setup() throws IOException {
         this.tempDirPath = Files.createTempDirectory("file-walking");
@@ -67,14 +75,6 @@ public class FileWalkingBenchmark {
     @TearDown(Level.Trial)
     public void tearDown() throws IOException {
         FileUtils.forceDelete(tempDirFile);
-    }
-
-    private static void mkdirs(Path path) throws IOException {
-        if (path == null || Files.isDirectory(path)) {
-            return;
-        }
-        mkdirs(path.getParent());
-        Files.createDirectory(path);
     }
 
     @Benchmark

@@ -60,10 +60,10 @@ class ConfigureUtilTest extends Specification {
         def cl = {
             it.is obj
         }
-        def cl2 = {List list ->
+        def cl2 = { List list ->
             list.is obj
         }
-        def cl3 = {->
+        def cl3 = { ->
             delegate.is obj
         }
 
@@ -207,6 +207,7 @@ class ConfigureUtilTest extends Specification {
 
     static class Bean {
         String prop
+
         def method(String value) {
             prop = value
         }

@@ -26,7 +26,8 @@ import static org.gradle.internal.IoActions.*
 
 class IoActionsTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     def "can use file action to write to text file"() {
         given:

@@ -27,26 +27,20 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
-    private enum QueueState {
-        Working, Finishing, Cancelled, Done
-    }
-
     private final boolean allowAccessToProjectState;
     private final WorkerLeaseService workerLeases;
     private final Executor executor;
     private final QueueWorker<T> queueWorker;
-    private String logLocation;
-
     // Lock protects the following state, using an intentionally simple locking strategy
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
     private final Condition operationsComplete = lock.newCondition();
+    private final Deque<T> workQueue = new LinkedList<>();
+    private final LinkedList<Throwable> failures = new LinkedList<>();
+    private String logLocation;
     private QueueState queueState = QueueState.Working;
     private int workerCount;
     private int pendingOperations;
-    private final Deque<T> workQueue = new LinkedList<>();
-    private final LinkedList<Throwable> failures = new LinkedList<>();
-
     DefaultBuildOperationQueue(boolean allowAccessToProjectState, WorkerLeaseService workerLeases, Executor executor, QueueWorker<T> queueWorker) {
         this.allowAccessToProjectState = allowAccessToProjectState;
         this.workerLeases = workerLeases;
@@ -181,6 +175,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     @Override
     public void setLogLocation(String logLocation) {
         this.logLocation = logLocation;
+    }
+
+    private enum QueueState {
+        Working, Finishing, Cancelled, Done
     }
 
     private class WorkerRunnable implements Runnable {

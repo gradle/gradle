@@ -37,6 +37,7 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
         constraints = emptySet();
         ignoredEntryFilter = LockEntryFilterFactory.FILTERS_NONE;
     }
+
     public DefaultDependencyLockingState(boolean strictlyValidate, Set<ModuleComponentIdentifier> constraints, LockEntryFilter ignoredEntryFilter) {
         this.strictlyValidate = strictlyValidate;
         this.constraints = constraints;

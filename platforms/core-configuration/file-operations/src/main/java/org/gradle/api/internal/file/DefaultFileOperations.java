@@ -133,6 +133,48 @@ public class DefaultFileOperations implements FileOperations {
         this.decompressionCoordinator = decompressionCoordinator;
     }
 
+    public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
+        Instantiator instantiator = services.get(Instantiator.class);
+        PropertyFactory propertyFactory = services.get(PropertyFactory.class);
+        FileSystem fileSystem = services.get(FileSystem.class);
+        DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
+        FileHasher fileHasher = services.get(FileHasher.class);
+        ApiTextResourceAdapter.Factory textResourceAdapterFactory = services.get(ApiTextResourceAdapter.Factory.class);
+        PatternSetFactory patternSetFactory = services.get(PatternSetFactory.class);
+        Deleter deleter = services.get(Deleter.class);
+        DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
+        ProviderFactory providers = services.get(ProviderFactory.class);
+        TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
+        DecompressionCoordinator decompressionCoordinator = services.get(DecompressionCoordinator.class);
+        TemporaryFileProvider temporaryFileProvider = services.get(TemporaryFileProvider.class);
+
+        DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
+            fileResolver,
+            taskDependencyFactory,
+            fileSystem,
+            temporaryFileProvider,
+            textResourceAdapterFactory
+        );
+
+        return new DefaultFileOperations(
+            fileResolver,
+            instantiator,
+            directoryFileTreeFactory,
+            fileHasher,
+            resourceHandlerFactory,
+            fileTreeFactory,
+            propertyFactory,
+            fileSystem,
+            patternSetFactory,
+            deleter,
+            documentationRegistry,
+            taskDependencyFactory,
+            providers,
+            decompressionCoordinator,
+            temporaryFileProvider
+        );
+    }
+
     @Override
     public File file(Object path) {
         return fileResolver.resolve(path);
@@ -308,47 +350,5 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public ResourceHandler getResources() {
         return resourceHandler;
-    }
-
-    public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
-        Instantiator instantiator = services.get(Instantiator.class);
-        PropertyFactory propertyFactory = services.get(PropertyFactory.class);
-        FileSystem fileSystem = services.get(FileSystem.class);
-        DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
-        FileHasher fileHasher = services.get(FileHasher.class);
-        ApiTextResourceAdapter.Factory textResourceAdapterFactory = services.get(ApiTextResourceAdapter.Factory.class);
-        PatternSetFactory patternSetFactory = services.get(PatternSetFactory.class);
-        Deleter deleter = services.get(Deleter.class);
-        DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
-        ProviderFactory providers = services.get(ProviderFactory.class);
-        TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
-        DecompressionCoordinator decompressionCoordinator = services.get(DecompressionCoordinator.class);
-        TemporaryFileProvider temporaryFileProvider = services.get(TemporaryFileProvider.class);
-
-        DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
-            fileResolver,
-            taskDependencyFactory,
-            fileSystem,
-            temporaryFileProvider,
-            textResourceAdapterFactory
-        );
-
-        return new DefaultFileOperations(
-            fileResolver,
-            instantiator,
-            directoryFileTreeFactory,
-            fileHasher,
-            resourceHandlerFactory,
-            fileTreeFactory,
-            propertyFactory,
-            fileSystem,
-            patternSetFactory,
-            deleter,
-            documentationRegistry,
-            taskDependencyFactory,
-            providers,
-            decompressionCoordinator,
-            temporaryFileProvider
-        );
     }
 }

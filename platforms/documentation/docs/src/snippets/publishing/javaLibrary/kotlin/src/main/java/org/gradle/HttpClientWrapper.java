@@ -2,9 +2,11 @@ package org.gradle;
 
 // The following types can appear anywhere in the code
 // but say nothing about API or implementation usage
+
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 

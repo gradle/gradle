@@ -75,11 +75,13 @@ class FormattingValidationProblemCollectorTest extends Specification {
 
     static class SuperClass {
         private String value
-        void thing() { }
+
+        void thing() {}
     }
 
     static class WithConstructor extends SuperClass {
         String value
+
         WithConstructor(String s) {}
     }
 

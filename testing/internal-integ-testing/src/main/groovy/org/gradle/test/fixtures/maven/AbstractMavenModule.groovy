@@ -289,7 +289,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                         assert Hashing.sha256().hashFile(artifact.file) == file.sha256
                         assert Hashing.sha512().hashFile(artifact.file) == file.sha512
                     }
-                    assert Hashing.md5(). hashFile(artifact.file) == file.md5
+                    assert Hashing.md5().hashFile(artifact.file) == file.md5
                 }
             }
         }
@@ -765,7 +765,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     MavenModule asGradlePlatform() {
         variants.clear()
-        variant('api',  [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+        variant('api', [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
             useDefaultArtifacts = false
         }
         variant('runtime', [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {

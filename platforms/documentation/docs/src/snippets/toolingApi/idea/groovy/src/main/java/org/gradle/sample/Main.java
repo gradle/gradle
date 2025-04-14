@@ -28,35 +28,35 @@ public class Main {
 
             System.out.println("***");
             System.out.println("Project modules: ");
-            for(IdeaModule module: project.getModules()) {
+            for (IdeaModule module : project.getModules()) {
                 System.out.println("  " + module);
                 System.out.println("  module details:");
 
                 System.out.println("    tasks from associated gradle project:");
-                for (GradleTask task: module.getGradleProject().getTasks()) {
+                for (GradleTask task : module.getGradleProject().getTasks()) {
                     System.out.println("      " + task.getName());
                 }
 
-                for (IdeaContentRoot root: module.getContentRoots()) {
+                for (IdeaContentRoot root : module.getContentRoots()) {
                     System.out.println("    Content root: " + root.getRootDirectory());
                     System.out.println("    source dirs:");
-                    for (IdeaSourceDirectory dir: root.getSourceDirectories()) {
+                    for (IdeaSourceDirectory dir : root.getSourceDirectories()) {
                         System.out.println("      " + dir);
                     }
 
                     System.out.println("    test dirs:");
-                    for (IdeaSourceDirectory dir: root.getTestDirectories()) {
+                    for (IdeaSourceDirectory dir : root.getTestDirectories()) {
                         System.out.println("      " + dir);
                     }
 
                     System.out.println("    exclude dirs:");
-                    for (File dir: root.getExcludeDirectories()) {
+                    for (File dir : root.getExcludeDirectories()) {
                         System.out.println("      " + dir);
                     }
                 }
 
                 System.out.println("    dependencies:");
-                for (IdeaDependency dependency: module.getDependencies()) {
+                for (IdeaDependency dependency : module.getDependencies()) {
                     System.out.println("      * " + dependency);
                 }
             }

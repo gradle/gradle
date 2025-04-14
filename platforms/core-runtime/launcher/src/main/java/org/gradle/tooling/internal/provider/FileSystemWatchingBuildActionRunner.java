@@ -71,6 +71,24 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         this.options = options;
     }
 
+    private static void logVfsStatistics(
+        String title,
+        StatStatistics.Collector statStatisticsCollector,
+        FileHasherStatistics.Collector fileHasherStatisticsCollector,
+        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector
+    ) {
+        LOGGER.warn("VFS> Statistics {}:", title);
+        LOGGER.warn("VFS> > Stat: {}", statStatisticsCollector.collect());
+        LOGGER.warn("VFS> > FileHasher: {}", fileHasherStatisticsCollector.collect());
+        LOGGER.warn("VFS> > DirectorySnapshotter: {}", directorySnapshotterStatisticsCollector.collect());
+    }
+
+    private static void dropVirtualFileSystemIfRequested(InternalOptions options, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
+        if (VirtualFileSystemServices.isDropVfs(options)) {
+            virtualFileSystem.invalidateAll();
+        }
+    }
+
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
         StartParameterInternal startParameter = action.getStartParameter();
@@ -144,24 +162,6 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             if (verboseVfsLogging == VfsLogging.VERBOSE) {
                 logVfsStatistics("during current build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
             }
-        }
-    }
-
-    private static void logVfsStatistics(
-        String title,
-        StatStatistics.Collector statStatisticsCollector,
-        FileHasherStatistics.Collector fileHasherStatisticsCollector,
-        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector
-    ) {
-        LOGGER.warn("VFS> Statistics {}:", title);
-        LOGGER.warn("VFS> > Stat: {}", statStatisticsCollector.collect());
-        LOGGER.warn("VFS> > FileHasher: {}", fileHasherStatisticsCollector.collect());
-        LOGGER.warn("VFS> > DirectorySnapshotter: {}", directorySnapshotterStatisticsCollector.collect());
-    }
-
-    private static void dropVirtualFileSystemIfRequested(InternalOptions options, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
-        if (VirtualFileSystemServices.isDropVfs(options)) {
-            virtualFileSystem.invalidateAll();
         }
     }
 }

@@ -32,7 +32,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireDaemon().requireIsolatedDaemons()
     }
 
-    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
+    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable])
     def "up-to-date when executing twice in a row"() {
         given:
         setupRunHelloWorldTask()
@@ -51,7 +51,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
-    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
+    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable])
     def "not up-to-date when the Java version changes"() {
         given:
         setupRunHelloWorldTask()

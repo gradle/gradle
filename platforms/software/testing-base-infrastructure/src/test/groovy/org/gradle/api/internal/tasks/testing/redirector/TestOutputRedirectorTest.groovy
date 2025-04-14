@@ -28,7 +28,8 @@ class TestOutputRedirectorTest extends Specification {
     TestResultProcessor processor = Mock(TestResultProcessor)
     StandardOutputRedirector redir = Mock(StandardOutputRedirector)
 
-    @Subject redirector = new TestOutputRedirector(new FixedClock(123), processor, redir)
+    @Subject
+        redirector = new TestOutputRedirector(new FixedClock(123), processor, redir)
 
     def "starts redirecting output and error"() {
         when:
@@ -45,8 +46,10 @@ class TestOutputRedirectorTest extends Specification {
     }
 
     def "disallows starting redirecting if test owner not provided"() {
-        when: redirector.startRedirecting()
-        then: thrown(AssertionError)
+        when:
+        redirector.startRedirecting()
+        then:
+        thrown(AssertionError)
     }
 
     def "allows setting output owner"() {
@@ -70,7 +73,8 @@ class TestOutputRedirectorTest extends Specification {
         def f = new TestOutputRedirector.Forwarder(new FixedClock(123), processor, TestOutputEvent.Destination.StdErr)
         f.outputOwner = "5"
 
-        when: f.onOutput("ala")
+        when:
+        f.onOutput("ala")
 
         then:
         1 * processor.output("5", { DefaultTestOutputEvent e ->

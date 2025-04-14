@@ -47,12 +47,10 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
-
-    private MutationValidator mutationValidator = MutationValidator.IGNORE;
-    private Set<SpecRuleAction<? super ComponentSelection>> rules;
-
     private final RuleActionAdapter ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
+    private MutationValidator mutationValidator = MutationValidator.IGNORE;
+    private Set<SpecRuleAction<? super ComponentSelection>> rules;
 
     public DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this(moduleIdentifierFactory, createAdapter());
@@ -66,16 +64,16 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
             .toComposite();
     }
 
+    private static RuleActionAdapter createAdapter() {
+        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator();
+        return new DefaultRuleActionAdapter(ruleActionValidator, "ComponentSelectionRules");
+    }
+
     /**
      * Sets the validator to invoke prior to each mutation.
      */
     public void setMutationValidator(MutationValidator mutationValidator) {
         this.mutationValidator = mutationValidator;
-    }
-
-    private static RuleActionAdapter createAdapter() {
-        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator();
-        return new DefaultRuleActionAdapter(ruleActionValidator, "ComponentSelectionRules");
     }
 
     @Override

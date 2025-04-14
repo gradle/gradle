@@ -32,7 +32,8 @@ import static org.junit.Assume.assumeTrue
 @Requires(UnitTestPreconditions.CanInstallExecutable)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule public final Sample googleTest = sample(temporaryFolder, 'google-test')
+    @Rule
+    public final Sample googleTest = sample(temporaryFolder, 'google-test')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
@@ -50,8 +51,8 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         then:
         executedAndNotSkipped ":compileOperatorsTestPassingGoogleTestExeOperatorsTestCpp",
-                ":linkOperatorsTestPassingGoogleTestExe", ":operatorsTestPassingGoogleTestExe",
-                ":installOperatorsTestPassingGoogleTestExe", ":runOperatorsTestPassingGoogleTestExe"
+            ":linkOperatorsTestPassingGoogleTestExe", ":operatorsTestPassingGoogleTestExe",
+            ":installOperatorsTestPassingGoogleTestExe", ":runOperatorsTestPassingGoogleTestExe"
 
         and:
         def passingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTest/passing/test_detail.xml"))
@@ -66,8 +67,8 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
         then:
         executedAndNotSkipped ":compileOperatorsTestFailingGoogleTestExeOperatorsTestCpp",
-                ":linkOperatorsTestFailingGoogleTestExe", ":operatorsTestFailingGoogleTestExe",
-                ":installOperatorsTestFailingGoogleTestExe", ":runOperatorsTestFailingGoogleTestExe"
+            ":linkOperatorsTestFailingGoogleTestExe", ":operatorsTestFailingGoogleTestExe",
+            ":installOperatorsTestFailingGoogleTestExe", ":runOperatorsTestFailingGoogleTestExe"
 
         and:
         def failingResults = new GoogleTestTestResults(googleTest.dir.file("build/test-results/operatorsTest/failing/test_detail.xml"))
@@ -80,4 +81,4 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
     private static boolean isVisualCpp2015() {
         return toolChain.meets(ToolChainRequirement.VISUALCPP_2015)
     }
-  }
+}

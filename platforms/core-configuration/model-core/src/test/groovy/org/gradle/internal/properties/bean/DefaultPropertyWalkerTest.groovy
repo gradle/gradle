@@ -213,7 +213,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
-        1 * visitor.visitInputProperty("nested" , _, false)
+        1 * visitor.visitInputProperty("nested", _, false)
         1 * visitor.visitInputProperty("nested.nestedInput", _, false)
         1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, _, _, InputFilePropertyType.DIRECTORY)
         1 * visitor.visitOutputFileProperty("nested.outputDir", false, _, OutputFilePropertyType.DIRECTORY)
@@ -243,8 +243,10 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         @Input
         String value
 
-        @Nested Object left
-        @Nested Object right
+        @Nested
+        Object left
+        @Nested
+        Object right
     }
 
     private visitProperties(TaskInternal task) {

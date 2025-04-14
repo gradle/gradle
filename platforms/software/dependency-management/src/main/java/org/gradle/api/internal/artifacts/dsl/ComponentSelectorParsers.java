@@ -44,10 +44,10 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 public class ComponentSelectorParsers {
 
     private static final NotationParserBuilder<Object, ComponentSelector> BUILDER = NotationParserBuilder
-            .toType(ComponentSelector.class)
-            .fromCharSequence(new StringConverter())
-            .converter(new MapConverter())
-            .fromType(Project.class, new ProjectConverter());
+        .toType(ComponentSelector.class)
+        .fromCharSequence(new StringConverter())
+        .converter(new MapConverter())
+        .fromType(Project.class, new ProjectConverter());
 
     public static NotationParser<Object, Set<ComponentSelector>> multiParser() {
         return builder().toFlatteningComposite();
@@ -85,14 +85,14 @@ public class ComponentSelectorParsers {
                 parsed = new ParsedModuleStringNotation(notation, null);
             } catch (IllegalDependencyNotation e) {
                 throw new InvalidUserDataException(
-                        "Invalid format: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
-                                + "e.g: 'org.gradle:gradle-core:1.0'");
+                    "Invalid format: '" + notation + "'. The correct notation is a 3-part group:name:version notation, "
+                        + "e.g: 'org.gradle:gradle-core:1.0'");
             }
 
             if (parsed.getGroup() == null || parsed.getName() == null || parsed.getVersion() == null) {
                 throw new InvalidUserDataException(
-                        "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
-                                + "'org.gradle:gradle-core:1.0'");
+                    "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
+                        + "'org.gradle:gradle-core:1.0'");
             }
             result.converted(newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), DefaultImmutableVersionConstraint.of(parsed.getVersion())));
         }

@@ -8,13 +8,13 @@ public class GreetingTask extends DefaultTask {
 
     private String greeting = "hello from GreetingTask";
 
-    public void setGreeting(String greeting) {
-        this.greeting = greeting;
-    }
-
     @Input
     public String getGreeting() {
         return greeting;
+    }
+
+    public void setGreeting(String greeting) {
+        this.greeting = greeting;
     }
 
     @TaskAction

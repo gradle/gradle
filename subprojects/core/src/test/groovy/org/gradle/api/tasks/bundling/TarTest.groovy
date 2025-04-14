@@ -19,7 +19,7 @@ package org.gradle.api.tasks.bundling
 class TarTest extends AbstractArchiveTaskTest {
     Tar tar
 
-    def setup()  {
+    def setup() {
         tar = createTask(Tar)
         configure(tar)
     }

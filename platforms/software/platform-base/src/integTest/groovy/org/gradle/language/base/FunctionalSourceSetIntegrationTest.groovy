@@ -210,7 +210,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         apply plugin: Rules
         """
         expect:
-        succeeds ("model", "printSourceDirs")
+        succeeds("model", "printSourceDirs")
         normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
     }
 
@@ -231,12 +231,12 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds ("model", "printSourceDirs")
+        succeeds("model", "printSourceDirs")
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         modelNode.functionalSources.myJavaSourceSet.@type[0] == 'SomeJavaSourceSet'
-        modelNode.sources.@nodeValue[0]  == 'LanguageSourceSet collection'
+        modelNode.sources.@nodeValue[0] == 'LanguageSourceSet collection'
 
         and:
         normaliseFileSeparators(output).contains("source dirs: [${normaliseFileSeparators(testDirectory.path)}/src/main/myJavaSourceSet]")
@@ -344,7 +344,8 @@ after ss1
 '''
     }
 
-    @NotYetImplemented // Needs the ability to specify a rule for top-level nodes by type
+    @NotYetImplemented
+    // Needs the ability to specify a rule for top-level nodes by type
     def "a LSS is initialized with a default source set"() {
         buildFile << """
         ${registerJavaLanguage()}
@@ -385,7 +386,7 @@ after ss1
     }
 
 
-    private String addPrintSourceDirTask(){
+    private String addPrintSourceDirTask() {
         """
             class PrintSourceDirectoryRules extends RuleSource {
                 @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {

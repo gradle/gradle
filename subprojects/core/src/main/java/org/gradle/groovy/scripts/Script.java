@@ -34,12 +34,12 @@ public abstract class Script extends groovy.lang.Script {
         this.source = source;
     }
 
-    public void setContextClassloader(ClassLoader contextClassloader) {
-        this.contextClassloader = contextClassloader;
-    }
-
     public ClassLoader getContextClassloader() {
         return contextClassloader;
+    }
+
+    public void setContextClassloader(ClassLoader contextClassloader) {
+        this.contextClassloader = contextClassloader;
     }
 
     public abstract void init(Object target, ServiceRegistry services);

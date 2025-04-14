@@ -36,7 +36,7 @@ public interface TemporaryFileProvider {
 
     File newTemporaryDirectory(String... path);
 
-    Factory<File> temporaryDirectoryFactory(String...path);
+    Factory<File> temporaryDirectoryFactory(String... path);
 
     /**
      * Allocates and creates a new temporary file with the given prefix, suffix,

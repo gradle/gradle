@@ -78,7 +78,7 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
         run "impl:${language.compileTaskName}"
 
         then:
-        impl.recompiledClasses( 'X', 'Y')
+        impl.recompiledClasses('X', 'Y')
 
         when:
         impl.snapshot()

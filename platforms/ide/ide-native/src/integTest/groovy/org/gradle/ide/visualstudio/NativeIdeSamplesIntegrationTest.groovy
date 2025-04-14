@@ -27,7 +27,8 @@ import org.junit.Rule
 
 @Requires(UnitTestPreconditions.CanInstallExecutable)
 class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
-    @Rule public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
+    @Rule
+    public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
@@ -48,10 +49,10 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         solutionFile.content.contains "Text2 = The projects in this solution are [helloDll, helloLib, mainExe]."
 
         final dllProjectFile = projectFile(visualStudio.dir.file("vs/helloDll.vcxproj"))
-        dllProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloDll"
+        dllProjectFile.projectXml.PropertyGroup.find({ it.'@Label' == 'Custom' }).ProjectDetails[0].text() == "Project is named helloDll"
 
         final libProjectFile = projectFile(visualStudio.dir.file("vs/helloLib.vcxproj"))
-        libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
+        libProjectFile.projectXml.PropertyGroup.find({ it.'@Label' == 'Custom' }).ProjectDetails[0].text() == "Project is named helloLib"
     }
 
     @Requires(IntegTestPreconditions.HasMsBuild)

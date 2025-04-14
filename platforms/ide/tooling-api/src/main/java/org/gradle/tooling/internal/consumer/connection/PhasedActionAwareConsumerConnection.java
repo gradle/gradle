@@ -46,19 +46,6 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
         super(delegate, modelMapping, adapter);
     }
 
-    @Override
-    public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
-        InternalPhasedActionConnection connection = (InternalPhasedActionConnection) getDelegate();
-        PhasedActionResultListener listener = new DefaultPhasedActionResultListener(getHandler(phasedBuildAction.getProjectsLoadedAction()),
-            getHandler(phasedBuildAction.getBuildFinishedAction()));
-        InternalPhasedAction internalPhasedAction = getPhasedAction(phasedBuildAction, operationParameters.getProjectDir(), getVersionDetails());
-        try {
-            connection.run(internalPhasedAction, listener, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
-        } catch (InternalBuildActionFailureException e) {
-            throw new BuildActionFailureException("The supplied phased action failed with an exception.", e.getCause());
-        }
-    }
-
     @Nullable
     private static <T> IntermediateResultHandler<? super T> getHandler(PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper) {
         return wrapper == null ? null : wrapper.getHandler();
@@ -72,5 +59,18 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     @Nullable
     private static <T> InternalBuildActionVersion2<T> getAction(PhasedBuildAction.@Nullable BuildActionWrapper<T> wrapper, File rootDir, VersionDetails versionDetails) {
         return wrapper == null ? null : new InternalBuildActionAdapter<T>(wrapper.getAction(), rootDir, versionDetails);
+    }
+
+    @Override
+    public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
+        InternalPhasedActionConnection connection = (InternalPhasedActionConnection) getDelegate();
+        PhasedActionResultListener listener = new DefaultPhasedActionResultListener(getHandler(phasedBuildAction.getProjectsLoadedAction()),
+            getHandler(phasedBuildAction.getBuildFinishedAction()));
+        InternalPhasedAction internalPhasedAction = getPhasedAction(phasedBuildAction, operationParameters.getProjectDir(), getVersionDetails());
+        try {
+            connection.run(internalPhasedAction, listener, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+        } catch (InternalBuildActionFailureException e) {
+            throw new BuildActionFailureException("The supplied phased action failed with an exception.", e.getCause());
+        }
     }
 }

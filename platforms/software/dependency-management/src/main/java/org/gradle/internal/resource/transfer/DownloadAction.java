@@ -32,12 +32,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class DownloadAction implements ExternalResource.ContentAndMetadataAction<Object> {
-    private File destination;
-    private ExternalResourceMetaData metaData;
     private final ExternalResourceName source;
     private final TemporaryFileProvider temporaryFileProvider;
     @Nullable
     private final Logger logger;
+    private File destination;
+    private ExternalResourceMetaData metaData;
 
     public DownloadAction(ExternalResourceName source, TemporaryFileProvider temporaryFileProvider, @Nullable Logger logger) {
         this.source = source;

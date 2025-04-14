@@ -92,7 +92,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.idea.project.wildcards == ['!?*.java', '!?*.groovy', '!?*.class', '!?*.scala'] as Set
-        project.idea.project.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level
+        project.idea.project.languageLevel.level == new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level
     }
 
     def "adds 'ideaWorkspace' task to root project"() {
@@ -127,10 +127,10 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.java.sourceCompatibility).level
 
         project.idea.module.scopes == [
-                PROVIDED: [plus: [project.configurations.compileClasspath], minus: []],
-                COMPILE: [plus: [], minus: []],
-                RUNTIME: [plus: [project.configurations.runtimeClasspath], minus: []],
-                TEST: [plus: [project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath], minus: []],
+            PROVIDED: [plus: [project.configurations.compileClasspath], minus: []],
+            COMPILE: [plus: [], minus: []],
+            RUNTIME: [plus: [project.configurations.runtimeClasspath], minus: []],
+            TEST: [plus: [project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath], minus: []],
         ]
     }
 
@@ -153,7 +153,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         childProject.cleanIdea instanceof Task
     }
 
-     def "adds single entry libraries from source sets"() {
+    def "adds single entry libraries from source sets"() {
         when:
         applyPluginToProjects()
         project.apply(plugin: 'java')
@@ -172,7 +172,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         def test = project.ideaModule.module.singleEntryLibraries.TEST
         test.any { it.name.contains('generated-test') }
         test.any { it.name.contains('test-resources') }
-     }
+    }
 
     def "makes scala modules depend on root's project"() {
         applyPluginToProjects()

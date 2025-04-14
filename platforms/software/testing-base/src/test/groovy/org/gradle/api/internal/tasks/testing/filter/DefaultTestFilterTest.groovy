@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.api.internal.tasks.testing.filter
 
 import org.gradle.api.InvalidUserDataException
@@ -26,38 +25,50 @@ class DefaultTestFilterTest extends Specification {
     def spec = new DefaultTestFilter()
 
     def "allows configuring test names"() {
-        expect: spec.includePatterns.isEmpty()
+        expect:
+        spec.includePatterns.isEmpty()
 
         when:
         spec.includeTestsMatching("*fooMethod")
         spec.includeTestsMatching("*.FooTest.*")
 
-        then: spec.includePatterns == ["*fooMethod", "*.FooTest.*"] as Set
+        then:
+        spec.includePatterns == ["*fooMethod", "*.FooTest.*"] as Set
 
-        when: spec.setIncludePatterns("x")
+        when:
+        spec.setIncludePatterns("x")
 
-        then: spec.includePatterns == ["x"] as Set
+        then:
+        spec.includePatterns == ["x"] as Set
     }
 
     def "allows configuring by test class and methodname"() {
-        expect: spec.includePatterns.isEmpty()
+        expect:
+        spec.includePatterns.isEmpty()
 
         when:
         spec.includeTest("acme.FooTest", "bar")
         spec.includeTest("acme.BarTest", null)
 
-        then: spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
+        then:
+        spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
     }
 
     def "prevents empty names"() {
-        when: spec.includeTestsMatching(null)
-        then: thrown(InvalidUserDataException)
+        when:
+        spec.includeTestsMatching(null)
+        then:
+        thrown(InvalidUserDataException)
 
-        when: spec.includeTestsMatching("")
-        then: thrown(InvalidUserDataException)
+        when:
+        spec.includeTestsMatching("")
+        then:
+        thrown(InvalidUserDataException)
 
-        when: spec.setIncludePatterns("ok", "")
-        then: thrown(InvalidUserDataException)
+        when:
+        spec.setIncludePatterns("ok", "")
+        then:
+        thrown(InvalidUserDataException)
     }
 
 }

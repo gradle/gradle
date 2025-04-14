@@ -29,6 +29,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 @UsedByScanPlugin
 public final class ExecuteTestBuildOperationType implements BuildOperationType<ExecuteTestBuildOperationType.Details, ExecuteTestBuildOperationType.Result> {
 
+    private ExecuteTestBuildOperationType() {
+    }
+
     @UsedByScanPlugin
     public interface Details {
 
@@ -62,8 +65,5 @@ public final class ExecuteTestBuildOperationType implements BuildOperationType<E
 
         TestMetadataEvent getMetadata();
 
-    }
-
-    private ExecuteTestBuildOperationType() {
     }
 }

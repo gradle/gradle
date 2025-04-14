@@ -27,6 +27,7 @@ public class NoOpPropertyAnnotationHandler extends AbstractPropertyAnnotationHan
     public NoOpPropertyAnnotationHandler(Class<? extends Annotation> annotationType) {
         super(annotationType, Kind.OTHER, ImmutableSet.of(ReplacesEagerProperty.class));
     }
+
     @Override
     public boolean isPropertyRelevant() {
         return false;

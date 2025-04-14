@@ -38,7 +38,7 @@ task test2(group:'task group 2')
         then:
         gradleProject != null
         gradleProject.tasks.findAll { it.name.startsWith('test') }.each {
-            assert it.group == "task group ${it.name-'test'}"
+            assert it.group == "task group ${it.name - 'test'}"
         }
     }
 
@@ -56,7 +56,7 @@ task test2(group:'task group 2')
         then:
         buildInvocations != null
         buildInvocations.tasks.findAll { it.name.startsWith('test') }.each {
-            assert it.group == "task group ${it.name-'test'}"
+            assert it.group == "task group ${it.name - 'test'}"
         }
     }
 

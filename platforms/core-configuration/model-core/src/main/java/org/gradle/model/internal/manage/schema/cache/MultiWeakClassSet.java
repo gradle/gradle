@@ -58,8 +58,8 @@ class MultiWeakClassSet extends WeakClassSet {
             MultiWeakClassSet other = Cast.uncheckedCast(obj);
             if (other.references.size() == references.size()) {
                 return Iterables.elementsEqual(
-                        Iterables.transform(other.references, UNPACK_REF),
-                        Iterables.transform(references, UNPACK_REF)
+                    Iterables.transform(other.references, UNPACK_REF),
+                    Iterables.transform(references, UNPACK_REF)
                 );
             }
         }

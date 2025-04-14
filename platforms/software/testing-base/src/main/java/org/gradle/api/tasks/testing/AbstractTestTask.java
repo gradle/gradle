@@ -109,63 +109,6 @@ import java.util.Map;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractTestTask extends ConventionTask implements VerificationTask, Reporting<TestTaskReports> {
 
-    /**
-     * Wraps a list of listeners to subscribe, and lazily configures an anonymous broadcaster with those listeners when requested.
-     * Instances of this class are suitable for serialization (as long as listeners are serializable as well).
-     */
-    private class BroadcastSubscriptions<T> {
-        private final Class<T> listenerClass;
-        private final List<Object> subscribedListeners = new LinkedList<Object>();
-        private transient ListenerBroadcast<T> broadcaster;
-
-        private BroadcastSubscriptions(Class<T> listenerClass) {
-            this.listenerClass = listenerClass;
-        }
-
-        @SuppressWarnings("unchecked")
-        ListenerBroadcast<T> get() {
-            if (broadcaster == null) {
-                broadcaster = getListenerManager().createAnonymousBroadcaster(listenerClass);
-                for (Object listener : subscribedListeners) {
-                    if (listenerClass.isInstance(listener)) {
-                        broadcaster.add((T) listener);
-                    } else {
-                        broadcaster.add((Dispatch<MethodInvocation>) listener);
-                    }
-                }
-            }
-            return broadcaster;
-        }
-
-        void addListener(T listener) {
-            subscribedListeners.add(listener);
-            if (broadcaster != null) {
-                broadcaster.add(listener);
-            }
-        }
-
-        void addListener(Dispatch<MethodInvocation> listener) {
-            subscribedListeners.add(listener);
-            if (broadcaster != null) {
-                broadcaster.add(listener);
-            }
-        }
-
-        void removeListener(Object listener) {
-            subscribedListeners.remove(listener);
-            if (broadcaster != null) {
-                broadcaster.remove(listener);
-            }
-        }
-
-        void removeAllListeners() {
-            subscribedListeners.clear();
-            if (broadcaster != null) {
-                broadcaster.removeAll();
-            }
-        }
-    }
-
     private final DefaultTestFilter filter;
     private final TestTaskReports reports;
     private final BroadcastSubscriptions<TestListener> testListenerSubscriptions;
@@ -175,7 +118,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
-
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
@@ -721,5 +663,62 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Nested
     public TestFilter getFilter() {
         return filter;
+    }
+
+    /**
+     * Wraps a list of listeners to subscribe, and lazily configures an anonymous broadcaster with those listeners when requested.
+     * Instances of this class are suitable for serialization (as long as listeners are serializable as well).
+     */
+    private class BroadcastSubscriptions<T> {
+        private final Class<T> listenerClass;
+        private final List<Object> subscribedListeners = new LinkedList<Object>();
+        private transient ListenerBroadcast<T> broadcaster;
+
+        private BroadcastSubscriptions(Class<T> listenerClass) {
+            this.listenerClass = listenerClass;
+        }
+
+        @SuppressWarnings("unchecked")
+        ListenerBroadcast<T> get() {
+            if (broadcaster == null) {
+                broadcaster = getListenerManager().createAnonymousBroadcaster(listenerClass);
+                for (Object listener : subscribedListeners) {
+                    if (listenerClass.isInstance(listener)) {
+                        broadcaster.add((T) listener);
+                    } else {
+                        broadcaster.add((Dispatch<MethodInvocation>) listener);
+                    }
+                }
+            }
+            return broadcaster;
+        }
+
+        void addListener(T listener) {
+            subscribedListeners.add(listener);
+            if (broadcaster != null) {
+                broadcaster.add(listener);
+            }
+        }
+
+        void addListener(Dispatch<MethodInvocation> listener) {
+            subscribedListeners.add(listener);
+            if (broadcaster != null) {
+                broadcaster.add(listener);
+            }
+        }
+
+        void removeListener(Object listener) {
+            subscribedListeners.remove(listener);
+            if (broadcaster != null) {
+                broadcaster.remove(listener);
+            }
+        }
+
+        void removeAllListeners() {
+            subscribedListeners.clear();
+            if (broadcaster != null) {
+                broadcaster.removeAll();
+            }
+        }
     }
 }

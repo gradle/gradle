@@ -94,7 +94,7 @@ abstract class AbstractDependenciesBuilder extends MultiSectionHandler implement
             } else if (notation?.class.isArray()) {
                 def len = Array.getLength(notation)
                 Object last = Array.get(notation, len - 1)
-                if (len==2 && last instanceof Closure) {
+                if (len == 2 && last instanceof Closure) {
                     // configuration pattern
                     String notation = String.valueOf(Array.get(notation, 0))
                     switch (dsl) {
@@ -167,14 +167,15 @@ abstract class AbstractDependenciesBuilder extends MultiSectionHandler implement
         void because(String reason) {
             sections << new GenericSection(
                 {
-                    "because '$reason'"},
+                    "because '$reason'"
+                },
                 {
                     "because(\"$reason\")"
                 }
             )
         }
 
-        void version(@DelegatesTo(value=VersionSpec, strategy=Closure.DELEGATE_FIRST) Closure<?> spec) {
+        void version(@DelegatesTo(value = VersionSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
             if (version == null) {
                 version = new VersionSpec()
                 sections << version

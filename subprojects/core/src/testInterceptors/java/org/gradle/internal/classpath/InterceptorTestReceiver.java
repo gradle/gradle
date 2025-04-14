@@ -20,13 +20,15 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.util.TestUtil;
 
 public class InterceptorTestReceiver {
-    private String testString = "testString";
-    public String intercepted = null;
-    private boolean testFlag = false;
     private final MapProperty<String, String> richProperty = TestUtil.propertyFactory().mapProperty(String.class, String.class);
+    public String intercepted = null;
+    private String testString = "testString";
+    private boolean testFlag = false;
 
     public void test() {}
+
     public void test(InterceptorTestReceiver arg) {}
+
     public void testVararg(Object... arg) {}
 
     public void callNonIntercepted() {

@@ -48,11 +48,13 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     private final UserCodeApplicationContext context;
 
     @Inject
-    public DefaultVersionCatalogBuilderContainer(Instantiator instantiator,
-                                                 CollectionCallbackActionDecorator callbackActionDecorator,
-                                                 ObjectFactory objects,
-                                                 UserCodeApplicationContext context,
-                                                 Supplier<DependencyResolutionServices> dependencyResolutionServices) {
+    public DefaultVersionCatalogBuilderContainer(
+        Instantiator instantiator,
+        CollectionCallbackActionDecorator callbackActionDecorator,
+        ObjectFactory objects,
+        UserCodeApplicationContext context,
+        Supplier<DependencyResolutionServices> dependencyResolutionServices
+    ) {
         super(VersionCatalogBuilder.class, instantiator, callbackActionDecorator);
         this.objects = objects;
         this.context = context;

@@ -58,6 +58,37 @@ public class PlannedNodeGraph {
     }
 
     /**
+     * Computes dependencies of a node in breadth-first order, stopping at each dependency for which identity is provided.
+     */
+    private static <T> List<NodeIdentity> computeDependencies(
+        DependencyTraverser<T> traverser,
+        IdentityProvider<T> identityProvider,
+        T start
+    ) {
+        List<NodeIdentity> resultDependencies = new ArrayList<>();
+
+        Queue<T> queue = new ArrayDeque<>(traverser.getDependencies(start));
+        Set<T> seen = new HashSet<>();
+
+        while (!queue.isEmpty()) {
+            T node = queue.remove();
+            if (!seen.add(node)) {
+                continue;
+            }
+
+            NodeIdentity identity = identityProvider.get(node);
+            if (identity == null) {
+                // skip the node and look at its dependencies
+                queue.addAll(traverser.getDependencies(node));
+            } else {
+                resultDependencies.add(identity);
+            }
+        }
+
+        return resultDependencies;
+    }
+
+    /**
      * Returns the nodes from a subgraph that are of the given or lower detail level
      * (lower if the requested detail level is higher than the available detail level).
      */
@@ -116,14 +147,6 @@ public class PlannedNodeGraph {
             this.nodeTypes = Sets.immutableEnumSet(Arrays.asList(nodeTypes));
         }
 
-        public int getLevel() {
-            return level;
-        }
-
-        public boolean contains(NodeType nodeType) {
-            return nodeTypes.contains(nodeType);
-        }
-
         public static DetailLevel from(Set<NodeType> nodeTypes) {
             for (DetailLevel detailLevel : values()) {
                 if (detailLevel.nodeTypes.equals(nodeTypes)) {
@@ -133,6 +156,23 @@ public class PlannedNodeGraph {
 
             throw new IllegalStateException("Unknown detail level for node types: " + nodeTypes);
         }
+
+        public int getLevel() {
+            return level;
+        }
+
+        public boolean contains(NodeType nodeType) {
+            return nodeTypes.contains(nodeType);
+        }
+    }
+
+    private interface DependencyTraverser<T> {
+        Collection<? extends T> getDependencies(T node);
+    }
+
+    private interface IdentityProvider<T> {
+        @Nullable
+        NodeIdentity get(T node);
     }
 
     /**
@@ -183,45 +223,5 @@ public class PlannedNodeGraph {
 
             return nodeIdentityCache.computeIfAbsent(node, converter::getNodeIdentity);
         }
-    }
-
-    /**
-     * Computes dependencies of a node in breadth-first order, stopping at each dependency for which identity is provided.
-     */
-    private static <T> List<NodeIdentity> computeDependencies(
-        DependencyTraverser<T> traverser,
-        IdentityProvider<T> identityProvider,
-        T start
-    ) {
-        List<NodeIdentity> resultDependencies = new ArrayList<>();
-
-        Queue<T> queue = new ArrayDeque<>(traverser.getDependencies(start));
-        Set<T> seen = new HashSet<>();
-
-        while (!queue.isEmpty()) {
-            T node = queue.remove();
-            if (!seen.add(node)) {
-                continue;
-            }
-
-            NodeIdentity identity = identityProvider.get(node);
-            if (identity == null) {
-                // skip the node and look at its dependencies
-                queue.addAll(traverser.getDependencies(node));
-            } else {
-                resultDependencies.add(identity);
-            }
-        }
-
-        return resultDependencies;
-    }
-
-    private interface DependencyTraverser<T> {
-        Collection<? extends T> getDependencies(T node);
-    }
-
-    private interface IdentityProvider<T> {
-        @Nullable
-        NodeIdentity get(T node);
     }
 }

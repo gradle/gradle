@@ -43,7 +43,7 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
     ]
 
     @Issue("https://github.com/gradle/gradle/issues/9877")
-    @ToBeFixedForConfigurationCache(skip =  INVESTIGATE)
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon because of explicit encoding")
     def "can store and load files having non-ascii characters in file name when default file encoding is set to #fileEncoding"() {
         def fileName = NON_ASCII_NAME + ".txt"

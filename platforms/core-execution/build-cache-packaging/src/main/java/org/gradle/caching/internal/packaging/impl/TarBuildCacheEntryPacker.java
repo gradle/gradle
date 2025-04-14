@@ -80,25 +80,14 @@ import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirecto
  */
 public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
 
-    @SuppressWarnings("OctalInteger")
-    private interface UnixPermissions {
-        int FILE_FLAG = 0100000;
-        int DEFAULT_FILE_PERM = 0644;
-        int DIR_FLAG = 040000;
-        int DEFAULT_DIR_PERM = 0755;
-        int PERM_MASK = 07777;
-    }
-
     private static final Charset ENCODING = StandardCharsets.UTF_8;
     private static final String METADATA_PATH = "METADATA";
     private static final Pattern TREE_PATH = Pattern.compile("(missing-)?tree-([^/]+)(?:/(.*))?");
-
     private final TarPackerFileSystemSupport fileSystemSupport;
     private final FilePermissionAccess filePermissionAccess;
     private final StreamHasher streamHasher;
     private final Interner<String> stringInterner;
     private final BufferProvider bufferProvider;
-
     public TarBuildCacheEntryPacker(
         TarPackerFileSystemSupport fileSystemSupport,
         FilePermissionAccess filePermissionAccess,
@@ -111,6 +100,46 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         this.streamHasher = streamHasher;
         this.stringInterner = stringInterner;
         this.bufferProvider = bufferProvider;
+    }
+
+    private static void packMetadata(OriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeMetadata.execute(output);
+        createTarEntry(METADATA_PATH, output.size(), UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
+        tarOutput.write(output.toByteArray());
+        tarOutput.closeArchiveEntry();
+    }
+
+    private static void createTarEntry(String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
+        TarArchiveEntry entry = new TarArchiveEntry(path, true);
+        entry.setSize(size);
+        entry.setMode(mode);
+        tarOutput.putArchiveEntry(entry);
+    }
+
+    /**
+     * Returns a safe name for the name of a tar archive entry.
+     *
+     * @see PathTraversalChecker#safePathName(String)
+     */
+    private static String safeEntryName(TarArchiveEntry tarEntry) {
+        return PathTraversalChecker.safePathName(tarEntry.getName());
+    }
+
+    private static String escape(String name) {
+        try {
+            return URLEncoder.encode(name, ENCODING.name());
+        } catch (UnsupportedEncodingException ignored) {
+            throw new AssertionError();
+        }
+    }
+
+    private static String unescape(String name) {
+        try {
+            return URLDecoder.decode(name, ENCODING.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e);
+        }
     }
 
     @Override
@@ -131,14 +160,6 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
     }
 
-    private static void packMetadata(OriginWriter writeMetadata, TarArchiveOutputStream tarOutput) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        writeMetadata.execute(output);
-        createTarEntry(METADATA_PATH, output.size(), UnixPermissions.FILE_FLAG | UnixPermissions.DEFAULT_FILE_PERM, tarOutput);
-        tarOutput.write(output.toByteArray());
-        tarOutput.closeArchiveEntry();
-    }
-
     private long pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, TarArchiveOutputStream tarOutput) {
         AtomicLong entries = new AtomicLong();
         entity.visitOutputTrees((treeName, type, root) -> {
@@ -157,13 +178,6 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         PackingVisitor packingVisitor = new PackingVisitor(tarOutput, name, type);
         snapshots.accept(new RelativePathTracker(), packingVisitor);
         return packingVisitor.getPackedEntryCount();
-    }
-
-    private static void createTarEntry(String path, long size, int mode, TarArchiveOutputStream tarOutput) throws IOException {
-        TarArchiveEntry entry = new TarArchiveEntry(path, true);
-        entry.setSize(size);
-        entry.setMode(mode);
-        tarOutput.putArchiveEntry(entry);
     }
 
     @Override
@@ -215,24 +229,6 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
 
         return new UnpackResult(originMetadata, entries.get(), snapshots);
-    }
-
-    private static class CacheableTree {
-        private final TreeType type;
-        private final File root;
-
-        public CacheableTree(TreeType type, File root) {
-            this.type = type;
-            this.root = root;
-        }
-
-        public TreeType getType() {
-            return type;
-        }
-
-        public File getRoot() {
-            return root;
-        }
     }
 
     @Nullable
@@ -313,32 +309,34 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         return entry;
     }
 
-    /**
-     * Returns a safe name for the name of a tar archive entry.
-     *
-     * @see PathTraversalChecker#safePathName(String)
-     */
-    private static String safeEntryName(TarArchiveEntry tarEntry) {
-        return PathTraversalChecker.safePathName(tarEntry.getName());
-    }
-
     private void chmodUnpackedFile(TarArchiveEntry entry, File file) {
         filePermissionAccess.chmod(file, entry.getMode() & UnixPermissions.PERM_MASK);
     }
 
-    private static String escape(String name) {
-        try {
-            return URLEncoder.encode(name, ENCODING.name());
-        } catch (UnsupportedEncodingException ignored) {
-            throw new AssertionError();
-        }
+    @SuppressWarnings("OctalInteger")
+    private interface UnixPermissions {
+        int FILE_FLAG = 0100000;
+        int DEFAULT_FILE_PERM = 0644;
+        int DIR_FLAG = 040000;
+        int DEFAULT_DIR_PERM = 0755;
+        int PERM_MASK = 07777;
     }
 
-    private static String unescape(String name) {
-        try {
-            return URLDecoder.decode(name, ENCODING.name());
-        } catch (UnsupportedEncodingException e) {
-            throw new AssertionError(e);
+    private static class CacheableTree {
+        private final TreeType type;
+        private final File root;
+
+        public CacheableTree(TreeType type, File root) {
+            this.type = type;
+            this.root = root;
+        }
+
+        public TreeType getType() {
+            return type;
+        }
+
+        public File getRoot() {
+            return root;
         }
     }
 

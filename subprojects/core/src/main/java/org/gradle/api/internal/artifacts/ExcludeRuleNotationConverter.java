@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
 public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRule> {
 
     private static final NotationParser<Object, ExcludeRule> PARSER =
-            NotationParserBuilder.toType(ExcludeRule.class).converter(new ExcludeRuleNotationConverter()).toComposite();
+        NotationParserBuilder.toType(ExcludeRule.class).converter(new ExcludeRuleNotationConverter()).toComposite();
 
     public static NotationParser<Object, ExcludeRule> parser() {
         return PARSER;

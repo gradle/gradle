@@ -41,11 +41,6 @@ public interface Named {
 
         public static final org.gradle.api.Namer<Named> INSTANCE = new Namer();
 
-        @Override
-        public String determineName(Named object) {
-            return object.getName();
-        }
-
         @SuppressWarnings("unchecked")
         public static <T> org.gradle.api.Namer<? super T> forType(Class<? extends T> type) {
             if (Named.class.isAssignableFrom(type)) {
@@ -53,6 +48,11 @@ public interface Named {
             } else {
                 throw new IllegalArgumentException(String.format("The '%s' cannot be used with FactoryNamedDomainObjectContainer without specifying a Namer as it does not implement the Named interface.", type));
             }
+        }
+
+        @Override
+        public String determineName(Named object) {
+            return object.getName();
         }
     }
 }

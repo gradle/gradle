@@ -21,7 +21,8 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
 class ConcurrentBuildsCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def setup() {
         blockingServer.start()

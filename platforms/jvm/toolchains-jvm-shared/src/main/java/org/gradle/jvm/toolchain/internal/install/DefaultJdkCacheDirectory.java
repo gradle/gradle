@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
 
 public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJdkCacheDirectory.class);
     /**
      * Marker file used by Gradle 8.8 and earlier to indicate that a JDK has been provisioned. This is a flaky marker, as it may appear
      * before the JDK is fully provisioned, causing faulty detection of the JDK. It is replaced by {@value #MARKER_FILE}.
@@ -63,18 +62,11 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     static final String LEGACY_MARKER_FILE = "provisioned.ok";
     @VisibleForTesting
     static final String MARKER_FILE = ".ready";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJdkCacheDirectory.class);
     private static final String MAC_OS_JAVA_HOME_FOLDER = "Contents/Home";
-
-    private static final class UnpackedRoot {
-        private final File dir;
-        private final JvmInstallationMetadata metadata;
-
-        private UnpackedRoot(File dir, JvmInstallationMetadata metadata) {
-            this.dir = dir;
-            this.metadata = metadata;
-        }
-    }
-
+    private static final String JDK_CAPABILITIES_DISPLAY = JavaInstallationCapability.JDK_CAPABILITIES.stream()
+        .map(cap -> "the " + cap.toDisplayName())
+        .collect(RenderingUtils.oxfordJoin("and"));
     private final FileOperations operations;
     private final File jdkDirectory;
     private final FileLockManager lockManager;
@@ -107,14 +99,54 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         this.temporaryFileProvider = temporaryFileProvider;
     }
 
+    /**
+     * Validates that the metadata of the provisioned JDK matches the specification. This also requires {@link JavaInstallationCapability#JDK_CAPABILITIES} to be present.
+     *
+     * @param spec the specification to validate against
+     * @param uri the URI of the JDK archive
+     * @param metadata the metadata of the provisioned JDK
+     */
+    private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
+        if (!new JvmInstallationMetadataMatcher(spec, JavaInstallationCapability.JDK_CAPABILITIES).test(metadata)) {
+            // Log the metadata for debugging purposes
+            LOGGER.info("Provisioned JDK from '{}' does not satisfy the specification {} with metadata {} and capabilities {}", uri, spec.getDisplayName(), metadata, metadata.getCapabilities());
+            // Make a readable version of the capabilities for the
+            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + " and must have " + JDK_CAPABILITIES_DISPLAY + ".");
+        }
+    }
+
+    public static String getInstallFolderName(JvmInstallationMetadata metadata) {
+        String vendor = metadata.getJvmVendor();
+        if (vendor == null || vendor.isEmpty()) {
+            vendor = metadata.getVendor().getRawVendor();
+        }
+        int version = metadata.getJavaMajorVersion();
+        String architecture = metadata.getArchitecture();
+        String os = OperatingSystem.current().getFamilyName();
+        return String.format("%s-%d-%s-%s", vendor, version, architecture, os)
+            .replaceAll("[^a-zA-Z0-9\\-]", "_")
+            .toLowerCase(Locale.ROOT) + ".2";
+    }
+
+    private static String getNameWithoutExtension(File file) {
+        //remove all extensions, for example for xxx.tar.gz files only xxx should be left
+        String output = file.getName();
+        String input;
+        do {
+            input = output;
+            output = Files.getNameWithoutExtension(input);
+        } while (!input.equals(output));
+        return output;
+    }
+
     @Override
     public Set<File> listJavaHomes() {
         final File[] candidates = jdkDirectory.listFiles();
         if (candidates != null) {
             return Arrays.stream(candidates)
-                    .filter(this::isMarkedLocation)
-                    .map(this::getJavaHome)
-                    .collect(Collectors.toSet());
+                .filter(this::isMarkedLocation)
+                .map(this::getJavaHome)
+                .collect(Collectors.toSet());
         }
         return Collections.emptySet();
     }
@@ -131,7 +163,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
 
             File[] subfolders = location.listFiles(File::isDirectory);
             if (subfolders != null) {
-                for(File subfolder : subfolders) {
+                for (File subfolder : subfolders) {
                     if (new File(subfolder, MAC_OS_JAVA_HOME_FOLDER).exists()) {
                         return new File(subfolder, MAC_OS_JAVA_HOME_FOLDER);
                     }
@@ -240,39 +272,6 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         return detector.getMetadata(InstallationLocation.autoProvisioned(javaHome, "provisioned toolchain"));
     }
 
-    private static final String JDK_CAPABILITIES_DISPLAY = JavaInstallationCapability.JDK_CAPABILITIES.stream()
-            .map(cap -> "the " + cap.toDisplayName())
-            .collect(RenderingUtils.oxfordJoin("and"));
-
-    /**
-     * Validates that the metadata of the provisioned JDK matches the specification. This also requires {@link JavaInstallationCapability#JDK_CAPABILITIES} to be present.
-     *
-     * @param spec the specification to validate against
-     * @param uri the URI of the JDK archive
-     * @param metadata the metadata of the provisioned JDK
-     */
-    private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
-        if (!new JvmInstallationMetadataMatcher(spec, JavaInstallationCapability.JDK_CAPABILITIES).test(metadata)) {
-            // Log the metadata for debugging purposes
-            LOGGER.info("Provisioned JDK from '{}' does not satisfy the specification {} with metadata {} and capabilities {}", uri, spec.getDisplayName(), metadata, metadata.getCapabilities());
-            // Make a readable version of the capabilities for the
-            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + " and must have " + JDK_CAPABILITIES_DISPLAY + ".");
-        }
-    }
-
-    public static String getInstallFolderName(JvmInstallationMetadata metadata) {
-        String vendor = metadata.getJvmVendor();
-        if (vendor == null || vendor.isEmpty()) {
-            vendor = metadata.getVendor().getRawVendor();
-        }
-        int version = metadata.getJavaMajorVersion();
-        String architecture = metadata.getArchitecture();
-        String os = OperatingSystem.current().getFamilyName();
-        return String.format("%s-%d-%s-%s", vendor, version, architecture, os)
-                .replaceAll("[^a-zA-Z0-9\\-]", "_")
-                .toLowerCase(Locale.ROOT) + ".2";
-    }
-
     private File unpack(File jdkArchive) {
         final FileTree fileTree = asFileTree(jdkArchive);
         String unpackFolderName = getNameWithoutExtension(jdkArchive);
@@ -318,15 +317,14 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         return jdkDirectory;
     }
 
-    private static String getNameWithoutExtension(File file) {
-        //remove all extensions, for example for xxx.tar.gz files only xxx should be left
-        String output = file.getName();
-        String input;
-        do {
-            input = output;
-            output = Files.getNameWithoutExtension(input);
-        } while (!input.equals(output));
-        return output;
+    private static final class UnpackedRoot {
+        private final File dir;
+        private final JvmInstallationMetadata metadata;
+
+        private UnpackedRoot(File dir, JvmInstallationMetadata metadata) {
+            this.dir = dir;
+            this.metadata = metadata;
+        }
     }
 
 }

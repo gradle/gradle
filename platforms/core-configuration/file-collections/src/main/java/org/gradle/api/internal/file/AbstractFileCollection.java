@@ -72,6 +72,27 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         this(DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
+    /**
+     * Visits all the files of the given tree.
+     */
+    protected static boolean visitAll(FileSystemMirroringFileTree tree) {
+        final MutableBoolean hasContent = new MutableBoolean();
+        tree.visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                dirDetails.getFile();
+                hasContent.set(true);
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                fileDetails.getFile();
+                hasContent.set(true);
+            }
+        });
+        return hasContent.get();
+    }
+
     @Override
     public String toString() {
         return getDisplayName();
@@ -211,27 +232,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         );
     }
 
-    private static class FileCollectionElementsFactory implements Factory<Set<FileSystemLocation>> {
-
-        private final FileCollection fileCollection;
-
-        private FileCollectionElementsFactory(FileCollection fileCollection) {
-            this.fileCollection = fileCollection;
-        }
-
-        @Override
-        public Set<FileSystemLocation> create() {
-            // TODO - visit the contents of this collection instead.
-            // This is just a super simple implementation for now
-            Set<File> files = fileCollection.getFiles();
-            ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
-            for (File file : files) {
-                builder.add(new DefaultFileSystemLocation(file));
-            }
-            return builder.build();
-        }
-    }
-
     @Override
     public FileCollection minus(final FileCollection collection) {
         return new SubtractingFileCollection(this, collection);
@@ -305,27 +305,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return fileTrees;
     }
 
-    /**
-     * Visits all the files of the given tree.
-     */
-    protected static boolean visitAll(FileSystemMirroringFileTree tree) {
-        final MutableBoolean hasContent = new MutableBoolean();
-        tree.visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                dirDetails.getFile();
-                hasContent.set(true);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileDetails.getFile();
-                hasContent.set(true);
-            }
-        });
-        return hasContent.get();
-    }
-
     @Override
     public Object addToAntBuilder(Object node, String childNodeName) {
         addToAntBuilder(node, childNodeName, AntType.ResourceCollection);
@@ -364,5 +343,26 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         visitor.visitCollection(OTHER, this);
+    }
+
+    private static class FileCollectionElementsFactory implements Factory<Set<FileSystemLocation>> {
+
+        private final FileCollection fileCollection;
+
+        private FileCollectionElementsFactory(FileCollection fileCollection) {
+            this.fileCollection = fileCollection;
+        }
+
+        @Override
+        public Set<FileSystemLocation> create() {
+            // TODO - visit the contents of this collection instead.
+            // This is just a super simple implementation for now
+            Set<File> files = fileCollection.getFiles();
+            ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
+            for (File file : files) {
+                builder.add(new DefaultFileSystemLocation(file));
+            }
+            return builder.build();
+        }
     }
 }

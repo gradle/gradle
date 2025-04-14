@@ -111,6 +111,10 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
             return total;
         }
 
+        public void setTotal(long total) {
+            this.total = total;
+        }
+
         /*
          * Linux 4.x: MemAvailable
          * Linux 3.x: MemFree + Buffers + Cached + SReclaimable - Mapped
@@ -123,6 +127,10 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
                 return free + buffers + cached + reclaimable - mapped;
             }
             return -1;
+        }
+
+        public void setAvailable(long available) {
+            this.available = available;
         }
 
         void setFree(long memFree) {
@@ -143,14 +151,6 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
 
         public void setMapped(long mapped) {
             this.mapped = mapped;
-        }
-
-        public void setTotal(long total) {
-            this.total = total;
-        }
-
-        public void setAvailable(long available) {
-            this.available = available;
         }
     }
 }

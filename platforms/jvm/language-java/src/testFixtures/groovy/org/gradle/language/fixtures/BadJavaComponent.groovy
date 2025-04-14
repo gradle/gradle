@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.language.fixtures
 
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
@@ -41,7 +40,7 @@ Not a java source file at all...
     ]
 
     List<String> compilerErrors = [
-            "';' expected",
-            "class, interface, or enum expected"
+        "';' expected",
+        "class, interface, or enum expected"
     ]
 }

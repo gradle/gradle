@@ -59,7 +59,6 @@ public interface DependencyResolveDetails {
      * You can pass Strings like 'org.gradle:gradle-core:1.4',
      * Maps like [group: 'org.gradle', name: 'gradle-core', version: '1.4'],
      * or instances of ModuleVersionSelector.
-     *
      * @since 1.5
      */
     void useTarget(Object notation);
@@ -75,17 +74,15 @@ public interface DependencyResolveDetails {
      * be used if the rule is actually selecting a target, either using {@link #useVersion(String)} or {@link #useTarget(Object)}
      *
      * @param description a description of the selection reason
-     *
      * @return this details object
-     *
      * @since 4.5
      */
     DependencyResolveDetails because(String description);
 
     /**
      * Configures the artifact selection for the target component of this dependency resolution rule.
-     * @param details the artifact selection details
      *
+     * @param details the artifact selection details
      * @since 6.6
      */
     DependencyResolveDetails artifactSelection(Action<? super ArtifactSelectionDetails> details);

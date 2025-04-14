@@ -25,23 +25,6 @@ import java.util.concurrent.Callable;
  * A supplier of a property value.
  */
 public interface PropertyValue extends Callable<Object> {
-    /**
-     * The value of the underlying property.
-     */
-    @Nullable
-    @Override
-    Object call();
-
-    /**
-     * Returns the dependencies of the property value, if supported by the value implementation. Returns an empty collection if not supported or the value has no producer tasks.
-     */
-    TaskDependencyContainer getTaskDependencies();
-
-    /**
-     * Finalizes the property value, if possible. This makes the value final, so that it no longer changes, but not necessarily immutable.
-     */
-    void maybeFinalizeValue();
-
     PropertyValue ABSENT = new PropertyValue() {
         @Nullable
         @Override
@@ -65,4 +48,21 @@ public interface PropertyValue extends Callable<Object> {
             return "ABSENT";
         }
     };
+
+    /**
+     * The value of the underlying property.
+     */
+    @Nullable
+    @Override
+    Object call();
+
+    /**
+     * Returns the dependencies of the property value, if supported by the value implementation. Returns an empty collection if not supported or the value has no producer tasks.
+     */
+    TaskDependencyContainer getTaskDependencies();
+
+    /**
+     * Finalizes the property value, if possible. This makes the value final, so that it no longer changes, but not necessarily immutable.
+     */
+    void maybeFinalizeValue();
 }

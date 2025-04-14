@@ -76,21 +76,27 @@ class KotlinGrammarTest {
 
     @Test
     fun `can parse multi annotation`() {
-        assertAnnotationConsumed("""
+        assertAnnotationConsumed(
+            """
             @set:[
                 Inject
                 VisibleForTesting
-            ]""".trimIndent())
+            ]""".trimIndent()
+        )
 
-        assertAnnotationConsumed("""
+        assertAnnotationConsumed(
+            """
             @Deprecated (
                 "Use something instead." ,
                 ReplaceWith ( "method(param)" )
-            )""".trimIndent())
+            )""".trimIndent()
+        )
 
-        assertAnnotationConsumed("""
+        assertAnnotationConsumed(
+            """
             @get:
-                VisibleForTesting""".trimIndent())
+                VisibleForTesting""".trimIndent()
+        )
     }
 
     private
@@ -110,7 +116,8 @@ class KotlinGrammarTest {
 
     @Test
     fun `can parse multi file annotation`() {
-        assertFileAnnotationConsumed("""
+        assertFileAnnotationConsumed(
+            """
             @file
             :
             [
@@ -122,7 +129,8 @@ class KotlinGrammarTest {
                     ,
                     "nothing_to_inline"
                     )
-            ]""".trimIndent())
+            ]""".trimIndent()
+        )
     }
 
     private

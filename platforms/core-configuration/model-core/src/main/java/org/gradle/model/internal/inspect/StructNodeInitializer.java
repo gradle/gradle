@@ -44,6 +44,10 @@ public class StructNodeInitializer<T> implements NodeInitializer {
         this.bindings = bindings;
     }
 
+    private static <P> ModelRegistrations.Builder managedRegistrationBuilder(ModelPath childPath, ManagedProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ModelType<?> publicType) {
+        return ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(forProperty(property.getType(), property, publicType)));
+    }
+
     @Override
     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
@@ -90,9 +94,10 @@ public class StructNodeInitializer<T> implements NodeInitializer {
         modelNode.addProjection(new ManagedModelProjection<V>(viewSchema, bindings, proxyFactory, typeConverter));
     }
 
-    private void addPropertyLinks(MutableModelNode modelNode,
-                                  ModelSchemaStore schemaStore,
-                                  NodeInitializerRegistry nodeInitializerRegistry
+    private void addPropertyLinks(
+        MutableModelNode modelNode,
+        ModelSchemaStore schemaStore,
+        NodeInitializerRegistry nodeInitializerRegistry
     ) {
         for (ManagedProperty<?> property : bindings.getManagedProperties().values()) {
             addPropertyLink(modelNode, property, schemaStore, nodeInitializerRegistry);
@@ -110,10 +115,11 @@ public class StructNodeInitializer<T> implements NodeInitializer {
         }
     }
 
-    private <P> void addPropertyLink(MutableModelNode modelNode,
-                                     ManagedProperty<P> property,
-                                     ModelSchemaStore schemaStore,
-                                     NodeInitializerRegistry nodeInitializerRegistry
+    private <P> void addPropertyLink(
+        MutableModelNode modelNode,
+        ManagedProperty<P> property,
+        ModelSchemaStore schemaStore,
+        NodeInitializerRegistry nodeInitializerRegistry
     ) {
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
@@ -143,10 +149,6 @@ public class StructNodeInitializer<T> implements NodeInitializer {
         }
     }
 
-    private static <P> ModelRegistrations.Builder managedRegistrationBuilder(ModelPath childPath, ManagedProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry, ModelType<?> publicType) {
-        return ModelRegistrations.of(childPath, nodeInitializerRegistry.getNodeInitializer(forProperty(property.getType(), property, publicType)));
-    }
-
     private void addLink(MutableModelNode modelNode, ModelRegistrations.Builder builder, boolean internal) {
         ModelRegistration registration = builder
             .descriptor(modelNode.getDescriptor())
@@ -174,7 +176,7 @@ public class StructNodeInitializer<T> implements NodeInitializer {
 
     private <P> boolean isCollectionOfManagedTypes(ModelSchema<P> propertySchema) {
         return propertySchema instanceof CollectionSchema
-                && !(propertySchema instanceof ScalarCollectionSchema);
+            && !(propertySchema instanceof ScalarCollectionSchema);
     }
 
     private <P> boolean isNamePropertyOfANamedType(ManagedProperty<P> property) {

@@ -103,14 +103,14 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         }
 
         where:
-        groovyVersion        | classifier | expectedGroup         | expectedDependencies
-        "2.1.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
-        "2.1.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
-        "2.5.2"              | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
-        "2.5.2"              | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
-        "3.0.10"             | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql"]
-        "3.0.10"             | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql"]
-        "4.0.0"              | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql"]
+        groovyVersion | classifier | expectedGroup         | expectedDependencies
+        "2.1.2"       | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.1.2"       | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant"]
+        "2.5.2"       | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "2.5.2"       | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates"]
+        "3.0.10"      | ""         | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql"]
+        "3.0.10"      | "-indy"    | "org.codehaus.groovy" | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql"]
+        "4.0.0"       | ""         | "org.apache.groovy"   | ["groovy", "groovy-ant", "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil", "groovy-nio", "groovy-sql"]
     }
 
     def "useful error message is produced when no groovy runtime could be found on a classpath"() {

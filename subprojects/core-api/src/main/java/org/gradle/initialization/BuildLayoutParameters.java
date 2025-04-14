@@ -86,19 +86,8 @@ public class BuildLayoutParameters {
         return null;
     }
 
-    public BuildLayoutParameters setProjectDir(@Nullable File projectDir) {
-        this.projectDir = projectDir;
-        return this;
-    }
-
-    public BuildLayoutParameters setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        return this;
-    }
-
-    public BuildLayoutParameters setGradleInstallationHomeDir(@Nullable File gradleInstallationHomeDir) {
-        this.gradleInstallationHomeDir = gradleInstallationHomeDir;
-        return this;
+    public File getCurrentDir() {
+        return currentDir;
     }
 
     public BuildLayoutParameters setCurrentDir(File currentDir) {
@@ -106,21 +95,14 @@ public class BuildLayoutParameters {
         return this;
     }
 
-    public void setSettingsFile(@Nullable File settingsFile) {
-        this.settingsFile = settingsFile;
-    }
-
-    public void setBuildFile(@Nullable File buildFile) {
-        this.buildFile = buildFile;
-    }
-
-    public File getCurrentDir() {
-        return currentDir;
-    }
-
     @Nullable
     public File getProjectDir() {
         return projectDir;
+    }
+
+    public BuildLayoutParameters setProjectDir(@Nullable File projectDir) {
+        this.projectDir = projectDir;
+        return this;
     }
 
     public File getSearchDir() {
@@ -131,9 +113,19 @@ public class BuildLayoutParameters {
         return gradleUserHomeDir;
     }
 
+    public BuildLayoutParameters setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
+        return this;
+    }
+
     @Nullable
     public File getGradleInstallationHomeDir() {
         return gradleInstallationHomeDir;
+    }
+
+    public BuildLayoutParameters setGradleInstallationHomeDir(@Nullable File gradleInstallationHomeDir) {
+        this.gradleInstallationHomeDir = gradleInstallationHomeDir;
+        return this;
     }
 
     @Nullable
@@ -141,8 +133,16 @@ public class BuildLayoutParameters {
         return settingsFile;
     }
 
+    public void setSettingsFile(@Nullable File settingsFile) {
+        this.settingsFile = settingsFile;
+    }
+
     @Nullable
     public File getBuildFile() {
         return buildFile;
+    }
+
+    public void setBuildFile(@Nullable File buildFile) {
+        this.buildFile = buildFile;
     }
 }

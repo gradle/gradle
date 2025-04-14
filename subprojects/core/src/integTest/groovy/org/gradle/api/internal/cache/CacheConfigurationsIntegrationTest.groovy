@@ -162,12 +162,12 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains(String.format(DefaultCacheConfigurations.UNSAFE_MODIFICATION_ERROR, errorProperty))
 
         where:
-        property                                           | errorProperty     | value
-        'markingStrategy'                                  | 'markingStrategy' | 'MarkingStrategy.NONE'
-        'cleanup'                                          | 'cleanup'         | 'Cleanup.DISABLED'
+        property                                  | errorProperty     | value
+        'markingStrategy'                         | 'markingStrategy' | 'MarkingStrategy.NONE'
+        'cleanup'                                 | 'cleanup'         | 'Cleanup.DISABLED'
         // 'buildCache' is indicative of all `CacheResourceConfigurations` instances
-        'buildCache.removeUnusedEntriesAfterDays'          | 'entryRetention'  | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
-        'buildCache.removeUnusedEntriesOlderThan'              | 'entryRetention'  | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
+        'buildCache.removeUnusedEntriesAfterDays' | 'entryRetention'  | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
+        'buildCache.removeUnusedEntriesOlderThan' | 'entryRetention'  | "${MODIFIED_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES}"
     }
 
     static String modifyCacheConfiguration(String property, String value) {

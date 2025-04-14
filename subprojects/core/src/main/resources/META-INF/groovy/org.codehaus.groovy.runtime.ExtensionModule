@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 moduleName=dependency-management
 moduleVersion=1.0
 extensionClasses=org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule

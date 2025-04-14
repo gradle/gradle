@@ -42,67 +42,37 @@ import java.util.function.Function;
 @SuppressWarnings("UnsynchronizedOverridesSynchronized")
 // TODO(mlopatkin) we need a better synchronization guarantees here. Just sprinkling synchronized won't help.
 public class AccessTrackingProperties extends Properties {
-    /**
-     * A listener that is notified about reads and modifications of the Properties instance.
-     * Note that there's no guarantee about the state of the Properties object when the
-     * listener's method is called because of modifying operation: it may happen before or after modification.
-     */
-    public interface Listener {
-        /**
-         * Called when the property with the name {@code key} is read. The {@code value} is the value of the property observed by the caller.
-         * The Properties object may not contain the property with this name, the value is {@code null} then. Note that most modifying methods
-         * like {@link Properties#setProperty(String, String)} provide information about the previous value and trigger this method.
-         * All modifying operations call this method prior to {@link #onChange(Object, Object)}, {@link #onRemove(Object)} or {@link #onClear()}.
-         * <p>
-         * When this method is called because of the modifying operation, the state of the observed Properties object is undefined for the duration of the
-         * call: it may be already completely or partially modified to reflect the result of the operation.
-         *
-         * @param key the key used by the caller to access the property
-         * @param value the value observed by the caller or {@code null} if there is no value for the given key
-         */
-        void onAccess(Object key, @Nullable Object value);
-
-        /**
-         * Called when the property with the name {@code key} is updated or added. The {@code newValue} is the new value of the property provided by
-         * the caller. If the modifying method provides a way for the caller to observe a previous value of the key then
-         * {@link #onAccess(Object, Object)} method is called prior to this method.
-         * <p>
-         * The state of the observed Properties object is undefined for the duration of the call: it may be already completely or partially
-         * modified to reflect the result of the operation.
-         *
-         * @param key the key used by the caller to access the property
-         * @param newValue the value provided by the caller
-         */
-        void onChange(Object key, Object newValue);
-
-        /**
-         * Called when the property with the name {@code key} is removed. The Properties object may not contain the property prior to the modification.
-         * If the modifying method provides a way for the caller to observe a previous value of the key then {@link #onAccess(Object, Object)} method is
-         * called prior to this method.
-         * <p>
-         * The state of the observed Properties object is undefined for the duration of the call: it may be already completely or partially
-         * modified to reflect the result of the operation.
-         *
-         * @param key the key used by the caller to access the property
-         */
-        void onRemove(Object key);
-
-        /**
-         * Called when the caller unconditionally removes all properties in this Properties object, for example by calling {@link Properties#clear()}.
-         * <p>
-         * The state of the observed Properties object is undefined for the duration of the call: it may be already completely or partially
-         * modified to reflect the result of the operation.
-         */
-        void onClear();
-    }
-
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
     private final Listener listener;
-
     public AccessTrackingProperties(Properties delegate, Listener listener) {
         this.delegate = delegate;
         this.listener = listener;
+    }
+
+    /**
+     * Tests equality two objects with {@code equals} if the objects are Strings or primitive wrappers. Otherwise, the equality of references is tested (i.e. {@code lhs == rhs}).
+     *
+     * @param lhs the first object (can be {@code null})
+     * @param rhs the second object (can be {@code null})
+     * @return {@code true} if the objects are equal in the sense described above
+     */
+    private static boolean simpleOrRefEquals(@Nullable Object lhs, @Nullable Object rhs) {
+        if (lhs == rhs) {
+            return true;
+        }
+        if (lhs == null || rhs == null) {
+            return false;
+        }
+        Class<?> lhsClass = lhs.getClass();
+        if (lhsClass == rhs.getClass() && isSimpleType(lhsClass)) {
+            return Objects.equals(lhs, rhs);
+        }
+        return false;
+    }
+
+    private static boolean isSimpleType(Class<?> clazz) {
+        return clazz == String.class || Primitives.isWrapperType(clazz);
     }
 
     @Override
@@ -295,7 +265,6 @@ public class AccessTrackingProperties extends Properties {
         return computedValue;
     }
 
-
     @Override
     @Nullable
     public Object compute(Object key, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
@@ -313,7 +282,6 @@ public class AccessTrackingProperties extends Properties {
         }
         return newValue;
     }
-
 
     @Override
     @Nullable
@@ -531,31 +499,6 @@ public class AccessTrackingProperties extends Properties {
         listener.onClear();
     }
 
-    /**
-     * Tests equality two objects with {@code equals} if the objects are Strings or primitive wrappers. Otherwise, the equality of references is tested (i.e. {@code lhs == rhs}).
-     *
-     * @param lhs the first object (can be {@code null})
-     * @param rhs the second object (can be {@code null})
-     * @return {@code true} if the objects are equal in the sense described above
-     */
-    private static boolean simpleOrRefEquals(@Nullable Object lhs, @Nullable Object rhs) {
-        if (lhs == rhs) {
-            return true;
-        }
-        if (lhs == null || rhs == null) {
-            return false;
-        }
-        Class<?> lhsClass = lhs.getClass();
-        if (lhsClass == rhs.getClass() && isSimpleType(lhsClass)) {
-            return Objects.equals(lhs, rhs);
-        }
-        return false;
-    }
-
-    private static boolean isSimpleType(Class<?> clazz) {
-        return clazz == String.class || Primitives.isWrapperType(clazz);
-    }
-
     private AccessTrackingSet.Listener trackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
@@ -606,6 +549,60 @@ public class AccessTrackingProperties extends Properties {
                 reportClear();
             }
         };
+    }
+
+    /**
+     * A listener that is notified about reads and modifications of the Properties instance.
+     * Note that there's no guarantee about the state of the Properties object when the
+     * listener's method is called because of modifying operation: it may happen before or after modification.
+     */
+    public interface Listener {
+        /**
+         * Called when the property with the name {@code key} is read. The {@code value} is the value of the property observed by the caller.
+         * The Properties object may not contain the property with this name, the value is {@code null} then. Note that most modifying methods
+         * like {@link Properties#setProperty(String, String)} provide information about the previous value and trigger this method.
+         * All modifying operations call this method prior to {@link #onChange(Object, Object)}, {@link #onRemove(Object)} or {@link #onClear()}.
+         * <p>
+         * When this method is called because of the modifying operation, the state of the observed Properties object is undefined for the duration of the
+         * call: it may be already completely or partially modified to reflect the result of the operation.
+         *
+         * @param key the key used by the caller to access the property
+         * @param value the value observed by the caller or {@code null} if there is no value for the given key
+         */
+        void onAccess(Object key, @Nullable Object value);
+
+        /**
+         * Called when the property with the name {@code key} is updated or added. The {@code newValue} is the new value of the property provided by
+         * the caller. If the modifying method provides a way for the caller to observe a previous value of the key then
+         * {@link #onAccess(Object, Object)} method is called prior to this method.
+         * <p>
+         * The state of the observed Properties object is undefined for the duration of the call: it may be already completely or partially
+         * modified to reflect the result of the operation.
+         *
+         * @param key the key used by the caller to access the property
+         * @param newValue the value provided by the caller
+         */
+        void onChange(Object key, Object newValue);
+
+        /**
+         * Called when the property with the name {@code key} is removed. The Properties object may not contain the property prior to the modification.
+         * If the modifying method provides a way for the caller to observe a previous value of the key then {@link #onAccess(Object, Object)} method is
+         * called prior to this method.
+         * <p>
+         * The state of the observed Properties object is undefined for the duration of the call: it may be already completely or partially
+         * modified to reflect the result of the operation.
+         *
+         * @param key the key used by the caller to access the property
+         */
+        void onRemove(Object key);
+
+        /**
+         * Called when the caller unconditionally removes all properties in this Properties object, for example by calling {@link Properties#clear()}.
+         * <p>
+         * The state of the observed Properties object is undefined for the duration of the call: it may be already completely or partially
+         * modified to reflect the result of the operation.
+         */
+        void onClear();
     }
 
     private class TrackingEntry implements Map.Entry<Object, Object> {

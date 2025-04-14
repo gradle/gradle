@@ -71,6 +71,22 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
 
     public static final String PROJECT_NAME_OPTIONS = "org.gradle.annotation.processing.instrumented.project";
 
+    private static void readRequests(Collection<AnnotatedMethodReaderExtension> readers, List<ExecutableElement> allMethodElementsInAnnotatedClasses, Map<ExecutableElement, List<CallInterceptionRequestReader.Result.InvalidRequest>> errors, List<CallInterceptionRequestReader.Result.Success> successResults) {
+        ReadRequestContext context = new ReadRequestContext();
+        for (ExecutableElement methodElement : allMethodElementsInAnnotatedClasses) {
+            for (AnnotatedMethodReaderExtension reader : readers) {
+                Collection<CallInterceptionRequestReader.Result> readerResults = reader.readRequest(methodElement, context);
+                for (CallInterceptionRequestReader.Result readerResult : readerResults) {
+                    if (readerResult instanceof CallInterceptionRequestReader.Result.InvalidRequest) {
+                        errors.computeIfAbsent(methodElement, key -> new ArrayList<>()).add((CallInterceptionRequestReader.Result.InvalidRequest) readerResult);
+                    } else {
+                        successResults.add((CallInterceptionRequestReader.Result.Success) readerResult);
+                    }
+                }
+            }
+        }
+    }
+
     protected abstract Collection<InstrumentationProcessorExtension> getExtensions();
 
     @Override
@@ -137,22 +153,6 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         List<CallInterceptionRequest> requests = postProcessRequests(successResults);
 
         runCodeGeneration(requests);
-    }
-
-    private static void readRequests(Collection<AnnotatedMethodReaderExtension> readers, List<ExecutableElement> allMethodElementsInAnnotatedClasses, Map<ExecutableElement, List<CallInterceptionRequestReader.Result.InvalidRequest>> errors, List<CallInterceptionRequestReader.Result.Success> successResults) {
-        ReadRequestContext context = new ReadRequestContext();
-        for (ExecutableElement methodElement : allMethodElementsInAnnotatedClasses) {
-            for (AnnotatedMethodReaderExtension reader : readers) {
-                Collection<CallInterceptionRequestReader.Result> readerResults = reader.readRequest(methodElement, context);
-                for (CallInterceptionRequestReader.Result readerResult : readerResults) {
-                    if (readerResult instanceof CallInterceptionRequestReader.Result.InvalidRequest) {
-                        errors.computeIfAbsent(methodElement, key -> new ArrayList<>()).add((CallInterceptionRequestReader.Result.InvalidRequest) readerResult);
-                    } else {
-                        successResults.add((CallInterceptionRequestReader.Result.Success) readerResult);
-                    }
-                }
-            }
-        }
     }
 
     @NonNull

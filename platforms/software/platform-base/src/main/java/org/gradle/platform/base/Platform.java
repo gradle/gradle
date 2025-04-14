@@ -32,7 +32,6 @@ public interface Platform extends Named {
 
     /**
      * Returns a human consumable name for this platform.
-     *
      */
     @Internal
     String getDisplayName();

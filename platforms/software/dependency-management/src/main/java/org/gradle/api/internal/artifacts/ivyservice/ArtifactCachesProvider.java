@@ -28,9 +28,11 @@ public interface ArtifactCachesProvider extends Closeable, GlobalCache {
     String READONLY_CACHE_ENV_VAR = "GRADLE_RO_DEP_CACHE";
 
     ArtifactCacheMetadata getWritableCacheMetadata();
+
     Optional<ArtifactCacheMetadata> getReadOnlyCacheMetadata();
 
     ArtifactCacheLockingAccessCoordinator getWritableCacheAccessCoordinator();
+
     Optional<ArtifactCacheLockingAccessCoordinator> getReadOnlyCacheAccessCoordinator();
 
     default <T> T withWritableCache(BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingAccessCoordinator, T> function) {

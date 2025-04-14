@@ -33,13 +33,13 @@ public class DefaultActionConfiguration implements ActionConfiguration {
     }
 
     @Override
-    public void setParams(Object... params) {
-        this.params.clear();
-        Collections.addAll(this.params, params);
+    public Object[] getParams() {
+        return this.params.toArray();
     }
 
     @Override
-    public Object[] getParams() {
-        return this.params.toArray();
+    public void setParams(Object... params) {
+        this.params.clear();
+        Collections.addAll(this.params, params);
     }
 }

@@ -35,6 +35,8 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
+    private final static ExternalResourceReadMetadataBuildOperationType.Result METADATA_RESULT = new ExternalResourceReadMetadataBuildOperationType.Result() {
+    };
     private final ExternalResourceAccessor delegate;
     private final BuildOperationRunner buildOperationRunner;
 
@@ -73,9 +75,6 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
             return "ExternalResourceReadMetadataBuildOperationType.Details{location=" + getLocation() + ", " + '}';
         }
     }
-
-    private final static ExternalResourceReadMetadataBuildOperationType.Result METADATA_RESULT = new ExternalResourceReadMetadataBuildOperationType.Result() {
-    };
 
     private static class ReadOperationDetails extends LocationDetails implements ExternalResourceReadBuildOperationType.Details {
         private ReadOperationDetails(URI location) {
@@ -136,7 +135,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
                 return delegate.withContent(location, revalidate, (inputStream, metaData) -> {
                     downloadOperation.setContentLength(metaData.getContentLength());
                     metadata.set(metaData);
-                    if(metaData.wasMissing()) {
+                    if (metaData.wasMissing()) {
                         context.failed(ResourceExceptions.getMissing(metaData.getLocation()));
                         return null;
                     }

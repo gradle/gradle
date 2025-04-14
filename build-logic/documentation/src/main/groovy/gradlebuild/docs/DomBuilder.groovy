@@ -51,7 +51,7 @@ class DomBuilder extends BuilderSupport {
 
     protected Element createNode(Object name, Map attributes) {
         Element element = createNode(name)
-        attributes.each {key, value ->
+        attributes.each { key, value ->
             element.setAttribute(key as String, value as String)
         }
         return element
@@ -78,7 +78,7 @@ class DomBuilder extends BuilderSupport {
     def appendChild(Node node) {
         if (!current) {
             elements << (Element) document.importNode(node, true)
-        } else  {
+        } else {
             current.appendChild(document.importNode(node, true))
         }
     }

@@ -103,6 +103,7 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
                 val classSuperTypes = (change.file.getClassSuperTypes() + className).filter { it.startsWith("org/gradle") }
                 superTypes.setProperty(className, classSuperTypes.joinToString(","))
             }
+
             REMOVED -> superTypes.remove(className)
         }
     }
@@ -128,8 +129,7 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
     private
     fun writeSuperTypes(superTypesFile: File, superTypes: Properties) {
         superTypesFile.writer().use {
-            superTypes.toSortedMap(compareBy { it.toString() }).forEach {
-                    (key, value) ->
+            superTypes.toSortedMap(compareBy { it.toString() }).forEach { (key, value) ->
                 it.write("$key=$value\n")
             }
         }
@@ -137,10 +137,13 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
 
     private
     sealed interface MetadataFileChange
+
     private
     object MetadataNotChanged : MetadataFileChange
+
     private
     object MetadataRemoved : MetadataFileChange
+
     private
     data class MetadataModified(val newFile: File) : MetadataFileChange
 }

@@ -37,7 +37,7 @@ class ProjectFile {
         pbxProjectFile.assertIsFile()
         file = pbxProjectFile
         content = PropertyListParser.parse(file)
-        objects = ((NSDictionary)content.get("objects")).getHashMap()
+        objects = ((NSDictionary) content.get("objects")).getHashMap()
         rootObject = toPbxObject(toNSString(content.get("rootObject")).getContent())
     }
 
@@ -110,7 +110,7 @@ class ProjectFile {
     }
 
     private <T extends PBXObject> T toPbxObject(String id) {
-        NSDictionary object = (NSDictionary)getObjects().get(id)
+        NSDictionary object = (NSDictionary) getObjects().get(id)
 
         if (object.isa.toJavaObject() == "PBXGroup") {
             return new PBXGroup(id, object)
@@ -126,7 +126,7 @@ class ProjectFile {
     }
 
     private static NSString toNSString(NSObject object) {
-        return (NSString)object
+        return (NSString) object
     }
 
     class PBXObject {
@@ -214,8 +214,8 @@ class ProjectFile {
         @Override
         String toString() {
             MoreObjects.toStringHelper(this)
-                    .add('name', getName())
-                    .toString()
+                .add('name', getName())
+                .toString()
         }
     }
 
@@ -243,7 +243,7 @@ class ProjectFile {
         }
 
         ProductType getProductType() {
-            return ProductType.values().find { it.identifier == getProperty("productType")}
+            return ProductType.values().find { it.identifier == getProperty("productType") }
         }
 
         void assertIsTool() {

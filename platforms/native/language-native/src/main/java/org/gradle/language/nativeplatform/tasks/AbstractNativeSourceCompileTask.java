@@ -43,18 +43,6 @@ import java.io.File;
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
 
-    @Override
-    protected void configureSpec(NativeCompileSpec spec) {
-        super.configureSpec(spec);
-        if (preCompiledHeader != null) {
-            File pchObjectFile = preCompiledHeader.getObjectFile();
-            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), preCompiledHeader.getPrefixHeaderFile(), pchObjectFile);
-            spec.setPrefixHeaderFile(new File(pchDir, preCompiledHeader.getPrefixHeaderFile().getName()));
-            spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
-            spec.setPreCompiledHeader(RegexBackedCSourceParser.parseExpression(preCompiledHeader.getIncludeString()).getValue());
-        }
-    }
-
     public AbstractNativeSourceCompileTask() {
         super();
         getOutputs().doNotCacheIf("Pre-compiled headers are used", new Spec<Task>() {
@@ -72,10 +60,24 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
         });
     }
 
+    @Override
+    protected void configureSpec(NativeCompileSpec spec) {
+        super.configureSpec(spec);
+        if (preCompiledHeader != null) {
+            File pchObjectFile = preCompiledHeader.getObjectFile();
+            File pchDir = PCHUtils.generatePCHObjectDirectory(spec.getTempDir(), preCompiledHeader.getPrefixHeaderFile(), pchObjectFile);
+            spec.setPrefixHeaderFile(new File(pchDir, preCompiledHeader.getPrefixHeaderFile().getName()));
+            spec.setPreCompiledHeaderObjectFile(new File(pchDir, pchObjectFile.getName()));
+            spec.setPreCompiledHeader(RegexBackedCSourceParser.parseExpression(preCompiledHeader.getIncludeString()).getValue());
+        }
+    }
+
     /**
      * Returns the pre-compiled header to be used during compilation
      */
-    @Nullable @Optional @Nested
+    @Nullable
+    @Optional
+    @Nested
     @Incubating
     public PreCompiledHeader getPreCompiledHeader() {
         return preCompiledHeader;

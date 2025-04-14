@@ -34,9 +34,8 @@ public interface DependencyLockingHandler {
      * Convenience method for doing:
      *
      * configurations.all {
-     *     resolutionStrategy.activateDependencyLocking()
+     * resolutionStrategy.activateDependencyLocking()
      * }
-     *
      */
     void lockAllConfigurations();
 
@@ -44,7 +43,7 @@ public interface DependencyLockingHandler {
      * Convenience method for doing:
      *
      * configurations.all {
-     *     resolutionStrategy.deactivateDependencyLocking()
+     * resolutionStrategy.deactivateDependencyLocking()
      * }
      *
      * @since 6.0

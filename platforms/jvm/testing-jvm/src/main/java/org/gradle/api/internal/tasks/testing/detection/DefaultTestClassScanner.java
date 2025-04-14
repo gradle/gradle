@@ -37,8 +37,10 @@ public class DefaultTestClassScanner implements Runnable {
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
 
-    public DefaultTestClassScanner(FileTree candidateClassFiles, TestFrameworkDetector testFrameworkDetector,
-                                   TestClassProcessor testClassProcessor) {
+    public DefaultTestClassScanner(
+        FileTree candidateClassFiles, TestFrameworkDetector testFrameworkDetector,
+        TestClassProcessor testClassProcessor
+    ) {
         this.candidateClassFiles = candidateClassFiles;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
@@ -73,6 +75,10 @@ public class DefaultTestClassScanner implements Runnable {
         });
     }
 
+    private String getClassName(FileVisitDetails fileDetails) {
+        return fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
+    }
+
     private abstract class ClassFileVisitor extends EmptyFileVisitor implements ReproducibleFileVisitor {
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
@@ -96,9 +102,5 @@ public class DefaultTestClassScanner implements Runnable {
         public boolean isReproducibleFileOrder() {
             return true;
         }
-    }
-
-    private String getClassName(FileVisitDetails fileDetails) {
-        return fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
     }
 }

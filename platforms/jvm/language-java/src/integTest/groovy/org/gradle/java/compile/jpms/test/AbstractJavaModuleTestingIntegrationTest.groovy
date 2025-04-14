@@ -43,7 +43,7 @@ class AbstractJavaModuleTestingIntegrationTest extends AbstractJavaModuleIntegra
     }
 
     protected testModuleInfo(String... statements) {
-        file('src/test/java/module-info.java').text = "open module consumer.test { ${statements.collect { it + ';' }.join(' ') } }"
+        file('src/test/java/module-info.java').text = "open module consumer.test { ${statements.collect { it + ';' }.join(' ')} }"
     }
 
 }

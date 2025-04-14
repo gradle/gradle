@@ -60,6 +60,7 @@ public class DefaultProblems implements InternalProblems {
     public ProblemReporter getReporter() {
         return createReporter();
     }
+
     @NonNull
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
@@ -79,6 +80,7 @@ public class DefaultProblems implements InternalProblems {
     public ProblemsInfrastructure getInfrastructure() {
         return infrastructure;
     }
+
     @Override
     public InternalProblemBuilder getProblemBuilder() {
         return new DefaultProblemBuilder(infrastructure);

@@ -28,16 +28,16 @@ class ArtifactFileTest extends Specification {
         artifactFile.classifier == null
 
         where:
-        inputFileName       | name              | extension | version
-        "some-file.zip"     | "some-file"       | "zip"     | "1.2"
-        "some-file.zip.zip" | "some-file.zip"   | "zip"     | "1.2"
-        ".zip"              | ""                | "zip"     | "1.2"
-        "some-file"         | "some-file"       | ""        | "1.2"
+        inputFileName       | name            | extension | version
+        "some-file.zip"     | "some-file"     | "zip"     | "1.2"
+        "some-file.zip.zip" | "some-file.zip" | "zip"     | "1.2"
+        ".zip"              | ""              | "zip"     | "1.2"
+        "some-file"         | "some-file"     | ""        | "1.2"
 
-        "some-file.zip"     | "some-file"       | "zip"     | null
-        "some-file.zip.zip" | "some-file.zip"   | "zip"     | null
-        ".zip"              | ""                | "zip"     | null
-        "some-file"         | "some-file"       | ""        | null
+        "some-file.zip"     | "some-file"     | "zip"     | null
+        "some-file.zip.zip" | "some-file.zip" | "zip"     | null
+        ".zip"              | ""              | "zip"     | null
+        "some-file"         | "some-file"     | ""        | null
     }
 
     def "removes module version from file name #inputFileName with version #version"() {
@@ -74,17 +74,17 @@ class ArtifactFileTest extends Specification {
         artifactFile.classifier == classifier
 
         where:
-        inputFileName                      | name                           | classifier    | extension         | version
-        "some-file-1.2-classifier.jar"     | "some-file"                    | "classifier"  | "jar"             | "1.2"
-        "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier"     | null          | "jar"             | "1.2"
-        "-1.2-classifier.jar"              | ""                             | "classifier"  | "jar"             | "1.2"
-        "some-file-1.2-classifier"         | "some-file"                    | "classifier"  | ""                | "1.2"
-        "some-file-1.2-.jar"               | "some-file"                    | null          | "jar"             | "1.2"
+        inputFileName                      | name                           | classifier   | extension      | version
+        "some-file-1.2-classifier.jar"     | "some-file"                    | "classifier" | "jar"          | "1.2"
+        "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier"     | null         | "jar"          | "1.2"
+        "-1.2-classifier.jar"              | ""                             | "classifier" | "jar"          | "1.2"
+        "some-file-1.2-classifier"         | "some-file"                    | "classifier" | ""             | "1.2"
+        "some-file-1.2-.jar"               | "some-file"                    | null         | "jar"          | "1.2"
 
-        "some-file-1.2-classifier.jar"     | "some-file-1.2-classifier"     | null          | "jar"             | null
-        "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier-1.2" | null          | "jar"             | null
-        "-1.2-classifier.jar"              | "-1.2-classifier"              | null          | "jar"             | null
-        "some-file-1.2-classifier"         | "some-file-1"                  | null          | "2-classifier"    | null
-        "some-file-1.2-.jar"               | "some-file-1.2-"               | null          | "jar"             | null
+        "some-file-1.2-classifier.jar"     | "some-file-1.2-classifier"     | null         | "jar"          | null
+        "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier-1.2" | null         | "jar"          | null
+        "-1.2-classifier.jar"              | "-1.2-classifier"              | null         | "jar"          | null
+        "some-file-1.2-classifier"         | "some-file-1"                  | null         | "2-classifier" | null
+        "some-file-1.2-.jar"               | "some-file-1.2-"               | null         | "jar"          | null
     }
 }

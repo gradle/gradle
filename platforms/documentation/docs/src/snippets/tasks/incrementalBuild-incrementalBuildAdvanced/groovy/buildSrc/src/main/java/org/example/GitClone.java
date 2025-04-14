@@ -85,7 +85,7 @@ public abstract class GitClone extends DefaultTask {
 // tag::git-clone[]
     }
 
-// end::git-clone[]
+    // end::git-clone[]
     private boolean isCorrectCheckout(File directory, String url) {
         if (!directory.isDirectory()) {
             return false;

@@ -104,7 +104,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         launchTests { TestLauncher launcher ->
             launcher.withArguments("--configuration-cache")
             launcher.withTestsFor { TestSpecs specs ->
-                specs.forTaskPath(':test').includeMethod('example.MyTest' , 'foo')
+                specs.forTaskPath(':test').includeMethod('example.MyTest', 'foo')
             }
         }
 

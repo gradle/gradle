@@ -31,6 +31,11 @@ public class DocumentationRegistry {
     public static final String DSL_PROPERTY_URL_FORMAT = "%s/dsl/%s.html#%s:%s";
     public static final String KOTLIN_DSL_URL_FORMAT = "%s/kotlin-dsl/gradle/%s";
     public static final String LEARN_MORE_STRING = "Learn more about Gradle by exploring our Samples at ";
+    public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
+
+    private static String getRecommendationString(String topic, String url) {
+        return String.format(RECOMMENDATION, topic.trim(), url);
+    }
 
     /**
      * Returns the location of the documentation for the given feature, referenced by id. The location may be local or remote.
@@ -38,7 +43,6 @@ public class DocumentationRegistry {
     public String getDocumentationFor(String id) {
         return String.format("%s/userguide/%s.html", BASE_URL, id);
     }
-
 
     /**
      * Returns the location of the documentation for the given feature, referenced by id and section. The location may be local or remote.
@@ -92,12 +96,5 @@ public class DocumentationRegistry {
     public String getDocumentationRecommendationFor(String topic, DocLink docLink) {
         String url = docLink.getUrl();
         return getRecommendationString(topic, url == null ? "<N/A>" : url);
-    }
-
-
-    public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
-
-    private static String getRecommendationString(String topic, String url) {
-        return String.format(RECOMMENDATION, topic.trim(), url);
     }
 }

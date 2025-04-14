@@ -29,8 +29,8 @@ import java.util.Set;
  * A {@link TaskDependencyResolveContext} which visits incoming dependencies if they are {@link TaskDependencyContainer} instances.
  */
 public abstract class AbstractTaskDependencyContainerVisitingContext extends AbstractTaskDependencyResolveContext {
-    private final Set<Object> seen = new HashSet<>();
     protected final TaskDependencyResolveContext delegate;
+    private final Set<Object> seen = new HashSet<>();
 
     public AbstractTaskDependencyContainerVisitingContext(TaskDependencyResolveContext context) {
         this.delegate = context;

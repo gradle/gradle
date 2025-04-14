@@ -98,9 +98,9 @@ idea {
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
         }
         ['additionalCustomResources', 'additionalCustomGeneratedResources'].each { expectedSrcFolder ->
-            assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) && it.@type.text() == 'java-resource'}
+            assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) && it.@type.text() == 'java-resource' }
         }
-        assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomGeneratedResources') && it.@generated.text() == 'true'}
+        assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomGeneratedResources') && it.@generated.text() == 'true' }
 
         ['customModuleContentRoot', 'CUSTOM_VARIABLE'].each {
             assert iml.component.content.@url.text().contains(it)
@@ -468,7 +468,7 @@ project(':impl') {
     }
 }
 """
-        def content = getFile([print : true], 'impl/impl.iml').text
+        def content = getFile([print: true], 'impl/impl.iml').text
 
         //then
         assert content.count("someDependency.jar") == 1
@@ -584,7 +584,7 @@ idea {
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 3
         dependencies.assertHasLibrary('COMPILE', 'api-artifact-1.0.jar')
-        dependencies.assertHasLibrary(['RUNTIME','TEST'], 'bar-1.0.jar')
+        dependencies.assertHasLibrary(['RUNTIME', 'TEST'], 'bar-1.0.jar')
     }
 
     @Test

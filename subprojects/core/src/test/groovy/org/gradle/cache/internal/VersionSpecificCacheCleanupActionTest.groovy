@@ -37,14 +37,16 @@ import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class VersionSpecificCacheCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)
     def progressMonitor = Mock(CleanupProgressMonitor)
     def deleter = TestFiles.deleter()
 
-    @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, daysAgo(30), daysAgo(7), deleter, CleanupFrequency.DAILY)
+    @Subject
+    def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, daysAgo(30), daysAgo(7), deleter, CleanupFrequency.DAILY)
 
     def "cleans up unused version-specific cache directories"() {
         given:

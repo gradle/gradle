@@ -89,6 +89,24 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
     }
 
+    private static void checkDeprecationWarning(GradleVersion targetGradleVersion) {
+        if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
+            DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
+                    targetGradleVersion.getVersion()))
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("third_party_integration", "sec:embedding_compatibility")
+                .nagUser();
+        }
+    }
+
+    private static OutputStream teeOutput(OutputStream capture, OutputStream user) {
+        if (user == null) {
+            return capture;
+        } else {
+            return new TeeOutputStream(capture, user);
+        }
+    }
+
     @Override
     public GradleExecutionResult run(GradleExecutionParameters parameters) {
         final StreamByteBuffer outputBuffer = new StreamByteBuffer();
@@ -177,27 +195,9 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks);
     }
 
-    private static void checkDeprecationWarning(GradleVersion targetGradleVersion) {
-        if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
-            DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
-                    targetGradleVersion.getVersion()))
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("third_party_integration", "sec:embedding_compatibility")
-                .nagUser();
-        }
-    }
-
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {
         BuildEnvironment buildEnvironment = connection.getModel(BuildEnvironment.class);
         return GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
-    }
-
-    private static OutputStream teeOutput(OutputStream capture, OutputStream user) {
-        if (user == null) {
-            return capture;
-        } else {
-            return new TeeOutputStream(capture, user);
-        }
     }
 
     private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded, GradleProvider gradleProvider) {
@@ -267,7 +267,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
 
         private boolean isNoSource(TaskOperationResult result) {
-            return isSkipped(result) && ((TaskSkippedResult)result).getSkipMessage().equals("NO-SOURCE");
+            return isSkipped(result) && ((TaskSkippedResult) result).getSkipMessage().equals("NO-SOURCE");
         }
 
         private BuildTask createBuildTask(String taskPath, TaskOutcome outcome) {

@@ -30,6 +30,7 @@ import org.gradle.internal.Factory;
 public interface ExclusiveContentRepository {
     /**
      * Declares the repository
+     *
      * @param repository the repository for which we declare exclusive content
      * @return this repository descriptor
      */
@@ -37,6 +38,7 @@ public interface ExclusiveContentRepository {
 
     /**
      * Declares the repository
+     *
      * @param repositories the repositories for which we declare exclusive content
      * @return this repository descriptor
      */
@@ -44,6 +46,7 @@ public interface ExclusiveContentRepository {
 
     /**
      * Defines the content filter for this repository
+     *
      * @param config the configuration of the filter
      * @return this repository descriptor
      */

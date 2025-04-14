@@ -31,12 +31,6 @@ public abstract class NodePredicate {
         this.matcher = matcher;
     }
 
-    public ModelSpec scope(ModelPath scope) {
-        return scope(scope, matcher);
-    }
-
-    protected abstract ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher);
-
     public static NodePredicate allLinks() {
         return allLinks(Predicates.<MutableModelNode>alwaysTrue());
     }
@@ -62,6 +56,12 @@ public abstract class NodePredicate {
             }
         };
     }
+
+    public ModelSpec scope(ModelPath scope) {
+        return scope(scope, matcher);
+    }
+
+    protected abstract ModelSpec scope(ModelPath scope, Predicate<? super MutableModelNode> matcher);
 
     public NodePredicate withType(Class<?> type) {
         return withType(ModelType.of(type));

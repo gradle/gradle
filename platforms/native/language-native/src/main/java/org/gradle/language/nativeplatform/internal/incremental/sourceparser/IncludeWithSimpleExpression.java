@@ -34,17 +34,6 @@ public class IncludeWithSimpleExpression extends AbstractInclude {
     private final boolean isImport;
     private final IncludeType type;
 
-    public static IncludeWithSimpleExpression create(String value, boolean isImport, IncludeType type) {
-        return INTERNER.intern(new IncludeWithSimpleExpression(value, isImport, type));
-    }
-
-    public static Include create(Expression expression, boolean isImport) {
-        if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
-            return new IncludeWithMacroFunctionCallExpression(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
-        }
-        return create(expression.getValue(), isImport, expression.getType());
-    }
-
     public IncludeWithSimpleExpression(String value, boolean isImport, IncludeType type) {
         if (value == null) {
             throw new IllegalArgumentException("value cannot be null");
@@ -55,6 +44,17 @@ public class IncludeWithSimpleExpression extends AbstractInclude {
         this.value = value;
         this.isImport = isImport;
         this.type = type;
+    }
+
+    public static IncludeWithSimpleExpression create(String value, boolean isImport, IncludeType type) {
+        return INTERNER.intern(new IncludeWithSimpleExpression(value, isImport, type));
+    }
+
+    public static Include create(Expression expression, boolean isImport) {
+        if (expression.getType() == IncludeType.MACRO_FUNCTION && !expression.getArguments().isEmpty()) {
+            return new IncludeWithMacroFunctionCallExpression(expression.getValue(), isImport, ImmutableList.copyOf(expression.getArguments()));
+        }
+        return create(expression.getValue(), isImport, expression.getType());
     }
 
     @Override

@@ -25,11 +25,11 @@ const val NIGHTLY_SNAPSHOT_BUILD_ID = "Promotion_Nightly"
 class PublishNightlySnapshot(
     branch: VersionedSettingsBranch,
 ) : PublishGradleDistributionFullBuild(
-        promotedBranch = branch.branchName,
-        prepTask = branch.prepNightlyTaskName(),
-        promoteTask = branch.promoteNightlyTaskName(),
-        triggerName = "ReadyforNightly",
-    ) {
+    promotedBranch = branch.branchName,
+    prepTask = branch.prepNightlyTaskName(),
+    promoteTask = branch.promoteNightlyTaskName(),
+    triggerName = "ReadyforNightly",
+) {
     init {
         id(NIGHTLY_SNAPSHOT_BUILD_ID)
         name = "Nightly Snapshot"

@@ -51,12 +51,13 @@ public class BuildEnvironmentConfigurationConverter {
     private final BuildOptionBackedConverter<ToolchainConfiguration> toolchainConfigurationBuildOptionBackedConverter;
     private final FileCollectionFactory fileCollectionFactory;
 
-    BuildEnvironmentConfigurationConverter(InitialPropertiesConverter initialPropertiesConverter,
-                                           BuildLayoutConverter buildLayoutConverter,
-                                           LayoutToPropertiesConverter layoutToPropertiesConverter,
-                                           StartParameterConverter startParameterConverter,
-                                           BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
-                                           FileCollectionFactory fileCollectionFactory
+    BuildEnvironmentConfigurationConverter(
+        InitialPropertiesConverter initialPropertiesConverter,
+        BuildLayoutConverter buildLayoutConverter,
+        LayoutToPropertiesConverter layoutToPropertiesConverter,
+        StartParameterConverter startParameterConverter,
+        BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
+        FileCollectionFactory fileCollectionFactory
     ) {
         this.initialPropertiesConverter = initialPropertiesConverter;
         this.buildLayoutConverter = buildLayoutConverter;

@@ -22,7 +22,8 @@ import spock.lang.Specification
 
 class ExternalResourceMetaDataCompareTest extends Specification {
 
-    @Shared now = new Date()
+    @Shared
+        now = new Date()
 
     def local = Mock(ExternalResourceMetaData)
     def remote = Mock(ExternalResourceMetaData)
@@ -156,6 +157,7 @@ class ExternalResourceMetaDataCompareTest extends Specification {
             0 * metaData.getContentLength()
         }
     }
+
     boolean compare(ExternalResourceMetaData local, ExternalResourceMetaData remote) {
         compare(local, new Factory() {
             def create() { remote }

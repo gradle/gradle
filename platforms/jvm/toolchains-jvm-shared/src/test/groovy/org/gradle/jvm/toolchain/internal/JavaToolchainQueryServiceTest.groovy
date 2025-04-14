@@ -190,7 +190,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         def e = thrown(ToolchainProvisioningException)
         e.message == "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=8, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
-                "Toolchain auto-provisioning is not enabled."
+            "Toolchain auto-provisioning is not enabled."
 
         where:
         capabilities << [
@@ -478,7 +478,7 @@ class JavaToolchainQueryServiceTest extends Specification {
             jvmName = "J9"
         }
 
-        def additionalCapabilities= EnumSet.noneOf(JavaInstallationCapability)
+        def additionalCapabilities = EnumSet.noneOf(JavaInstallationCapability)
         if (location.name.contains("jdk")) {
             additionalCapabilities.addAll(JDK_CAPABILITIES)
         }

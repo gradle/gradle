@@ -29,6 +29,7 @@ public abstract class MainWithXCTestSourceElement extends XCTestSourceElement {
     }
 
     public abstract SwiftSourceElement getMain();
+
     public abstract XCTestSourceElement getTest();
 
     @Override

@@ -199,7 +199,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
     }
 
     private void setupBuildFile() {
-        buildFile .text = """
+        buildFile.text = """
             ext {
                 added = []
                 modified = []

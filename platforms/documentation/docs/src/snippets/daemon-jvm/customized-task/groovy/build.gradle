@@ -24,7 +24,7 @@ tasks.named("updateDaemonJvm") {
 
 // tag::customized-uri-daemon-jvm-task[]
 tasks.named("updateDaemonJvm") {
-    toolchainDownloadUrls = [(BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.MAC_OS)) : uri("https://server?platform=MAC_OS.AARCH64"),
-                             (BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.WINDOWS)) : uri("https://server?platform=WINDOWS.AARCH64")]
+    toolchainDownloadUrls = [(BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.MAC_OS)): uri("https://server?platform=MAC_OS.AARCH64"),
+                             (BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.WINDOWS)): uri("https://server?platform=WINDOWS.AARCH64")]
 }
 // end::customized-uri-daemon-jvm-task[]

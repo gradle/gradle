@@ -194,13 +194,13 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files: [" + testDirectory.file(resolvesTo) + "]")
 
         where:
-        expression                                     | resolvesTo
-        "settingsDirectory.dir('configs')"             | "configs"
-        "settingsDirectory.file('configs/file.txt')"   | "configs/file.txt"
-        "projectDirectory.dir('src/main')"             | "src/main"
-        "projectDirectory.file('src/main/App.java')"   | "src/main/App.java"
-        "buildDirectory.dir('classes/main')"           | "build/classes/main"
-        "buildDirectory.file('exe/main.exe')"          | "build/exe/main.exe"
+        expression                                   | resolvesTo
+        "settingsDirectory.dir('configs')"           | "configs"
+        "settingsDirectory.file('configs/file.txt')" | "configs/file.txt"
+        "projectDirectory.dir('src/main')"           | "src/main"
+        "projectDirectory.file('src/main/App.java')" | "src/main/App.java"
+        "buildDirectory.dir('classes/main')"         | "build/classes/main"
+        "buildDirectory.file('exe/main.exe')"        | "build/exe/main.exe"
     }
 
     def 'can create empty #collectionType'() {
@@ -217,8 +217,8 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains('size = 0')
 
         where:
-        collectionType               | expression
-        'FileCollection'             | 'project.layout.files()'
+        collectionType   | expression
+        'FileCollection' | 'project.layout.files()'
     }
 
     def 'can create #collectionType containing #content'() {
@@ -237,21 +237,21 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains('size = 1')
 
         where:
-        collectionType               | content          | expression
-        'FileCollection'             | 'String'         | 'project.layout.files("src/resource/file.txt")'
-        'FileCollection'             | 'File'           | 'project.layout.files(new File("src/resource/file.txt"))'
-        'FileCollection'             | 'Path'           | 'project.layout.files(java.nio.file.Paths.get("src/resource/file.txt"))'
-        'FileCollection'             | 'URI'            | 'project.layout.files(new File(projectDir, "/src/resource/file.txt").toURI())'
-        'FileCollection'             | 'URL'            | 'project.layout.files(new File(projectDir, "/src/resource/file.txt").toURI().toURL())'
-        'FileCollection'             | 'Directory'      | 'project.layout.files(project.layout.projectDirectory)'
-        'FileCollection'             | 'RegularFile'    | 'project.layout.files(project.layout.projectDirectory.file("src/resource/file.txt"))'
-        'FileCollection'             | 'Closure'        | 'project.layout.files({ "src/resource/file.txt" })'
-        'FileCollection'             | 'List'           | 'project.layout.files([ "src/resource/file.txt" ])'
-        'FileCollection'             | 'array'          | 'project.layout.files([ "src/resource/file.txt" ] as Object[])'
-        'FileCollection'             | 'FileCollection' | "project.layout.files(project.layout.files('src/resource/file.txt'))"
-        'FileCollection'             | 'Callable'       | "project.layout.files($STRING_CALLABLE)"
-        'FileCollection'             | 'Provider'       | "project.layout.files(provider($STRING_CALLABLE))"
-        'FileCollection'             | 'nested objects' | "project.layout.files({[{$STRING_CALLABLE}]})"
+        collectionType   | content          | expression
+        'FileCollection' | 'String'         | 'project.layout.files("src/resource/file.txt")'
+        'FileCollection' | 'File'           | 'project.layout.files(new File("src/resource/file.txt"))'
+        'FileCollection' | 'Path'           | 'project.layout.files(java.nio.file.Paths.get("src/resource/file.txt"))'
+        'FileCollection' | 'URI'            | 'project.layout.files(new File(projectDir, "/src/resource/file.txt").toURI())'
+        'FileCollection' | 'URL'            | 'project.layout.files(new File(projectDir, "/src/resource/file.txt").toURI().toURL())'
+        'FileCollection' | 'Directory'      | 'project.layout.files(project.layout.projectDirectory)'
+        'FileCollection' | 'RegularFile'    | 'project.layout.files(project.layout.projectDirectory.file("src/resource/file.txt"))'
+        'FileCollection' | 'Closure'        | 'project.layout.files({ "src/resource/file.txt" })'
+        'FileCollection' | 'List'           | 'project.layout.files([ "src/resource/file.txt" ])'
+        'FileCollection' | 'array'          | 'project.layout.files([ "src/resource/file.txt" ] as Object[])'
+        'FileCollection' | 'FileCollection' | "project.layout.files(project.layout.files('src/resource/file.txt'))"
+        'FileCollection' | 'Callable'       | "project.layout.files($STRING_CALLABLE)"
+        'FileCollection' | 'Provider'       | "project.layout.files(provider($STRING_CALLABLE))"
+        'FileCollection' | 'nested objects' | "project.layout.files({[{$STRING_CALLABLE}]})"
     }
 
     def 'can create #collectionType with #dependencyType dependency'() {
@@ -275,9 +275,9 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [${testDirectory.file('/build/resource/file.txt').absolutePath}]")
 
         where:
-        collectionType               | dependencyType | expression
-        'FileCollection'             | 'Task'         | 'project.layout.files(project.tasks.myTask)'
-        'FileCollection'             | 'TaskOutputs'  | 'project.layout.files(project.tasks.myTask.outputs)'
+        collectionType   | dependencyType | expression
+        'FileCollection' | 'Task'         | 'project.layout.files(project.tasks.myTask)'
+        'FileCollection' | 'TaskOutputs'  | 'project.layout.files(project.tasks.myTask.outputs)'
     }
 
     def '#expression enforces build dependencies when given Task as input'() {
@@ -332,8 +332,8 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [${testDirectory.file('/src/resource/file.txt').absolutePath}]")
 
         where:
-        collectionType               | expression
-        'FileCollection'             | 'project.layout.files(configurations.other)'
+        collectionType   | expression
+        'FileCollection' | 'project.layout.files(configurations.other)'
     }
 
     def 'fails to resolve #collectionType with null element'() {

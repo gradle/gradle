@@ -40,7 +40,7 @@ public @interface ReplacedBy {
     /**
      * The Java Bean-style name of the replacement property.
      * <p>
-     *     If the property has been replaced with a method named {@code getFooBar()}, then this should be {@code fooBar}.
+     * If the property has been replaced with a method named {@code getFooBar()}, then this should be {@code fooBar}.
      * </p>
      */
     String value();

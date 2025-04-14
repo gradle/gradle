@@ -20,7 +20,7 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
+class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec {
 
     private static final EXCLUDED_FILE_NAME = "my-excluded-file.txt"
     private static final DEFAULT_EXCLUDES = [
@@ -133,7 +133,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
                 ant.defaultexcludes default: true
             }
         """
-        List<String> defaultExcludesFromSettings = (DEFAULT_EXCLUDES  + ['**/' + EXCLUDED_FILE_NAME]).toSorted()
+        List<String> defaultExcludesFromSettings = (DEFAULT_EXCLUDES + ['**/' + EXCLUDED_FILE_NAME]).toSorted()
         List<String> defaultExcludesInTask = DEFAULT_EXCLUDES.toSorted()
 
         when:
@@ -166,7 +166,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
     private static String addDefaultExclude(String excludedFileName = EXCLUDED_FILE_NAME) {
         """
-            ${DirectoryScanner.name}.addDefaultExclude('**/${ excludedFileName}')
+            ${DirectoryScanner.name}.addDefaultExclude('**/${excludedFileName}')
         """
     }
 

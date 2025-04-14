@@ -38,7 +38,7 @@ public abstract class AbstractProcessEnvironment implements ProcessEnvironment {
             removeEnvironmentVariable(key);
         }
         for (Map.Entry<String, String> entry : source.entrySet()) {
-           setEnvironmentVariable(entry.getKey(), entry.getValue());
+            setEnvironmentVariable(entry.getKey(), entry.getValue());
         }
         return EnvironmentModificationResult.SUCCESS;
     }

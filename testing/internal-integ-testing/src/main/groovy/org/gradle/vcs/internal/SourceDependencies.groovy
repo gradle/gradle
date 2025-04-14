@@ -24,7 +24,7 @@ import static org.gradle.internal.hash.Hashing.hashString
 
 @SelfType(AbstractIntegrationSpec)
 trait SourceDependencies {
-    TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir=testDirectory) {
+    TestFile checkoutDir(String repoName, String versionId, String repoId, TestFile baseDir = testDirectory) {
         def prefix = repoName.take(9)
         def hashedCommit = hashString("${repoId}-${versionId}").toCompactString()
         return baseDir.file(".gradle/vcs-1/${prefix}_${hashedCommit}/${repoName}")

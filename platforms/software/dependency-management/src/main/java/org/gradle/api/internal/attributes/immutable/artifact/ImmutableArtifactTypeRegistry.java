@@ -63,6 +63,15 @@ public class ImmutableArtifactTypeRegistry {
         this.hashCode = computeHashCode(mappings, defaultArtifactAttributes);
     }
 
+    private static int computeHashCode(
+        ImmutableMap<String, ImmutableAttributes> mappings,
+        ImmutableAttributes defaultArtifactAttributes
+    ) {
+        int result = mappings.hashCode();
+        result = 31 * result + defaultArtifactAttributes.hashCode();
+        return result;
+    }
+
     public ImmutableMap<String, ImmutableAttributes> getMappings() {
         return mappings;
     }
@@ -182,15 +191,6 @@ public class ImmutableArtifactTypeRegistry {
         ImmutableArtifactTypeRegistry that = (ImmutableArtifactTypeRegistry) o;
         return mappings.equals(that.mappings) &&
             defaultArtifactAttributes.equals(that.defaultArtifactAttributes);
-    }
-
-    private static int computeHashCode(
-        ImmutableMap<String, ImmutableAttributes> mappings,
-        ImmutableAttributes defaultArtifactAttributes
-    ) {
-        int result = mappings.hashCode();
-        result = 31 * result + defaultArtifactAttributes.hashCode();
-        return result;
     }
 
     @Override

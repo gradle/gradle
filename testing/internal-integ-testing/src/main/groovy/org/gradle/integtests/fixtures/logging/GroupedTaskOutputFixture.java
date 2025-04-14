@@ -25,15 +25,15 @@ public class GroupedTaskOutputFixture extends GroupedWorkOutputFixture {
         this.taskName = taskName;
     }
 
+    public String getOutcome() {
+        return taskOutcome;
+    }
+
     public void setOutcome(String taskOutcome) {
         if (this.taskOutcome != null) {
             throw new AssertionError(taskName + " task's outcome is set twice!");
         }
         this.taskOutcome = taskOutcome;
-    }
-
-    public String getOutcome() {
-        return taskOutcome;
     }
 
     public String getName() {

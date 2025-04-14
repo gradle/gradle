@@ -122,104 +122,6 @@ public class DependencyGraphBuilder {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public void resolve(
-        LocalComponentGraphResolveState rootComponent,
-        LocalVariantGraphResolveState rootVariant,
-        List<? extends DependencyMetadata> syntheticDependencies,
-        Spec<? super DependencyMetadata> edgeFilter,
-        ComponentSelectorConverter componentSelectorConverter,
-        DependencyToComponentIdResolver componentIdResolver,
-        ComponentMetaDataResolver componentMetaDataResolver,
-        ImmutableModuleReplacements moduleReplacements,
-        DependencySubstitutionApplicator dependencySubstitutionApplicator,
-        ModuleConflictResolver<ComponentState> moduleConflictResolver,
-        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
-        ConflictResolution conflictResolution,
-        boolean failingOnDynamicVersions,
-        boolean failingOnChangingVersions,
-        ResolutionParameters.FailureResolutions failureResolutions,
-        DependencyGraphVisitor modelVisitor
-    ) {
-        ModuleConflictHandler moduleConflictHandler = new DefaultConflictHandler(moduleConflictResolver, moduleReplacements);
-        CapabilitiesConflictHandler capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers);
-
-        ResolveState resolveState = new ResolveState(
-            idGenerator,
-            rootComponent,
-            rootVariant,
-            componentIdResolver,
-            componentMetaDataResolver,
-            edgeFilter,
-            moduleExclusions,
-            componentSelectorConverter,
-            attributesFactory,
-            attributeSchemaServices,
-            attributeDesugaring,
-            dependencySubstitutionApplicator,
-            versionSelectorScheme,
-            versionComparator,
-            versionParser,
-            conflictResolution,
-            syntheticDependencies,
-            moduleConflictHandler,
-            capabilitiesConflictHandler,
-            variantSelector
-        );
-
-        traverseGraph(resolveState);
-
-        validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, conflictResolution, failureResolutions);
-
-        assembleResult(resolveState, modelVisitor);
-    }
-
-    /**
-     * Traverses the dependency graph, resolving conflicts and building the paths from the root configuration.
-     */
-    private void traverseGraph(final ResolveState resolveState) {
-        resolveState.onMoreSelected(resolveState.getRoot());
-        final List<EdgeState> dependencies = new ArrayList<>();
-
-        ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
-        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
-
-        while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
-            if (resolveState.peek() != null) {
-                final NodeState node = resolveState.pop();
-                LOGGER.debug("Visiting configuration {}.", node);
-
-                // TODO: Why is this not node.isSelected()?
-                // It seems that node.isSelected can return true while component.isSelected() returns false
-                if (!node.getComponent().isSelected()) {
-                    node.cleanupConstraints();
-                    continue;
-                }
-
-                // Register capabilities for this node
-                if (registerCapabilities(resolveState, node)) {
-                    // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
-                    // There is no reason to continue processing this node otherwise.
-                    continue;
-                }
-
-                // Initialize and collect any new outgoing edges of this node
-                dependencies.clear();
-                node.visitOutgoingDependencies(dependencies);
-                boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState);
-                node.collectEndorsedStrictVersions(dependencies);
-                resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState);
-            } else {
-                // We have some batched up conflicts. Resolve the first, and continue traversing the graph
-                if (moduleConflictHandler.hasConflicts()) {
-                    moduleConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
-                } else {
-                    capabilitiesConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
-                }
-            }
-
-        }
-    }
-
     /**
      * Detect and register capability conflicts for the given node, deselecting the node if
      * it is involved in a conflict.
@@ -268,26 +170,6 @@ public class DependencyGraphBuilder {
             }
         });
         return foundConflict.get();
-    }
-
-    private boolean resolveEdges(
-        final NodeState node,
-        final List<EdgeState> dependencies,
-        final Spec<EdgeState> edgeFilter,
-        final boolean recomputeSelectors,
-        final ResolveState resolveState
-    ) {
-        if (dependencies.isEmpty()) {
-            return false;
-        }
-        if (performSelectionSerially(dependencies, edgeFilter, resolveState, recomputeSelectors)) {
-            maybeDownloadMetadataInParallel(node, dependencies, edgeFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
-            attachToTargetRevisionsSerially(dependencies, edgeFilter);
-            return true;
-        } else {
-            return false;
-        }
-
     }
 
     private static boolean performSelectionSerially(List<EdgeState> edges, Spec<EdgeState> edgeFilter, ResolveState resolveState, boolean recomputeSelectors) {
@@ -703,6 +585,124 @@ public class DependencyGraphBuilder {
         }
 
         visitor.finish(resolveState.getRoot());
+    }
+
+    public void resolve(
+        LocalComponentGraphResolveState rootComponent,
+        LocalVariantGraphResolveState rootVariant,
+        List<? extends DependencyMetadata> syntheticDependencies,
+        Spec<? super DependencyMetadata> edgeFilter,
+        ComponentSelectorConverter componentSelectorConverter,
+        DependencyToComponentIdResolver componentIdResolver,
+        ComponentMetaDataResolver componentMetaDataResolver,
+        ImmutableModuleReplacements moduleReplacements,
+        DependencySubstitutionApplicator dependencySubstitutionApplicator,
+        ModuleConflictResolver<ComponentState> moduleConflictResolver,
+        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
+        ConflictResolution conflictResolution,
+        boolean failingOnDynamicVersions,
+        boolean failingOnChangingVersions,
+        ResolutionParameters.FailureResolutions failureResolutions,
+        DependencyGraphVisitor modelVisitor
+    ) {
+        ModuleConflictHandler moduleConflictHandler = new DefaultConflictHandler(moduleConflictResolver, moduleReplacements);
+        CapabilitiesConflictHandler capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers);
+
+        ResolveState resolveState = new ResolveState(
+            idGenerator,
+            rootComponent,
+            rootVariant,
+            componentIdResolver,
+            componentMetaDataResolver,
+            edgeFilter,
+            moduleExclusions,
+            componentSelectorConverter,
+            attributesFactory,
+            attributeSchemaServices,
+            attributeDesugaring,
+            dependencySubstitutionApplicator,
+            versionSelectorScheme,
+            versionComparator,
+            versionParser,
+            conflictResolution,
+            syntheticDependencies,
+            moduleConflictHandler,
+            capabilitiesConflictHandler,
+            variantSelector
+        );
+
+        traverseGraph(resolveState);
+
+        validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, conflictResolution, failureResolutions);
+
+        assembleResult(resolveState, modelVisitor);
+    }
+
+    /**
+     * Traverses the dependency graph, resolving conflicts and building the paths from the root configuration.
+     */
+    private void traverseGraph(final ResolveState resolveState) {
+        resolveState.onMoreSelected(resolveState.getRoot());
+        final List<EdgeState> dependencies = new ArrayList<>();
+
+        ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
+        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
+
+        while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
+            if (resolveState.peek() != null) {
+                final NodeState node = resolveState.pop();
+                LOGGER.debug("Visiting configuration {}.", node);
+
+                // TODO: Why is this not node.isSelected()?
+                // It seems that node.isSelected can return true while component.isSelected() returns false
+                if (!node.getComponent().isSelected()) {
+                    node.cleanupConstraints();
+                    continue;
+                }
+
+                // Register capabilities for this node
+                if (registerCapabilities(resolveState, node)) {
+                    // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
+                    // There is no reason to continue processing this node otherwise.
+                    continue;
+                }
+
+                // Initialize and collect any new outgoing edges of this node
+                dependencies.clear();
+                node.visitOutgoingDependencies(dependencies);
+                boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState);
+                node.collectEndorsedStrictVersions(dependencies);
+                resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState);
+            } else {
+                // We have some batched up conflicts. Resolve the first, and continue traversing the graph
+                if (moduleConflictHandler.hasConflicts()) {
+                    moduleConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
+                } else {
+                    capabilitiesConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
+                }
+            }
+
+        }
+    }
+
+    private boolean resolveEdges(
+        final NodeState node,
+        final List<EdgeState> dependencies,
+        final Spec<EdgeState> edgeFilter,
+        final boolean recomputeSelectors,
+        final ResolveState resolveState
+    ) {
+        if (dependencies.isEmpty()) {
+            return false;
+        }
+        if (performSelectionSerially(dependencies, edgeFilter, resolveState, recomputeSelectors)) {
+            maybeDownloadMetadataInParallel(node, dependencies, edgeFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
+            attachToTargetRevisionsSerially(dependencies, edgeFilter);
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
     enum VisitState {

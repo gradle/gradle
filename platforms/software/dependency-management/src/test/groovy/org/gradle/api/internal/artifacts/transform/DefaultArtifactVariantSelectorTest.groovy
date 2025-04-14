@@ -102,7 +102,7 @@ class DefaultArtifactVariantSelectorTest extends Specification {
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
         def variants = [variant1, variant2]
-        def transformedVariants = variants.collect { transformedVariant(it, it.attributes, requested)}
+        def transformedVariants = variants.collect { transformedVariant(it, it.attributes, requested) }
 
         given:
         set.producerSchema >> producerSchema

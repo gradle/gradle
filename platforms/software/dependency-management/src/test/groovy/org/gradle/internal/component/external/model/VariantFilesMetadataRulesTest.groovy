@@ -41,12 +41,18 @@ import spock.lang.Specification
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class VariantFilesMetadataRulesTest extends Specification {
-    @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
-    @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
-    @Shared attributes = AttributeTestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
-    @Shared mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
-    @Shared ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    @Shared MutableComponentVariant defaultVariant
+    @Shared
+        versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
+    @Shared
+        componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
+    @Shared
+        attributes = AttributeTestUtil.attributesFactory().of(Attribute.of("someAttribute", String), "someValue")
+    @Shared
+        mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
+    @Shared
+        ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
+    @Shared
+    MutableComponentVariant defaultVariant
 
     private ivyComponentMetadata(String[] deps) {
         def dependencies = deps.collect { name ->
@@ -183,7 +189,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         when:
         metadata.variantMetadataRules.addVariant('new-variant', 'runtime', false)
         metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
-        def newVariant =  metadata.asImmutable().variantsForGraphTraversal.find { it.name == 'new-variant' }
+        def newVariant = metadata.asImmutable().variantsForGraphTraversal.find { it.name == 'new-variant' }
 
         then:
         0 * rule.execute(_)

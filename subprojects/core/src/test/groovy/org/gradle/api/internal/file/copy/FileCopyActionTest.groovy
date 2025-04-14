@@ -39,8 +39,8 @@ class FileCopyActionTest extends Specification {
 
         expect:
         visit(visitor,
-                file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")),
-                file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt"))
+            file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")),
+            file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt"))
         )
     }
 

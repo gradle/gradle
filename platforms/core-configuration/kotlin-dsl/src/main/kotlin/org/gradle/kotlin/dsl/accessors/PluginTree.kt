@@ -48,9 +48,11 @@ sealed class PluginTree {
                         branch[segment] = newGroup
                         branch = newGroupMap
                     }
+
                     is PluginGroup -> {
                         branch = group.plugins as MutableMap<String, PluginTree>
                     }
+
                     else -> {
                         return null
                     }

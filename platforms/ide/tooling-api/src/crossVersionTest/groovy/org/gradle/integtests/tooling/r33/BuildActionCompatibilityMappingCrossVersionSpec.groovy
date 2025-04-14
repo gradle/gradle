@@ -44,7 +44,7 @@ class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecific
         }
 
         then:
-        def moduleA = ideaProject.modules.find { it.name == 'a'}
+        def moduleA = ideaProject.modules.find { it.name == 'a' }
         moduleA.dependencies[0].targetModuleName == 'b'
     }
 

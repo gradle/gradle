@@ -26,7 +26,8 @@ import org.gradle.tooling.internal.provider.continuous.SingleFirePendingChangesL
 import org.junit.Rule
 
 class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTest {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         server.start()

@@ -56,9 +56,9 @@ abstract class AbstractContextAwareRuleSpecification extends Specification {
 
     Map getInitializationParams() {
         return [acceptedApiChanges: [:],
-            publicApiPatterns: ['gradlebuild[.]binarycompatibility[.]rules.[^.]+'],
-            apiChangesJsonFile: new File(testDir, 'test-api-changes.json').path,
-            projectRootDir: testDir.path]
+                publicApiPatterns: ['gradlebuild[.]binarycompatibility[.]rules.[^.]+'],
+                apiChangesJsonFile: new File(testDir, 'test-api-changes.json').path,
+                projectRootDir: testDir.path]
     }
 
     String replaceAsInternal(String name) {

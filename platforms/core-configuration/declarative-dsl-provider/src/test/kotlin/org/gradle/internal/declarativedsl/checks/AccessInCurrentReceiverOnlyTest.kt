@@ -135,6 +135,6 @@ class AccessInCurrentReceiverOnlyTest {
 
         assertEquals(3, result.size)
         assertTrue { result.all { it.reason is DocumentCheckFailureReason.AccessOnCurrentReceiverViolation } }
-        assertEquals(setOf("x = 1", "f()", "factory()") ,result.map { it.location.node.sourceData.text() }.toSet())
+        assertEquals(setOf("x = 1", "f()", "factory()"), result.map { it.location.node.sourceData.text() }.toSet())
     }
 }

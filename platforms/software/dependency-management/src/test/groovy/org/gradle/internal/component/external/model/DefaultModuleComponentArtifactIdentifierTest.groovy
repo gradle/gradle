@@ -87,7 +87,7 @@ class DefaultModuleComponentArtifactIdentifierTest extends Specification {
         def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def otherComponentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "2")
 
-        def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId,  "name", "type", "ext", 'classifier')
+        def withClassifier = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
         def same = new DefaultModuleComponentArtifactIdentifier(componentId, "name", "type", "ext", 'classifier')
         def differentModule = new DefaultModuleComponentArtifactIdentifier(otherComponentId, "name", "type", "ext", 'classifier')
         def differentName = new DefaultModuleComponentArtifactIdentifier(componentId, "2", "type", "ext", 'classifier')

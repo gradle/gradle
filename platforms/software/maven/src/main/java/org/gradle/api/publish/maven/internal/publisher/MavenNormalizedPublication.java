@@ -87,8 +87,8 @@ public class MavenNormalizedPublication {
 
     public Set<MavenArtifact> getAdditionalArtifacts() {
         return allArtifacts.stream()
-                .filter(artifact -> artifact != pomArtifact && artifact != mainArtifact)
-                .collect(Collectors.toSet());
+            .filter(artifact -> artifact != pomArtifact && artifact != mainArtifact)
+            .collect(Collectors.toSet());
     }
 
     public Set<MavenArtifact> getAllArtifacts() {

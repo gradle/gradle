@@ -27,8 +27,8 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>Consumer compatibility: This interface is used by all consumer versions from 4.4.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 4.4.</p>
  *
- * @since 4.4
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
+ * @since 4.4
  */
 public interface InternalParameterAcceptingConnection extends InternalProtocolInterface {
 
@@ -45,9 +45,11 @@ public interface InternalParameterAcceptingConnection extends InternalProtocolIn
      * @throws IllegalStateException When this connection has been stopped.
      * @since 4.4
      */
-    <T> BuildResult<T> run(InternalBuildActionVersion2<T> action,
-                           InternalCancellationToken cancellationToken,
-                           BuildParameters operationParameters) throws
+    <T> BuildResult<T> run(
+        InternalBuildActionVersion2<T> action,
+        InternalCancellationToken cancellationToken,
+        BuildParameters operationParameters
+    ) throws
         BuildExceptionVersion1,
         InternalUnsupportedBuildArgumentException,
         InternalBuildActionFailureException,

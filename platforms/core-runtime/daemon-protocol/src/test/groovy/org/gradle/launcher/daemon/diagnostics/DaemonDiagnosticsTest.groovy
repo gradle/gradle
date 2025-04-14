@@ -22,7 +22,8 @@ import spock.lang.Specification
 
 class DaemonDiagnosticsTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def "tailing the daemon log is always safe"() {
         given:

@@ -30,6 +30,7 @@ public class ProjectConfigurationException extends DefaultMultiCauseException {
 
     /**
      * Creates an exception with the given message and causes.
+     *
      * @param message The message
      * @param causes The causes
      * @since 5.1

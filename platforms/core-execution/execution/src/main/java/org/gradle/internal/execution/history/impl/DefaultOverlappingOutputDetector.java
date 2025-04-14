@@ -36,6 +36,15 @@ import java.util.Map;
 import static org.gradle.internal.snapshot.SnapshotUtil.getRootHashes;
 
 public class DefaultOverlappingOutputDetector implements OverlappingOutputDetector {
+    @Nullable
+    private static OverlappingOutputs detect(String propertyName, FileSystemSnapshot previous, FileSystemSnapshot before) {
+        Map<String, FileSystemLocationSnapshot> previousIndex = SnapshotUtil.indexByRelativePath(previous);
+        OverlappingOutputsDetectingVisitor outputsDetectingVisitor = new OverlappingOutputsDetectingVisitor(previousIndex);
+        before.accept(new RelativePathTracker(), outputsDetectingVisitor);
+        String overlappingPath = outputsDetectingVisitor.getOverlappingPath();
+        return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
+    }
+
     @Override
     @Nullable
     public OverlappingOutputs detect(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
@@ -53,15 +62,6 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
             }
         }
         return null;
-    }
-
-    @Nullable
-    private static OverlappingOutputs detect(String propertyName, FileSystemSnapshot previous, FileSystemSnapshot before) {
-        Map<String, FileSystemLocationSnapshot> previousIndex = SnapshotUtil.indexByRelativePath(previous);
-        OverlappingOutputsDetectingVisitor outputsDetectingVisitor = new OverlappingOutputsDetectingVisitor(previousIndex);
-        before.accept(new RelativePathTracker(), outputsDetectingVisitor);
-        String overlappingPath = outputsDetectingVisitor.getOverlappingPath();
-        return overlappingPath == null ? null : new OverlappingOutputs(propertyName, overlappingPath);
     }
 
     private static class OverlappingOutputsDetectingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {

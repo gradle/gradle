@@ -29,6 +29,10 @@ public class ReadOnlyModuleVersionsCache extends DefaultModuleVersionsCache {
         super(timeProvider, cacheAccessCoordinator, moduleIdentifierFactory);
     }
 
+    private static UnsupportedOperationException operationShouldNotHaveBeenCalled() {
+        throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
+    }
+
     @Override
     protected void store(ModuleAtRepositoryKey key, ModuleVersionsCacheEntry entry) {
         operationShouldNotHaveBeenCalled();
@@ -37,9 +41,5 @@ public class ReadOnlyModuleVersionsCache extends DefaultModuleVersionsCache {
     @Override
     public void cacheModuleVersionList(ModuleComponentRepository<?> repository, ModuleIdentifier moduleId, Set<String> listedVersions) {
         throw operationShouldNotHaveBeenCalled();
-    }
-
-    private static UnsupportedOperationException operationShouldNotHaveBeenCalled() {
-        throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
     }
 }

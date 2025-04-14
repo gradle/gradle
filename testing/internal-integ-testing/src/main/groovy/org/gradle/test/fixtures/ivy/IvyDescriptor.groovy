@@ -55,17 +55,17 @@ class IvyDescriptor {
 
         ivy.configurations.conf.each {
             configurations[it.@name] = new IvyDescriptorConfiguration(
-                    name: it.@name, visibility: it.@visibility, description: it.@description,
-                    extend: it.@extends == null ? null : it.@extends.split(",")*.trim()
+                name: it.@name, visibility: it.@visibility, description: it.@description,
+                extend: it.@extends == null ? null : it.@extends.split(",")*.trim()
             )
         }
 
         ivy.publications.artifact.each { artifact ->
             def ivyArtifact = new IvyDescriptorArtifact(
-                    name: artifact.@name, type: artifact.@type,
-                    ext: artifact.@ext,
-                    conf: artifact.@conf == null ? null : artifact.@conf.split(",") as List,
-                    mavenAttributes: artifact.attributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
+                name: artifact.@name, type: artifact.@type,
+                ext: artifact.@ext,
+                conf: artifact.@conf == null ? null : artifact.@conf.split(",") as List,
+                mavenAttributes: artifact.attributes().findAll { it.key instanceof QName && it.key.namespaceURI == "http://ant.apache.org/ivy/maven" }.collectEntries { [it.key.localPart, it.value] }
             )
 
             artifacts.add(ivyArtifact)
@@ -74,12 +74,12 @@ class IvyDescriptor {
 
         ivy.dependencies.dependency.each { dep ->
             def ivyDependency = new IvyDescriptorDependency(
-                    org: dep.@org,
-                    module: dep.@name,
-                    revision: dep.@rev,
-                    revisionConstraint: dep.@revConstraint,
-                    confs: [dep.@conf],
-                    transitive: dep.@transitive
+                org: dep.@org,
+                module: dep.@name,
+                revision: dep.@rev,
+                revisionConstraint: dep.@revConstraint,
+                confs: [dep.@conf],
+                transitive: dep.@transitive
             )
 
             dep.exclude.each { exclude ->
@@ -112,8 +112,8 @@ class IvyDescriptor {
     }
 
     private static IvyDescriptorArtifact oneResult(List<IvyDescriptorArtifact> artifacts, def description) {
-        assert artifacts.size() > 0 : "Expected artifact not found: $description"
-        assert artifacts.size() == 1 : "Multiple artifacts found: $description"
+        assert artifacts.size() > 0: "Expected artifact not found: $description"
+        assert artifacts.size() == 1: "Multiple artifacts found: $description"
         return artifacts.get(0)
     }
 
@@ -129,7 +129,7 @@ class IvyDescriptor {
     }
 
     def assertConfigurationDependsOn(String configuration, String[] expected) {
-        def actualDependencies = dependencies.values().findAll { it.confs.any { it.contains(configuration) }}
+        def actualDependencies = dependencies.values().findAll { it.confs.any { it.contains(configuration) } }
         assert actualDependencies.size() == expected.length
         expected.each {
             String conf = "$configuration->default"
@@ -142,7 +142,7 @@ class IvyDescriptor {
 
     IvyDescriptorDependency expectDependency(String key) {
         final dependency = dependencies.get(key)
-        assert dependency != null : "Could not find expected dependency $key. Actual: ${dependencies.values()}"
+        assert dependency != null: "Could not find expected dependency $key. Actual: ${dependencies.values()}"
         return dependency
     }
 }

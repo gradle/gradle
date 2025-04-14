@@ -40,6 +40,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * Generates progress events to send back to the client,
  */
 public class ClientBuildEventGenerator implements BuildOperationListener {
+    private static final Operation DISABLED_OPERATION = new Operation() {
+        @Override
+        public void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        }
+
+        @Override
+        public void progress(OperationProgressEvent progressEvent) {
+        }
+
+        @Override
+        public void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        }
+    };
     private final BuildOperationListener nonMappedBuildEventGenerator;
     private final List<Mapper> mappers;
     private final List<BuildOperationTracker> trackers;
@@ -155,20 +168,6 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
             progressEventConsumer.finished(mapper.createFinishedEvent(descriptor, buildOperation.getDetails(), finishEvent));
         }
     }
-
-    private static final Operation DISABLED_OPERATION = new Operation() {
-        @Override
-        public void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        }
-
-        @Override
-        public void progress(OperationProgressEvent progressEvent) {
-        }
-
-        @Override
-        public void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        }
-    };
 
     private static abstract class Mapper {
         @Nullable

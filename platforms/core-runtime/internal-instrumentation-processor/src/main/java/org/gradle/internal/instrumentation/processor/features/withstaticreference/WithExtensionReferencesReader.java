@@ -33,6 +33,18 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class WithExtensionReferencesReader implements RequestPostProcessorExtension {
+    private static String extractMethodName(CallInterceptionRequest originalRequest, AnnotationMirror annotation) {
+        return AnnotationUtils.findAnnotationValue(annotation, "methodName")
+            .map(it -> (String) it.getValue())
+            .filter(it -> !it.isEmpty())
+            .orElse(NameUtil.interceptedJvmMethodName(originalRequest.getInterceptedCallable()));
+    }
+
+    private static boolean shouldPostProcess(CallInterceptionRequest request) {
+        CallableKindInfo kind = request.getInterceptedCallable().getKind();
+        return kind == CallableKindInfo.INSTANCE_METHOD || kind == CallableKindInfo.GROOVY_PROPERTY_GETTER || kind == CallableKindInfo.GROOVY_PROPERTY_SETTER;
+    }
+
     @Override
     public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
         if (shouldPostProcess(originalRequest)) {
@@ -48,17 +60,5 @@ public class WithExtensionReferencesReader implements RequestPostProcessorExtens
             });
         }
         return Collections.singletonList(originalRequest);
-    }
-
-    private static String extractMethodName(CallInterceptionRequest originalRequest, AnnotationMirror annotation) {
-        return AnnotationUtils.findAnnotationValue(annotation, "methodName")
-            .map(it -> (String) it.getValue())
-            .filter(it -> !it.isEmpty())
-            .orElse(NameUtil.interceptedJvmMethodName(originalRequest.getInterceptedCallable()));
-    }
-
-    private static boolean shouldPostProcess(CallInterceptionRequest request) {
-        CallableKindInfo kind = request.getInterceptedCallable().getKind();
-        return kind == CallableKindInfo.INSTANCE_METHOD || kind == CallableKindInfo.GROOVY_PROPERTY_GETTER || kind == CallableKindInfo.GROOVY_PROPERTY_SETTER;
     }
 }

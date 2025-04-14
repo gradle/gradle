@@ -217,20 +217,20 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         code << [
-                "id('noop')",
-                "id 'noop'",
-                "id('noop').version('bar')",
-                "id 'noop' version 'bar'",
-                "id('noop').\nversion 'bar'",
-                "id('java');id('noop')",
-                "id('java')\nid('noop')",
-                "id('noop').version('bar');id('java')",
-                "id('noop').version('bar')\nid('java')",
-                "id 'noop' apply false",
-                "id('noop').apply(false)",
-                "id('noop').apply(false);id('java')",
-                "id 'noop' version 'bar' apply false",
-                "id('noop').version('bar').apply(false)",
+            "id('noop')",
+            "id 'noop'",
+            "id('noop').version('bar')",
+            "id 'noop' version 'bar'",
+            "id('noop').\nversion 'bar'",
+            "id('java');id('noop')",
+            "id('java')\nid('noop')",
+            "id('noop').version('bar');id('java')",
+            "id('noop').version('bar')\nid('java')",
+            "id 'noop' apply false",
+            "id('noop').apply(false)",
+            "id('noop').apply(false);id('java')",
+            "id 'noop' version 'bar' apply false",
+            "id('noop').version('bar').apply(false)",
         ]
     }
 
@@ -245,15 +245,15 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertThatCause(containsString(msg))
 
         where:
-        lineNumber | code                                   | msg
-        2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
-        2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
-        2          | "id ''"                                | EMPTY_VALUE
-        2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
-        2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
-        2          | "id 'foo..bar'"                        | DOUBLE_SEPARATOR
-        2          | "id 'foo' version ''"                  | EMPTY_VALUE
+        lineNumber | code                  | msg
+        2          | "id ' '"              | invalidPluginIdCharMessage(' ' as char)
+        2          | "id '\$'"             | invalidPluginIdCharMessage('$' as char)
+        2          | "id ''"               | EMPTY_VALUE
+        2          | "id '.foo'"           | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo.'"           | ID_SEPARATOR_ON_START_OR_END
+        2          | "id '.'"              | ID_SEPARATOR_ON_START_OR_END
+        2          | "id 'foo..bar'"       | DOUBLE_SEPARATOR
+        2          | "id 'foo' version ''" | EMPTY_VALUE
     }
 
     def "can interpolate properties in project plugins block"() {
@@ -270,10 +270,10 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         where:
         code << [
-                'id("noop").version("${foo}")',
-                'id("noop").version("0.${foo}")',
-                'id("noop").version("${foo}.0")',
-                'id("noop").version("0.${foo}.1")',
+            'id("noop").version("${foo}")',
+            'id("noop").version("0.${foo}")',
+            'id("noop").version("${foo}.0")',
+            'id("noop").version("0.${foo}.1")',
         ]
     }
 

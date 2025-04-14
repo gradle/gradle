@@ -25,7 +25,6 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <L> the type of the first (left) exclude spec
  * @param <R> the type of the second (right) exclude spec
- *
  * @implSpec Remember that the order of the exclude specs must not be significant.
  */
 @NullMarked

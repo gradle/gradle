@@ -81,17 +81,17 @@ class MethodInvocation {
         return genericReturnType;
     }
 
+    @Nullable
+    public Object getResult() {
+        return result;
+    }
+
     /**
      * Marks the method as handled.
      */
     public void setResult(@Nullable Object result) {
         found = true;
         this.result = result;
-    }
-
-    @Nullable
-    public Object getResult() {
-        return result;
     }
 
     public String getName() {

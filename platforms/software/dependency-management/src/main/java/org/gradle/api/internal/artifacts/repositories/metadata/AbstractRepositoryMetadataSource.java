@@ -56,9 +56,11 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
 
-    protected AbstractRepositoryMetadataSource(MetadataArtifactProvider metadataArtifactProvider,
-                                               FileResourceRepository fileResourceRepository,
-                                               ChecksumService checksumService) {
+    protected AbstractRepositoryMetadataSource(
+        MetadataArtifactProvider metadataArtifactProvider,
+        FileResourceRepository fileResourceRepository,
+        ChecksumService checksumService
+    ) {
         this.metadataArtifactProvider = metadataArtifactProvider;
         this.fileResourceRepository = fileResourceRepository;
         this.checksumService = checksumService;
@@ -124,7 +126,7 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
         checkEquals("version", expectedId.getVersion(), actualId.getVersion(), errors);
         if (errors.size() > 0) {
             throw new MetaDataParseException(
-                    String.format("inconsistent module metadata found. Descriptor: %s Errors: %s", actualId, joinLines(errors)));
+                String.format("inconsistent module metadata found. Descriptor: %s Errors: %s", actualId, joinLines(errors)));
         }
     }
 

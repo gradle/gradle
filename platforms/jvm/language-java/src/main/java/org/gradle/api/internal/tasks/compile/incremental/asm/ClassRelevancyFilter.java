@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
 import java.util.function.Predicate;
+
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;

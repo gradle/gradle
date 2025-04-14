@@ -26,6 +26,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class MinimalScalaCompileOptions implements Serializable {
+    private final KeepAliveMode keepAliveMode;
     private boolean failOnError = true;
     private boolean deprecation = true;
     private boolean unchecked = true;
@@ -39,7 +40,6 @@ public class MinimalScalaCompileOptions implements Serializable {
     private List<String> loggingPhases;
     private MinimalScalaCompilerDaemonForkOptions forkOptions;
     private transient IncrementalCompileOptions incrementalOptions;
-    private final KeepAliveMode keepAliveMode;
 
     public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
         this.failOnError = compileOptions.isFailOnError();

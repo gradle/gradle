@@ -23,7 +23,8 @@ import org.junit.Test
 
 class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule
+    public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
     void recompilesSourceWhenPropertiesChange() {
@@ -52,7 +53,7 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
     @Test
     void failsCompilationWhenConfigScriptIsUpdated() {
         // compilation passes with a config script that does nothing
-        executer.withTasks('compileGroovy').run().assertTasksExecutedInOrder(":compileJava",":compileGroovy")
+        executer.withTasks('compileGroovy').run().assertTasksExecutedInOrder(":compileJava", ":compileGroovy")
 
         // make sure it fails if the config script applies type checking
         file('groovycompilerconfig.groovy').assertIsFile().copyFrom(file('newgroovycompilerconfig.groovy'))
@@ -63,7 +64,7 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
         // and eventually make sure it passes again if no config script is applied whatsoever
         file('build.gradle').assertIsFile().copyFrom(file('newbuild.gradle'))
 
-        executer.withTasks('compileGroovy').run().assertTasksExecutedInOrder(':compileJava',':compileGroovy').assertTaskSkipped(':compileJava')
+        executer.withTasks('compileGroovy').run().assertTasksExecutedInOrder(':compileJava', ':compileGroovy').assertTaskSkipped(':compileJava')
 
     }
 }

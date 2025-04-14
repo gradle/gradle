@@ -1,13 +1,13 @@
 // tag::configure-plugin-version[]
 pluginManagement {
-  val helloPluginVersion: String by settings
-  plugins {
-    id("com.example.hello") version "${helloPluginVersion}"
-  }
+    val helloPluginVersion: String by settings
+    plugins {
+        id("com.example.hello") version "${helloPluginVersion}"
+    }
 // end::configure-plugin-version[]
-  repositories {
-      maven(url = file("./maven-repo"))
-  }
+    repositories {
+        maven(url = file("./maven-repo"))
+    }
 // tag::configure-plugin-version[]
 }
 // end::configure-plugin-version[]

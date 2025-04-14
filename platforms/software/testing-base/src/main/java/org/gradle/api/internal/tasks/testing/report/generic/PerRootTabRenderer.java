@@ -67,18 +67,6 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             super(rootIndex);
         }
 
-        @Override
-        protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("div");
-            renderSummary(info, htmlWriter, info.getResult());
-            if (info.getChildren().isEmpty()) {
-                renderLeafDetails(info, htmlWriter);
-            } else {
-                renderChildren(htmlWriter);
-            }
-            htmlWriter.endElement();
-        }
-
         private static void renderSummary(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter, SerializableTestResult testResult) throws IOException {
             htmlWriter.startElement("div").attribute("class", "summary");
             htmlWriter.startElement("table");
@@ -165,6 +153,42 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             }
         }
 
+        private static String getStatusClass(TestResult.ResultType resultType) {
+            switch (resultType) {
+                case SUCCESS:
+                    return "success";
+                case FAILURE:
+                    return "failures";
+                case SKIPPED:
+                    return "skipped";
+                default:
+                    throw new IllegalStateException();
+            }
+        }
+
+        private static String getFormattedSuccessRate(TestTreeModel.PerRootInfo info) {
+            if (info.getTotalLeafCount() == 0) {
+                return "-";
+            }
+
+            BigDecimal runTests = BigDecimal.valueOf(info.getTotalLeafCount());
+            BigDecimal successful = BigDecimal.valueOf(info.getTotalLeafCount() - info.getFailedLeafCount());
+
+            return successful.divide(runTests, 2, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100)).intValue() + "%";
+        }
+
+        @Override
+        protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("div");
+            renderSummary(info, htmlWriter, info.getResult());
+            if (info.getChildren().isEmpty()) {
+                renderLeafDetails(info, htmlWriter);
+            } else {
+                renderChildren(htmlWriter);
+            }
+            htmlWriter.endElement();
+        }
+
         private void renderChildren(SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("table");
             htmlWriter.startElement("thead");
@@ -213,30 +237,6 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             }
             htmlWriter.endElement();
         }
-
-        private static String getStatusClass(TestResult.ResultType resultType) {
-            switch (resultType) {
-                case SUCCESS:
-                    return "success";
-                case FAILURE:
-                    return "failures";
-                case SKIPPED:
-                    return "skipped";
-                default:
-                    throw new IllegalStateException();
-            }
-        }
-
-        private static String getFormattedSuccessRate(TestTreeModel.PerRootInfo info) {
-            if (info.getTotalLeafCount() == 0) {
-                return "-";
-            }
-
-            BigDecimal runTests = BigDecimal.valueOf(info.getTotalLeafCount());
-            BigDecimal successful = BigDecimal.valueOf(info.getTotalLeafCount() - info.getFailedLeafCount());
-
-            return successful.divide(runTests, 2, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100)).intValue() + "%";
-        }
     }
 
     public static final class ForOutput extends PerRootTabRenderer {
@@ -274,31 +274,31 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         @Override
         protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "metadata");
-                renderMetadataTable(info, htmlWriter);
+            renderMetadataTable(info, htmlWriter);
             htmlWriter.endElement();
         }
 
         private void renderMetadataTable(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("table");
-                renderMetadataTableHeader(htmlWriter);
-                renderMetadataTableBody(info.getMetadatas(), htmlWriter);
+            renderMetadataTableHeader(htmlWriter);
+            renderMetadataTableBody(info.getMetadatas(), htmlWriter);
             htmlWriter.endElement();
         }
 
         private SimpleHtmlWriter renderMetadataTableHeader(SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("thead")
                 .startElement("tr")
-                    .startElement("th")
-                        .characters("Time")
-                    .endElement()
-                    .startElement("th")
-                        .characters("Key(s)")
-                    .endElement()
-                    .startElement("th")
-                        .characters("Value(s)")
-                    .endElement()
+                .startElement("th")
+                .characters("Time")
                 .endElement()
-            .endElement();
+                .startElement("th")
+                .characters("Key(s)")
+                .endElement()
+                .startElement("th")
+                .characters("Value(s)")
+                .endElement()
+                .endElement()
+                .endElement();
 
             return htmlWriter;
         }
@@ -320,9 +320,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         private SimpleHtmlWriter renderFirstMetadataElement(SerializedMetadata metadata, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
-                renderMetadataTimeCell(metadata, htmlWriter);
-                renderMetadataKeyValueCells(metadata.getEntries().get(0), htmlWriter)
-            .endElement();
+            renderMetadataTimeCell(metadata, htmlWriter);
+            renderMetadataKeyValueCells(metadata.getEntries().get(0), htmlWriter)
+                .endElement();
 
             return htmlWriter;
         }
@@ -330,7 +330,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private SimpleHtmlWriter renderAdditionalMetadataElements(List<SerializedMetadata.SerializedMetadataElement> elements, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
             for (SerializedMetadata.SerializedMetadataElement element : elements) {
                 htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
-                    renderMetadataKeyValueCells(element, htmlWriter);
+                renderMetadataKeyValueCells(element, htmlWriter);
                 htmlWriter.endElement();
             }
 
@@ -340,9 +340,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private SimpleHtmlWriter renderMetadataTimeCell(SerializedMetadata metadata, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getEntries().size()))
                 .startElement("span").attribute("class", "time")
-                    .characters(formatLogTime(metadata.getLogTime()))
+                .characters(formatLogTime(metadata.getLogTime()))
                 .endElement()
-            .endElement();
+                .endElement();
 
             return htmlWriter;
         }
@@ -350,10 +350,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private SimpleHtmlWriter renderMetadataKeyValueCells(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter
                 .startElement("td").attribute("class", "key")
-                    .characters(element.getKey())
+                .characters(element.getKey())
                 .endElement()
                 .startElement("td").attribute("class", "value");
-                    renderMetadataValue(element, htmlWriter)
+            renderMetadataValue(element, htmlWriter)
                 .endElement();
 
             return htmlWriter;
@@ -367,7 +367,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             } catch (Exception e) {
                 return (SimpleHtmlWriter) htmlWriter
                     .startElement("span").attribute("class", "unrenderable")
-                        .characters("[error rendering value]")
+                    .characters("[error rendering value]")
                     .endElement();
             }
         }

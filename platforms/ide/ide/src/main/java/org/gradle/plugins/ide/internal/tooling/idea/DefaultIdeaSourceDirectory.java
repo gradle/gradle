@@ -29,13 +29,13 @@ public class DefaultIdeaSourceDirectory implements Serializable {
         return directory;
     }
 
-    public boolean isGenerated() {
-        return generated;
-    }
-
     public DefaultIdeaSourceDirectory setDirectory(File directory) {
         this.directory = directory;
         return this;
+    }
+
+    public boolean isGenerated() {
+        return generated;
     }
 
     public DefaultIdeaSourceDirectory setGenerated(boolean generated) {
@@ -46,8 +46,8 @@ public class DefaultIdeaSourceDirectory implements Serializable {
     @Override
     public String toString() {
         return "DefaultIdeaSourceDirectory{"
-                + "directory=" + directory
-                + ", generated=" + generated
-                + '}';
+            + "directory=" + directory
+            + ", generated=" + generated
+            + '}';
     }
 }

@@ -83,6 +83,13 @@ import java.util.concurrent.TimeUnit;
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
     private static final String HTTPS_PROTOCOLS = "https.protocols";
+    private final String[] sslProtocols;
+    private final HttpSettings httpSettings;
+
+    public HttpClientConfigurer(HttpSettings httpSettings) {
+        this.httpSettings = httpSettings;
+        this.sslProtocols = determineHttpsProtocols();
+    }
 
     /**
      * Determines the HTTPS protocols to support for the client.
@@ -120,14 +127,6 @@ public class HttpClientConfigurer {
 
     Collection<String> supportedTlsVersions() {
         return Arrays.asList(sslProtocols);
-    }
-
-    private final String[] sslProtocols;
-    private final HttpSettings httpSettings;
-
-    public HttpClientConfigurer(HttpSettings httpSettings) {
-        this.httpSettings = httpSettings;
-        this.sslProtocols = determineHttpsProtocols();
     }
 
     public void configure(HttpClientBuilder builder) {

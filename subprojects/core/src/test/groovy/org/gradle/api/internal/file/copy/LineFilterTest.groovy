@@ -22,7 +22,8 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class LineFilterTest {
-    @Test void testEmptyInput() {
+    @Test
+    void testEmptyInput() {
         def input = new StringReader("")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
@@ -30,7 +31,8 @@ class LineFilterTest {
         assertThat(filter.text, equalTo(""))
     }
 
-    @Test void testEmptyLinesWithTrailingEOL() {
+    @Test
+    void testEmptyLinesWithTrailingEOL() {
         def input = new StringReader("\n\n")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
@@ -38,7 +40,8 @@ class LineFilterTest {
         assertThat(filter.text, equalTo(lines("1 - ", "2 - ", "")))
     }
 
-    @Test void testSingleLine() {
+    @Test
+    void testSingleLine() {
         def input = new StringReader("one")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
@@ -46,30 +49,34 @@ class LineFilterTest {
         assertThat(filter.text, equalTo("1 - one"))
     }
 
-    @Test void testWithEmptyReplacementString() {
+    @Test
+    void testWithEmptyReplacementString() {
         def input = new StringReader("one")
-        def filter = new LineFilter(input, {""})
+        def filter = new LineFilter(input, { "" })
 
         assertThat(filter.text, equalTo(""))
     }
 
-    @Test void testCRLFWithTrailingEOL() {
+    @Test
+    void testCRLFWithTrailingEOL() {
         def input = new StringReader("one\r\ntwo\r\nthree\r\n")
         def lineCount = 1
-        def filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three", "")))
     }
 
-    @Test void testLfWithNoTrailingEOL() {
+    @Test
+    void testLfWithNoTrailingEOL() {
         def input = new StringReader("one\ntwo\nthree")
         def lineCount = 1
-        def filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
     }
 
-    @Test void testCRWithNoTrailingEOL() {
+    @Test
+    void testCRWithNoTrailingEOL() {
         def input = new StringReader("one\rtwo\rthree")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
@@ -77,23 +84,25 @@ class LineFilterTest {
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
     }
 
-    @Test void testClosureReturningNull() {
+    @Test
+    void testClosureReturningNull() {
         def input = new StringReader("one\ntwo\nthree\n")
         def lineCount = 1
-        def filter = new LineFilter(input,  { lineCount++ % 2 == 0 ? null : it })
+        def filter = new LineFilter(input, { lineCount++ % 2 == 0 ? null : it })
 
         assertThat(filter.text, equalTo(lines("one", "three", "")))
     }
 
-    @Test void testClosureAlwaysReturningNull() {
+    @Test
+    void testClosureAlwaysReturningNull() {
         def input = new StringReader("one\ntwo\nthree\n")
         def lineCount = 1
-        def filter = new LineFilter(input,  { null })
+        def filter = new LineFilter(input, { null })
 
         assertThat(filter.text, equalTo(lines()))
     }
 
-    private String lines(String ... lines) {
+    private String lines(String... lines) {
         (lines as List).join(SystemProperties.instance.lineSeparator)
     }
 }

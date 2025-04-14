@@ -34,6 +34,11 @@ public interface MutableModuleComponentResolveMetadata {
     ModuleComponentIdentifier getId();
 
     /**
+     * Sets the component id and legacy module version id
+     */
+    void setId(ModuleComponentIdentifier componentId);
+
+    /**
      * The module version associated with this module.
      */
     ModuleVersionIdentifier getModuleVersionId();
@@ -43,21 +48,20 @@ public interface MutableModuleComponentResolveMetadata {
      */
     ModuleComponentResolveMetadata asImmutable();
 
-    /**
-     * Sets the component id and legacy module version id
-     */
-    void setId(ModuleComponentIdentifier componentId);
-
     boolean isMissing();
+
     void setMissing(boolean missing);
 
     boolean isChanging();
+
     void setChanging(boolean changing);
 
     String getStatus();
+
     void setStatus(String status);
 
     List<String> getStatusScheme();
+
     void setStatusScheme(List<String> statusScheme);
 
     MutableModuleSources getSources();
@@ -94,6 +98,7 @@ public interface MutableModuleComponentResolveMetadata {
 
     /**
      * Declares that this component belongs to a virtual platform.
+     *
      * @param platform the identifier of the virtual platform
      */
     void belongsTo(VirtualComponentIdentifier platform);

@@ -34,7 +34,6 @@ import org.jspecify.annotations.Nullable;
  * <li>If running under a terminal, and the operation has a short description and no status defined, the short description is shown in the 'status bar' at the bottom of the screen.</li>
  *
  * </ul>
- *
  */
 public interface ProgressLogger {
     /**

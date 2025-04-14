@@ -63,27 +63,14 @@ import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils
 import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils.interceptorImplementationLink;
 
 public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
-    @Override
-    protected String classNameForRequest(CallInterceptionRequest request) {
-        return request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class)
-            .map(RequestExtra.InterceptGroovyCalls::getImplementationClassName)
-            .orElse(null);
-    }
-
-    @Override
-    protected Consumer<TypeSpec.Builder> classContentForClass(
-        String className,
-        List<CallInterceptionRequest> requestsClassGroup,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super HasFailures.FailureInfo> onFailure
-    ) {
-        List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup, onFailure);
-
-        return builder -> builder
-            .addAnnotation(GENERATED_ANNOTATION.asClassName())
-            .addModifiers(Modifier.PUBLIC)
-            .addTypes(interceptorTypeSpecs);
-    }
+    static final ClassName FILTERABLE_CALL_INTERCEPTOR = ClassName.get(FilterableCallInterceptor.class);
+    static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
+        ClassName.get(SignatureAwareCallInterceptor.SignatureMatch.class);
+    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.get(AbstractCallInterceptor.class);
+    private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.get(SignatureAwareCallInterceptor.class);
+    private static final ClassName PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.get(PropertyAwareCallInterceptor.class);
+    private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.get(InterceptScope.class);
+    private static final ClassName INVOCATION_CLASS = ClassName.get(Invocation.class);
 
     @SuppressWarnings("ReturnValueIgnored")
     private static List<TypeSpec> generateInterceptorClasses(Collection<CallInterceptionRequest> interceptionRequests, Consumer<? super HasFailures.FailureInfo> onFailure) {
@@ -284,12 +271,25 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .orElseThrow(() -> new IllegalArgumentException("a property interception request must have a receiver parameter")).getParameterType();
     }
 
-    static final ClassName FILTERABLE_CALL_INTERCEPTOR = ClassName.get(FilterableCallInterceptor.class);
-    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.get(AbstractCallInterceptor.class);
-    private static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.get(SignatureAwareCallInterceptor.class);
-    static final ClassName SIGNATURE_AWARE_CALL_INTERCEPTOR_SIGNATURE_MATCH =
-        ClassName.get(SignatureAwareCallInterceptor.SignatureMatch.class);
-    private static final ClassName PROPERTY_AWARE_CALL_INTERCEPTOR_CLASS = ClassName.get(PropertyAwareCallInterceptor.class);
-    private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.get(InterceptScope.class);
-    private static final ClassName INVOCATION_CLASS = ClassName.get(Invocation.class);
+    @Override
+    protected String classNameForRequest(CallInterceptionRequest request) {
+        return request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class)
+            .map(RequestExtra.InterceptGroovyCalls::getImplementationClassName)
+            .orElse(null);
+    }
+
+    @Override
+    protected Consumer<TypeSpec.Builder> classContentForClass(
+        String className,
+        List<CallInterceptionRequest> requestsClassGroup,
+        Consumer<? super CallInterceptionRequest> onProcessedRequest,
+        Consumer<? super HasFailures.FailureInfo> onFailure
+    ) {
+        List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup, onFailure);
+
+        return builder -> builder
+            .addAnnotation(GENERATED_ANNOTATION.asClassName())
+            .addModifiers(Modifier.PUBLIC)
+            .addTypes(interceptorTypeSpecs);
+    }
 }

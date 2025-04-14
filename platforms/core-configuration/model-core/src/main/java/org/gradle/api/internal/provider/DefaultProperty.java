@@ -31,9 +31,9 @@ import org.jspecify.annotations.Nullable;
  * @param <T> the type of the property value
  */
 public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
+    private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
 
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
         super(propertyHost);

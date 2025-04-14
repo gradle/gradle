@@ -20,6 +20,9 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 public class ConfigureBuildBuildOperationType implements BuildOperationType<ConfigureBuildBuildOperationType.Details, ConfigureBuildBuildOperationType.Result> {
+    private ConfigureBuildBuildOperationType() {
+    }
+
     @UsedByScanPlugin
     public interface Details {
         /**
@@ -29,8 +32,5 @@ public class ConfigureBuildBuildOperationType implements BuildOperationType<Conf
     }
 
     public interface Result {
-    }
-
-    private ConfigureBuildBuildOperationType(){
     }
 }

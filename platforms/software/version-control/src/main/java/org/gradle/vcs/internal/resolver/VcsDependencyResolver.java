@@ -84,6 +84,19 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         this.publicBuildPath = publicBuildPath;
     }
 
+    private static PluginRequests getPluginRequests(AbstractVersionControlSpec spec) {
+        List<DefaultInjectedPluginDependency> requests = spec.getInjectedPlugins();
+        if (requests.isEmpty()) {
+            return PluginRequests.EMPTY;
+        }
+
+        return PluginRequests.of(
+            requests.stream()
+                .map(original -> new DefaultPluginRequest(DefaultPluginId.of(original.getId()), true, PluginRequestInternal.Origin.AUTO_APPLIED, null, null, null, null, null, null))
+                .collect(Collectors.toList())
+        );
+    }
+
     @Override
     public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
         if (selector instanceof ModuleComponentSelector) {
@@ -134,19 +147,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
             Actions.doNothing(),
             publicBuildPath,
             false
-        );
-    }
-
-    private static PluginRequests getPluginRequests(AbstractVersionControlSpec spec) {
-        List<DefaultInjectedPluginDependency> requests = spec.getInjectedPlugins();
-        if (requests.isEmpty()) {
-            return PluginRequests.EMPTY;
-        }
-
-        return PluginRequests.of(
-            requests.stream()
-                .map(original -> new DefaultPluginRequest(DefaultPluginId.of(original.getId()), true, PluginRequestInternal.Origin.AUTO_APPLIED, null, null, null, null, null, null))
-                .collect(Collectors.toList())
         );
     }
 

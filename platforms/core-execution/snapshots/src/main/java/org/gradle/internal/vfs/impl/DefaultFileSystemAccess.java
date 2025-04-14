@@ -59,10 +59,10 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private final Interner<String> stringInterner;
     private final WriteListener writeListener;
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
-    private ImmutableList<String> defaultExcludes;
-    private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
+    private ImmutableList<String> defaultExcludes;
+    private DirectorySnapshotter directorySnapshotter;
 
     public DefaultFileSystemAccess(
         FileHasher hasher,

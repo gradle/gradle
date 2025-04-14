@@ -47,10 +47,12 @@ public class VariantMetadataAdapter implements VariantMetadata {
     /**
      * If {@code variantName} is null, this adapter applies to all variants within a component.
      */
-    public VariantMetadataAdapter(@Nullable String variantName,
-                                  MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
-                                  NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
-                                  NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser) {
+    public VariantMetadataAdapter(
+        @Nullable String variantName,
+        MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
+        NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
+        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser
+    ) {
         this.variantName = variantName;
         this.metadata = metadata;
         this.instantiator = instantiator;

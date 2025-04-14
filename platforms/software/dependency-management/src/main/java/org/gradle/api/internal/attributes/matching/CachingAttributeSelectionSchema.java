@@ -67,6 +67,27 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
         return delegate.matchValue(key.attribute, key.requested, key.candidate);
     }
 
+    @Override
+    public Attribute<?> getAttribute(String name) {
+        return delegate.getAttribute(name);
+    }
+
+    @Override
+    public Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
+        // TODO: Evaluate whether we still need this cache
+        ExtraAttributesKey entry = new ExtraAttributesKey(candidateAttributeSets, requested);
+        return extraAttributesCache.get(entry);
+    }
+
+    private Attribute<?>[] doCollectExtraAttributes(ExtraAttributesKey key) {
+        return delegate.collectExtraAttributes(key.candidates, key.requested);
+    }
+
+    @Override
+    public PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
+        return delegate.orderByPrecedence(requested);
+    }
+
     private static class MatchValueKey<T> {
         private final Attribute<T> attribute;
         private final T requested;
@@ -108,22 +129,6 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
             result = 31 * result + candidate.hashCode();
             return result;
         }
-    }
-
-    @Override
-    public Attribute<?> getAttribute(String name) {
-        return delegate.getAttribute(name);
-    }
-
-    @Override
-    public Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
-        // TODO: Evaluate whether we still need this cache
-        ExtraAttributesKey entry = new ExtraAttributesKey(candidateAttributeSets, requested);
-        return extraAttributesCache.get(entry);
-    }
-
-    private Attribute<?>[] doCollectExtraAttributes(ExtraAttributesKey key) {
-        return delegate.collectExtraAttributes(key.candidates, key.requested);
     }
 
     private static class ExtraAttributesKey {
@@ -178,10 +183,5 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
         public int hashCode() {
             return hashCode;
         }
-    }
-
-    @Override
-    public PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
-        return delegate.orderByPrecedence(requested);
     }
 }

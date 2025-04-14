@@ -87,7 +87,6 @@ public interface FileSystemOperations {
      * For details see {@link ConfigurableFilePermissions}.
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FilePermissions}.
-     *
      * @since 8.3
      */
     ConfigurableFilePermissions filePermissions(Action<? super ConfigurableFilePermissions> configureAction);
@@ -98,7 +97,6 @@ public interface FileSystemOperations {
      * For details see {@link ConfigurableFilePermissions}.
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FilePermissions}.
-     *
      * @since 8.3
      */
     ConfigurableFilePermissions directoryPermissions(Action<? super ConfigurableFilePermissions> configureAction);

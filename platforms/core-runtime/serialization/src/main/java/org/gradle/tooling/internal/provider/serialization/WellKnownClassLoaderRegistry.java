@@ -35,7 +35,6 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
     private static final ClassLoader PLATFORM_CLASS_LOADER = ClassLoaderUtils.getPlatformClassLoader();
     private static final short PLATFORM_CLASS_LOADER_ID = -1;
     private static final ClassLoaderDetails PLATFORM_CLASS_LOADER_DETAILS = new ClassLoaderDetails(UUID.randomUUID(), new KnownClassLoaderSpec(PLATFORM_CLASS_LOADER_ID));
-    private final PayloadClassLoaderRegistry delegate;
 
     static {
         ImmutableSet.Builder<ClassLoader> builder = ImmutableSet.builder();
@@ -44,6 +43,8 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
         }
         PLATFORM_CLASS_LOADERS = builder.build();
     }
+
+    private final PayloadClassLoaderRegistry delegate;
 
     public WellKnownClassLoaderRegistry(PayloadClassLoaderRegistry delegate) {
         this.delegate = delegate;

@@ -54,7 +54,7 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor(), ruleApplicationScope);
     }
 
-    private static class ExtractedRuleSourceDefinitionRule  extends AbstractExtractedModelRule {
+    private static class ExtractedRuleSourceDefinitionRule extends AbstractExtractedModelRule {
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
         private final RuleApplicationScope ruleApplicationScope;

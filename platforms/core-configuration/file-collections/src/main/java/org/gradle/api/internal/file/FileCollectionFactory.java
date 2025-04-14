@@ -42,6 +42,36 @@ import java.util.function.Consumer;
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class})
 public interface FileCollectionFactory {
     /**
+     * Creates an empty {@link FileCollection}
+     */
+    static FileCollectionInternal empty(String displayName) {
+        if (FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME.equals(displayName)) {
+            return empty();
+        } else {
+            return new EmptyFileCollection(displayName);
+        }
+    }
+
+    /**
+     * Creates an empty {@link FileCollection}
+     */
+    static FileCollectionInternal empty() {
+        return EmptyFileCollection.INSTANCE;
+    }
+
+    static FileTreeInternal emptyTree() {
+        return EmptyFileTree.INSTANCE;
+    }
+
+    static FileTreeInternal emptyTree(String displayName) {
+        if (FileTreeInternal.DEFAULT_TREE_DISPLAY_NAME.equals(displayName)) {
+            return emptyTree();
+        } else {
+            return new EmptyFileTree(displayName);
+        }
+    }
+
+    /**
      * Creates a copy of this factory that uses the given resolver to convert various types to File instances.
      */
     FileCollectionFactory withResolver(PathToFileResolver fileResolver);
@@ -74,24 +104,6 @@ public interface FileCollectionFactory {
      * @see org.gradle.api.internal.tasks.TaskDependencyFactory#visitingDependencies(Consumer)
      */
     FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies);
-
-    /**
-     * Creates an empty {@link FileCollection}
-     */
-    static FileCollectionInternal empty(String displayName) {
-        if (FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME.equals(displayName)) {
-            return empty();
-        } else {
-            return new EmptyFileCollection(displayName);
-        }
-    }
-
-    /**
-     * Creates an empty {@link FileCollection}
-     */
-    static FileCollectionInternal empty() {
-        return EmptyFileCollection.INSTANCE;
-    }
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
@@ -185,16 +197,4 @@ public interface FileCollectionFactory {
     FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees);
 
     FileTreeInternal treeOf(MinimalFileTree tree);
-
-    static FileTreeInternal emptyTree() {
-        return EmptyFileTree.INSTANCE;
-    }
-
-    static FileTreeInternal emptyTree(String displayName) {
-        if (FileTreeInternal.DEFAULT_TREE_DISPLAY_NAME.equals(displayName)) {
-            return emptyTree();
-        } else {
-            return new EmptyFileTree(displayName);
-        }
-    }
 }

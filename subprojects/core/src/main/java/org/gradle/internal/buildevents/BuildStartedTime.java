@@ -32,12 +32,12 @@ public class BuildStartedTime {
 
     private volatile long startTime;
 
-    public static BuildStartedTime startingAt(long startTime) {
-        return new BuildStartedTime(startTime);
-    }
-
     public BuildStartedTime(long startTime) {
         this.startTime = startTime;
+    }
+
+    public static BuildStartedTime startingAt(long startTime) {
+        return new BuildStartedTime(startTime);
     }
 
     public long getStartTime() {

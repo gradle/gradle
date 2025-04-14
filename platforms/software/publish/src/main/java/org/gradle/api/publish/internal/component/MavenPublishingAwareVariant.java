@@ -18,6 +18,18 @@ package org.gradle.api.publish.internal.component;
 import org.gradle.api.component.SoftwareComponentVariant;
 
 public interface MavenPublishingAwareVariant extends SoftwareComponentVariant {
+    static ScopeMapping scopeForVariant(SoftwareComponentVariant variant) {
+        if (variant instanceof MavenPublishingAwareVariant) {
+            return ((MavenPublishingAwareVariant) variant).getScopeMapping();
+        }
+        // TODO: Update native plugins to use maven-aware variants so we can remove this.
+        String name = variant.getName();
+        if ("api".equals(name) || "apiElements".equals(name)) {
+            return ScopeMapping.compile;
+        }
+        return ScopeMapping.runtime;
+    }
+
     ScopeMapping getScopeMapping();
 
     // Order is important!
@@ -35,6 +47,13 @@ public interface MavenPublishingAwareVariant extends SoftwareComponentVariant {
             this.optional = optional;
         }
 
+        public static ScopeMapping of(String scope, boolean optional) {
+            if (optional) {
+                scope += "_optional";
+            }
+            return ScopeMapping.valueOf(scope);
+        }
+
         public String getScope() {
             return scope;
         }
@@ -42,24 +61,5 @@ public interface MavenPublishingAwareVariant extends SoftwareComponentVariant {
         public boolean isOptional() {
             return optional;
         }
-
-        public static ScopeMapping of(String scope, boolean optional) {
-            if (optional) {
-                scope += "_optional";
-            }
-            return ScopeMapping.valueOf(scope);
-        }
-    }
-
-    static ScopeMapping scopeForVariant(SoftwareComponentVariant variant) {
-        if (variant instanceof MavenPublishingAwareVariant) {
-            return ((MavenPublishingAwareVariant) variant).getScopeMapping();
-        }
-        // TODO: Update native plugins to use maven-aware variants so we can remove this.
-        String name = variant.getName();
-        if ("api".equals(name) || "apiElements".equals(name)) {
-            return ScopeMapping.compile;
-        }
-        return ScopeMapping.runtime;
     }
 }

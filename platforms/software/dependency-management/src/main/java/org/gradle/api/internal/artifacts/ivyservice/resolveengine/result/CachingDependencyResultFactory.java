@@ -38,8 +38,10 @@ public class CachingDependencyResultFactory {
     private final Map<List<Object>, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<>();
     private final Map<List<Object>, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<>();
 
-    public UnresolvedDependencyResult createUnresolvedDependency(ComponentSelector requested, ResolvedComponentResult from, boolean constraint,
-                                                                 ComponentSelectionReason reason, ModuleVersionResolveException failure) {
+    public UnresolvedDependencyResult createUnresolvedDependency(
+        ComponentSelector requested, ResolvedComponentResult from, boolean constraint,
+        ComponentSelectionReason reason, ModuleVersionResolveException failure
+    ) {
         List<Object> key = asList(requested, from, constraint);
         if (!unresolvedDependencies.containsKey(key)) {
             unresolvedDependencies.put(key, new DefaultUnresolvedDependencyResult(requested, constraint, reason, from, failure));
@@ -47,12 +49,14 @@ public class CachingDependencyResultFactory {
         return unresolvedDependencies.get(key);
     }
 
-    public ResolvedDependencyResult createResolvedDependency(ComponentSelector requested,
-                                                             ResolvedComponentResult from,
-                                                             ResolvedComponentResult selected,
-                                                             @Nullable
-                                                             ResolvedVariantResult resolvedVariant,
-                                                             boolean constraint) {
+    public ResolvedDependencyResult createResolvedDependency(
+        ComponentSelector requested,
+        ResolvedComponentResult from,
+        ResolvedComponentResult selected,
+        @Nullable
+        ResolvedVariantResult resolvedVariant,
+        boolean constraint
+    ) {
         List<Object> key = asList(requested, from, selected, resolvedVariant, constraint);
         if (!resolvedDependencies.containsKey(key)) {
             resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, constraint, selected, resolvedVariant, from));

@@ -140,13 +140,13 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         targetOutputFile.text == "output"
 
         where:
-        type          | fileName
-        "ascii-only"  | "input-file.txt"
-        "chinese"     | "输入文件.txt"
-        "hungarian"   | "Dezső.txt"
-        "space"       | "input file.txt"
-        "zwnj"        | "input\u200cfile.txt"
-        "url-quoted"  | "input%<file>#2.txt"
+        type         | fileName
+        "ascii-only" | "input-file.txt"
+        "chinese"    | "输入文件.txt"
+        "hungarian"  | "Dezső.txt"
+        "space"      | "input file.txt"
+        "zwnj"       | "input\u200cfile.txt"
+        "url-quoted" | "input%<file>#2.txt"
     }
 
     def "can pack trees having #type characters in name"() {

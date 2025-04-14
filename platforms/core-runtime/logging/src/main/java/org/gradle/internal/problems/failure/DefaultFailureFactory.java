@@ -31,17 +31,17 @@ import java.util.Set;
 
 public class DefaultFailureFactory implements FailureFactory {
 
+    private final StackTraceClassifier stackTraceClassifier;
+
+    public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier) {
+        this.stackTraceClassifier = stackTraceClassifier;
+    }
+
     public static DefaultFailureFactory withDefaultClassifier() {
         return new DefaultFailureFactory(new CompositeStackTraceClassifier(
             new InternalStackTraceClassifier(),
             StackTraceClassifier.USER_CODE
         ));
-    }
-
-    private final StackTraceClassifier stackTraceClassifier;
-
-    public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier) {
-        this.stackTraceClassifier = stackTraceClassifier;
     }
 
     @Override
@@ -56,15 +56,26 @@ public class DefaultFailureFactory implements FailureFactory {
 
         private final Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
 
-        private final InternalTransformer<Failure, Throwable> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
+        private Job(StackTraceClassifier stackTraceClassifier) {
+            this.stackTraceClassifier = stackTraceClassifier;
+        }        private final InternalTransformer<Failure, Throwable> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
             @Override
             public Failure transform(Throwable throwable) {
                 return convertRecursively(throwable);
             }
         };
 
-        private Job(StackTraceClassifier stackTraceClassifier) {
-            this.stackTraceClassifier = stackTraceClassifier;
+        private static List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, StackTraceClassifier classifier) {
+            ArrayList<StackTraceRelevance> relevance = new ArrayList<StackTraceRelevance>(stackTrace.size());
+            for (StackTraceElement stackTraceElement : stackTrace) {
+                StackTraceRelevance r = classifier.classify(stackTraceElement);
+                if (r == null) {
+                    throw new GradleException("Unable to classify stack trace element: " + stackTraceElement);
+                }
+                relevance.add(r);
+            }
+
+            return relevance;
         }
 
         public Failure convert(Throwable failure) {
@@ -106,17 +117,6 @@ public class DefaultFailureFactory implements FailureFactory {
             return CollectionUtils.collect(causes.build(), recursiveConverter);
         }
 
-        private static List<StackTraceRelevance> classify(List<StackTraceElement> stackTrace, StackTraceClassifier classifier) {
-            ArrayList<StackTraceRelevance> relevance = new ArrayList<StackTraceRelevance>(stackTrace.size());
-            for (StackTraceElement stackTraceElement : stackTrace) {
-                StackTraceRelevance r = classifier.classify(stackTraceElement);
-                if (r == null) {
-                    throw new GradleException("Unable to classify stack trace element: " + stackTraceElement);
-                }
-                relevance.add(r);
-            }
 
-            return relevance;
-        }
     }
 }

@@ -1,4 +1,3 @@
-
 // tag::use-plugin[]
 plugins {
     `maven-publish`

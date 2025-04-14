@@ -41,8 +41,8 @@ abstract class AbstractSwiftPackageManagerExportIntegrationTest extends Abstract
 
     ExecOutput swiftPmBuildFails() {
         return SwiftPmRunner.create(swiftc)
-                .withProjectDir(testDirectory)
-                .withArguments("build")
-                .buildAndFails()
+            .withProjectDir(testDirectory)
+            .withArguments("build")
+            .buildAndFails()
     }
 }

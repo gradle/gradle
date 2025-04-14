@@ -44,226 +44,6 @@ import java.util.Set;
  * used as the body of these directives.
  */
 public class RegexBackedCSourceParser implements CSourceParser {
-    @Override
-    public IncludeDirectives parseSource(File sourceFile) {
-        try (Reader fileReader = new FileReader(sourceFile)) {
-            return parseSource(fileReader);
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not extract includes from source file %s.", sourceFile), e);
-        }
-    }
-
-    protected IncludeDirectives parseSource(Reader sourceReader) throws IOException {
-        Set<Include> includes = new LinkedHashSet<>();
-        List<Macro> macros = new ArrayList<>();
-        List<MacroFunction> macroFunctions = new ArrayList<>();
-        BufferedReader reader = new BufferedReader(sourceReader);
-        PreprocessingReader lineReader = new PreprocessingReader(reader);
-        Buffer buffer = new Buffer();
-        while (true) {
-            buffer.reset();
-            if (!lineReader.readNextLine(buffer.value)) {
-                break;
-            }
-            buffer.consumeWhitespace();
-            if (!buffer.consume('#')) {
-                continue;
-            }
-            buffer.consumeWhitespace();
-            if (buffer.consume("define")) {
-                parseDefineDirectiveBody(buffer, macros, macroFunctions);
-            } else if (buffer.consume("include")) {
-                parseIncludeOrImportDirectiveBody(buffer, false, includes);
-            } else if (buffer.consume("import")) {
-                parseIncludeOrImportDirectiveBody(buffer, true, includes);
-            }
-        }
-        return DefaultIncludeDirectives.of(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
-    }
-
-    /**
-     * Parses an #include/#import directive body. Consumes all input.
-     */
-    private void parseIncludeOrImportDirectiveBody(Buffer buffer, boolean isImport, Collection<Include> includes) {
-        if (!buffer.hasAny()) {
-            // No include expression, ignore
-            return;
-        }
-        if (buffer.hasIdentifierChar()) {
-            // An identifier with no separator, so this is not an #include or #import directive, it is some other directive
-            return;
-        }
-        Expression expression = parseDirectiveBodyExpression(buffer);
-        if (expression.getType() == IncludeType.TOKEN_CONCATENATION || expression.getType() == IncludeType.ARGS_LIST || expression.getType() == IncludeType.EXPRESSIONS) {
-            // Token concatenation is only allowed inside a #define body
-            // Arbitrary tokens won't resolve to an include path
-            // Treat both these cases as an unresolvable include directive
-            expression = new SimpleExpression(expression.getAsSourceText(), IncludeType.OTHER);
-        }
-        expression = expression.asMacroExpansion();
-        if (expression.getType() != IncludeType.OTHER || !expression.getValue().isEmpty()) {
-            // Either a resolvable expression or a non-empty unresolvable expression, collect. Ignore includes with no value
-            includes.add(IncludeWithSimpleExpression.create(expression, isImport));
-        }
-    }
-
-    /**
-     * Parses a #define directive body. Consumes all input.
-     */
-    private void parseDefineDirectiveBody(Buffer buffer, Collection<Macro> macros, Collection<MacroFunction> macroFunctions) {
-        if (!buffer.consumeWhitespace()) {
-            // No separating whitespace between the #define and the name
-            return;
-        }
-        String name = buffer.readIdentifier();
-        if (name == null) {
-            // No macro name
-            return;
-        }
-        if (buffer.consume('(')) {
-            // A function-like macro
-            parseMacroFunctionDirectiveBody(buffer, name, macroFunctions);
-        } else {
-            // An object-like macro
-            parseMacroObjectDirectiveBody(buffer, name, macros);
-        }
-    }
-
-    /**
-     * Parse an "object-like" macro directive body. Consumes all input.
-     */
-    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, Collection<Macro> macros) {
-        Expression expression = parseDirectiveBodyExpression(buffer);
-        expression = expression.asMacroExpansion();
-        if (!expression.getArguments().isEmpty()) {
-            // Body is an expression with one or more arguments
-            macros.add(new MacroWithComplexExpression(macroName, expression.getType(), expression.getValue(), expression.getArguments()));
-        } else if (expression.getType() != IncludeType.OTHER) {
-            // Body is a simple expression, including a macro function call with no arguments
-            macros.add(new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
-        } else {
-            // Discard the body when the expression is not resolvable
-            macros.add(new UnresolvableMacro(macroName));
-        }
-    }
-
-    /**
-     * Parse a "function-like" macro directive body. Consumes all input.
-     */
-    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, Collection<MacroFunction> macroFunctions) {
-        buffer.consumeWhitespace();
-        List<String> paramNames = new ArrayList<String>();
-        consumeParameterList(buffer, paramNames);
-        if (!buffer.consume(')')) {
-            // Badly form args list
-            return;
-        }
-        Expression expression = parseDirectiveBodyExpression(buffer);
-        if (expression.getType() == IncludeType.QUOTED || expression.getType() == IncludeType.SYSTEM) {
-            // Returns a fixed value expression
-            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), Collections.<Expression>emptyList()));
-            return;
-        }
-        if (expression.getType() == IncludeType.IDENTIFIER) {
-            for (int i = 0; i < paramNames.size(); i++) {
-                String name = paramNames.get(i);
-                if (name.equals(expression.getValue())) {
-                    // Returns a parameter
-                    macroFunctions.add(new ReturnParameterMacroFunction(macroName, paramNames.size(), i));
-                    return;
-                }
-            }
-            // References some fixed value expression, return it after macro expanding
-            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), IncludeType.MACRO, expression.getValue(), Collections.<Expression>emptyList()));
-            return;
-        }
-
-        if (expression.getType() != IncludeType.OTHER) {
-            // Look for parameter substitutions
-            if (paramNames.isEmpty() || expression.getArguments().isEmpty()) {
-                // When this function has no parameters, we don't need to substitute parameters, so return the expression after macro expanding it
-                // Also handle calling a zero args function, as we also don't need to substitute parameters
-                expression = expression.asMacroExpansion();
-                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
-                return;
-            }
-            List<Integer> argsMap = new ArrayList<Integer>(expression.getArguments().size());
-            boolean usesArgs = mapArgs(paramNames, expression, argsMap);
-            if (!usesArgs) {
-                // Don't need to do parameter substitution, return the value of the expression after macro expanding it
-                expression = expression.asMacroExpansion();
-                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
-            } else {
-                //Need to do parameter substitution, return the value of the expression after parameter substitutions and macro expanding the result
-                int[] argsMapArray = new int[argsMap.size()];
-                for (int i = 0; i < argsMap.size(); i++) {
-                    argsMapArray[i] = argsMap.get(i);
-                }
-                expression = expression.asMacroExpansion();
-                macroFunctions.add(new ArgsMappingMacroFunction(macroName, paramNames.size(), argsMapArray, expression.getType(), expression.getValue(), expression.getArguments()));
-            }
-            return;
-        }
-
-        // Not resolvable. Discard the body when the expression is not resolvable
-        macroFunctions.add(new UnresolvableMacroFunction(macroName, paramNames.size()));
-    }
-
-    private boolean mapArgs(List<String> paramNames, Expression expression, List<Integer> argsMap) {
-        boolean usesParameters = false;
-        for (int i = 0; i < expression.getArguments().size(); i++) {
-            Expression argument = expression.getArguments().get(i);
-            if (argument.getType() == IncludeType.IDENTIFIER) {
-                boolean matches = false;
-                for (int j = 0; j < paramNames.size(); j++) {
-                    String paramName = paramNames.get(j);
-                    if (argument.getValue().equals(paramName)) {
-                        argsMap.add(j);
-                        usesParameters = true;
-                        matches = true;
-                        break;
-                    }
-                }
-                if (matches) {
-                    continue;
-                }
-            }
-            if (argument.getArguments().isEmpty()) {
-                // Don't map
-                argsMap.add(ArgsMappingMacroFunction.KEEP);
-                continue;
-            }
-            List<Integer> nestedMap = new ArrayList<Integer>(argument.getArguments().size());
-            boolean argUsesParameters = mapArgs(paramNames, argument, nestedMap);
-            if (argUsesParameters) {
-                argsMap.add(ArgsMappingMacroFunction.REPLACE_ARGS);
-                argsMap.addAll(nestedMap);
-            } else {
-                argsMap.add(ArgsMappingMacroFunction.KEEP);
-            }
-            usesParameters |= argUsesParameters;
-        }
-        return usesParameters;
-    }
-
-    private void consumeParameterList(Buffer buffer, List<String> paramNames) {
-        String paramName = buffer.readIdentifier();
-        while (paramName != null) {
-            paramNames.add(paramName);
-            buffer.consumeWhitespace();
-            if (!buffer.consume(',')) {
-                // Missing ','
-                return;
-            }
-            buffer.consumeWhitespace();
-            paramName = buffer.readIdentifier();
-            if (paramName == null) {
-                // Missing parameter name
-                return;
-            }
-        }
-    }
-
     public static Expression parseExpression(String value) {
         Buffer buffer = new Buffer();
         buffer.value.append(value);
@@ -502,6 +282,226 @@ public class RegexBackedCSourceParser implements CSourceParser {
             pos++;
         }
         return pos;
+    }
+
+    @Override
+    public IncludeDirectives parseSource(File sourceFile) {
+        try (Reader fileReader = new FileReader(sourceFile)) {
+            return parseSource(fileReader);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not extract includes from source file %s.", sourceFile), e);
+        }
+    }
+
+    protected IncludeDirectives parseSource(Reader sourceReader) throws IOException {
+        Set<Include> includes = new LinkedHashSet<>();
+        List<Macro> macros = new ArrayList<>();
+        List<MacroFunction> macroFunctions = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(sourceReader);
+        PreprocessingReader lineReader = new PreprocessingReader(reader);
+        Buffer buffer = new Buffer();
+        while (true) {
+            buffer.reset();
+            if (!lineReader.readNextLine(buffer.value)) {
+                break;
+            }
+            buffer.consumeWhitespace();
+            if (!buffer.consume('#')) {
+                continue;
+            }
+            buffer.consumeWhitespace();
+            if (buffer.consume("define")) {
+                parseDefineDirectiveBody(buffer, macros, macroFunctions);
+            } else if (buffer.consume("include")) {
+                parseIncludeOrImportDirectiveBody(buffer, false, includes);
+            } else if (buffer.consume("import")) {
+                parseIncludeOrImportDirectiveBody(buffer, true, includes);
+            }
+        }
+        return DefaultIncludeDirectives.of(ImmutableList.copyOf(includes), ImmutableList.copyOf(macros), ImmutableList.copyOf(macroFunctions));
+    }
+
+    /**
+     * Parses an #include/#import directive body. Consumes all input.
+     */
+    private void parseIncludeOrImportDirectiveBody(Buffer buffer, boolean isImport, Collection<Include> includes) {
+        if (!buffer.hasAny()) {
+            // No include expression, ignore
+            return;
+        }
+        if (buffer.hasIdentifierChar()) {
+            // An identifier with no separator, so this is not an #include or #import directive, it is some other directive
+            return;
+        }
+        Expression expression = parseDirectiveBodyExpression(buffer);
+        if (expression.getType() == IncludeType.TOKEN_CONCATENATION || expression.getType() == IncludeType.ARGS_LIST || expression.getType() == IncludeType.EXPRESSIONS) {
+            // Token concatenation is only allowed inside a #define body
+            // Arbitrary tokens won't resolve to an include path
+            // Treat both these cases as an unresolvable include directive
+            expression = new SimpleExpression(expression.getAsSourceText(), IncludeType.OTHER);
+        }
+        expression = expression.asMacroExpansion();
+        if (expression.getType() != IncludeType.OTHER || !expression.getValue().isEmpty()) {
+            // Either a resolvable expression or a non-empty unresolvable expression, collect. Ignore includes with no value
+            includes.add(IncludeWithSimpleExpression.create(expression, isImport));
+        }
+    }
+
+    /**
+     * Parses a #define directive body. Consumes all input.
+     */
+    private void parseDefineDirectiveBody(Buffer buffer, Collection<Macro> macros, Collection<MacroFunction> macroFunctions) {
+        if (!buffer.consumeWhitespace()) {
+            // No separating whitespace between the #define and the name
+            return;
+        }
+        String name = buffer.readIdentifier();
+        if (name == null) {
+            // No macro name
+            return;
+        }
+        if (buffer.consume('(')) {
+            // A function-like macro
+            parseMacroFunctionDirectiveBody(buffer, name, macroFunctions);
+        } else {
+            // An object-like macro
+            parseMacroObjectDirectiveBody(buffer, name, macros);
+        }
+    }
+
+    /**
+     * Parse an "object-like" macro directive body. Consumes all input.
+     */
+    private void parseMacroObjectDirectiveBody(Buffer buffer, String macroName, Collection<Macro> macros) {
+        Expression expression = parseDirectiveBodyExpression(buffer);
+        expression = expression.asMacroExpansion();
+        if (!expression.getArguments().isEmpty()) {
+            // Body is an expression with one or more arguments
+            macros.add(new MacroWithComplexExpression(macroName, expression.getType(), expression.getValue(), expression.getArguments()));
+        } else if (expression.getType() != IncludeType.OTHER) {
+            // Body is a simple expression, including a macro function call with no arguments
+            macros.add(new MacroWithSimpleExpression(macroName, expression.getType(), expression.getValue()));
+        } else {
+            // Discard the body when the expression is not resolvable
+            macros.add(new UnresolvableMacro(macroName));
+        }
+    }
+
+    /**
+     * Parse a "function-like" macro directive body. Consumes all input.
+     */
+    private void parseMacroFunctionDirectiveBody(Buffer buffer, String macroName, Collection<MacroFunction> macroFunctions) {
+        buffer.consumeWhitespace();
+        List<String> paramNames = new ArrayList<String>();
+        consumeParameterList(buffer, paramNames);
+        if (!buffer.consume(')')) {
+            // Badly form args list
+            return;
+        }
+        Expression expression = parseDirectiveBodyExpression(buffer);
+        if (expression.getType() == IncludeType.QUOTED || expression.getType() == IncludeType.SYSTEM) {
+            // Returns a fixed value expression
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), Collections.<Expression>emptyList()));
+            return;
+        }
+        if (expression.getType() == IncludeType.IDENTIFIER) {
+            for (int i = 0; i < paramNames.size(); i++) {
+                String name = paramNames.get(i);
+                if (name.equals(expression.getValue())) {
+                    // Returns a parameter
+                    macroFunctions.add(new ReturnParameterMacroFunction(macroName, paramNames.size(), i));
+                    return;
+                }
+            }
+            // References some fixed value expression, return it after macro expanding
+            macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), IncludeType.MACRO, expression.getValue(), Collections.<Expression>emptyList()));
+            return;
+        }
+
+        if (expression.getType() != IncludeType.OTHER) {
+            // Look for parameter substitutions
+            if (paramNames.isEmpty() || expression.getArguments().isEmpty()) {
+                // When this function has no parameters, we don't need to substitute parameters, so return the expression after macro expanding it
+                // Also handle calling a zero args function, as we also don't need to substitute parameters
+                expression = expression.asMacroExpansion();
+                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+                return;
+            }
+            List<Integer> argsMap = new ArrayList<Integer>(expression.getArguments().size());
+            boolean usesArgs = mapArgs(paramNames, expression, argsMap);
+            if (!usesArgs) {
+                // Don't need to do parameter substitution, return the value of the expression after macro expanding it
+                expression = expression.asMacroExpansion();
+                macroFunctions.add(new ReturnFixedValueMacroFunction(macroName, paramNames.size(), expression.getType(), expression.getValue(), expression.getArguments()));
+            } else {
+                //Need to do parameter substitution, return the value of the expression after parameter substitutions and macro expanding the result
+                int[] argsMapArray = new int[argsMap.size()];
+                for (int i = 0; i < argsMap.size(); i++) {
+                    argsMapArray[i] = argsMap.get(i);
+                }
+                expression = expression.asMacroExpansion();
+                macroFunctions.add(new ArgsMappingMacroFunction(macroName, paramNames.size(), argsMapArray, expression.getType(), expression.getValue(), expression.getArguments()));
+            }
+            return;
+        }
+
+        // Not resolvable. Discard the body when the expression is not resolvable
+        macroFunctions.add(new UnresolvableMacroFunction(macroName, paramNames.size()));
+    }
+
+    private boolean mapArgs(List<String> paramNames, Expression expression, List<Integer> argsMap) {
+        boolean usesParameters = false;
+        for (int i = 0; i < expression.getArguments().size(); i++) {
+            Expression argument = expression.getArguments().get(i);
+            if (argument.getType() == IncludeType.IDENTIFIER) {
+                boolean matches = false;
+                for (int j = 0; j < paramNames.size(); j++) {
+                    String paramName = paramNames.get(j);
+                    if (argument.getValue().equals(paramName)) {
+                        argsMap.add(j);
+                        usesParameters = true;
+                        matches = true;
+                        break;
+                    }
+                }
+                if (matches) {
+                    continue;
+                }
+            }
+            if (argument.getArguments().isEmpty()) {
+                // Don't map
+                argsMap.add(ArgsMappingMacroFunction.KEEP);
+                continue;
+            }
+            List<Integer> nestedMap = new ArrayList<Integer>(argument.getArguments().size());
+            boolean argUsesParameters = mapArgs(paramNames, argument, nestedMap);
+            if (argUsesParameters) {
+                argsMap.add(ArgsMappingMacroFunction.REPLACE_ARGS);
+                argsMap.addAll(nestedMap);
+            } else {
+                argsMap.add(ArgsMappingMacroFunction.KEEP);
+            }
+            usesParameters |= argUsesParameters;
+        }
+        return usesParameters;
+    }
+
+    private void consumeParameterList(Buffer buffer, List<String> paramNames) {
+        String paramName = buffer.readIdentifier();
+        while (paramName != null) {
+            paramNames.add(paramName);
+            buffer.consumeWhitespace();
+            if (!buffer.consume(',')) {
+                // Missing ','
+                return;
+            }
+            buffer.consumeWhitespace();
+            paramName = buffer.readIdentifier();
+            if (paramName == null) {
+                // Missing parameter name
+                return;
+            }
+        }
     }
 
     private static class Buffer {

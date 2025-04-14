@@ -55,8 +55,8 @@ class PublicationsBuilder implements ToolingModelBuilder {
             ModuleVersionIdentifier id = projectPublication.getCoordinates(ModuleVersionIdentifier.class);
             if (id != null) {
                 gradlePublications.add(new DefaultGradlePublication()
-                        .setId(new DefaultGradleModuleVersion(id))
-                        .setProjectIdentifier(projectIdentifier)
+                    .setId(new DefaultGradleModuleVersion(id))
+                    .setProjectIdentifier(projectIdentifier)
                 );
             }
         }

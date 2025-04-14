@@ -57,7 +57,7 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
     @Override
     public void add(Method method, String role, String problem) {
         MethodDescription description = MethodDescription.name(method.getName())
-                .takes(method.getGenericParameterTypes());
+            .takes(method.getGenericParameterTypes());
         StringBuilder message = new StringBuilder("Method ");
         if (method.getDeclaringClass().equals(source.getConcreteClass())) {
             message.append(description);
@@ -76,8 +76,8 @@ public class FormattingValidationProblemCollector implements ValidationProblemCo
     @Override
     public void add(Constructor<?> constructor, String problem) {
         String description = MethodDescription.name(ModelType.of(constructor.getDeclaringClass()).getDisplayName())
-                .takes(constructor.getGenericParameterTypes())
-                .toString();
+            .takes(constructor.getGenericParameterTypes())
+            .toString();
         problems.add("Constructor " + description + " is not valid: " + problem);
     }
 

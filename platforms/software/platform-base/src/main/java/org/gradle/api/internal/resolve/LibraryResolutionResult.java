@@ -55,6 +55,34 @@ public class LibraryResolutionResult {
         this.libsNotMatchingRequirements = new HashMap<>();
     }
 
+    public static LibraryResolutionResult of(Class<? extends Binary> binaryType, Collection<? extends VariantComponent> libraries, String libraryName, Predicate<? super VariantComponent> libraryFilter) {
+        LibraryResolutionResult result = new LibraryResolutionResult(binaryType);
+        for (VariantComponent librarySpec : libraries) {
+            if (libraryFilter.apply(librarySpec)) {
+                result.libsMatchingRequirements.put(librarySpec.getName(), librarySpec);
+            } else {
+                result.libsNotMatchingRequirements.put(librarySpec.getName(), librarySpec);
+            }
+        }
+        result.resolve(libraryName);
+        return result;
+    }
+
+    public static LibraryResolutionResult projectNotFound(Class<? extends Binary> binaryType) {
+        LibraryResolutionResult projectNotFoundResult = new LibraryResolutionResult(binaryType);
+        projectNotFoundResult.projectNotFound = true;
+        return projectNotFoundResult;
+    }
+
+    public static LibraryResolutionResult emptyResolutionResult(Class<? extends Binary> binaryType) {
+        return new LibraryResolutionResult(binaryType);
+    }
+
+    private static List<String> formatLibraryNames(List<String> libs) {
+        List<String> list = Lists.transform(libs, QUOTE_TRANSFORMER);
+        return Ordering.natural().sortedCopy(list);
+    }
+
     private VariantComponent getSingleMatchingLibrary() {
         if (libsMatchingRequirements.size() == 1) {
             return libsMatchingRequirements.values().iterator().next();
@@ -96,7 +124,8 @@ public class LibraryResolutionResult {
     }
 
     public String toResolutionErrorMessage(
-            LibraryComponentSelector selector) {
+        LibraryComponentSelector selector
+    ) {
         List<String> candidateLibraries = formatLibraryNames(getCandidateLibraries());
         String projectPath = selector.getProjectPath();
         String libraryName = selector.getLibraryName();
@@ -129,33 +158,5 @@ public class LibraryResolutionResult {
             }
         }
         return sb.toString();
-    }
-
-    public static LibraryResolutionResult of(Class<? extends Binary> binaryType, Collection<? extends VariantComponent> libraries, String libraryName, Predicate<? super VariantComponent> libraryFilter) {
-        LibraryResolutionResult result = new LibraryResolutionResult(binaryType);
-        for (VariantComponent librarySpec : libraries) {
-            if (libraryFilter.apply(librarySpec)) {
-                result.libsMatchingRequirements.put(librarySpec.getName(), librarySpec);
-            } else {
-                result.libsNotMatchingRequirements.put(librarySpec.getName(), librarySpec);
-            }
-        }
-        result.resolve(libraryName);
-        return result;
-    }
-
-    public static LibraryResolutionResult projectNotFound(Class<? extends Binary> binaryType) {
-        LibraryResolutionResult projectNotFoundResult = new LibraryResolutionResult(binaryType);
-        projectNotFoundResult.projectNotFound = true;
-        return projectNotFoundResult;
-    }
-
-    public static LibraryResolutionResult emptyResolutionResult(Class<? extends Binary> binaryType) {
-        return new LibraryResolutionResult(binaryType);
-    }
-
-    private static List<String> formatLibraryNames(List<String> libs) {
-        List<String> list = Lists.transform(libs, QUOTE_TRANSFORMER);
-        return Ordering.natural().sortedCopy(list);
     }
 }

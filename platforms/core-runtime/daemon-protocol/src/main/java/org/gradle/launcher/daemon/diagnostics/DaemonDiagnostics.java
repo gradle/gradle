@@ -26,10 +26,10 @@ import java.io.IOException;
  */
 public class DaemonDiagnostics {
 
+    private final static int TAIL_SIZE = 20;
     @Nullable
     private final Long pid;
     private final File daemonLog;
-    private final static int TAIL_SIZE = 20;
 
     public DaemonDiagnostics(File daemonLog, @Nullable Long pid) {
         this.daemonLog = daemonLog;

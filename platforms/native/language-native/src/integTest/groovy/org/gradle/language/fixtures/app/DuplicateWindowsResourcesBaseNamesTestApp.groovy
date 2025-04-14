@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 
 class DuplicateWindowsResourcesBaseNamesTestApp extends TestNativeComponent {
 
-    def plugins = ["cpp","windows-resources"]
+    def plugins = ["cpp", "windows-resources"]
 
     @Override
     List<SourceFile> getSourceFiles() {
@@ -55,7 +55,7 @@ void hello() {
     std::cout << foo2;
 }
 """),
-        sourceFile("rc/dir1", "resources.rc", """
+         sourceFile("rc/dir1", "resources.rc", """
 #include "hello.h"
 
 STRINGTABLE
@@ -63,7 +63,7 @@ STRINGTABLE
     IDS_FOO1, "foo1"
 }
 """),
-        sourceFile("rc/dir2", "resources.rc", """
+         sourceFile("rc/dir2", "resources.rc", """
 #include "hello.h"
 
 STRINGTABLE

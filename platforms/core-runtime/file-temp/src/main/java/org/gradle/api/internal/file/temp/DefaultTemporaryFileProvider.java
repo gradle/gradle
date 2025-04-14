@@ -30,6 +30,14 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
         this.baseDirFactory = fileFactory;
     }
 
+    private static File forceMkdir(File directory) {
+        if (!directory.mkdirs() && !directory.isDirectory()) {
+            throw new UncheckedIOException("Cannot create directory '" + directory + "'.");
+        } else {
+            return directory;
+        }
+    }
+
     @SuppressWarnings("Since15")
     @Override
     public File newTemporaryFile(String... path) {
@@ -89,14 +97,6 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
             return tmpDir;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        }
-    }
-
-    private static File forceMkdir(File directory) {
-        if (!directory.mkdirs() && !directory.isDirectory()) {
-            throw new UncheckedIOException("Cannot create directory '" + directory + "'.");
-        } else {
-            return directory;
         }
     }
 }

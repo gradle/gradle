@@ -118,26 +118,28 @@ class LexerTest {
     @Test
     fun `extracts package name`() {
         assertThat(
-            lex("\n" +
-                "/* ... */\n" +
-                "// she-bangs! ///////_*&@ because why not! _-|\n" +
+            lex(
                 "\n" +
-                "#!/something/something\n" +
-                "\n" +
-                "\n" +
-                "/* first file annotation */\n" +
-                "@file:Suppress(\"UnstableApiUsage\")\n" +
-                "\n" +
-                "// second file annotation //second comment, just for fun\n" +
-                "\n" +
-                "@file    :    [   SuppressWarnings    Incubating   Suppress(\n" +
-                "       \"unused\",\n" +
-                "       \"nothing_to_inline\"\n" +
-                ")    ]\n" +
-                "\n" +
-                "/* /* one more weird comment here */ */" +
-                "package com.example\n" +
-                "plugins { }\n", arrayOf(plugins)),
+                    "/* ... */\n" +
+                    "// she-bangs! ///////_*&@ because why not! _-|\n" +
+                    "\n" +
+                    "#!/something/something\n" +
+                    "\n" +
+                    "\n" +
+                    "/* first file annotation */\n" +
+                    "@file:Suppress(\"UnstableApiUsage\")\n" +
+                    "\n" +
+                    "// second file annotation //second comment, just for fun\n" +
+                    "\n" +
+                    "@file    :    [   SuppressWarnings    Incubating   Suppress(\n" +
+                    "       \"unused\",\n" +
+                    "       \"nothing_to_inline\"\n" +
+                    ")    ]\n" +
+                    "\n" +
+                    "/* /* one more weird comment here */ */" +
+                    "package com.example\n" +
+                    "plugins { }\n", arrayOf(plugins)
+            ),
             equalTo(
                 Packaged(
                     "com.example",

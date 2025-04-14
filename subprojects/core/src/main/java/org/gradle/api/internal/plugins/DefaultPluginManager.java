@@ -55,7 +55,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     public static final String CORE_PLUGIN_NAMESPACE = "org" + DefaultPluginId.SEPARATOR + "gradle";
     public static final String CORE_PLUGIN_PREFIX = CORE_PLUGIN_NAMESPACE + DefaultPluginId.SEPARATOR;
-
+    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
+    };
     private final Instantiator instantiator;
     private final PluginTarget target;
     private final PluginRegistry pluginRegistry;
@@ -63,7 +64,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final Map<Class<?>, PluginImplementation<?>> plugins = new HashMap<>();
     private final Map<Class<?>, Plugin> instances = new LinkedHashMap<>();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = new HashMap<>();
-
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
@@ -264,47 +264,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
         pluginsForId(id).all(wrappedAction);
     }
 
-    private class AddPluginBuildOperation implements RunnableBuildOperation {
-
-        private final Runnable adder;
-        private final PluginImplementation<?> plugin;
-        private final String pluginId;
-        private final Class<?> pluginClass;
-        private final UserCodeApplicationId applicationId;
-
-        private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass, UserCodeApplicationId applicationId) {
-            this.adder = adder;
-            this.plugin = plugin;
-            this.pluginId = pluginId;
-            this.pluginClass = pluginClass;
-            this.applicationId = applicationId;
-        }
-
-        @Override
-        public void run(BuildOperationContext context) {
-            addPlugin(adder, plugin, pluginId, pluginClass);
-            context.setResult(OPERATION_RESULT);
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return computeApplyPluginBuildOperationDetails(plugin);
-        }
-
-        private BuildOperationDescriptor.Builder computeApplyPluginBuildOperationDetails(final PluginImplementation<?> pluginImplementation) {
-            String pluginIdentifier;
-            if (pluginImplementation.getPluginId() != null) {
-                pluginIdentifier = pluginImplementation.getPluginId().toString();
-            } else {
-                pluginIdentifier = pluginImplementation.asClass().getName();
-            }
-            String name = "Apply plugin " + pluginIdentifier;
-            return BuildOperationDescriptor.displayName(name + " to " + target.toString())
-                .name(name)
-                .details(new OperationDetails(pluginImplementation, target.getConfigurationTargetIdentifier(), applicationId));
-        }
-    }
-
     public static class OperationDetails implements ApplyPluginBuildOperationType.Details, CustomOperationTraceSerialization {
 
         private final PluginImplementation<?> pluginImplementation;
@@ -363,6 +322,44 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
-    };
+    private class AddPluginBuildOperation implements RunnableBuildOperation {
+
+        private final Runnable adder;
+        private final PluginImplementation<?> plugin;
+        private final String pluginId;
+        private final Class<?> pluginClass;
+        private final UserCodeApplicationId applicationId;
+
+        private AddPluginBuildOperation(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass, UserCodeApplicationId applicationId) {
+            this.adder = adder;
+            this.plugin = plugin;
+            this.pluginId = pluginId;
+            this.pluginClass = pluginClass;
+            this.applicationId = applicationId;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            addPlugin(adder, plugin, pluginId, pluginClass);
+            context.setResult(OPERATION_RESULT);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return computeApplyPluginBuildOperationDetails(plugin);
+        }
+
+        private BuildOperationDescriptor.Builder computeApplyPluginBuildOperationDetails(final PluginImplementation<?> pluginImplementation) {
+            String pluginIdentifier;
+            if (pluginImplementation.getPluginId() != null) {
+                pluginIdentifier = pluginImplementation.getPluginId().toString();
+            } else {
+                pluginIdentifier = pluginImplementation.asClass().getName();
+            }
+            String name = "Apply plugin " + pluginIdentifier;
+            return BuildOperationDescriptor.displayName(name + " to " + target.toString())
+                .name(name)
+                .details(new OperationDetails(pluginImplementation, target.getConfigurationTargetIdentifier(), applicationId));
+        }
+    }
 }

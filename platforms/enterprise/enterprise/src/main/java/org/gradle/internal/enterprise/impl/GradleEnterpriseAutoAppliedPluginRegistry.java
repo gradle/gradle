@@ -40,20 +40,6 @@ import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin
 @ServiceScope(Scope.BuildTree.class)
 public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
-    @Override
-    public PluginRequests getAutoAppliedPlugins(Project target) {
-        return PluginRequests.EMPTY;
-    }
-
-    @Override
-    public PluginRequests getAutoAppliedPlugins(Settings target) {
-        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
-            return PluginRequests.EMPTY;
-        } else {
-            return PluginRequests.of(createDevelocityPluginRequest());
-        }
-    }
-
     private static boolean shouldApplyDevelocityPlugin(Settings settings) {
         Gradle gradle = settings.getGradle();
         StartParameter startParameter = gradle.getStartParameter();
@@ -84,5 +70,19 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
 
     private static String getScriptDisplayName() {
         return String.format("auto-applied by using --%s", BuildScanOption.LONG_OPTION);
+    }
+
+    @Override
+    public PluginRequests getAutoAppliedPlugins(Project target) {
+        return PluginRequests.EMPTY;
+    }
+
+    @Override
+    public PluginRequests getAutoAppliedPlugins(Settings target) {
+        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
+            return PluginRequests.EMPTY;
+        } else {
+            return PluginRequests.of(createDevelocityPluginRequest());
+        }
     }
 }

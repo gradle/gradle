@@ -28,7 +28,7 @@ public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor {
 
     @Override
     public String toString() {
-        return "Test suite '"+ getName() + "'";
+        return "Test suite '" + getName() + "'";
     }
 
     @Override

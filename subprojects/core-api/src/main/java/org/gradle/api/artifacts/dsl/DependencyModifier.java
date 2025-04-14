@@ -30,8 +30,7 @@ import javax.inject.Inject;
 /**
  * A {@code DependencyModifier} defines how to modify a dependency inside a custom {@code dependencies} block to select a different variant.
  *
- * @apiNote
- * Gradle has specific extensions to make explicit calls to {@code modify(...)} unnecessary from the DSL.
+ * @apiNote Gradle has specific extensions to make explicit calls to {@code modify(...)} unnecessary from the DSL.
  * <ul>
  * <li>For Groovy DSL, we create {@code call(...)} equivalents for all the {@code modify(...)} methods.</li>
  * <li>For Kotlin DSL, we create {@code invoke(...)} equivalents for all the {@code modify(...)} methods.</li>
@@ -43,7 +42,6 @@ import javax.inject.Inject;
  * Changes to this interface may require changes to the
  * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
- *
  * @since 8.0
  */
 @NonExtensible
@@ -62,7 +60,6 @@ public abstract class DependencyModifier {
      *
      * @return a dependency factory
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-     *
      * @see DependencyFactory
      */
     @Inject

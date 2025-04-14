@@ -23,6 +23,11 @@ public class DynamicInvokeResult {
     private static final Object NO_VALUE = new Object();
     private static final DynamicInvokeResult NOT_FOUND = new DynamicInvokeResult(NO_VALUE);
     private static final DynamicInvokeResult NULL = new DynamicInvokeResult(null);
+    private final Object value;
+
+    private DynamicInvokeResult(@Nullable Object value) {
+        this.value = value;
+    }
 
     public static DynamicInvokeResult found(@Nullable Object value) {
         return value == null ? found() : new DynamicInvokeResult(value);
@@ -34,12 +39,6 @@ public class DynamicInvokeResult {
 
     public static DynamicInvokeResult notFound() {
         return DynamicInvokeResult.NOT_FOUND;
-    }
-
-    private final Object value;
-
-    private DynamicInvokeResult(@Nullable Object value) {
-        this.value = value;
     }
 
     @Nullable

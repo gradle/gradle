@@ -28,8 +28,8 @@ import java.util.Set;
 public class DefaultTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
     private final ModelSchema<? extends T> schema;
-    private Class<?> implementation;
     private final Set<Class<?>> internalViews = new LinkedHashSet<>();
+    private Class<?> implementation;
 
     public DefaultTypeBuilder(Class<?> markerAnnotation, ModelSchema<? extends T> schema) {
         this.markerAnnotation = markerAnnotation;

@@ -35,8 +35,10 @@ import spock.lang.Issue
  * client JVM is different than the daemon JVM. Subclasses implement the various ways of
  * specifying the daemon JDK version.
  */
-@NoDebug // We are starting daemons with different JAVA_HOMEs
-@NonCrossVersion // Supporting multiple Gradle versions is more work.
+@NoDebug
+// We are starting daemons with different JAVA_HOMEs
+@NonCrossVersion
+// Supporting multiple Gradle versions is more work.
 @SuppressWarnings('IntegrationTestFixtures')
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRunnerIntegrationTest implements DaemonJvmPropertiesFixture {
@@ -44,12 +46,12 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
     /**
      * Configure this build to use the given JVM.
      */
-    def configureBuild(Jvm jvm) { }
+    def configureBuild(Jvm jvm) {}
 
     /**
      * Configure the gradle runner to use the given JVM.
      */
-    def configureRunner(GradleRunner runner, Jvm jvm) { }
+    def configureRunner(GradleRunner runner, Jvm jvm) {}
 
     // region Unsupported JVM
 

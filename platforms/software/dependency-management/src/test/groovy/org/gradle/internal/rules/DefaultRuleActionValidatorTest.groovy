@@ -20,11 +20,11 @@ import spock.lang.Specification
 
 class DefaultRuleActionValidatorTest extends Specification {
 
-    def "rejects invalid type when type configured" () {
+    def "rejects invalid type when type configured"() {
         when:
         def ruleValidator = new DefaultRuleActionValidator(Integer)
         ruleValidator.validate(Stub(RuleAction) {
-            getInputTypes() >> { [ Long ] }
+            getInputTypes() >> { [Long] }
         })
 
         then:
@@ -32,7 +32,7 @@ class DefaultRuleActionValidatorTest extends Specification {
         failure.message == "Rule may not have an input parameter of type: java.lang.Long. Second parameter must be of type: java.lang.Integer."
     }
 
-    def "rejects invalid type when no type configured" () {
+    def "rejects invalid type when no type configured"() {
         when:
         def ruleValidator = new DefaultRuleActionValidator()
         ruleValidator.validate(Stub(RuleAction) {

@@ -25,6 +25,7 @@ interface SomeToolingModel {
 
 interface SomeToolingModelParameter {
     String getMessagePrefix()
+
     void setMessagePrefix(String value)
 }
 

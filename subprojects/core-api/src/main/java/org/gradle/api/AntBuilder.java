@@ -55,7 +55,6 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
      * @param baseDirectory The base directory. This is resolved as per {@link Project#file(Object)}.
-     *
      * @since 7.1
      */
     public abstract void importBuild(Object antBuildFile, String baseDirectory);
@@ -89,7 +88,6 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
      * @param baseDirectory The base directory. This is resolved as per {@link Project#file(Object)}.
      * @param taskNamer A transformer that calculates the name of the Gradle task for a corresponding Ant target.
-     *
      * @since 7.1
      */
     public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
@@ -102,6 +100,13 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
     public AntBuilder getAnt() {
         return this;
     }
+
+    /**
+     * Returns the Ant message priority that corresponds to the Gradle "lifecycle" log level.
+     *
+     * @return logLevel The Ant log level that maps to the Gradle lifecycle log level
+     */
+    public abstract AntMessagePriority getLifecycleLogLevel();
 
     /**
      * Sets the Ant message priority that should correspond to the Gradle "lifecycle" log level.  Any messages logged at this
@@ -123,13 +128,6 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
     public void setLifecycleLogLevel(String logLevel) {
         setLifecycleLogLevel(AntMessagePriority.valueOf(logLevel));
     }
-
-    /**
-     * Returns the Ant message priority that corresponds to the Gradle "lifecycle" log level.
-     *
-     * @return logLevel The Ant log level that maps to the Gradle lifecycle log level
-     */
-    public abstract AntMessagePriority getLifecycleLogLevel();
 
     /**
      * Represents the normal Ant message priorities.

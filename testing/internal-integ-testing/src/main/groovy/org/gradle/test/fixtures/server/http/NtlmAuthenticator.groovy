@@ -65,7 +65,7 @@ class NtlmAuthenticator extends LoginAuthenticator {
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED)
             return Authentication.SEND_CONTINUE
         } else if (connectionAuth.user != null) {
-           return connectionAuth.user
+            return connectionAuth.user
         } else {
             NtlmPasswordAuthentication authentication = NtlmSsp.authenticate(
                 (HttpServletRequest) request,
@@ -123,7 +123,7 @@ class NtlmAuthenticator extends LoginAuthenticator {
         Authentication.User user
         boolean failed
 
-        boolean isAuthenticated() { user != null}
+        boolean isAuthenticated() { user != null }
 
     }
 }

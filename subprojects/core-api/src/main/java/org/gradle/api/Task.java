@@ -246,7 +246,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * of objects which can be used as task dependencies.</p>
      *
      * @param paths The dependencies to add to this task.
-     *
      * @return the task object this method is applied to
      */
     Task dependsOn(Object... paths);
@@ -330,7 +329,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * @param onlyIfReason specifies the reason for a task to run, which is used for logging
      * @param onlyIfSpec specifies if a task should be run
-     *
      * @since 7.6
      */
     @Incubating
@@ -365,7 +363,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * @param onlyIfReason specifies the reason for a task to run, which is used for logging
      * @param onlyIfSpec specifies if a task should be run
-     *
      * @since 7.6
      */
     @Incubating
@@ -381,13 +378,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     TaskState getState();
 
     /**
-     * Sets whether the task actually did any work.  Most built-in tasks will set this automatically, but
-     * it may be useful to manually indicate this for custom user tasks.
-     * @param didWork indicates if the task did any work
-     */
-    void setDidWork(boolean didWork);
-
-    /**
      * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing to
      * do.  For example, a compilation task may determine that source files have not changed since the last time a the
      * task was run.</p>
@@ -396,6 +386,14 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      */
     @Internal
     boolean getDidWork();
+
+    /**
+     * Sets whether the task actually did any work.  Most built-in tasks will set this automatically, but
+     * it may be useful to manually indicate this for custom user tasks.
+     *
+     * @param didWork indicates if the task did any work
+     */
+    void setDidWork(boolean didWork);
 
     /**
      * <p>Returns the path of the task, which is a fully qualified name for the task. The path of a task is the path of
@@ -421,9 +419,11 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doFirst(@DelegatesTo(Task.class)
-                 @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
-                 Closure action);
+    Task doFirst(
+        @DelegatesTo(Task.class)
+        @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+        Closure action
+    );
 
     /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
@@ -431,7 +431,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param actionName An arbitrary string that is used for logging.
      * @param action The action to add
      * @return the task object this method is applied to
-     *
      * @since 4.2
      */
     Task doFirst(String actionName, Action<? super Task> action);
@@ -450,7 +449,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param actionName An arbitrary string that is used for logging.
      * @param action The action to add.
      * @return the task object this method is applied to
-     *
      * @since 4.2
      */
     Task doLast(String actionName, Action<? super Task> action);
@@ -462,9 +460,11 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doLast(@DelegatesTo(Task.class)
-                @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
-                Closure action);
+    Task doLast(
+        @DelegatesTo(Task.class)
+        @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+        Closure action
+    );
 
     /**
      * <p>Returns if this task is enabled or not.</p>
@@ -577,8 +577,8 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * contribute properties and methods to this task.</p>
      *
      * @return The convention object. Never returns null.
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
      * @see ExtensionAware#getExtensions()
+     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
      */
     @Internal
     @Deprecated
@@ -637,8 +637,8 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
 
     /**
      * <p>Returns the destroyables of this task.</p>
-     * @return The destroyables.  Never returns null.
      *
+     * @return The destroyables.  Never returns null.
      * @since 4.0
      */
     @Internal
@@ -678,10 +678,17 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * an ordering relationship.</p>
      *
      * @param paths The tasks this task must run after.
-     *
      * @return the task object this method is applied to
      */
     Task mustRunAfter(Object... paths);
+
+    /**
+     * <p>Returns tasks that this task must run after.</p>
+     *
+     * @return The tasks that this task must run after. Returns an empty set if this task has no tasks it must run after.
+     */
+    @Internal
+    TaskDependency getMustRunAfter();
 
     /**
      * <p>Specifies the set of tasks that this task must run after.</p>
@@ -703,14 +710,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     void setMustRunAfter(Iterable<?> mustRunAfter);
 
     /**
-     * <p>Returns tasks that this task must run after.</p>
-     *
-     * @return The tasks that this task must run after. Returns an empty set if this task has no tasks it must run after.
-     */
-    @Internal
-    TaskDependency getMustRunAfter();
-
-    /**
      * <p>Adds the given finalizer tasks for this task.</p>
      *
      * <pre class='autoTested'>
@@ -723,10 +722,17 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * a finalizer task.</p>
      *
      * @param paths The tasks that finalize this task.
-     *
      * @return the task object this method is applied to
      */
     Task finalizedBy(Object... paths);
+
+    /**
+     * <p>Returns tasks that finalize this task.</p>
+     *
+     * @return The tasks that finalize this task. Returns an empty set if there are no finalising tasks for this task.
+     */
+    @Internal
+    TaskDependency getFinalizedBy();
 
     /**
      * <p>Specifies the set of finalizer tasks for this task.</p>
@@ -745,14 +751,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     void setFinalizedBy(Iterable<?> finalizedBy);
 
     /**
-     * <p>Returns tasks that finalize this task.</p>
-     *
-     * @return The tasks that finalize this task. Returns an empty set if there are no finalising tasks for this task.
-     */
-    @Internal
-    TaskDependency getFinalizedBy();
-
-    /**
      * <p>Specifies that this task should run after all of the supplied tasks.</p>
      *
      * <pre class='autoTested'>
@@ -768,10 +766,17 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * an ordering relationship.</p>
      *
      * @param paths The tasks this task should run after.
-     *
      * @return the task object this method is applied to
      */
     TaskDependency shouldRunAfter(Object... paths);
+
+    /**
+     * <p>Returns tasks that this task should run after.</p>
+     *
+     * @return The tasks that this task should run after. Returns an empty set if this task has no tasks it must run after.
+     */
+    @Internal
+    TaskDependency getShouldRunAfter();
 
     /**
      * <p>Specifies the set of tasks that this task should run after.</p>
@@ -791,14 +796,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param shouldRunAfter The set of task paths this task should run after.
      */
     void setShouldRunAfter(Iterable<?> shouldRunAfter);
-
-    /**
-     * <p>Returns tasks that this task should run after.</p>
-     *
-     * @return The tasks that this task should run after. Returns an empty set if this task has no tasks it must run after.
-     */
-    @Internal
-    TaskDependency getShouldRunAfter();
 
     /**
      * <p>The timeout of this task.</p>
@@ -828,8 +825,8 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * </p>
      *
      * @param service The service provider.
-     * @since 6.1
      * @see org.gradle.api.services.ServiceReference
+     * @since 6.1
      */
     void usesService(Provider<? extends BuildService<?>> service);
 }

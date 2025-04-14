@@ -35,11 +35,11 @@ class NativeComponentReportOutputFormatter extends ComponentReportOutputFormatte
     String transform(String original) {
         return super.transform(
             original
-            .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
-            .replace("platform 'current'", "platform '${NativePlatformsTestFixture.defaultPlatformName}'")
-            .replaceAll('(?m)(build/libs/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
-            .replaceAll('(?m)(build/libs/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
-            .replaceAll('(?m)(build/exe/.+/)(\\w+)$') { it[1] + OperatingSystem.current().getExecutableName(it[2]) }
+                .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
+                .replace("platform 'current'", "platform '${NativePlatformsTestFixture.defaultPlatformName}'")
+                .replaceAll('(?m)(build/libs/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
+                .replaceAll('(?m)(build/libs/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
+                .replaceAll('(?m)(build/exe/.+/)(\\w+)$') { it[1] + OperatingSystem.current().getExecutableName(it[2]) }
         )
     }
 }

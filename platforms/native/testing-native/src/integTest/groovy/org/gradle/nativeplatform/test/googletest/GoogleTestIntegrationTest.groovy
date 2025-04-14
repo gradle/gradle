@@ -120,7 +120,7 @@ model {
 
         then:
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
-                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
         def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
@@ -139,7 +139,7 @@ model {
 
         then:
         notExecuted ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
-                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
     @Issue("GRADLE-3225")
@@ -191,7 +191,7 @@ tasks.withType(RunTestExecutable) {
 
         then:
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
-                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
 
         def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
         testResults.suiteNames == ['HelloTest']
@@ -362,7 +362,7 @@ model {
 
         and:
         executedAndNotSkipped ":compileHelloTestGoogleTestExeHelloCpp", ":compileHelloTestGoogleTestExeHelloTestCpp",
-                ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
+            ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
         output.contains "[  FAILED  ]"
         and:
         def testResults = new GoogleTestTestResults(file("build/test-results/helloTest/test_detail.xml"))
@@ -420,17 +420,17 @@ tasks.withType(RunTestExecutable) {
         and:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
-                "build.gradle",
-                "src/helloTest/cpp/test.cpp",
-                "src/hello/cpp/hello.cpp",
-                "src/hello/cpp/sum.cpp"
+            "build.gradle",
+            "src/helloTest/cpp/test.cpp",
+            "src/hello/cpp/hello.cpp",
+            "src/hello/cpp/sum.cpp"
         ] as Set
         projectFile.headerFiles == [
-                "src/hello/headers/common.h",
-                "src/hello/headers/hello.h"
+            "src/hello/headers/common.h",
+            "src/hello/headers/hello.h"
         ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
-        with (projectFile.projectConfigurations['debug']) {
+        with(projectFile.projectConfigurations['debug']) {
             includePath == "src/helloTest/headers;src/hello/headers;${prebuiltPath}/googleTest/1.7.0/include"
         }
     }

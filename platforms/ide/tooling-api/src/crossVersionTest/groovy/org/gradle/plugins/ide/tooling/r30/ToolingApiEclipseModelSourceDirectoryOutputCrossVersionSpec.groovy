@@ -41,7 +41,7 @@ class ToolingApiEclipseModelSourceDirectoryOutputCrossVersionSpec extends Toolin
         setup:
         settingsFile << 'rootProject.name = "root"'
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {

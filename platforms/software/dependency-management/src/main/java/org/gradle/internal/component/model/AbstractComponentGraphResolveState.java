@@ -44,7 +44,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
         this.attributeDesugaring = attributeDesugaring;
-        this.implicitCapability =  DefaultImmutableCapability.defaultCapabilityForComponent(graphMetadata.getModuleVersionId());
+        this.implicitCapability = DefaultImmutableCapability.defaultCapabilityForComponent(graphMetadata.getModuleVersionId());
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.acme;
 
 import java.util.List;
 import java.util.ArrayList;
+
 import org.apache.commons.text.WordUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -20,15 +21,15 @@ public class Simpsons {
         add(MAGGIE);
     }};
 
-    public static Person homer() { return HOMER; }
+    public static Person homer() {return HOMER;}
 
-    public static Person marge() { return MARGE; }
+    public static Person marge() {return MARGE;}
 
-    public static Person bart() { return BART; }
+    public static Person bart() {return BART;}
 
-    public static Person lisa() { return LISA; }
+    public static Person lisa() {return LISA;}
 
-    public static Person maggie() { return MAGGIE; }
+    public static Person maggie() {return MAGGIE;}
 
     // ...
 //end::sample[]

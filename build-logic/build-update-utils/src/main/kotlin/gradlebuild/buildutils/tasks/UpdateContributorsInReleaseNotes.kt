@@ -32,7 +32,11 @@ abstract class UpdateContributorsInReleaseNotes : AbstractCheckOrUpdateContribut
             val sortedContributors = contributorsToUpdate.entries.sortedBy { (it.value.name ?: it.key).lowercase() }
             val (linesBeforeContributors, _, linesAfterContributors) = parseReleaseNotes()
             releaseNotes.asFile.get().writeText(
-                "${linesBeforeContributors.joinToString("\n")}\n${sortedContributors.joinToString(",\n") { "[${it.value.name ?: it.key}](https://github.com/${it.key})" }}\n\n${linesAfterContributors.joinToString("\n")}\n"
+                "${linesBeforeContributors.joinToString("\n")}\n${sortedContributors.joinToString(",\n") { "[${it.value.name ?: it.key}](https://github.com/${it.key})" }}\n\n${
+                    linesAfterContributors.joinToString(
+                        "\n"
+                    )
+                }\n"
             )
         } else {
             println("Contributors in the release notes are up to date.")

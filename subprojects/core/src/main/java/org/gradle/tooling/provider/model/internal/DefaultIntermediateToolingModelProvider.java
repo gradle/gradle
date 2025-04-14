@@ -50,40 +50,8 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         this.projectDependencyListener = projectDependencyListener;
     }
 
-    @Override
-    public <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
-        if (targets.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-
-        List<Object> rawModels = fetchModels(requester, targets, modelName, parameter);
-        return ensureModelTypes(modelType, rawModels);
-    }
-
-    @Override
-    public <P extends Plugin<Project>> void applyPlugin(Project requester, List<Project> targets, Class<P> pluginClass) {
-        List<Object> rawModels = fetchModels(requester, targets, PluginApplyingBuilder.MODEL_NAME, createPluginApplyingParameter(pluginClass));
-        ensureModelTypes(Boolean.class, rawModels);
-    }
-
     private static <P extends Plugin<Project>> PluginApplyingParameter createPluginApplyingParameter(Class<P> pluginClass) {
         return () -> pluginClass;
-    }
-
-    private List<Object> fetchModels(Project requester, List<Project> targets, String modelName, @Nullable Object parameter) {
-        reportToolingModelDependencies((ProjectInternal) requester, targets);
-        BuildState buildState = extractSingleBuildState(targets);
-        ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
-        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
-    }
-
-    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
-        List<Supplier<Object>> fetchActions = targets.stream()
-            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameter))
-            .collect(toList());
-
-        return runFetchActions(fetchActions);
     }
 
     @Nullable
@@ -128,6 +96,38 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         }
 
         return Cast.uncheckedCast(rawModels);
+    }
+
+    @Override
+    public <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
+        if (targets.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+
+        List<Object> rawModels = fetchModels(requester, targets, modelName, parameter);
+        return ensureModelTypes(modelType, rawModels);
+    }
+
+    @Override
+    public <P extends Plugin<Project>> void applyPlugin(Project requester, List<Project> targets, Class<P> pluginClass) {
+        List<Object> rawModels = fetchModels(requester, targets, PluginApplyingBuilder.MODEL_NAME, createPluginApplyingParameter(pluginClass));
+        ensureModelTypes(Boolean.class, rawModels);
+    }
+
+    private List<Object> fetchModels(Project requester, List<Project> targets, String modelName, @Nullable Object parameter) {
+        reportToolingModelDependencies((ProjectInternal) requester, targets);
+        BuildState buildState = extractSingleBuildState(targets);
+        ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
+        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
+    }
+
+    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+        List<Supplier<Object>> fetchActions = targets.stream()
+            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameter))
+            .collect(toList());
+
+        return runFetchActions(fetchActions);
     }
 
     private <T> List<T> runFetchActions(List<Supplier<T>> actions) {

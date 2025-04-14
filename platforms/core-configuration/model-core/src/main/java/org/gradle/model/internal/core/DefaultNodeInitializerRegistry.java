@@ -42,7 +42,9 @@ import java.util.concurrent.ExecutionException;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
-
+    private final List<NodeInitializerExtractionStrategy> allStrategies;
+    private final List<NodeInitializerExtractionStrategy> additionalStrategies;
+    private final ModelSchemaStore schemaStore;
     private final LoadingCache<NodeInitializerContext<?>, NodeInitializer> cache = CacheBuilder.newBuilder()
         .weakValues()
         .build(new CacheLoader<NodeInitializerContext<?>, NodeInitializer>() {
@@ -51,10 +53,6 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
                 return extractNodeInitializer(context);
             }
         });
-
-    private final List<NodeInitializerExtractionStrategy> allStrategies;
-    private final List<NodeInitializerExtractionStrategy> additionalStrategies;
-    private final ModelSchemaStore schemaStore;
 
     public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
         this.schemaStore = schemaStore;

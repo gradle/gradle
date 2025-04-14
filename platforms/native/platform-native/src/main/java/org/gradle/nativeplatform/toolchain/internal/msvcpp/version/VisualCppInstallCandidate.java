@@ -22,5 +22,6 @@ import java.io.File;
 
 public interface VisualCppInstallCandidate {
     File getVisualCppDir();
+
     VersionNumber getVersion();
 }

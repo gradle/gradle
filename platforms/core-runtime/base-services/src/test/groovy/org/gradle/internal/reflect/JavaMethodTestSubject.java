@@ -51,12 +51,6 @@ public class JavaMethodTestSubject implements JavaMethodTestSubjectInterface {
         throw failure;
     }
 
-    static class TestCheckedException extends Exception {
-        public TestCheckedException(Throwable cause) {
-            super(cause);
-        }
-    }
-
     public void throwsCheckedException() throws TestCheckedException {
         throw new TestCheckedException(failure);
     }
@@ -67,6 +61,12 @@ public class JavaMethodTestSubject implements JavaMethodTestSubjectInterface {
 
     protected String overridden() {
         return "parent";
+    }
+
+    static class TestCheckedException extends Exception {
+        public TestCheckedException(Throwable cause) {
+            super(cause);
+        }
     }
 
 }

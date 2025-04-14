@@ -43,6 +43,10 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
         this.delegate = delegate;
     }
 
+    private static boolean hasJavaExtension(@Nullable File input) {
+        return hasExtension(input, ".java");
+    }
+
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
@@ -57,10 +61,6 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
         // which silently excludes files not ending in .java
         Iterable<File> javaOnly = Iterables.filter(spec.getSourceFiles(), NormalizingJavaCompiler::hasJavaExtension);
         spec.setSourceFiles(ImmutableSet.copyOf(javaOnly));
-    }
-
-    private static boolean hasJavaExtension(@Nullable File input) {
-        return hasExtension(input, ".java");
     }
 
     private void resolveNonStringsInCompilerArgs(JavaCompileSpec spec) {

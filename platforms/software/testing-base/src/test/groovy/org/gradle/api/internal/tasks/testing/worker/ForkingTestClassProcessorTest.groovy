@@ -81,7 +81,7 @@ class ForkingTestClassProcessorTest extends Specification {
 
         then:
         1 * workerProcessBuilder.applicationClasspath(_) >> { assert it[0] == appClasspath }
-        1 * workerProcessBuilder.applicationModulePath(_) >> { assert it[0] == appModulepath}
+        1 * workerProcessBuilder.applicationModulePath(_) >> { assert it[0] == appModulepath }
         1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0] == implClasspath }
     }
 

@@ -35,6 +35,14 @@ abstract class JarCompat implements Closeable {
         this.jarFile = jarFile;
     }
 
+    public static JarCompat open(File jarFile) throws IOException {
+        if (JAVA_9_COMPATIBLE) {
+            return new MultiReleaseSupportingJar(jarFile);
+        }
+        // Running on Java 8, fall back to the old ways.
+        return new LegacyJar(jarFile);
+    }
+
     public final JarFile getJarFile() {
         return jarFile;
     }
@@ -47,15 +55,6 @@ abstract class JarCompat implements Closeable {
     public final void close() throws IOException {
         jarFile.close();
     }
-
-    public static JarCompat open(File jarFile) throws IOException {
-        if (JAVA_9_COMPATIBLE) {
-            return new MultiReleaseSupportingJar(jarFile);
-        }
-        // Running on Java 8, fall back to the old ways.
-        return new LegacyJar(jarFile);
-    }
-
 
     private static class LegacyJar extends JarCompat {
         public LegacyJar(File jarFile) throws IOException {

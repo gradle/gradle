@@ -25,6 +25,6 @@ public class CodePanelRenderer extends ReportRenderer<String, SimpleHtmlWriter> 
         // Wrap in a <span>, to work around CSS problem in IE
         htmlWriter.startElement("span").attribute("class", "code")
             .startElement("pre").characters(text).endElement()
-        .endElement();
+            .endElement();
     }
 }

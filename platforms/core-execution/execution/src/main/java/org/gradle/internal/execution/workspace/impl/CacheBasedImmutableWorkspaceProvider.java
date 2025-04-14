@@ -39,6 +39,26 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final File baseDirectory;
     private final PersistentCache cache;
 
+    private CacheBasedImmutableWorkspaceProvider(
+        CacheBuilder cacheBuilder,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        int treeDepthToTrackAndCleanup,
+        CacheConfigurationsInternal cacheConfigurations,
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+    ) {
+        PersistentCache cache = cacheBuilder
+            .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
+            // We don't need to lock the cache for immutable workspaces
+            // as we are using unique temporary workspaces to run work in
+            // and move them atomically into the cache
+            // TODO Should use a read-write lock on the cache's base directory for cleanup, though
+            .withInitialLockMode(FileLockManager.LockMode.None)
+            .open();
+        this.cache = cache;
+        this.baseDirectory = cache.getBaseDir();
+        this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
+    }
+
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
@@ -68,26 +88,6 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             cacheConfigurations,
             cacheCleanupStrategyFactory
         );
-    }
-
-    private CacheBasedImmutableWorkspaceProvider(
-        CacheBuilder cacheBuilder,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        int treeDepthToTrackAndCleanup,
-        CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
-    ) {
-        PersistentCache cache = cacheBuilder
-            .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
-            // We don't need to lock the cache for immutable workspaces
-            // as we are using unique temporary workspaces to run work in
-            // and move them atomically into the cache
-            // TODO Should use a read-write lock on the cache's base directory for cleanup, though
-            .withInitialLockMode(FileLockManager.LockMode.None)
-            .open();
-        this.cache = cache;
-        this.baseDirectory = cache.getBaseDir();
-        this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
     }
 
     private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {

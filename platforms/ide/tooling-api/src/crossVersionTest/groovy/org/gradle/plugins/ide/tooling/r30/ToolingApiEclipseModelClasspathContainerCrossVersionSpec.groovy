@@ -40,7 +40,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
     def "Project has some classpath containers"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -61,7 +61,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
     def "Classpath container defined in beforeMerged"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -83,7 +83,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
     def "Classpath container defined in whenMerged"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -107,7 +107,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
     def "Classpath container can be configured"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -134,7 +134,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     def "Respects targetCompatibility customization"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
         """
@@ -149,7 +149,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     def "Respects javaRuntimeName customization"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                jdt {
@@ -168,7 +168,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     def "javaRuntimeName customization wins over targetCompatibility"() {
         setup:
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_4)}
            eclipse {

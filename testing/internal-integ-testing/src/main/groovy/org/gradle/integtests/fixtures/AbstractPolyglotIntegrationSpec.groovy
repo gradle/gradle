@@ -42,7 +42,7 @@ class AbstractPolyglotIntegrationSpec extends AbstractIntegrationSpec implements
      * Configures a build spec, but doesn't generate the files.
      * @param spec
      */
-    void buildSpec(@DelegatesTo(value=MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    void buildSpec(@DelegatesTo(value = MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         Closure<?> clone = (Closure<?>) spec.clone()
         clone.delegate = projectBuilder
         clone.resolveStrategy = Closure.DELEGATE_FIRST
@@ -53,7 +53,7 @@ class AbstractPolyglotIntegrationSpec extends AbstractIntegrationSpec implements
      * Configures a build spec and finally generates the files
      * @param spec
      */
-    void writeSpec(@DelegatesTo(value=MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    void writeSpec(@DelegatesTo(value = MultiProjectBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildSpec {
             buildSpec(spec)
             generate()

@@ -23,8 +23,8 @@ class BiActionsTest extends Specification {
 
     def "composite action executes all actions that are part of it"() {
         given:
-        BiAction<List<String>, List<String>> first = {a, b -> a << "first a"; b << "first b" }
-        BiAction<List<String>, List<String>> second = {a, b -> a << "second a"; b << "second b" }
+        BiAction<List<String>, List<String>> first = { a, b -> a << "first a"; b << "first b" }
+        BiAction<List<String>, List<String>> second = { a, b -> a << "second a"; b << "second b" }
         def composite = BiActions.composite(first, second)
         def a = []
         def b = []
@@ -39,7 +39,7 @@ class BiActionsTest extends Specification {
 
     def "can wrap an action into a bi action that ignores second argument"() {
         given:
-        Action<List<String>> action = {a -> a << "added by action" }
+        Action<List<String>> action = { a -> a << "added by action" }
         BiAction<List<String>, Object> biAction = BiActions.usingFirstArgument(action)
         def argument = []
 

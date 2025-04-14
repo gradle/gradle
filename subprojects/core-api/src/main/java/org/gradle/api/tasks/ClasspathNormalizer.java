@@ -26,7 +26,6 @@ package org.gradle.api.tasks;
  * to any ZIP/JAR files found inside directories or nested inside other ZIP/JAR files.
  *
  * @see org.gradle.api.tasks.Classpath
- *
  * @since 4.3
  */
 public interface ClasspathNormalizer extends FileNormalizer {

@@ -100,39 +100,6 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         ));
     }
 
-    private static class PreventDestinationOverwrite implements Action<Task> {
-        private final Provider<String> applicationName;
-        private final Provider<String> executableDir;
-
-        private PreventDestinationOverwrite(Provider<String> applicationName, Provider<String> executableDir) {
-            this.applicationName = applicationName;
-            this.executableDir = executableDir;
-        }
-
-        @Override
-        public void execute(Task task) {
-            Sync sync = (Sync) task;
-            File destinationDir = sync.getDestinationDir();
-            if (destinationDir.isDirectory()) {
-                String[] children = destinationDir.list();
-                if (children == null) {
-                    throw new UncheckedIOException("Could not list directory " + destinationDir);
-                }
-                if (children.length > 0) {
-                    if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, executableDir.get()).isDirectory()) {
-                        throw new GradleException("The specified installation directory \'"
-                            + destinationDir
-                            + "\' is neither empty nor does it contain an installation for \'"
-                            + applicationName.get()
-                            + "\'.\n"
-                            + "If you really want to install to this directory, delete it and run the install task again.\n"
-                            + "Alternatively, choose a different installation directory.");
-                    }
-                }
-            }
-        }
-    }
-
     private JavaApplication addExtension(Project project) {
         JavaApplication javaApplication = project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class);
         javaApplication.setApplicationName(project.getName());
@@ -240,5 +207,38 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     @Inject
     protected PropertyFactory getPropertyFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    private static class PreventDestinationOverwrite implements Action<Task> {
+        private final Provider<String> applicationName;
+        private final Provider<String> executableDir;
+
+        private PreventDestinationOverwrite(Provider<String> applicationName, Provider<String> executableDir) {
+            this.applicationName = applicationName;
+            this.executableDir = executableDir;
+        }
+
+        @Override
+        public void execute(Task task) {
+            Sync sync = (Sync) task;
+            File destinationDir = sync.getDestinationDir();
+            if (destinationDir.isDirectory()) {
+                String[] children = destinationDir.list();
+                if (children == null) {
+                    throw new UncheckedIOException("Could not list directory " + destinationDir);
+                }
+                if (children.length > 0) {
+                    if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, executableDir.get()).isDirectory()) {
+                        throw new GradleException("The specified installation directory \'"
+                            + destinationDir
+                            + "\' is neither empty nor does it contain an installation for \'"
+                            + applicationName.get()
+                            + "\'.\n"
+                            + "If you really want to install to this directory, delete it and run the install task again.\n"
+                            + "Alternatively, choose a different installation directory.");
+                    }
+                }
+            }
+        }
     }
 }

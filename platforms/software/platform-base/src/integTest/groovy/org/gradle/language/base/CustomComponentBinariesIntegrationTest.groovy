@@ -184,7 +184,7 @@ Binaries
         "assemble"        | "assemble task"
     }
 
-    def "can access lifecycle task of binary via BinarySpec.buildTask"(){
+    def "can access lifecycle task of binary via BinarySpec.buildTask"() {
         when:
         buildFile << withSimpleComponentBinaries()
         buildFile << '''
@@ -256,7 +256,7 @@ Binaries
         build using task: :sampleLib2ndBinary
 """)
         where:
-        ruleInputs << ["SampleLibrary library, CustomModel myModel",  "CustomModel myModel, SampleLibrary library"]
+        ruleInputs << ["SampleLibrary library, CustomModel myModel", "CustomModel myModel, SampleLibrary library"]
     }
 
     def "@ComponentBinaries rule operates with fully configured component"() {

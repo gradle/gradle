@@ -22,7 +22,9 @@ import spock.lang.Specification
 class SpecsTest extends Specification {
 
     static class A {}
+
     static class B extends A {}
+
     static class C extends B {}
 
     def "isInstance spec is satisfied for all instances extending from the specified type"() {

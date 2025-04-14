@@ -184,18 +184,18 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             fqid == 'validation:property-validation:unknown-implementation'
             contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
-            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            solutions == ['Load your class by using one of Gradle\'s built-in ways.']
             additionalData.asMap == [
-                'typeName' : 'CustomTask'
+                'typeName': 'CustomTask'
             ]
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:unknown-implementation'
             contextualLabel == 'Implementation of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
-            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            solutions == ['Load your class by using one of Gradle\'s built-in ways.']
             additionalData.asMap == [
-                'typeName' : 'CustomTask'
+                'typeName': 'CustomTask'
             ]
         }
     }
@@ -236,9 +236,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             fqid == 'validation:property-validation:unknown-implementation'
             contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'A\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
-            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            solutions == ['Load your class by using one of Gradle\'s built-in ways.']
             additionalData.asMap == [
-                'typeName' : 'CustomTask',
+                'typeName': 'CustomTask',
             ]
         }
 
@@ -550,10 +550,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             fqid == 'validation:property-validation:unknown-implementation-nested'
             contextualLabel == "Property 'bean' was loaded with an unknown classloader (class 'A')."
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
-            solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
+            solutions == ['Load your class by using one of Gradle\'s built-in ways.']
             additionalData.asMap == [
-                'typeName' : 'CustomTask',
-                'propertyName' : 'bean'
+                'typeName': 'CustomTask',
+                'propertyName': 'bean'
             ]
         }
     }

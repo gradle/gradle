@@ -44,16 +44,16 @@ public class MerkleDirectorySnapshotBuilder implements DirectorySnapshotBuilder 
     private final boolean sortingRequired;
     private FileSystemLocationSnapshot result;
 
+    protected MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
+        this.sortingRequired = sortingRequired;
+    }
+
     public static DirectorySnapshotBuilder sortingRequired() {
         return new MerkleDirectorySnapshotBuilder(true);
     }
 
     public static DirectorySnapshotBuilder noSortingRequired() {
         return new MerkleDirectorySnapshotBuilder(false);
-    }
-
-    protected MerkleDirectorySnapshotBuilder(boolean sortingRequired) {
-        this.sortingRequired = sortingRequired;
     }
 
     @Override

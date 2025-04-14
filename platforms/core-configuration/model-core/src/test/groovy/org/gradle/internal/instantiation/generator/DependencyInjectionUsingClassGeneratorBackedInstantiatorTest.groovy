@@ -128,11 +128,13 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
     }
 
     static class HasGetterInjection {
-        @Inject String getSomeService() { throw new UnsupportedOperationException() }
+        @Inject
+        String getSomeService() { throw new UnsupportedOperationException() }
     }
 
     static abstract class AbstractHasGetterInjection {
-        abstract @Inject String getSomeService()
+        abstract @Inject
+        String getSomeService()
     }
 
     static class UsesInjectedServiceFromConstructor {

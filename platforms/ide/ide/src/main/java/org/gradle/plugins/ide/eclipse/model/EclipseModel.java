@@ -67,17 +67,12 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 public abstract class EclipseModel {
 
-    private EclipseProject project;
-
-    private EclipseClasspath classpath;
-
-    private EclipseJdt jdt;
-
-    private EclipseWtp wtp;
-
     private final DefaultTaskDependency synchronizationTasks;
-
     private final DefaultTaskDependency autoBuildTasks;
+    private EclipseProject project;
+    private EclipseClasspath classpath;
+    private EclipseJdt jdt;
+    private EclipseWtp wtp;
 
     public EclipseModel() {
         synchronizationTasks = new DefaultTaskDependency();

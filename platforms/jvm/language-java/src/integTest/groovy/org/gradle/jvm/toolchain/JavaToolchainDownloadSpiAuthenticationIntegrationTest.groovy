@@ -67,19 +67,19 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
 
         when:
         failure = executer
-                .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir("needs to be able to provision fresh toolchains")
-                .withToolchainDownloadEnabled()
-                .runWithFailure()
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir("needs to be able to provision fresh toolchains")
+            .withToolchainDownloadEnabled()
+            .runWithFailure()
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
-               .assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
-               .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-               .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific, nativeImageCapable=false}. " +
-                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
-                    "({languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific, nativeImageCapable=false}) from '$archiveUri', " +
-                    "due to: Unpacked JDK archive does not contain a Java home: " + temporaryFolder.testDirectory.file("user-home", ".tmp", "jdks", "toolchain"))
+            .assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific, nativeImageCapable=false}. " +
+                "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
+                "({languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific, nativeImageCapable=false}) from '$archiveUri', " +
+                "due to: Unpacked JDK archive does not contain a Java home: " + temporaryFolder.testDirectory.file("user-home", ".tmp", "jdks", "toolchain"))
     }
 
     def "can download with basic authentication"() {
@@ -103,7 +103,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
                         }
                     }
                 """
-        )
+            )
 
         buildFile << """
             apply plugin: "java"
@@ -123,10 +123,10 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
 
         when:
         failure = executer
-                .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir("needs to be able to provision fresh toolchains")
-                .withToolchainDownloadEnabled()
-                .runWithFailure()
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir("needs to be able to provision fresh toolchains")
+            .withToolchainDownloadEnabled()
+            .runWithFailure()
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")

@@ -79,11 +79,11 @@ class JUnitVintageLoggingOutputCaptureIntegrationTest extends AbstractJUnit4Logg
         result.assertHasErrorOutput("test method error")
 
         where:
-        includeSystemOutConf                | includeSystemErrConf              || standardOutIncluded || standardErrIncluded
-        "// default includeSystemOutLog"    | "// default includeSystemErrLog"  || true                || true
-        "includeSystemOutLog = true"        | "includeSystemErrLog = true"      || true                || true
-        "includeSystemOutLog = false"       | "includeSystemErrLog = true"      || false               || true
-        "includeSystemOutLog = true"        | "includeSystemErrLog = false"     || true                || false
-        "includeSystemOutLog = false"       | "includeSystemErrLog = false"     || false               || false
+        includeSystemOutConf             | includeSystemErrConf             || standardOutIncluded || standardErrIncluded
+        "// default includeSystemOutLog" | "// default includeSystemErrLog" || true                || true
+        "includeSystemOutLog = true"     | "includeSystemErrLog = true"     || true                || true
+        "includeSystemOutLog = false"    | "includeSystemErrLog = true"     || false               || true
+        "includeSystemOutLog = true"     | "includeSystemErrLog = false"    || true                || false
+        "includeSystemOutLog = false"    | "includeSystemErrLog = false"    || false               || false
     }
 }

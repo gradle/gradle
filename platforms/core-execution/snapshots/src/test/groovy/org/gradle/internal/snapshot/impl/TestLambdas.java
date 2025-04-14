@@ -53,7 +53,7 @@ public class TestLambdas {
         return TestLambdas::testMethod;
     }
 
-    public interface SerializableConsumer extends Consumer<Object>, Serializable {}
-
     private static void testMethod(Object arg) {}
+
+    public interface SerializableConsumer extends Consumer<Object>, Serializable {}
 }

@@ -42,7 +42,7 @@ abstract class AbstractTaskModelSpec extends Specification {
         _ * task.group >> group
         _ * task.compareTo(!null) >> { args -> name.compareTo(args[0].name) }
         TaskDependency dep = Mock()
-        _ * dep.getDependencies(task) >> {dependencies as Set}
+        _ * dep.getDependencies(task) >> { dependencies as Set }
         _ * task.taskDependencies >> dep
         return task
     }

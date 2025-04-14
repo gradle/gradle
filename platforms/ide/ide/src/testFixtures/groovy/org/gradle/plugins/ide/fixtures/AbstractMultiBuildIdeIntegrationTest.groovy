@@ -26,9 +26,13 @@ import spock.lang.Issue
  */
 abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationSpec {
     abstract String getPluginId()
+
     abstract String getWorkspaceTask()
+
     abstract String getLibraryPluginId()
+
     abstract IdeWorkspaceFixture workspace(TestFile workspaceDir, String ideWorkspaceName)
+
     abstract IdeProjectFixture project(TestFile projectDir, String ideProjectName)
 
     @ToBeFixedForConfigurationCache(because = "ide plugins", bottomSpecs = [

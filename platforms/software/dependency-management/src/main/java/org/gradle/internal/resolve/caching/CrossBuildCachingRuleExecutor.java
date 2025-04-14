@@ -197,6 +197,18 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         cache.close();
     }
 
+    /**
+     * When getting a result from the cache, we need to check whether the
+     * result is still valid or not. We cannot take that decision before
+     * knowing the actual type of KEY, so we need to provide this as a
+     * pluggable strategy when creating the executor.
+     *
+     * @param <RESULT> the type of entry stored in the cache.
+     */
+    public interface EntryValidator<RESULT> {
+        boolean isValid(CacheExpirationControl policy, CachedEntry<RESULT> entry);
+    }
+
     public static class CachedEntry<RESULT> {
         private final long timestamp;
         private final Multimap<String, ImplicitInputRecord<?, ?>> implicits;
@@ -219,18 +231,6 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         public RESULT getResult() {
             return result;
         }
-    }
-
-    /**
-     * When getting a result from the cache, we need to check whether the
-     * result is still valid or not. We cannot take that decision before
-     * knowing the actual type of KEY, so we need to provide this as a
-     * pluggable strategy when creating the executor.
-     *
-     * @param <RESULT> the type of entry stored in the cache.
-     */
-    public interface EntryValidator<RESULT> {
-        boolean isValid(CacheExpirationControl policy, CachedEntry<RESULT> entry);
     }
 
     private static class CacheEntrySerializer<RESULT> extends AbstractSerializer<CachedEntry<RESULT>> {

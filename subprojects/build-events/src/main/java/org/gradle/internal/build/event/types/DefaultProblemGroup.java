@@ -31,9 +31,9 @@ public class DefaultProblemGroup implements InternalProblemGroup, Serializable {
     private final InternalProblemGroup parent;
 
     public DefaultProblemGroup(String name, String displayName, @Nullable InternalProblemGroup parent) {
-          this.name = name;
-          this.displayName = displayName;
-          this.parent = parent;
+        this.name = name;
+        this.displayName = displayName;
+        this.parent = parent;
     }
 
     @Override

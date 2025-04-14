@@ -86,6 +86,10 @@ public class ZipCopyAction implements CopyAction {
         return WorkResults.didWork(true);
     }
 
+    private long getArchiveTimeFor(FileCopyDetails details) {
+        return preserveFileTimestamps ? details.getLastModified() : ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES;
+    }
+
     private class StreamAction implements CopyActionProcessingStreamAction {
         private final ZipArchiveOutputStream zipOutStr;
 
@@ -130,9 +134,5 @@ public class ZipCopyAction implements CopyAction {
                 throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
             }
         }
-    }
-
-    private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES;
     }
 }

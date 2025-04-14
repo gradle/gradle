@@ -94,14 +94,14 @@ public class LaunchableGradleTaskSelector implements InternalLaunchable, TaskExe
         return projectIdentifier;
     }
 
-    @Override
-    public File getRootDir() {
-        return projectIdentifier.getBuildIdentifier().getRootDir();
-    }
-
     public LaunchableGradleTaskSelector setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
         this.projectIdentifier = projectIdentifier;
         return this;
+    }
+
+    @Override
+    public File getRootDir() {
+        return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
     public String getPath() {
@@ -116,7 +116,7 @@ public class LaunchableGradleTaskSelector implements InternalLaunchable, TaskExe
     @Override
     public String toString() {
         return "LaunchableGradleTaskSelector{"
-                + "name='" + name + "' "
-                + "description='" + description + "'}";
+            + "name='" + name + "' "
+            + "description='" + description + "'}";
     }
 }

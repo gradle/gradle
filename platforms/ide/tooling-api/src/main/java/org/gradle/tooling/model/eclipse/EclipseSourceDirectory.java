@@ -38,7 +38,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @return The list of patterns to include. Does not return null.
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
-     *
      * @since 3.0
      */
     List<String> getIncludes() throws UnsupportedMethodException;
@@ -48,7 +47,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @return The list of patterns to exclude. Does not return null.
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
-     *
      * @since 3.0
      */
     List<String> getExcludes() throws UnsupportedMethodException;
@@ -58,7 +56,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @return The output location of this source directory.
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
-     *
      * @since 3.0
      */
     @Nullable
@@ -68,7 +65,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      * {@inheritDoc}
      *
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
-     *
      * @since 3.0
      */
     @Override

@@ -330,6 +330,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
         val customConvention = mock<CustomConvention>()
+
         @Suppress("deprecation")
         val convention = mock<org.gradle.api.plugins.Convention> {
             on { plugins } doReturn mapOf("customConvention" to customConvention)

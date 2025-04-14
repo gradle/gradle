@@ -150,15 +150,15 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        1 * progressListener.started({it.description == "op-1"}) >> { ProgressStartEvent event ->
+        1 * progressListener.started({ it.description == "op-1" }) >> { ProgressStartEvent event ->
             parentId = event.progressOperationId
             assert event.parentProgressOperationId == null
         }
-        1 * progressListener.started({it.description == "child"}) >> { ProgressStartEvent event ->
+        1 * progressListener.started({ it.description == "child" }) >> { ProgressStartEvent event ->
             childId = event.progressOperationId
             assert event.parentProgressOperationId == parentId
         }
-        1 * progressListener.started({it.description == "op-2"}) >> { ProgressStartEvent event ->
+        1 * progressListener.started({ it.description == "op-2" }) >> { ProgressStartEvent event ->
             id2 = event.progressOperationId
             assert event.parentProgressOperationId == null
         }
@@ -189,10 +189,10 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        1 * progressListener.started({it.description == "op-1"}) >> { ProgressStartEvent event ->
+        1 * progressListener.started({ it.description == "op-1" }) >> { ProgressStartEvent event ->
             parentId = event.progressOperationId
         }
-        1 * progressListener.started({it.description == "child"}) >> { ProgressStartEvent event ->
+        1 * progressListener.started({ it.description == "child" }) >> { ProgressStartEvent event ->
             assert event.parentProgressOperationId == parentId
             assert event.progressOperationId != parentId
         }
@@ -208,9 +208,9 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         logger.completed(null, false)
 
         then:
-        1 * progressListener.started({it.status == ''})
-        1 * progressListener.progress({it.status == ''})
-        1 * progressListener.completed({it.status == ''})
+        1 * progressListener.started({ it.status == '' })
+        1 * progressListener.progress({ it.status == '' })
+        1 * progressListener.completed({ it.status == '' })
     }
 
     def mustSpecifyDescriptionBeforeStart() {

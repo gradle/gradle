@@ -20,7 +20,6 @@ package org.gradle.tooling.model.eclipse;
  * Optional description associated with Eclipse classpath entries.
  *
  * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.jdt.doc.isv/reference/api/org/eclipse/jdt/core/IClasspathAttribute.html">IClassAttribute Javadoc</a>
- *
  * @since 2.14
  */
 public interface ClasspathAttribute {

@@ -70,19 +70,6 @@ public class ConfigureUtil {
         return configureByMap(properties, delegate);
     }
 
-    public static class IncompleteInputException extends RuntimeException {
-        private final Collection missingKeys;
-
-        public IncompleteInputException(String message, Collection missingKeys) {
-            super(message);
-            this.missingKeys = missingKeys;
-        }
-
-        public Collection getMissingKeys() {
-            return missingKeys;
-        }
-    }
-
     /**
      * <p>Configures {@code target} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
      *
@@ -164,6 +151,19 @@ public class ConfigureUtil {
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
+    }
+
+    public static class IncompleteInputException extends RuntimeException {
+        private final Collection missingKeys;
+
+        public IncompleteInputException(String message, Collection missingKeys) {
+            super(message);
+            this.missingKeys = missingKeys;
+        }
+
+        public Collection getMissingKeys() {
+            return missingKeys;
+        }
     }
 
     public static class WrappedConfigureAction<T> implements Action<T> {

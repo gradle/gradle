@@ -77,10 +77,10 @@ class DefaultModelSchemaStoreTest extends ConcurrentSpec {
 
         where:
         impl << [
-                "class SomeThing {}",
-                "@${Managed.name} interface SomeThing { SomeThing getThing() }",
-                "@${Managed.name} interface SomeThing { ${ModelSet.name}<SomeThing> getThings() }",
-                "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ModelSet.name}<Child> getThings() }",
+            "class SomeThing {}",
+            "@${Managed.name} interface SomeThing { SomeThing getThing() }",
+            "@${Managed.name} interface SomeThing { ${ModelSet.name}<SomeThing> getThings() }",
+            "@${Managed.name} interface SomeThing { @${Managed.name} static interface Child {}; ${ModelSet.name}<Child> getThings() }",
         ]
     }
 

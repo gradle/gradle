@@ -39,7 +39,8 @@ import java.util.stream.Collectors;
  * to the console with richly formatted output.
  */
 public final class ConsoleConfigurationReportRenderer extends AbstractConfigurationReportRenderer<StyledTextOutput> {
-    @Nullable private StyledTextOutput output;
+    @Nullable
+    private StyledTextOutput output;
     private int depth;
     private boolean recursiveExtensionsPrinted;
 
@@ -155,7 +156,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     }
 
     private void writeLegend(List<ReportConfiguration> configs) {
-        boolean hasLegacy =  configs.stream().anyMatch(ReportConfiguration::isLegacy);
+        boolean hasLegacy = configs.stream().anyMatch(ReportConfiguration::isLegacy);
         boolean hasIncubating = configs.stream().anyMatch(ReportConfiguration::hasIncubatingAttributes) ||
             configs.stream().flatMap(c -> c.getSecondaryVariants().stream()).anyMatch(ReportSecondaryVariant::hasIncubatingAttributes);
         boolean hasVariants = configs.stream().anyMatch(ReportConfiguration::hasVariants);
@@ -360,7 +361,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
                 final boolean isDefault;
 
                 public FormattedCapability(String name, boolean isDefault) {
-                    this.gav = name; this.isDefault = isDefault;
+                    this.gav = name;
+                    this.isDefault = isDefault;
                 }
             }
 

@@ -27,20 +27,8 @@ import java.util.stream.Collectors;
 
 class DefaultConflictResolutionResult implements ConflictResolutionResult {
 
-    private static ComponentState findComponent(Object selected) {
-        if (selected instanceof ComponentState) {
-            return (ComponentState) selected;
-        }
-        if (selected instanceof NodeState) {
-            return ((NodeState) selected).getComponent();
-        }
-        throw new IllegalArgumentException("Cannot extract a ComponentState from " + selected.getClass());
-    }
-
-
     private final Collection<? extends ModuleIdentifier> participatingModules;
     private final ComponentState selected;
-
     public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, Object selected) {
         this.selected = findComponent(selected);
         this.participatingModules = participatingModules.stream().sorted((first, second) -> {
@@ -51,6 +39,16 @@ class DefaultConflictResolutionResult implements ConflictResolutionResult {
             }
             return 0;
         }).collect(Collectors.toList());
+    }
+
+    private static ComponentState findComponent(Object selected) {
+        if (selected instanceof ComponentState) {
+            return (ComponentState) selected;
+        }
+        if (selected instanceof NodeState) {
+            return ((NodeState) selected).getComponent();
+        }
+        throw new IllegalArgumentException("Cannot extract a ComponentState from " + selected.getClass());
     }
 
     @Override

@@ -223,8 +223,8 @@ dependencies {
         given:
         repository {
             'org.gradle:test:1.45' {
-                dependsOn group:'org.gradle', artifact:'i-do-not-exist', version:'1.45', optional: 'true'
-                dependsOn group:'org.gradle', artifact:'i-do-not-exist', version:'1.45', optional: 'true', scope: 'runtime'
+                dependsOn group: 'org.gradle', artifact: 'i-do-not-exist', version: '1.45', optional: 'true'
+                dependsOn group: 'org.gradle', artifact: 'i-do-not-exist', version: '1.45', optional: 'true', scope: 'runtime'
             }
         }
         and:

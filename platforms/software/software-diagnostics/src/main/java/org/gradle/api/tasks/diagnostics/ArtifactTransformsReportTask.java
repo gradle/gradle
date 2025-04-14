@@ -51,9 +51,22 @@ import javax.inject.Inject;
 public abstract class ArtifactTransformsReportTask extends DefaultTask {
     private final Cached<ArtifactTransformReportModel> reportModel = Cached.of(() -> buildReportModel(getProject()));
 
-    @Inject protected abstract ObjectFactory getObjectFactory();
-    @Inject protected abstract StyledTextOutputFactory getTextOutputFactory();
-    @Inject protected abstract DocumentationRegistry getDocumentationRegistry();
+    /**
+     * Constructs a new instance.
+     *
+     * @since 8.13
+     */
+    @Incubating
+    public ArtifactTransformsReportTask() {}
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
+
+    @Inject
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     /**
      * Limits the report to reporting on transforms using a type with this (simple) classname.
@@ -67,14 +80,8 @@ public abstract class ArtifactTransformsReportTask extends DefaultTask {
     public abstract Property<String> getTransformType();
 
     /**
-     * Constructs a new instance.
-     * @since 8.13
-     */
-    @Incubating
-    public ArtifactTransformsReportTask() {}
-
-    /**
      * Generates the report.
+     *
      * @since 8.13
      */
     @TaskAction

@@ -82,7 +82,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
 
     def "can execute generateDescriptorFile"() {
         def configurationCache = newConfigurationCacheFixture()
-        buildConfigurationWithIvyRepository(ivyRepo, "ivyRepo","")
+        buildConfigurationWithIvyRepository(ivyRepo, "ivyRepo", "")
 
         when:
         configurationCacheRun("generateDescriptorFileForIvyPublication")
@@ -99,7 +99,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
 
     def "can execute generateMetadataFileForIvyPublication"() {
         def configurationCache = newConfigurationCacheFixture()
-        buildConfigurationWithIvyRepository(ivyRepo, "ivyRepo","")
+        buildConfigurationWithIvyRepository(ivyRepo, "ivyRepo", "")
 
         when:
         configurationCacheRun("generateMetadataFileForIvyPublication")
@@ -216,8 +216,8 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
     }
 
     private ProjectConfiguration configureProject(String username, String password, String repositoryName, boolean inlinedCredentials) {
-        assert !inlinedCredentials : "Inlined credentials are not supported with the configuration cache"
-        with (server) {
+        assert !inlinedCredentials: "Inlined credentials are not supported with the configuration cache"
+        with(server) {
             requireAuthentication(username, password)
             // or else insecure protocol enforcement is skipped
             useHostname()

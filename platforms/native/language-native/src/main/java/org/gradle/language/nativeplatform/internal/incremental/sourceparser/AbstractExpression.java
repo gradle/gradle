@@ -26,26 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractExpression implements Expression {
-    @Override
-    public String toString() {
-        return getAsSourceText();
-    }
-
-    @Override
-    public String getAsSourceText() {
-        return format(this);
-    }
-
-    @Override
-    public List<Expression> getArguments() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Expression asMacroExpansion() {
-        return asMacroExpansion(this);
-    }
-
     static Expression asMacroExpansion(Expression expression) {
         if (expression.getType() == IncludeType.IDENTIFIER) {
             return new SimpleExpression(expression.getValue(), IncludeType.MACRO);
@@ -89,5 +69,25 @@ public abstract class AbstractExpression implements Expression {
             default:
                 return value != null ? value : "??";
         }
+    }
+
+    @Override
+    public String toString() {
+        return getAsSourceText();
+    }
+
+    @Override
+    public String getAsSourceText() {
+        return format(this);
+    }
+
+    @Override
+    public List<Expression> getArguments() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Expression asMacroExpansion() {
+        return asMacroExpansion(this);
     }
 }

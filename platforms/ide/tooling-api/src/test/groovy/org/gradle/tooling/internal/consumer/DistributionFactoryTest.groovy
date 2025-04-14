@@ -32,7 +32,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DistributionFactoryTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final ConnectionParameters connectionParameters = DefaultConnectionParameters.builder().setProjectDir(tmpDir.testDirectory).build()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
@@ -46,7 +47,7 @@ class DistributionFactoryTest extends Specification {
     }
 
     def usesTheWrapperPropertiesToDetermineTheDefaultDistribution() {
-        def zipFile = createZip { }
+        def zipFile = createZip {}
 
         def zipFileUri = zipFile.toURI().toASCIIString()
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=$zipFileUri"
@@ -56,7 +57,7 @@ class DistributionFactoryTest extends Specification {
     }
 
     def usesTheWrapperPropertiesToDetermineTheDefaultDistributionForASubprojectInAMultiProjectBuild() {
-        def zipFile = createZip { }
+        def zipFile = createZip {}
         tmpDir.file('settings.gradle') << 'include "child"'
         def zipFileUri = zipFile.toURI().toASCIIString()
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=$zipFileUri"
@@ -123,7 +124,7 @@ class DistributionFactoryTest extends Specification {
     }
 
     def createsADisplayNameForADistribution() {
-        def zipFile = createZip { }
+        def zipFile = createZip {}
 
         expect:
         factory.getDistribution(zipFile.toURI()).displayName == "Gradle distribution '${zipFile.toURI()}'"
@@ -159,7 +160,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         result.asFiles.name as Set == ['gradle-core-0.9.jar', 'gradle-launcher-0.9.jar'] as Set
-        (result.asFiles.path as Set).every { it.contains('customUserHome')}
+        (result.asFiles.path as Set).every { it.contains('customUserHome') }
     }
 
     def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
@@ -178,7 +179,7 @@ class DistributionFactoryTest extends Specification {
 
         expect:
         result.asFiles.name as Set == ['gradle-core-0.9.jar', 'gradle-launcher-0.9.jar'] as Set
-        (result.asFiles.path as Set).every { it.contains('customUserHome')}
+        (result.asFiles.path as Set).every { it.contains('customUserHome') }
     }
 
     def reportsZipDownload() {
@@ -203,16 +204,16 @@ class DistributionFactoryTest extends Specification {
 
         then:
         1 * progressLoggerFactory.newOperation(DistributionInstaller.class) >>> loggerOne
-        1 * buildProgressListener.onEvent({it instanceof StartEvent})
+        1 * buildProgressListener.onEvent({ it instanceof StartEvent })
         1 * loggerOne.setDescription("Download ${zipFile.toURI()}")
         1 * loggerOne.started()
 
         then:
-        1 * buildProgressListener.onEvent({ it instanceof StatusEvent})
+        1 * buildProgressListener.onEvent({ it instanceof StatusEvent })
 
         then:
         1 * loggerOne.completed()
-        1 * buildProgressListener.onEvent({it instanceof FinishEvent})
+        1 * buildProgressListener.onEvent({ it instanceof FinishEvent })
         0 * _._
     }
 

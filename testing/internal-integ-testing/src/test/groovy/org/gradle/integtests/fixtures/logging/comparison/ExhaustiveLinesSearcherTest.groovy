@@ -43,13 +43,13 @@ class ExhaustiveLinesSearcherTest extends Specification {
         comparer.assertLinesContainedIn(expectedLines, actualLines)
 
         where:
-        expectedLines           | actualLines
-        ["a", "b", "c"]         | ["a", "b", "c"]
-        ["a"]                   | ["a", "b"]
-        ["a"]                   | ["b", "a"]
-        ["a"]                   | ["b", "a", "c"]
-        ["b", "c"]              | ["a", "b", "c", "d"]
-        ["b", "c"]              | ["a", "b", "c", "d", "b", "c", "e"]
+        expectedLines   | actualLines
+        ["a", "b", "c"] | ["a", "b", "c"]
+        ["a"]           | ["a", "b"]
+        ["a"]           | ["b", "a"]
+        ["a"]           | ["b", "a", "c"]
+        ["b", "c"]      | ["a", "b", "c", "d"]
+        ["b", "c"]      | ["a", "b", "c", "d", "b", "c", "e"]
     }
 
     def "failing lines contained in comparison due to too small actual line count: #expectedLines vs #actualLines"() {
@@ -61,8 +61,8 @@ class ExhaustiveLinesSearcherTest extends Specification {
         e.getMessage().startsWith(message)
 
         where:
-        expectedLines           | actualLines           || exception                                    || message
-        ["a", "b", "c"]         | ["d"]                 || InsufficientSizeLineListComparisonFailure    || String.format(InsufficientSizeLineListComparisonFailure.HEADER_TEMPLATE, 3, 1);
+        expectedLines   | actualLines || exception                                 || message
+        ["a", "b", "c"] | ["d"]       || InsufficientSizeLineListComparisonFailure || String.format(InsufficientSizeLineListComparisonFailure.HEADER_TEMPLATE, 3, 1);
     }
 
     def "failing lines contained in comparison due to mismatched lines with single potential match: #expectedLines vs #actualLines"() {
@@ -74,9 +74,9 @@ class ExhaustiveLinesSearcherTest extends Specification {
         e.getNumPotentialMatches() == 1
 
         where:
-        expectedLines           | actualLines                       || exception
-        ["a", "b", "c"]         | ["a", "b", "d", "e", "g"]         || PotentialMatchesExistComparisonFailure
-        ["b", "c", "d"]         | ["a", "b", "e", "d", "f"]         || PotentialMatchesExistComparisonFailure
+        expectedLines   | actualLines               || exception
+        ["a", "b", "c"] | ["a", "b", "d", "e", "g"] || PotentialMatchesExistComparisonFailure
+        ["b", "c", "d"] | ["a", "b", "e", "d", "f"] || PotentialMatchesExistComparisonFailure
     }
 
     def "failing lines contained in comparison due to mismatched lines with multiple potential matches: #expectedLines vs #actualLines"() {
@@ -88,8 +88,8 @@ class ExhaustiveLinesSearcherTest extends Specification {
         e.getNumPotentialMatches() == numPotentialMatches
 
         where:
-        expectedLines           | actualLines                       || exception                                || numPotentialMatches
-        ["b", "c"]              | ["a", "b", "d", "c", "g"]         || PotentialMatchesExistComparisonFailure   || 2
+        expectedLines | actualLines               || exception                              || numPotentialMatches
+        ["b", "c"]    | ["a", "b", "d", "c", "g"] || PotentialMatchesExistComparisonFailure || 2
     }
 
     def "if match would extend beyond last line of actual, it is not a potential match: #expectedLines vs #actualLines"() {
@@ -101,8 +101,8 @@ class ExhaustiveLinesSearcherTest extends Specification {
         e.getNumPotentialMatches() == numPotentialMatches
 
         where:
-        expectedLines           | actualLines                       || exception                                || numPotentialMatches
-        ["b", "c"]              | ["a", "b"]                        || PotentialMatchesExistComparisonFailure   || 0
+        expectedLines | actualLines || exception                              || numPotentialMatches
+        ["b", "c"]    | ["a", "b"]  || PotentialMatchesExistComparisonFailure || 0
     }
 
     def "by default, matching blank lines should NOT cause a potential match: #expectedLines vs #actualLines"() {
@@ -114,8 +114,8 @@ class ExhaustiveLinesSearcherTest extends Specification {
         e.getNumPotentialMatches() == numPotentialMatches
 
         where:
-        expectedLines                  | actualLines                            || exception                                || numPotentialMatches
-        ["b", "c", ""]                 | ["a", "b", "c", "x", "y", "z", ""]     || PotentialMatchesExistComparisonFailure   || 1
+        expectedLines  | actualLines                        || exception                              || numPotentialMatches
+        ["b", "c", ""] | ["a", "b", "c", "x", "y", "z", ""] || PotentialMatchesExistComparisonFailure || 1
     }
 
     def "by default, potential matches should only include those with a minimum number of mismatches: #expectedLines vs #actualLines"() {
@@ -127,9 +127,9 @@ class ExhaustiveLinesSearcherTest extends Specification {
         e.getNumPotentialMatches() == numPotentialMatches
 
         where:
-        expectedLines           | actualLines                                   || exception                                || numPotentialMatches
-        ["a", "b", "d"]         | ["a", "b", "c", "a", "q", "f", "a", "x", "d"] || PotentialMatchesExistComparisonFailure   || 2
-        ["a", "b", "d"]         | ["a", "a", "d", "a", "a", "d", "q", "b", "d"] || PotentialMatchesExistComparisonFailure   || 3
+        expectedLines   | actualLines                                   || exception                              || numPotentialMatches
+        ["a", "b", "d"] | ["a", "b", "c", "a", "q", "f", "a", "x", "d"] || PotentialMatchesExistComparisonFailure || 2
+        ["a", "b", "d"] | ["a", "a", "d", "a", "a", "d", "q", "b", "d"] || PotentialMatchesExistComparisonFailure || 3
     }
 
     def "unified diff formatting of potential matches works: #expectedLines vs #actualLines"() {

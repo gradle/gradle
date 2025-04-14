@@ -423,6 +423,30 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         abstract Registries finishProjectExecution();
     }
 
+    private static class ProjectLockStatisticsImpl implements ProjectLockStatistics {
+        private final AtomicLong total = new AtomicLong(-1);
+
+        @Override
+        public void measure(Runnable runnable) {
+            if (isEnabled()) {
+                Timer timer = Time.startTimer();
+                runnable.run();
+                total.addAndGet(timer.getElapsedMillis());
+            } else {
+                runnable.run();
+            }
+        }
+
+        @Override
+        public long getTotalWaitTimeMillis() {
+            return total.get();
+        }
+
+        public boolean isEnabled() {
+            return System.getProperty(PROJECT_LOCK_STATS_PROPERTY) != null;
+        }
+    }
+
     private class NoRegistries extends Registries {
         @Override
         public Registries startProjectExecution(boolean parallel) {
@@ -516,30 +540,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         @Override
         public void leaseFinish() {
             coordinationService.withStateLock(DefaultResourceLockCoordinationService.unlock(this));
-        }
-    }
-
-    private static class ProjectLockStatisticsImpl implements ProjectLockStatistics {
-        private final AtomicLong total = new AtomicLong(-1);
-
-        @Override
-        public void measure(Runnable runnable) {
-            if (isEnabled()) {
-                Timer timer = Time.startTimer();
-                runnable.run();
-                total.addAndGet(timer.getElapsedMillis());
-            } else {
-                runnable.run();
-            }
-        }
-
-        @Override
-        public long getTotalWaitTimeMillis() {
-            return total.get();
-        }
-
-        public boolean isEnabled() {
-            return System.getProperty(PROJECT_LOCK_STATS_PROPERTY) != null;
         }
     }
 }

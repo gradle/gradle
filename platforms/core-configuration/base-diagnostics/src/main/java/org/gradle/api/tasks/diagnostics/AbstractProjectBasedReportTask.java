@@ -61,7 +61,9 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
      * @since 8.9
      */
     @Incubating
-    protected void generateReportHeaderFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no header */ };
+    protected void generateReportHeaderFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no header */ }
+
+    ;
 
     protected abstract void generateReportFor(ProjectDetails project, T model);
 
@@ -75,7 +77,9 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
      * @since 8.9
      */
     @Incubating
-    protected void generateReportFooterFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no footer */ };
+    protected void generateReportFooterFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no footer */ }
+
+    ;
 
     @TaskAction
     void action() {

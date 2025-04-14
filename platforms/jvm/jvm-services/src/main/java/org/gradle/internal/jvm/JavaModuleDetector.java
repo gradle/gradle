@@ -52,6 +52,22 @@ public class JavaModuleDetector {
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
+    public static boolean isModuleSource(boolean inferModulePath, Iterable<File> sourcesRoots) {
+        if (!inferModulePath) {
+            return false;
+        }
+        for (File srcFolder : sourcesRoots) {
+            if (isModuleSourceFolder(srcFolder)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isModuleSourceFolder(File folder) {
+        return new File(folder, MODULE_INFO_SOURCE_FILE).exists();
+    }
+
     public FileCollection inferClasspath(boolean inferModulePath, Collection<File> classpath) {
         return inferClasspath(inferModulePath, fileCollectionFactory.fixed(classpath));
     }
@@ -113,32 +129,7 @@ public class JavaModuleDetector {
         return !isModule(file);
     }
 
-    public static boolean isModuleSource(boolean inferModulePath, Iterable<File> sourcesRoots) {
-        if (!inferModulePath) {
-            return false;
-        }
-        for (File srcFolder : sourcesRoots) {
-            if (isModuleSourceFolder(srcFolder)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isModuleSourceFolder(File folder) {
-        return new File(folder, MODULE_INFO_SOURCE_FILE).exists();
-    }
-
     private static class ModuleInfoLocator implements FileContentCacheFactory.Calculator<Boolean> {
-
-        @Override
-        public Boolean calculate(File file, boolean isRegularFile) {
-            if (isRegularFile) {
-                return isJarFile(file) && isModuleJar(file);
-            } else {
-                return isModuleFolder(file);
-            }
-        }
 
         private static boolean isJarFile(File file) {
             return file.getName().endsWith(".jar");
@@ -185,6 +176,15 @@ public class JavaModuleDetector {
                 return null;
             }
             return manifest.getMainAttributes().getValue(AUTOMATIC_MODULE_NAME_ATTRIBUTE);
+        }
+
+        @Override
+        public Boolean calculate(File file, boolean isRegularFile) {
+            if (isRegularFile) {
+                return isJarFile(file) && isModuleJar(file);
+            } else {
+                return isModuleFolder(file);
+            }
         }
     }
 }

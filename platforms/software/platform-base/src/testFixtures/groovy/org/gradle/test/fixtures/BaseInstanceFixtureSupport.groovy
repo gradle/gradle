@@ -35,7 +35,7 @@ public class BaseInstanceFixtureSupport {
     }
 
     static <B, T extends B, I extends B> MutableModelNode createNode(Class<T> publicType, Class<? extends B> internalView, Class<I> implType,
-                                                        String name, Closure<I> createUnmanagedInstance) {
+                                                                     String name, Closure<I> createUnmanagedInstance) {
         def modelRegistry = new ModelRegistryHelper()
         modelRegistry.registerInstance("nodeInitializerRegistry", ProjectRegistrySpec.NODE_INITIALIZER_REGISTRY)
 

@@ -1,10 +1,13 @@
 abstract class MyCopyTask : DefaultTask() {
 
-    @get:InputDirectory abstract val source: DirectoryProperty
+    @get:InputDirectory
+    abstract val source: DirectoryProperty
 
-    @get:OutputDirectory abstract val destination: DirectoryProperty
+    @get:OutputDirectory
+    abstract val destination: DirectoryProperty
 
-    @get:Inject abstract val fs: FileSystemOperations
+    @get:Inject
+    abstract val fs: FileSystemOperations
 
     @TaskAction
     fun action() {

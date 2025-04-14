@@ -121,12 +121,12 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     }
 
     static class XCTestProcessor implements TestClassProcessor {
-        private TestResultProcessor resultProcessor;
-        private ExecHandle execHandle;
         private final ClientExecHandleBuilder execHandleBuilder;
         private final IdGenerator<?> idGenerator;
         private final Clock clock;
         private final String rootTestSuiteId;
+        private TestResultProcessor resultProcessor;
+        private ExecHandle execHandle;
 
         @Inject
         public XCTestProcessor(Clock clock, File executable, File workingDir, ClientExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator, String rootTestSuiteId) {
@@ -136,6 +136,17 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             this.rootTestSuiteId = rootTestSuiteId;
             execHandleBuilder.setExecutable(executable.getAbsolutePath());
             execHandleBuilder.setWorkingDir(workingDir);
+        }
+
+        private static List<String> toTestArgs(String testName) {
+            List<String> args = new ArrayList<>();
+            if (!testName.equals(XCTestSelection.INCLUDE_ALL_TESTS)) {
+                if (OperatingSystem.current().isMacOsX()) {
+                    args.add("-XCTest");
+                }
+                args.add(testName);
+            }
+            return args;
         }
 
         @Override
@@ -173,17 +184,6 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             execHandleBuilder.setStandardOutput(outputStream);
             execHandleBuilder.setErrorOutput(errorStream);
             return execHandleBuilder.build();
-        }
-
-        private static List<String> toTestArgs(String testName) {
-            List<String> args = new ArrayList<>();
-            if (!testName.equals(XCTestSelection.INCLUDE_ALL_TESTS)) {
-                if (OperatingSystem.current().isMacOsX()) {
-                    args.add("-XCTest");
-                }
-                args.add(testName);
-            }
-            return args;
         }
 
         @Override

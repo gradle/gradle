@@ -35,7 +35,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     MavenHttpPluginRepository mavenHttpRepo = new MavenHttpPluginRepository(mavenRepo)
 
-    def setup(){
+    def setup() {
         // Stop traversing to parent directory; otherwise embedded test execution will
         // find and load the `gradle.properties` file in the root of the source repository
         settingsFile.createFile()

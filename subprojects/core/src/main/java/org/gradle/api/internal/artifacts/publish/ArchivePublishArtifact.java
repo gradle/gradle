@@ -56,9 +56,14 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
         return archiveTask.getArchiveAppendix().getOrNull();
     }
 
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
     private String withAppendix(String baseName) {
         String appendix = archiveTask.getArchiveAppendix().getOrNull();
-        return baseName + (GUtil.isTrue(appendix)? "-" + appendix : "");
+        return baseName + (GUtil.isTrue(appendix) ? "-" + appendix : "");
     }
 
     @Override
@@ -67,37 +72,13 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
     }
 
     @Override
-    public String getType() {
-        return GUtil.getOrDefault(type, () -> archiveTask.getArchiveExtension().getOrNull());
-    }
-
-    @Override
-    public String getClassifier() {
-        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
-    }
-
-    @Override
-    public File getFile() {
-        return GUtil.getOrDefault(file, () -> archiveTask.getArchiveFile().get().getAsFile());
-    }
-
-    @Override
-    public Date getDate() {
-        return GUtil.getOrDefault(date, () -> new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
-    }
-
-    public AbstractArchiveTask getArchiveTask() {
-        return archiveTask;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
     public void setExtension(String extension) {
         this.extension = extension;
+    }
+
+    @Override
+    public String getType() {
+        return GUtil.getOrDefault(type, () -> archiveTask.getArchiveExtension().getOrNull());
     }
 
     @Override
@@ -106,16 +87,35 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
     }
 
     @Override
+    public String getClassifier() {
+        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
+    }
+
+    @Override
     public void setClassifier(String classifier) {
         this.classifier = classifier;
+    }
+
+    @Override
+    public File getFile() {
+        return GUtil.getOrDefault(file, () -> archiveTask.getArchiveFile().get().getAsFile());
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    @Override
+    public Date getDate() {
+        return GUtil.getOrDefault(date, () -> new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
     }
 
     public void setDate(Date date) {
         this.date = date;
     }
 
-    public void setFile(File file) {
-        this.file = file;
+    public AbstractArchiveTask getArchiveTask() {
+        return archiveTask;
     }
 
     @Override

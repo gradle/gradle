@@ -25,10 +25,6 @@ import org.jspecify.annotations.Nullable;
  * @param <T> the resolution result type
  */
 public interface BuildableModuleComponentMetaDataResolveResult<T> extends ResourceAwareResolveResult, ErroringResolveResult<ModuleVersionResolveException> {
-    enum State {
-        Resolved, Missing, Failed, Unknown, Redirect
-    }
-
     /**
      * Returns the current state of this descriptor.
      */
@@ -80,4 +76,8 @@ public interface BuildableModuleComponentMetaDataResolveResult<T> extends Resour
     void redirectToGradleMetadata();
 
     boolean shouldUseGradleMetatada();
+
+    enum State {
+        Resolved, Missing, Failed, Unknown, Redirect
+    }
 }

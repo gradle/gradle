@@ -29,7 +29,7 @@ class ToolingApiEclipseModelClasspathContainerAccessRuleCrossVersionSpec extends
 
     def "Has no access rules"() {
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
@@ -47,7 +47,7 @@ class ToolingApiEclipseModelClasspathContainerAccessRuleCrossVersionSpec extends
 
     def "Has some access rules"() {
         buildFile <<
-        """import org.gradle.plugins.ide.eclipse.model.AccessRule
+            """import org.gradle.plugins.ide.eclipse.model.AccessRule
            apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {

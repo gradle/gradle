@@ -26,7 +26,7 @@ trait DaemonJvmPropertiesFixture {
 
     private File findJavaHome() {
         def potentialJavaHome = new File(System.getProperty("java.home")).canonicalFile
-        if (potentialJavaHome.name.equalsIgnoreCase( "jre")) {
+        if (potentialJavaHome.name.equalsIgnoreCase("jre")) {
             return potentialJavaHome.parentFile
         }
         return potentialJavaHome

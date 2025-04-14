@@ -10,11 +10,14 @@ repositories {
 @CacheableRule
 abstract class TargetJvmVersionRule implements ComponentMetadataRule {
     final Integer jvmVersion
-    @Inject TargetJvmVersionRule(Integer jvmVersion) {
+
+    @Inject
+    TargetJvmVersionRule(Integer jvmVersion) {
         this.jvmVersion = jvmVersion
     }
 
-    @Inject abstract ObjectFactory getObjects()
+    @Inject
+    abstract ObjectFactory getObjects()
 
     void execute(ComponentMetadataContext context) {
         context.details.withVariant("compile") {
@@ -25,6 +28,7 @@ abstract class TargetJvmVersionRule implements ComponentMetadataRule {
         }
     }
 }
+
 dependencies {
     components {
         withModule("commons-io:commons-io", TargetJvmVersionRule) {
@@ -46,7 +50,7 @@ abstract class JaxenDependenciesRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         context.details.allVariants {
             withDependencies {
-                removeAll { it.group in ["dom4j", "jdom", "xerces",  "maven-plugins", "xml-apis", "xom"] }
+                removeAll { it.group in ["dom4j", "jdom", "xerces", "maven-plugins", "xml-apis", "xom"] }
             }
         }
     }
@@ -162,14 +166,15 @@ dependencies {
 @CacheableRule
 abstract class LwjglRule implements ComponentMetadataRule { //val os: String, val arch: String, val classifier: String)
     private def nativeVariants = [
-        [os: OperatingSystemFamily.LINUX,   arch: "arm32",  classifier: "natives-linux-arm32"],
-        [os: OperatingSystemFamily.LINUX,   arch: "arm64",  classifier: "natives-linux-arm64"],
-        [os: OperatingSystemFamily.WINDOWS, arch: "x86",    classifier: "natives-windows-x86"],
+        [os: OperatingSystemFamily.LINUX, arch: "arm32", classifier: "natives-linux-arm32"],
+        [os: OperatingSystemFamily.LINUX, arch: "arm64", classifier: "natives-linux-arm64"],
+        [os: OperatingSystemFamily.WINDOWS, arch: "x86", classifier: "natives-windows-x86"],
         [os: OperatingSystemFamily.WINDOWS, arch: "x86-64", classifier: "natives-windows"],
-        [os: OperatingSystemFamily.MACOS,   arch: "x86-64", classifier: "natives-macos"]
+        [os: OperatingSystemFamily.MACOS, arch: "x86-64", classifier: "natives-macos"]
     ]
 
-    @Inject abstract ObjectFactory getObjects()
+    @Inject
+    abstract ObjectFactory getObjects()
 
     void execute(ComponentMetadataContext context) {
         context.details.withVariant("runtime") {

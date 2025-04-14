@@ -69,8 +69,8 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
 
         when:
         def zipped = providerFactory.zip(
-                providerFactory.zip(big, black) { s1, s2 -> "$s1 $s2" } ,
-                cat) { s1, s2 -> "${s1.capitalize()} ${s2}"}
+            providerFactory.zip(big, black) { s1, s2 -> "$s1 $s2" },
+            cat) { s1, s2 -> "${s1.capitalize()} ${s2}" }
 
         then:
         zipped instanceof Provider

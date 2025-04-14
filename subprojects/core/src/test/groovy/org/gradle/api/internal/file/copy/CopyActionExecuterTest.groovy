@@ -58,7 +58,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
             }
         }
         def executer = new CopyActionExecuter(TestUtil.instantiatorFactory().decorateLenient(), TestUtil.propertyFactory(), TestFiles.fileSystem(), false,
-                TestFiles.documentationRegistry())
+            TestFiles.documentationRegistry())
 
         when:
         executer.execute(copySpec, copyAction)

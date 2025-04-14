@@ -33,20 +33,8 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jvm
 
     private final String match;
     private final JvmVendor.KnownJvmVendor matchingVendor;
-    private transient Predicate<JvmVendor> matcher;
     private final String description;
-
-    public static JvmVendorSpec matching(String match) {
-        return new DefaultJvmVendorSpec(match, "vendor matching('" + match + "')");
-    }
-
-    public static JvmVendorSpec of(JvmVendor.KnownJvmVendor knownVendor) {
-        return new DefaultJvmVendorSpec(knownVendor, knownVendor.asJvmVendor().getDisplayName());
-    }
-
-    public static JvmVendorSpec any() {
-        return ANY;
-    }
+    private transient Predicate<JvmVendor> matcher;
 
     // Creates a spec matching a vendor based on a substring of the vendor string
     private DefaultJvmVendorSpec(String match, String description) {
@@ -70,6 +58,18 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jvm
         this.matchingVendor = null;
         this.matcher = v -> true;
         this.description = "any vendor";
+    }
+
+    public static JvmVendorSpec matching(String match) {
+        return new DefaultJvmVendorSpec(match, "vendor matching('" + match + "')");
+    }
+
+    public static JvmVendorSpec of(JvmVendor.KnownJvmVendor knownVendor) {
+        return new DefaultJvmVendorSpec(knownVendor, knownVendor.asJvmVendor().getDisplayName());
+    }
+
+    public static JvmVendorSpec any() {
+        return ANY;
     }
 
     public String toCriteria() {

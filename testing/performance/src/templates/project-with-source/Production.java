@@ -1,24 +1,39 @@
 package ${packageName};
 
-public class ${productionClassName} {
-    private final String property;
+private final String property; {
+String param
 
-    public ${productionClassName}(String param) {
-        this.property = param;
+public $ {productionClassName}(
+times { %>
+    private String prop$ {
+        it
+    } ;
+
+    public String getProp$ {
+        it
+    } () {
+        return prop$ {
+            it
+        } ;
     }
 
-    public String getProperty() {
-        return property;
+    public void setProp$ {
+        it
+    } (String value){
+        prop$ {
+            it
+        } =value;
     }
-<% propertyCount.times { %>
-    private String prop${it};
+<%}){
+    this.property =param;
+    }
 
-    public String getProp${it}() {
-        return prop${it};
-    }
-
-    public void setProp${it}(String value) {
-        prop${it} = value;
-    }
-<% } %>
+public String getProperty() {
+    return property;
 }
+<%propertyCount.
+
+public class $ {
+    productionClassName
+} %>
+    }

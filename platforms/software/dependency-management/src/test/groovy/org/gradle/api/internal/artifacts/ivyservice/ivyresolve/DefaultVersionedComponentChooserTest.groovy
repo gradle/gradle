@@ -197,7 +197,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         })
         1 * selectedComponentResult.getContentFilter() >> null
         1 * selectedComponentResult.notMatched(c.id, _)
-        1 * selectedComponentResult.rejectedByRule({it.id == d.id}) // 1.2 won't be rejected because of latest first sorting
+        1 * selectedComponentResult.rejectedByRule({ it.id == d.id }) // 1.2 won't be rejected because of latest first sorting
         1 * selectedComponentResult.matches(b.id)
         0 * _
     }
@@ -220,7 +220,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         })
         1 * selectedComponentResult.getContentFilter() >> null
         1 * selectedComponentResult.notMatched(c.id, _)
-        1 * selectedComponentResult.rejectedByRule({it.id == b.id})
+        1 * selectedComponentResult.rejectedByRule({ it.id == b.id })
         1 * selectedComponentResult.noMatchFound()
         0 * _
 
@@ -324,9 +324,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
             selection.reject("Rejecting everything")
         })
         1 * selectedComponentResult.getContentFilter() >> null
-        1 * selectedComponentResult.rejectedByRule({it.id == c.id})
-        1 * selectedComponentResult.rejectedByRule({it.id == b.id})
-        1 * selectedComponentResult.rejectedByRule({it.id == a.id})
+        1 * selectedComponentResult.rejectedByRule({ it.id == c.id })
+        1 * selectedComponentResult.rejectedByRule({ it.id == b.id })
+        1 * selectedComponentResult.rejectedByRule({ it.id == a.id })
         1 * selectedComponentResult.noMatchFound()
         0 * _
     }

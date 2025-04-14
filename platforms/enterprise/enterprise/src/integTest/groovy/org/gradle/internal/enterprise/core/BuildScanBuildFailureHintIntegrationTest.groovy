@@ -102,7 +102,7 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
         failure.assertNotOutput(SCAN)
 
         where:
-        tasks << [ DUMMY_TASK_ONLY, DUMMY_TASK_AND_BUILD_SCAN ]
+        tasks << [DUMMY_TASK_ONLY, DUMMY_TASK_AND_BUILD_SCAN]
     }
 
     static String failingBuildFile() {

@@ -34,7 +34,6 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      * @param type the type of objects created by the factory
      * @param factory the factory to register
      * @param <U> the type of objects created by the factory
-     *
      * @throws IllegalArgumentException if the specified type is not a subtype of the container element type
      */
     @Override
@@ -47,7 +46,6 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      * @param type the type of objects created by the factory
      * @param factory the factory to register
      * @param <U> the type of objects created by the factory
-     *
      * @throws IllegalArgumentException if the specified type is not a subtype of the container element type
      */
     <U extends T> void registerFactory(Class<U> type, final Closure<? extends U> factory);

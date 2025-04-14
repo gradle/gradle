@@ -47,14 +47,6 @@ public class PatternMatchers {
         addMatcher(GlobPatternMatcher.INSTANCE);
     }
 
-    private void addMatcher(PatternMatcher instance) {
-        matchers.put(instance.getName(), instance);
-    }
-
-    public PatternMatcher getMatcher(String name) {
-        return matchers.get(name);
-    }
-
     public static boolean isExactMatcher(String name) {
         return name == null || EXACT.equals(name);
     }
@@ -64,5 +56,13 @@ public class PatternMatchers {
             instance = new PatternMatchers();
         }
         return instance;
+    }
+
+    private void addMatcher(PatternMatcher instance) {
+        matchers.put(instance.getName(), instance);
+    }
+
+    public PatternMatcher getMatcher(String name) {
+        return matchers.get(name);
     }
 }

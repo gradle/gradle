@@ -153,7 +153,10 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
         ) {
             assertHasNoError()
             assertHasAccepted(
-                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed", "Method is now abstract"),
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf(
+                    "Method return type has changed",
+                    "Method is now abstract"
+                ),
                 "Method com.example.Task.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
                 "Method com.example.TaskInterface.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed"),
                 "Method com.example.TaskInterface.setSourceCompatibility(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
@@ -259,8 +262,14 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
         ) {
             assertHasNoError()
             assertHasAccepted(
-                "Method com.example.Task.getFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
-                "Method com.example.Task.getFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
+                "Method com.example.Task.getFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf(
+                    "Method added to public class",
+                    "Abstract method has been added to this class"
+                ),
+                "Method com.example.Task.getFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf(
+                    "Method added to public class",
+                    "Abstract method has been added to this class"
+                ),
                 "Method com.example.Task.getIsFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class"),
                 "Method com.example.Task.getIsFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method added to public class"),
                 "Method com.example.Task.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
@@ -326,7 +335,10 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
         ) {
             assertHasErrors("Method com.example.Task.getNewDescription(): Is not annotated with @since 2.0.")
             assertHasAccepted(
-                "Method com.example.Task.getNewDescription(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
+                "Method com.example.Task.getNewDescription(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf(
+                    "Method added to public class",
+                    "Abstract method has been added to this class"
+                ),
                 "Method com.example.Task.getOldDescription(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
             )
         }
@@ -448,7 +460,10 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
         ) {
             assertHasNoError()
             assertHasAccepted(
-                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed", "Method is now abstract")
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf(
+                    "Method return type has changed",
+                    "Method is now abstract"
+                )
             )
         }
     }
@@ -510,7 +525,10 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
         ) {
             assertHasNoError()
             assertHasAccepted(
-                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method return type has changed", "Method is now abstract")
+                "Method com.example.Task.getSourceCompatibility(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf(
+                    "Method return type has changed",
+                    "Method is now abstract"
+                )
             )
         }
     }
@@ -574,7 +592,10 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
             assertHasNoError()
             assertHasAccepted(
                 "Method com.example.Task.getSourceCompat(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
-                "Method com.example.Task.getSourceCompatibility(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method added to public class", "Abstract method has been added to this class"),
+                "Method com.example.Task.getSourceCompatibility(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf(
+                    "Method added to public class",
+                    "Abstract method has been added to this class"
+                ),
                 "Method com.example.Task.setSourceCompat(java.lang.String): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
             )
         }

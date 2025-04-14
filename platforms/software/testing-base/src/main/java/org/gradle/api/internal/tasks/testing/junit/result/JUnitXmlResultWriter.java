@@ -242,6 +242,55 @@ public class JUnitXmlResultWriter {
         writer.endElement();
     }
 
+    private TestCaseExecution success(long classId, long id) {
+        return new TestCaseExecutionSuccess(outputProvider(classId, id), options);
+    }
+
+    private TestCaseExecution skipped(long classId, long id, SerializableFailure assumptionFailure) {
+        return new TestCaseExecutionSkipped(outputProvider(classId, id), options, assumptionFailure);
+    }
+
+    private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {
+        List<SerializableFailure> failures = methodResult.getFailures();
+        if (failures.isEmpty()) {
+            // This can happen with a failing engine. For now, we just ignore this.
+            return Collections.emptyList();
+        }
+        final SerializableFailure firstFailure = failures.get(0);
+        return Iterables.transform(failures, new Function<SerializableFailure, TestCaseExecution>() {
+            @Override
+            public TestCaseExecution apply(final SerializableFailure failure) {
+                boolean isFirst = failure == firstFailure;
+                OutputProvider outputProvider = isFirst ? outputProvider(classId, methodResult.getId()) : NullOutputProvider.INSTANCE;
+                return new TestCaseExecutionFailure(outputProvider, options, failureType, failure);
+            }
+        });
+    }
+
+    private OutputProvider outputProvider(long classId, long id) {
+        return options.outputPerTestCase ? new BackedOutputProvider(classId, id) : NullOutputProvider.INSTANCE;
+    }
+
+    enum FailureType {
+        FAILURE("failure", false),
+        FLAKY_FAILURE("flakyFailure", true),
+        RERUN_FAILURE("rerunFailure", true);
+
+        private final String elementName;
+        private final boolean useStacktraceElementAndNestedOutput;
+
+        FailureType(String elementName, boolean useStacktraceElementAndNestedOutput) {
+            this.elementName = elementName;
+            this.useStacktraceElementAndNestedOutput = useStacktraceElementAndNestedOutput;
+        }
+    }
+
+    interface OutputProvider {
+        boolean has(TestOutputEvent.Destination destination);
+
+        void write(TestOutputEvent.Destination destination, Writer writer);
+    }
+
     abstract static class TestCaseExecution {
         private final OutputProvider outputProvider;
         private final JUnitXmlResultOptions options;
@@ -297,9 +346,9 @@ public class JUnitXmlResultWriter {
         }
     }
 
-
     private static class TestCaseExecutionSkipped extends TestCaseExecution {
         private final SerializableFailure assumptionFailure;
+
         TestCaseExecutionSkipped(
             OutputProvider outputProvider,
             JUnitXmlResultOptions options,
@@ -319,20 +368,6 @@ public class JUnitXmlResultWriter {
             }
             writer.endElement();
             writeOutput(writer);
-        }
-    }
-
-    enum FailureType {
-        FAILURE("failure", false),
-        FLAKY_FAILURE("flakyFailure", true),
-        RERUN_FAILURE("rerunFailure", true);
-
-        private final String elementName;
-        private final boolean useStacktraceElementAndNestedOutput;
-
-        FailureType(String elementName, boolean useStacktraceElementAndNestedOutput) {
-            this.elementName = elementName;
-            this.useStacktraceElementAndNestedOutput = useStacktraceElementAndNestedOutput;
         }
     }
 
@@ -366,39 +401,18 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private TestCaseExecution success(long classId, long id) {
-        return new TestCaseExecutionSuccess(outputProvider(classId, id), options);
-    }
+    static class NullOutputProvider implements OutputProvider {
+        static final OutputProvider INSTANCE = new NullOutputProvider();
 
-    private TestCaseExecution skipped(long classId, long id, SerializableFailure assumptionFailure) {
-        return new TestCaseExecutionSkipped(outputProvider(classId, id), options, assumptionFailure);
-    }
-
-    private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {
-        List<SerializableFailure> failures = methodResult.getFailures();
-        if (failures.isEmpty()) {
-            // This can happen with a failing engine. For now, we just ignore this.
-            return Collections.emptyList();
+        @Override
+        public boolean has(TestOutputEvent.Destination destination) {
+            return false;
         }
-        final SerializableFailure firstFailure = failures.get(0);
-        return Iterables.transform(failures, new Function<SerializableFailure, TestCaseExecution>() {
-            @Override
-            public TestCaseExecution apply(final SerializableFailure failure) {
-                boolean isFirst = failure == firstFailure;
-                OutputProvider outputProvider = isFirst ? outputProvider(classId, methodResult.getId()) : NullOutputProvider.INSTANCE;
-                return new TestCaseExecutionFailure(outputProvider, options, failureType, failure);
-            }
-        });
-    }
 
-    private OutputProvider outputProvider(long classId, long id) {
-        return options.outputPerTestCase ? new BackedOutputProvider(classId, id) : NullOutputProvider.INSTANCE;
-    }
-
-    interface OutputProvider {
-        boolean has(TestOutputEvent.Destination destination);
-
-        void write(TestOutputEvent.Destination destination, Writer writer);
+        @Override
+        public void write(TestOutputEvent.Destination destination, Writer writer) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     class BackedOutputProvider implements OutputProvider {
@@ -418,20 +432,6 @@ public class JUnitXmlResultWriter {
         @Override
         public void write(TestOutputEvent.Destination destination, Writer writer) {
             testResultsProvider.writeTestOutput(classId, testId, destination, writer);
-        }
-    }
-
-    static class NullOutputProvider implements OutputProvider {
-        static final OutputProvider INSTANCE = new NullOutputProvider();
-
-        @Override
-        public boolean has(TestOutputEvent.Destination destination) {
-            return false;
-        }
-
-        @Override
-        public void write(TestOutputEvent.Destination destination, Writer writer) {
-            throw new UnsupportedOperationException();
         }
     }
 

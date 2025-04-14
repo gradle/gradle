@@ -20,7 +20,9 @@
 }
 
 @keyframes clibpard_rotation_frame {
-    50% { transform: rotateY(180deg); }
+    50% {
+        transform: rotateY(180deg);
+    }
 }
 
 .clipboard_success {

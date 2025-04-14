@@ -284,7 +284,8 @@ class LiteralConstantParsingTest {
 
     @Test
     fun `floating point literals`() {
-        val results = ParseTestUtil.parse("""
+        val results = ParseTestUtil.parse(
+            """
                 a = 1.0
                 a = 1e1
                 a = 1.0e1

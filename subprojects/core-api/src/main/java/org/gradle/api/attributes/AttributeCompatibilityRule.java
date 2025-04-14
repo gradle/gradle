@@ -27,9 +27,9 @@ import org.gradle.api.Action;
  * Note that the rule will never receive a {@code CompatibilityCheckDetails} that has {@code equal} consumer and producer
  * values as this check is performed before invoking the rule and assumes compatibility in that case.
  *
- * @since 4.0
  * @param <T> The attribute value type.
  * @see CompatibilityCheckDetails
+ * @since 4.0
  */
 public interface AttributeCompatibilityRule<T> extends Action<CompatibilityCheckDetails<T>> {
 }

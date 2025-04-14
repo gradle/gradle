@@ -72,12 +72,32 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class Sign extends DefaultTask implements SignatureSpec {
 
+    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
     private SignatureType signatureType;
     private Signatory signatory;
-    private boolean required = true;
-    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
-
     private final Cached<Collection<Signature.Generator>> generators = Cached.of(this::computeCachedSignatures);
+    private boolean required = true;
+
+    @Inject
+    public Sign() {
+        // If we aren't required and don't have a signatory then we just don't run
+        onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
+    }
+
+    /**
+     * Returns signature generators mapped by their key with duplicated and non-existing inputs removed.
+     */
+    private static Map<String, Signature.Generator> sanitize(Collection<Signature.Generator> generators) {
+        return generators.stream()
+            .filter(signature -> signature.getToSign().exists())
+            .collect(
+                toMap(
+                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
+                    identity(),
+                    (signature, duplicate) -> signature
+                )
+            );
+    }
 
     private List<Signature.Generator> computeCachedSignatures() {
         if (getSignatory() == null) {
@@ -92,12 +112,6 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private Stream<Signature> signatureStream() {
         return getSignatures().stream();
-    }
-
-    @Inject
-    public Sign() {
-        // If we aren't required and don't have a signatory then we just don't run
-        onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
     }
 
     /**
@@ -271,21 +285,6 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
                 ? computeCachedSignatures()
                 : generators.get()
         );
-    }
-
-    /**
-     * Returns signature generators mapped by their key with duplicated and non-existing inputs removed.
-     */
-    private static Map<String, Signature.Generator> sanitize(Collection<Signature.Generator> generators) {
-        return generators.stream()
-            .filter(signature -> signature.getToSign().exists())
-            .collect(
-                toMap(
-                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
-                    identity(),
-                    (signature, duplicate) -> signature
-                )
-            );
     }
 
     /**

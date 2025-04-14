@@ -29,12 +29,6 @@ package org.gradle.test.precondition;
 public interface TestPrecondition {
 
     /**
-     * Returns true if the precondition is satisfied.
-     * @throws Exception if the precondition cannot be checked
-     */
-    boolean isSatisfied() throws Exception;
-
-    /**
      * Utility method to check if a precondition class is satisfied.
      *
      * @param preconditionClass the class of the precondition to be checked
@@ -66,11 +60,19 @@ public interface TestPrecondition {
 
     /**
      * Utility method to check if a precondition class is <i>not</i> satisfied.
+     *
      * @param preconditionClass the class of the precondition to be checked
      * @return true if the precondition is <i>not</i> satisfied
      */
     static boolean notSatisfied(Class<? extends TestPrecondition> preconditionClass) throws Exception {
         return !satisfied(preconditionClass);
     }
+
+    /**
+     * Returns true if the precondition is satisfied.
+     *
+     * @throws Exception if the precondition cannot be checked
+     */
+    boolean isSatisfied() throws Exception;
 }
 

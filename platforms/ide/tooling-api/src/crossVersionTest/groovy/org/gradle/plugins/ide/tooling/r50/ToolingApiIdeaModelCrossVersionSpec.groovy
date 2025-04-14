@@ -158,11 +158,11 @@ idea.module {
 
         then:
         root.sourceDirectories.size() == 2
-        root.sourceDirectories.any { it.directory == file('mainSources')}
-        root.sourceDirectories.any { it.directory == file('fooSources')}
+        root.sourceDirectories.any { it.directory == file('mainSources') }
+        root.sourceDirectories.any { it.directory == file('fooSources') }
         root.resourceDirectories.size() == 2
-        root.resourceDirectories.any { it.directory == file('mainResources')}
-        root.resourceDirectories.any { it.directory == file('fooResources')}
+        root.resourceDirectories.any { it.directory == file('mainResources') }
+        root.resourceDirectories.any { it.directory == file('fooResources') }
         root.testDirectories.size() == 1
         root.testDirectories[0].directory == file('testSources')
         root.testResourceDirectories.size() == 1

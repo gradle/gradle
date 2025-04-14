@@ -162,6 +162,7 @@ public enum JavaVersion {
 
     /**
      * Higher version of Java.
+     *
      * @since 4.7
      */
     VERSION_HIGHER;
@@ -225,6 +226,9 @@ public enum JavaVersion {
         return forClassVersion(classData[7] & 0xFF);
     }
 
+    private static JavaVersion getVersionForMajor(int major) {
+        return major >= values().length ? JavaVersion.VERSION_HIGHER : values()[major - 1];
+    }
 
     public boolean isJava5() {
         return this == VERSION_1_5;
@@ -326,9 +330,5 @@ public enum JavaVersion {
 
     public String getMajorVersion() {
         return String.valueOf(ordinal() + 1);
-    }
-
-    private static JavaVersion getVersionForMajor(int major) {
-        return major >= values().length ? JavaVersion.VERSION_HIGHER : values()[major - 1];
     }
 }

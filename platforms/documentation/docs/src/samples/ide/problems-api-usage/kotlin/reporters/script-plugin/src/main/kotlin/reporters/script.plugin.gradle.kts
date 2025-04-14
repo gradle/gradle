@@ -1,10 +1,12 @@
 package reporters
+
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.kotlin.dsl.registering
 
 interface Injected {
-    @get:Inject val problems: Problems
+    @get:Inject
+    val problems: Problems
 }
 
 val problems = project.objects.newInstance<Injected>().problems
@@ -30,7 +32,7 @@ tasks {
     val failingTask by registering {
         doLast {
             problems.getReporter().throwing(RuntimeException("The 'failingTask' should not be called"), ProblemId.create("broken-task", "Task should not be called", problemGroup)) {
-                    contextualLabel("Task 'failingTask' should not be called")
+                contextualLabel("Task 'failingTask' should not be called")
                     .severity(Severity.ERROR)
                     .solution("Please use 'successfulTask' instead of this task")
             }

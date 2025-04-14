@@ -25,6 +25,9 @@ import org.gradle.internal.operations.BuildOperationType;
  */
 public final class ExternalResourceReadBuildOperationType implements BuildOperationType<ExternalResourceReadBuildOperationType.Details, ExternalResourceReadBuildOperationType.Result> {
 
+    private ExternalResourceReadBuildOperationType() {
+    }
+
     public interface Details {
 
         /**
@@ -53,9 +56,6 @@ public final class ExternalResourceReadBuildOperationType implements BuildOperat
          */
         boolean isMissing();
 
-    }
-
-    private ExternalResourceReadBuildOperationType() {
     }
 
 }

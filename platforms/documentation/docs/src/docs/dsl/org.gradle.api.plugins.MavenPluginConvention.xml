@@ -5,12 +5,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>maven</literal> plugin</td>
+                    <td>Default with <literal>maven</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>mavenPomDir</td>
-                <td><literal><replaceable>${project.layout.buildDirectory}</replaceable>/poms</literal></td>
+                <td>
+                    <literal><replaceable>${project.layout.buildDirectory}</replaceable>/poms
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>conf2ScopeMappings</td>

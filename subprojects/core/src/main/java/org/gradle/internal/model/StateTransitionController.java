@@ -275,6 +275,9 @@ public class StateTransitionController<T extends StateTransitionController.State
         return result;
     }
 
+    public interface State {
+    }
+
     private static abstract class CurrentState<T> {
         final DisplayName displayName;
         final T state;
@@ -548,8 +551,5 @@ public class StateTransitionController<T extends StateTransitionController.State
         public CurrentState<T> nextState(T toState) {
             return new Failed<>(displayName, toState, failure);
         }
-    }
-
-    public interface State {
     }
 }

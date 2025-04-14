@@ -62,6 +62,40 @@ public class SupportedEncryptionAlgorithm {
     }
 
     /**
+     * Generate an initialization vector of the given size for an encryption algorithm.
+     */
+    private static byte[] generateIv(int size, SecureRandom random) {
+        byte[] iv = new byte[size];
+        random.nextBytes(iv);
+        return iv;
+    }
+
+    /**
+     * Read a fixed number of bytes from the provided input stream.
+     */
+    private static byte[] readNBytes(InputStream inputStream, int size) throws IOException {
+        byte[] buf = new byte[size];
+        ByteStreams.readFully(inputStream, buf);
+        return buf;
+    }
+
+    /**
+     * Reads and writes algorithm parameters to the provided input/output streams.
+     */
+    interface AlgorithmParameters<P extends AlgorithmParameterSpec> {
+
+        /**
+         * Read algorithm parameters from the input stream, returning the result.
+         */
+        P read(InputStream inputStream, int blockSize) throws IOException;
+
+        /**
+         * Create a new set of algorithm parameters, writing them to the output stream and returning the result.
+         */
+        P write(OutputStream outputStream, SecureRandom random, int blockSize) throws IOException;
+    }
+
+    /**
      * A general-purpose cypher implementation.
      *
      * @param <P> The type of the algorithm parameters.
@@ -105,22 +139,6 @@ public class SupportedEncryptionAlgorithm {
         public final String getAlgorithm() {
             return transformation.substring(0, transformation.indexOf('/'));
         }
-    }
-
-    /**
-     * Reads and writes algorithm parameters to the provided input/output streams.
-     */
-    interface AlgorithmParameters<P extends AlgorithmParameterSpec> {
-
-        /**
-         * Read algorithm parameters from the input stream, returning the result.
-         */
-        P read(InputStream inputStream, int blockSize) throws IOException;
-
-        /**
-         * Create a new set of algorithm parameters, writing them to the output stream and returning the result.
-         */
-        P write(OutputStream outputStream, SecureRandom random, int blockSize) throws IOException;
     }
 
     /**
@@ -181,23 +199,5 @@ public class SupportedEncryptionAlgorithm {
             outputStream.write(iv);
             return new IvParameterSpec(iv);
         }
-    }
-
-    /**
-     * Generate an initialization vector of the given size for an encryption algorithm.
-     */
-    private static byte[] generateIv(int size, SecureRandom random){
-        byte[] iv = new byte[size];
-        random.nextBytes(iv);
-        return iv;
-    }
-
-    /**
-     * Read a fixed number of bytes from the provided input stream.
-     */
-    private static byte[] readNBytes(InputStream inputStream, int size) throws IOException {
-        byte[] buf = new byte[size];
-        ByteStreams.readFully(inputStream, buf);
-        return buf;
     }
 }

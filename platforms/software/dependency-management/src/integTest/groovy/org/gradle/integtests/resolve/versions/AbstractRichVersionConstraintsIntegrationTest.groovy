@@ -356,7 +356,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge ("org:foo:{strictly 1.0}", "org:foo:1.0") {
+                edge("org:foo:{strictly 1.0}", "org:foo:1.0") {
                     byAncestor()
                 }
                 edge("org:bar:1.0", "org:bar:1.0") {
@@ -1084,7 +1084,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         when:
         buildFile << """
             dependencies {
-                ${ dep != null ? "conf('$dep')" : "" }
+                ${dep != null ? "conf('$dep')" : ""}
                 conf("${preferred}") {
                     version {
                         prefer "2.0"

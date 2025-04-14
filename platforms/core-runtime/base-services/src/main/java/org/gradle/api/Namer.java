@@ -51,7 +51,7 @@ public interface Namer<T> {
 
         @Override
         public boolean equals(Object obj) {
-            return getClass().equals(obj.getClass()) && namer.equals(((Comparator)obj).namer);
+            return getClass().equals(obj.getClass()) && namer.equals(((Comparator) obj).namer);
         }
 
         @Override

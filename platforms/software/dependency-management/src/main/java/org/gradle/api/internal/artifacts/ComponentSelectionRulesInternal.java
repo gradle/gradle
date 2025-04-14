@@ -25,6 +25,8 @@ import java.util.Collection;
 
 public interface ComponentSelectionRulesInternal extends ComponentSelectionRules {
     Collection<SpecRuleAction<? super ComponentSelection>> getRules();
+
     ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction);
+
     ComponentSelectionRules addRule(RuleAction<? super ComponentSelection> specRuleAction);
 }

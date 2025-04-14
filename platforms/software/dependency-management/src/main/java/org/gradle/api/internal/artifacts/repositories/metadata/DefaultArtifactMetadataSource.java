@@ -50,6 +50,20 @@ public class DefaultArtifactMetadataSource implements MetadataSource<MutableModu
         this.mutableModuleMetadataFactory = mutableModuleMetadataFactory;
     }
 
+    private static IvyArtifactName getPrimaryArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
+        if (overrideMetadata.getArtifact() != null) {
+            return overrideMetadata.getArtifact();
+        }
+        return new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "jar", "jar");
+    }
+
+    private static IvyArtifactName getPrimaryArtifact(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata) {
+        if (overrideMetadata.getArtifact() != null) {
+            return overrideMetadata.getArtifact();
+        }
+        return new DefaultIvyArtifactName(selector.getModule(), "jar", "jar");
+    }
+
     @Override
     public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
         IvyArtifactName artifact = getPrimaryArtifact(moduleComponentIdentifier, prescribedMetaData);
@@ -67,25 +81,11 @@ public class DefaultArtifactMetadataSource implements MetadataSource<MutableModu
         return metadata;
     }
 
-    private static IvyArtifactName getPrimaryArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
-        if (overrideMetadata.getArtifact() != null) {
-            return overrideMetadata.getArtifact();
-        }
-        return new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "jar", "jar");
-    }
-
     @Override
     public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
         // List modules with missing metadata files
         IvyArtifactName dependencyArtifact = getPrimaryArtifact(selector, overrideMetadata);
         versionLister.listVersions(selector.getModuleIdentifier(), dependencyArtifact, artifactPatterns, result);
-    }
-
-    private static IvyArtifactName getPrimaryArtifact(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata) {
-        if (overrideMetadata.getArtifact() != null) {
-            return overrideMetadata.getArtifact();
-        }
-        return new DefaultIvyArtifactName(selector.getModule(), "jar", "jar");
     }
 
 }

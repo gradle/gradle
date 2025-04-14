@@ -35,9 +35,8 @@ import org.slf4j.LoggerFactory;
  */
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
-    private ProgressLogger progressLogger;
     private final Logger logger;
-
+    private ProgressLogger progressLogger;
     private long totalTests;
     private long totalDiscoveredItems;
     private long failedTests;

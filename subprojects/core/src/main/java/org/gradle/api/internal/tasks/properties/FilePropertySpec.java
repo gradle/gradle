@@ -21,5 +21,6 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 
 public interface FilePropertySpec extends PropertySpec {
     FileNormalizer getNormalizer();
+
     FileCollectionInternal getPropertyFiles();
 }

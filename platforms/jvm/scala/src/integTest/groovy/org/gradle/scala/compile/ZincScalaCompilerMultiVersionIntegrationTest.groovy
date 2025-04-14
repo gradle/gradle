@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ZincCoverage
 
-@TargetCoverage({ZincCoverage.ALL_VERSIONS})
+@TargetCoverage({ ZincCoverage.ALL_VERSIONS })
 class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
@@ -47,7 +47,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
         args("--info")
     }
 
-    def "can build with configured zinc compiler version" () {
+    def "can build with configured zinc compiler version"() {
         given:
         withScalaSources()
 

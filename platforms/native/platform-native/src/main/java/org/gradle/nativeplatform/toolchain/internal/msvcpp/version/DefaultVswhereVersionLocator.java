@@ -23,17 +23,15 @@ import org.gradle.internal.os.OperatingSystem;
 import java.io.File;
 
 public class DefaultVswhereVersionLocator implements VswhereVersionLocator {
-    private final WindowsRegistry windowsRegistry;
-    private final OperatingSystem os;
-
     private static final String[] PROGRAM_FILES_KEYS = {
         "ProgramFilesDir",
         "ProgramFilesDir (x86)"
     };
-
     private static final String REGISTRY_PATH_WINDOWS = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion";
     private static final String VISUAL_STUDIO_INSTALLER = "Microsoft Visual Studio/Installer";
     private static final String VSWHERE_EXE = "vswhere.exe";
+    private final WindowsRegistry windowsRegistry;
+    private final OperatingSystem os;
 
     public DefaultVswhereVersionLocator(WindowsRegistry windowsRegistry, OperatingSystem os) {
         this.windowsRegistry = windowsRegistry;

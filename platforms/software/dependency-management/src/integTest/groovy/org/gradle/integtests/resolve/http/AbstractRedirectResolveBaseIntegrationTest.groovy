@@ -23,8 +23,10 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 abstract class AbstractRedirectResolveBaseIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
-    @Rule HttpServer backingServer = new HttpServer()
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule
+    HttpServer backingServer = new HttpServer()
 
     abstract String getFrontServerBaseUrl();
 

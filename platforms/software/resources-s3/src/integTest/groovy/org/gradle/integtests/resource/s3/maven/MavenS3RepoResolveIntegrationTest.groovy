@@ -29,7 +29,7 @@ class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTe
     String artifactVersion = "1.85"
     MavenS3Module module
 
-    def setup(){
+    def setup() {
         module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
     }
 

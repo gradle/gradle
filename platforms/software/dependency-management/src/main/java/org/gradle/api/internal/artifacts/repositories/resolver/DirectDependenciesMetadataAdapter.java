@@ -27,7 +27,8 @@ public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetad
     public DirectDependenciesMetadataAdapter(
         AttributesFactory attributesFactory,
         Instantiator instantiator,
-        NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser) {
+        NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser
+    ) {
         super(attributesFactory, instantiator, dependencyNotationParser);
     }
 

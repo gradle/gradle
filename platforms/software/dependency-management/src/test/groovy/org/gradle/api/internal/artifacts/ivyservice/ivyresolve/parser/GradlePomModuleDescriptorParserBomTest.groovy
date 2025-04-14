@@ -89,11 +89,11 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         parsePom()
 
         then:
-        def depA = metadata.dependencies.find { it.selector.group == 'group-a'}
+        def depA = metadata.dependencies.find { it.selector.group == 'group-a' }
         depA.selector == moduleId('group-a', 'module-a', '1.0')
         !depA.optional
         depA.transitive
-        def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
+        def depB = metadata.dependencies.find { it.selector.group == 'group-b' }
         depB.selector == moduleId('group-b', 'module-b', '2.0')
         depB.constraint
         !depB.transitive
@@ -198,11 +198,11 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         parsePom()
 
         then:
-        def depC = metadata.dependencies.find { it.selector.group == 'group-c'}
+        def depC = metadata.dependencies.find { it.selector.group == 'group-c' }
         depC.selector == moduleId('group-c', 'module-c', '2.0')
         depC.constraint
         !depC.transitive
-        def depB = metadata.dependencies.find { it.selector.group == 'group-b'}
+        def depB = metadata.dependencies.find { it.selector.group == 'group-b' }
         depB.selector == moduleId('group-b', 'module-b', '1.0')
         depB.constraint
         !depB.transitive

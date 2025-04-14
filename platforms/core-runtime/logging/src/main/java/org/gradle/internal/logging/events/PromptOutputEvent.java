@@ -43,6 +43,18 @@ public abstract class PromptOutputEvent extends RenderableOutputEvent implements
      */
     public abstract PromptResult<?> convert(String text);
 
+    public abstract String getPrompt();
+
+    @Override
+    public String toString() {
+        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + getPrompt() + "'";
+    }
+
+    @Override
+    public RenderableOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
+        throw new UnsupportedOperationException();
+    }
+
     public static class PromptResult<T> {
         public final T response;
         public final String newPrompt;
@@ -59,17 +71,5 @@ public abstract class PromptOutputEvent extends RenderableOutputEvent implements
         public static <T> PromptResult<T> newPrompt(String newPrompt) {
             return new PromptResult<T>(null, newPrompt);
         }
-    }
-
-    public abstract String getPrompt();
-
-    @Override
-    public String toString() {
-        return "[" + getLogLevel() + "] [" + getCategory() + "] '" + getPrompt() + "'";
-    }
-
-    @Override
-    public RenderableOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
-        throw new UnsupportedOperationException();
     }
 }

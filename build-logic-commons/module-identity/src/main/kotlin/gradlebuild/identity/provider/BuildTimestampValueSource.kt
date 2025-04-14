@@ -58,9 +58,11 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
             buildTimestampFromProperty != null -> {
                 timestampFormat.parse(buildTimestampFromProperty)
             }
+
             runningInstallTask.get() || runningDocsTestTask.get() || runningOnCi.get() -> {
                 Date()
             }
+
             else -> {
                 Date().withoutTime()
             }

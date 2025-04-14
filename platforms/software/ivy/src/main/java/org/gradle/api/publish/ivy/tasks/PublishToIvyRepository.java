@@ -71,9 +71,9 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
         // Allow the publication to participate in incremental build
         getInputs().files((Callable<FileCollection>) () -> {
-            IvyPublicationInternal publicationInternal = getPublicationInternal();
-            return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-        })
+                IvyPublicationInternal publicationInternal = getPublicationInternal();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
+            })
             .withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
@@ -82,6 +82,22 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         // They *might* have input files and other dependencies as well though
         // Inputs: The credentials they need may be expressed in a file
         // Dependencies: Can't think of a case here
+    }
+
+    private static IvyPublicationInternal toPublicationInternal(IvyPublication publication) {
+        if (publication == null) {
+            return null;
+        } else if (publication instanceof IvyPublicationInternal) {
+            return (IvyPublicationInternal) publication;
+        } else {
+            throw new InvalidUserDataException(
+                String.format(
+                    "publication objects must implement the '%s' interface, implementation '%s' does not",
+                    IvyPublicationInternal.class.getName(),
+                    publication.getClass().getName()
+                )
+            );
+        }
     }
 
     /**
@@ -108,22 +124,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         return toPublicationInternal(getPublication());
     }
 
-    private static IvyPublicationInternal toPublicationInternal(IvyPublication publication) {
-        if (publication == null) {
-            return null;
-        } else if (publication instanceof IvyPublicationInternal) {
-            return (IvyPublicationInternal) publication;
-        } else {
-            throw new InvalidUserDataException(
-                String.format(
-                    "publication objects must implement the '%s' interface, implementation '%s' does not",
-                    IvyPublicationInternal.class.getName(),
-                    publication.getClass().getName()
-                )
-            );
-        }
-    }
-
     /**
      * The repository to publish to.
      *
@@ -135,12 +135,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         return repository.get();
     }
 
-    @Nested
-    @Optional
-    Property<Credentials> getCredentials() {
-        return credentials;
-    }
-
     /**
      * Sets the repository to publish to.
      *
@@ -149,6 +143,12 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     public void setRepository(IvyArtifactRepository repository) {
         this.repository.set((DefaultIvyArtifactRepository) repository);
         this.credentials.set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
+    }
+
+    @Nested
+    @Optional
+    Property<Credentials> getCredentials() {
+        return credentials;
     }
 
     @TaskAction
@@ -190,6 +190,11 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                 publisher.publish(normalizedPublication, repository);
             }
         }.run();
+    }
+
+    @Inject
+    protected IvyDuplicatePublicationTracker getDuplicatePublicationTracker() {
+        throw new UnsupportedOperationException();
     }
 
     static class PublishSpec {
@@ -307,11 +312,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                 return identity;
             }
         }
-    }
-
-    @Inject
-    protected IvyDuplicatePublicationTracker getDuplicatePublicationTracker() {
-        throw new UnsupportedOperationException();
     }
 
 }

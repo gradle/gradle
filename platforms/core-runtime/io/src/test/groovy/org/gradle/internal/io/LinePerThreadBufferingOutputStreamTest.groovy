@@ -39,7 +39,7 @@ class LinePerThreadBufferingOutputStreamTest extends ConcurrentSpec {
 
         then:
         output.size() == 1000
-        output.findAll({!it.matches('write \\d+<EOL>')}).empty
+        output.findAll({ !it.matches('write \\d+<EOL>') }).empty
     }
 
     def flushForwardsBufferedText() {

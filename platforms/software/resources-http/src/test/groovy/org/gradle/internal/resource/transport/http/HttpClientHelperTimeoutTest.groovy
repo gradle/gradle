@@ -29,9 +29,12 @@ import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHt
 
 class HttpClientHelperTimeoutTest extends Specification {
 
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties((SOCKET_TIMEOUT_SYSTEM_PROPERTY): "500")
-    @Rule HttpServer httpServer = new HttpServer()
-    @Subject HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties((SOCKET_TIMEOUT_SYSTEM_PROPERTY): "500")
+    @Rule
+    HttpServer httpServer = new HttpServer()
+    @Subject
+    HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
 
     def "throws exception if socket timeout is reached"() {
         given:

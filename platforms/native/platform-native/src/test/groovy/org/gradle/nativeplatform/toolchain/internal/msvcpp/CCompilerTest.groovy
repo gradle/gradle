@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
+
 import org.gradle.internal.Transformers
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
 import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
@@ -34,6 +35,6 @@ class CCompilerTest extends VisualCppNativeCompilerTest {
 
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
-        [ '/TC' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
+        ['/TC'] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

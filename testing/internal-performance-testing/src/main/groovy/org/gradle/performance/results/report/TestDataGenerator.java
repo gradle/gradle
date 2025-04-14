@@ -185,6 +185,11 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         private Map xaxis;
         private String color;
 
+        private BackgroundColor(double index, int redComponent, int greenComponent, double opacity) {
+            this.xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
+            this.color = String.format(Locale.ENGLISH, "rgba(%d,%d,0,%.1f)", redComponent, greenComponent, opacity);
+        }
+
         static BackgroundColor ofConfidence(List<Number> xy) {
             double index = xy.get(0).doubleValue();
             double confidencePercentage = xy.get(1).doubleValue();
@@ -207,11 +212,6 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
 
         private static int greenComponent(double confidencePercentage) {
             return confidencePercentage < 0 ? 255 : 0;
-        }
-
-        private BackgroundColor(double index, int redComponent, int greenComponent, double opacity) {
-            this.xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
-            this.color = String.format(Locale.ENGLISH, "rgba(%d,%d,0,%.1f)", redComponent, greenComponent, opacity);
         }
 
         public Map getXaxis() {

@@ -49,6 +49,32 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         return new StartScriptTemplateBindingFactory(false);
     }
 
+    private static String getMainClassName(AppEntryPoint entryPoint, String entryPointArgs) {
+        if (entryPoint instanceof MainClass) {
+            return ((MainClass) entryPoint).getMainClassName();
+        } else if (entryPoint instanceof MainModule) {
+            // For legacy reasons, keep the mainClassName as the module invocation for scripts which used it that way
+            return entryPointArgs;
+        } else {
+            return "";
+        }
+    }
+
+    private static AppEntryPoint getEntryPoint(JavaAppStartScriptGenerationDetails details) {
+        if (details instanceof DefaultJavaAppStartScriptGenerationDetails) {
+            return ((DefaultJavaAppStartScriptGenerationDetails) details).getEntryPoint();
+        } else {
+            // Provide compatibility in case someone was manually implementing JavaAppStartScriptGenerationDetails
+            return new MainClass(details.getMainClassName());
+        }
+    }
+
+    private static String getModuleEntryPoint(MainModule entryPoint) {
+        String mainClassName = entryPoint.getMainClassName();
+        boolean hasMainClass = mainClassName != null;
+        return entryPoint.getMainModuleName() + (hasMainClass ? "/" + mainClassName : "");
+    }
+
     @Override
     public Map<String, String> transform(JavaAppStartScriptGenerationDetails details) {
         Map<String, String> binding = new HashMap<>();
@@ -72,26 +98,6 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
 
     }
 
-    private static String getMainClassName(AppEntryPoint entryPoint, String entryPointArgs) {
-        if (entryPoint instanceof MainClass) {
-            return ((MainClass) entryPoint).getMainClassName();
-        } else if (entryPoint instanceof MainModule) {
-            // For legacy reasons, keep the mainClassName as the module invocation for scripts which used it that way
-            return entryPointArgs;
-        } else {
-            return "";
-        }
-    }
-
-    private static AppEntryPoint getEntryPoint(JavaAppStartScriptGenerationDetails details) {
-        if (details instanceof DefaultJavaAppStartScriptGenerationDetails) {
-            return ((DefaultJavaAppStartScriptGenerationDetails) details).getEntryPoint();
-        } else {
-            // Provide compatibility in case someone was manually implementing JavaAppStartScriptGenerationDetails
-            return new MainClass(details.getMainClassName());
-        }
-    }
-
     private String encodeEntryPoint(AppEntryPoint entryPoint) {
         if (entryPoint instanceof MainClass) {
             return ((MainClass) entryPoint).getMainClassName();
@@ -105,12 +111,6 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         } else {
             throw new IllegalArgumentException("Unknown entry point type: " + entryPoint);
         }
-    }
-
-    private static String getModuleEntryPoint(MainModule entryPoint) {
-        String mainClassName = entryPoint.getMainClassName();
-        boolean hasMainClass = mainClassName != null;
-        return entryPoint.getMainModuleName() + (hasMainClass ? "/" + mainClassName : "");
     }
 
     private String createJoinedPath(Iterable<String> path) {
@@ -198,34 +198,6 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         return escapedJvmOpt.toString();
     }
 
-    /**
-     * @implNote These names and their behavior are public API, documented in {@link org.gradle.jvm.application.tasks.CreateStartScripts}.
-     * Changes to these names or their behavior must be made carefully to avoid breaking existing custom script templates. Please update the documentation if you change them.
-     */
-    private enum ScriptBindingParameter {
-        APP_NAME("applicationName"),
-        OPTS_ENV_VAR("optsEnvironmentVar"),
-        EXIT_ENV_VAR("exitEnvironmentVar"),
-        MODULE_ENTRY_POINT("moduleEntryPoint"),
-        MAIN_CLASS_NAME("mainClassName"),
-        ENTRY_POINT_ARGS("entryPointArgs"),
-        DEFAULT_JVM_OPTS("defaultJvmOpts"),
-        APP_NAME_SYS_PROP("appNameSystemProperty"),
-        APP_HOME_REL_PATH("appHomeRelativePath"),
-        CLASSPATH("classpath"),
-        MODULE_PATH("modulePath");
-
-        private final String key;
-
-        ScriptBindingParameter(String key) {
-            this.key = key;
-        }
-
-        public String getKey() {
-            return key;
-        }
-    }
-
     String createJoinedAppHomeRelativePath(String scriptRelPath) {
         int depth = StringUtils.countMatches(scriptRelPath, "/");
         if (depth == 0) {
@@ -256,6 +228,34 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
      */
     private String getMultiPathSeparator() {
         return windows ? ";" : ":";
+    }
+
+    /**
+     * @implNote These names and their behavior are public API, documented in {@link org.gradle.jvm.application.tasks.CreateStartScripts}.
+     * Changes to these names or their behavior must be made carefully to avoid breaking existing custom script templates. Please update the documentation if you change them.
+     */
+    private enum ScriptBindingParameter {
+        APP_NAME("applicationName"),
+        OPTS_ENV_VAR("optsEnvironmentVar"),
+        EXIT_ENV_VAR("exitEnvironmentVar"),
+        MODULE_ENTRY_POINT("moduleEntryPoint"),
+        MAIN_CLASS_NAME("mainClassName"),
+        ENTRY_POINT_ARGS("entryPointArgs"),
+        DEFAULT_JVM_OPTS("defaultJvmOpts"),
+        APP_NAME_SYS_PROP("appNameSystemProperty"),
+        APP_HOME_REL_PATH("appHomeRelativePath"),
+        CLASSPATH("classpath"),
+        MODULE_PATH("modulePath");
+
+        private final String key;
+
+        ScriptBindingParameter(String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
     }
 
 }

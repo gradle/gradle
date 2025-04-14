@@ -51,11 +51,11 @@ public class VisitableURLClassLoaderSpecSerializer implements Serializer<Visitab
         String name = decoder.readString();
         List<URL> classpath = new ArrayList<>();
         int classpathSize = decoder.readInt();
-        for (int i=0; i<classpathSize; i++) {
+        for (int i = 0; i < classpathSize; i++) {
             classpath.add(new URL(decoder.readString()));
         }
 
-        switch(typeTag) {
+        switch (typeTag) {
             case VISITABLE_URL_CLASSLOADER_SPEC:
                 return new VisitableURLClassLoader.Spec(name, classpath);
             case MIXIN_CLASSLOADER_SPEC:

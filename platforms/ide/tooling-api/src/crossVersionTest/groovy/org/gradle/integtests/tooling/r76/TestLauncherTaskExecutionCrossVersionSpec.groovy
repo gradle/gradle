@@ -56,7 +56,8 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         '''
     }
 
-    @TargetGradleVersion(">=6.1 <7.6") // TestLauncher.withTaskAndTestMethods() was introduced in Gradle 6.1
+    @TargetGradleVersion(">=6.1 <7.6")
+    // TestLauncher.withTaskAndTestMethods() was introduced in Gradle 6.1
     def "old Gradle version ignores task execution request"() {
         when:
         launchTestWithTestFilter { tl ->
@@ -212,7 +213,7 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
             connection.newTestLauncher()
                 .forTasks("setupTest")
                 .withTestsFor(s -> s.forTaskPath(":test")
-                .includeMethod('MyTest', 'pass'))
+                    .includeMethod('MyTest', 'pass'))
                 .forTasks("cleanupTest")
                 .run()
         }

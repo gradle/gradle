@@ -24,11 +24,13 @@ import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
-@ToolingModelContract(subTypes = [
-    Type::class,
-    Name::class,
-    NameWithArgs::class
-])
+@ToolingModelContract(
+    subTypes = [
+        Type::class,
+        Name::class,
+        NameWithArgs::class
+    ]
+)
 sealed interface DataTypeRef : Serializable {
     interface Type : DataTypeRef {
         val dataType: DataType.PrimitiveType

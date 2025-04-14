@@ -26,13 +26,13 @@ public class IntegrationTestFixturesRule extends AbstractAstVisitorRule {
     }
 
     @Override
-    public int getPriority() {
-        return 1;
+    public void setName(String name) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setName(String name) {
-        throw new UnsupportedOperationException();
+    public int getPriority() {
+        return 1;
     }
 
     @Override

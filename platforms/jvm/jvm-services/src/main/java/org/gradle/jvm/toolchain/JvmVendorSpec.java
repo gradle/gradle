@@ -84,21 +84,12 @@ public abstract class JvmVendorSpec {
     public static final JvmVendorSpec TENCENT = matching(KnownJvmVendor.TENCENT);
 
     /**
-     * Determines if the vendor passed as an argument matches this spec.
-     * @param vendor the vendor to test
-     * @return true if this spec matches the vendor
-     *
-     * @since 7.6
-     */
-    @Incubating
-    public abstract boolean matches(String vendor);
-
-    /**
      * Returns a vendor spec that matches a VM by its vendor.
      * <p>
      * A VM is determined eligible if the system property <code>java.vendor</code> contains
      * the given match string. The comparison is done case-insensitive.
      * </p>
+     *
      * @param match the sequence to search for
      * @return a new filter object
      */
@@ -115,7 +106,6 @@ public abstract class JvmVendorSpec {
      * @param vendor the vendor string to match
      * @return a {@code JvmVendorSpec} that matches the given vendor
      * @see JvmVendorSpec#ADOPTIUM ADOPTIUM and others known vendor specs
-     *
      * @since 8.13
      */
     @Incubating
@@ -131,5 +121,15 @@ public abstract class JvmVendorSpec {
     private static JvmVendorSpec matching(KnownJvmVendor vendor) {
         return DefaultJvmVendorSpec.of(vendor);
     }
+
+    /**
+     * Determines if the vendor passed as an argument matches this spec.
+     *
+     * @param vendor the vendor to test
+     * @return true if this spec matches the vendor
+     * @since 7.6
+     */
+    @Incubating
+    public abstract boolean matches(String vendor);
 
 }

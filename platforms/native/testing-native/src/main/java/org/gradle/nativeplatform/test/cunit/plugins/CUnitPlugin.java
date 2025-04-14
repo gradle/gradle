@@ -110,10 +110,12 @@ public abstract class CUnitPlugin implements Plugin<Project> {
         }
 
         @ComponentBinaries
-        public void createCUnitTestBinaries(ModelMap<CUnitTestSuiteBinarySpec> binaries,
-                                            CUnitTestSuiteSpec testSuite,
-                                            @Path("buildDir") final File buildDir,
-                                            final ServiceRegistry serviceRegistry) {
+        public void createCUnitTestBinaries(
+            ModelMap<CUnitTestSuiteBinarySpec> binaries,
+            CUnitTestSuiteSpec testSuite,
+            @Path("buildDir") final File buildDir,
+            final ServiceRegistry serviceRegistry
+        ) {
             createNativeTestSuiteBinaries(binaries, testSuite, CUnitTestSuiteBinarySpec.class, "CUnitExe", buildDir, serviceRegistry);
         }
     }

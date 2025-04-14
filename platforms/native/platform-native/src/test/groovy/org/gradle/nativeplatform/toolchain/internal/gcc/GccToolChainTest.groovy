@@ -34,11 +34,12 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class GccToolChainTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
     final FileResolver fileResolver = Mock(FileResolver)
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
-    final toolChain = new GccToolChain(instantiator , "gcc", Stub(BuildOperationExecutor), OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), Stub(SystemLibraryDiscovery), Stub(WorkerLeaseService))
+    final toolChain = new GccToolChain(instantiator, "gcc", Stub(BuildOperationExecutor), OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerOutputFileNamingSchemeFactory), Stub(CompilerMetaDataProviderFactory), Stub(SystemLibraryDiscovery), Stub(WorkerLeaseService))
 
     def "provides default tools"() {
         def action = Mock(Action)

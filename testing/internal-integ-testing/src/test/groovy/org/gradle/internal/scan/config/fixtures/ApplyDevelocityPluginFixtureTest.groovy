@@ -33,7 +33,7 @@ class ApplyDevelocityPluginFixtureTest extends Specification {
 
 
         then:
-        file.text =="""plugins {
+        file.text == """plugins {
             |    id("com.gradle.develocity") version("${VERSION}")
             |}
             |

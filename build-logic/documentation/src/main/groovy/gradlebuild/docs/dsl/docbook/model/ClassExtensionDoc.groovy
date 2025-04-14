@@ -73,7 +73,7 @@ class ClassExtensionDoc {
                 blocks << block.forClass(targetClass)
             }
         }
-        extraBlocks.each { block->
+        extraBlocks.each { block ->
             blocks << block.forClass(targetClass)
         }
         return blocks.sort { it.name }

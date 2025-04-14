@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r48;
 import java.util.List;
 
 public interface CustomParameter {
-    void setTasks(List<String> tasks);
     List<String> getTasks();
+
+    void setTasks(List<String> tasks);
 }

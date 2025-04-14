@@ -133,21 +133,14 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class EclipseProject {
 
     public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
-    private String name;
-
-    private String comment;
-
-    private Set<String> referencedProjects = new LinkedHashSet<>();
-
-    private List<String> natures = new ArrayList<>();
-
-    private List<BuildCommand> buildCommands = new ArrayList<>();
-
-    private Set<Link> linkedResources = new LinkedHashSet<>();
-
-    private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
-
     private final XmlFileContentMerger file;
+    private String name;
+    private String comment;
+    private Set<String> referencedProjects = new LinkedHashSet<>();
+    private List<String> natures = new ArrayList<>();
+    private List<BuildCommand> buildCommands = new ArrayList<>();
+    private Set<Link> linkedResources = new LinkedHashSet<>();
+    private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
     @Inject
     public EclipseProject(XmlFileContentMerger file) {
@@ -227,6 +220,7 @@ public abstract class EclipseProject {
     public List<String> getNatures() {
         return natures;
     }
+
     /**
      * The natures to be added to this Eclipse project.
      * <p>
@@ -311,6 +305,7 @@ public abstract class EclipseProject {
 
     /**
      * The resource filters of the eclipse project.
+     *
      * @since 3.5
      */
     public Set<ResourceFilter> getResourceFilters() {
@@ -325,7 +320,7 @@ public abstract class EclipseProject {
      * @param configureClosure The closure to use to configure the resource filter.
      * @since 3.5
      */
-    public ResourceFilter resourceFilter(@DelegatesTo(value=ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public ResourceFilter resourceFilter(@DelegatesTo(value = ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         return resourceFilter(new ClosureBackedAction<ResourceFilter>(configureClosure));
     }
 

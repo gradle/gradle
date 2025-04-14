@@ -44,11 +44,6 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
         );
     }
 
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        taskDependencyDelegate.visitDependencies(context);
-    }
-
     private static void resolveProjectDependencies(
         TaskDependencyResolveContext context,
         Set<ProjectDependency> projectDependencies,
@@ -65,6 +60,11 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
                 context.add(nextTask);
             }
         }
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        taskDependencyDelegate.visitDependencies(context);
     }
 
     @Override

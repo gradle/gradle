@@ -66,6 +66,7 @@ class UnmanagedImplStructStrategyTest extends Specification {
         String getReadOnlyString()
 
         List<String> getStrings()
+
         void setStrings(List<String> strings)
     }
 

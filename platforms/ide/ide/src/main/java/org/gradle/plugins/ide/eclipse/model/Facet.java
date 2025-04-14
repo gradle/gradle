@@ -28,18 +28,9 @@ import java.util.Map;
  */
 public class Facet {
 
-    /**
-     * An {@code installed} facet is really present on an Eclipse project whereas facet type {@code fixed} means that
-     * this facet is locked and cannot be simply removed. See also
-     * <a href="https://eclipse.org/articles/Article-BuildingProjectFacets/tutorial.html#defining.presets">here</a>.
-     */
-    @SuppressWarnings("FieldName")
-    public enum FacetType { installed, fixed }
-
     private FacetType type;
     private String name;
     private String version;
-
     public Facet() {
         type = FacetType.installed;
     }
@@ -119,4 +110,12 @@ public class Facet {
     public String toString() {
         return "Facet{type='" + type + "', name='" + name + "', version='" + version + "'}";
     }
+
+    /**
+     * An {@code installed} facet is really present on an Eclipse project whereas facet type {@code fixed} means that
+     * this facet is locked and cannot be simply removed. See also
+     * <a href="https://eclipse.org/articles/Article-BuildingProjectFacets/tutorial.html#defining.presets">here</a>.
+     */
+    @SuppressWarnings("FieldName")
+    public enum FacetType {installed, fixed}
 }

@@ -1,9 +1,9 @@
 # Contributing to the Gradle Build Tool
 
 Thank you for your interest in contributing to Gradle!
-This guide explains how to contribute to the core Gradle components, 
+This guide explains how to contribute to the core Gradle components,
 extensions and documentation located in this repository.
-For other extensions and components, see the 
+For other extensions and components, see the
 [Gradle Community Resources](https://gradle.org/resources/).
 
 This guide will help you to...
@@ -14,7 +14,7 @@ This guide will help you to...
 
 ## Before you start
 
-Before starting to work on a feature or a bug fix, please open an issue to discuss the use case or bug with us, or post a comment in the relevant issue. 
+Before starting to work on a feature or a bug fix, please open an issue to discuss the use case or bug with us, or post a comment in the relevant issue.
 This can save everyone a lot of time and frustration.
 
 For any non-trivial change, we need to be able to answer these questions:
@@ -44,9 +44,11 @@ to ask any questions.
 
 ## Finding issues to work on
 
-If you are looking for good first issues, take a look at the list of [good first issues](https://github.com/gradle/gradle/labels/good%20first%20issue) that should be actionable and ready for a contribution.
+If you are looking for good first issues, take a look at the list of [good first issues](https://github.com/gradle/gradle/labels/good%20first%20issue) that should be actionable and ready for a
+contribution.
 
-If you are looking for a contribution that is more substantial, you can look at the [help wanted issues](https://github.com/gradle/gradle/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22%F0%9F%8C%B3%20help%20wanted%22).
+If you are looking for a contribution that is more substantial, you can look at
+the [help wanted issues](https://github.com/gradle/gradle/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22%F0%9F%8C%B3%20help%20wanted%22).
 These issues are more complex and might be challenging for first-time contributors.
 
 You can share your interest in fixing the issue by commenting on it.
@@ -70,15 +72,18 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 #### Import Gradle into IntelliJ
 
 To import Gradle into IntelliJ:
+
 - Open the `build.gradle.kts` file in root of the project with IntelliJ and choose "Open as Project"
 - Select a Adoptium Java 17 VM as "Gradle JVM"
 - Revert the Git changes to files in the `.idea` folder
 
 NOTE: Due to the project size, the very first import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
-IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
+IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under
+Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
-If you did not have a Adoptium Java 17 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 17 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
+If you did not have a Adoptium Java 17 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 17 SDK your IntelliJ still uses the wrong SDK version, you might need to
+invalidate IntelliJ's caches before reloading the project.
 
 ## Making your change
 
@@ -87,14 +92,15 @@ If you did not have a Adoptium Java 17 SDK installed before importing the projec
 All code contributions should contain the following:
 
 * Create unit tests using [Spock](https://spockframework.org/spock/docs/2.0/index.html) for new classes or methods that you introduce.
-* Create integration tests that exercise a Gradle build for the bug/feature. 
+* Create integration tests that exercise a Gradle build for the bug/feature.
 * Annotate tests that correspond to a bug on GitHub (`@Issue("https://github.com/gradle/gradle/issues/2622")`).
 * Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)).
 * For error messages related changes, follow the [ErrorMessages Guide](contributing/ErrorMessages.md).
 * For Javadocs, follow the [Javadoc Style Guide](contributing/JavadocStyleGuide.md).
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
 
-Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
+Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS,
+Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
 
 * Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
@@ -120,7 +126,8 @@ see [this guide](./platforms/documentation/docs/README.md).
 The commit messages that accompany your code changes are an important piece of documentation. Please follow these guidelines when creating commits:
 
 * [Write good commit messages.](https://cbea.ms/git-commit/#seven-rules)
-* [Sign off your commits](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) to indicate that you agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/). We can only accept PRs that have all commits signed off.
+* [Sign off your commits](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) to indicate that you agree to the terms
+  of [Developer Certificate of Origin](https://developercertificate.org/). We can only accept PRs that have all commits signed off.
 * Keep commits discrete. Avoid including multiple unrelated changes in a single commit.
 * Keep commits self-contained. Avoid spreading a single change across multiple commits. A single commit should make sense in isolation.
 
@@ -130,12 +137,13 @@ After making changes, you can test your code in 2 ways:
 
 #### Run tests
 
-- Run `./gradlew :<subproject>:quickTest` where `<subproject>` is the name of the subproject you've changed. 
+- Run `./gradlew :<subproject>:quickTest` where `<subproject>` is the name of the subproject you've changed.
 - For example: `./gradlew :launcher:quickTest`.
 
 #### Install Gradle locally
 
-and try out a change in behavior manually. 
+and try out a change in behavior manually.
+
 - Install: `./gradlew install -Pgradle_installPath=/any/path`
 - Use: `/any/path/bin/gradle taskName`.
 
@@ -210,7 +218,8 @@ When creating a new file, please make sure to add a header as defined below.
 
 ### Submitting Your Change
 
-After you submit your pull request, a Gradle developer will review it. It is normal for this to take several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
+After you submit your pull request, a Gradle developer will review it. It is normal for this to take several iterations, so don't get discouraged by change requests. They ensure the high quality that
+we all enjoy.
 
 If you need to check on [CI](http://builds.gradle.org/) status as an external contributor, you can click "Log in as guest".
 
@@ -229,7 +238,8 @@ If you made changes to build logic in the `build-logic` included build, you can 
 
 ### Fixing DCO failures/Signing Off Commits After Submitting a Pull Request
 
-You must agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/) by signing off your commits. We automatically verify that all commit messages contain a `Signed-off-by:` line with your email address. We can only accept PRs that have all commits signed off.
+You must agree to the terms of [Developer Certificate of Origin](https://developercertificate.org/) by signing off your commits. We automatically verify that all commit messages contain a
+`Signed-off-by:` line with your email address. We can only accept PRs that have all commits signed off.
 
 If you didn't sign off your commits before creating the pull request, you can fix that after the fact.
 
@@ -267,20 +277,20 @@ Execution failed for task ':architecture-test:checkBinaryCompatibility'.
 Here are the steps to resolve the issue:
 
 1. Open the failure report mentioned in the output.\
-If you don't see the report link in the output in the IDE, make sure to select the top-level node in the structured output panel.
-The report will explain the errors in detail.
-Perhaps, you forgot to add an `@Incubating` annotation or `@since` in the javadoc.
+   If you don't see the report link in the output in the IDE, make sure to select the top-level node in the structured output panel.
+   The report will explain the errors in detail.
+   Perhaps, you forgot to add an `@Incubating` annotation or `@since` in the javadoc.
 
 2. Accept the changes.\
-If you are sure that the changes are intentional, follow the steps described in the report.
-This includes adding the description of the changes to the `accepted-public-api-changes.json` file, and providing a reason for each change.
-You can add the changes to any place in the file, e.g. at the top.
+   If you are sure that the changes are intentional, follow the steps described in the report.
+   This includes adding the description of the changes to the `accepted-public-api-changes.json` file, and providing a reason for each change.
+   You can add the changes to any place in the file, e.g. at the top.
 
 3. Make sure the file with accepted changes is sorted.\
-Use the `./gradlew :architecture-test:sortAcceptedApiChanges` task to sort the file.
+   Use the `./gradlew :architecture-test:sortAcceptedApiChanges` task to sort the file.
 
 4. Validate your changes before committing.\
-Run the `./gradlew sanityCheck` task again to make sure there are no more errors.
+   Run the `./gradlew sanityCheck` task again to make sure there are no more errors.
 
 #### Filtering changes by severity
 
@@ -290,7 +300,8 @@ The filter is a dropdown box that appears when you click the `Severity ⬇️ ` 
 If you have a large number of messages of different types, filtering by severity to see only `Error`s can be helpful when processing the report.
 Errors are the only type of issues that must be resolved for the `checkBinaryCompatibility` task to succeed.
 
-You can set the 'bin.cmp.report.severity.filter' property in your `gradle.properties` to one of the available values in the dropdown box to automatically filter issues to that severity level upon opening this report.
+You can set the 'bin.cmp.report.severity.filter' property in your `gradle.properties` to one of the available values in the dropdown box to automatically filter issues to that severity level upon
+opening this report.
 
 #### Accepting multiple changes
 
@@ -298,7 +309,8 @@ If you have multiple changes to accept (and you're sure they ought to be accepte
 This button will cause a Javascript alert dialog to appear asking you to type a reason for accepting the changes, e.g. "Added new API for Gradle 8.x".
 
 Clicking okay on the dialog will cause a copy of the `accepted-public-api-changes.json` containing your (properly sorted) addition to be downloaded.
-You can then replace the existing file with this new downloaded version. 
+You can then replace the existing file with this new downloaded version.
+
 ### Java Toolchain
 
 The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
@@ -306,7 +318,8 @@ The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
 Some tests require multiple JDKs to be installed on your computer, be aware of this if you make changes related to anything toolchains related.
 
-If you want to explicitly run tests with a different Java version, you need to specify `-PtestJavaVersion=#` with the major version of the JDK you want the tests to run with (e.g. `-PtestJavaVersion=14`).
+If you want to explicitly run tests with a different Java version, you need to specify `-PtestJavaVersion=#` with the major version of the JDK you want the tests to run with (e.g.
+`-PtestJavaVersion=14`).
 
 ### Configuration cache enabled by default
 
@@ -326,9 +339,11 @@ For more information on the configuration cache, see the [user manual](https://d
 
 ### Remote build cache
 
-Gradle, Inc runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
+Gradle, Inc runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build
+is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
 
-The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-DcacheNode=us` for a build cache node in the US or `-DcacheNode=au` for a build cache node in Australia.
+The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-DcacheNode=us` for a build cache node in the
+US or `-DcacheNode=au` for a build cache node in Australia.
 
 If you are not getting cache hits from the build cache, you may be using the wrong version of Java. A fixed version (Java 11) is required to get remote cache hits.
 

@@ -57,7 +57,7 @@ public class FileCollectionFingerprinterRegistrations {
         ResourceFilter resourceFilter,
         ResourceEntryFilter metaInfFilter,
         Map<String, ResourceEntryFilter> propertiesFileFilters
-        ) {
+    ) {
 
         List<? extends FileCollectionFingerprinter> insensitiveFingerprinters = insensitiveFingerprinters(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
         this.registrants =
@@ -148,8 +148,8 @@ public class FileCollectionFingerprinterRegistrations {
 
     private static Stream<FingerprinterRegistration> registrationsFor(LineEndingSensitivity lineEndingSensitivity, DirectorySensitivity directorySensitivity, Stream<List<? extends FileCollectionFingerprinter>> fingerprinters) {
         return fingerprinters.flatMap(Collection::stream).map(fingerprinter ->
-                registration(directorySensitivity, lineEndingSensitivity, fingerprinter)
-            );
+            registration(directorySensitivity, lineEndingSensitivity, fingerprinter)
+        );
     }
 
     private static <T> Stream<T> withAllLineEndingSensitivities(Function<LineEndingSensitivity, Stream<T>> f) {
@@ -158,10 +158,6 @@ public class FileCollectionFingerprinterRegistrations {
 
     private static <T> Stream<T> withAllDirectorySensitivities(Function<DirectorySensitivity, Stream<T>> f) {
         return stream(DirectorySensitivity.values()).flatMap(f);
-    }
-
-    public Set<FingerprinterRegistration> getRegistrants() {
-        return registrants;
     }
 
     private static FileSystemLocationSnapshotHasher normalizedContentHasher(LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
@@ -178,5 +174,9 @@ public class FileCollectionFingerprinterRegistrations {
             default:
                 throw new IllegalArgumentException();
         }
+    }
+
+    public Set<FingerprinterRegistration> getRegistrants() {
+        return registrants;
     }
 }

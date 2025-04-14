@@ -21,57 +21,6 @@ package org.gradle.internal.logging.text;
  * required to be thread-safe.
  */
 public interface StyledTextOutput extends Appendable {
-    enum Style {
-        /**
-         * Regular text.
-         */
-        Normal,
-        /**
-         * A header.
-         */
-        Header,
-        /**
-         * User input
-         */
-        UserInput,
-        /**
-         * An identifier for something
-         */
-        Identifier,
-        /**
-         * The description of something
-         */
-        Description,
-        /**
-         * Operation progress status
-         */
-        ProgressStatus,
-        /**
-         * General purpose success message
-         */
-        Success,
-        /**
-         * <b>Emphasized</b> success message
-         */
-        SuccessHeader,
-        /**
-         * General purpose failure message
-         */
-        Failure,
-        /**
-         * <b>Emphasized</b> failure message
-         */
-        FailureHeader,
-        /**
-         * General purpose informational text
-         */
-        Info,
-        /**
-         * General purpose error text
-         */
-        Error
-    }
-
     /**
      * Appends a character using the current style.
      *
@@ -141,7 +90,7 @@ public interface StyledTextOutput extends Appendable {
      * Appends a formatted string using the current style.
      *
      * @param pattern The pattern string
-     * @param args    The args for the pattern
+     * @param args The args for the pattern
      * @return this
      */
     StyledTextOutput format(String pattern, Object... args);
@@ -150,7 +99,7 @@ public interface StyledTextOutput extends Appendable {
      * Appends a formatted string using the current style and starts a new line.
      *
      * @param pattern The pattern string
-     * @param args    The args for the pattern
+     * @param args The args for the pattern
      * @return this
      */
     StyledTextOutput formatln(String pattern, Object... args);
@@ -169,4 +118,55 @@ public interface StyledTextOutput extends Appendable {
      * @return this
      */
     StyledTextOutput exception(Throwable throwable);
+
+    enum Style {
+        /**
+         * Regular text.
+         */
+        Normal,
+        /**
+         * A header.
+         */
+        Header,
+        /**
+         * User input
+         */
+        UserInput,
+        /**
+         * An identifier for something
+         */
+        Identifier,
+        /**
+         * The description of something
+         */
+        Description,
+        /**
+         * Operation progress status
+         */
+        ProgressStatus,
+        /**
+         * General purpose success message
+         */
+        Success,
+        /**
+         * <b>Emphasized</b> success message
+         */
+        SuccessHeader,
+        /**
+         * General purpose failure message
+         */
+        Failure,
+        /**
+         * <b>Emphasized</b> failure message
+         */
+        FailureHeader,
+        /**
+         * General purpose informational text
+         */
+        Info,
+        /**
+         * General purpose error text
+         */
+        Error
+    }
 }

@@ -139,6 +139,7 @@ public class FileUtils {
 
     /**
      * Checks if the given file path ends with the given extension.
+     *
      * @param file the file
      * @param extension candidate extension including leading dot
      * @return true if {@code file.getPath().endsWith(extension)}
@@ -149,6 +150,7 @@ public class FileUtils {
 
     /**
      * Checks if the given file path ends with the given extension (ignoring case).
+     *
      * @param fileName the file name
      * @param extension candidate extension including leading dot
      * @return true if the file name ends with extension, ignoring case

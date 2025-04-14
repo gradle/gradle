@@ -28,6 +28,11 @@ public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
     @Nullable
     private final TaskDependencyUsageTracker taskDependencyUsageTracker;
 
+    private DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
+        this.taskResolver = taskResolver;
+        this.taskDependencyUsageTracker = taskDependencyUsageTracker;
+    }
+
     public static TaskDependencyFactory withNoAssociatedProject() {
         return new DefaultTaskDependencyFactory(null, null);
     }
@@ -37,11 +42,6 @@ public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
         @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
     ) {
         return new DefaultTaskDependencyFactory(taskResolver, taskDependencyUsageTracker);
-    }
-
-    private DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
-        this.taskResolver = taskResolver;
-        this.taskDependencyUsageTracker = taskDependencyUsageTracker;
     }
 
     @Override

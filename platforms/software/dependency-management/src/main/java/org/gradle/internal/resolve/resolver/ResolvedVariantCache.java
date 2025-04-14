@@ -33,7 +33,7 @@ import java.util.function.Function;
  * This cache contains ResolvedVariants for the entire build tree.
  */
 @ServiceScope(Scope.BuildTree.class)
-public class ResolvedVariantCache  {
+public class ResolvedVariantCache {
 
     private final Map<CacheKey, ResolvedVariant> cache = new ConcurrentHashMap<>();
 

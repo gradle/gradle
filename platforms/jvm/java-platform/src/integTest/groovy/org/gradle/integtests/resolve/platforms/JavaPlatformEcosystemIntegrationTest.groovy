@@ -100,7 +100,7 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
     }
 
     /**
-     * I think the test above: {@link JavaPlatformEcosystemIntegrationTest#"Configuration.copy() should when configuration contains project dependency constraints"}
+     * I think the test above: {@link JavaPlatformEcosystemIntegrationTest# "Configuration.copy() should when configuration contains project dependency constraints"}
      * should be sufficient to cover this case, which seems to apply to any configurations that has a project dependency constraint
      * and is independent of the involvement of the Java Platform plugin.  But I'll leave this test here just in case for now.
      *
@@ -127,8 +127,8 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         executer.expectDocumentedDeprecationWarning("Calling configuration method 'copy()' is deprecated for configuration 'api', which has permitted usage(s):\n" +
-                "\tDeclarable - this configuration can have dependencies added to it\n" +
-                "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage")
+            "\tDeclarable - this configuration can have dependencies added to it\n" +
+            "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage")
         succeeds ":help"
     }
 }

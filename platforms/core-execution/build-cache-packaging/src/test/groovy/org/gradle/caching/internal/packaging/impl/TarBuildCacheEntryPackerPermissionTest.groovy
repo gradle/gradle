@@ -57,6 +57,6 @@ class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryP
         0 * _
 
         where:
-        mode << [ "0644", "0755" ]
+        mode << ["0644", "0755"]
     }
 }

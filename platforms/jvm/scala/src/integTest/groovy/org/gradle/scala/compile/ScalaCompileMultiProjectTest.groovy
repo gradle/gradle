@@ -48,7 +48,7 @@ class ScalaCompileMultiProjectTest extends AbstractIntegrationSpec implements Ja
             """
     }
 
-    def "multi project compilation with dependent empty java project" (){
+    def "multi project compilation with dependent empty java project"() {
         given:
         file("a/src/main/resources/test.txt") << "not relevant"
         file("b/src/main/scala/B.scala") << """

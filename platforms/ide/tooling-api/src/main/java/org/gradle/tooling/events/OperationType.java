@@ -46,7 +46,6 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
      * </ul>
-     *
      */
     TASK,
 
@@ -60,7 +59,6 @@ public enum OperationType {
      *     <li>{@link FinishEvent}</li>
      *     <li>{@link StatusEvent}</li>
      * </ul>
-     *
      */
     GENERIC,
 
@@ -195,6 +193,7 @@ public enum OperationType {
      *     <li>{@link StartEvent}</li>
      *     <li>{@link FinishEvent}</li>
      * </ul>
+     *
      * @since 8.12
      */
     @Incubating

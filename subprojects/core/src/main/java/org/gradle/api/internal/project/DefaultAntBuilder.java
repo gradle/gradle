@@ -59,6 +59,45 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         this.loggingAdapter = loggingAdapter;
     }
 
+    private static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
+        task.setTarget(target);
+        task.setBaseDir(baseDir);
+
+        final List<String> taskDependencyNames = getTaskDependencyNames(target, taskNamer);
+        task.dependsOn(new AntTargetsTaskDependency(taskDependencyNames));
+        addDependencyOrdering(taskDependencyNames, task.getProject().getTasks());
+    }
+
+    private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
+        Enumeration<String> dependencies = target.getDependencies();
+        List<String> taskDependencyNames = new LinkedList<>();
+        while (dependencies.hasMoreElements()) {
+            String targetName = dependencies.nextElement();
+            String taskName = taskNamer.transform(targetName);
+            taskDependencyNames.add(taskName);
+        }
+        return taskDependencyNames;
+    }
+
+    private static void addDependencyOrdering(List<String> dependencies, TaskContainer tasks) {
+        String previous = null;
+        for (final String dependency : dependencies) {
+            if (previous != null) {
+                final String finalPrevious = previous;
+                tasks.all(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        if (task.getName().equals(dependency)) {
+                            task.shouldRunAfter(finalPrevious);
+                        }
+                    }
+                });
+            }
+
+            previous = dependency;
+        }
+    }
+
     public void propertyMissing(String property, Object newValue) {
         doSetProperty(property, newValue);
     }
@@ -147,59 +186,19 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);
             String taskName = taskNamer.transform(target.getName());
-            @SuppressWarnings("deprecation")
-            final AntTarget task = gradleProject.getTasks().create(taskName, AntTarget.class);
+            @SuppressWarnings("deprecation") final AntTarget task = gradleProject.getTasks().create(taskName, AntTarget.class);
             configureTask(target, task, baseDir, taskNamer);
         }
-    }
-
-    private static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
-        task.setTarget(target);
-        task.setBaseDir(baseDir);
-
-        final List<String> taskDependencyNames = getTaskDependencyNames(target, taskNamer);
-        task.dependsOn(new AntTargetsTaskDependency(taskDependencyNames));
-        addDependencyOrdering(taskDependencyNames, task.getProject().getTasks());
-    }
-
-    private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
-        Enumeration<String> dependencies = target.getDependencies();
-        List<String> taskDependencyNames = new LinkedList<>();
-        while (dependencies.hasMoreElements()) {
-            String targetName = dependencies.nextElement();
-            String taskName = taskNamer.transform(targetName);
-            taskDependencyNames.add(taskName);
-        }
-        return taskDependencyNames;
-    }
-
-    private static void addDependencyOrdering(List<String> dependencies, TaskContainer tasks) {
-        String previous = null;
-        for (final String dependency : dependencies) {
-            if (previous != null) {
-                final String finalPrevious = previous;
-                tasks.all(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        if (task.getName().equals(dependency)) {
-                            task.shouldRunAfter(finalPrevious);
-                        }
-                    }
-                });
-            }
-
-            previous = dependency;
-        }
-    }
-
-    @Override
-    public void setLifecycleLogLevel(AntMessagePriority logLevel) {
-        loggingAdapter.setLifecycleLogLevel(logLevel);
     }
 
     @Override
     public AntMessagePriority getLifecycleLogLevel() {
         return loggingAdapter.getLifecycleLogLevel();
+    }
+
+    @Override
+    public void setLifecycleLogLevel(AntMessagePriority logLevel) {
+        loggingAdapter.setLifecycleLogLevel(logLevel);
     }
 
     private static class AntTargetsTaskDependency implements TaskDependencyInternal {

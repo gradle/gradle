@@ -21,7 +21,8 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-@LeaksFileHandles // Cannot delete `native-platform.dll`
+@LeaksFileHandles
+// Cannot delete `native-platform.dll`
 class GradleNativeIntegrationTest extends AbstractIntegrationSpec {
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "caches native binaries in specified user home"() {

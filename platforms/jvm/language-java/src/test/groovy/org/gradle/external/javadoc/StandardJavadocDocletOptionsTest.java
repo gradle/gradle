@@ -47,6 +47,16 @@ public class StandardJavadocDocletOptionsTest {
 
     private StandardJavadocDocletOptions options;
 
+    public static void assertEmpty(Collection<?> shouldBeEmptyCollection) {
+        assertNotNull(shouldBeEmptyCollection);
+        assertTrue(shouldBeEmptyCollection.isEmpty());
+    }
+
+    public static void assertEmpty(Map<?, ?> shouldBeEmptyMap) {
+        assertNotNull(shouldBeEmptyMap);
+        assertTrue(shouldBeEmptyMap.isEmpty());
+    }
+
     @Before
     public void setUp() {
         options = new StandardJavadocDocletOptions();
@@ -479,15 +489,5 @@ public class StandardJavadocDocletOptionsTest {
     @After
     public void tearDown() {
         options = null;
-    }
-
-    public static void assertEmpty(Collection<?> shouldBeEmptyCollection) {
-        assertNotNull(shouldBeEmptyCollection);
-        assertTrue(shouldBeEmptyCollection.isEmpty());
-    }
-
-    public static void assertEmpty(Map<?, ?> shouldBeEmptyMap) {
-        assertNotNull(shouldBeEmptyMap);
-        assertTrue(shouldBeEmptyMap.isEmpty());
     }
 }

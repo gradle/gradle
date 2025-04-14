@@ -5,16 +5,22 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>idea</literal> plugin</td>
+                    <td>Default with <literal>idea</literal> plugin
+                    </td>
                 </tr>
             </thead>
             <tr>
                 <td>workspace</td>
-                <td><literal>project.idea.workspace</literal></td>
+                <td>
+                    <literal>project.idea.workspace</literal>
+                </td>
             </tr>
             <tr>
                 <td>outputFile</td>
-                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iws</literal></td>
+                <td>
+                    <literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iws
+                    </literal>
+                </td>
             </tr>
         </table>
     </section>

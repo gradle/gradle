@@ -100,6 +100,7 @@ public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
     private static class ModuleArtifactsCacheEntrySerializer extends AbstractSerializer<ModuleArtifactsCacheEntry> {
         private final Serializer<Set<ComponentArtifactMetadata>> artifactsSerializer =
             new SetSerializer<>(new ComponentArtifactMetadataSerializer());
+
         @Override
         public void write(Encoder encoder, ModuleArtifactsCacheEntry value) throws Exception {
             encoder.writeLong(value.createTimestamp);

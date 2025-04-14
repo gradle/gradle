@@ -33,7 +33,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>target</td></tr>
+            <tr>
+                <td>target</td>
+            </tr>
         </table>
     </section>
 </section>

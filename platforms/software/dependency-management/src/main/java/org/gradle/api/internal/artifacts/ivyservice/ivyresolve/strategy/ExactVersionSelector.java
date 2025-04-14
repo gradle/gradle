@@ -26,6 +26,10 @@ public class ExactVersionSelector extends AbstractStringVersionSelector {
         this.version = selector;
     }
 
+    public static boolean isExact(String selector) {
+        return selector != null && !VersionRangeSelector.ALL_RANGE.matcher(selector).matches() && !selector.endsWith("+") && !selector.startsWith("latest.");
+    }
+
     @Override
     public boolean isDynamic() {
         return false;
@@ -44,9 +48,5 @@ public class ExactVersionSelector extends AbstractStringVersionSelector {
     @Override
     public boolean accept(String candidate) {
         return version.isEmpty() || version.equals(candidate);
-    }
-
-    public static boolean isExact(String selector) {
-        return selector != null && !VersionRangeSelector.ALL_RANGE.matcher(selector).matches() && !selector.endsWith("+") && !selector.startsWith("latest.");
     }
 }

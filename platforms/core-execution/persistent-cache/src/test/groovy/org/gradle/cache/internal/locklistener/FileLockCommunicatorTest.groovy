@@ -126,7 +126,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         start {
             try {
                 communicator.receive()
-            } catch (GracefullyStoppedException e) {}
+            } catch (GracefullyStoppedException e) {
+            }
         }
 
         when:

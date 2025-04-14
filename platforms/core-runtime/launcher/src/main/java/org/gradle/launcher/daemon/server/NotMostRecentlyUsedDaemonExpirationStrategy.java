@@ -26,8 +26,8 @@ import java.util.Collection;
 import java.util.Date;
 
 public class NotMostRecentlyUsedDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    private final Daemon daemon;
     public static final String EXPIRATION_REASON = "not recently used";
+    private final Daemon daemon;
 
     NotMostRecentlyUsedDaemonExpirationStrategy(Daemon daemon) {
         this.daemon = daemon;

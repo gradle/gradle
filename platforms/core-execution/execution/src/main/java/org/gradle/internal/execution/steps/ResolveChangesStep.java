@@ -49,6 +49,32 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
         this.delegate = delegate;
     }
 
+    private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
+        switch (work.getExecutionBehavior()) {
+            case NON_INCREMENTAL:
+                return IncrementalInputProperties.NONE;
+            case INCREMENTAL:
+                ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
+                InputVisitor visitor = new InputVisitor() {
+                    @Override
+                    public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier valueSupplier) {
+                        if (behavior.shouldTrackChanges()) {
+                            Object value = valueSupplier.getValue();
+                            if (value == null) {
+                                throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
+                            }
+                            builder.put(propertyName, value);
+                        }
+                    }
+                };
+                work.visitIdentityInputs(visitor);
+                work.visitRegularInputs(visitor);
+                return new DefaultIncrementalInputProperties(builder.build());
+            default:
+                throw new AssertionError();
+        }
+    }
+
     @Override
     public R execute(UnitOfWork work, C context) {
         IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
@@ -77,31 +103,5 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
                 )
                 .orElseGet(() -> nonIncremental(NO_HISTORY, beforeExecution, incrementalInputProperties))
             );
-    }
-
-    private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
-        switch (work.getExecutionBehavior()) {
-            case NON_INCREMENTAL:
-                return IncrementalInputProperties.NONE;
-            case INCREMENTAL:
-                ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                InputVisitor visitor = new InputVisitor() {
-                    @Override
-                    public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier valueSupplier) {
-                        if (behavior.shouldTrackChanges()) {
-                            Object value = valueSupplier.getValue();
-                            if (value == null) {
-                                throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
-                            }
-                            builder.put(propertyName, value);
-                        }
-                    }
-                };
-                work.visitIdentityInputs(visitor);
-                work.visitRegularInputs(visitor);
-                return new DefaultIncrementalInputProperties(builder.build());
-            default:
-                throw new AssertionError();
-        }
     }
 }

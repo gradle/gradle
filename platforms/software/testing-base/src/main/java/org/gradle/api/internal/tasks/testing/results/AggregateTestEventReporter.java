@@ -70,6 +70,19 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
         this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
+    /**
+     * Emits the report to the user.
+     *
+     * @param reportIndexFile The path to report to the user as a link.
+     */
+    private static void emitReport(Path reportIndexFile) {
+        String url = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
+
+        // TODO: Integrate with Problems API report or some new "build dashboard 2.0"
+        // We should avoid printing more than one link at the end of the build.
+        LOGGER.warn("Aggregate test results: {}", url);
+    }
+
     @Override
     public String getId() {
         return "aggregate-test-results";
@@ -117,18 +130,5 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
         sortedResults.sort(Comparator.naturalOrder());
         new GenericTestReportGenerator(sortedResults, metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
         return reportDirectory.resolve("index.html");
-    }
-
-    /**
-     * Emits the report to the user.
-     *
-     * @param reportIndexFile The path to report to the user as a link.
-     */
-    private static void emitReport(Path reportIndexFile) {
-        String url = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
-
-        // TODO: Integrate with Problems API report or some new "build dashboard 2.0"
-        // We should avoid printing more than one link at the end of the build.
-        LOGGER.warn("Aggregate test results: {}", url);
     }
 }

@@ -66,6 +66,7 @@ public class PluginResolutionResult {
     public static PluginResolutionResult notFound(String sourceDescription, String notFoundMessage, String notFoundDetail) {
         return new PluginResolutionResult(null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, notFoundDetail)));
     }
+
     /**
      * Record that the plugin was not found in multiple sources of plugins
      */
@@ -90,7 +91,6 @@ public class PluginResolutionResult {
      * Get the resolved plugin.
      *
      * @param request The original request. Only used for error reporting.
-     *
      * @throws RuntimeException if the plugin was not found.
      */
     public PluginResolution getFound(PluginRequestInternal request) {

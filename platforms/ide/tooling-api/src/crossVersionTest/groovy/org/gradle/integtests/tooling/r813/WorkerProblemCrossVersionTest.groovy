@@ -139,7 +139,7 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        def event = problemProgressListener.problemEvents.find {it.problem.definition.id.name == 'name' }
+        def event = problemProgressListener.problemEvents.find { it.problem.definition.id.name == 'name' }
         event.problem.definition.id.displayName == 'Display name'
         event.problem.contextualLabel.contextualLabel == 'Tooling API client should receive this problem'
         event.problem.getAdditionalData().get(SomeData).getName() == 'someData'

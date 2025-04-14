@@ -35,6 +35,7 @@ public interface VersionCatalogBuilder extends Named {
     /**
      * A description for the dependencies model, which will be used in
      * the generated sources as documentation.
+     *
      * @return the description for this model
      */
     Property<String> getDescription();
@@ -157,7 +158,6 @@ public interface VersionCatalogBuilder extends Named {
         /**
          * Do not associate this alias to a particular version, in which
          * case the dependency notation will just have group and artifact.
-         *
          */
         void withoutVersion();
     }

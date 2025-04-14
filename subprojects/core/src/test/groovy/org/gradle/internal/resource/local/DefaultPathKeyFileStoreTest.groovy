@@ -26,7 +26,8 @@ import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultPathKeyFileStoreTest extends Specification {
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
     TestFile fsBase
     PathKeyFileStore store
 
@@ -76,8 +77,8 @@ class DefaultPathKeyFileStoreTest extends Specification {
 
     def "can add file to filestore"() {
         when:
-        store.add("a", { File f -> f.text = "abc"} as Action<File>)
-        store.add("b", { File f -> f.text = "def"} as Action<File>)
+        store.add("a", { File f -> f.text = "abc" } as Action<File>)
+        store.add("b", { File f -> f.text = "def" } as Action<File>)
 
         then:
         def storedA = store.get("a")
@@ -160,7 +161,7 @@ class DefaultPathKeyFileStoreTest extends Specification {
         createFile("abc", "fs/a").exists()
         createFile("lock", "fs/a.fslck").exists()
         when:
-        store.add("a", { File f -> f.text = "def"} as Action<File>)
+        store.add("a", { File f -> f.text = "def" } as Action<File>)
         then:
         store.get("a").file.text == "def"
     }
@@ -216,7 +217,7 @@ class DefaultPathKeyFileStoreTest extends Specification {
         def search = store.search("**/*")
         then:
         search.size() == 2
-        search.collect {entry -> entry.file.name}.sort() == ["a", "c"]
+        search.collect { entry -> entry.file.name }.sort() == ["a", "c"]
     }
 
     def createFile(String content, String path = "f${pathCounter++}") {

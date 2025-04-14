@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import com.sun.javadoc.Tag;
 import com.sun.tools.doclets.Taglet;
 
@@ -20,6 +21,11 @@ import java.util.Locale;
 import java.util.Map;
 
 public class LocaleAwareTaglet implements Taglet {
+    public static void register(Map tagletMap) {
+        LocaleAwareTaglet taglet = new LocaleAwareTaglet();
+        tagletMap.put(taglet.getName(), taglet);
+    }
+
     public boolean inField() {
         return false;
     }
@@ -58,10 +64,5 @@ public class LocaleAwareTaglet implements Taglet {
 
     public String toString(Tag[] tags) {
         return toString(tags[0]);
-    }
-
-    public static void register(Map tagletMap) {
-        LocaleAwareTaglet taglet = new LocaleAwareTaglet();
-        tagletMap.put(taglet.getName(), taglet);
     }
 }

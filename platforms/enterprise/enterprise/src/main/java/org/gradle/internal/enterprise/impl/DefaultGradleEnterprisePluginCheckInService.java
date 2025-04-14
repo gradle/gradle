@@ -36,11 +36,17 @@ import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompati
 
 public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterprisePluginCheckInService {
 
+    // Used just for testing
+    @VisibleForTesting
+    public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-develocity-plugin";
+    @VisibleForTesting
+    public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Develocity plugin unsupported due to secret toggle";
+    private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
+    private static final VersionNumber AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION = VersionNumber.parse("3.14");
     private final GradleEnterprisePluginManager manager;
     private final DefaultGradleEnterprisePluginAdapterFactory pluginAdapterFactory;
     private final boolean isConfigurationCacheEnabled;
     private final boolean isIsolatedProjectsEnabled;
-
     public DefaultGradleEnterprisePluginCheckInService(
         BuildModelParameters buildModelParameters,
         GradleEnterprisePluginManager manager,
@@ -52,14 +58,24 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         this.isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
     }
 
-    // Used just for testing
-    @VisibleForTesting
-    public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-develocity-plugin";
-    @VisibleForTesting
-    public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Develocity plugin unsupported due to secret toggle";
+    private static boolean supportsAutoDisableTestAcceleration(VersionNumber pluginBaseVersion) {
+        return AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION.compareTo(pluginBaseVersion) <= 0;
+    }
 
-    private static final String DISABLE_TEST_ACCELERATION_PROPERTY = "gradle.internal.testacceleration.disableImplicitApplication";
-    private static final VersionNumber AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION = VersionNumber.parse("3.14");
+    private static GradleEnterprisePluginCheckInResult checkInResult(@Nullable String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
+        return new GradleEnterprisePluginCheckInResult() {
+            @Nullable
+            @Override
+            public String getUnsupportedMessage() {
+                return unsupportedMessage;
+            }
+
+            @Override
+            public GradleEnterprisePluginServiceRef getPluginServiceRef() {
+                return pluginServiceRefSupplier.get();
+            }
+        };
+    }
 
     @Override
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
@@ -95,24 +111,5 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         return checkInResult(unsupportedMessage, () -> {
             throw new IllegalStateException();
         });
-    }
-
-    private static boolean supportsAutoDisableTestAcceleration(VersionNumber pluginBaseVersion) {
-        return AUTO_DISABLE_TEST_ACCELERATION_SINCE_VERSION.compareTo(pluginBaseVersion) <= 0;
-    }
-
-    private static GradleEnterprisePluginCheckInResult checkInResult(@Nullable String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
-        return new GradleEnterprisePluginCheckInResult() {
-            @Nullable
-            @Override
-            public String getUnsupportedMessage() {
-                return unsupportedMessage;
-            }
-
-            @Override
-            public GradleEnterprisePluginServiceRef getPluginServiceRef() {
-                return pluginServiceRefSupplier.get();
-            }
-        };
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 
 import org.jspecify.annotations.Nullable;
+
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collections;
@@ -38,14 +39,6 @@ public class ProblemRenderer {
 
     public ProblemRenderer(Writer writer) {
         output = new PrintWriter(writer);
-    }
-
-    public void render(List<InternalProblem> problems) {
-        render(output, problems);
-    }
-
-    public void render(InternalProblem problem) {
-        render(Collections.singletonList(problem));
     }
 
     private static void render(PrintWriter output, List<InternalProblem> problems) {
@@ -111,5 +104,13 @@ public class ProblemRenderer {
         String prefix = Strings.repeat(" ", level * 2);
         String formatted = TextUtil.indent(message, prefix);
         output.print(formatted);
+    }
+
+    public void render(List<InternalProblem> problems) {
+        render(output, problems);
+    }
+
+    public void render(InternalProblem problem) {
+        render(Collections.singletonList(problem));
     }
 }

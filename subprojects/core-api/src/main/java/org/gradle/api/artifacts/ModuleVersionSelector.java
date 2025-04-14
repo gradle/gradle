@@ -44,7 +44,6 @@ public interface ModuleVersionSelector {
      * The version of the module. May be null.
      *
      * @return module version
-     *
      */
     @Nullable
     String getVersion();
@@ -64,7 +63,6 @@ public interface ModuleVersionSelector {
      * as {@link #getGroup()} and {@link #getName()}.
      *
      * @return the module identifier
-     *
      * @since 4.9
      */
     ModuleIdentifier getModule();

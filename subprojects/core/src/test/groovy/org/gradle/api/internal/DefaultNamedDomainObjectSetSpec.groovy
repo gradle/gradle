@@ -63,7 +63,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         container.add(c)
 
         then:
-        container.asMap == ["a":a, "b":b, "c":c]
+        container.asMap == ["a": a, "b": b, "c": c]
     }
 
     def canGetAllMatchingDomainObjectsOrderedByName() {
@@ -71,7 +71,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         Bean bean2 = new Bean("b");
         Bean bean3 = new Bean("c");
 
-        Spec<Bean> spec = {it == bean2} as Spec<Bean>
+        Spec<Bean> spec = { it == bean2 } as Spec<Bean>
 
         when:
         container.add(bean1);
@@ -83,7 +83,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
     }
 
     def getAllMatchingDomainObjectsReturnsEmptySetWhenNoMatches() {
-        Spec<Bean> spec = {false} as Spec<Bean>
+        Spec<Bean> spec = { false } as Spec<Bean>
 
         when:
         container.add(new Bean("a"));
@@ -132,7 +132,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
 
         when:
         Spec<Bean> spec = { it != bean } as Spec<Bean>
-        Spec<Bean> spec2 = {it != bean2 } as Spec<Bean>
+        Spec<Bean> spec2 = { it != bean2 } as Spec<Bean>
 
         container.add(bean);
         container.add(bean2);
@@ -166,7 +166,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
     def getByNameInvokesRuleForUnknownDomainObject() {
         Bean bean = new Bean("bean");
         when:
-        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) }})
+        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) } })
 
         then:
         container.getByName("bean") == bean
@@ -181,7 +181,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
     def findByNameInvokesRuleForUnknownDomainObject() {
         Bean bean = new Bean("bean");
         when:
-        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) }})
+        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) } })
 
         then:
         container.findByName("other") == null
@@ -191,10 +191,10 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
     def configureByNameInvokesRuleForUnknownDomainObject() {
         Bean bean = new Bean("bean");
         when:
-        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) }})
+        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) } })
 
         then:
-        container.getByName("bean", {it.beanProperty = 'hi'}) == bean
+        container.getByName("bean", { it.beanProperty = 'hi' }) == bean
         bean.getBeanProperty() == 'hi'
     }
 
@@ -202,7 +202,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         final Bean bean1 = new Bean("bean1");
         final Bean bean2 = new Bean("bean2");
 
-        container.addRule("rule1", { s -> if (s == "bean1") { container.add(bean1)} })
+        container.addRule("rule1", { s -> if (s == "bean1") { container.add(bean1) } })
         container.addRule("rule2", { s ->
             if (s == "bean2") {
                 container.findByName("bean1");
@@ -250,7 +250,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         def bean = new Bean("bean")
 
         given:
-        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) }})
+        container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) } })
 
         expect:
         container.bean == bean
@@ -289,7 +289,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         e.message == "Could not find method unknown() for arguments [] on Bean set of type $DefaultNamedDomainObjectSet.name."
 
         when:
-        container.unknown { }
+        container.unknown {}
 
         then:
         e = thrown(MissingMethodException)
@@ -348,7 +348,7 @@ class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectio
         def b = new Bean("bean")
 
         given:
-        container.addRule("rule", { s -> if (s == b.name) { container.add(b) }})
+        container.addRule("rule", { s -> if (s == b.name) { container.add(b) } })
 
         expect:
         container.bean {

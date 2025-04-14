@@ -70,10 +70,31 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     }
 
     private static VersionSelector toRejectSelector(VersionSelectorScheme scheme, List<String> rejectedVersions) {
-        if (rejectedVersions.size()>1) {
+        if (rejectedVersions.size() > 1) {
             return UnionVersionSelector.of(rejectedVersions, scheme);
         }
         return rejectedVersions.isEmpty() ? null : scheme.parseSelector(rejectedVersions.get(0));
+    }
+
+    private static boolean canBeStable(VersionSelector vs) {
+        if (vs == null) {
+            return true;
+        }
+        return vs.canShortCircuitWhenVersionAlreadyPreselected();
+    }
+
+    private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {
+        return "".equals(preferredVersion)
+            && hasMatchAllSelector(rejectedVersions);
+    }
+
+    private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
+        for (String version : rejectedVersions) {
+            if ("+".equals(version)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Nullable
@@ -128,33 +149,12 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
             && canBeStable(rejectedVersionsSelector);
     }
 
-    private static boolean canBeStable(VersionSelector vs) {
-        if (vs == null) {
-            return true;
-        }
-        return vs.canShortCircuitWhenVersionAlreadyPreselected();
-    }
-
     private boolean doComputeIsDynamic() {
         if (requiredVersionSelector != null) {
             return requiredVersionSelector.isDynamic();
         }
         if (preferredVersionSelector != null) {
             return preferredVersionSelector.isDynamic();
-        }
-        return false;
-    }
-
-    private static boolean isRejectAll(String preferredVersion, List<String> rejectedVersions) {
-        return "".equals(preferredVersion)
-            && hasMatchAllSelector(rejectedVersions);
-    }
-
-    private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
-        for (String version : rejectedVersions) {
-            if ("+".equals(version)) {
-                return true;
-            }
         }
         return false;
     }

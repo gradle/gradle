@@ -98,10 +98,10 @@ class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         executedAndNotSkipped ":myTask"
 
         where:
-        description                     | linkSource                     | linkTarget       | inputDeclaration        | fileToChange
-        "symlinked file"                | "symlinkedFile"                | "actualFile"     | 'file("symlinkedFile")' | "actualFile"
-        "symlinked directory"           | "symlinkedDir"                 | "actualDir"      | 'dir("symlinkedDir")'   | "actualDir/file.txt"
-        "symlink in a directory"        | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
+        description              | linkSource                     | linkTarget       | inputDeclaration        | fileToChange
+        "symlinked file"         | "symlinkedFile"                | "actualFile"     | 'file("symlinkedFile")' | "actualFile"
+        "symlinked directory"    | "symlinkedDir"                 | "actualDir"      | 'dir("symlinkedDir")'   | "actualDir/file.txt"
+        "symlink in a directory" | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26201")

@@ -35,12 +35,11 @@ import static java.lang.System.arraycopy;
 
 @ThreadSafe
 public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
+    public static final ModelPath ROOT;
     private static final String SEPARATOR = ".";
     private static final CharMatcher VALID_FIRST_CHAR_MATCHER = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.is('_'));
     private final static CharMatcher INVALID_FIRST_CHAR_MATCHER = VALID_FIRST_CHAR_MATCHER.negate().precomputed();
     private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).or(CharMatcher.is('-')).negate().precomputed();
-
-    public static final ModelPath ROOT;
     private static final Cache BY_PATH;
 
     static {
@@ -68,6 +67,118 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         this.path = path;
         this.components = components;
         this.parent = doGetParent();
+    }
+
+    public static ModelPath path(String path) {
+        return BY_PATH.get(path);
+    }
+
+    @VisibleForTesting
+    static ModelPath path(Iterable<String> names) {
+        String[] components = Iterables.toArray(names, String.class);
+        String path = pathString(components);
+        return path(path, components);
+    }
+
+    private static ModelPath path(String path, String[] names) {
+        for (String name : names) {
+            if (name.indexOf('.') >= 0) {
+                return new ModelPath(path, names);
+            }
+        }
+        return BY_PATH.get(path, names);
+    }
+
+    public static String pathString(String... names) {
+        if (names.length == 0) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0, len = names.length; i < len; i++) {
+            if (i != 0) {
+                builder.append(".");
+            }
+            builder.append(names[i]);
+        }
+        return builder.toString();
+    }
+
+    public static void validateName(String name) {
+        if (name.isEmpty()) {
+            throw new InvalidNameException("Cannot use an empty string as a model element name.");
+        }
+
+        char firstChar = name.charAt(0);
+
+        if (INVALID_FIRST_CHAR_MATCHER.matches(firstChar)) {
+            throw new InvalidNameException(String.format("Model element name '%s' has illegal first character '%s' (names must start with an ASCII letter or underscore).", name, firstChar));
+        }
+
+        for (int i = 1; i < name.length(); ++i) {
+            char character = name.charAt(i);
+            if (INVALID_CHAR_MATCHER.matches(character)) {
+                throw new InvalidNameException(String.format("Model element name '%s' contains illegal character '%s' (only ASCII letters, numbers and the underscore are allowed).", name, character));
+            }
+        }
+    }
+
+    @Nullable
+    public static ModelPath validatedPath(@Nullable String path) {
+        if (path == null) {
+            return null;
+        } else {
+            validatePath(path);
+            return path(path);
+        }
+    }
+
+    public static ModelPath nonNullValidatedPath(String path) {
+        if (path == null) {
+            throw new IllegalArgumentException("path cannot be null");
+        } else {
+            return validatedPath(path);
+        }
+    }
+
+    public static void validatePath(String path) throws InvalidPathException {
+        if (path.isEmpty()) {
+            throw new InvalidPathException("Cannot use an empty string as a model path.", null);
+        }
+
+        if (path.startsWith(SEPARATOR)) {
+            throw new InvalidPathException(String.format("Model path '%s' cannot start with name separator '%s'.", path, SEPARATOR), null);
+        }
+
+        if (path.endsWith(SEPARATOR)) {
+            throw new InvalidPathException(String.format("Model path '%s' cannot end with name separator '%s'.", path, SEPARATOR), null);
+        }
+
+        String[] names = splitPath(path);
+        if (names.length == 1) {
+            validateName(names[0]);
+        } else {
+            for (String name : names) {
+                try {
+                    validateName(name);
+                } catch (InvalidNameException e) {
+                    throw new InvalidPathException(String.format("Model path '%s' is invalid due to invalid name component.", path), e);
+                }
+            }
+        }
+    }
+
+    private static String[] splitPath(String path) {
+        // Let's make sure we never need to reallocate
+        List<String> components = new ArrayList<>(path.length());
+        StringTokenizer tokenizer = new StringTokenizer(path, ".");
+        while (tokenizer.hasMoreTokens()) {
+            String component = tokenizer.nextToken();
+            if (component.isEmpty()) {
+                continue;
+            }
+            components.add(component);
+        }
+        return components.toArray(new String[components.size()]);
     }
 
     @Override
@@ -111,43 +222,9 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return path;
     }
 
-    public static ModelPath path(String path) {
-        return BY_PATH.get(path);
-    }
-
-    @VisibleForTesting
-    static ModelPath path(Iterable<String> names) {
-        String[] components = Iterables.toArray(names, String.class);
-        String path = pathString(components);
-        return path(path, components);
-    }
-
-    private static ModelPath path(String path, String[] names) {
-        for (String name : names) {
-            if (name.indexOf('.') >= 0) {
-                return new ModelPath(path, names);
-            }
-        }
-        return BY_PATH.get(path, names);
-    }
-
-    public static String pathString(String... names) {
-        if (names.length == 0) {
-            return "";
-        }
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0, len = names.length; i < len; i++) {
-            if (i != 0) {
-                builder.append(".");
-            }
-            builder.append(names[i]);
-        }
-        return builder.toString();
-    }
-
     public ModelPath child(String child) {
         if (this.components.length == 0) {
-            return path(child, new String[] {child});
+            return path(child, new String[]{child});
         }
         String[] childComponents = new String[components.length + 1];
         arraycopy(components, 0, childComponents, 0, components.length);
@@ -243,84 +320,6 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         public InvalidPathException(String message, InvalidNameException e) {
             super(message, e);
         }
-    }
-
-    public static void validateName(String name) {
-        if (name.isEmpty()) {
-            throw new InvalidNameException("Cannot use an empty string as a model element name.");
-        }
-
-        char firstChar = name.charAt(0);
-
-        if (INVALID_FIRST_CHAR_MATCHER.matches(firstChar)) {
-            throw new InvalidNameException(String.format("Model element name '%s' has illegal first character '%s' (names must start with an ASCII letter or underscore).", name, firstChar));
-        }
-
-        for (int i = 1; i < name.length(); ++i) {
-            char character = name.charAt(i);
-            if (INVALID_CHAR_MATCHER.matches(character)) {
-                throw new InvalidNameException(String.format("Model element name '%s' contains illegal character '%s' (only ASCII letters, numbers and the underscore are allowed).", name, character));
-            }
-        }
-    }
-
-    @Nullable
-    public static ModelPath validatedPath(@Nullable String path) {
-        if (path == null) {
-            return null;
-        } else {
-            validatePath(path);
-            return path(path);
-        }
-    }
-
-    public static ModelPath nonNullValidatedPath(String path) {
-        if (path == null) {
-            throw new IllegalArgumentException("path cannot be null");
-        } else {
-            return validatedPath(path);
-        }
-    }
-
-    public static void validatePath(String path) throws InvalidPathException {
-        if (path.isEmpty()) {
-            throw new InvalidPathException("Cannot use an empty string as a model path.", null);
-        }
-
-        if (path.startsWith(SEPARATOR)) {
-            throw new InvalidPathException(String.format("Model path '%s' cannot start with name separator '%s'.", path, SEPARATOR), null);
-        }
-
-        if (path.endsWith(SEPARATOR)) {
-            throw new InvalidPathException(String.format("Model path '%s' cannot end with name separator '%s'.", path, SEPARATOR), null);
-        }
-
-        String[] names = splitPath(path);
-        if (names.length == 1) {
-            validateName(names[0]);
-        } else {
-            for (String name : names) {
-                try {
-                    validateName(name);
-                } catch (InvalidNameException e) {
-                    throw new InvalidPathException(String.format("Model path '%s' is invalid due to invalid name component.", path), e);
-                }
-            }
-        }
-    }
-
-    private static String[] splitPath(String path) {
-        // Let's make sure we never need to reallocate
-        List<String> components = new ArrayList<>(path.length());
-        StringTokenizer tokenizer = new StringTokenizer(path, ".");
-        while (tokenizer.hasMoreTokens()) {
-            String component = tokenizer.nextToken();
-            if (component.isEmpty()) {
-                continue;
-            }
-            components.add(component);
-        }
-        return components.toArray(new String[components.size()]);
     }
 
     private static class Cache {

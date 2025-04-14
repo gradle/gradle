@@ -33,26 +33,11 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
 
     private Executer executerType;
+    private GradleExecuter gradleExecuter;
 
-    private enum Executer {
-        embedded(false),
-        forking(true),
-        noDaemon(true),
-        parallel(true, true),
-        configCache(true),
-        isolatedProjects(true);
-
-        final public boolean forks;
-        final public boolean executeParallel;
-
-        Executer(boolean forks) {
-            this(forks, false);
-        }
-
-        Executer(boolean forks, boolean parallel) {
-            this.forks = forks;
-            this.executeParallel = parallel;
-        }
+    public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+        super(distribution, testDirectoryProvider, buildContext);
+        this.executerType = getSystemPropertyExecuter();
     }
 
     private static Executer getSystemPropertyExecuter() {
@@ -94,13 +79,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     public static boolean isIsolatedProjects() {
         return getSystemPropertyExecuter() == Executer.isolatedProjects;
-    }
-
-    private GradleExecuter gradleExecuter;
-
-    public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        super(distribution, testDirectoryProvider, buildContext);
-        this.executerType = getSystemPropertyExecuter();
     }
 
     @Override
@@ -178,9 +156,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return super.reset();
     }
 
-    // The following overrides are here instead of in 'InProcessGradleExecuter' due to the way executors are layered+inherited
-    // This should be improved as part of https://github.com/gradle/gradle-private/issues/1009
-
     @Override
     public GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding) {
         if (executerType == Executer.embedded && !Charset.forName(defaultCharacterEncoding).equals(Charset.defaultCharset())) {
@@ -190,6 +165,9 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return super.withDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
+    // The following overrides are here instead of in 'InProcessGradleExecuter' due to the way executors are layered+inherited
+    // This should be improved as part of https://github.com/gradle/gradle-private/issues/1009
+
     @Override
     public GradleExecuter withDefaultLocale(Locale defaultLocale) {
         if (executerType == Executer.embedded && !defaultLocale.equals(Locale.getDefault())) {
@@ -197,5 +175,26 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             requireDaemon().requireIsolatedDaemons();
         }
         return super.withDefaultLocale(defaultLocale);
+    }
+
+    private enum Executer {
+        embedded(false),
+        forking(true),
+        noDaemon(true),
+        parallel(true, true),
+        configCache(true),
+        isolatedProjects(true);
+
+        final public boolean forks;
+        final public boolean executeParallel;
+
+        Executer(boolean forks) {
+            this(forks, false);
+        }
+
+        Executer(boolean forks, boolean parallel) {
+            this.forks = forks;
+            this.executeParallel = parallel;
+        }
     }
 }

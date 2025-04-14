@@ -28,12 +28,12 @@ class HttpStub {
         ConfigureUtil.configure(closure, new HttpStub())
     }
 
-    def request(Closure<?> closure){
+    def request(Closure<?> closure) {
         request = new StubRequest()
         ConfigureUtil.configure(closure, request)
     }
 
-    def response(Closure<?> closure){
+    def response(Closure<?> closure) {
         response = new StubResponse()
         ConfigureUtil.configure(closure, response)
     }

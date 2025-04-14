@@ -128,7 +128,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         _ * target.getExtensions() >> extensions
         _ * softwareType.name() >> "foo"
         0 * extensions.add(_, _, _)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope , plugin, softwareTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.softwareType >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -160,7 +160,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         and:
         def e = thrown(DefaultMultiCauseException)
         e.causes.size() == 1
-        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name 'foo' was registered")}
+        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name 'foo' was registered") }
     }
 
     def "throws sensible error when registration is disabled but extension is different than the property"() {
@@ -187,7 +187,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         and:
         def e = thrown(DefaultMultiCauseException)
         e.causes.size() == 1
-        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'foo' does not match the value of the property")}
+        e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'foo' does not match the value of the property") }
     }
 
     private static class Foo {}

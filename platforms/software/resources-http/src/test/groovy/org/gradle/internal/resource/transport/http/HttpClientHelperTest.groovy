@@ -25,7 +25,8 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class HttpClientHelperTest extends AbstractHttpClientTest {
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    @Rule
+    SetSystemProperties sysProp = new SetSystemProperties()
 
     def "throws HttpRequestException if an IO error occurs during a request"() {
         def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings) {

@@ -35,7 +35,7 @@ class PolyglotProjectBuilder {
         this.mainBuildFile = this.buildFiles['build']
     }
 
-    PolyglotProjectBuilder buildFile(String name, @DelegatesTo(value=BuildFileBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> conf) {
+    PolyglotProjectBuilder buildFile(String name, @DelegatesTo(value = BuildFileBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> conf) {
         BuilderSupport.applyConfiguration(conf, buildFiles[name])
         this
     }

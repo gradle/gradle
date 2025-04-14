@@ -613,13 +613,13 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
 
         then:
         def generatedFiles = [
-                file("app.sln"),
-                file("exe/exe_mainExe.vcxproj"),
-                file("exe/exe_mainExe.vcxproj.filters"),
-                file("lib/lib_mainDll.vcxproj"),
-                file("lib/lib_mainDll.vcxproj.filters"),
-                file("lib/lib_mainDll.vcxproj"),
-                file("lib/lib_mainDll.vcxproj.filters")
+            file("app.sln"),
+            file("exe/exe_mainExe.vcxproj"),
+            file("exe/exe_mainExe.vcxproj.filters"),
+            file("lib/lib_mainDll.vcxproj"),
+            file("lib/lib_mainDll.vcxproj.filters"),
+            file("lib/lib_mainDll.vcxproj"),
+            file("lib/lib_mainDll.vcxproj.filters")
         ]
         generatedFiles*.assertExists()
 

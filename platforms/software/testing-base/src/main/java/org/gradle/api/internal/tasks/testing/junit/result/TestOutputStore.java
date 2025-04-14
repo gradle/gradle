@@ -57,6 +57,15 @@ public class TestOutputStore {
         return new File(resultsDir, getOutputsFile().getName() + ".idx");
     }
 
+    public Writer writer() {
+        return new Writer();
+    }
+
+    // IMPORTANT: return must be closed when done with.
+    public Reader reader() {
+        return new Reader();
+    }
+
     private static class Region {
         long start;
         long stop;
@@ -75,6 +84,52 @@ public class TestOutputStore {
     private static class TestCaseRegion {
         Region stdOutRegion = new Region();
         Region stdErrRegion = new Region();
+    }
+
+    private static class Index {
+        final ImmutableMap<Long, Index> children;
+        final Region stdOut;
+        final Region stdErr;
+
+        private Index(Region stdOut, Region stdErr) {
+            this.children = ImmutableMap.of();
+            this.stdOut = stdOut;
+            this.stdErr = stdErr;
+        }
+
+        private Index(ImmutableMap<Long, Index> children, Region stdOut, Region stdErr) {
+            this.children = children;
+            this.stdOut = stdOut;
+            this.stdErr = stdErr;
+        }
+    }
+
+    private static class IndexBuilder {
+        final Region stdOut = new Region();
+        final Region stdErr = new Region();
+
+        private final ImmutableMap.Builder<Long, Index> children = ImmutableMap.builder();
+
+        void add(long key, Index index) {
+            if (stdOut.start < 0) {
+                stdOut.start = index.stdOut.start;
+            }
+            if (stdErr.start < 0) {
+                stdErr.start = index.stdErr.start;
+            }
+            if (index.stdOut.stop > stdOut.stop) {
+                stdOut.stop = index.stdOut.stop;
+            }
+            if (index.stdErr.stop > stdErr.stop) {
+                stdErr.stop = index.stdErr.stop;
+            }
+
+            children.put(key, index);
+        }
+
+        Index build() {
+            return new Index(children.build(), stdOut, stdErr);
+        }
     }
 
     public class Writer implements Closeable {
@@ -162,56 +217,6 @@ public class TestOutputStore {
             } finally {
                 indexOutput.close();
             }
-        }
-    }
-
-    public Writer writer() {
-        return new Writer();
-    }
-
-    private static class Index {
-        final ImmutableMap<Long, Index> children;
-        final Region stdOut;
-        final Region stdErr;
-
-        private Index(Region stdOut, Region stdErr) {
-            this.children = ImmutableMap.of();
-            this.stdOut = stdOut;
-            this.stdErr = stdErr;
-        }
-
-        private Index(ImmutableMap<Long, Index> children, Region stdOut, Region stdErr) {
-            this.children = children;
-            this.stdOut = stdOut;
-            this.stdErr = stdErr;
-        }
-    }
-
-    private static class IndexBuilder {
-        final Region stdOut = new Region();
-        final Region stdErr = new Region();
-
-        private final ImmutableMap.Builder<Long, Index> children = ImmutableMap.builder();
-
-        void add(long key, Index index) {
-            if (stdOut.start < 0) {
-                stdOut.start = index.stdOut.start;
-            }
-            if (stdErr.start < 0) {
-                stdErr.start = index.stdErr.start;
-            }
-            if (index.stdOut.stop > stdOut.stop) {
-                stdOut.stop = index.stdOut.stop;
-            }
-            if (index.stdErr.stop > stdErr.stop) {
-                stdErr.stop = index.stdErr.stop;
-            }
-
-            children.put(key, index);
-        }
-
-        Index build() {
-            return new Index(children.build(), stdOut, stdErr);
         }
     }
 
@@ -384,10 +389,5 @@ public class TestOutputStore {
             }
             return targetIndex;
         }
-    }
-
-    // IMPORTANT: return must be closed when done with.
-    public Reader reader() {
-        return new Reader();
     }
 }

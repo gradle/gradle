@@ -49,7 +49,7 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
             builder.append("Caused by: ");
         }
         String className = exception instanceof PlaceholderExceptionSupport
-                ? ((PlaceholderExceptionSupport) exception).getExceptionClassName() : exception.getClass().getName();
+            ? ((PlaceholderExceptionSupport) exception).getExceptionClassName() : exception.getClass().getName();
         builder.append(className);
 
         StackTraceFilter filter = new StackTraceFilter(new ClassMethodNameStackTraceSpec(descriptor.getClassName(), null));

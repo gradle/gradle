@@ -18,12 +18,9 @@ package gradlebuild.docs.dsl.links;
 import java.io.Serializable;
 
 public class LinkMetaData implements Serializable {
-    public enum Style { Javadoc, Dsldoc }
-
     private final Style style;
     private final String displayName;
     private final String urlFragment;
-
     public LinkMetaData(Style style, String displayName, String urlFragment) {
         this.style = style;
         this.displayName = displayName;
@@ -41,4 +38,6 @@ public class LinkMetaData implements Serializable {
     public String getUrlFragment() {
         return urlFragment;
     }
+
+    public enum Style {Javadoc, Dsldoc}
 }

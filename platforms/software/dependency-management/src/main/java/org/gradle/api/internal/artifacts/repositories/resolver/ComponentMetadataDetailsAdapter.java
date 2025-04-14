@@ -43,11 +43,13 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
     private final PlatformSupport platformSupport;
 
-    public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
-                                           NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
-                                           NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
-                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser,
-                                           PlatformSupport platformSupport) {
+    public ComponentMetadataDetailsAdapter(
+        MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
+        NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
+        NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
+        NotationParser<Object, ComponentIdentifier> dependencyNotationParser,
+        PlatformSupport platformSupport
+    ) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
@@ -67,23 +69,23 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     }
 
     @Override
-    public String getStatus() {
-        return metadata.getStatus();
-    }
-
-    @Override
-    public List<String> getStatusScheme() {
-        return metadata.getStatusScheme();
-    }
-
-    @Override
     public void setChanging(boolean changing) {
         metadata.setChanging(changing);
     }
 
     @Override
+    public String getStatus() {
+        return metadata.getStatus();
+    }
+
+    @Override
     public void setStatus(String status) {
         metadata.setStatus(status);
+    }
+
+    @Override
+    public List<String> getStatusScheme() {
+        return metadata.getStatusScheme();
     }
 
     @Override

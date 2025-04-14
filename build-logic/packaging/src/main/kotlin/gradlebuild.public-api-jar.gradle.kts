@@ -86,6 +86,7 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
 }
 
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
+
 val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
 val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
 components.add(gradleApiComponent)

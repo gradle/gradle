@@ -26,7 +26,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultSourceIncludesResolverTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def testDirectory = temporaryFolder.testDirectory
     def sourceDirectory = testDirectory.createDir("sources")
@@ -34,15 +35,15 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def included
     def macros = []
     def macroFunctions = []
-    def includePaths = [ systemIncludeDir ]
+    def includePaths = [systemIncludeDir]
 
     def setup() {
         included = Mock(IncludeDirectives)
         included.getAllMacros() >> macros
-        included.getMacros(_) >> { String name -> macros.findAll {it.name == name} }
+        included.getMacros(_) >> { String name -> macros.findAll { it.name == name } }
         included.hasMacros() >> { !macros.empty }
         included.getAllMacroFunctions() >> macroFunctions
-        included.getMacroFunctions(_) >> { String name -> macroFunctions.findAll {it.name == name} }
+        included.getMacroFunctions(_) >> { String name -> macroFunctions.findAll { it.name == name } }
         included.hasMacroFunctions() >> { !macroFunctions.empty }
     }
 
