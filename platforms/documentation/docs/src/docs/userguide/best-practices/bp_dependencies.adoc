@@ -28,7 +28,7 @@ This simplifies maintenance, improves consistency, and reduces the risk of accid
 Consistent version declarations across projects also make it easier to reason about behavior during testing—especially in modular builds where transitive upgrades can silently change runtime behavior in later stages of the build.
 
 However, version catalogs only influence declared versions, not resolved versions.
-Use them in combination with <<dependency_locking.adoc#dependency_locking,dependency locking>> and <<resolution_rules.adoc#resolution_rules,version alignment>> to enforce consistency across builds.
+Use them in combination with <<dependency_locking.adoc#sec:dependency-locking,dependency locking>> and <<resolution_rules.adoc#using-resolution-rules,version alignment>> to enforce consistency across builds.
 
 === Example
 
