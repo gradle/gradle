@@ -591,7 +591,7 @@ Now it can be executed using only `gradle run`, and the continue property will a
 == Favor Composite Builds over `buildSrc`
 :keywords: structuring-builds,composite-builds,buildSrc
 
-You should setup a <<composite_builds.adoc#defining_composite_builds,Composite Build>> (commonly called an "included build") to hold your _build logic_ (such as any plugins - including convention plugins - and other customizations that are specific to your build).
+You should setup a <<composite_builds.adoc#defining_composite_builds,Composite Build>> (often called an "included build") to hold your build logic—including any custom plugins, convention plugins, and other build-specific customizations.
 
 === Explanation
 
