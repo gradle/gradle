@@ -646,6 +646,7 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy",file
 === References
 - <<part3_multi_project_builds.adoc#step_3_understand_composite_builds,Composite Builds in the Multi-Project Builds Tutorial>>
 - <<composite_builds.adoc#composite_builds,Composite Builds reference documentation>>
+- link:https://github.com/gradle/gradle/issues/6045[Gradle Issue #6045: buildSrc vs. included builds]
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:composite-builds,#composite-builds>>`
