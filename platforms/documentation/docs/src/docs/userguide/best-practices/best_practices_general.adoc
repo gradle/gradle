@@ -603,7 +603,7 @@ The automatically available `buildSrc` is great for rapid prototyping, but it co
 - Included builds are complete Gradle builds and can be opened, worked on, and built independently as standalone projects.  It is straightforward to publish their products, including plugins, in order to share them with other projects.
 
 Ideally, there would be no difference between using `buildSrc` and an included build, `buildSrc` is intended to behave like an implicitly available included build.
-However, due to historical reasons, these differences currently exist.
+However, due to historical reasons, some subtle differences still exist.
 It is likely that in the future this recommendation will be weakened or removed entirely, as Gradle continues to work to converge the behavior of these two approaches.
 At present, however, the differences can be a potential stumbling block.
 
