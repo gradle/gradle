@@ -600,7 +600,7 @@ The preferred location for build logic is an included build named `build-logic`,
 The automatically available `buildSrc` is great for rapid prototyping, but suffers from some subtle disadvantages:
 - There are classloader differences in how these 2 approaches behave that can be surprising; included builds are treated just like external dependencies, which is a simpler mental model.  Dependency resolution behaves subtly differently in buildSrc.
 - There can potentially be fewer task invalidations in a build when files in an included build are modified, leading to faster builds.
-- Included builds are complete Gradle builds and can be opened, worked on, and built independently as standalone projects.
+- Included builds are complete Gradle builds and can be opened, worked on, and built independently as standalone projects.  It is straightforward to publish their products, including plugins, in order to share them with other projects.
 
 Ideally, there shouldn’t be any differences between these 2 approaches, and `buildSrc` should behave like an implicitly available included build if present.
 However, due to historical reasons, these differences currently exist.
