@@ -1,4 +1,4 @@
-import gradlebuild.basics.isBundleGroovy4
+import gradlebuild.basics.bundleGroovyMajor
 
 /**
  * This project provides the "platform" for the Gradle distribution.
@@ -30,7 +30,10 @@ val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-28"
 val slf4jVersion = "2.0.17"
-val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
+val spockVersion = when (bundleGroovyMajor) {
+    4 -> "2.3-groovy-4.0"
+    else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
+}
 val tomljVersion = "1.0.0"
 
 // test only

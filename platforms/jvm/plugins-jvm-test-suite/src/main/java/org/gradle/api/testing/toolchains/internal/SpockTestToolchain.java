@@ -28,7 +28,7 @@ abstract public class SpockTestToolchain extends JUnitPlatformTestToolchain<Spoc
     /**
      * The default version of Spock to use for compiling and executing tests.
      */
-    public static final String DEFAULT_VERSION = "2.2-groovy-3.0";
+    public static final String DEFAULT_VERSION = "2.3-groovy-4.0";
     private static final String GROUP_NAME = "org.spockframework:spock-core";
 
     @Override

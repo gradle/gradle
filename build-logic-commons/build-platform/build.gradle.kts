@@ -11,10 +11,13 @@ description = "Provides a platform that constrains versions of external dependen
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
+// Note: this currently still contains 3/4 logic as we will temporarily have Groovy 3 for the build itself until we move to a Gradle built with Groovy 4
+// It can be removed or changed to 4/5 logic (if necessary) at that point.
 val groovyVersion = GroovySystem.getVersion()
 val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
-val spockVersion = if (isGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
+val codenarcVersion = if (isGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
+val spockVersion = if (isGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
+val groovyGroup = if (isGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 val asmVersion = "9.7.1"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
@@ -69,7 +72,7 @@ dependencies {
             because("CVE-2022-40152 on lower versions")
         }
         api("com.beust:jcommander:1.78")
-        api("org.codehaus.groovy:groovy:$groovyVersion")
+        api("$groovyGroup:groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
         api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
