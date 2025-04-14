@@ -43,6 +43,10 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
         executer = toolingApi.createExecuter()
     }
 
+    def cleanup() {
+        toolingApi.close()
+    }
+
     def "no daemon is started for request"() {
         when:
         withConnection { connection ->
@@ -138,10 +142,6 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
             connection.model(GradleBuild).get()
         }
         toolingApi.daemons.daemon.assertIdle()
-    }
-
-    def cleanup() {
-        toolingApi.close()
     }
 
     boolean pathsInvalidated() {
