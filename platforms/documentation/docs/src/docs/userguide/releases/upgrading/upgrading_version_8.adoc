@@ -42,8 +42,8 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== The Gradle Wrapper is now an executable JAR
 
-The Gradle Wrapper JAR (gradle-wrapper.jar) has been converted into an executable JAR.
-This means it now includes a `Main-Class` attribute in its manifest, allowing it to be launched using the `-jar` option instead of specifying a classpath and main class manually.
+The Gradle Wrapper JAR has been converted into an executable JAR.
+This means it now includes a `Main-Class` attribute, allowing it to be launched using the `-jar` option instead of specifying a classpath and main class manually.
 
 When you update the wrapper scripts using the `gradle wrapper` or `./gradlew wrapper` command, the wrapper JAR will be updated automatically to reflect this change.
 
