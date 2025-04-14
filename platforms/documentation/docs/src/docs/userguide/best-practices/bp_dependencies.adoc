@@ -195,7 +195,7 @@ include::sample[dir="snippets/bestPractices/kotlinStdLib-do/groovy",files="build
 *`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
 
 === References
-- https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html[the kotlin() function]
+- https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html[the `kotlin()` function]
 
 === Tags
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
