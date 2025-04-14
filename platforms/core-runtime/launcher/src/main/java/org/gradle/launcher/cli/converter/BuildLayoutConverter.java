@@ -24,7 +24,6 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.jspecify.annotations.Nullable;
@@ -74,8 +73,6 @@ public class BuildLayoutConverter {
             buildLayout.setProjectDir(this.buildLayout.getProjectDir());
             buildLayout.setGradleUserHomeDir(this.buildLayout.getGradleUserHomeDir());
             buildLayout.setGradleInstallationHomeDir(this.buildLayout.getGradleInstallationHomeDir());
-            buildLayout.setSettingsFile(this.buildLayout.getSettingsFile());
-            buildLayout.setBuildFile(this.buildLayout.getBuildFile());
         }
 
         @Override
@@ -87,16 +84,6 @@ public class BuildLayoutConverter {
             }
             startParameter.setCurrentDir(buildLayout.getCurrentDir());
             startParameter.setGradleUserHomeDir(buildLayout.getGradleUserHomeDir());
-            if (buildLayout.getBuildFile() != null) {
-                DeprecationLogger.whileDisabled(() ->
-                    startParameter.setBuildFile(buildLayout.getBuildFile())
-                );
-            }
-            if (buildLayout.getSettingsFile() != null) {
-                DeprecationLogger.whileDisabled(() ->
-                    startParameter.setSettingsFile(buildLayout.getSettingsFile())
-                );
-            }
         }
 
         @Override

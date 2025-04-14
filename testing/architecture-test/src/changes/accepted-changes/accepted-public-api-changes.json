@@ -1,6 +1,38 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.getBuildFile()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.getSettingsFile()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.setBuildFile(java.io.File)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.setSettingsFile(java.io.File)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.AntBuilder",
             "member": "Method org.gradle.api.AntBuilder.getProperties()",
             "acceptation": "Values of returned map can be null",

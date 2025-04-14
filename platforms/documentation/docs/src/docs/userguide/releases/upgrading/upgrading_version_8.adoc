@@ -89,6 +89,16 @@ The following members of the `org.gradle.util` package have been removed:
 
 * `CollectionUtils`
 
+==== Remove setting custom build layout
+
+The following command line options were deprecated in Gradle 8.x and are removed in Gradle 9.0:
+
+* `-c`, `--settings-file` for specifying a custom settings file location
+* `-b`, `--build-file` for specifying a custom build file location
+
+Also, setting custom build file using
+link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile]
+property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been removed.
 
 [[jspecify]]
 ==== Gradle API now uses JSpecify Nullability Annotations

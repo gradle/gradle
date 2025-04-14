@@ -70,26 +70,6 @@ class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("settings source file: " + settingsFile + ".")
     }
 
-    def "locations are as expected for non-standard settings locations available for scripts"() {
-        def customSettingsPath = "custom-subdir/custom-settings.gradle"
-        def customSettingsFile = testDirectory.file(customSettingsPath)
-        def customSettingsDir = customSettingsFile.parentFile
-        // setting a custom settings location is deprecated
-        executer.noDeprecationChecks()
-        settingsFile customSettingsFile, """
-            rootProject.projectDir = file('..')
-            ${printLocations()}
-        """
-
-        when:
-        run("help", "--settings-file", customSettingsPath)
-
-        then:
-        outputContains("settings root dir: " + testDirectory + ".")
-        outputContains("settings dir: " + customSettingsDir + ".")
-        outputContains("settings source file: " + customSettingsFile + ".")
-    }
-
     def "locations are as expected in an included build"() {
         buildTestFixture.withBuildInSubDir()
         def buildB = singleProjectBuild("buildB") { BuildTestFile build ->

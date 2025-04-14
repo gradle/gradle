@@ -382,9 +382,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     startParameter.gradleHomeDir,
                     startParameter.gradleUserHomeDir,
                     projectDir,
-                    projectDir,
-                    null,
-                    null
+                    projectDir
                 ),
                 startParameter.isOffline,
             )
