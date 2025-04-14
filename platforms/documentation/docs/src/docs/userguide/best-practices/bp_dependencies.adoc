@@ -33,7 +33,7 @@ The following guidelines help in naming catalog entries effectively:
 
 2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment.
 +
-*Example*: For `org.apache.commons:commons-lang3`, use `commons-lang3`.
+*Example*: For `org.apache.commons:commons-lang3`, use `commons-lang3`
 
 3. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
 +
@@ -53,58 +53,18 @@ The following guidelines help in naming catalog entries effectively:
 
 === Examples
 
-==== SLF4J
+====
+include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="gradle/libs.versions.toml[]"]
+====
 
-For the dependency `org.slf4j:slf4j-api`:
-
-[source,toml]
-----
-  [libraries]
-  slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.13" }
-----
-
-[source,kotlin]
-----
-dependencies {
-implementation(libs.slf4j.api)
-}
-----
-
-==== Jackson
-
-For the dependency `com.fasterxml.jackson.core:jackson-databind`:
-
-[source,toml]
-----
-  [libraries]
-  jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.17.1" }
-----
-
-[source,kotlin]
-----
-dependencies {
-implementation(libs.jackson.databind)
-}
-----
-
-For the dependency `com.fasterxml.jackson.dataformat:jackson-dataformat-csv`:
-
-[source,toml]
-----
-  [libraries]
-  jackson-dataformatCsv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv", version = "2.17.1" }
-----
-
-[source,kotlin]
-----
-dependencies {
-implementation(libs.jackson.dataformatCsv)
-}
-----
+====
+include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="build.gradle[tags=do-this]"]
+====
 
 === References
 
-link:https://blog.gradle.org/best-practices-naming-version-catalog-entries[Best Practices for Naming Gradle Version Catalog Entries]
+- link:https://blog.gradle.org/best-practices-naming-version-catalog-entries[Best Practices for Naming Gradle Version Catalog Entries]
 
 === Tags
 
