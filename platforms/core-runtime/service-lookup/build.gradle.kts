@@ -7,7 +7,7 @@ description = "Internal API to dynamically lookup services provided by Gradle mo
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-
     api(libs.jspecify)
+
+    implementation(projects.stdlibJavaExtensions)
 }
