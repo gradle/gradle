@@ -29,27 +29,27 @@ The following guidelines help in naming catalog entries effectively:
 
 1. **Use dashes to separate segments**: Prefer dashes (`-`) over underscores (`_`) to separate different parts of the entry name.
 +
-*Example*: `commons-lang3`
+*Example*: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
 
 2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment.
 +
-*Example*: For `org.apache.commons:commons-lang3`, use `commons-lang3`
+*Example*: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind`
 
 3. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
 +
-*Example*: For `dev.failsafe:failsafe`, use `failsafe`
+*Example*: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
 
 4. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
 +
-*Example*: `json-schema-validator` becomes `jsonSchemaValidator`
+*Example*: `spring-boot-starter-web` becomes `springBootStarterWeb`
 
 5. **Avoid implicit terms**: Exclude terms that are obvious or implied in the context of your project.
 +
-*Example*: For `com.amazonaws:aws-java-sdk-core`, use `aws-core` instead of `aws-javaSdkCore`
+*Example*: For `com.amazonaws:aws-java-sdk-core`, use `aws-core`, not `aws-javaSdkCore`
 
 6. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
 +
-*Example*: `bmuschko-docker-plugin` for `com.bmuschko:gradle-docker-plugin`
+*Example*: For `com.github.spotbugs:spotbugs-gradle-plugin`, use `spotbugs-plugin`
 
 === Examples
 
