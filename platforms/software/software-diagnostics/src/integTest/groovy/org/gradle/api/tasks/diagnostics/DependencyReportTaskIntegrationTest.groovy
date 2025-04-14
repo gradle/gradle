@@ -1049,7 +1049,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    migratingUnlocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
+                    migratingLocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1099,7 +1099,7 @@ compileClasspath - Compile classpath for source set 'main'.
                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
-                migratingUnlocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                migratingLocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
                 implementation.extendsFrom variant
             }
             dependencies {

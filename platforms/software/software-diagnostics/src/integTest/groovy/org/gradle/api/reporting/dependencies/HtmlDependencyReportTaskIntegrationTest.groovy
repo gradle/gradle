@@ -566,7 +566,7 @@ rootProject.name = 'root'
                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
-                migratingUnlocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                migratingLocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
             }
             dependencies {
                 compileOnly 'foo:foo:1.0'

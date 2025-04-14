@@ -221,7 +221,7 @@ This method is only meant to be called on configurations which allow the (non-de
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
                     }
                 }
-                migratingUnlocked("con", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) {
+                migratingLocked("con", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE) {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, "foo"))
                     }

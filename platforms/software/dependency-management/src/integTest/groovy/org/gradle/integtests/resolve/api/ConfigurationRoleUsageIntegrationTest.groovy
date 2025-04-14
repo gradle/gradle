@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.resolve.api
 
-
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
-class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
+class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "default usage for roleless configuration is to allow anything"() {
@@ -67,7 +67,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         where:
-        configuration << ["legacy", "consumable", "resolvable", "consumableUnlocked", "resolvableUnlocked", "dependencyScopeUnlocked"]
+        configuration << ["legacy", "consumable", "resolvable", "consumableLocked", "resolvableLocked", "dependencyScopeUnlocked"]
     }
 
     def "can prevent usage mutation of roleless configurations"() {
@@ -114,7 +114,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             configurations {
-                migratingUnlocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) {
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) {
                     addDeclarationAlternatives("anotherConf")
                 }
             }
@@ -135,7 +135,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             configurations {
                 deps
-                migratingUnlocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
                     addResolutionAlternatives("anotherConf")
                     extendsFrom(deps)
                 }
@@ -218,14 +218,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating project ':buildSrc'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling $method($value) on configuration '$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+        assertUsageLockedFailure(configuration, role)
 
         where:
-        configuration               | method                | value
-        ':buildSrc:implementation'  | 'setCanBeConsumed'    | true
-        ':buildSrc:implementation'  | 'setCanBeResolved'    | true
-        ':buildSrc:implementation'  | 'setCanBeDeclared'    | false
+        configuration               | method               | role               | value
+        'buildSrc:implementation'   | 'setCanBeResolved'   | 'Dependency Scope' | true
+        'buildSrc:implementation'   | 'setCanBeConsumed'   | 'Dependency Scope' | true
+        'buildSrc:implementation'   | 'setCanBeDeclared'   | 'Dependency Scope' | false
     }
 
     def "configurations can not have usage changed from other projects (#configuration - #method(#value)"() {
@@ -270,14 +269,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred configuring project ':projectA'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling $method($value) on configuration '$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+        assertUsageLockedFailure(configuration, role)
 
         where:
-        configuration               | method                | value
-        ':projectA:implementation'  | 'setCanBeConsumed'    | true
-        ':projectA:implementation'  | 'setCanBeResolved'    | true
-        ':projectA:implementation'  | 'setCanBeDeclared'    | false
+        configuration               | method               | role               | value
+        'projectA:implementation'   | 'setCanBeConsumed'   | 'Dependency Scope' | true
+        'projectA:implementation'   | 'setCanBeResolved'   | 'Dependency Scope' | true
+        'projectA:implementation'   | 'setCanBeDeclared'   | 'Dependency Scope' | false
     }
     // endregion Roleless (Implicit LEGACY Role) Configurations
 
@@ -430,7 +428,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         "resolvable('conf') { }"       | 'Resolvable'
         "dependencyScope('conf')"      | 'Dependency Scope'
         "dependencyScope('conf') { }"  | 'Dependency Scope'
-
     }
     // endregion Role-Based Configurations
 
@@ -454,11 +451,15 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling setCanBeResolved(true) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+        assertUsageLockedFailure(configuration, role)
 
         where: "a non-exhaustive list of configurations is tested"
-        configuration << ['api', 'implementation', 'compileOnly', 'runtimeOnly', 'archives']
+        configuration       | role
+        'api'               | 'Dependency Scope'
+        'implementation'    | 'Dependency Scope'
+        'compileOnly'       | 'Dependency Scope'
+        'runtimeOnly'       | 'Dependency Scope'
+        'archives'          | 'Consumable'
     }
 
     def "setting consumable = false fails for consumable configurations added by java plugin"() {
@@ -481,11 +482,14 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling setCanBeConsumed(false) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+        assertUsageLockedFailure(configuration, role)
 
         where: "a non-exhaustive list of configurations is tested"
-        configuration << ['default', 'archives', 'apiElements', 'runtimeElements']
+        configuration       | role
+        'default'           | 'Consumable'
+        'archives'          | 'Consumable'
+        'apiElements'       | 'Consumable'
+        'runtimeElements'   | 'Consumable'
     }
 
     def "changing consumable to true always fails for non-LEGACY configurations (can not change #configuration usage)"() {
@@ -508,11 +512,17 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling setCanBeConsumed(true) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+        assertUsageLockedFailure(configuration, role)
 
         where:
-        configuration << ['api', 'implementation', 'runtimeOnly', 'compileOnly', 'compileOnlyApi', 'runtimeClasspath', 'compileClasspath']
+        configuration       | role
+        'api'               | 'Dependency Scope'
+        'implementation'    | 'Dependency Scope'
+        'runtimeOnly'       | 'Dependency Scope'
+        'compileOnly'       | 'Dependency Scope'
+        'compileOnlyApi'    | 'Dependency Scope'
+        'runtimeClasspath'  | 'Resolvable'
+        'compileClasspath'  | 'Resolvable'
     }
 
     def "changing usage for a configuration in the legacy role is allowed"() {
@@ -526,7 +536,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds 'help'
     }
+    // endregion Warnings
 
+    // region Failures
     def "using a reserved configuration name emits a deprecation warning if JavaBasePlugin applied"() {
         given:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
@@ -571,7 +583,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26461")
-    def "when anticipating configurations to be created from sourcesets, their usage is reset (creation = #description)"() {
+    def "when anticipating configurations to be created from sourcesets, their usage cannot be modified (creation = #description)"() {
         given:
         settingsFile """
             include 'resolver', 'producer'
@@ -651,32 +663,44 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
             }
         """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with explicit set consumed = true"
         "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | false | "role-based configuration"
-        "configurations.consumableUnlocked('additionalRuntimeClasspath')"               | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration"
-        "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration, if it doesn't already exist"
+        "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | false | "internal locked role-based configuration"
+        "configurations.maybeCreateConsumableLocked('additionalRuntimeClasspath')"      | ConfigurationRoles.CONSUMABLE | false | "internal locked role-based configuration, if it doesn't already exist"
     }
 
-    def "changing usage on detached configurations does not warn"() {
+    def "changing usage #property = #change on detached configurations fails"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
-            assert detached.canBeConsumed
+            assert !detached.canBeConsumed
             assert detached.canBeResolved
             assert detached.canBeDeclared
 
-            detached.canBeResolved = false
-            detached.canBeConsumed = false
-            detached.canBeDeclared = false
+            detached.$property($change)
         """
 
-        expect:
-        run "help"
+        when:
+        fails "help"
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause("""Method call not allowed
+  Calling $property($change) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
+        where:
+        property            | change
+        "setCanBeConsumed"  | true
+        "setCanBeResolved"  | false
+        "setCanBeDeclared"  | false
     }
 
     def "changing usage on detached configurations fails when flag is set (#method(false)"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
+
+            assert detached.canBeResolved
+            assert detached.canBeDeclared
 
             detached.$method(false)
         """
@@ -693,7 +717,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         method << ['setCanBeResolved', 'setCanBeDeclared']
     }
 
-    def "redundantly changing usage on a role-locked configuration fails when flag is set (#configuration - #method(#value))"() {
+    def "redundantly changing usage on a role-locked configuration emits warning when flag is set (#configuration - #method(#value))"() {
         given:
         buildFile << """
             configurations {
@@ -701,35 +725,38 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 resolvable('res')
                 dependencyScope('dep')
             }
-
-            configurations.$configuration.$method($value)
+            configurations.cons.canBeConsumed = true
+            configurations.cons.canBeResolved = false
+            configurations.cons.canBeDeclared = false
+            configurations.res.canBeConsumed = false
+            configurations.res.canBeResolved = true
+            configurations.res.canBeDeclared = false
+            configurations.dep.canBeConsumed = false
+            configurations.dep.canBeResolved = false
+            configurations.dep.canBeDeclared = true
         """
-
-        when:
-        fails('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
-
-        then:
-        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling $method($value) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
-
-        where:
-        configuration   | method                | value
-        "cons"          | "setCanBeConsumed"    | true
-        "res"           | "setCanBeConsumed"    | false
-        "dep"           | "setCanBeConsumed"    | false
-        "cons"          | "setCanBeResolved"    | false
-        "res"           | "setCanBeResolved"    | true
-        "dep"           | "setCanBeResolved"    | false
-        "cons"          | "setCanBeDeclared"    | false
-        "res"           | "setCanBeDeclared"    | false
-        "dep"           | "setCanBeDeclared"    | true
+        expect:
+        expectConsumableChanging(":cons", true)
+        expectResolvableChanging(":cons", false)
+        expectDeclarableChanging(":cons", false)
+        expectConsumableChanging(":res", false)
+        expectResolvableChanging(":res", true)
+        expectDeclarableChanging(":res", false)
+        expectConsumableChanging(":dep", false)
+        expectResolvableChanging(":dep", false)
+        expectDeclarableChanging(":dep", true)
+        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
 
-    def "redundantly changing usage on a legacy configuration does not warn"() {
+    def "redundantly changing usage on a legacy configuration does not warn even if flag is set"() {
         given:
         buildFile << """
             def test = configurations.create('test')
+
+            assert test.canBeResolved
+            assert test.canBeConsumed
+            assert test.canBeDeclared
+
             test.setCanBeConsumed(true)
             test.setCanBeResolved(true)
             test.setCanBeDeclared(true)
@@ -738,7 +765,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
-    // endregion Warnings
+    // endregion Failures
 
     private void assertUsageLockedFailure(String configurationName, String roleName = null) {
         String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."

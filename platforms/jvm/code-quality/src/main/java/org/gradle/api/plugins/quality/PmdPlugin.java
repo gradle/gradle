@@ -110,7 +110,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void createConfigurations() {
         super.createConfigurations();
-        Configuration auxClasspath = project.getConfigurations().dependencyScopeUnlocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
+        Configuration auxClasspath = project.getConfigurations().dependencyScopeLocked(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, additionalAuxDepsConfiguration -> {
             additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
             additionalAuxDepsConfiguration.setVisible(false);
         });
@@ -216,7 +216,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);
 
         // TODO: Consider checking if the resolution consistency is enabled for compile/runtime.
-        @SuppressWarnings("deprecation") Configuration pmdAuxClasspath = configurations.migratingUnlocked(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration pmdAuxClasspath = configurations.migratingLocked(sourceSet.getName() + "PmdAuxClasspath", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
         pmdAuxClasspath.extendsFrom(compileClasspath, pmdAdditionalAuxDepsConfiguration);
         pmdAuxClasspath.setVisible(false);
         // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
