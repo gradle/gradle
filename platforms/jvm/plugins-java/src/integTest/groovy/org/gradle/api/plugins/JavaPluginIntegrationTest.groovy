@@ -553,7 +553,7 @@ Artifacts
         result.assertTasksExecuted(":compileJava", ":bar")
     }
 
-    def "changing the role of jvm configurations emits deprecation warnings"() {
+    def "changing the role of jvm configurations fails"() {
         buildFile << """
             plugins {
                 id("java-library")
@@ -577,21 +577,14 @@ Artifacts
             }
         """
 
-        expect:
-        [":apiElements", ":runtimeElements"].each {
-            expectResolvableChanging(it, true)
-            expectDeclarableChanging(it, true)
-        }
-        [":implementation", ":runtimeOnly", ":compileOnly", ":api", ":compileOnlyApi"].each {
-            expectConsumableChanging(it, true)
-            expectResolvableChanging(it, true)
-        }
-        [":runtimeClasspath", ":compileClasspath"].each {
-            expectDeclarableChanging(it, true)
-            expectConsumableChanging(it, true)
-        }
+        when:
+        fails("help")
 
-        succeeds("help")
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause("""Method call not allowed
+  Calling setCanBeResolved(true) on configuration ':apiElements' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
     }
 
     def "registerFeature features are added to java component"() {

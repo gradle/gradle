@@ -622,48 +622,6 @@ All of them match the consumer attributes:
           - Provides flavor 'free' but the consumer didn't ask for it""")
     }
 
-    def "does not select default configuration when no configurations with attributes and default configuration is not consumable"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b'"
-
-        file("a/build.gradle") << """
-            $typeDefs
-
-            configurations {
-                _compileFreeDebug.attributes { $freeDebug }
-            }
-            dependencies {
-                _compileFreeDebug project(':b')
-            }
-            task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                doLast {
-                    assert configurations._compileFreeDebug.collect { it.name } == []
-                }
-            }
-        """
-
-        file("b/build.gradle") << """
-            $typeDefs
-
-            apply plugin: 'base'
-            configurations {
-                foo
-                bar
-                'default' {
-                    canBeConsumed = false
-                }
-            }
-        """
-
-        when:
-        expectConsumableChanging(':b:default', false)
-        fails ':a:checkDebug'
-
-        then:
-        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - No variants exist."""
-    }
-
     def "mentions that there are no variants when there are none"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
@@ -735,55 +693,6 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasCause "A dependency was declared on configuration 'someConf' of 'project :b' but no variant with that configuration name exists."
-
-    }
-
-    def "gives details about failing matches when it cannot select default configuration when no match is found and default configuration is not consumable"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b'"
-
-        file("a/build.gradle") << """
-            $typeDefs
-
-            configurations {
-                _compileFreeDebug.attributes { $freeDebug }
-            }
-            dependencies {
-                _compileFreeDebug project(':b')
-            }
-            task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                doLast {
-                    assert configurations._compileFreeDebug.collect { it.name } == []
-                }
-            }
-        """
-
-        file("b/build.gradle") << """
-            $typeDefs
-
-            apply plugin: 'base'
-
-            configurations {
-                foo.attributes { $freeRelease }
-                bar.attributes { $paid; $release }
-                'default' {
-                    canBeConsumed = false
-                }
-            }
-
-            ${fooAndBarJars()}
-        """
-
-        when:
-        expectConsumableChanging(':b:default', false)
-        fails ':a:checkDebug'
-
-        then:
-        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
-  - Variant 'bar':
-      - Incompatible because this component declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'paid' and the consumer needed attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'
-  - Variant 'foo' declares attribute 'flavor' with value 'free':
-      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
 
     }
 
