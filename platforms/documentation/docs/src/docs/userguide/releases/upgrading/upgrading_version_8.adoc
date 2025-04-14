@@ -134,6 +134,11 @@ It will be removed in Gradle 10.0.
 
 Since Gradle 8.5, the same information can be obtained via the `BuildFeatures` service using `configurationCache.requested` property.
 
+[[undeprecated_configuration_uasge]]
+==== Deprecated configuration usages are no longer deprecated
+
+Starting in 8.0, adding an artifact to a configuration that is neither resolvable nor consumable was deprecated.  This deprecation was overly broad and also captured certain valid usages.  It has been removed in Gradle 8.14.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
