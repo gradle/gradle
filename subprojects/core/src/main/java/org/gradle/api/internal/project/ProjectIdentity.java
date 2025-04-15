@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 public final class ProjectIdentity implements DisplayName {
 
     private final BuildIdentifier buildIdentifier;
+    private final Path buildPath;
     private final Path buildTreePath;
     private final Path projectPath;
     private final String projectName;
@@ -41,6 +42,7 @@ public final class ProjectIdentity implements DisplayName {
         String projectName
     ) {
         this.buildIdentifier = buildIdentifier;
+        this.buildPath = Path.path(buildIdentifier.getBuildPath()); // TODO: Construct BuildIdentifier from the raw path, don't derive this path from the identifier's string
         this.buildTreePath = buildTreePath;
         this.projectPath = projectPath;
         this.projectName = projectName;
@@ -56,6 +58,13 @@ public final class ProjectIdentity implements DisplayName {
      */
     public BuildIdentifier getBuildIdentifier() {
         return buildIdentifier;
+    }
+
+    /**
+     * The path of the owning build.
+     */
+    public Path getBuildPath() {
+        return buildPath;
     }
 
     /**
