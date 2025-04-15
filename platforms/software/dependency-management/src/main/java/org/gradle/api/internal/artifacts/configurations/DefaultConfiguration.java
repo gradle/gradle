@@ -1501,23 +1501,23 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     /**
-     * If this configuration has a role set upon creation, conditionally warn upon usage mutation.
-     * Configurations with roles set upon creation should not have their usage changed. In 9.0,
-     * changing the usage of a configuration with a role set upon creation will become an error.
-     *
-     * <p>In the below two cases, for non-legacy configurations, this method does not warn. This is
-     * to avoid spamming users with these warnings, as popular third-party plugins continue to
+     * If this configuration has a role set upon creation, conditionally fail upon usage mutation.
+     * <p>
+     * Configurations with roles set upon creation should not have their usage changed.
+     * <p>
+     * In the below two cases, for non-legacy configurations, this method does not fail. This is
+     * to allow plugins utilizing this behavior to continue to function, as popular third-party plugins continue to
      * violate these conditions.
-     * </p>
+     * <p>
      * <ul>
      *     <li>The configuration is detached and the new value is false.</li>
      *     <li>The current value and the new value are the same</li>
      * </ul>
-     *
+     * <p>
      * The eventual goal is that all configuration usage be specified upon creation and immutable
      * thereafter.
      */
-    private void maybeWarnOnChangingUsage(String methodName, boolean current, boolean newValue) {
+    private void maybePreventChangingUsage(String methodName, boolean current, boolean newValue) {
         if (hasAllUsages()) {
             // We currently allow configurations with all usages -- those that are created with
             // `create` and `register` -- to have mutable roles. This is likely to change in the future
@@ -1583,7 +1583,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
-        maybeWarnOnChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
+        maybePreventChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
         setCanBeConsumedInternal(allowed);
     }
 
@@ -1604,7 +1604,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeResolved(boolean allowed) {
-        maybeWarnOnChangingUsage("setCanBeResolved", canBeResolved, allowed);
+        maybePreventChangingUsage("setCanBeResolved", canBeResolved, allowed);
         setCanBeResolvedInternal(allowed);
     }
 
@@ -1625,7 +1625,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeDeclared(boolean allowed) {
-        maybeWarnOnChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
+        maybePreventChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
         setCanBeDeclaredInternal(allowed);
     }
 
