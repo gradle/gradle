@@ -15,4 +15,57 @@
 [[best_practices_for_dependencies]]
 = Best Practices for Dependencies
 
-Add content here.
+[[name_version_catalog_entries]]
+== Name Version Catalog Entries Appropriately
+
+Consistent and descriptive names in your version catalog enhance readability and maintainability across your build scripts.
+
+=== Explanation
+
+Version catalogs provide a centralized way to manage dependencies.
+Adopting clear naming conventions for catalog entries ensures that developers can easily identify and use dependencies throughout the project.
+
+The following guidelines help in naming catalog entries effectively:
+
+1. **Use dashes to separate segments**: Prefer dashes (`-`) over underscores (`_`) to separate different parts of the entry name.
++
+*Example*: For `org.apache.logging.log4j:log4j-api`, use `log4j-api`
+
+2. **Derive the first segment from the project group**: Use a unique identifier from the project's group ID as the first segment.
++
+*Example*: For `com.fasterxml.jackson.core:jackson-databind`, use `jackson-databind`
+
+3. **Omit redundant segments**: If the group and artifact IDs are the same, avoid repeating them.
++
+*Example*: For `io.ktor:ktor-client-core`, use `ktor-client-core`, not `ktor-ktor-client-core`
+
+4. **Convert internal dashes to camelCase**: If the artifact ID contains dashes, convert them to camelCase for better readability in code.
++
+*Example*: `spring-boot-starter-web` becomes `springBootStarterWeb`
+
+5. **Avoid implicit terms**: Exclude terms that are obvious or implied in the context of your project.
++
+*Example*: For `com.amazonaws:aws-java-sdk-core`, use `aws-core`, not `aws-javaSdkCore`
+
+6. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
++
+*Example*: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
+
+=== Examples
+
+====
+include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="gradle/libs.versions.toml[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/versionCatalogNaming/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="build.gradle[tags=do-this]"]
+====
+
+=== References
+
+- link:https://blog.gradle.org/best-practices-naming-version-catalog-entries[Best Practices for Naming Gradle Version Catalog Entries]
+
+=== Tags
+
+`<<tags_reference.adoc#tag:version-catalog,#version-catalog>>`
