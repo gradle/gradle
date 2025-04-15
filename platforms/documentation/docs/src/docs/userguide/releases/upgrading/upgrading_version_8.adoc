@@ -506,7 +506,7 @@ The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome
 
 Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()-[executable] property instead.
 
-Note: This deprecation was later link:#undeprecated_fork_options_java_home[removed], and for Gradle versions starting with 8.14, these methods will no longer throw deprecation warnings.
+NOTE: This deprecation was later link:#undeprecated_fork_options_java_home[removed], and for Gradle versions starting with 8.14, these methods will no longer throw deprecation warnings.
 
 [[mutating_buildscript_configurations]]
 ==== Deprecated mutating buildscript configurations
