@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
@@ -27,7 +28,7 @@ import spock.lang.Issue
  * tests so avoid adding tests here if they cannot be expressed with the Groovy DSL.
  */
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDependencyResolutionTest implements ConfigurationUsageChangingFixture {
     def setup() {
         settingsKotlinFile << """
             rootProject.name = "test"
@@ -134,6 +135,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         lib.artifact.expectGet()
 
         then:
+        7.times {
+            expectConsumableChanging(":buildSrc:detachedConfiguration${it+1}", false)
+        }
         succeeds ':checkDeps'
     }
 

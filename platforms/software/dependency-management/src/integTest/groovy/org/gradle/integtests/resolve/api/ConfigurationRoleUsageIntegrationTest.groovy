@@ -627,7 +627,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration, if it doesn't already exist"
     }
 
-    def "changing usage on detached configurations does not warn"() {
+    def "changing usage on detached configurations warns"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
@@ -642,6 +642,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
+        expectConsumableChanging(":detachedConfiguration1", false)
+        expectResolvableChanging(":detachedConfiguration1", false)
+        expectDeclarableChanging(":detachedConfiguration1", false)
         run "help"
     }
 
