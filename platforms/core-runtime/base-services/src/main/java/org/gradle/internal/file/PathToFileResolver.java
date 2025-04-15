@@ -28,6 +28,12 @@ public interface PathToFileResolver {
     File resolve(Object path);
 
     /**
+     * Parse the given path to a file, but does not resolve any relative paths or do any validation.
+     * It just unpacks and parse the path and returns a file object.
+     */
+    File parseToFile(Object path);
+
+    /**
      * Returns a resolver that resolves paths relative to the given base dir.
      */
     PathToFileResolver newResolver(File baseDir);

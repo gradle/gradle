@@ -22,6 +22,8 @@ package org.gradle.internal.file;
 public interface RelativeFilePathResolver {
     /**
      * Converts the given path to a relative path.
+     *
+     * It resolves the path first and then relativizes it against the base directory.
      */
     String resolveAsRelativePath(Object path);
 

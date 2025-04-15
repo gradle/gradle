@@ -35,6 +35,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -982,10 +983,16 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "build.gradle" | "javaexec" | javaExecSpec()
     }
 
+    /**
+     * Not implemented due to configuration cache serialization issues, see:
+     * https://github.com/gradle/gradle/pull/32951#discussion_r2038250814
+     */
+    @ToBeImplemented
     def "ExecOperations in ValueSource resolve relative paths relative to project dir for working dir"() {
         given:
         settingsFile << "include 'a'"
         testDirectory.file("a/build/test/folder").mkdirs()
+        testDirectory.file("build/test/folder").mkdirs()
         buildFile("a/build.gradle", """
             import org.gradle.api.provider.*
             abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
@@ -1011,13 +1018,14 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         when:
-        run("run")
+        runAndFail("run")
 
         then:
-        testDirectory.file("a/build/test/folder/output.txt").exists()
-        testDirectory.file("a/build/test/folder/output.txt").text.contains(
-            "user.dir=${testDirectory.file("a/build/test/folder").absolutePath}"
-        )
+        // TODO: Should be:
+        // def workingDir = testDirectory.file("a/build/test/folder")
+        // workingDir.file("output.txt").exists()
+        // workingDir.file("output.txt").text.contains("user.dir=${workingDir.absolutePath}")
+        result.assertHasErrorOutput("Cannot convert relative path build/test/folder to an absolute file.")
 
         where:
         method     | configuration

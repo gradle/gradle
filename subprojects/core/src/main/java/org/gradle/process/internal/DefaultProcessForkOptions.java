@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -39,6 +38,8 @@ import org.jspecify.annotations.NullMarked;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;
@@ -102,19 +103,21 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         if (dir instanceof DirectoryProperty) {
             workingDir.set((DirectoryProperty) dir);
         } else if (dir instanceof Provider) {
-            workingDir.fileProvider(((Provider<?>) dir).map(SerializableLambdas.transformer(file -> {
+            workingDir.fileProvider(((Provider<?>) dir).map(transformer(file -> {
                 if (file instanceof FileSystemLocation) {
                     return ((Directory) file).getAsFile();
                 } else if (file instanceof File) {
                     return (File) file;
                 } else {
-                    return resolver.resolve(file);
+                    // We don't resolve the path with the resolver, but we let DirectoryProperty to resolve it, so we have a consistent behavior
+                    return resolver.parseToFile(file);
                 }
             })));
         } else if (dir instanceof File) {
             workingDir.set((File) dir);
         } else {
-            workingDir.set(resolver.resolve(dir));
+            // We don't resolve the path with the resolver, but we let DirectoryProperty to resolve it, so we have a consistent behavior
+            workingDir.set(resolver.parseToFile(dir));
         }
     }
 
