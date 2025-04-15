@@ -17,9 +17,10 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.process.ProcessExecutionException;
 
 /**
- * Deprecated, will be removed in Gradle 10.0. Use {@link org.gradle.process.ExecException} instead.
+ * Deprecated, will be removed in Gradle 10.0. Use {@link ProcessExecutionException} instead.
  */
 @Deprecated
 public class ExecException extends GradleException {

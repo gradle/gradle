@@ -1826,32 +1826,32 @@
             ]
         },
         {
-            "type": "org.gradle.process.ExecException",
-            "member": "Class org.gradle.process.ExecException",
-            "acceptation": "Introduced public ExecException",
-            "changes": [
-                "Interface has been added"
-            ]
-        },
-        {
-            "type": "org.gradle.process.ExecException",
-            "member": "Constructor org.gradle.process.ExecException(java.lang.String)",
-            "acceptation": "Introduced public ExecException",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.process.ExecException",
-            "member": "Constructor org.gradle.process.ExecException(java.lang.String,java.lang.Throwable)",
-            "acceptation": "Introduced public ExecException",
-            "changes": []
-        },
-        {
             "type": "org.gradle.process.JavaForkOptions",
             "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Class org.gradle.process.ProcessExecutionException",
+            "acceptation": "Introduced public ExecException",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String)",
+            "acceptation": "Introduced public ExecException",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Introduced public ExecException",
+            "changes": []
         },
         {
             "type": "org.gradle.util.CollectionUtils",

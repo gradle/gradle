@@ -26,7 +26,9 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Arrays;
@@ -234,9 +236,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         LOGGER.debug("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
     }
 
-    private org.gradle.process.ExecException execExceptionFor(Throwable failureCause, ExecHandleState currentState) {
+    @Nullable
+    private ProcessExecutionException execExceptionFor(Throwable failureCause, ExecHandleState currentState) {
         return failureCause != null
-            ? new org.gradle.process.ExecException(failureMessageFor(failureCause, currentState), failureCause)
+            ? new ProcessExecutionException(failureMessageFor(failureCause, currentState), failureCause)
             : null;
     }
 
@@ -420,10 +423,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private static class ExecResultImpl implements ExecResult {
         private final int exitValue;
-        private final org.gradle.process.ExecException failure;
+        private final ProcessExecutionException failure;
         private final String displayName;
 
-        ExecResultImpl(int exitValue, org.gradle.process.ExecException failure, String displayName) {
+        ExecResultImpl(int exitValue, ProcessExecutionException failure, String displayName) {
             this.exitValue = exitValue;
             this.failure = failure;
             this.displayName = displayName;
@@ -435,15 +438,15 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
 
         @Override
-        public ExecResult assertNormalExitValue() throws org.gradle.process.ExecException {
+        public ExecResult assertNormalExitValue() throws ProcessExecutionException {
             if (exitValue != 0) {
-                throw new org.gradle.process.ExecException(format("Process '%s' finished with non-zero exit value %d", displayName, exitValue));
+                throw new ProcessExecutionException(format("Process '%s' finished with non-zero exit value %d", displayName, exitValue));
             }
             return this;
         }
 
         @Override
-        public ExecResult rethrowFailure() throws org.gradle.process.ExecException {
+        public ExecResult rethrowFailure() throws ProcessExecutionException {
             if (failure != null) {
                 throw failure;
             }

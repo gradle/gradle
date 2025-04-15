@@ -16,7 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.process.ExecException
+
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.ClientExecHandleBuilderFactory
 import spock.lang.Specification
 
@@ -92,7 +93,7 @@ No Java runtime present, try --request to install.
         def parser = new DefaultOsXJavaHomeCommand(Mock(ClientExecHandleBuilderFactory)) {
             @Override
             protected void executeCommand(ByteArrayOutputStream outputStream) {
-                throw new ExecException("command failed")
+                throw new ProcessExecutionException("command failed")
             }
         }
         expect:

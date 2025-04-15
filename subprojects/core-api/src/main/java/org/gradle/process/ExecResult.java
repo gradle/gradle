@@ -26,18 +26,18 @@ public interface ExecResult {
     int getExitValue();
 
     /**
-     * Throws an {@link org.gradle.process.ExecException} if the process exited with a non-zero exit value.
+     * Throws an {@link ProcessExecutionException} if the process exited with a non-zero exit value.
      *
      * @return this
-     * @throws ExecException if the process exited with a non-zero exit value
+     * @throws ProcessExecutionException if the process exited with a non-zero exit value
      */
-    ExecResult assertNormalExitValue() throws ExecException;
+    ExecResult assertNormalExitValue() throws ProcessExecutionException;
 
     /**
      * Re-throws any failure executing this process.
      *
      * @return this
-     * @throws ExecException the execution failure
+     * @throws ProcessExecutionException the execution failure
      */
-    ExecResult rethrowFailure() throws ExecException;
+    ExecResult rethrowFailure() throws ProcessExecutionException;
 }
