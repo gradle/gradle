@@ -16,6 +16,8 @@ dependencies {
     api("org.codehaus.groovy:groovy:$groovyVersion")
     api("org.codehaus.groovy:groovy-json:$groovyVersion")
     api("org.codehaus.groovy:groovy-nio:$groovyVersion")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
 }
 
 dependencies {

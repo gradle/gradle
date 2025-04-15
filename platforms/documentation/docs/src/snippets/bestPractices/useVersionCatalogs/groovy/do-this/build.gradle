@@ -12,6 +12,7 @@ repositories {
 // tag::do-this[]
 dependencies {
     api(libs.bundles.groovy)
+    testImplementation(libs.junit.jupiter)
     implementation(libs.commons.lang3)
 }
 // end::do-this[]
