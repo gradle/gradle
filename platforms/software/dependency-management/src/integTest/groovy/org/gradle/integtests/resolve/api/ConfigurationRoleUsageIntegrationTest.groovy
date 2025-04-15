@@ -673,14 +673,12 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         run "help"
     }
 
-    def "changing usage on detached configurations fails when flag is set"() {
+    def "changing usage on detached configurations fails when flag is set (#method(false)"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
-            detached.canBeResolved = false
-            detached.canBeConsumed = false
-            detached.canBeDeclared = false
+            detached.$method(false)
         """
 
         when:
@@ -689,11 +687,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
         failure.assertHasCause("""Method call not allowed
-  Calling setCanBeResolved(false) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+  Calling $method(false) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
 
+        where:
+        method << ['setCanBeResolved', 'setCanBeDeclared']
     }
 
-    def "redundantly changing usage on a role-locked configuration fails when flag is set"() {
+    def "redundantly changing usage on a role-locked configuration fails when flag is set (#configuration - #method(#value))"() {
         given:
         buildFile << """
             configurations {
@@ -702,17 +702,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 dependencyScope('dep')
             }
 
-            configurations.cons.canBeConsumed = true
-            configurations.cons.canBeResolved = false
-            configurations.cons.canBeDeclared = false
-
-            configurations.res.canBeConsumed = false
-            configurations.res.canBeResolved = true
-            configurations.res.canBeDeclared = false
-
-            configurations.dep.canBeConsumed = false
-            configurations.dep.canBeResolved = false
-            configurations.dep.canBeDeclared = true
+            configurations.$configuration.$method($value)
         """
 
         when:
@@ -721,8 +711,19 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
         failure.assertHasCause("""Method call not allowed
-  Calling setCanBeConsumed(true) on configuration ':cons' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+  Calling $method($value) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
 
+        where:
+        configuration   | method                | value
+        "cons"          | "setCanBeConsumed"    | true
+        "res"           | "setCanBeConsumed"    | false
+        "dep"           | "setCanBeConsumed"    | false
+        "cons"          | "setCanBeResolved"    | false
+        "res"           | "setCanBeResolved"    | true
+        "dep"           | "setCanBeResolved"    | false
+        "cons"          | "setCanBeDeclared"    | false
+        "res"           | "setCanBeDeclared"    | false
+        "dep"           | "setCanBeDeclared"    | true
     }
 
     def "redundantly changing usage on a legacy configuration does not warn"() {
