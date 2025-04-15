@@ -50,8 +50,10 @@ root ::= statements
 statement ::= (assignment | block | functionChain)
 statements ::= (statement SEMI*)*
 
-assignment ::= directlyAssignableExpression (EQ|PLUSEQ) assignmentValue {pin=2}
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
+
+assignment ::= directlyAssignableExpression (EQ|PLUSEQ) infixFunctionCall {pin=2}
+infixFunctionCall ::= (assignmentValue 'to' assignmentValue) | assignmentValue
 assignmentValue ::= (simpleIdentifier (navigationSuffix* valueArguments)?) | literalOrIdentifier
 
 block ::= simpleIdentifier valueArguments? annotatedLambda
@@ -61,7 +63,8 @@ functionChain ::= simpleIdentifier postfixUnarySuffixes
 postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
 
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? (functionChain | literalOrIdentifier)
+valueArgumentElement ::= functionChain | literalOrIdentifier
+valueArgument ::= (valueArgumentElement 'to' valueArgumentElement) | (simpleIdentifier EQ)? valueArgumentElement
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
