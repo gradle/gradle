@@ -97,37 +97,27 @@ public class TarCopyAction implements CopyAction {
 
         @Override
         public void processFile(FileCopyDetailsInternal details) {
-            if (details.isDirectory()) {
-                visitDir(details);
-            } else {
-                visitFile(details);
-            }
-        }
-
-        private void visitFile(FileCopyDetails fileDetails) {
             try {
-                TarArchiveEntry archiveEntry = new TarArchiveEntry(fileDetails.getRelativePath().getPathString());
-                archiveEntry.setModTime(getArchiveTimeFor(fileDetails));
-                archiveEntry.setSize(fileDetails.getSize());
-                archiveEntry.setMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
+                boolean isDirectory = details.isDirectory();
+                String entryName = details.getRelativePath().getPathString();
+                if (isDirectory) {
+                    // Trailing slash in name indicates that entry is a directory.
+                    entryName += '/';
+                }
+                TarArchiveEntry archiveEntry = new TarArchiveEntry(entryName);
+                archiveEntry.setModTime(getArchiveTimeFor(details));
+                if (!isDirectory) {
+                    archiveEntry.setSize(details.getSize());
+                }
+                int flag = isDirectory ? UnixStat.DIR_FLAG : UnixStat.FILE_FLAG;
+                archiveEntry.setMode(flag | details.getPermissions().toUnixNumeric());
                 tarOutStr.putArchiveEntry(archiveEntry);
-                fileDetails.copyTo(tarOutStr);
+                if (!isDirectory) {
+                    details.copyTo(tarOutStr);
+                }
                 tarOutStr.closeArchiveEntry();
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not add %s to TAR '%s'.", fileDetails, tarFile), e);
-            }
-        }
-
-        private void visitDir(FileCopyDetails dirDetails) {
-            try {
-                // Trailing slash on name indicates entry is a directory
-                TarArchiveEntry archiveEntry = new TarArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
-                archiveEntry.setModTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setMode(UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
-                tarOutStr.putArchiveEntry(archiveEntry);
-                tarOutStr.closeArchiveEntry();
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
+                throw new GradleException(String.format("Could not add %s to TAR '%s'.", details, tarFile), e);
             }
         }
     }
