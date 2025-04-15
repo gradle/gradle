@@ -71,9 +71,7 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
 
         where:
         snippetsFactory                      | location
-        exec("getProject()").java            | "Unknown location" // TODO(mlopatkin): Fix location there
-        javaexec("getProject()").java        | "Unknown location"
-        exec("getExecOperations()").java     | "Unknown location"
+        exec("getExecOperations()").java     | "Unknown location" // TODO(mlopatkin): Fix location there
         javaexec("getExecOperations()").java | "Unknown location"
         processBuilder().java                | "Class `SneakyTask`"
         stringArrayExecute().java            | "Class `SneakyTask`"

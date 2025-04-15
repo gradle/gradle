@@ -268,6 +268,25 @@ The `outputFile` property in the `WriteProperties` task has been removed in Grad
 
 This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
 
+[[removed_project_exec]]
+==== Removed deprecated `Project#exec`, `Project#javaexec` and their script counterparts
+
+Some helper methods to run external processes were <<#deprecated_project_exec, deprecated in Gradle 8.11>> and are removed in Gradle 9.0:
+
+* `org.gradle.apiProject#exec(Closure)`
+* `org.gradle.apiProject#exec(Action)`
+* `org.gradle.apiProject#javaexec(Closure)`
+* `org.gradle.apiProject#javaexec(Action)`
+* `org.gradle.api.Script#exec(Closure)`
+* `org.gradle.api.Script#exec(Action)`
+* `org.gradle.api.Script#javaexec(Closure)`
+* `org.gradle.api.Script#javaexec(Action)`
+* `org.gradle.kotlin.dsl.InitScriptApi#exec(Action)`
+* `org.gradle.kotlin.dsl.InitScriptApi#javaexec(Action)`
+* `org.gradle.kotlin.dsl.KotlinScript#exec(Action)`
+* `org.gradle.kotlin.dsl.KotlinScript#javaexec(Action)`
+* `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
+* `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
 
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
