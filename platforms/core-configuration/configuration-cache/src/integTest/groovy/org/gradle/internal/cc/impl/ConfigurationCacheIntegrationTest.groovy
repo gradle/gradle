@@ -412,7 +412,6 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertNoConfigurationCache()
         outputContains("isConfigurationCacheRequested=true")
     }
-    }
 
     private def expectStartParameterIsConfigurationCacheRequestedWarning() {
         executer.expectDocumentedDeprecationWarning(
@@ -422,4 +421,5 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
         )
+    }
 }
