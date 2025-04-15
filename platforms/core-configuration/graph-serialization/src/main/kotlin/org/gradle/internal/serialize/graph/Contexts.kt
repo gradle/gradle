@@ -394,6 +394,16 @@ abstract class AbstractIsolateContext<T>(
         }
     }
 
+    override suspend fun forConfigurationCacheIncompatibleTask(trace: PropertyTrace, action: suspend () -> Unit) {
+        val previousListener = currentProblemsListener
+        currentProblemsListener = previousListener.forConfigurationCacheIncompatibleTask(trace)
+        try {
+            action()
+        } finally {
+            currentProblemsListener = previousListener
+        }
+    }
+
     override fun toString(): String {
         return "$name ${this::class.simpleName}"
     }

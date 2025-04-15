@@ -24,6 +24,56 @@ import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "task can declare CC incompatibility"() {
+        buildFile """
+            abstract class FooTask extends DefaultTask implements NotCompatibleWithConfigurationCache {
+              private Provider<Boolean> disableConfigurationCacheIfSpec
+
+              @Override
+              @Internal
+              Provider<Boolean> getDisableConfigurationCacheIf(){
+                  return disableConfigurationCacheIfSpec
+              }
+              @Override
+              void disableConfigurationCacheIf(Provider<Boolean> spec){
+                  disableConfigurationCacheIfSpec = spec
+              }
+
+              @TaskAction
+              void doWork() {
+                  // introduces a CC problem
+                  println project.name
+              }
+            }
+
+            tasks.register("foo", FooTask) {
+                disableConfigurationCacheIf(providers.provider { true })
+            }
+
+            tasks.register("bar", DefaultTask) {
+                doLast {
+                    // introduces a CC problem
+                    println project.name
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        result.assertTaskExecuted(":foo") // running vintage
+        output.contains("Configuration cache entry discarded because incompatible task was found: 'task `:foo` of type `FooTask`'.")
+
+        when:
+        configurationCacheFails "bar"
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 29: invocation of 'Task.project' at execution time is unsupported.")
+        }
+    }
+
     def "configuration cache is out of incubation"() {
         given:
         settingsFile << ""

@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.initialization
 
 import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.NotCompatibleWithConfigurationCache
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.ExternalProcessStartedListener
 import org.gradle.api.internal.GeneratedSubclasses
@@ -147,6 +148,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 
     private
     fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
+        task.isExplicitlyConfigurationCacheIncompatible() -> problems.forConfigurationCacheIncompatibleTask(locationForTask(task))
         task.isCompatibleWithConfigurationCache -> problems
         else -> problems.forIncompatibleTask(locationForTask(task), task.reasonTaskIsIncompatibleWithConfigurationCache.get())
     }
@@ -193,4 +195,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 
     private
     fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
+
+    private
+    fun TaskInternal.isExplicitlyConfigurationCacheIncompatible() : Boolean =
+        this is NotCompatibleWithConfigurationCache && disableConfigurationCacheIf.get()
 }

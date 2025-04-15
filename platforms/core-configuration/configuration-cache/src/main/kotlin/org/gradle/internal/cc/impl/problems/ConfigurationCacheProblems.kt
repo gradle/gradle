@@ -104,6 +104,9 @@ class ConfigurationCacheProblems(
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
+    val explicitlyIncompatibleTasks = newConcurrentHashSet<PropertyTrace>()
+
+    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
@@ -160,6 +163,15 @@ class ConfigurationCacheProblems(
                 val failure = failureFactory.create(error)
                 onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
             }
+        }
+    }
+
+    override fun forConfigurationCacheIncompatibleTask(trace: PropertyTrace): ProblemsListener {
+        explicitlyIncompatibleTasks.add(trace)
+        return object : AbstractProblemsListener() {
+            override fun onProblem(problem: PropertyProblem) {}
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {}
         }
     }
 
@@ -331,9 +343,10 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
+                cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary(incompatibleTasks)}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
+                cacheAction == Store && explicitlyIncompatibleTasks.isNotEmpty() -> log("Configuration cache entry discarded${incompatibleTasksSummary(explicitlyIncompatibleTasks)}")
                 cacheAction == Store && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == Store -> log("Configuration cache entry stored with {}.", problemCountString)
                 cacheAction is Update && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
@@ -348,8 +361,8 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun incompatibleTasksSummary() = when {
-        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'${it.render()}'" }}."
+    fun incompatibleTasksSummary(tasks : Collection<PropertyTrace>) = when {
+        tasks.isNotEmpty() -> " because incompatible ${if (tasks.size > 1) "tasks were" else "task was"} found: ${tasks.joinToString(", ") { "'${it.render()}'" }}."
         else -> "."
     }
 
