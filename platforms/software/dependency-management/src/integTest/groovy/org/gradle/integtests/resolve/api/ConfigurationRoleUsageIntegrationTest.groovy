@@ -184,7 +184,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         configuration << ['runtimeClasspath', 'compileClasspath']
     }
 
-    def "configurations created by buildSrc automatically can not have usage changed"() {
+    def "configurations created by buildSrc automatically can not have usage changed (#configuration - #method(#value))"() {
         given:
         file("buildSrc/src/main/java/MyTask.java") << """
             import org.gradle.api.DefaultTask;
@@ -201,9 +201,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 assert findByName('implementation')
 
                 implementation {
-                    canBeConsumed = !canBeConsumed
-                    canBeResolved = !canBeResolved
-                    canBeDeclared = !canBeDeclared
+                    assert !canBeConsumed
+                    assert !canBeResolved
+                    assert canBeDeclared
+
+                    $method($value)
                 }
             }
         """
@@ -218,7 +220,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         then:
         failure.assertHasDescription("A problem occurred evaluating project ':buildSrc'.")
         failure.assertHasCause("""Method call not allowed
-  Calling setCanBeConsumed(true) on configuration ':buildSrc:implementation' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+  Calling $method($value) on configuration '$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
+        where:
+        configuration               | method                | value
+        ':buildSrc:implementation'  | 'setCanBeConsumed'    | true
+        ':buildSrc:implementation'  | 'setCanBeResolved'    | true
+        ':buildSrc:implementation'  | 'setCanBeDeclared'    | false
     }
 
     def "configurations can not have usage changed from other projects"() {
