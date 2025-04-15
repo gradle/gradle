@@ -100,7 +100,6 @@ public abstract class DefaultArtifactPublicationSet {
         private Set<PublishArtifact> defaultArtifacts;
         private Set<PublishArtifact> explicitArtifacts;
         private ImmutableSet<PublishArtifact> aggregateArtifacts;
-        private PublishArtifact currentDefault;
         private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<Set<PublishArtifact>>();
 
         public DefaultArtifactProvider(ConfigurationContainer configurations, String aggregateArtifactsConfName) {
@@ -162,16 +161,19 @@ public abstract class DefaultArtifactPublicationSet {
         @Override
         protected Value<Set<PublishArtifact>> calculateOwnValue(ValueConsumer consumer) {
             if (defaultArtifacts == null) {
-                defaultArtifacts = new LinkedHashSet<>();
-                currentDefault = null;
+                PublishArtifact currentDefault = null;
+                Set<PublishArtifact> newDefaultArtifacts = new LinkedHashSet<>();
+
                 if (explicitArtifacts != null) {
                     for (PublishArtifact artifact : explicitArtifacts) {
-                        processArtifact(artifact);
+                        currentDefault = processArtifact(artifact, currentDefault, newDefaultArtifacts);
                     }
                 }
                 for (PublishArtifact artifact : getAggregateConfigurationArtifacts())  {
-                    processArtifact(artifact);
+                    currentDefault = processArtifact(artifact, currentDefault, newDefaultArtifacts);
                 }
+
+                defaultArtifacts = newDefaultArtifacts;
             }
             return Value.of(defaultArtifacts);
         }
@@ -191,33 +193,38 @@ public abstract class DefaultArtifactPublicationSet {
          * Logic which attempts to determine which artifacts should be included in {@link #defaultArtifacts}.
          * This can cause confusing behavior to users.
          *
+         * @return the new default artifact
+         *
          * @see <a href="https://github.com/gradle/gradle/issues/6875">#6875</a>
          * @see <a href="https://github.com/gradle/gradle/issues/26418">#26418</a>
          */
-        private void processArtifact(PublishArtifact artifact) {
+        private static PublishArtifact processArtifact(
+            PublishArtifact artifact,
+            @Nullable PublishArtifact currentDefault,
+            Set<PublishArtifact> defaultArtifacts
+        ) {
             String thisType = artifact.getType();
 
             if (currentDefault == null) {
                 defaultArtifacts.add(artifact);
-                currentDefault = artifact;
+                return artifact;
             } else {
                 String currentType = currentDefault.getType();
                 if (thisType.equals("ear")) {
-                    replaceCurrent(artifact);
+                    defaultArtifacts.remove(currentDefault);
+                    defaultArtifacts.add(artifact);
+                    return artifact;
                 } else if (thisType.equals("war")) {
                     if (currentType.equals("jar")) {
-                        replaceCurrent(artifact);
+                        defaultArtifacts.remove(currentDefault);
+                        defaultArtifacts.add(artifact);
+                        return artifact;
                     }
                 } else if (!thisType.equals("jar")) {
                     defaultArtifacts.add(artifact);
                 }
             }
-        }
-
-        void replaceCurrent(PublishArtifact artifact) {
-            defaultArtifacts.remove(currentDefault);
-            defaultArtifacts.add(artifact);
-            currentDefault = artifact;
+            return currentDefault;
         }
 
         @Override

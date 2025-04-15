@@ -42,3 +42,7 @@ Here you can find a brief explanation of all the tags used in the best practices
 
 [[tag:upgrades]]
 `#upgrades` :: Items that are related to making Gradle version upgrades easier.
+
+[[tag:version-catalog]]
+`#version-catalog` :: Items that explain how to use <<version_catalogs.adoc#version-catalog,version catalogs>> to centralize dependency declarations.
+
