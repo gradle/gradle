@@ -17,12 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
     def "main component is java component"() {
         given:
@@ -553,45 +552,45 @@ Artifacts
         result.assertTasksExecuted(":compileJava", ":bar")
     }
 
-    def "changing the role of jvm configurations emits deprecation warnings"() {
+    def "changing the role of jvm configurations fails (#configuration - #method(true))"() {
         buildFile << """
             plugins {
                 id("java-library")
             }
 
             configurations {
-                [apiElements, runtimeElements].each {
-                    it.canBeResolved = true
-                    it.canBeDeclared = true
-                }
-
-                [implementation, runtimeOnly, compileOnly, api, compileOnlyApi].each {
-                    it.canBeConsumed = true
-                    it.canBeResolved = true
-                }
-
-                [runtimeClasspath, compileClasspath].each {
-                    it.canBeDeclared = true
-                    it.canBeConsumed = true
-                }
+                $configuration.$method(true)
             }
         """
 
-        expect:
-        [":apiElements", ":runtimeElements"].each {
-            expectResolvableChanging(it, true)
-            expectDeclarableChanging(it, true)
-        }
-        [":implementation", ":runtimeOnly", ":compileOnly", ":api", ":compileOnlyApi"].each {
-            expectConsumableChanging(it, true)
-            expectResolvableChanging(it, true)
-        }
-        [":runtimeClasspath", ":compileClasspath"].each {
-            expectDeclarableChanging(it, true)
-            expectConsumableChanging(it, true)
-        }
+        when:
+        fails("help")
 
-        succeeds("help")
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause("""Method call not allowed
+  Calling $method(true) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
+        where:
+        configuration       | method
+        "apiElements"       | "setCanBeResolved"
+        "apiElements"       | "setCanBeDeclared"
+        "runtimeElements"   | "setCanBeResolved"
+        "runtimeElements"   | "setCanBeDeclared"
+        "implementation"    | "setCanBeResolved"
+        "implementation"    | "setCanBeConsumed"
+        "runtimeOnly"       | "setCanBeResolved"
+        "runtimeOnly"       | "setCanBeConsumed"
+        "compileOnly"       | "setCanBeResolved"
+        "compileOnly"       | "setCanBeConsumed"
+        "api"               | "setCanBeResolved"
+        "api"               | "setCanBeConsumed"
+        "compileOnlyApi"    | "setCanBeResolved"
+        "compileOnlyApi"    | "setCanBeConsumed"
+        "runtimeClasspath"  | "setCanBeConsumed"
+        "runtimeClasspath"  | "setCanBeDeclared"
+        "compileClasspath"  | "setCanBeConsumed"
+        "compileClasspath"  | "setCanBeDeclared"
     }
 
     def "registerFeature features are added to java component"() {
