@@ -49,7 +49,7 @@ The following guidelines help in naming catalog entries effectively:
 
 6. **Suffix plugin libraries with `-plugin`**: When referencing a plugin as a library (not in the `[plugins]` section), append `-plugin` to the name.
 +
-*Example*: For `com.github.spotbugs:spotbugs-gradle-plugin`, use `spotbugs-plugin`
+*Example*: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
 
 === Examples
 
@@ -68,4 +68,4 @@ include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="
 
 === Tags
 
-`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+`<<tags_reference.adoc#tag:version-catalog,#version-catalog>>`
