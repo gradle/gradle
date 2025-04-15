@@ -1025,7 +1025,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         // def workingDir = testDirectory.file("a/build/test/folder")
         // workingDir.file("output.txt").exists()
         // workingDir.file("output.txt").text.contains("user.dir=${workingDir.absolutePath}")
-        result.assertHasErrorOutput("Cannot convert relative path build/test/folder to an absolute file.")
+        result.assertHasErrorOutput("Cannot convert relative path ${"build/test/folder".replace("/", File.separator)} to an absolute file.")
 
         where:
         method     | configuration

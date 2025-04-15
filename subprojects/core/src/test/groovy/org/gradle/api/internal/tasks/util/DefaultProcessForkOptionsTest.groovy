@@ -49,7 +49,7 @@ class DefaultProcessForkOptionsTest extends Specification {
         options.workingDir == baseDir
 
         then:
-        1 * resolver.resolve(12) >> baseDir
+        1 * resolver.parseToFile(12) >> baseDir
         1 * workingDir.set(baseDir)
         1 * workingDir.getAsFile().get() >> baseDir
     }
