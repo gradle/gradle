@@ -173,7 +173,7 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 
 === References
 
-link:https://docs.gradle.org/current/javadoc/[Gradle API]
+- link:https://docs.gradle.org/current/javadoc/[Gradle API]
 
 === Tags
 
