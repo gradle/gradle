@@ -71,6 +71,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getParent(): GradleInternal? =
         delegate.parent?.let { delegateParent -> from(delegateParent, referrerProject) }
 
+    override fun notCompatibleWithFeature(featureKey: String) =
+        delegate.notCompatibleWithFeature(featureKey)
+
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this

@@ -16,6 +16,7 @@
 
 package org.gradle.api.configuration;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -31,6 +32,24 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildFeatures {
+
+    /**
+     * Requires the given feature to be disabled.
+     *
+     * @param featureKey the feature that needs to be disabled
+     * @since 9.0
+     */
+    @Incubating
+    void requireDisabled(String featureKey);
+
+    /**
+     * Requires the given feature to be disabled.
+     *
+     * @param feature the feature that needs to be disabled
+     * @since 9.0
+     */
+    @Incubating
+    void requireDisabled(BuildFeature feature);
 
     /**
      * Status of the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature configuration in the build.

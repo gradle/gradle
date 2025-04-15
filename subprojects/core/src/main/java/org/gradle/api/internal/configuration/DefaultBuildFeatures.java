@@ -30,6 +30,8 @@ import javax.inject.Inject;
 
 public class DefaultBuildFeatures implements BuildFeatures {
 
+    public static final String ISOLATED_PROJECTS = "isolated-projects";
+    public static final String CONFIGURATION_CACHE = "configuration-cache";
     private final Lazy<BuildFeature> configurationCache;
     private final Lazy<BuildFeature> isolatedProjects;
 
@@ -37,6 +39,30 @@ public class DefaultBuildFeatures implements BuildFeatures {
     public DefaultBuildFeatures(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
         this.configurationCache = Lazy.atomic().of(() -> createConfigurationCache(startParameter, buildModelParameters));
         this.isolatedProjects = Lazy.atomic().of(() -> createIsolatedProjects(startParameter, buildModelParameters));
+    }
+
+    @Override
+    public void requireDisabled(BuildFeature feature) {
+        boolean active = feature.getActive().getOrElse(false);
+        if (!active) {
+            return;
+        }
+
+        throw new BuildRestartException(((DefaultBuildFeature) feature)::disable);
+    }
+
+    @Override
+    public void requireDisabled(String featureKey) {
+        switch (featureKey) {
+            case CONFIGURATION_CACHE:
+                requireDisabled(configurationCache.get());
+                break;
+            case ISOLATED_PROJECTS:
+                requireDisabled(isolatedProjects.get());
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown feature: " + featureKey);
+        }
     }
 
     @Override
@@ -52,13 +78,15 @@ public class DefaultBuildFeatures implements BuildFeatures {
     private static BuildFeature createConfigurationCache(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
         Provider<Boolean> isRequested = getRequestedProvider(startParameter.getConfigurationCache());
         Provider<Boolean> isActive = Providers.of(buildModelParameters.isConfigurationCache());
-        return new DefaultBuildFeature(isRequested, isActive);
+        return new DefaultBuildFeature(CONFIGURATION_CACHE, isRequested, isActive,
+            sp -> sp.setConfigurationCache(Option.Value.value(false)));
     }
 
     private static BuildFeature createIsolatedProjects(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
         Provider<Boolean> isRequested = getRequestedProvider(startParameter.getIsolatedProjects());
         Provider<Boolean> isActive = Providers.of(buildModelParameters.isIsolatedProjects());
-        return new DefaultBuildFeature(isRequested, isActive);
+        return new DefaultBuildFeature(ISOLATED_PROJECTS, isRequested, isActive,
+            sp -> sp.setIsolatedProjects(Option.Value.value(false)));
     }
 
     private static ProviderInternal<Boolean> getRequestedProvider(Option.Value<Boolean> optionValue) {
