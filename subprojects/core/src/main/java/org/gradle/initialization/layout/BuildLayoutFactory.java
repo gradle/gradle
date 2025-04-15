@@ -61,11 +61,6 @@ public class BuildLayoutFactory {
         if (configuration.isUseEmptySettings()) {
             return buildLayoutFrom(configuration, null);
         }
-        File explicitSettingsFile = configuration.getSettingsFile();
-        if (explicitSettingsFile != null) {
-            return buildLayoutFrom(configuration, explicitSettingsFile);
-        }
-
         return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
     }
 

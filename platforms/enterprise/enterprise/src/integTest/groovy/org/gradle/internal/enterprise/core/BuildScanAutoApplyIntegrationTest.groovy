@@ -55,16 +55,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
-    def "only applies once when -b used"() {
-        when:
-        file("other-build.gradle") << "task dummy {}"
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        runBuildWithScanRequest("-b", "other-build.gradle")
-
-        then:
-        pluginAppliedOnce()
-    }
-
     def "does not automatically apply plugin when --scan is not provided on command-line"() {
         when:
         runBuildWithoutScanRequest()

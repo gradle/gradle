@@ -88,33 +88,4 @@ class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
         outputContains("project: plugin 1 visible")
         outputContains("project: plugin 2 not visible")
     }
-
-    def "classes loaded in settings are visible when -b is used"() {
-        def plugin1Builder = new PluginBuilder(file("plugin1"))
-        plugin1Builder.addSettingsPlugin("", "test.plugin1", "MySettingsPlugin1")
-        def plugin1Jar = file("plugin1.jar")
-        plugin1Builder.publishTo(executer, plugin1Jar)
-        def plugin1ClassName = "${plugin1Builder.packageName}.MySettingsPlugin1"
-
-        settingsFile << """
-            buildscript { dependencies { classpath files(\"${plugin1Jar.name}\") } }
-
-            getClass().classLoader.loadClass('${plugin1ClassName}')
-            println "settings: plugin 1 visible"
-        """
-
-        file("other-build.gradle") << """
-            getClass().classLoader.loadClass('${plugin1ClassName}')
-            println "project: plugin 1 visible"
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        succeeds("help", "-b", "other-build.gradle")
-
-        then:
-        outputContains("settings: plugin 1 visible")
-        outputContains("project: plugin 1 visible")
-    }
-
 }
