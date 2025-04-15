@@ -6,6 +6,16 @@ a = f(7)
 a += "something"
 a = f.g.h(7)
 
+// fixed 'to' infix function parsing
+a = b.to(c)
+a = 1 to "x"
+a = b to c
+d = e(f to g)
+d = e(f to g, h to k)
+h = i() to j.k.l.m(n)
+o = p.q(r) to s.t()
+u = v.w(x to y) to z
+
 rootProject.name = "something"
 
 block {
@@ -47,3 +57,12 @@ f(1).g(2).h(3)
 // 1(2)
 // true(3)
 // null(4)
+// a to 1
+
+// unsupported random infix function
+//      a = 1 from "x"
+//      a = b from c
+//      d = e(f from g)
+//      h = i() from j.k.l.m(n)
+//      o = p.q(r) from s.t()
+//      u = v.w(x to y) from z
