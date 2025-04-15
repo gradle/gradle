@@ -209,7 +209,8 @@ public final class DefaultGradleVersion extends GradleVersion {
         return version(versionPart);
     }
 
-    public DefaultGradleVersion getNextMajorVersion() {
+    @Override
+    public GradleVersion getNextMajorVersion() {
         return version((majorPart + 1) + ".0");
     }
 

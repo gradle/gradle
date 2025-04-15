@@ -75,6 +75,18 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
      */
     public abstract GradleVersion getBaseVersion();
 
+    /**
+     * The next major release following this version.
+     *
+     * The next major is "N.0", where N is the current major version plus 1.
+     *
+     * For example, for "8.0-rc-1", "8.0", "8.7.1" or "8.14",
+     * the next release is "9.0".
+     *
+     * @return the next major release version
+     */
+    public abstract GradleVersion getNextMajorVersion();
+
     @Override
     public abstract int compareTo(GradleVersion o);
 }
