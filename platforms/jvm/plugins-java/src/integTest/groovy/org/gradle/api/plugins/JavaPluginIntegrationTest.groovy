@@ -553,27 +553,14 @@ Artifacts
         result.assertTasksExecuted(":compileJava", ":bar")
     }
 
-    def "changing the role of jvm configurations fails"() {
+    def "changing the role of jvm configurations fails (#configuration - #method(true))"() {
         buildFile << """
             plugins {
                 id("java-library")
             }
 
             configurations {
-                [apiElements, runtimeElements].each {
-                    it.canBeResolved = true
-                    it.canBeDeclared = true
-                }
-
-                [implementation, runtimeOnly, compileOnly, api, compileOnlyApi].each {
-                    it.canBeConsumed = true
-                    it.canBeResolved = true
-                }
-
-                [runtimeClasspath, compileClasspath].each {
-                    it.canBeDeclared = true
-                    it.canBeConsumed = true
-                }
+                $configuration.$method(true)
             }
         """
 
@@ -583,8 +570,28 @@ Artifacts
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
         failure.assertHasCause("""Method call not allowed
-  Calling setCanBeResolved(true) on configuration ':apiElements' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+  Calling $method(true) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
 
+        where:
+        configuration       | method
+        "apiElements"       | "setCanBeResolved"
+        "apiElements"       | "setCanBeDeclared"
+        "runtimeElements"   | "setCanBeResolved"
+        "runtimeElements"   | "setCanBeDeclared"
+        "implementation"    | "setCanBeResolved"
+        "implementation"    | "setCanBeConsumed"
+        "runtimeOnly"       | "setCanBeResolved"
+        "runtimeOnly"       | "setCanBeConsumed"
+        "compileOnly"       | "setCanBeResolved"
+        "compileOnly"       | "setCanBeConsumed"
+        "api"               | "setCanBeResolved"
+        "api"               | "setCanBeConsumed"
+        "compileOnlyApi"    | "setCanBeResolved"
+        "compileOnlyApi"    | "setCanBeConsumed"
+        "runtimeClasspath"  | "setCanBeConsumed"
+        "runtimeClasspath"  | "setCanBeDeclared"
+        "compileClasspath"  | "setCanBeConsumed"
+        "compileClasspath"  | "setCanBeDeclared"
     }
 
     def "registerFeature features are added to java component"() {
