@@ -72,8 +72,10 @@ import static org.gradle.util.internal.CollectionUtils.join;
  *
  * </ul>
  *
- * <p>Service instances are closed when the registry that created them is closed using {@link #close()}. If a service instance or factory implements {@link java.io.Closeable} or {@link
- * org.gradle.internal.concurrent.Stoppable} then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called. Instances are closed in reverse dependency order.</p>
+ * <p>Service instances are closed when the registry that created them is closed using {@link #close()}.
+ * If a service instance implements {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable}
+ * then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called.
+ * Instances are closed in reverse dependency order.
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  *
