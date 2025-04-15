@@ -1,7 +1,11 @@
 package configurations
 
+import common.DefaultJvm
+import common.JvmVendor
+import common.JvmVersion
 import common.Os
 import common.applyDefaultSettings
+import common.javaHome
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
@@ -19,6 +23,12 @@ class CheckTeamCityKotlinDSL(
             description = "Check Kotlin DSL in .teamcity/"
 
             applyDefaultSettings(artifactRuleOverride = "")
+
+            params {
+                // should be the same version we run TeamCity with
+                param("env.JAVA_HOME", javaHome(DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK), Os.LINUX))
+            }
+
             steps {
                 script {
                     name = "RUN_MAVEN_CLEAN_VERIFY"
