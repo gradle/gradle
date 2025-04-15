@@ -38,6 +38,7 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
+import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.jspecify.annotations.Nullable;
 
@@ -966,7 +967,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     @Deprecated
     public boolean isConfigurationCacheRequested() {
-        // TODO:configuration-cache add nagging in 8.6 (https://github.com/gradle/gradle/issues/26720)
+        StartParameterDeprecations.nagOnIsConfigurationCacheRequested();
         return false;
     }
 }

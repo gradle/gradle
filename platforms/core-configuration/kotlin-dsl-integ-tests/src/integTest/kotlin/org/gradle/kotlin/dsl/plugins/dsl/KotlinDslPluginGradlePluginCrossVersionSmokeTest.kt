@@ -111,6 +111,15 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
 
         build("classes").apply {
+        if (VersionNumber.parse("1.9.0") < kotlinVersion && kotlinVersion < VersionNumber.parse("2.0.0")) {
+            executer.expectDocumentedDeprecationWarning(
+                "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
+            )
+        }
             assertThat(
                 output,
                 allOf(
