@@ -228,7 +228,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         ':buildSrc:implementation'  | 'setCanBeDeclared'    | false
     }
 
-    def "configurations can not have usage changed from other projects"() {
+    def "configurations can not have usage changed from other projects (#configuration - #method(#value)"() {
         given:
         file("projectA/build.gradle") << """
             plugins {
@@ -254,9 +254,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                         assert findByName('implementation')
 
                         implementation {
-                            canBeConsumed = !canBeConsumed
-                            canBeResolved = !canBeResolved
-                            canBeDeclared = !canBeDeclared
+                            assert !canBeConsumed
+                            assert !canBeResolved
+                            assert canBeDeclared
+
+                            $method($value)
                         }
                     }
                 }
@@ -269,7 +271,13 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("A problem occurred configuring project ':projectA'.")
         failure.assertHasCause("""Method call not allowed
-  Calling setCanBeConsumed(true) on configuration ':projectA:implementation' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+  Calling $method($value) on configuration '$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
+        where:
+        configuration               | method                | value
+        ':projectA:implementation'  | 'setCanBeConsumed'    | true
+        ':projectA:implementation'  | 'setCanBeResolved'    | true
+        ':projectA:implementation'  | 'setCanBeDeclared'    | false
     }
     // endregion Roleless (Implicit LEGACY Role) Configurations
 
