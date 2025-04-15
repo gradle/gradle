@@ -103,7 +103,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public ExecAction newDecoratedExecAction() {
-        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, execHandleFactory.newExecHandleBuilder());
+        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, newExecSpec(), execHandleFactory.newExecHandleBuilder());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             execAction.listener(listener);
@@ -113,7 +113,12 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(execHandleFactory.newExecHandleBuilder());
+        return new DefaultExecAction(newExecSpec(), execHandleFactory.newExecHandleBuilder());
+    }
+
+    private ExecSpec newExecSpec() {
+        // In some scopes injection doesn't work, so we inject parameters manually
+        return objectFactory.newInstance(DefaultExecSpec.class, objectFactory, fileResolver);
     }
 
     @Override
