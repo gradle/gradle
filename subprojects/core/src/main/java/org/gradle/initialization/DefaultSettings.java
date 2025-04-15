@@ -54,6 +54,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.PluginManagementSpecInternal;
+import org.gradle.util.GradleVersion;
 import org.gradle.vcs.SourceControl;
 import org.jspecify.annotations.Nullable;
 
@@ -372,7 +373,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
             DeprecationLogger
                 .deprecate("enableFeaturePreview('" + feature.name() + "')")
                 .withAdvice("The feature flag is no longer relevant, please remove it from your settings file.")
-                .willBeRemovedInGradle9()
+                .willBeRemovedIn(GradleVersion.current().getNextMajorVersion())
                 .withUserManual("feature_lifecycle", "feature_preview")
                 .nagUser();
         }
