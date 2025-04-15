@@ -1020,121 +1020,6 @@ class DefaultServiceRegistryTest extends Specification {
         e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
     }
 
-    def canGetServiceAsFactoryWhenTheServiceImplementsFactoryInterface() {
-        expect:
-        registry.getFactory(BigDecimal) instanceof TestFactory
-        registry.getFactory(Number) instanceof TestFactory
-        registry.getFactory(BigDecimal).is(registry.getFactory(BigDecimal))
-        registry.getFactory(Number).is(registry.getFactory(BigDecimal))
-    }
-
-    def canLocateFactoryWhenServiceInterfaceExtendsFactory() {
-        def registry = new DefaultServiceRegistry()
-
-        given:
-        registry.add(StringFactory, new StringFactory() {
-            String create() {
-                return "value"
-            }
-        })
-
-        expect:
-        registry.getFactory(String.class).create() == "value"
-    }
-
-    def canGetAFactoryUsingParameterizedFactoryType() {
-        def registry = new RegistryWithMultipleFactoryMethods()
-
-        expect:
-        def stringFactory = registry.get(stringFactoryType)
-        stringFactory.create() == "hello"
-
-        def numberFactory = registry.get(numberFactoryType)
-        numberFactory.create() == 12
-    }
-
-    def canGetAFactoryUsingFactoryTypeWithBounds() throws NoSuchFieldException {
-        expect:
-        def superBigDecimalFactory = registry.get(superBigDecimalFactoryType)
-        superBigDecimalFactory.create() == BigDecimal.valueOf(0)
-
-        def extendsBigDecimalFactory = registry.get(extendsBigDecimalFactoryType)
-        extendsBigDecimalFactory.create() == BigDecimal.valueOf(1)
-
-        def extendsNumberFactory = registry.get(extendsNumberFactoryType)
-        extendsNumberFactory.create() == BigDecimal.valueOf(2)
-    }
-
-    def usesAFactoryServiceToCreateInstances() {
-        expect:
-        registry.newInstance(BigDecimal) == BigDecimal.valueOf(0)
-        registry.newInstance(BigDecimal) == BigDecimal.valueOf(1)
-        registry.newInstance(BigDecimal) == BigDecimal.valueOf(2)
-    }
-
-    def throwsExceptionForUnknownFactory() {
-        when:
-        registry.getFactory(String)
-
-        then:
-        UnknownServiceException e = thrown()
-        e.message == "No factory for objects of type String available in TestRegistry."
-    }
-
-    def delegatesToParentForUnknownFactory() {
-        def factory = Mock(Factory)
-        def parent = Mock(ParentServices)
-        def registry = new TestRegistry(registry(parent))
-
-        when:
-        def result = registry.getFactory(Map)
-
-        then:
-        result == factory
-
-        and:
-        1 * parent.getFactory(Map) >> factory
-    }
-
-    def usesDecoratorMethodToDecorateParentFactoryInstance() {
-        def factory = Mock(Factory)
-        def parent = Mock(ParentServices)
-        def registry = decoratorCreator.call(registry(parent))  /* .call needed in spock 0.7 */
-
-        given:
-        _ * parent.getFactory(Long) >> factory
-        _ * factory.create() >>> [10L, 20L]
-
-        expect:
-        registry.newInstance(Long) == 12L
-        registry.newInstance(Long) == 22L
-
-        where:
-        decoratorCreator << [{ p -> new RegistryWithDecoratorMethodsWithCreate(p) }, { p -> new RegistryWithDecoratorMethodsWithDecorate(p) }]
-    }
-
-    def failsWhenMultipleFactoriesAreAvailableForServiceType() {
-        def registry = new RegistryWithAmbiguousFactoryMethods()
-
-        when:
-        registry.getFactory(Comparable)
-
-        then:
-        ServiceLookupException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Multiple factories for objects of type Comparable available in RegistryWithAmbiguousFactoryMethods:
-   - Service Factory<Integer> via DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createIntegerFactory()
-   - Service Factory<String> via DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createStringFactory()""")
-    }
-
-    def servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
-        def registry = new TestRegistry() {
-        }
-
-        expect:
-        registry.get(String) == "12"
-        registry.get(Integer) == 12
-    }
-
     def closeInvokesCloseMethodOnEachService() {
         def service = Mock(TestCloseService)
 
@@ -1380,24 +1265,10 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "TestRegistry has been closed."
     }
 
-    def cannotLookupFactoriesWhenClosed() {
-        given:
-        registry.getFactory(BigDecimal)
-        registry.close()
-
-        when:
-        registry.getFactory(BigDecimal)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == "TestRegistry has been closed."
-    }
-
-    /*
+    /**
      * Closing children would imply holding a reference to them. This would
      * create memory leaks.
      */
-
     def "does not close services from child registries"() {
         given:
         def parentService = Mock(TestCloseService)
@@ -1722,15 +1593,6 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
-        Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
-            def factory = parentServices.getFactory(type)
-            if (factory == null) {
-                return factory
-            }
-            return serviceFor(factory)
-        }
-
-        @Override
         Visitor getAll(Class<?> serviceType, ServiceAccessToken token, Visitor visitor) {
             parentServices.getAll(serviceType).forEach {
                 visitor.visit(serviceFor(it))
@@ -1783,16 +1645,6 @@ class DefaultServiceRegistryTest extends Specification {
 
         @Override
         Object find(Type serviceType) throws ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        def <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException, ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        def <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException {
             throw new UnsupportedOperationException()
         }
 

@@ -389,6 +389,7 @@ class ToolingApi implements TestRule {
 
         @Override
         DefaultGradleConnector createConnector() {
+            // Before Gradle 9.0, there was ServiceRegistry.getFactory(Class<T> type): org.gradle.internal.Factory<T>
             return serviceRegistry.getFactory(DefaultGradleConnector).create()
         }
 
