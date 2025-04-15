@@ -18,12 +18,11 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @FluidDependenciesResolveTest
-abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
+abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
     abstract String getTypeDefs()
 

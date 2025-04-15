@@ -19,11 +19,10 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
-class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
+class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
     // region Roleless (Implicit LEGACY Role) Configurations
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "default usage for roleless configuration is to allow anything"() {

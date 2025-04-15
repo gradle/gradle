@@ -17,12 +17,11 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
     def "main component is java component"() {
         given:
