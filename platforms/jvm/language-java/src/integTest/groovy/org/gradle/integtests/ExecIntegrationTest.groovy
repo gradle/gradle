@@ -982,6 +982,49 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "build.gradle" | "javaexec" | javaExecSpec()
     }
 
+    def "ExecOperations in ValueSource resolve relative paths relative to project dir for working dir"() {
+        given:
+        settingsFile << "include 'a'"
+        testDirectory.file("a/build/test/folder").mkdirs()
+        buildFile("a/build.gradle", """
+            import org.gradle.api.provider.*
+            abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Inject
+                abstract ExecOperations getExecOperations()
+                String obtain() {
+                    execOperations.$method {
+                        $configuration
+                        workingDir = new File("build/test/folder")
+                    }
+                    return "Hello!"
+                }
+            }
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getGreeting()
+                @TaskAction void run() { println greeting.get() }
+            }
+            def greetValueSource = providers.of(GreetValueSource) {}
+            tasks.register("run", MyTask) {
+                greeting = greetValueSource
+            }
+        """)
+
+        when:
+        run("run")
+
+        then:
+        testDirectory.file("a/build/test/folder/output.txt").exists()
+        testDirectory.file("a/build/test/folder/output.txt").text.contains(
+            "user.dir=${testDirectory.file("a/build/test/folder").absolutePath}"
+        )
+
+        where:
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
+    }
+
     private static def execSpec(def owner = "") {
         "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
     }
