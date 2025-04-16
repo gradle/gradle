@@ -24,6 +24,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.modelCore)
     api(projects.stdlibJavaExtensions)
+    api(libs.kotlinStdlib)
 
     api(libs.inject)
     api(libs.jspecify)

@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.software.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext;
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder;
@@ -30,6 +31,11 @@ public class DefaultSoftwareTypeBindingBuilder extends AbstractDslBindingBuilder
         this.buildModelType = buildModelType;
         this.bindingTargetType = Project.class;
         this.transform = (SoftwareFeatureApplicationContext context, T definition, Object parentDefinition, U buildModel) -> transform.transform(context, definition, buildModel);
+        return this;
+    }
+
+    public SoftwareTypeBindingBuilder apply(Action<SoftwareTypeBindingBuilder> configuration) {
+        configuration.execute(this);
         return this;
     }
 }

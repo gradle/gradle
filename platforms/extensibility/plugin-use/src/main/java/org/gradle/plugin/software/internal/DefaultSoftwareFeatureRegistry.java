@@ -18,28 +18,25 @@ package org.gradle.plugin.software.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.plugins.BindsSoftwareFeature;
 import org.gradle.api.internal.plugins.BindsSoftwareType;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
+import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
-import org.gradle.api.internal.plugins.software.SoftwareFeature;
+import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder;
+import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
-import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
-import org.gradle.internal.properties.annotations.TypeMetadataStore;
-import org.gradle.internal.properties.annotations.TypeMetadataWalker;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -59,9 +56,11 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
 
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
+    private final Instantiator instantiator;
 
-    public DefaultSoftwareFeatureRegistry(InspectionScheme inspectionScheme) {
+    public DefaultSoftwareFeatureRegistry(InspectionScheme inspectionScheme, Instantiator instantiator) {
         this.inspectionScheme = inspectionScheme;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -72,27 +71,71 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         pluginClasses.computeIfAbsent(registeringPluginClass, k -> new LinkedHashSet<>()).add(pluginClass);
     }
 
-    private Map<String, SoftwareFeatureImplementation<?>> discoverSoftwareTypeImplementations() {
-        final ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareTypeImplementationsBuilder = ImmutableMap.builder();
+    private Map<String, SoftwareFeatureImplementation<?>> discoverSoftwareFeatureImplementations() {
+        final ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder = ImmutableMap.builder();
         pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
             registeredPluginClasses.forEach( pluginClass -> {
-                TypeToken<?> pluginType = TypeToken.of(pluginClass);
                 TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
                 TypeAnnotationMetadata pluginClassAnnotationMetadata = pluginClassTypeMetadata.getTypeAnnotationMetadata();
-                Optional<BindsSoftwareType> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsSoftwareType.class);
-                if (bindsSoftwareTypeAnnotation.isPresent()) {
-                    BindsSoftwareType bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
-                    SoftwareFeatureBindingRegistration softwareFeatureBindingRegistration = bindsSoftwareType.value().
-                }
+                registerSoftwareTypeIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, softwareFeatureImplementationsBuilder);
+                registerSoftwareFeatureIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, softwareFeatureImplementationsBuilder);
             })
         );
-        return softwareTypeImplementationsBuilder.build();
+        return softwareFeatureImplementationsBuilder.build();
+    }
+
+    private void registerFeature(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, SoftwareFeatureBinding binding, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder) {
+        String softwareFeatureName = binding.getPath().getName();
+
+        Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareFeatureName, pluginClass);
+        if (existingPluginClass != null && existingPluginClass != pluginClass) {
+            throw new IllegalArgumentException("Software type '" + softwareFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
+        }
+
+        softwareFeatureImplementationsBuilder.put(
+            softwareFeatureName,
+            new DefaultSoftwareFeatureImplementation<>(
+                binding.getPath().getName(),
+                binding.getDslType(),
+                binding.getBindingTargetType(),
+                binding.getBuildModelType(),
+                pluginClass,
+                registeringPluginClass,
+                Cast.uncheckedCast(binding.getTransform())
+            )
+        );
+    }
+
+    private void registerSoftwareFeatureIfPresent(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder) {
+        Optional<BindsSoftwareFeature> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class);
+        if (bindsSoftwareTypeAnnotation.isPresent()) {
+            BindsSoftwareFeature bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
+            Class<? extends SoftwareFeatureBindingRegistration> bindingRegistrationClass = bindsSoftwareType.value();
+            SoftwareFeatureBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
+            SoftwareFeatureBindingBuilder builder = new DefaultSoftwareFeatureBindingBuilder();
+            bindingRegistration.bind(builder);
+            SoftwareFeatureBinding binding = builder.build();
+            registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder);
+        }
+    }
+
+    private void registerSoftwareTypeIfPresent(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationsBuilder) {
+        Optional<BindsSoftwareType> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsSoftwareType.class);
+        if (bindsSoftwareTypeAnnotation.isPresent()) {
+            BindsSoftwareType bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
+            Class<? extends SoftwareTypeBindingRegistration> bindingRegistrationClass = bindsSoftwareType.value();
+            SoftwareTypeBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
+            SoftwareTypeBindingBuilder builder = new DefaultSoftwareTypeBindingBuilder();
+            bindingRegistration.bind(builder);
+            SoftwareFeatureBinding binding = builder.build();
+            registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder);
+        }
     }
 
     @Override
     public Map<String, SoftwareFeatureImplementation<?>> getSoftwareFeatureImplementations() {
         if (softwareFeatureImplementations == null) {
-            softwareFeatureImplementations = discoverSoftwareTypeImplementations();
+            softwareFeatureImplementations = discoverSoftwareFeatureImplementations();
         }
         return softwareFeatureImplementations;
     }
@@ -110,91 +153,6 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             () -> getSoftwareFeatureImplementations().entrySet().iterator(),
             entry -> new SoftwareFeatureSchema(entry.getKey(), entry.getValue().getModelPublicType())
         );
-    }
-
-    private void registerSoftwareTypeImplementations(Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?>> softwareFeatureImplementationBuilder) {
-        Arrays.stream(pluginClass.getDeclaredFields())
-            .filter(field -> field.isAnnotationPresent(SoftwareType.class) || field.isAnnotationPresent(SoftwareFeature.class))
-            .forEach(field -> {
-
-            if (field.getType().isAssignableFrom(SoftwareFeatureBinding.class)) {
-                if (!Modifier.isStatic(field.getModifiers())) {
-                    // throw new IllegalArgumentException("Method annotated with @SoftwareType must be static: " + method);
-                    return;
-                }
-                SoftwareFeatureBinding softwareFeatureDslBinding;
-                try {
-                    softwareFeatureDslBinding = Cast.uncheckedNonnullCast(field.get(pluginClass));
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-
-                String softwareTypeName = softwareFeatureDslBinding.getPath().getName();
-                Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareTypeName, pluginClass);
-                if (existingPluginClass != null && existingPluginClass != pluginClass) {
-                    throw new IllegalArgumentException("Software type '" + softwareTypeName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
-                }
-
-                softwareFeatureImplementationBuilder.put(
-                    softwareTypeName,
-                    new DefaultSoftwareFeatureImplementation<>(
-                        softwareFeatureDslBinding.getPath().getName(),
-                        softwareFeatureDslBinding.getDslType(),
-                        softwareFeatureDslBinding.getBindingTargetType(),
-                        softwareFeatureDslBinding.getBuildModelType(),
-                        pluginClass,
-                        registeringPluginClass,
-                        Cast.uncheckedCast(softwareFeatureDslBinding.getTransform())
-                    )
-                );
-            }
-        });
-    }
-
-    private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
-        private final Class<? extends Plugin<Project>> pluginClass;
-        private final Class<? extends Plugin<Settings>> registeringPluginClass;
-        private final Map<String, Class<? extends Plugin<Project>>> registeredTypes;
-        private final ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder;
-
-        public SoftwareTypeImplementationRecordingVisitor(
-            Class<? extends Plugin<Project>> pluginClass,
-            Class<? extends Plugin<Settings>> registeringPluginClass,
-            Map<String, Class<? extends Plugin<Project>>> registeredTypes,
-            ImmutableMap.Builder<String, SoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder) {
-            this.pluginClass = pluginClass;
-            this.registeringPluginClass = registeringPluginClass;
-            this.registeredTypes = registeredTypes;
-            this.softwareTypeImplementationsBuilder = softwareTypeImplementationsBuilder;
-        }
-
-        @Override
-        public void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
-        }
-
-        @Override
-        public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
-            propertyMetadata.getAnnotation(SoftwareType.class).ifPresent(softwareType -> {
-                Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareType.name(), pluginClass);
-                if (existingPluginClass != null && existingPluginClass != pluginClass) {
-                    throw new IllegalArgumentException("Software type '" + softwareType.name() + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
-                }
-
-                softwareTypeImplementationsBuilder.put(
-                    softwareType.name(),
-                    new DefaultSoftwareTypeImplementation<>(
-                        softwareType.name(),
-                        publicTypeOf(propertyMetadata, softwareType),
-                        Cast.uncheckedNonnullCast(pluginClass),
-                        registeringPluginClass
-                    )
-                );
-            });
-        }
-
-        private static Class<?> publicTypeOf(PropertyMetadata propertyMetadata, SoftwareType softwareType) {
-            return softwareType.modelPublicType() == Void.class ? propertyMetadata.getDeclaredType().getRawType() : softwareType.modelPublicType();
-        }
     }
 
     private static class SoftwareFeatureSchema implements NamedDomainObjectCollectionSchema.NamedDomainObjectSchema {
