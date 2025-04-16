@@ -120,12 +120,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
                 .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement();
             for (SerializableFailure failure : test.getFailures()) {
-                String message;
-                if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {
-                    message = failure.getMessage() + SystemProperties.getInstance().getLineSeparator() + SystemProperties.getInstance().getLineSeparator() + failure.getStackTrace();
-                } else {
-                    message = failure.getStackTrace();
-                }
+                String message = failure.getMessage() + SystemProperties.getInstance().getLineSeparator() + SystemProperties.getInstance().getLineSeparator() + failure.getStackTrace();
                 codePanelRenderer.render(message, htmlWriter);
             }
             htmlWriter.endElement();
