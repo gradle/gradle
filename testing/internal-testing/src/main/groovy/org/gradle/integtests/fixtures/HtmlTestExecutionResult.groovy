@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.internal.FileUtils
+import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
@@ -236,10 +237,14 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
             final SkippedExecutionResult skippedExecutionResult
             if (!testCase.messages.isEmpty()) {
-                String possibleText = testCase.getMessages().first()
-                String[] stacktraceMessage = possibleText.readLines().first().split(":", 2)
-                assert stacktraceMessage.length == 2 // sanity check that we're parsing something that looks like an exception stacktrace
-                skippedExecutionResult = new SkippedExecutionResult(stacktraceMessage[1].trim(), stacktraceMessage[0], possibleText)
+                List<String> possibleText = CollectionUtils.single(testCase.messages).readLines()
+                // In the HTML report, the format is:
+                // message
+                // <newline>
+                // exception stacktrace
+                String message = possibleText[0]
+                String exceptionType = possibleText[2].split(":")[0]
+                skippedExecutionResult = new SkippedExecutionResult(message, exceptionType, possibleText[2,-1].join("\n"))
             } else {
                 // no messages for this skipped execution
                 skippedExecutionResult = new SkippedExecutionResult("", "", "")
