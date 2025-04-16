@@ -1503,6 +1503,7 @@ public class AsmBackedClassGeneratorTest {
             return getConventionValue(actualValue, propertyName);
         }
 
+        @Override
         public ConventionMapping getConventionMapping() {
             return this;
         }

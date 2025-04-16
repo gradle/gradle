@@ -58,8 +58,8 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         testing.getSuites().withType(JvmTestSuite.class).all(testSuite -> {
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
-                    test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
-                    test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
+                    test.getTestClassesDirsInternalProperty().convention(project.provider(() -> testSuite.getSources().getOutput().getClassesDirs()));
+                    test.getClasspathInternalProperty().convention(project.provider(() -> testSuite.getSources().getRuntimeClasspath()));
                 });
                 target.getBinaryResultsDirectory().convention(target.getTestTask().flatMap(Test::getBinaryResultsDirectory));
             });
