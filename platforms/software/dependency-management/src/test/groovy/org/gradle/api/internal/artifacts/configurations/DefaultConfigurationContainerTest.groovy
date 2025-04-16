@@ -275,24 +275,6 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    def "can create migrating configurations"() {
-        expect:
-        verifyLocked(role, "a") {
-            migratingLocked("a", role)
-        }
-        verifyLocked(role, "b") {
-            migratingLocked("b", role) {}
-        }
-        verifyLocked(role, "c") {
-            maybeCreateMigratingLocked("c", role)
-        }
-
-        where:
-        role << [
-            ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE,
-        ]
-    }
-
     def "cannot create arbitrary roles with migrating factory methods"() {
         when:
         configurationContainer.migratingLocked("foo", role)

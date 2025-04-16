@@ -22,7 +22,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
@@ -60,7 +59,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().migratingLocked(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE, cnf -> {
+        Configuration exported = project.getConfigurations().consumableLocked(VERSION_CATALOG_ELEMENTS, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
             cnf.getOutgoing().artifact(generator);
             cnf.setVisible(false);

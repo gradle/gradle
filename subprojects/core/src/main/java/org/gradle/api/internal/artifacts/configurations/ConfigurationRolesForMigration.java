@@ -41,16 +41,9 @@ public final class ConfigurationRolesForMigration {
     }
 
     /**
-     * A consumable dependency scope that will become a consumable configuration in the next major version.
-     */
-    @SuppressWarnings("deprecation")
-    public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
-
-    /**
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
-        CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
     );
 
     /**
