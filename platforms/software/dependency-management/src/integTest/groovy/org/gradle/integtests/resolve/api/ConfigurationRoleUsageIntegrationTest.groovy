@@ -655,22 +655,31 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration, if it doesn't already exist"
     }
 
-    def "changing usage on detached configurations does not warn"() {
+    def "changing usage #property = #change on detached configurations fails"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
-            assert detached.canBeConsumed
+            assert !detached.canBeConsumed
             assert detached.canBeResolved
             assert detached.canBeDeclared
 
-            detached.canBeResolved = false
-            detached.canBeConsumed = false
-            detached.canBeDeclared = false
+            detached.$property($change)
         """
 
-        expect:
-        run "help"
+        when:
+        fails "help"
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause("""Method call not allowed
+  Calling $property($change) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
+        where:
+        property | change
+        "setCanBeConsumed" | true
+        "setCanBeResolved" | false
+        "setCanBeDeclared" | false
     }
 
     def "changing usage on detached configurations fails when flag is set (#method(false)"() {
