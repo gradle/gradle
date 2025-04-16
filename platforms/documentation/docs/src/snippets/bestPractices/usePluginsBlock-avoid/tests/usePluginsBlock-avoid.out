@@ -1,8 +1,7 @@
-
-> Task :do-this:tasks
+> Task :tasks
 
 ------------------------------------------------------------
-Tasks runnable from project ':do-this'
+Tasks runnable from root project 'use-plugins-block-avoid'
 ------------------------------------------------------------
 
 Build tasks
@@ -16,23 +15,29 @@ clean - Deletes the build directory.
 jar - Assembles a jar archive containing the classes of the 'main' feature.
 testClasses - Assembles test classes.
 
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+updateDaemonJvm - Generates or updates the Gradle Daemon JVM criteria.
+wrapper - Generates Gradle wrapper files.
+
 Documentation tasks
 -------------------
 javadoc - Generates Javadoc API documentation for the 'main' feature.
 
 Help tasks
 ----------
-artifactTransforms - Displays the Artifact Transforms that can be executed in project ':do-this'.
-buildEnvironment - Displays all buildscript dependencies declared in project ':do-this'.
-dependencies - Displays all dependencies declared in project ':do-this'.
-dependencyInsight - Displays the insight into a specific dependency in project ':do-this'.
+artifactTransforms - Displays the Artifact Transforms that can be executed in root project 'use-plugins-block-avoid'.
+buildEnvironment - Displays all buildscript dependencies declared in root project 'use-plugins-block-avoid'.
+dependencies - Displays all dependencies declared in root project 'use-plugins-block-avoid'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'use-plugins-block-avoid'.
 help - Displays a help message.
 javaToolchains - Displays the detected java toolchains.
-outgoingVariants - Displays the outgoing variants of project ':do-this'.
-projects - Displays the sub-projects of project ':do-this'.
-properties - Displays the properties of project ':do-this'.
-resolvableConfigurations - Displays the configurations that can be resolved in project ':do-this'.
-tasks - Displays the tasks runnable from project ':do-this'.
+outgoingVariants - Displays the outgoing variants of root project 'use-plugins-block-avoid'.
+projects - Displays the sub-projects of root project 'use-plugins-block-avoid'.
+properties - Displays the properties of root project 'use-plugins-block-avoid'.
+resolvableConfigurations - Displays the configurations that can be resolved in root project 'use-plugins-block-avoid'.
+tasks - Displays the tasks runnable from root project 'use-plugins-block-avoid'.
 
 Verification tasks
 ------------------

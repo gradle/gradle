@@ -16,7 +16,7 @@ Gradle now supports [Java 24](#java-24).
 
 This release adds support for selecting [GraalVM Native Image toolchains](#toolchains), and includes [enhancements to the test report](#junit) when tests are skipped, for example, because of assumptions.
 
-Gradle @version@ introduces [lazy dependency configuration initialization](#build-authoring) to improve configuration performance and memory usage. The [Problems API](#build-authoring) is expanded to support arbitrary structured data, making it easier for IDEs to consume rich diagnostics through the Tooling API.
+Gradle @version@ introduces [lazy dependency configuration initialization](#configurations-are-initialized-lazily) to improve configuration performance and memory usage. The [Problems API](#expanded-support-for-arbitrary-data-in-the-problems-api) is expanded to support arbitrary structured data, making it easier for IDEs to consume rich diagnostics through the Tooling API.
 
 Additionally, the [configuration cache](#configuration-cache) includes a new integrity check mode for improved debugging.
 
@@ -28,10 +28,12 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Aurimas](https://github.com/liutikas),
 [Ben Bader](https://github.com/benjamin-bader),
 [Björn Kautler](https://github.com/Vampire),
 [chandre92](https://github.com/chandre92),
 [Daniel Hammer](https://github.com/dlehammer),
+[Danish Nawab](https://github.com/danishnawab),
 [Florian Dreier](https://github.com/DreierF),
 [Jendrik Johannes](https://github.com/jjohannes),
 [jimmy1995-gu](https://github.com/jimmy1995-gu),
@@ -61,7 +63,7 @@ With this release, Gradle supports [Java 24](https://openjdk.org/projects/jdk/24
 
 Third-party tool compatibility with Java 24 may still be limited. If you're using the [Tooling API](userguide/tooling_api.html), you’ll need to enable native access at startup due to its use of JNI. See [JEP 472](https://openjdk.org/jeps/472) for details.
 
-See [the compatibility documentation](userguide/compatibility.html#java) for more details.
+See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
 
 <a name="toolchains"></a>
 ### GraalVM Native Image selection for toolchains
@@ -80,7 +82,7 @@ java {
 ```
 
 This allows Gradle to select only JDKs that support Native Image when resolving a toolchain.
-See the [toolchain documentation](userguide/toolchains.html#sec:native_image) for more details.
+See the [toolchain documentation](userguide/toolchains.html#sec:native_graalvm_image) for more details.
 
 Note: Native Image capability selection is also supported for the [daemon toolchain](userguide/gradle_daemon.html#sec:native_image).
 

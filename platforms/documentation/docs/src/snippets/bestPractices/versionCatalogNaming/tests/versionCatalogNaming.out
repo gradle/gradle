@@ -1,0 +1,156 @@
+
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'version-catalog-naming'
+------------------------------------------------------------
+
+annotationProcessor - Annotation processors and their dependencies for source set 'main'.
+No dependencies
+
+api - API dependencies for the 'main' feature. (n)
++--- org.codehaus.groovy:groovy:3.0.5 (n)
++--- org.codehaus.groovy:groovy-json:3.0.5 (n)
+\--- org.codehaus.groovy:groovy-nio:3.0.5 (n)
+
+apiElements - API elements for the 'main' feature. (n)
+No dependencies
+
+compileClasspath - Compile classpath for source set 'main'.
++--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-json:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-nio:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.slf4j:slf4j-api:2.0.13
++--- com.fasterxml.jackson.core:jackson-databind:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (c)
+|    |         \--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1 (c)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
++--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+\--- org.apache.commons:commons-lang3:{strictly [3.8, 4.0[; prefer 3.9} -> 3.9
+
+compileOnly - Compile-only dependencies for the 'main' feature. (n)
+No dependencies
+
+compileOnlyApi - Compile-only API dependencies for the 'main' feature. (n)
+No dependencies
+
+default - Configuration for default artifacts. (n)
+No dependencies
+
+implementation - Implementation dependencies for the 'main' feature. (n)
++--- org.slf4j:slf4j-api:2.0.13 (n)
++--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (n)
++--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1 (n)
+\--- org.apache.commons:commons-lang3:[3.8, 4.0[ (n)
+
+mainSourceElements - List of source directories contained in the Main SourceSet. (n)
+No dependencies
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-json:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-nio:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.slf4j:slf4j-api:2.0.13
++--- com.fasterxml.jackson.core:jackson-databind:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (c)
+|    |         \--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1 (c)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
++--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+\--- org.apache.commons:commons-lang3:{strictly [3.8, 4.0[; prefer 3.9} -> 3.9
+
+runtimeElements - Runtime elements for the 'main' feature. (n)
+No dependencies
+
+runtimeOnly - Runtime-only dependencies for the 'main' feature. (n)
+No dependencies
+
+testAnnotationProcessor - Annotation processors and their dependencies for source set 'test'.
+No dependencies
+
+testCompileClasspath - Compile classpath for source set 'test'.
++--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-json:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-nio:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.slf4j:slf4j-api:2.0.13
++--- com.fasterxml.jackson.core:jackson-databind:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (c)
+|    |         \--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1 (c)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
++--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+\--- org.apache.commons:commons-lang3:{strictly [3.8, 4.0[; prefer 3.9} -> 3.9
+
+testCompileOnly - Compile only dependencies for source set 'test'. (n)
+No dependencies
+
+testImplementation - Implementation only dependencies for source set 'test'. (n)
+No dependencies
+
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-json:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-nio:3.0.5
+|    \--- org.codehaus.groovy:groovy:3.0.5
++--- org.slf4j:slf4j-api:2.0.13
++--- com.fasterxml.jackson.core:jackson-databind:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (c)
+|    |         \--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1 (c)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
++--- com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.17.1
+|    +--- com.fasterxml.jackson.core:jackson-databind:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.17.1 (*)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.17.1 (*)
+|    \--- com.fasterxml.jackson:jackson-bom:2.17.1 (*)
+\--- org.apache.commons:commons-lang3:{strictly [3.8, 4.0[; prefer 3.9} -> 3.9
+
+testRuntimeOnly - Runtime only dependencies for source set 'test'. (n)
+No dependencies
+
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+(n) - A dependency or dependency configuration that cannot be resolved.
+
+A web-based, searchable dependency report is available by adding the --scan option.
