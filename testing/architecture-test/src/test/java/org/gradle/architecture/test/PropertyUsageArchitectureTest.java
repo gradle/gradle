@@ -19,6 +19,7 @@ package org.gradle.architecture.test;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
@@ -54,10 +55,18 @@ public class PropertyUsageArchitectureTest {
         }
     };
 
+    private static final DescribedPredicate<JavaMethod> isPrivate = new DescribedPredicate<JavaMethod>("isPrivate") {
+        @Override
+        public boolean test(JavaMethod method) {
+            return method.getModifiers().contains(JavaModifier.PRIVATE);
+        }
+    };
+
     @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
     private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(declaredIn(assignableTo(Task.class)))
         .and(are(ArchUnitFixture.getters))
         .and(are(hasRichPropertyReturnType))
+        .and(are(not(isPrivate)))
         .and(not(annotatedWith(Inject.class)))
         .and(not(annotatedWith(OptionValues.class)))
         .and(not(declaredIn(Task.class)))

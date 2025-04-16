@@ -52,7 +52,6 @@ Method <org.gradle.buildinit.tasks.InitBuild.getInsecureProtocol()> is not abstr
 Method <org.gradle.buildinit.tasks.InitBuild.getJavaVersion()> is not abstract
 Method <org.gradle.buildinit.tasks.InitBuild.getSplitProject()> is not abstract
 Method <org.gradle.buildinit.tasks.InitBuild.getUseIncubating()> is not abstract
-Method <org.gradle.configuration.Help.getTaskPath()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.getCompilerOptions()> is not abstract
@@ -115,7 +114,6 @@ Method <org.gradle.nativeplatform.tasks.ExtractSymbols.getToolChain()> is not ab
 Method <org.gradle.nativeplatform.tasks.InstallExecutable.getExecutableFile()> is not abstract
 Method <org.gradle.nativeplatform.tasks.InstallExecutable.getInstallDirectory()> is not abstract
 Method <org.gradle.nativeplatform.tasks.InstallExecutable.getInstalledExecutable()> is not abstract
-Method <org.gradle.nativeplatform.tasks.InstallExecutable.getLibDirectory()> is not abstract
 Method <org.gradle.nativeplatform.tasks.InstallExecutable.getRunScriptFile()> is not abstract
 Method <org.gradle.nativeplatform.tasks.InstallExecutable.getTargetPlatform()> is not abstract
 Method <org.gradle.nativeplatform.tasks.InstallExecutable.getToolChain()> is not abstract
