@@ -171,9 +171,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private FileCollection testClassesDirs;
+    private Property<FileCollection> testClassesDirs;
     private final PatternFilterable patternSet;
-    private FileCollection classpath;
+    private Property<FileCollection> classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
@@ -184,8 +184,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
-        testClassesDirs = objectFactory.fileCollection();
-        classpath = objectFactory.fileCollection();
+        testClassesDirs = objectFactory.property(FileCollection.class);
+        classpath = objectFactory.property(FileCollection.class);
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from(new Callable<Object>() {
@@ -839,7 +839,32 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal
     @ToBeReplacedByLazyProperty
     public FileCollection getTestClassesDirs() {
+        return testClassesDirs.get();
+    }
+
+
+    /**
+     * Added only for transitioning away from conventions. Should not be used not be used by plugins or build scripts.
+     *
+     * @return the property representing test classes directories.
+     * @since 9.0
+     */
+    @Internal
+    @Incubating
+    public Property<FileCollection> getTestClassesDirsInternalProperty() {
         return testClassesDirs;
+    }
+
+    /**
+     * Added only for transitioning away from conventions. Should not be used not be used by plugins or build scripts.
+     *
+     * @return the property representing test classes directories.
+     * @since 9.0
+     */
+    @Internal
+    @Incubating
+    public Property<FileCollection> getClasspathInternalProperty() {
+        return classpath;
     }
 
     /**
@@ -869,7 +894,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.0
      */
     public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs = testClassesDirs;
+        this.testClassesDirs.set(testClassesDirs);
     }
 
     /**
@@ -1115,11 +1140,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal("captured by stableClasspath")
     @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
-        return classpath;
+        return classpath.get();
     }
 
     public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        this.classpath.set(classpath);
     }
 
     /**
