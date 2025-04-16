@@ -333,7 +333,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public DefaultConfiguration migratingLocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
+    public Configuration migratingLocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
         assertCanMutate("migratingLocked(String, ConfigurationRole, Action)");
 
         if (ConfigurationRolesForMigration.ALL.contains(role)) {
@@ -396,6 +396,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 conf.preventUsageMutation();
                 return conf;
             } else {
+                // We should also prevent usage mutation here, but we can't because this would break
+                // existing undeprecated behavior.
+                // Introduce locking here in Gradle 9.x.
                 return getByName(request.getConfigurationName());
             }
         } else {
@@ -425,10 +428,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         );
     }
 
-    private DefaultConfiguration createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+    private ConfigurationInternal createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
-        DefaultConfiguration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
+        ConfigurationInternal configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
         super.add(configuration);
         configureAction.execute(configuration);
         configuration.preventUsageMutation();
