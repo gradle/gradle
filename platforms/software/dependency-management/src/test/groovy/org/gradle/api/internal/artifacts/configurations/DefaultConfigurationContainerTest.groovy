@@ -420,7 +420,7 @@ class DefaultConfigurationContainerTest extends Specification {
             assert role.declarable == it.isCanBeDeclared()
             assert role.consumable == it.isCanBeConsumed()
 
-            def conf = configurationContainer.getByName(name)
+            def conf = it
             verifyUsageChangeFailsProperly { conf.canBeConsumed = !conf.canBeConsumed }
             verifyUsageChangeFailsProperly { conf.canBeResolved = !conf.canBeResolved }
             verifyUsageChangeFailsProperly { conf.canBeDeclared = !conf.canBeDeclared }
