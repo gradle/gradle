@@ -172,13 +172,6 @@ _Default value_: `[__projectDir__/src/__name__/groovy]`
 +
 The source directories containing the Groovy source files of this source set. May also contain Java source files for joint compilation. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Specifying Multiple Files>>.
 
-`allGroovy` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
-_Default value_: Not null
-+
-All Groovy source files of this source set. Contains only the `.groovy` files found in the Groovy source directories.
-
-These properties are provided by a convention object of type link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[GroovySourceSet].
-
 The Groovy plugin also modifies some source set properties:
 
 === Groovy Plugin - modified source set properties

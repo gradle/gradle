@@ -25,7 +25,7 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.DefaultGroovySourceDirectorySet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
@@ -40,7 +40,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.GroovydocAccess;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.jspecify.annotations.Nullable;
@@ -125,17 +124,11 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
         });
     }
 
-    /**
-     * In 9.0, once {@link org.gradle.api.internal.tasks.DefaultGroovySourceSet} is removed, we can update this to only construct the source directory
-     * set instead of the entire source set.
-     */
-    @SuppressWarnings("deprecation")
     private GroovySourceDirectorySet getGroovySourceDirectorySet(SourceSet sourceSet) {
-        final org.gradle.api.internal.tasks.DefaultGroovySourceSet groovySourceSet = objectFactory.newInstance(org.gradle.api.internal.tasks.DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-        DeprecationLogger.whileDisabled(() ->
-            new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet)
-        );
-        return groovySourceSet.getGroovy();
+        String displayName = ((DefaultSourceSet) sourceSet).getDisplayName();
+        GroovySourceDirectorySet groovySourceDirectorySet = objectFactory.newInstance(DefaultGroovySourceDirectorySet.class, objectFactory.sourceDirectorySet("groovy", displayName + " Groovy source"));
+        groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
+        return groovySourceDirectorySet;
     }
 
     private static void configureLibraryElements(SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
