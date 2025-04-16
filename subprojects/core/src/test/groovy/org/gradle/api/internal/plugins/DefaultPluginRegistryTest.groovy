@@ -38,6 +38,10 @@ class DefaultPluginRegistryTest extends Specification {
     def pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoaderScope)
 
+    def setup() {
+        _ * classLoaderScope.isLocked() >> true
+    }
+
     def "can locate imperative plugin implementation given an id"() {
         def url = writePluginProperties(TestPlugin1)
 
@@ -298,6 +302,7 @@ class DefaultPluginRegistryTest extends Specification {
         given:
         PluginRegistry child = pluginRegistry.createChild(lookupScope)
         _ * lookupScope.localClassLoader >> childClassLoader
+        _ * lookupScope.isLocked() >> true
         _ * childClassLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 

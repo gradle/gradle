@@ -127,7 +127,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
         runTasksOps[0].parentId == buildSrcOps[0].id
         // Build operations are run in parallel, so can appear in either order
-        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort()  == ["Run tasks", "Run tasks (:buildB)"]
+        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == runMainTasks.id
         runTasksOps[2].parentId == runMainTasks.id
 
