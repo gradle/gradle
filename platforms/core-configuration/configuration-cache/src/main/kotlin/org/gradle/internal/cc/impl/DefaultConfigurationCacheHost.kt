@@ -32,7 +32,6 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.SettingsState
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
@@ -67,9 +66,6 @@ class DefaultConfigurationCacheHost internal constructor(
 
     override fun <T : Any> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
-
-    override fun <T : Any> factory(serviceType: Class<T>): Factory<T> =
-        gradle.services.getFactory(serviceType)
 
     private
     class DefaultVintageGradleBuild(override val state: BuildState) : VintageGradleBuild {

@@ -37,9 +37,6 @@ package org.gradle.internal.service;
  *
  * <p>
  * Any other methods will not be ignored.
- * <p>
- * Factories are declared similarly by having the method return {@code Factory<SomeService>}.
- * The factories are used by {@link ServiceRegistry#getFactory(Class)} and {@link ServiceRegistry#newInstance(Class)} methods.
  *
  * <h3>Registering dynamically</h3>
  * You can register services dynamically by declaring a {@code configure} method with a {@link ServiceRegistration} parameter.

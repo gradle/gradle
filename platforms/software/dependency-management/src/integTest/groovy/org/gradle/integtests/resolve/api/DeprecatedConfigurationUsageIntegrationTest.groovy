@@ -18,9 +18,8 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ProperMethodUsage
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 
-class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
+class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
     def "calling an invalid public API method #methodName for role #role fails"() {
         given:
         buildFile << """
