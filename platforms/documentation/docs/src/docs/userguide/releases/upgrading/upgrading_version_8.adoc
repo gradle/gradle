@@ -91,7 +91,7 @@ Common breaking changes:
 
 - Unbounded generics for types that have generic bounds will now fail to compile.
 +
-For example if you have a Kotlin extension function on `Provider<T>` whose signature is `fun <T> Provider<T>.some()` you must qualify `<T>` as either  `<T : Any>` because `T` isn't nullable on `Provider<T>`.
+For example if you have a Kotlin extension function on `Provider<T>` whose signature is `fun <T> Provider<T>.some()` you must qualify `<T>` as  `<T : Any>` because `T` isn't nullable on `Provider<T>`.
 
 - The nullability of generic bounds is now handled strictly.
 +

@@ -49,7 +49,7 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 ### Configuration Cache improvements
 
 Gradle's [Configuration Cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase.
-Gradle uses the Configuration Cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+Gradle uses the Configuration Cache to reload a saved configuration when nothing that affects the build configuration has changed.
 
 #### CC TO DO
 
