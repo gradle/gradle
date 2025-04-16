@@ -1041,31 +1041,6 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    def "adding declarations to deprecated configurations for declaration will warn"() {
-        given:
-        createDirs("a", "b")
-        file("settings.gradle") << "include 'a', 'b'"
-
-        buildFile << """
-            subprojects {
-                configurations {
-                    migratingLocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
-                    'default' { extendsFrom compile }
-                }
-                group = "group"
-                version = 1.0
-            }
-            project(":a") {
-                dependencies { compile project(":b") }
-            }
-        """
-
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-
-        expect:
-        succeeds ':a:dependencies'
-    }
-
     def "adding declarations to invalid configurations for declaration will fail"() {
         given:
         createDirs("a", "b")

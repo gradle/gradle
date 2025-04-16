@@ -41,12 +41,6 @@ public final class ConfigurationRolesForMigration {
     }
 
     /**
-     * A resolvable dependency scope that will become a resolvable configuration in the next major version.
-     */
-    @SuppressWarnings("deprecation")
-    public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE = difference(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, ConfigurationRoles.RESOLVABLE);
-
-    /**
      * A consumable dependency scope that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
@@ -56,7 +50,6 @@ public final class ConfigurationRolesForMigration {
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
-        RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
         CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
     );
 

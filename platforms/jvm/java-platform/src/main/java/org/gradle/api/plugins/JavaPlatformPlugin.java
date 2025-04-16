@@ -112,7 +112,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
         enforcedRuntimeElements.getOutgoing().capability(enforcedCapability);
 
-        Configuration classpath = configurations.migratingLocked(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
+        Configuration classpath = configurations.resolvableLocked(CLASSPATH_CONFIGURATION_NAME);
         classpath.extendsFrom(runtimeElements);
         declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME, LibraryElements.JAR);
 

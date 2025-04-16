@@ -666,27 +666,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
     }
     // endregion Role-Based Configurations
 
-    // region Migrating configurations
-    def "can add declaration alternatives to configuration deprecated for declaration"() {
-        given:
-        buildFile << """
-            configurations {
-                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) {
-                    addDeclarationAlternatives("anotherConf")
-                }
-            }
-
-            dependencies {
-                testConf "org:foo:1.0"
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        succeeds 'help'
-    }
-    // endregion Migrating configurations
-
     // region Detached configurations
     def "changing usage on detached configurations does not warn"() {
         given:
