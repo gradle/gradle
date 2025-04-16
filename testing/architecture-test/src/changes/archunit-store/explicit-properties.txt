@@ -1,148 +1,127 @@
-Field <org.gradle.api.plugins.quality.Checkstyle.configDirectory> is an explicitly instantiated property
-Field <org.gradle.api.plugins.quality.Checkstyle.enableExternalDtdLoad> is an explicitly instantiated property
-Field <org.gradle.api.plugins.quality.Pmd.incrementalAnalysis> is an explicitly instantiated property
-Field <org.gradle.api.plugins.quality.Pmd.maxFailures> is an explicitly instantiated property
-Field <org.gradle.api.plugins.quality.Pmd.rulesMinimumPriority> is an explicitly instantiated property
-Field <org.gradle.api.plugins.quality.Pmd.threads> is an explicitly instantiated property
-Field <org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.credentials> is an explicitly instantiated property
-Field <org.gradle.api.publish.maven.tasks.PublishToMavenRepository.credentials> is an explicitly instantiated property
-Field <org.gradle.api.publish.tasks.GenerateModuleMetadata.outputFile> is an explicitly instantiated property
-Field <org.gradle.api.publish.tasks.GenerateModuleMetadata.suppressedValidationErrors> is an explicitly instantiated property
-Field <org.gradle.api.tasks.AbstractExecTask.execResult> is an explicitly instantiated property
-Field <org.gradle.api.tasks.Delete.paths> is an explicitly instantiated property
-Field <org.gradle.api.tasks.JavaExec.execResult> is an explicitly instantiated property
-Field <org.gradle.api.tasks.JavaExec.javaLauncher> is an explicitly instantiated property
-Field <org.gradle.api.tasks.JavaExec.mainClass> is an explicitly instantiated property
-Field <org.gradle.api.tasks.JavaExec.mainModule> is an explicitly instantiated property
-Field <org.gradle.api.tasks.SourceTask.sourceFiles> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveAppendix> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveBaseName> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveClassifier> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveExtension> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveFile> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveName> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archivePreserveFileTimestamps> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveReproducibleFileOrder> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.AbstractArchiveTask.archiveVersion> is an explicitly instantiated property
-Field <org.gradle.api.tasks.bundling.War.webAppDirectory> is an explicitly instantiated property
-Field <org.gradle.api.tasks.compile.AbstractCompile.destinationDirectory> is an explicitly instantiated property
-Field <org.gradle.api.tasks.compile.GroovyCompile.astTransformationClasspath> is an explicitly instantiated property
-Field <org.gradle.api.tasks.compile.GroovyCompile.javaLauncher> is an explicitly instantiated property
-Field <org.gradle.api.tasks.compile.JavaCompile.javaCompiler> is an explicitly instantiated property
-Field <org.gradle.api.tasks.diagnostics.ConventionReportTask.reportDir> is an explicitly instantiated property
-Field <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.rootComponentProperty> is an explicitly instantiated property
-Field <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.showingAllVariants> is an explicitly instantiated property
-Field <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.zConfigurationAttributes> is an explicitly instantiated property
-Field <org.gradle.api.tasks.diagnostics.PropertyReportTask.property> is an explicitly instantiated property
-Field <org.gradle.api.tasks.diagnostics.TaskReportTask.showTypes> is an explicitly instantiated property
-Field <org.gradle.api.tasks.javadoc.Groovydoc.access> is an explicitly instantiated property
-Field <org.gradle.api.tasks.javadoc.Groovydoc.includeAuthor> is an explicitly instantiated property
-Field <org.gradle.api.tasks.javadoc.Groovydoc.includeMainForScripts> is an explicitly instantiated property
-Field <org.gradle.api.tasks.javadoc.Groovydoc.processScripts> is an explicitly instantiated property
-Field <org.gradle.api.tasks.javadoc.Javadoc.javadocTool> is an explicitly instantiated property
-Field <org.gradle.api.tasks.scala.ScalaDoc.compilationOutputs> is an explicitly instantiated property
-Field <org.gradle.api.tasks.scala.ScalaDoc.javaLauncher> is an explicitly instantiated property
-Field <org.gradle.api.tasks.scala.ScalaDoc.maxMemory> is an explicitly instantiated property
-Field <org.gradle.api.tasks.testing.AbstractTestTask.binaryResultsDirectory> is an explicitly instantiated property
-Field <org.gradle.api.tasks.testing.Test.javaLauncher> is an explicitly instantiated property
-Field <org.gradle.api.tasks.testing.Test.stableClasspath> is an explicitly instantiated property
-Field <org.gradle.api.tasks.testing.Test.testFramework> is an explicitly instantiated property
-Field <org.gradle.api.tasks.wrapper.Wrapper.networkTimeout> is an explicitly instantiated property
-Field <org.gradle.buildinit.tasks.InitBuild.insecureProtocol> is an explicitly instantiated property
-Field <org.gradle.buildinit.tasks.InitBuild.javaVersion> is an explicitly instantiated property
-Field <org.gradle.buildinit.tasks.InitBuild.splitProject> is an explicitly instantiated property
-Field <org.gradle.buildinit.tasks.InitBuild.useIncubatingAPIs> is an explicitly instantiated property
-Field <org.gradle.configuration.Help.taskModel> is an explicitly instantiated property
-Field <org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.outputFile> is an explicitly instantiated property
-Field <org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask.outputFile> is an explicitly instantiated property
-Field <org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask.outputFile> is an explicitly instantiated property
-Field <org.gradle.jvm.application.tasks.CreateStartScripts.mainClass> is an explicitly instantiated property
-Field <org.gradle.jvm.application.tasks.CreateStartScripts.mainModule> is an explicitly instantiated property
-Field <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.compilerOptions> is an explicitly instantiated property
-Field <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.sourceFiles> is an explicitly instantiated property
-Field <org.gradle.kotlin.dsl.tooling.builders.GenerateSourceRootsFile.destinationFile> is an explicitly instantiated property
-Field <org.gradle.kotlin.dsl.tooling.builders.GenerateSourceRootsFile.sourceRoots> is an explicitly instantiated property
-Field <org.gradle.language.assembler.tasks.Assemble.includes> is an explicitly instantiated property
-Field <org.gradle.language.assembler.tasks.Assemble.source> is an explicitly instantiated property
-Field <org.gradle.language.assembler.tasks.Assemble.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.language.assembler.tasks.Assemble.toolChain> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.compilerArgs> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.includes> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.objectFileDir> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.source> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.systemIncludes> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.toolChain> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.outputDirectory> is an explicitly instantiated property
-Field <org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.source> is an explicitly instantiated property
-Field <org.gradle.language.rc.tasks.WindowsResourceCompile.compilerArgs> is an explicitly instantiated property
-Field <org.gradle.language.rc.tasks.WindowsResourceCompile.includes> is an explicitly instantiated property
-Field <org.gradle.language.rc.tasks.WindowsResourceCompile.source> is an explicitly instantiated property
-Field <org.gradle.language.rc.tasks.WindowsResourceCompile.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.language.rc.tasks.WindowsResourceCompile.toolChain> is an explicitly instantiated property
-Field <org.gradle.language.scala.tasks.AbstractScalaCompile.analysisFiles> is an explicitly instantiated property
-Field <org.gradle.language.scala.tasks.AbstractScalaCompile.analysisMappingFile> is an explicitly instantiated property
-Field <org.gradle.language.scala.tasks.AbstractScalaCompile.javaLauncher> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.compilerArgs> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.debuggable> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.macros> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.moduleFile> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.moduleName> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.modules> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.objectFileDir> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.optimize> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.source> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.sourceCompatibility> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.language.swift.tasks.SwiftCompile.toolChain> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.AbstractLinkTask.debuggable> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.AbstractLinkTask.destinationDirectory> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.AbstractLinkTask.linkedFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.AbstractLinkTask.linkerArgs> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.AbstractLinkTask.source> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.AbstractLinkTask.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.AbstractLinkTask.toolChain> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.CreateStaticLibrary.outputFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.CreateStaticLibrary.source> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.CreateStaticLibrary.staticLibArgs> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.CreateStaticLibrary.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.CreateStaticLibrary.toolChain> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.ExtractSymbols.binaryFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.ExtractSymbols.symbolFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.ExtractSymbols.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.ExtractSymbols.toolChain> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.InstallExecutable.executable> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.InstallExecutable.installDirectory> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.InstallExecutable.installedExecutable> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.InstallExecutable.libs> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.InstallExecutable.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.InstallExecutable.toolChain> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.LinkSharedLibrary.importLibrary> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.LinkSharedLibrary.installName> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.StripSymbols.binaryFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.StripSymbols.outputFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.StripSymbols.targetPlatform> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.tasks.StripSymbols.toolChain> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.bundleBinaryFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.installDirectory> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.test.xctest.tasks.XCTest.runScriptFile> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.test.xctest.tasks.XCTest.testInstallDirectory> is an explicitly instantiated property
-Field <org.gradle.nativeplatform.test.xctest.tasks.XCTest.workingDirectory> is an explicitly instantiated property
-Field <org.gradle.plugin.devel.internal.precompiled.CompileGroovyScriptPluginsTask.intermediatePluginClassesDirectory> is an explicitly instantiated property
-Field <org.gradle.plugin.devel.internal.precompiled.CompileGroovyScriptPluginsTask.intermediatePluginMetadataDirectory> is an explicitly instantiated property
-Field <org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.declarations> is an explicitly instantiated property
-Field <org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.implementationClassById> is an explicitly instantiated property
-Field <org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.outputDirectory> is an explicitly instantiated property
-Field <org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.outputDirectory> is an explicitly instantiated property
-Field <org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.pluginClasspath> is an explicitly instantiated property
-Field <org.gradle.plugins.ear.Ear.appDir> is an explicitly instantiated property
-Field <org.gradle.plugins.ear.Ear.generateDeploymentDescriptor> is an explicitly instantiated property
-Field <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.manifestFile> is an explicitly instantiated property
-Field <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.packageProperty> is an explicitly instantiated property
-Field <org.gradle.testing.jacoco.tasks.JacocoReport.projectName> is an explicitly instantiated property
-Field <org.gradle.testing.jacoco.tasks.JacocoReportBase.additionalClassDirs> is an explicitly instantiated property
-Field <org.gradle.testing.jacoco.tasks.JacocoReportBase.additionalSourceDirs> is an explicitly instantiated property
-Field <org.gradle.testing.jacoco.tasks.JacocoReportBase.classDirectories> is an explicitly instantiated property
-Field <org.gradle.testing.jacoco.tasks.JacocoReportBase.executionData> is an explicitly instantiated property
-Field <org.gradle.testing.jacoco.tasks.JacocoReportBase.sourceDirectories> is an explicitly instantiated property
-Field <org.gradle.testing.jacoco.tasks.JacocoReportBase.sourceEncoding> is an explicitly instantiated property
+Method <org.gradle.api.plugins.quality.Checkstyle.getConfigDirectory()> is not abstract
+Method <org.gradle.api.plugins.quality.Checkstyle.getEnableExternalDtdLoad()> is not abstract
+Method <org.gradle.api.plugins.quality.Pmd.getIncrementalAnalysis()> is not abstract
+Method <org.gradle.api.plugins.quality.Pmd.getMaxFailures()> is not abstract
+Method <org.gradle.api.plugins.quality.Pmd.getRulesMinimumPriority()> is not abstract
+Method <org.gradle.api.plugins.quality.Pmd.getThreads()> is not abstract
+Method <org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getCredentials()> is not abstract
+Method <org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getCredentials()> is not abstract
+Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getOutputFile()> is not abstract
+Method <org.gradle.api.publish.tasks.GenerateModuleMetadata.getPublication()> is not abstract
+Method <org.gradle.api.tasks.AbstractCopyTask.getDirPermissions()> is not abstract
+Method <org.gradle.api.tasks.AbstractCopyTask.getFilePermissions()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getJavaLauncher()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getMainClass()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getMainModule()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveAppendix()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveBaseName()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveClassifier()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveExtension()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFileName()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveVersion()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirectory()> is not abstract
+Method <org.gradle.api.tasks.bundling.War.getWebAppDirectory()> is not abstract
+Method <org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()> is not abstract
+Method <org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()> is not abstract
+Method <org.gradle.api.tasks.compile.GroovyCompile.getJavaLauncher()> is not abstract
+Method <org.gradle.api.tasks.compile.JavaCompile.getJavaCompiler()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getRootComponentProperty()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getShowingAllVariants()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.PropertyReportTask.getProperty()> is not abstract
+Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getAccess()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getIncludeAuthor()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getIncludeMainForScripts()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Groovydoc.getProcessScripts()> is not abstract
+Method <org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()> is not abstract
+Method <org.gradle.api.tasks.scala.ScalaDoc.getCompilationOutputs()> is not abstract
+Method <org.gradle.api.tasks.scala.ScalaDoc.getJavaLauncher()> is not abstract
+Method <org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()> is not abstract
+Method <org.gradle.api.tasks.testing.AbstractTestTask.getBinaryResultsDirectory()> is not abstract
+Method <org.gradle.api.tasks.testing.Test.getJavaLauncher()> is not abstract
+Method <org.gradle.api.tasks.testing.Test.getTestFrameworkProperty()> is not abstract
+Method <org.gradle.api.tasks.wrapper.Wrapper.getNetworkTimeout()> is not abstract
+Method <org.gradle.buildinit.tasks.InitBuild.getInsecureProtocol()> is not abstract
+Method <org.gradle.buildinit.tasks.InitBuild.getJavaVersion()> is not abstract
+Method <org.gradle.buildinit.tasks.InitBuild.getSplitProject()> is not abstract
+Method <org.gradle.buildinit.tasks.InitBuild.getUseIncubating()> is not abstract
+Method <org.gradle.configuration.Help.getTaskPath()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()> is not abstract
+Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()> is not abstract
+Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.getSourceFiles()> is not abstract
+Method <org.gradle.kotlin.dsl.tooling.builders.GenerateSourceRootsFile.getDestinationFile()> is not abstract
+Method <org.gradle.language.assembler.tasks.Assemble.getIncludes()> is not abstract
+Method <org.gradle.language.assembler.tasks.Assemble.getSource()> is not abstract
+Method <org.gradle.language.assembler.tasks.Assemble.getTargetPlatform()> is not abstract
+Method <org.gradle.language.assembler.tasks.Assemble.getToolChain()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getIncludes()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getObjectFileDir()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getSource()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getSystemIncludes()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getTargetPlatform()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getToolChain()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getObjects()> is not abstract
+Method <org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getOutputDirectory()> is not abstract
+Method <org.gradle.language.rc.tasks.WindowsResourceCompile.getIncludes()> is not abstract
+Method <org.gradle.language.rc.tasks.WindowsResourceCompile.getSource()> is not abstract
+Method <org.gradle.language.rc.tasks.WindowsResourceCompile.getTargetPlatform()> is not abstract
+Method <org.gradle.language.rc.tasks.WindowsResourceCompile.getToolChain()> is not abstract
+Method <org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisFiles()> is not abstract
+Method <org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisMappingFile()> is not abstract
+Method <org.gradle.language.scala.tasks.AbstractScalaCompile.getJavaLauncher()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getDebuggable()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getModuleFile()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getModuleName()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getModules()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getObjectFileDir()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getOptimized()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getSource()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getSourceCompatibility()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getTargetPlatform()> is not abstract
+Method <org.gradle.language.swift.tasks.SwiftCompile.getToolChain()> is not abstract
+Method <org.gradle.nativeplatform.tasks.AbstractLinkTask.getDebuggable()> is not abstract
+Method <org.gradle.nativeplatform.tasks.AbstractLinkTask.getDestinationDirectory()> is not abstract
+Method <org.gradle.nativeplatform.tasks.AbstractLinkTask.getLibs()> is not abstract
+Method <org.gradle.nativeplatform.tasks.AbstractLinkTask.getLinkedFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.AbstractLinkTask.getSource()> is not abstract
+Method <org.gradle.nativeplatform.tasks.AbstractLinkTask.getTargetPlatform()> is not abstract
+Method <org.gradle.nativeplatform.tasks.AbstractLinkTask.getToolChain()> is not abstract
+Method <org.gradle.nativeplatform.tasks.CreateStaticLibrary.getBinaryFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.CreateStaticLibrary.getOutputFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.CreateStaticLibrary.getTargetPlatform()> is not abstract
+Method <org.gradle.nativeplatform.tasks.CreateStaticLibrary.getToolChain()> is not abstract
+Method <org.gradle.nativeplatform.tasks.ExtractSymbols.getBinaryFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.ExtractSymbols.getSymbolFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.ExtractSymbols.getTargetPlatform()> is not abstract
+Method <org.gradle.nativeplatform.tasks.ExtractSymbols.getToolChain()> is not abstract
+Method <org.gradle.nativeplatform.tasks.InstallExecutable.getExecutableFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.InstallExecutable.getInstallDirectory()> is not abstract
+Method <org.gradle.nativeplatform.tasks.InstallExecutable.getInstalledExecutable()> is not abstract
+Method <org.gradle.nativeplatform.tasks.InstallExecutable.getTargetPlatform()> is not abstract
+Method <org.gradle.nativeplatform.tasks.InstallExecutable.getToolChain()> is not abstract
+Method <org.gradle.nativeplatform.tasks.LinkSharedLibrary.getImportLibrary()> is not abstract
+Method <org.gradle.nativeplatform.tasks.LinkSharedLibrary.getInstallName()> is not abstract
+Method <org.gradle.nativeplatform.tasks.StripSymbols.getBinaryFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.StripSymbols.getOutputFile()> is not abstract
+Method <org.gradle.nativeplatform.tasks.StripSymbols.getTargetPlatform()> is not abstract
+Method <org.gradle.nativeplatform.tasks.StripSymbols.getToolChain()> is not abstract
+Method <org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getBundleBinaryFile()> is not abstract
+Method <org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getInstallDirectory()> is not abstract
+Method <org.gradle.nativeplatform.test.xctest.tasks.XCTest.getRunScriptFile()> is not abstract
+Method <org.gradle.nativeplatform.test.xctest.tasks.XCTest.getTestInstallDirectory()> is not abstract
+Method <org.gradle.nativeplatform.test.xctest.tasks.XCTest.getWorkingDirectory()> is not abstract
+Method <org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.getOutputDirectory()> is not abstract
+Method <org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getOutputDirectory()> is not abstract
+Method <org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getPluginClasspath()> is not abstract
+Method <org.gradle.plugins.ear.Ear.getAppDirectory()> is not abstract
+Method <org.gradle.plugins.ear.Ear.getGenerateDeploymentDescriptor()> is not abstract
+Method <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getManifestFile()> is not abstract
+Method <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getPackage()> is not abstract
+Method <org.gradle.testing.jacoco.tasks.JacocoReport.getReportProjectName()> is not abstract
+Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getAdditionalClassDirs()> is not abstract
+Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getAdditionalSourceDirs()> is not abstract
+Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getClassDirectories()> is not abstract
+Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getExecutionData()> is not abstract
+Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getSourceDirectories()> is not abstract
+Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getSourceEncoding()> is not abstract

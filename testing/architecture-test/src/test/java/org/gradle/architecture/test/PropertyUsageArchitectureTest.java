@@ -16,61 +16,59 @@
 
 package org.gradle.architecture.test;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaField;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ArchPredicates;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.options.OptionValues;
+
+import javax.inject.Inject;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static org.gradle.architecture.test.ArchUnitFixture.beAbstractMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PropertyUsageArchitectureTest {
 
+    private static final DescribedPredicate<JavaMethod> hasRichPropertyReturnType = new DescribedPredicate<JavaMethod>("hasRichPropertyReturnType") {
+        @Override
+        public boolean test(JavaMethod method) {
+            JavaClass returnType = method.getRawReturnType();
+            return returnType.isAssignableTo(Property.class) ||
+                returnType.isAssignableTo(ConfigurableFileCollection.class) ||
+                returnType.isAssignableTo(ConfigurableFileTree.class);
+        }
+    };
+
+    @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
+    private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(declaredIn(assignableTo(Task.class)))
+        .and(are(ArchUnitFixture.getters))
+        .and(are(hasRichPropertyReturnType))
+        .and(not(annotatedWith(Inject.class)))
+        .and(not(annotatedWith(OptionValues.class)))
+        .and(not(declaredIn(Task.class)))
+        .and(not(declaredIn(DefaultTask.class)))
+        .and(not(declaredIn(org.gradle.api.internal.AbstractTask.class)))
+        .as("task properties");
+
     @ArchTest
     @SuppressWarnings("deprecation")
-    public static final ArchRule task_implementations_should_define_properties_as_abstract_getters = freeze(fields()
-        .that(are(declaredIn(assignableTo(Task.class))
-            .and(not(declaredIn(Task.class)))
-            .and(not(declaredIn(DefaultTask.class)))
-            .and(not(declaredIn(org.gradle.api.internal.AbstractTask.class)))))
-        .should(definePropertiesTheRightWay()));
-
-    private static ArchCondition<JavaField> definePropertiesTheRightWay() {
-        return new DefinePropertiesTheRightWay();
-    }
-
-    private static class DefinePropertiesTheRightWay extends ArchCondition<JavaField> {
-        public DefinePropertiesTheRightWay() {
-            super("define properties via abstract getters");
-        }
-
-        @Override
-        public void check(JavaField field, ConditionEvents events) {
-            JavaClass rawType = field.getRawType();
-            boolean isExplicitlyInstantiatedProperty = rawType.isAssignableTo(Provider.class) ||
-                rawType.isAssignableTo(ConfigurableFileCollection.class) ||
-                rawType.isAssignableTo(ConfigurableFileTree.class);
-
-            if (isExplicitlyInstantiatedProperty) {
-                String message = String.format("%s is an explicitly instantiated property", field.getDescription());
-                events.add(new SimpleConditionEvent(field, false, message));
-            }
-        }
-
-    }
+    public static final ArchRule task_implementations_should_define_properties_as_abstract_getters = freeze(methods()
+        .that(are(task_properties))
+        .should(beAbstractMethod()));
 
 }
