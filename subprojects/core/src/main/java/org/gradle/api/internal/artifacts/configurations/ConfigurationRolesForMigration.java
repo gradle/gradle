@@ -27,7 +27,8 @@ import java.util.Set;
  * from one role to another by marking usages which are present in the current role but not present in the eventual role
  * as deprecated.
  *
- * <p>The roles here are all meant to be temporary roles used for migration only, to be removed in Gradle 9.0.</p>
+ * <p>The remaining role here is meant to be a temporary roles used for migration only, to be removed in Gradle 10.0
+ * after Detached Configurations are no longer a special case.</p>
  *
  * <p>This is meant to only support <strong>narrowing migrations</strong>, that restrict usage that was previously
  * allowed. The migrations should transition from a role defined in {@link ConfigurationRoles} to another
@@ -41,9 +42,16 @@ public final class ConfigurationRolesForMigration {
     }
 
     /**
+     * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
+     */
+    @Deprecated
+    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
+
+    /**
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
+        LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
     );
 
     /**
