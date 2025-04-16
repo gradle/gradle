@@ -16,18 +16,6 @@
 
 package org.gradle.api.internal.plugins
 
-import org.gradle.plugin.software.internal.DefaultSoftwareFeatureBindingBuilder
-import org.gradle.plugin.software.internal.DefaultSoftwareTypeBindingBuilder
-
-
-fun softwareFeature(block: SoftwareFeatureBindingBuilder.() -> Unit): SoftwareFeatureBinding {
-    return DefaultSoftwareFeatureBindingBuilder().apply(block).build()
-}
-
-fun softwareType(block: SoftwareTypeBindingBuilder.() -> Unit): SoftwareFeatureBinding {
-    return DefaultSoftwareTypeBindingBuilder().apply(block).build()
-}
-
 inline fun <reified T: Any, reified U: Any, reified V: Any> SoftwareFeatureBindingBuilder.bind(name: String, noinline block: SoftwareFeatureApplicationContext.(T, U, V) -> Unit): SoftwareFeatureBindingBuilder {
     return this.bind(name, T::class.java, U::class.java, V::class.java, block)
 }
