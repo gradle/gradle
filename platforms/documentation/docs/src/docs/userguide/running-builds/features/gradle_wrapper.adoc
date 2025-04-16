@@ -17,27 +17,31 @@
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 
-The Wrapper is a script that invokes a declared version of Gradle, downloading it beforehand if necessary.
-As a result, developers can get up and running with a Gradle project quickly.
+*The Wrapper is a script* (called `gradlew` or `gradlew.bat`) that invokes a declared version of Gradle, downloading it beforehand if necessary.
+Instead of running `gradle build` using the installed Gradle, you use the Gradle Wrapper by calling `./gradlew build`.
 
 image::wrapper-workflow.png[]
 
-In a nutshell, you gain the following benefits:
+The Gradle Wrapper isn’t distributed as a standalone download—it’s created using the `gradle wrapper` task.
+
+There are three ways to use the Wrapper:
+
+1. *Adding the Wrapper* - You set up a new Gradle project and <<#sec:adding_wrapper,add the Wrapper>> to it.
+2. *Using the Wrapper* - You <<#sec:using_wrapper,run a project with the Wrapper>> that already provides it.
+3. *Upgrading the Wrapper* - You <<#sec:upgrading_wrapper,upgrade the Wrapper>> to a new version of Gradle.
+
+When using the Wrapper instead of the installed Gradle, you gain the following benefits:
 
 - Standardizes a project on a given Gradle version for more reliable and robust builds.
 - Provisioning the Gradle version for different users is done with a simple Wrapper definition change.
 - Provisioning the Gradle version for different execution environments (e.g., IDEs or Continuous Integration servers) is done with a simple Wrapper definition change.
 
-There are three ways to use the Wrapper:
-
-1. You set up a new Gradle project and <<#sec:adding_wrapper,add the Wrapper>> to it.
-2. You <<#sec:using_wrapper,run a project with the Wrapper>> that already provides it.
-3. You <<#sec:upgrading_wrapper,upgrade the Wrapper>> to a new version of Gradle.
-
 The following sections explain each of these use cases in more detail.
 
 [[sec:adding_wrapper]]
-== Adding the Gradle Wrapper
+== 1. Adding the Gradle Wrapper
+
+The Gradle Wrapper is *not* something you download.
 
 Generating the Wrapper files requires an installed version of the Gradle runtime on your machine as described in <<installation.adoc#installation,Installation>>.
 Thankfully, generating the initial Wrapper files is a one-time process.
@@ -193,7 +197,7 @@ You can go ahead and <<#sec:using_wrapper,execute the build with the Wrapper>> w
 If the project you are working on does not contain those Wrapper files, you will need to <<#sec:adding_wrapper,generate them>>.
 
 [[sec:using_wrapper]]
-== Using the Gradle Wrapper
+== 2. Using the Gradle Wrapper
 
 It is always recommended to execute a build with the Wrapper to ensure a reliable, controlled, and standardized execution of the build.
 Using the Wrapper looks like running the build with a Gradle installation.
@@ -216,7 +220,7 @@ Any subsequent build invocation will reuse the existing local distribution as lo
 NOTE: The Wrapper shell script and batch file reside in the root directory of a single or multi-project Gradle build. You will need to reference the correct path to those files in case you want to execute the build from a subproject directory e.g. `../../gradlew tasks`.
 
 [[sec:upgrading_wrapper]]
-== Upgrading the Gradle Wrapper
+== 3. Upgrading the Gradle Wrapper
 
 Projects typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements.
 
@@ -236,7 +240,12 @@ The following command upgrades the Wrapper to the `latest` version:
 
 [source,bash]
 ----
-$ ./gradlew wrapper --gradle-version latest
+$ ./gradlew wrapper --gradle-version latest   // MacOs, Linux
+----
+
+[source,bash]
+----
+$ gradlew.bat wrapper --gradle-version latest // Windows
 ----
 
 ----
@@ -247,7 +256,12 @@ The following command upgrades the Wrapper to a specific version:
 
 [source, bash]
 ----
-$ ./gradlew wrapper --gradle-version {gradleVersion}
+$ ./gradlew wrapper --gradle-version {gradleVersion} // MacOs, Linux
+----
+
+[source,bash]
+----
+$ gradlew.bat wrapper --gradle-version {gradleVersion} // Windows
 ----
 
 ----

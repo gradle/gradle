@@ -90,7 +90,7 @@ $ gradle <task> --daemon
 
 This flag overrides any settings that disable the Daemon in your project or user `gradle.properties` files.
 
-To enable the Daemon by default in older Gradle versions, add the following setting to the `gradle.properties` file in the project root or your Gradle User Home (<<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>>):
+To enable the Daemon by default in older Gradle versions, add the following setting to the `gradle.properties` file in the <<directory_layout.adoc#dir:project_root,project root>> or your Gradle User Home (<<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>>):
 
 ====
 .gradle.properties
@@ -122,7 +122,7 @@ This flag overrides any settings that enable the Daemon in your project includin
 
 === Disable for a project
 
-To disable the Daemon for all builds of a project, add `org.gradle.daemon=false` to the `gradle.properties` file in the project root.
+To disable the Daemon for all builds of a project, add `org.gradle.daemon=false` to the `gradle.properties` file in the <<directory_layout.adoc#dir:project_root,project root>>.
 
 === Disable for a user
 
@@ -556,7 +556,7 @@ You can do this on the command line with the following command:
 $ gradle <task> -Dorg.gradle.daemon.performance.enable-monitoring=false
 ----
 
-Or you can configure the property in the `gradle.properties` file in the project root or your <<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>> (Gradle User Home):
+Or you can configure the property in the `gradle.properties` file in the <<directory_layout.adoc#dir:project_root,project root>> or your <<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>> (Gradle User Home):
 
 ====
 .gradle.properties

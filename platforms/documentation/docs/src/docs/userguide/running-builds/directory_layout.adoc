@@ -15,12 +15,15 @@
 [[directory_layout]]
 = Gradle-managed Directories
 
-Gradle uses two main directories to perform and manage its work: the <<#dir:gradle_user_home>> and the <<#dir:project_root>>.
+Gradle uses two main directories to perform and manage its work:
+
+1. The <<#dir:gradle_user_home>>
+2. The <<#dir:project_root>>
 
 image::author-gradle-2.png[]
 
 [[dir:gradle_user_home]]
-== Gradle User Home directory
+== 1. Gradle User Home directory
 
 By default, the Gradle User Home (`~/.gradle` or `C:\Users\<USERNAME>\.gradle`) stores global configuration properties, initialization scripts, caches, and log files.
 
@@ -208,7 +211,7 @@ include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUser
 NOTE: Cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home to which those settings apply and limits the possibility of different conflicting settings from different projects being applied to the same directory.
 
 [[dir:project_root]]
-== Project Root directory
+== 2. Project Root directory
 
 The project root directory contains all source files from your project.
 
