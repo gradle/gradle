@@ -26,7 +26,7 @@ public interface ExecResult {
     int getExitValue();
 
     /**
-     * Throws an {@link ProcessExecutionException} if the process exited with a non-zero exit value.
+     * Throws a {@link ProcessExecutionException} if the process exited with a non-zero exit value.
      *
      * @return this
      * @throws ProcessExecutionException if the process exited with a non-zero exit value
