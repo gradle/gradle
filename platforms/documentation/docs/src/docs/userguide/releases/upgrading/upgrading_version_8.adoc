@@ -203,6 +203,27 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 - `org.gradle.api.file.FileTreeElement.getMode()`
 - `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
+===== Remove deprecated custom source set interfaces
+The following source set interfaces have been removed:
+
+- `org.gradle.api.tasks.GroovySourceSet`
+- `org.gradle.api.tasks.ScalaSourceSet`
+
+Clients should configure the sources with their plugin-specific configuration:
+
+- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
+
+For example, here's how you configure the groovy sources from a plugin:
+
+```java
+GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
+```
+
+[[jspecify]]
+==== Gradle API now uses JSpecify Nullability Annotations
+
 ==== Removal of select Groovy modules from the Gradle distribution
 
 Gradle 9.0 removes certain Groovy modules from its bundled distribution.
@@ -520,7 +541,7 @@ plugins {
 =====
 ====
 
-TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins. 
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
 If you are already applying one of those, no further action is needed.
 
 [[changes_8.14]]
