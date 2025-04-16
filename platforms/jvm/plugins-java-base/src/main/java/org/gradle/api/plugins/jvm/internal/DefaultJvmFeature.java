@@ -270,9 +270,9 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         boolean useMigrationRoleForElementsConfigurations
     ) {
         if (useMigrationRoleForElementsConfigurations) {
-            return configurations.maybeCreateMigratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+            return configurations.maybeCreateMigratingLocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         } else {
-            return configurations.maybeCreateConsumableUnlocked(name);
+            return configurations.maybeCreateConsumableLocked(name);
         }
     }
 
@@ -354,7 +354,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private Configuration dependencyScope(String kind, String suffix, boolean create, boolean warnOnDuplicate) {
         String configName = getConfigurationName(suffix);
         Configuration configuration = create
-            ? project.getConfigurations().maybeCreateDependencyScopeUnlocked(configName, warnOnDuplicate)
+            ? project.getConfigurations().maybeCreateDependencyScopeLocked(configName, warnOnDuplicate)
             : project.getConfigurations().getByName(configName);
         configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
         configuration.setVisible(false);

@@ -138,7 +138,7 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        Configuration variant = project.getConfigurations().maybeCreateMigratingUnlocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        Configuration variant = project.getConfigurations().maybeCreateMigratingLocked(variantName, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         variant.setVisible(false);
         variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 
