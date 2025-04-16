@@ -17,11 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
-class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
+class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
 
     def "main component is java component"() {
         given:
@@ -567,30 +568,28 @@ Artifacts
         fails("help")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling $method(true) on configuration ':$configuration' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+        assertUsageLockedFailure(configuration, role)
 
         where:
-        configuration       | method
-        "apiElements"       | "setCanBeResolved"
-        "apiElements"       | "setCanBeDeclared"
-        "runtimeElements"   | "setCanBeResolved"
-        "runtimeElements"   | "setCanBeDeclared"
-        "implementation"    | "setCanBeResolved"
-        "implementation"    | "setCanBeConsumed"
-        "runtimeOnly"       | "setCanBeResolved"
-        "runtimeOnly"       | "setCanBeConsumed"
-        "compileOnly"       | "setCanBeResolved"
-        "compileOnly"       | "setCanBeConsumed"
-        "api"               | "setCanBeResolved"
-        "api"               | "setCanBeConsumed"
-        "compileOnlyApi"    | "setCanBeResolved"
-        "compileOnlyApi"    | "setCanBeConsumed"
-        "runtimeClasspath"  | "setCanBeConsumed"
-        "runtimeClasspath"  | "setCanBeDeclared"
-        "compileClasspath"  | "setCanBeConsumed"
-        "compileClasspath"  | "setCanBeDeclared"
+        configuration       | method                | role
+        "apiElements"       | "setCanBeResolved"    | "Consumable"
+        "apiElements"       | "setCanBeDeclared"    | "Consumable"
+        "runtimeElements"   | "setCanBeResolved"    | "Consumable"
+        "runtimeElements"   | "setCanBeDeclared"    | "Consumable"
+        "implementation"    | "setCanBeResolved"    | "Dependency Scope"
+        "implementation"    | "setCanBeConsumed"    | "Dependency Scope"
+        "runtimeOnly"       | "setCanBeResolved"    | "Dependency Scope"
+        "runtimeOnly"       | "setCanBeConsumed"    | "Dependency Scope"
+        "compileOnly"       | "setCanBeResolved"    | "Dependency Scope"
+        "compileOnly"       | "setCanBeConsumed"    | "Dependency Scope"
+        "api"               | "setCanBeResolved"    | "Dependency Scope"
+        "api"               | "setCanBeConsumed"    | "Dependency Scope"
+        "compileOnlyApi"    | "setCanBeResolved"    | "Dependency Scope"
+        "compileOnlyApi"    | "setCanBeConsumed"    | "Dependency Scope"
+        "runtimeClasspath"  | "setCanBeConsumed"    | "Resolvable"
+        "runtimeClasspath"  | "setCanBeDeclared"    | "Resolvable"
+        "compileClasspath"  | "setCanBeConsumed"    | "Resolvable"
+        "compileClasspath"  | "setCanBeDeclared"    | "Resolvable"
     }
 
     def "registerFeature features are added to java component"() {

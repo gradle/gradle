@@ -766,9 +766,4 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         method << ['setCanBeResolved', 'setCanBeDeclared']
     }
     // endregion Detached configurations
-
-    private void assertUsageLockedFailure(String configurationName, String roleName = null) {
-        String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."
-        failure.assertHasCause("Cannot change the allowed usage of configuration ':$configurationName', $suffix")
-    }
 }

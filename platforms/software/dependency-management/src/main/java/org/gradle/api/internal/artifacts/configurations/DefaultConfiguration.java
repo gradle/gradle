@@ -1507,11 +1507,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * <p>
      * For <strong>redundant</strong>, where a method is called but no change in the usage occurs, this method does not fail. This is
      * to allow plugins utilizing this behavior to continue to function, as popular third-party plugins continue to
-     * violate these conditions.  However, it may emit a warning if:
-     * <ul>
-     *     <li>The configuration is detached and the new value is false.</li>
-     *     <li>The current value and the new value are the same</li>
-     * </ul>
+     * violate these conditions.  However, it may emit a warning on redundant changes if a special flag is set.
      * <p>
      * The eventual goal is that all configuration usage be specified upon creation and immutable
      * thereafter.
@@ -1524,7 +1520,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        // KGP continues to set the already-set value for a given usage even though it is already set
         boolean redundantChange = current == newValue;
 
         // Error will be thrown later. Don't emit a duplicate warning.
@@ -1532,19 +1527,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        // KGP disables `consumable` on detached configurations even though this is not necessary, so this is a special case where
-        boolean disablingUsageOnDetached = isDetachedConfiguration() && !newValue;
-
+        // KGP continues to set the already-set value for a given usage even though it is already set
         // This property exists to allow KGP to test whether they have properly stopped making unnecessary redundant
         // changes to detachedConfigurations.
         // This property WILL be removed without warning.
         boolean warnOnRedundantChanges = Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled");
 
-        if (!redundantChange) {
-            failDueToChangingUsage(methodName, newValue);
-        } else if (warnOnRedundantChanges || !disablingUsageOnDetached) {
+        if (redundantChange && warnOnRedundantChanges) {
             warnAboutChangingUsage(methodName, newValue);
-        }
+        } else if (!redundantChange) {
+            failDueToChangingUsage(methodName, newValue);
+        } // else: redundant change and not asked to warn
     }
 
     private void warnAboutChangingUsage(String methodName, boolean newValue) {
