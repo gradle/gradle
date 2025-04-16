@@ -27,7 +27,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.options.OptionValues;
 
 import javax.inject.Inject;
@@ -48,7 +48,7 @@ public class PropertyUsageArchitectureTest {
         @Override
         public boolean test(JavaMethod method) {
             JavaClass returnType = method.getRawReturnType();
-            return returnType.isAssignableTo(Property.class) ||
+            return returnType.isAssignableTo(Provider.class) ||
                 returnType.isAssignableTo(ConfigurableFileCollection.class) ||
                 returnType.isAssignableTo(ConfigurableFileTree.class);
         }
