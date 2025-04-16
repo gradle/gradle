@@ -1176,7 +1176,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             configurationsProvider,
             childResolutionStrategy,
             rootComponentMetadataBuilder,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
@@ -1530,14 +1530,27 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // KGP continues to set the already-set value for a given usage even though it is already set
         // This property exists to allow KGP to test whether they have properly stopped making unnecessary redundant
         // changes to detachedConfigurations.
-        // This property WILL be removed without warning.
-        boolean warnOnRedundantChanges = Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled");
+        // This property WILL be removed without warning and should be removed in Gradle 9.x.
+        boolean extraWarningsEnabled = Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled");
 
-        if (redundantChange && warnOnRedundantChanges) {
-            warnAboutChangingUsage(methodName, newValue);
-        } else if (!redundantChange) {
-            failDueToChangingUsage(methodName, newValue);
-        } // else: redundant change and not asked to warn
+        if (redundantChange) {
+            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10.0 this should fail.
+            if (extraWarningsEnabled) {
+                warnAboutChangingUsage(methodName, newValue);
+            }
+        } else {
+            if (isDetachedConfiguration()) {
+                // This is an actual change, and permitting it is not desired behavior, but we haven't deprecated
+                // changing detached confs as of 9.0, so we have to permit even non-redundant changes to them,
+                // but we can at least warn if the flag is set.
+                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10.0 this should fail.
+                if (extraWarningsEnabled) {
+                    warnAboutChangingUsage(methodName, newValue);
+                }
+            } else {
+                failDueToChangingUsage(methodName, newValue);
+            }
+        }
     }
 
     private void warnAboutChangingUsage(String methodName, boolean newValue) {

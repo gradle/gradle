@@ -221,7 +221,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             detachedConfigurationsProvider,
             resolutionStrategyFactory,
             componentMetadataBuilder,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         );
 
         copyAllTo(detachedConfiguration, dependencies);

@@ -642,13 +642,12 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         // This is not desired behavior. Role should be same as detached configuration.
-        // Role of copies are currently set to RESOLVABLE_DEPENDENCY_SCOPE
         copy.canBeDeclared
         copy.canBeResolved
-        !copy.canBeConsumed
+        copy.canBeConsumed
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
-        !copy.deprecatedForConsumption
+        copy.deprecatedForConsumption
         !copy.deprecatedForResolution
         !copy.deprecatedForDeclarationAgainst
 
@@ -670,17 +669,17 @@ class DefaultConfigurationSpec extends Specification {
         configuration.canBeResolved = false
         configuration.canBeDeclared = false
 
+
         def copy = configuration.copy()
 
         then:
         // This is not desired behavior. Role should be same as detached configuration.
-        // Role of copies are currently set to RESOLVABLE_DEPENDENCY_SCOPE
         copy.canBeDeclared
         copy.canBeResolved
-        !copy.canBeConsumed
+        copy.canBeConsumed
         copy.declarationAlternatives == []
         copy.resolutionAlternatives == []
-        !copy.roleAtCreation.consumptionDeprecated
+        copy.roleAtCreation.consumptionDeprecated
         !copy.roleAtCreation.resolutionDeprecated
         !copy.roleAtCreation.declarationAgainstDeprecated
     }
@@ -804,7 +803,7 @@ class DefaultConfigurationSpec extends Specification {
             assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
         assert copy.canBeResolved == original.canBeResolved
-        assert !copy.canBeConsumed // Copies are now made as RESOLVABLE_DEPENDENCY_SCOPE, so are non-consumable regardless of the usage of the original
+        assert copy.canBeConsumed == original.canBeConsumed
         true
     }
 

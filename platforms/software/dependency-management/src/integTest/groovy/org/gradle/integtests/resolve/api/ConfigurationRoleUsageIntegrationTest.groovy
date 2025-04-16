@@ -716,54 +716,43 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
     // endregion Migrating configurations
 
     // region Detached configurations
-    def "changing usage #property = #change on detached configurations fails"() {
+    def "changing usage on detached configurations does not warn"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
-            assert !detached.canBeConsumed
+            assert detached.canBeConsumed
             assert detached.canBeResolved
             assert detached.canBeDeclared
 
-            detached.$property($change)
+            detached.canBeResolved = false
+            detached.canBeConsumed = false
+            detached.canBeDeclared = false
         """
 
-        when:
-        fails "help"
-
-        then:
-        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling $property($change) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
-
-        where:
-        property            | change
-        "setCanBeConsumed"  | true
-        "setCanBeResolved"  | false
-        "setCanBeDeclared"  | false
+        expect:
+        run "help"
     }
 
-    def "changing usage on detached configurations fails when flag is set (#method(false)"() {
+    def "changing usage on detached configurations warns when flag is set"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
+            assert detached.canBeConsumed
             assert detached.canBeResolved
             assert detached.canBeDeclared
 
-            detached.$method(false)
+            detached.canBeResolved = false
+            detached.canBeConsumed = false
+            detached.canBeDeclared = false
         """
 
-        when:
-        fails('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
-
-        then:
-        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Method call not allowed
-  Calling $method(false) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
-
-        where:
-        method << ['setCanBeResolved', 'setCanBeDeclared']
+        expect:
+        expectConsumableChanging(":detachedConfiguration1", false)
+        expectResolvableChanging(":detachedConfiguration1", false)
+        expectDeclarableChanging(":detachedConfiguration1", false)
+        succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
     // endregion Detached configurations
 }
