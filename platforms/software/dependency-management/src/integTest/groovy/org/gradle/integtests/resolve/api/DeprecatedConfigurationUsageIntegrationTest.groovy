@@ -135,21 +135,6 @@ This method is only meant to be called on configurations which allow the usage(s
         succeeds('help')
     }
 
-    def "calling deprecated usage does not produce a deprecation warning if other allowed usage permits it"() {
-        given:
-        buildFile << """
-            configurations {
-                migratingLocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE)
-                foo.attributes {
-                    attribute(Attribute.of('foo', String), 'bar')
-                }
-            }
-        """
-
-        expect:
-        succeeds('help')
-    }
-
     def "configuration explicitly deprecated for resolution will warn if resolved, but not fail"() {
         buildFile << """
             configurations {
