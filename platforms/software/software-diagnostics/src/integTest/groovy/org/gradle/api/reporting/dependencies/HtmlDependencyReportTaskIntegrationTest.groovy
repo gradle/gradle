@@ -556,39 +556,6 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    void "treats a configuration that is deprecated for resolving as not resolvable"() {
-        mavenRepo.module("foo", "foo", '1.0').publish()
-
-        buildFile << """
-            apply plugin : 'project-report'
-
-            repositories {
-               maven { url = "${mavenRepo.uri}" }
-            }
-            configurations {
-                migratingLocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
-            }
-            dependencies {
-                compileOnly 'foo:foo:1.0'
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        run "htmlDependencyReport"
-        def json = readGeneratedJson("root")
-        def apiConfiguration = json.project.configurations.find { it.name == "compileOnly" }
-
-        then:
-        apiConfiguration
-        apiConfiguration.dependencies.size() == 1
-        apiConfiguration.dependencies[0].name == "foo:foo:1.0"
-        apiConfiguration.dependencies[0].resolvable == 'UNRESOLVED'
-        apiConfiguration.dependencies[0].alreadyRendered == false
-        apiConfiguration.dependencies[0].hasConflict == false
-        apiConfiguration.dependencies[0].children.empty
-    }
-
     void "excludes directly undeclarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 

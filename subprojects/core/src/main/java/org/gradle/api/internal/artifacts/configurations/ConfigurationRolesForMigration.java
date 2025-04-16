@@ -41,12 +41,6 @@ public final class ConfigurationRolesForMigration {
     }
 
     /**
-     * A legacy configuration that will become a consumable configuration in the next major version.
-     */
-    @SuppressWarnings("deprecation")
-    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE);
-
-    /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
@@ -62,7 +56,6 @@ public final class ConfigurationRolesForMigration {
      * All known migration roles.
      */
     public static final Set<ConfigurationRole> ALL = ImmutableSet.of(
-        LEGACY_TO_CONSUMABLE,
         RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
         CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE
     );

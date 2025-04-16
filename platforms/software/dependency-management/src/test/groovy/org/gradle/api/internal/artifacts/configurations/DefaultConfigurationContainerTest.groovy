@@ -289,7 +289,6 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         role << [
-            ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE,
             ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
             ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE,
         ]

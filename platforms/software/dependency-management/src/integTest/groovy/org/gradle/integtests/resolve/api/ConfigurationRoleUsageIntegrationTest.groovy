@@ -110,34 +110,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         assertUsageLockedFailure('testConf')
     }
 
-    def "can add resolution alternatives to configuration deprecated for resolution"() {
-        given:
-        mavenRepo.module("org", "foo", "1.0").publish()
-        buildFile << """
-            configurations {
-                deps
-                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
-                    addResolutionAlternatives("anotherConf")
-                    extendsFrom(deps)
-                }
-            }
-
-            repositories { maven { url = "${mavenRepo.uri}" } }
-
-            dependencies {
-                deps "org:foo:1.0"
-            }
-
-            task resolve {
-                configurations.testConf.files
-            }
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        succeeds 'resolve'
-    }
-
     def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
         given:
         buildFile << """
