@@ -75,7 +75,7 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
         }
     }
 
-    def "captures test aborted failures"() {
+    def "test aborted failures are avaliable as assumptionFailures"() {
         buildFile << """
             plugins {
                 id 'java-library'
