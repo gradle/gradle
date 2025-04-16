@@ -16,7 +16,10 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.api.internal.plugins.BindsSoftwareType
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding
+import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
+import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -396,27 +399,24 @@ trait SoftwareTypeFixture {
             import org.gradle.api.tasks.Nested;
             import ${SoftwareType.class.name};
             import ${SoftwareFeatureBinding.class.name};
+            import ${SoftwareTypeBindingRegistration.class.name};
+            import ${BindsSoftwareType.class.name};
+            import ${SoftwareTypeBindingBuilder.class.name};
             import javax.inject.Inject;
 
-            import static ${SoftwareFeatureBinding.class.name}.softwareType;
-
+            @BindsSoftwareType(${softwareTypePluginClassName}.Binding.class)
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                //@SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
-                                    .modelPublicType(publicTypeClassName)
-                                    .build()})
-                //abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
-
                 public interface ModelType {
                     Property<String> getId();
                 }
 
-                @SoftwareType
-                public static SoftwareFeatureDslBinding binding = softwareType(builder ->
-                    builder.bind("${softwareType}", ${dslTypeClassName}.class, ModelType.class, (context, definition, model) -> {
-                        System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
-                    })
-                );
+                static class Binding implements SoftwareTypeBindingRegistration {
+                    public void bind(SoftwareTypeBindingBuilder builder) {
+                        builder.bind("${softwareType}", ${dslTypeClassName}.class, ModelType.class, (context, definition, model) -> {
+                            System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
+                        });
+                    }
+                }
 
                 @Override
                 public void apply(Project target) {

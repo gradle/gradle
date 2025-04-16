@@ -139,8 +139,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        SoftwareFeatureRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme) {
-            return new DefaultSoftwareFeatureRegistry(pluginScheme.getInspectionScheme());
+        SoftwareFeatureRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
+            return new DefaultSoftwareFeatureRegistry(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
         }
 
         @Provides
