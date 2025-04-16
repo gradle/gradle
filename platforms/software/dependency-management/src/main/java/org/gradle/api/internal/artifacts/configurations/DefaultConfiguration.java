@@ -1516,7 +1516,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * The eventual goal is that all configuration usage be specified upon creation and immutable
      * thereafter.
      */
-    private void preventChangingUsage(String methodName, boolean current, boolean newValue) {
+    private void checkChangingUsage(String methodName, boolean current, boolean newValue) {
         if (hasAllUsages()) {
             // We currently allow configurations with all usages -- those that are created with
             // `create` and `register` -- to have mutable roles. This is likely to change in the future
@@ -1595,7 +1595,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
-        preventChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
+        checkChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
         setCanBeConsumedInternal(allowed);
     }
 
@@ -1616,7 +1616,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeResolved(boolean allowed) {
-        preventChangingUsage("setCanBeResolved", canBeResolved, allowed);
+        checkChangingUsage("setCanBeResolved", canBeResolved, allowed);
         setCanBeResolvedInternal(allowed);
     }
 
@@ -1637,7 +1637,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeDeclared(boolean allowed) {
-        preventChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
+        checkChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
         setCanBeDeclaredInternal(allowed);
     }
 

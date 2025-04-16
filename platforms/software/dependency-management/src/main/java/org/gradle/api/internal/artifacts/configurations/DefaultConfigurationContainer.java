@@ -255,17 +255,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Configuration resolvableLocked(String name) {
         assertCanMutate("resolvableLocked(String)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
     }
 
     @Override
     public Configuration resolvableLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("resolvableLocked(String, Action)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
     }
 
     @Override
@@ -283,17 +279,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Configuration consumableLocked(String name) {
         assertCanMutate("consumableLocked(String)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
     }
 
     @Override
     public Configuration consumableLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("consumableLocked(String, Action)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
     }
 
     @Override
@@ -311,35 +303,27 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Configuration dependencyScopeLocked(String name) {
         assertCanMutate("dependencyScopeLocked(String)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
     public Configuration dependencyScopeLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("dependencyScopeLocked(String, Action)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
     }
 
     @Override
     @Deprecated
     public Configuration resolvableDependencyScopeLocked(String name) {
         assertCanMutate("resolvableDependencyScopeLocked(String)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
     @Deprecated
     public Configuration resolvableDependencyScopeLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("resolvableDependencyScopeLocked(String, Action)");
-        DefaultConfiguration result = createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
-        result.preventUsageMutation();
-        return result;
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
     }
 
     @Override
@@ -353,9 +337,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         assertCanMutate("migratingLocked(String, ConfigurationRole, Action)");
 
         if (ConfigurationRolesForMigration.ALL.contains(role)) {
-            DefaultConfiguration result = createLegacyConfiguration(name, role, action);
-            result.preventUsageMutation();
-            return result;
+            return createLockedLegacyConfiguration(name, role, action);
         } else {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
@@ -418,9 +400,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             }
         } else {
             if (VALID_MAYBE_CREATE_ROLES.contains(request.getRole())) {
-                DefaultConfiguration result = createLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
-                result.preventUsageMutation();
-                return result;
+                return createLockedLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
             } else {
                 throw new GradleException("Cannot maybe create invalid role: " + request.getRole());
             }
@@ -445,12 +425,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         );
     }
 
-    private DefaultConfiguration createLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+    private DefaultConfiguration createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
         DefaultConfiguration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
         super.add(configuration);
         configureAction.execute(configuration);
+        configuration.preventUsageMutation();
         return configuration;
     }
 
