@@ -880,6 +880,7 @@ public class AsmBackedClassGeneratorTest {
         Bean bean = newInstance(Bean.class);
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
         ConventionObject conventionObject = new ConventionObject();
+        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
 
         call("{ it.conventionProperty = 'value' }", bean);
         assertThat(conventionObject.getConventionProperty(), equalTo("value"));
@@ -894,6 +895,7 @@ public class AsmBackedClassGeneratorTest {
         TestDecoratedGroovyBean bean = newInstance(TestDecoratedGroovyBean.class);
         DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
         ConventionObject conventionObject = new ConventionObject();
+        new DslObject(dynamicObjectAware).getConvention().getPlugins().put("plugin", conventionObject);
 
         call("{ it.conventionProperty = 'value' }", bean);
         assertThat(conventionObject.getConventionProperty(), equalTo("value"));
@@ -1089,6 +1091,7 @@ public class AsmBackedClassGeneratorTest {
         assertEquals(Bean.class, dslObject.getImplementationType());
         assertEquals(typeOf(Bean.class), dslObject.getPublicType());
         assertNotNull(dslObject.getConventionMapping());
+        assertNotNull(dslObject.getConvention());
         assertNotNull(dslObject.getExtensions());
         assertNotNull(dslObject.getAsDynamicObject());
     }
