@@ -241,7 +241,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                 // In the HTML report, the format is:
                 // message
                 // <newline>
-                // exception toString()
+                // exception stacktrace
                 String message = possibleText[0]
                 String exceptionType = possibleText[2].split(":")[0]
                 skippedExecutionResult = new SkippedExecutionResult(message, exceptionType, possibleText[2,-1].join("\n"))
