@@ -105,6 +105,9 @@ class ConfigurationCacheProblems(
     val incompatibleTasks = newConcurrentHashSet<PropertyTrace>()
 
     private
+    val incompatiblePlugins = newConcurrentHashSet<PropertyTrace>()
+
+    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     private
@@ -152,6 +155,20 @@ class ConfigurationCacheProblems(
             // report the incompatible task itself the first time only
             reportIncompatibleTask(trace, reason)
         }
+        return object : AbstractProblemsListener() {
+            override fun onProblem(problem: PropertyProblem) {
+                onProblem(problem, ProblemSeverity.Suppressed)
+            }
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                val failure = failureFactory.create(error)
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+            }
+        }
+    }
+
+    override fun forIncompatiblePlugin(trace: PropertyTrace, reason: String): ProblemsListener {
+        incompatiblePlugins.add(trace)
         return object : AbstractProblemsListener() {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
@@ -332,6 +349,7 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == Store && discardStateDueToProblems && incompatiblePlugins.isNotEmpty() -> log("Configuration cache entry discarded and execution switched to vintage because incompatible plugins applied: ${incompatiblePlugins.joinToString { it.render() }}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)

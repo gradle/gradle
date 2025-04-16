@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.code;
+package org.gradle.api.plugins;
 
-import org.gradle.internal.DisplayName;
-import org.jspecify.annotations.Nullable;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Describes the source of code being applied.
- */
-public interface UserCodeSource {
-    /**
-     * Returns the display name of the user code.
-     */
-    DisplayName getDisplayName();
-
-    /**
-     * The ID of the plugin applying user code, if available.
-     */
-    @Nullable
-    String getPluginId();
-
-    @Nullable
-    String getConfigurationCacheIncompatibilityReason();
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface PluginNotCompatibleWithConfigurationCache {
+    String because() default "";
 }

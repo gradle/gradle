@@ -16,13 +16,76 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.BuildListener
+import org.gradle.BuildResult
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.PluginNotCompatibleWithConfigurationCache
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "plugin can declare CC incompatibility"() {
+        buildFile("buildSrc/build.gradle", """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+
+            gradlePlugin {
+                plugins {
+                    fooPlugin {
+                        id = 'foo'
+                        implementationClass = 'FooPlugin'
+                    }
+                }
+            }
+        """)
+
+        buildFile("buildSrc/src/main/groovy/Foo.groovy", """
+            import ${Plugin.name}
+            import ${Project.name}
+            import ${PluginNotCompatibleWithConfigurationCache.name}
+            import ${BuildListener.name}
+            import ${Settings.name}
+            import ${Gradle.name}
+            import ${BuildResult.name}
+
+            @PluginNotCompatibleWithConfigurationCache(because = "Sorry")
+            public class FooPlugin implements Plugin<Project> {
+
+                @Override
+                void apply(Project target){
+                    target.gradle.addBuildListener(new BuildListener() {
+                        @Override
+                        void settingsEvaluated(Settings settings){}
+
+                        @Override
+                        void projectsLoaded(Gradle gradle){}
+
+                        @Override
+                        void projectsEvaluated(Gradle gradle){}
+
+                        @Override
+                        void buildFinished(BuildResult result){}
+                    })
+                }
+            }
+        """)
+
+        buildFile """
+            plugins {
+                id("foo")
+            }
+        """
+
+        expect:
+        configurationCacheRun "help"
+        output.contains("Configuration cache entry discarded and execution switched to vintage because incompatible plugins applied: plugin 'foo'")
+    }
 
     def "configuration cache is out of incubation"() {
         given:
