@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-Gradle 9.0 has many bug fixes and other general improvements. As a major version, this release also has changes to deprecated APIs and behavior. Consult the <<upgrading_version_8.adoc#upgrading_version_8,Gradle 8.x upgrade guide>> for guidance on removed APIs and behavior.
+Gradle 9.0 has many bug fixes and other general improvements. As a major version, this release also has changes to deprecated APIs and behavior. Consult the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html) for guidance on removed APIs and behavior.
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
