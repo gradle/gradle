@@ -1539,9 +1539,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 warnAboutChangingUsage(methodName, newValue);
             }
         } else {
-            if (isDetachedConfiguration()) {
+            if (isDetachedConfiguration() && !newValue) {
                 // This is an actual change, and permitting it is not desired behavior, but we haven't deprecated
-                // changing detached confs as of 9.0, so we have to permit even non-redundant changes to them,
+                // changing detached confs usages to false as of 9.0, so we have to permit even these non-redundant changes,
                 // but we can at least warn if the flag is set.
                 // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10.0 this should fail.
                 if (extraWarningsEnabled) {
