@@ -386,6 +386,20 @@ They will no longer be available on the classpath or be available via `localGroo
 
 - `groovy-test`
 
+==== Eager artifact configuration accessors have been removed from Kotlin DSL
+
+In Gradle 5.0 the type of artifact configuration accessors changed from `Configuration` to `NamedDomainObjectProvider<Configuration>`.
+The Kotlin DSL added specialized extension methods for `NamedDomainObjectProvider<Configuration>` to stay compatible with plugins compiled with the old, non-lazy form.
+
+For example:
+```
+configurations.compileClasspath.files // equivalent to configurations.compileClasspath.get().files
+configurations.compileClasspath.singleFile // equivalent to configurations.compileClasspath.get().singleFile
+```
+
+Gradle 8.0 then removed all of these extensions from the API, but the methods were still available for plugins compiled against older versions of Gradle.
+Gradle 9.0 finishes up their complete removal.
+
 ==== `libraries` or `bundles` from dependency version catalogs in the `plugins {}` block no longer accessible in Kotlin scripts
 
 Accessing `libraries` or `bundles` from dependency version catalogs in the `plugins {}` block of a Kotlin script has been deprecated in Gradle 8.1.
