@@ -34,7 +34,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private val delegate: DynamicObject,
     private val referrerProject: ProjectInternal,
     private val problems: ProblemsListener,
-    private val coupledProjectsListener: CoupledProjectsListener,
+    private val crossProjectDependencyListener: CrossProjectDependencyListener,
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : DynamicObject {
@@ -110,7 +110,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
 
     private
     fun onAccess(memberKind: MemberKind, memberName: String?) {
-        coupledProjectsListener.onProjectReference(referrerProject.owner, ownerProject.owner)
+        crossProjectDependencyListener.onProjectCoupling(referrerProject.owner, ownerProject.owner)
         maybeReportProjectIsolationViolation(memberKind, memberName)
     }
 

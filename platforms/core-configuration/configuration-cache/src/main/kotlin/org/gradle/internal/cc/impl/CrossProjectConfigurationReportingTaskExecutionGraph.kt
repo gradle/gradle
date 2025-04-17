@@ -42,7 +42,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     private val referrerProject: ProjectInternal,
     private val problems: ProblemsListener,
     private val crossProjectModelAccess: CrossProjectModelAccess,
-    private val coupledProjectsListener: CoupledProjectsListener,
+    private val crossProjectDependencyListener: CrossProjectDependencyListener,
     private val problemFactory: ProblemFactory
 ) : TaskExecutionGraphInternal {
 
@@ -145,7 +145,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     private
     fun reportCoupledProjects(coupledProjects: Iterable<ProjectInternal>) {
         coupledProjects.forEach { other ->
-            coupledProjectsListener.onProjectReference(referrerProject.owner, other.owner)
+            crossProjectDependencyListener.onProjectCoupling(referrerProject.owner, other.owner)
         }
     }
 

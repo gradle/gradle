@@ -114,6 +114,48 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         fixture.assertStateLoaded()
     }
 
+    // TODO: add a tooling model test that validates incremental project reconfiguration
+    def "can use project dependency coordinates (version, group) for consumption in tasks"() {
+        settingsFile """
+            include("foo")
+
+            gradle.lifecycle.beforeProject {
+                it.group = "shared-group"
+            }
+        """
+
+        buildFile """
+            plugins { id("java") }
+
+            dependencies {
+                implementation(project(":foo"))
+            }
+
+            def implDeps = provider {
+                configurations.implementation.dependencies.collect {
+                    "\$it.group:\$it.name:\$it.version"
+                }
+            }
+
+            tasks.register("showDeps") {
+                doLast {
+                    println("implementation: \${implDeps.get()}")
+                }
+            }
+        """
+
+        buildFile "foo/build.gradle", """
+            plugins { id("java") }
+            version = "foo-version"
+        """
+
+        when:
+        isolatedProjectsRun("showDeps")
+
+        then:
+        outputContains("implementation: [shared-group:foo:foo-version]")
+    }
+
     TestFile customType(TestFile dir) {
         def buildFile = dir.file("build.gradle")
         taskTypeWithInputFileCollection(buildFile)

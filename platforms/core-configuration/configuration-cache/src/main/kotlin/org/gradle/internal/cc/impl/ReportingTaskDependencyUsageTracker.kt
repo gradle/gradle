@@ -24,11 +24,11 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 
 
 /** Reports all usages of the tracked TaskDependency APIs as problems using the [problems] listener.
- * Also checks which tasks in the API return value come from the other projects and tracks the projects coupling using the [coupledProjectsListener]. */
+ * Also checks which tasks in the API return value come from the other projects and tracks the projects coupling using the [crossProjectDependencyListener]. */
 internal
 class ReportingTaskDependencyUsageTracker(
     private val referrer: ProjectInternal,
-    private val coupledProjectsListener: CoupledProjectsListener,
+    private val crossProjectDependencyListener: CrossProjectDependencyListener,
     private val problems: ProblemsListener,
     private val problemFactory: ProblemFactory
 ) : TaskDependencyUsageTracker {
@@ -41,7 +41,7 @@ class ReportingTaskDependencyUsageTracker(
     fun checkForCoupledProjects(taskDependencies: Set<Task>) {
         taskDependencies.forEach { task ->
             val otherProject = task.project as ProjectInternal
-            coupledProjectsListener.onProjectReference(referrer.owner, otherProject.owner)
+            crossProjectDependencyListener.onProjectCoupling(referrer.owner, otherProject.owner)
         }
     }
 
