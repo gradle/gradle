@@ -175,7 +175,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
 
         expect:
         runAndFail()
-        failure.assertHasDescription("BuildCache cannot be set to retain entries for $days days.")
+        failure.assertHasDescription("Cache 'buildCache' cannot be set to retain entries for $days days.")
 
         where:
         days << [-1, 0]
