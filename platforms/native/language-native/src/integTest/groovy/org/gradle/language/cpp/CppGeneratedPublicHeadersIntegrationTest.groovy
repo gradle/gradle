@@ -89,6 +89,62 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
         result.assertTasksExecuted(":log:generatePublicHeaders", ":app:compileDebugCpp")
     }
 
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle-native/issues/994")
+    def "can generate library's conventional public headers"() {
+        given:
+        writeHelloLibrary { TestFile libraryPath ->
+            app.greeterLib.publicHeaders.writeToSourceDir(testDirectory.file("staging-includes"))
+            app.greeterLib.privateHeaders.writeToSourceDir(libraryPath.file("src/main/headers"))
+            app.greeterLib.sources.writeToSourceDir(libraryPath.file("src/main/cpp"))
+            libraryPath.file('build.gradle') << '''
+                library {
+                    def generatorTask = tasks.register('generatePublicHeaders', Sync) {
+                        from(rootProject.file('staging-includes'))
+                        into('src/main/public')
+                    }
+
+                    publicHeaders.builtBy(generatorTask)
+                }
+            '''
+        }
+        writeLogLibrary()
+
+        when:
+        succeeds ":app:linkDebug"
+        then:
+        result.assertTaskExecuted(":hello:generatePublicHeaders")
+        result.assertTaskExecuted(":hello:compileDebugCpp")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Issue("https://github.com/gradle/gradle-native/issues/994")
+    def "can generate library's conventional private headers"() {
+        given:
+        writeHelloLibrary { TestFile libraryPath ->
+            app.greeterLib.publicHeaders.writeToSourceDir(libraryPath.file("src/main/public"))
+            app.greeterLib.privateHeaders.writeToSourceDir(testDirectory.file("staging-includes"))
+            app.greeterLib.sources.writeToSourceDir(libraryPath.file("src/main/cpp"))
+            libraryPath.file('build.gradle') << '''
+                library {
+                    def generatorTask = tasks.register('generatePrivateHeaders', Sync) {
+                        from(rootProject.file('staging-includes'))
+                        into('src/main/headers')
+                    }
+
+                    privateHeaders.builtBy(generatorTask)
+                }
+            '''
+        }
+        writeLogLibrary()
+
+        when:
+        succeeds ":app:linkDebug"
+        then:
+        result.assertTaskExecuted(":hello:generatePrivateHeaders")
+        result.assertTaskExecuted(":hello:compileDebugCpp")
+    }
+
     private writeApp() {
         app.main.writeToProject(file("app"))
         file("app/build.gradle") << """
