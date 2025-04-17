@@ -131,6 +131,7 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         installationSuppliers.add(new OsXInstallationSupplier(os, new DefaultOsXJavaHomeCommand(execHandleFactory)));
         installationSuppliers.add(new WindowsInstallationSupplier(windowsRegistry, os));
 
+        // Caveat: when adding new manually created services ensure to close them if required, since the service registry does not manage them
         CurrentBuildPlatform currentBuildPlatform = new CurrentBuildPlatform(systemInfo, os);
         DefaultFilePropertyFactory filePropertyFactory = new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
         DecompressionCoordinator decompressionCoordinator = new DefaultDecompressionCoordinator(scopedCacheBuilderFactory);
