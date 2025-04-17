@@ -33,3 +33,7 @@ gradlebuildJava {
 dependencies {
     testFixturesImplementation(projects.baseServices)
 }
+
+errorprone {
+    nullawayEnabled = true
+}
