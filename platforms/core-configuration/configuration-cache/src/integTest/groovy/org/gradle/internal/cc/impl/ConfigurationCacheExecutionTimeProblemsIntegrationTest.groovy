@@ -17,12 +17,100 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
-import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class ConfigurationCacheExecutionTimeProblemsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @ToBeImplemented
-    def "cacheable task fails on execution time problem and is not up-to-date afterwards"() {
+    def "task fails due to #invocation access during execution"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @TaskAction
+                def action() {
+                    println($code)
+                }
+            }
+
+            class MyAction implements Action<Task> {
+                void execute(Task task) {
+                    task.$code
+                }
+            }
+
+            tasks.register("a", MyTask)
+            tasks.register("b", MyTask) {
+                doLast(new MyAction())
+            }
+            tasks.register("c") {
+                doFirst(new MyAction())
+            }
+            tasks.register("d") {
+                doFirst { $code }
+            }
+        """
+
+        when: "running a task with a problem in task action"
+        configurationCacheFails "a"
+
+        then:
+        failureDescriptionStartsWith("Execution failed for task ':a'.")
+        failureCauseContains("Invocation of '$invocation' by task ':a' at execution time is unsupported.")
+
+        and:
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            problem "Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported."
+        }
+
+        when: "running a task with a problem in custom doLast Action"
+        configurationCacheFails "b"
+
+        then:
+        failureDescriptionStartsWith("Execution failed for task ':b'.")
+        failureCauseContains("Invocation of '$invocation' by task ':b' at execution time is unsupported.")
+
+        and:
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            problem "Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported."
+        }
+
+        when: "running a task with a problem in custom doFirst Action"
+        configurationCacheFails "c"
+
+        then:
+        failureDescriptionStartsWith("Execution failed for task ':c'.")
+        failureCauseContains("Invocation of '$invocation' by task ':c' at execution time is unsupported.")
+
+        and:
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            problem "Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported."
+        }
+
+        when: "running a task with a problem in doLast lambda"
+        configurationCacheFails "d"
+
+        then:
+        failureDescriptionStartsWith("Execution failed for task ':d'.")
+        failureCauseContains("Invocation of '$invocation' by task ':d' at execution time is unsupported.")
+
+        and:
+        configurationCache.assertStateStoredAndDiscarded {
+            hasStoreFailure = false
+            problem "Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported."
+        }
+
+        where:
+        invocation              | code
+        'Task.project'          | 'project.name'
+        'Task.dependsOn'        | 'dependsOn'
+        'Task.taskDependencies' | 'taskDependencies'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32542")
+    def "cacheable task fails on execution time problem"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 
         javaFile "src/main/java/Main.java", """public class Main {}"""
@@ -47,26 +135,16 @@ class ConfigurationCacheExecutionTimeProblemsIntegrationTest extends AbstractCon
             problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported."
         }
 
-        // TODO: It is wrong to allow users observe stub project data, we should fail the task instead
         and:
-        outputContains("version:unspecified")
+        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+        failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported.")
 
-        when:
-        configurationCacheRun "compileJava"
-        // TODO: Should be:
-//        configurationCacheFails "compileJava"
-
-        then:
-        configurationCache.assertStateStored()
-        // TODO: Should be:
-//        configurationCache.assertStateStoredAndDiscarded {
-//            hasStoreFailure = false
-//            problem "Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported."
-//        }
-
-        // TODO: Must not be up-to-date
         and:
-        outputContains("> Task :compileJava UP-TO-DATE")
+        // TODO: currently the build completes with 2 failures: (1) task failure, and (2) the CC failure
+        // > 1 problem was found storing the configuration cache.
+        // > - Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported.
+        // ^ this seems like misleading failure description
+        failure.assertHasFailures(2)
     }
 
 }

@@ -18,15 +18,22 @@ package org.gradle.internal.cc.base.problems
 
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
-import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import java.io.IOException
 
 
 abstract class AbstractProblemsListener : ProblemsListener {
+
+    override fun onExecutionTimeProblem(problem: PropertyProblem) {
+        onProblem(problem)
+        val exception = problem.exception ?: error("Problem was expected to have an associated exception: $problem")
+        throw exception
+    }
 
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
         // Let IO and configuration cache exceptions surface to the top.
