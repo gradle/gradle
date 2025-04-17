@@ -95,8 +95,9 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding.class)
             public class SoftwareFeatureImplPlugin implements Plugin<Project> {
+
                 static class Binding implements SoftwareFeatureBindingRegistration {
-                    @Override public void bind(SoftwareFeatureBindingBuilder builder) {
+                    @Override public void configure(SoftwareFeatureBindingBuilder builder) {
                         builder.bind("feature", FeatureDefinition.class, TestSoftwareTypeExtension.class, FeatureModel.class,
                             (context, feature, parent, model) -> {
                                 model.getText().set(feature.getText());
@@ -131,14 +132,14 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
             import org.gradle.api.internal.plugins.software.SoftwareFeature
             import org.gradle.api.plugins.ExtensionAware
-            import org.gradle.api.internal.plugins.*
+            import org.gradle.api.internal.plugins.bind
             import org.gradle.test.TestSoftwareTypeExtension
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding::class)
             class SoftwareFeatureImplPlugin : Plugin<Project> {
 
                 class Binding : SoftwareFeatureBindingRegistration {
-                    override fun bind(builder: SoftwareFeatureBindingBuilder) {
+                    override fun configure(builder: SoftwareFeatureBindingBuilder) {
                         builder.bind<FeatureDefinition, TestSoftwareTypeExtension, FeatureModel>("feature") { feature, parent, model ->
                             model.getText().set(feature.getText())
                             getProject().getTasks().register("printTestSoftwareFeatureConfiguration") { task: Task ->

@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext;
+import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.model.ObjectFactory;
@@ -75,7 +76,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         if (!applied.contains(appliedFeature)) {
             Class<? extends T> dslType = softwareFeature.getModelPublicType();
             T dslObject = target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
-            Object buildModelObject = ((ExtensionAware)dslObject).getExtensions().create("model", softwareFeature.getBuildModelType());
+            Object buildModelObject = ((ExtensionAware)dslObject).getExtensions().create(SoftwareFeatureBinding.MODEL, softwareFeature.getBuildModelType());
             SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
             softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(target), Cast.uncheckedCast(buildModelObject));
 
