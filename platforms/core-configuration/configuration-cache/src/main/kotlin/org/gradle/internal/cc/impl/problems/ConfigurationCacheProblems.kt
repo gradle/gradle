@@ -41,6 +41,7 @@ import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.PropertyTrace.Companion.render
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.deprecation.DeprecationMessageBuilder
@@ -337,6 +338,7 @@ class ConfigurationCacheProblems(
 
         override fun afterStart() = Unit
 
+        @Suppress("CyclomaticComplexMethod", "MaxLineLength")
         override fun beforeComplete() {
             val summary = summarizer.get()
             val problemCount = summary.problemCount
@@ -349,7 +351,7 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == Store && discardStateDueToProblems && incompatiblePlugins.isNotEmpty() -> log("Configuration cache entry discarded and execution switched to vintage because incompatible plugins applied: ${incompatiblePlugins.joinToString { it.render() }}")
+                cacheAction == Store && discardStateDueToProblems && incompatiblePlugins.isNotEmpty() -> log("Configuration cache entry discarded and execution switched to vintage because incompatible plugins applied: ${incompatiblePlugins.render()}")
                 cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
@@ -368,7 +370,7 @@ class ConfigurationCacheProblems(
 
     private
     fun incompatibleTasksSummary() = when {
-        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'${it.render()}'" }}."
+        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.render()}."
         else -> "."
     }
 
