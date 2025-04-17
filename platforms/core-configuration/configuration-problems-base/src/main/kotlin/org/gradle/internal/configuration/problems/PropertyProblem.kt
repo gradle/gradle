@@ -338,6 +338,10 @@ sealed class PropertyTrace {
             is Project -> trace
             else -> null
         }
+
+    companion object {
+        fun Set<PropertyTrace>.render() = joinToString(", ") { "'${it.render()}'" }
+    }
 }
 
 
