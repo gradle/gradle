@@ -75,7 +75,7 @@ class SettingsSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
 
                 // accessor property
-                println(mySettingsExtension.myProperty)
+                println(mySettingsExtension.myProperty.toDebugString())
             """
         )
     }

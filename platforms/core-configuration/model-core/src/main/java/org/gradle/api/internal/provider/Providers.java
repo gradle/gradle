@@ -23,12 +23,16 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 public class Providers {
+
+    private static final ThreadLocal<Boolean> NAG_ON_TO_STRING = ThreadLocal.withInitial(() -> true);
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
 
     public static final Provider<Boolean> TRUE = of(true);
@@ -83,6 +87,27 @@ public class Providers {
             return notDefined();
         } else {
             return of(value);
+        }
+    }
+
+    public static void nagOnToString() {
+        if (!NAG_ON_TO_STRING.get()) {
+            return;
+        }
+
+        DeprecationLogger.deprecateBehaviour("Calling toString() on a Provider")
+            .willBecomeAnErrorInGradle9()
+            .undocumented()
+            .nagUser();
+    }
+
+    public static <T> T whileDisablingNagOnToString(Supplier<T> action) {
+        Boolean prev = NAG_ON_TO_STRING.get();
+        NAG_ON_TO_STRING.set(false);
+        try {
+            return action.get();
+        } finally {
+            NAG_ON_TO_STRING.set(prev);
         }
     }
 

@@ -140,7 +140,7 @@ public class MapCollectors {
 
         @Override
         public String toString() {
-            return String.format("entry{%s=%s}", key, providerOfValue);
+            return String.format("entry{%s=%s}", key, providerOfValue.toDebugString());
         }
     }
 

@@ -608,6 +608,7 @@ allprojects {
         """
 
         when:
+        executer.expectDeprecationWarning("Calling toString() on a Provider This behavior has been deprecated. This will fail with an error in Gradle 9.0.")
         succeeds("a:dependencies", "--configure-on-demand", "--debug")
         then:
         outputContains("More outputs are being registered even though the build output cleanup registry has already been finalized.")

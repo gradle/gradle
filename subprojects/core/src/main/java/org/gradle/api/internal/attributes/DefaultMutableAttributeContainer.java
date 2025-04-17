@@ -55,7 +55,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     public String toString() {
         maybeEmitRecursiveQueryDeprecation();
         final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-        lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
+        lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toDebugString()));
         attributes.keySet().forEach(key -> sorted.put(key, attributes.get(key).toString()));
         return sorted.toString();
     }
