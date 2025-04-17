@@ -27,7 +27,10 @@ import java.util.Set;
  * from one role to another by marking usages which are present in the current role but not present in the eventual role
  * as deprecated.
  *
- * <p>The remaining role here is meant to be a temporary roles used for migration only, to be removed in Gradle 10.0
+ * <p>
+ * The roles here is meant to be a temporary roles used for migration only. 
+ * Upon major version releases, configurations in a migration role should be updated 
+ * to their destination role.
  * after Detached Configurations are no longer a special case.</p>
  *
  * <p>This is meant to only support <strong>narrowing migrations</strong>, that restrict usage that was previously
