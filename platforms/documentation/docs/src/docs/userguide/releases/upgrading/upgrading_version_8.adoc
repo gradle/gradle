@@ -529,6 +529,11 @@ It will be removed in Gradle 10.0.
 
 Since Gradle 8.5, the same information can be obtained via the `BuildFeatures` service using `configurationCache.requested` property.
 
+[[undeprecated_configuration_uasge]]
+==== Deprecated configuration usages are no longer deprecated
+
+Starting in 8.0, adding an artifact to a configuration that is neither resolvable nor consumable was deprecated.  This deprecation was overly broad and also captured certain valid usages.  It has been removed in Gradle 8.14.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
@@ -896,7 +901,7 @@ The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome
 
 Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()-[executable] property instead.
 
-Note: This deprecation was later link:#undeprecated_fork_options_java_home[removed], and for Gradle versions starting with 8.14, these methods will no longer throw deprecation warnings.
+NOTE: This deprecation was later link:#undeprecated_fork_options_java_home[removed], and for Gradle versions starting with 8.14, these methods will no longer throw deprecation warnings.
 
 [[mutating_buildscript_configurations]]
 ==== Deprecated mutating buildscript configurations
