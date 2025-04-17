@@ -146,6 +146,7 @@ object ClosureCodec : Codec<Closure<*>> {
 
         private
         fun scriptReferenced(): Nothing {
+            // TODO: report this problem the same was as we report other execution-time CC problems
             error("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }
     }
