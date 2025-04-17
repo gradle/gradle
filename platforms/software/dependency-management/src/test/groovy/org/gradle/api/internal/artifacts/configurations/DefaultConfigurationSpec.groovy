@@ -654,35 +654,32 @@ class DefaultConfigurationSpec extends Specification {
         where:
         baseRole << [
             ConfigurationRoles.ALL,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
-            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
+            ConfigurationRoles.RESOLVABLE,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
         ] + ConfigurationRolesForMigration.ALL
     }
 
-    void "copies disabled configuration role as a deprecation"() {
-        def configuration = prepareConfigurationForCopyTest()
-        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
-        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+    void "fails to copy non-resolvable configuration (#role)"() {
+        given:
+        def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
 
         when:
-        configuration.canBeConsumed = false
-        configuration.canBeResolved = false
-        configuration.canBeDeclared = false
-
-
-        def copy = configuration.copy()
+        configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
-        copy.canBeDeclared
-        copy.canBeResolved
-        copy.canBeConsumed
-        copy.declarationAlternatives == []
-        copy.resolutionAlternatives == []
-        copy.roleAtCreation.consumptionDeprecated
-        !copy.roleAtCreation.resolutionDeprecated
-        !copy.roleAtCreation.declarationAgainstDeprecated
+        def e = thrown(GradleException)
+        def expected = """Calling configuration method 'copy()' is not allowed for configuration 'conf', which has permitted usage(s):
+${role.describeUsage()}
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'."""
+        e.message == expected
+
+        where:
+        role << [
+            ConfigurationRoles.CONSUMABLE,
+            ConfigurationRoles.DEPENDENCY_SCOPE
+        ]
     }
+
 
     def "can copy with spec"() {
         def configuration = prepareConfigurationForCopyTest()
