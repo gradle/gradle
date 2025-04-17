@@ -20,10 +20,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.internal.DeferredUtil;
@@ -193,47 +191,6 @@ public abstract class WriteProperties extends DefaultTask {
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
-    }
-
-    /**
-     * Returns the output file to write the properties to.
-     */
-    @Internal
-    @Deprecated
-    public File getOutputFile() {
-        deprecationWarning();
-        return getDestinationFile().getAsFile().getOrNull();
-    }
-
-    private void deprecationWarning() {
-        DeprecationLogger.deprecateProperty(WriteProperties.class, "outputFile").replaceWith("destinationFile")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-    }
-
-    /**
-     * Sets the output file to write the properties to.
-     *
-     * @deprecated Use {@link #getDestinationFile()} instead.
-     *
-     * @since 4.0
-     */
-    @Deprecated
-    public void setOutputFile(File outputFile) {
-        deprecationWarning();
-        getDestinationFile().set(outputFile);
-    }
-
-    /**
-     * Sets the output file to write the properties to.
-     *
-     * @deprecated Use {@link #getDestinationFile()} instead.
-     */
-    @Deprecated
-    public void setOutputFile(Object outputFile) {
-        deprecationWarning();
-        getDestinationFile().set(getServices().get(FileOperations.class).file(outputFile));
     }
 
     /**
