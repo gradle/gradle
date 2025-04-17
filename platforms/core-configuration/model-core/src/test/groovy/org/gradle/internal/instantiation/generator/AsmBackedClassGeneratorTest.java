@@ -18,7 +18,6 @@ package org.gradle.internal.instantiation.generator;
 import com.google.common.base.Joiner;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
-import groovy.lang.GroovySystem;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
@@ -66,7 +65,6 @@ import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
-import org.gradle.util.internal.VersionNumber;
 import org.junit.Rule;
 import org.junit.Test;
 import spock.lang.Issue;
@@ -747,13 +745,7 @@ public class AsmBackedClassGeneratorTest {
         });
 
         assertThat(bean.getMixedB(), equalTo(true));
-        boolean isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.getVersion()).getMajor() >= 4;
-        if (isAtLeastGroovy4) {
-            // Since Groovy 4 is-getters for non-boolean properties are not supported
-            assertThat(bean.isMixedB(), equalTo(null));
-        } else {
-            assertThat(bean.isMixedB(), equalTo(Boolean.TRUE));
-        }
+        assertThat(bean.isMixedB(), equalTo(Boolean.TRUE));
     }
 
     @Test
