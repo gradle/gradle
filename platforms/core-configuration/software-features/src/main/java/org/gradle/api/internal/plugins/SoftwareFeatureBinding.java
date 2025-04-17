@@ -27,4 +27,6 @@ public interface SoftwareFeatureBinding {
     Class<?> getBuildModelType();
     Path getPath();
     SoftwareFeatureTransform<?, ?, ?> getTransform();
+
+    String MODEL = "model";
 }
