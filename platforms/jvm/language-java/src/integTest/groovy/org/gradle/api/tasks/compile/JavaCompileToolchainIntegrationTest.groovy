@@ -431,32 +431,30 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(jdk.javaVersion)
     }
 
-    def "can compile Java using different JDKs"() {
-        def jdk = AvailableJavaHomes.getJdk(javaVersion)
-        assumeNotNull(jdk)
-
+    def "can compile Java using jdk version #jdk.javaVersionMajor"() {
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
-            }
+            ${javaPluginToolchainVersion(jdk)}
         """
 
         when:
-        withInstallations(jdk).run(":compileJava", "--info")
+        withInstallations(jdk)
+        succeeds(":compileJava", "--info")
 
         then:
-        outputDoesNotContain("Compiling with Java command line compiler")
+        if (jdk.javaVersionMajor > 7) {
+            outputDoesNotContain("Compiling with Java command line compiler")
+        } else {
+            outputContains("Compiling with Java command line compiler")
+        }
         outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(jdk.javaVersion)
 
         where:
-        javaVersion << JavaVersion.values().findAll { it.isJava8Compatible() && it != JavaVersion.current() }
+        jdk << AvailableJavaHomes.allJdkVersions
     }
 
     /**

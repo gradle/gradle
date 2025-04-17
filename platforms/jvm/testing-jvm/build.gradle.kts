@@ -35,13 +35,14 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.buildProcessStartup)
     implementation(projects.classloaders)
     implementation(projects.concurrent)
-    implementation(projects.serviceLookup)
     implementation(projects.fileTemp)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
+    implementation(projects.serviceLookup)
     implementation(projects.testingJvmInfrastructure)
 
     implementation(libs.commonsIo)

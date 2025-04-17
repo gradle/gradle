@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling
+package org.gradle.testing.testng
 
-import org.gradle.api.JavaVersion
-import org.gradle.internal.jvm.SupportedJavaVersions
 
-class ToolingApiClientMinJdkCompatibilityTest extends ToolingApiClientJdkCompatibilityTest {
-    JavaVersion getClientJdkVersion() {
-        return JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION)
-    }
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
+import org.gradle.testing.fixture.TestNGCoverage
+
+/**
+ * Tests support for different TestNG versions across different Java versions.
+ */
+@TargetCoverage({ TestNGCoverage.ALL_VERSIONS })
+class TestNGJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements TestNGMultiVersionTest {
 }
+
