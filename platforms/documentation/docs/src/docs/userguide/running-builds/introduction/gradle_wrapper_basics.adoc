@@ -41,30 +41,35 @@ The command is run in the same directory that the Wrapper is located in.
 
 Installed Gradle invocation:
 
+[source,bash]
 ----
 $ gradle build
 ----
 
 Wrapper invocation on a Linux or OSX machine:
 
+[source,bash]
 ----
 $ ./gradlew build
 ----
 
 Wrapper invocation on Windows PowerShell:
 
+[source,bash]
 ----
 $ .\gradlew.bat build
 ----
 
 If you want to run the command in a different directory, you must provide the relative path to the Wrapper:
 
+[source,bash]
 ----
 $ ../gradlew build
 ----
 
 The following console output demonstrates the use of the Wrapper on a Windows machine, in the command prompt (cmd), for a Java-based project:
 
+[source,bash]
 ----
 $ gradlew.bat build
 

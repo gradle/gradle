@@ -87,7 +87,7 @@ $ ./gradlew :app:tasks
 
 You can view more tasks by adding the `--all` option:
 
-[source,terminal]
+[source,bash]
 ----
 $ ./gradlew tasks --all
 $ ./gradlew :app:tasks --all

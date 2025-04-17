@@ -57,10 +57,12 @@ To create a new build in this directory, run gradle init
 If Gradle is not installed, please refer to the <<installation.adoc#installation, installation section>>.
 
 Create a new directory called `tutorial` and `cd` into it:
+
 [source,text]
 ----
 $ mkdir tutorial
 ----
+
 [source,text]
 ----
 $ cd tutorial
@@ -275,6 +277,7 @@ A project is composed of one or more subprojects (sometimes called modules).
 Gradle reads the `settings.gradle(.kts)` file to figure out which subprojects comprise a project build.
 
 Take a look at the file in your project:
+
 [.multi-language-sample]
 =====
 .settings.gradle.kts
@@ -316,6 +319,7 @@ The `build.gradle(.kts)` file is the core component of the build process and def
 The `build.gradle(.kts)` file is read and executed by Gradle.
 
 Take a closer look at the build file in your `app` subproject (under the `app` directory):
+
 [.multi-language-sample]
 =====
 .build.gradle.kts

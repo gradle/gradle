@@ -327,6 +327,7 @@ It is clear the `guava` dependency has been updated to version `30.0` and the tr
 
 Finally, make sure everything is working using the `run` task, either in your terminal or IDE:
 
+[source,text]
 ----
 ./gradlew run
 

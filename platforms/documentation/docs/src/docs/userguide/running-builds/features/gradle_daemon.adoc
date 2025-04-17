@@ -48,10 +48,12 @@ Larger builds with hundreds of subprojects, configuration, and source code may b
 
 To get a list of running Daemons and their statuses, use the `--status` command:
 
+[source,bash]
 ----
 $ gradle --status
 ----
 
+[source,text]
 ----
    PID STATUS   INFO
  28486 IDLE     7.5
@@ -66,9 +68,12 @@ This means the status output only shows Daemons spawned running the same version
 
 If you have installed the Java Development Kit (JDK), you can view live daemons with the `jps` command.
 
+[source,text]
 ----
 $ jps
 ----
+
+[source,text]
 ----
 33920 Jps
 27171 GradleDaemon
@@ -84,6 +89,7 @@ Because this command uses the JDK, you can view Daemons running any version of G
 Gradle enables the Daemon by default since Gradle 3.0.
 If your project doesn't use the Daemon, you can enable it for a single build with the `--daemon` flag when you run a build:
 
+[source,bash]
 ----
 $ gradle <task> --daemon
 ----
@@ -114,6 +120,7 @@ No Daemon :: If the `JAVA_OPTS` and `GRADLE_OPTS` match `org.gradle.jvmargs`, th
 
 To disable the Daemon for a single build, pass the `--no-daemon` flag when you run a build:
 
+[source,bash]
 ----
 $ gradle <task> --no-daemon
 ----
@@ -161,6 +168,7 @@ Daemons automatically stop given any of the following conditions:
 
 To stop running Daemon processes, use the following command:
 
+[source,bash]
 ----
 $ gradle --stop
 ----
@@ -176,6 +184,7 @@ The Gradle Daemon is a long-lived background process, as such, it can sometimes 
 
 If builds start behaving unexpectedly, try stopping and restarting the Daemon:
 
+[source,bash]
 ----
 $ gradle --stop
 ----
@@ -552,6 +561,7 @@ To disable this monitoring, set the `org.gradle.daemon.performance.enable-monito
 
 You can do this on the command line with the following command:
 
+[source,bash]
 ----
 $ gradle <task> -Dorg.gradle.daemon.performance.enable-monitoring=false
 ----
