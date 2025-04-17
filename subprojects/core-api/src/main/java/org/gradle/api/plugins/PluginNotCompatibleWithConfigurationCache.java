@@ -35,7 +35,9 @@ import java.lang.annotation.Target;
 @Incubating
 public @interface PluginNotCompatibleWithConfigurationCache {
     /**
-     * Reason for incompatibilty.
+     * Reason for incompatibility.
+     *
+     * @since 9.0
      */
     String because() default "";
 }
