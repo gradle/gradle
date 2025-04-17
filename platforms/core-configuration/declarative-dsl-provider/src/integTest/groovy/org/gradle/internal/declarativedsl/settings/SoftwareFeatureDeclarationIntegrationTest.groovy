@@ -47,7 +47,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
         and:
         outputContains("Applying SoftwareTypeImplPlugin")
-        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
     }
 
     def "can declare and configure a custom software feature in Kotlin"() {
@@ -76,7 +77,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
         and:
         outputContains("Applying SoftwareTypeImplPlugin")
-        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
     }
 
     static String getSoftwareFeaturePluginContents() {
@@ -100,6 +102,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
                     @Override public void configure(SoftwareFeatureBindingBuilder builder) {
                         builder.bind("feature", FeatureDefinition.class, TestSoftwareTypeExtension.class, FeatureModel.class,
                             (context, feature, parent, model) -> {
+                                System.out.println("Binding FeatureDefinition");
                                 model.getText().set(feature.getText());
                                 context.getProject().getTasks().register("printTestSoftwareFeatureConfiguration", task -> {
                                     task.doLast(t -> System.out.println("feature text = " + model.getText().get()));
@@ -141,6 +144,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
                 class Binding : SoftwareFeatureBindingRegistration {
                     override fun configure(builder: SoftwareFeatureBindingBuilder) {
                         builder.bind<FeatureDefinition, TestSoftwareTypeExtension, FeatureModel>("feature") { feature, parent, model ->
+                            println("Binding FeatureDefinition")
                             model.getText().set(feature.getText())
                             getProject().getTasks().register("printTestSoftwareFeatureConfiguration") { task: Task ->
                                 task.doLast { _: Task -> System.out.println("feature text = " + model.getText().get()) }
@@ -279,5 +283,6 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
     void assertThatDeclaredValuesAreSetProperly() {
         outputContains("""id = test\nbar = baz""")
+        outputContains("feature text = foo")
     }
 }
