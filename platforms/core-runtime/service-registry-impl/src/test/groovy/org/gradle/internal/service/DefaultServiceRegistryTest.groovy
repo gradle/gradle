@@ -19,6 +19,7 @@ package org.gradle.internal.service
 import com.google.common.reflect.TypeToken
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.lazy.Lazy
 import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -27,6 +28,7 @@ import javax.annotation.Nullable
 import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
+import java.util.function.Supplier
 
 class DefaultServiceRegistryTest extends Specification {
     TestRegistry registry = new TestRegistry()
@@ -1499,6 +1501,27 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         def e = thrown(UnknownServiceException)
         e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
+    }
+
+    def "cannot register lazy service wrappers of #name type"() {
+        def type = lazyType
+        def instanceStub = Stub(type)
+        when:
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            void configure(ServiceRegistration registration) {
+                registration.add(type, instanceStub)
+            }
+        })
+
+        then:
+        def lookup = thrown(ServiceLookupException)
+        def e = lookup.cause as IllegalArgumentException
+        e.message == "Cannot define a service of type '${type.name}' because lazy service wrapping is unsupported. Use an explicit type instead."
+
+        where:
+        lazyType << [Factory.class, Supplier.class, Lazy.class]
+        name = lazyType.simpleName
     }
 
     def MockServiceRegistry registry(ParentServices parentServices) {
