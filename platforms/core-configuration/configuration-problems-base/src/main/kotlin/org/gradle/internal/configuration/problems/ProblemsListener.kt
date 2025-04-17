@@ -25,6 +25,12 @@ interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)
 
+    /**
+     * Execution-time problems are treated as immediate errors and must have an [PropertyProblem.exception].
+     *
+     * These problems arise from access to execution-time state that is not available when running with CC,
+     * so the code accessing it must not proceed.
+     */
     fun onExecutionTimeProblem(problem: PropertyProblem)
 
     fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
