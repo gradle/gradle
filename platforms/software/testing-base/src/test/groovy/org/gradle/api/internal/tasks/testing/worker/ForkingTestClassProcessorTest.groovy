@@ -25,7 +25,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.ExecException
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
@@ -118,8 +118,8 @@ class ForkingTestClassProcessorTest extends Specification {
 
         then:
         1 * workerProcess.stopNow()
-        _ * workerProcess.waitForStop() >> { throw new ExecException("waitForStop can throw") }
-        notThrown(ExecException)
+        _ * workerProcess.waitForStop() >> { throw new ProcessExecutionException("waitForStop can throw") }
+        notThrown(ProcessExecutionException)
     }
 
     def "captures and rethrows unrecoverable exceptions thrown by the connection"() {

@@ -27,8 +27,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices.NativeServi
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -153,9 +153,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 }
                 workerProcess.waitForStop();
             }
-        } catch (ExecException e) {
+        } catch (ProcessExecutionException e) {
             if (!stoppedNow) {
-                throw new ExecException(e.getMessage()
+                throw new ProcessExecutionException(e.getMessage()
                     + "\nThis problem might be caused by incorrect test process configuration."
                     + "\n" + documentationRegistry.getDocumentationRecommendationFor("on test execution", "java_testing", "sec:test_execution"), e.getCause());
             }

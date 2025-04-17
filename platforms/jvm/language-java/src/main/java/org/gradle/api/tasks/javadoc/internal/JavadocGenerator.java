@@ -20,9 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public class JavadocGenerator {
 
         try {
             execAction.execute();
-        } catch (ExecException e) {
+        } catch (ProcessExecutionException e) {
             LOG.info("Problems generating Javadoc."
                     + "\n  Command line issued: " + execAction.getCommandLine()
                     + "\n  Generated Javadoc options file has following contents:\n------\n{}------", GFileUtils.readFileQuietly(spec.getOptionsFile()));

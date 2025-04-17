@@ -2514,6 +2514,26 @@
             ]
         },
         {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Class org.gradle.process.ProcessExecutionException",
+            "acceptation": "Introduced public ExecException",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String)",
+            "acceptation": "Introduced public ExecException",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Introduced public ExecException",
+            "changes": []
+        },
+        {
             "type": "org.gradle.util.CollectionUtils",
             "member": "Class org.gradle.util.CollectionUtils",
             "acceptation": "Remove deprecated API",

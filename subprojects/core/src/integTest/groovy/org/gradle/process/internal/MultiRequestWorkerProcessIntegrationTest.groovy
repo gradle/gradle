@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import junit.framework.AssertionFailedError
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.worker.RequestHandler
 import org.gradle.process.internal.worker.WorkerControl
 import org.gradle.process.internal.worker.WorkerProcessException
@@ -169,7 +170,7 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
+        e.cause instanceof ProcessExecutionException
         e.cause.message.matches("Process 'broken worker 1' finished with non-zero exit value \\d+")
 
         cleanup:
@@ -205,7 +206,7 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
+        e.cause instanceof ProcessExecutionException
         e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 12"
 
         cleanup:
@@ -219,7 +220,7 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         try {
             workerControl.stop()
             throw new AssertionFailedError("stop should fail")
-        } catch (ExecException e) {
+        } catch (ProcessExecutionException e) {
             // Ignore
         }
     }

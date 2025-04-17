@@ -22,10 +22,10 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +117,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             String errorMessage = "Command returned unexpected result code: " + exitValue + "\nError output:\n" + errorOutput;
             logger.debug("Failed to get metadata from JVM installation at '{}'. {}", jdkPath, errorMessage);
             return failure(jdkPath, errorMessage);
-        } catch (ExecException ex) {
+        } catch (ProcessExecutionException ex) {
             logger.debug("Failed to get metadata from JVM installation at '{}'.", jdkPath, ex);
             return failure(jdkPath, ex);
         } finally {
