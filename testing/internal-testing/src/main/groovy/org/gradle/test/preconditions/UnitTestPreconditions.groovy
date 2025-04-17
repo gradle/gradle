@@ -615,13 +615,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class IsGroovy3 implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            GroovySystem.version.startsWith("3.")
-        }
-    }
-
     static final class IsGroovy4 implements TestPrecondition {
         @Override
         boolean isSatisfied() {

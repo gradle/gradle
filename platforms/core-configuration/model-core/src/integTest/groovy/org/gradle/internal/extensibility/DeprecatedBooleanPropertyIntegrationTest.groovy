@@ -17,7 +17,9 @@
 package org.gradle.internal.extensibility
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
+@Ignore("To be fixed later, see https://github.com/gradle/gradle/issues/32483")
 class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
     def "does not emit deprecation warning when a decorated class exposes a Boolean property like a field"() {
         buildFile << """

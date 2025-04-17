@@ -198,7 +198,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         List<BuildOperationRecord> executePlannedStepOps = getExecutePlannedStepOperations(1)
 
         with(executePlannedStepOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId)
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
@@ -276,7 +276,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def executePlannedStepOps = getExecutePlannedStepOperations(2)
         with(executePlannedStepOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
@@ -284,7 +284,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
 
         with(executePlannedStepOps[1].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
@@ -361,7 +361,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def executePlannedStepOps = getExecutePlannedStepOperations(2)
 
         with(executePlannedStepOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeRed"
 
             transformerName == "MakeRed"
@@ -369,7 +369,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
 
         with(executePlannedStepOps[1].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
@@ -431,7 +431,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         )
 
         with(buildOperations.only(ExecutePlannedTransformStepBuildOperationType).details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
@@ -509,7 +509,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def executePlannedStepOps = getExecutePlannedStepOperations(2)
         with(executePlannedStepOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeRed"
 
             transformerName == "MakeRed"
@@ -517,7 +517,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
 
         with(executePlannedStepOps[1].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
@@ -634,7 +634,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def executePlannedStepOps = getExecutePlannedStepOperations(2)
         with(executePlannedStepOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
@@ -644,7 +644,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         checkExecuteTransformWorkOperations(executePlannedStepOps[0], 1)
 
         with(executePlannedStepOps[1].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeColor"
 
             transformerName == "MakeColor"
@@ -952,7 +952,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         executePlannedStepOp.failure.startsWith("org.gradle.api.internal.artifacts.transform.TransformException: Execution failed for MakeGreen:")
 
         with(executePlannedStepOp.details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"
@@ -1139,7 +1139,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         List<BuildOperationRecord> executePlannedStepOps = getExecutePlannedStepOperations(1)
 
         with(executePlannedStepOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId)
+            this.verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId)
             transformActionClass == "MakeGreen"
 
             transformerName == "MakeGreen"

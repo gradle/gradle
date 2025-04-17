@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.asm;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 import org.gradle.api.internal.cache.StringInterner;
@@ -251,6 +252,11 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
             maybeAddDependentType(types, Type.getType(descriptor));
             return new AnnotationVisitor(types);
+        }
+
+        @Override
+        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+            super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
         }
     }
 
