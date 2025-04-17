@@ -18,12 +18,9 @@ package org.gradle.internal.reflect
 
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 import java.beans.Introspector
-
-import static org.junit.Assume.assumeTrue
 
 class PropertyAccessorTypeTest extends Specification {
     def "method names #getGetterName, #isGetterName and #setterName extract to property name '#propertyName' following the JavaBeans spec"() {
@@ -148,35 +145,10 @@ class PropertyAccessorTypeTest extends Specification {
         bean.idore == true
     }
 
-    def "is methods with Boolean return type are considered as such by Gradle and Groovy but not Java"() {
-        assumeTrue('This test requires bundled Groovy 3', VersionNumber.parse(GroovySystem.version).major == 3)
-        def bean = new DeviantBean()
-        def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
-
-        expect:
-        bean.notBoolean == true
-        try {
-            bean.notString
-            assert false
-        } catch (MissingPropertyException e) {
-            assert e.property == "notString"
-        }
-
-        PropertyAccessorType.fromName('isNotBoolean') == PropertyAccessorType.IS_GETTER
-        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotBoolean")) == PropertyAccessorType.IS_GETTER
-        PropertyAccessorType.fromName('isNotString') == PropertyAccessorType.IS_GETTER
-        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotString")) == null
-
-        !propertyNames.contains("notBoolean")
-        !propertyNames.contains("notString")
-    }
-
     /**
      * See <a href="https://issues.apache.org/jira/browse/GROOVY-10708">GROOVY-10708</a>
      */
-    def "is methods with non-primitive boolean return type are not considered properties by Gradle, Groovy nor Java"() {
-        assumeTrue('This test requires bundled Groovy 4 or later', VersionNumber.parse(GroovySystem.version).major >= 4)
-
+    def "is methods with non-primitive boolean return type are not considered properties by Gradle but not Groovy or Java"() {
         given:
         def bean = new DeviantBean()
 
@@ -192,7 +164,7 @@ class PropertyAccessorTypeTest extends Specification {
 
         expect:
         PropertyAccessorType.fromName('isNotBoolean') == PropertyAccessorType.IS_GETTER
-        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotBoolean")) == null
+        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotBoolean")) == PropertyAccessorType.IS_GETTER
         PropertyAccessorType.fromName('isNotString') == PropertyAccessorType.IS_GETTER
         PropertyAccessorType.of(DeviantBean.class.getMethod("isNotString")) == null
 
