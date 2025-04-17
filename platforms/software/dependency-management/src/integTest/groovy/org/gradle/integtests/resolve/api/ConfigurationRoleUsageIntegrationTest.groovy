@@ -110,6 +110,34 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         assertUsageLockedFailure('testConf')
     }
 
+    def "can add resolution alternatives to configuration deprecated for resolution"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        buildFile << """
+            configurations {
+                deps
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE) {
+                    addResolutionAlternatives("anotherConf")
+                    extendsFrom(deps)
+                }
+            }
+
+            repositories { maven { url = "${mavenRepo.uri}" } }
+
+            dependencies {
+                deps "org:foo:1.0"
+            }
+
+            task resolve {
+                configurations.testConf.files
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        succeeds 'resolve'
+    }
+
     def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
         given:
         buildFile << """
@@ -313,6 +341,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
     }
 
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     @Issue("https://github.com/gradle/gradle/issues/26461")
     def "when anticipating configurations to be created from sourcesets, their usage cannot be modified (creation = #description)"() {
         given:
@@ -665,6 +694,26 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
     }
     // endregion Role-Based Configurations
+
+    // region Migrating configurations
+    def "can add declaration alternatives to configuration deprecated for declaration"() {
+        given:
+        buildFile << """
+            configurations {
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) {
+                    addDeclarationAlternatives("anotherConf")
+                }
+            }
+
+            dependencies {
+                testConf "org:foo:1.0"
+            }
+        """
+        expect:
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        succeeds 'help'
+    }
+    // endregion Migrating configurations
 
     // region Detached configurations
     def "changing usage on detached configurations does not warn"() {

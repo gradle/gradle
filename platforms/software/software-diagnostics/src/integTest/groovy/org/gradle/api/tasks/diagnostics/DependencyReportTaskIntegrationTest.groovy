@@ -18,10 +18,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
-    }
-
     def "omits repeated dependencies in case of circular dependencies"() {
         given:
         createDirs("client", "a", "b", "c")
@@ -1041,6 +1037,31 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
+    def "adding declarations to deprecated configurations for declaration will warn"() {
+        given:
+        createDirs("a", "b")
+        file("settings.gradle") << "include 'a', 'b'"
+
+        buildFile << """
+            subprojects {
+                configurations {
+                    migratingLocked('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
+                    'default' { extendsFrom compile }
+                }
+                group = "group"
+                version = 1.0
+            }
+            project(":a") {
+                dependencies { compile project(":b") }
+            }
+        """
+
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+
+        expect:
+        succeeds ':a:dependencies'
+    }
+
     def "adding declarations to invalid configurations for declaration will fail"() {
         given:
         createDirs("a", "b")
@@ -1062,5 +1083,50 @@ compileClasspath - Compile classpath for source set 'main'.
         expect:
         fails ':a:dependencies'
         result.assertHasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+    }
+
+    void "treats a configuration that is deprecated for resolving as not resolvable"() {
+        mavenRepo.module("foo", "foo", '1.0').publish()
+        mavenRepo.module("foo", "bar", '2.0').publish()
+
+        file("build.gradle") << """
+            repositories {
+               maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                migratingLocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
+                implementation.extendsFrom variant
+            }
+            dependencies {
+                variant 'foo:foo:1.0'
+                implementation 'foo:bar:2.0'
+            }
+        """
+
+        when:
+        run ":dependencies"
+
+        then:
+        output.contains """
+implementation
++--- foo:bar:2.0
+\\--- foo:foo:1.0
+
+variant (n)
+\\--- foo:foo:1.0 (n)
+
+(n) - A dependency or dependency configuration that cannot be resolved.
+"""
+
+        when:
+        run ":dependencies", "--configuration", "variant"
+
+        then:
+        output.contains """
+variant (n)
+\\--- foo:foo:1.0 (n)
+
+(n) - A dependency or dependency configuration that cannot be resolved.
+"""
     }
 }

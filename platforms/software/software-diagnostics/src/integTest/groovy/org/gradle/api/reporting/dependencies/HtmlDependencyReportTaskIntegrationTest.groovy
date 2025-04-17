@@ -556,6 +556,38 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
+    void "treats a configuration that is deprecated for resolving as not resolvable"() {
+        mavenRepo.module("foo", "foo", '1.0').publish()
+
+        buildFile << """
+            apply plugin : 'project-report'
+
+            repositories {
+               maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                migratingLocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
+            }
+            dependencies {
+                compileOnly 'foo:foo:1.0'
+            }
+        """
+
+        when:
+        run "htmlDependencyReport"
+        def json = readGeneratedJson("root")
+        def apiConfiguration = json.project.configurations.find { it.name == "compileOnly" }
+
+        then:
+        apiConfiguration
+        apiConfiguration.dependencies.size() == 1
+        apiConfiguration.dependencies[0].name == "foo:foo:1.0"
+        apiConfiguration.dependencies[0].resolvable == 'UNRESOLVED'
+        apiConfiguration.dependencies[0].alreadyRendered == false
+        apiConfiguration.dependencies[0].hasConflict == false
+        apiConfiguration.dependencies[0].children.empty
+    }
+
     void "excludes directly undeclarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
