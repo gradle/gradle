@@ -19,17 +19,16 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
@@ -61,16 +60,17 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
@@ -102,6 +102,7 @@ public abstract class AvailableJavaHomes {
     public static Jvm getJdk17() {
         return getJdk(JavaVersion.VERSION_17);
     }
+
     @Nullable
     public static Jvm getJdk21() {
         return getJdk(JavaVersion.VERSION_21);
@@ -122,60 +123,110 @@ public abstract class AvailableJavaHomes {
         return getJdk(JavaVersion.VERSION_24);
     }
 
-    @Nullable
-    public static Jvm getHighestSupportedLTS() {
-        return getJdk21();
-    }
-
-    @Nullable
-    public static Jvm getLowestSupportedLTS() {
-        return getJdk8();
+    /**
+     * Get a JDK for each major Java version installed on this machine.
+     */
+    public static List<Jvm> getAllJdkVersions() {
+        return getJdksAtOrAbove(0);
     }
 
     /**
-     * Get a JVM for each major Java version that is not able to run the Gradle daemon, if available.
+     * Get a JDK for each major Java version that is not able to run the Gradle wrapper, if available.
+     */
+    public static List<Jvm> getUnsupportedWrapperJdks() {
+        return getJdksBelow(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that is able to run the Gradle wrapper, if available.
+     */
+    public static List<Jvm> getSupportedWrapperJdks() {
+        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that is not able to run a Gradle client, if available.
+     */
+    public static List<Jvm> getUnsupportedClientJdks() {
+        return getJdksBelow(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that is able to run a Gradle client, if available.
+     */
+    public static List<Jvm> getSupportedClientJdks() {
+        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that is not able to run a Gradle worker, if available.
+     */
+    public static List<Jvm> getUnsupportedWorkerJdks() {
+        return getJdksBelow(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that is able to run a Gradle worker, if available.
+     */
+    public static List<Jvm> getSupportedWorkerJdks() {
+        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that is not able to run the Gradle daemon, if available.
      */
     public static List<Jvm> getUnsupportedDaemonJdks() {
-        return getJdks(
-            IntStream.range(1, SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)
-                .mapToObj(JavaVersion::toVersion)
-                .toArray(JavaVersion[]::new)
+        return getJdksBelow(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that can run the Gradle daemon,
+     * but will not be able to in the next major version.
+     */
+    public static List<Jvm> getDeprecatedDaemonJdks() {
+        return getJdksInRange(
+            SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
+            SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION
         );
     }
 
     /**
-     * Get a JVM that is not able to run the Gradle daemon.
+     * Get a JDK for each major Java version that is able to run the Gradle daemon, if available.
+     */
+    public static List<Jvm> getSupportedDaemonJdks() {
+        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION);
+    }
+
+    /**
+     * Get a JDK for each major Java version that can run the Gradle daemon,
+     * and will continue to be able to in the next major version.
+     */
+    public static List<Jvm> getNonDeprecatedDaemonJdks() {
+        return getJdksAtOrAbove(SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION);
+    }
+
+    /**
+     * Return an entry from {@link #getUnsupportedDaemonJdks()}, if available.
      */
     @Nullable
     public static Jvm getUnsupportedDaemonJdk() {
-        return getAvailableJdk(element -> {
-            int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
-            return majorVersion < SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION;
-        });
+        return getUnsupportedDaemonJdks().stream().findFirst().orElse(null);
     }
 
     /**
-     * Get a JVM that can run the Gradle daemon, but will not be able to in the next major version.
+     * Return an entry from {@link #getDeprecatedDaemonJdks()}, if available.
      */
     @Nullable
     public static Jvm getDeprecatedDaemonJdk() {
-        return getAvailableJdk(element -> {
-            int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
-            return majorVersion >= SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION &&
-                majorVersion < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION;
-            }
-        );
+        return getDeprecatedDaemonJdks().stream().findFirst().orElse(null);
     }
 
     /**
-     * Get a JVM that can run the Gradle daemon and will continue to be able to in the next major version.
+     * Return an entry from {@link #getNonDeprecatedDaemonJdks()}, if available.
      */
     @Nullable
     public static Jvm getNonDeprecatedDaemonJdk() {
-        return getAvailableJdk(element -> {
-            int majorVersion = Integer.parseInt(element.getLanguageVersion().getMajorVersion());
-            return majorVersion > SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION;
-        });
+        return getNonDeprecatedDaemonJdks().stream().findFirst().orElse(null);
     }
 
     @Nullable
@@ -184,19 +235,29 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
-     * Returns a JDK for each of the given java versions, if available.
+     * Return a list of JDK installations, containing one installation per version
+     * in the specified range, if such a version is available on this machine.
      */
-    public static List<Jvm> getJdks(final String... versions) {
-        List<JavaVersion> javaVersions = Arrays.stream(versions).map(JavaVersion::toVersion).collect(Collectors.toList());
-        return getJdks(Iterables.toArray(javaVersions, JavaVersion.class));
+    public static List<Jvm> getJdksInRange(@Nullable Integer minVersionInclusive, @Nullable Integer maxVersionExclusive) {
+        Set<Integer> found = new HashSet<>();
+        return getAvailableJvmMetadatas().stream()
+            .filter(input -> input.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES))
+            .filter(element ->
+                (minVersionInclusive == null || element.getJavaMajorVersion() >= minVersionInclusive) &&
+                    (maxVersionExclusive == null || element.getJavaMajorVersion() < maxVersionExclusive) &&
+                    found.add(element.getJavaMajorVersion())
+            )
+            .sorted(Comparator.comparingInt(JvmInstallationMetadata::getJavaMajorVersion))
+            .map(AvailableJavaHomes::jvmFromMetadata)
+            .collect(Collectors.toList());
     }
 
-    /**
-     * Returns a JDK for each of the given java versions, if available.
-     */
-    public static List<Jvm> getJdks(JavaVersion... versions) {
-        final Set<JavaVersion> remaining = Sets.newHashSet(versions);
-        return getAvailableJdks(element -> remaining.remove(element.getLanguageVersion()));
+    private static List<Jvm> getJdksAtOrAbove(int minVersionInclusive) {
+        return getJdksInRange(minVersionInclusive, null);
+    }
+
+    private static List<Jvm> getJdksBelow(int maxVersionExclusive) {
+        return getJdksInRange(null, maxVersionExclusive);
     }
 
     /**
@@ -225,22 +286,15 @@ public abstract class AvailableJavaHomes {
             .collect(Collectors.toList());
     }
 
-    public static Map<Jvm, JavaVersion> getAvailableJdksWithVersion() {
-        Map<Jvm, JavaVersion> result = new HashMap<>();
-        for (JavaVersion javaVersion : JavaVersion.values()) {
-            for (Jvm javaInfo : getAvailableJdks(javaVersion)) {
-                result.put(javaInfo, javaVersion);
+    public static Map<Integer, List<Jvm>> getAvailableJdksByVersion() {
+        Map<Integer, List<Jvm>> jdksByVersion = new HashMap<>();
+        for (Jvm jvm : getAvailableJdks(Specs.satisfyAll())) {
+            Integer majorVersion = jvm.getJavaVersionMajor();
+            if (majorVersion != null) {
+                jdksByVersion.computeIfAbsent(majorVersion, k -> new ArrayList<>()).add(jvm);
             }
         }
-        return result;
-    }
-
-    public static Map<JavaInfo, JavaVersion> getAvailableJdksWithJavac() {
-        return getAvailableJdksWithVersion()
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getKey().getJavacExecutable()!=null && entry.getValue().isJava8Compatible())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return jdksByVersion;
     }
 
     @Nullable
@@ -250,15 +304,15 @@ public abstract class AvailableJavaHomes {
 
     @Nullable
     private static Jvm getSupportedJdk(final Spec<? super JvmInstallationMetadata> filter) {
-        return getAvailableJdk(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it));
+        return getAvailableJdk(it -> isSupportedDaemonVersion(it) && filter.isSatisfiedBy(it));
     }
 
     @Nullable
     private static Jvm getSupportedJvm(final Spec<? super JvmInstallationMetadata> filter) {
-        return Iterables.getFirst(getAvailableJvms(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it)), null);
+        return Iterables.getFirst(getAvailableJvms(it -> isSupportedDaemonVersion(it) && filter.isSatisfiedBy(it)), null);
     }
 
-    private static boolean isSupportedVersion(JvmInstallationMetadata jvmInstallation) {
+    private static boolean isSupportedDaemonVersion(JvmInstallationMetadata jvmInstallation) {
         return DISTRIBUTION.worksWith(jvmFromMetadata(jvmInstallation));
     }
 
