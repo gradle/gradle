@@ -178,14 +178,12 @@ task checkDeps
                 conf gradleApi()
             }
 
-            assert dependencies.gradleApi().contentEquals(dependencies.gradleApi())
             assert dependencies.gradleApi().is(dependencies.gradleApi())
             assert dependencies.gradleApi() == dependencies.gradleApi()
             assert configurations.conf.dependencies.contains(dependencies.gradleApi())
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning("The Dependency.contentEquals(Dependency) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Object.equals(Object) instead Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_content_equals")
         succeeds("help")
     }
 
@@ -232,21 +230,4 @@ task checkDeps
         result.hasErrorOutput("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
-    def "contentEquals is deprecated"() {
-        buildFile << """
-            def d1 = dependencies.create(files())
-            def d2 = dependencies.create('org.foo:baz:1.0')
-            def d3 = dependencies.create(project)
-
-            def other = dependencies.create('org.other:foo:1.0')
-
-            d1.contentEquals(other)
-            d2.contentEquals(other)
-            d3.contentEquals(other)
-        """
-
-        expect:
-        3.times { executer.expectDocumentedDeprecationWarning("The Dependency.contentEquals(Dependency) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Object.equals(Object) instead Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_content_equals") }
-        succeeds("help")
-    }
 }
