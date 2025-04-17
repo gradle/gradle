@@ -647,7 +647,7 @@
     "name": "input-tracking",
     "path": "platforms/core-configuration/input-tracking",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

@@ -113,7 +113,7 @@ public class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<String> stringPropertyNames() {
-        return new AccessTrackingSet<>(delegate.stringPropertyNames(), trackingListener());
+        return new AccessTrackingSet<>(delegate.stringPropertyNames(), keyTrackingListener());
     }
 
     @Override
@@ -142,7 +142,7 @@ public class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Object> keySet() {
-        return new AccessTrackingSet<>(delegate.keySet(), trackingListener());
+        return new AccessTrackingSet<>(delegate.keySet(), keyTrackingListener());
     }
 
     @Override
@@ -187,7 +187,7 @@ public class AccessTrackingProperties extends Properties {
     }
 
     @Override
-    public Object putIfAbsent(Object key, Object value) {
+    public @Nullable Object putIfAbsent(Object key, Object value) {
         Object oldValue;
         synchronized (delegate) {
             oldValue = delegate.putIfAbsent(key, value);
@@ -556,7 +556,7 @@ public class AccessTrackingProperties extends Properties {
         return clazz == String.class || Primitives.isWrapperType(clazz);
     }
 
-    private AccessTrackingSet.Listener trackingListener() {
+    private AccessTrackingSet.Listener keyTrackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
             public void onAccess(@Nullable Object o) {
