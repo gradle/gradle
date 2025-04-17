@@ -16,15 +16,26 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Should be applied to a plugin class that does not support the configuration cache.
+ *
+ * @since 9.0
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
+@Incubating
 public @interface PluginNotCompatibleWithConfigurationCache {
+    /**
+     * Reason for incompatibilty.
+     */
     String because() default "";
 }
