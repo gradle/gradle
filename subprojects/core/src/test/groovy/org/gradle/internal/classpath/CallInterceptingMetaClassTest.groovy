@@ -20,8 +20,6 @@ import org.gradle.internal.classpath.intercept.CallSiteInterceptorSet
 import org.gradle.internal.classpath.intercept.DefaultCallSiteDecorator
 import org.gradle.internal.classpath.intercept.DefaultCallSiteInterceptorSet
 import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor
-import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -129,7 +127,7 @@ class CallInterceptingMetaClassTest extends Specification {
 
         // This should not be intercepted because of fromInsideClass, however in Groovy 4.x it is still invoked without encountering an exception due to a new fallback
         // I have no idea if the fallback is supposed to do this, because it was added without any explanation as part of https://github.com/apache/groovy/pull/1598
-        "invokeMethod(sender, receiver, methodName, arguments, false, true)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), false, true) }  | false       | TestPrecondition.satisfied(UnitTestPreconditions.IsGroovy3)
+        "invokeMethod(sender, receiver, methodName, arguments, false, true)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), false, true) }  | false       | false
 
         // These should not be intercepted because of isCallToSuper
         "invokeMethod(sender, receiver, methodName, arguments, true, false)"  | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), true, false) }  | false       | true

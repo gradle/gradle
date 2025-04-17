@@ -182,7 +182,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
             abstract class MakeGreen implements TransformAction<Parameters> {
 
-                abstract static class Parameters extends TransformParameters {
+                abstract static class Parameters implements TransformParameters {
 
                     { prop.convention($value) }
 
