@@ -24,6 +24,7 @@ import groovy.lang.MetaMethod;
 import groovy.lang.MetaProperty;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
@@ -272,6 +273,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 PropertyMixIn propertyMixIn = (PropertyMixIn) bean;
                 return propertyMixIn.getAdditionalProperties().tryGetProperty(name);
                 // Do not check for opaque properties when implementing PropertyMixIn, as this is expensive
+            }
+
+            // TODO: Deprecate and nag about this
+            MetaMethod metaMethod = lookupMethod(metaClass, "is" + StringUtils.capitalize(name), MetaClassHelper.EMPTY_CLASS_ARRAY);
+            if (metaMethod != null && metaMethod.getReturnType().equals(Boolean.class)) {
+                return DynamicInvokeResult.found(metaMethod.invoke(bean, MetaClassHelper.EMPTY_CLASS_ARRAY));
             }
 
             if (!implementsMissing) {

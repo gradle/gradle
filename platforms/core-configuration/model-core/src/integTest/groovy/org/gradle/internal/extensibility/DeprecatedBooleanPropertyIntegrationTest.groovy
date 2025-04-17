@@ -19,7 +19,6 @@ package org.gradle.internal.extensibility
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-@Ignore("To be fixed later, see https://github.com/gradle/gradle/issues/32483")
 class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
     def "does not emit deprecation warning when a decorated class exposes a Boolean property like a field"() {
         buildFile << """
@@ -145,7 +144,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             "The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. " +
             "Add a method named 'getProperty' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or change the type of 'MyValue.isProperty' (and the setter) to 'boolean'. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
-        succeeds("assertProperty")
+        succeeds("assertProperty", "--dry-run")
     }
 
     def "does not emit a deprecation warning when a non-decorated class used as a task input exposes a Boolean is-getter and normal getter"() {
@@ -168,7 +167,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("assertProperty", MyTask)
         """
         expect:
-        succeeds("assertProperty")
+        succeeds("assertProperty", "--dry-run")
     }
 
     def "does not emit a deprecation warning when a non-decorated class used as a task input exposes a Boolean is-getter and normal getter (with proper replacement)"() {
