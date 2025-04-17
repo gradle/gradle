@@ -17,5 +17,5 @@
 package org.gradle.api.internal.plugins;
 
 public interface SoftwareTypeBindingRegistration {
-    void bind(SoftwareTypeBindingBuilder builder);
+    void configure(SoftwareTypeBindingBuilder builder);
 }
