@@ -609,7 +609,6 @@ tasks.named("quickTest") {
 
 // TODO add some kind of test precondition support in sample test conf
 tasks.named<Test>("docsTest") {
-    maxParallelForks = 2
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
@@ -625,8 +624,6 @@ tasks.named<Test>("docsTest") {
     systemProperties.clear()
 
     filter {
-        // workaround for https://github.com/gradle/dotcom/issues/5958
-        isFailOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!OperatingSystem.current().isLinux) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-cpp-*.sample")

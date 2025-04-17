@@ -87,6 +87,9 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -156,22 +159,22 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final ProjectStateRegistry projectStateRegistry;
-    private CompositeDomainObjectSet<Dependency> inheritedDependencies;
-    private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
-    private DefaultDependencySet allDependencies;
-    private DefaultDependencyConstraintSet allDependencyConstraints;
+    private @Nullable CompositeDomainObjectSet<Dependency> inheritedDependencies;
+    private @Nullable CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
+    private @Nullable DefaultDependencySet allDependencies;
+    private @Nullable DefaultDependencyConstraintSet allDependencyConstraints;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final DefaultDomainObjectSet<PublishArtifact> ownArtifacts;
-    private CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
-    private DefaultPublishArtifactSet allArtifacts;
+    private @Nullable CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
+    private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationRunner buildOperationRunner;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private ResolutionStrategyInternal resolutionStrategy;
+    private @Nullable ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
     private final ResolveExceptionMapper exceptionMapper;
     private final AttributeDesugaring attributeDesugaring;
@@ -191,9 +194,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean visible = true;
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<>();
-    private String description;
+    private @Nullable String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
-    private Set<ExcludeRule> parsedExcludeRules;
+    private @Nullable Set<ExcludeRule> parsedExcludeRules;
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
@@ -208,12 +211,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
-    private Supplier<String> observationReason = null;
+    private @Nullable Supplier<String> observationReason = null;
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final AttributesFactory attributesFactory;
     private final ResolutionAccess resolutionAccess;
-    private FileCollectionInternal intrinsicFiles;
+    private @Nullable FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
@@ -227,8 +230,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
 
-    private ConfigurationInternal consistentResolutionSource;
-    private String consistentResolutionReason;
+    private @Nullable ConfigurationInternal consistentResolutionSource;
+    private @Nullable String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final InternalProblems problemsService;
     private final DocumentationRegistry documentationRegistry;
@@ -1498,23 +1501,18 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     /**
-     * If this configuration has a role set upon creation, conditionally warn upon usage mutation.
-     * Configurations with roles set upon creation should not have their usage changed. In 9.0,
-     * changing the usage of a configuration with a role set upon creation will become an error.
-     *
-     * <p>In the below two cases, for non-legacy configurations, this method does not warn. This is
-     * to avoid spamming users with these warnings, as popular third-party plugins continue to
-     * violate these conditions.
-     * </p>
-     * <ul>
-     *     <li>The configuration is detached and the new value is false.</li>
-     *     <li>The current value and the new value are the same</li>
-     * </ul>
-     *
+     * If this configuration has a role set upon creation, conditionally fail upon usage mutation.
+     * <p>
+     * Configurations with roles set upon creation should not have their usage changed.
+     * <p>
+     * For <strong>redundant</strong>, where a method is called but no change in the usage occurs, this method does not fail. This is
+     * to allow plugins utilizing this behavior to continue to function, as popular third-party plugins continue to
+     * violate these conditions.  However, it may emit a warning on redundant changes if a special flag is set.
+     * <p>
      * The eventual goal is that all configuration usage be specified upon creation and immutable
      * thereafter.
      */
-    private void maybeWarnOnChangingUsage(String methodName, boolean current, boolean newValue) {
+    private void checkChangingUsage(String methodName, boolean current, boolean newValue) {
         if (hasAllUsages()) {
             // We currently allow configurations with all usages -- those that are created with
             // `create` and `register` -- to have mutable roles. This is likely to change in the future
@@ -1522,30 +1520,54 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
+        boolean redundantChange = current == newValue;
+
         // Error will be thrown later. Don't emit a duplicate warning.
-        if (!usageCanBeMutated && (current != newValue)) {
+        if (!usageCanBeMutated && !redundantChange) {
             return;
         }
 
         // KGP continues to set the already-set value for a given usage even though it is already set
-        boolean redundantChange = current == newValue;
+        // This property exists to allow KGP to test whether they have properly stopped making unnecessary redundant
+        // changes to detachedConfigurations.
+        // This property WILL be removed without warning and should be removed in Gradle 9.x.
+        boolean extraWarningsEnabled = Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled");
 
-        // KGP disables `consumable` on detached configurations even though this is not necessary
-        boolean disableUsageForDetached = isDetachedConfiguration() && !newValue;
-
-        // This property exists to allow KGP to test whether they have properly resolved this deprecation.
-        // This property WILL be removed without warning.
-        if ((redundantChange || disableUsageForDetached) &&
-            !Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled")
-        ) {
-            return;
+        if (redundantChange) {
+            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10.0 this should fail.
+            if (extraWarningsEnabled) {
+                warnAboutChangingUsage(methodName, newValue);
+            }
+        } else {
+            if (isDetachedConfiguration() && !newValue) {
+                // This is an actual change, and permitting it is not desired behavior, but we haven't deprecated
+                // changing detached confs usages to false as of 9.0, so we have to permit even these non-redundant changes,
+                // but we can at least warn if the flag is set.
+                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10.0 this should fail.
+                if (extraWarningsEnabled) {
+                    warnAboutChangingUsage(methodName, newValue);
+                }
+            } else {
+                failDueToChangingUsage(methodName, newValue);
+            }
         }
+    }
 
+    private void warnAboutChangingUsage(String methodName, boolean newValue) {
         DeprecationLogger.deprecateAction(String.format("Calling %s(%b) on %s", methodName, newValue, this))
             .withContext("This configuration's role was set upon creation and its usage should not be changed.")
-            .willBecomeAnErrorInGradle9()
+            .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(8, "configurations_allowed_usage")
             .nagUser();
+    }
+
+    private void failDueToChangingUsage(String methodName, boolean newValue) {
+        GradleException ex = new GradleException(String.format("Calling %s(%b) on %s is not allowed.  This configuration's role was set upon creation and its usage should not be changed.", methodName, newValue, this));
+        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            spec.contextualLabel(ex.getMessage());
+            spec.severity(Severity.ERROR);
+        });
     }
 
     private boolean isDetachedConfiguration() {
@@ -1579,7 +1601,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
-        maybeWarnOnChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
+        checkChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
         setCanBeConsumedInternal(allowed);
     }
 
@@ -1600,7 +1622,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeResolved(boolean allowed) {
-        maybeWarnOnChangingUsage("setCanBeResolved", canBeResolved, allowed);
+        checkChangingUsage("setCanBeResolved", canBeResolved, allowed);
         setCanBeResolvedInternal(allowed);
     }
 
@@ -1621,7 +1643,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void setCanBeDeclared(boolean allowed) {
-        maybeWarnOnChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
+        checkChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
         setCanBeDeclaredInternal(allowed);
     }
 

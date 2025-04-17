@@ -154,11 +154,11 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private void addJacocoConfigurations() {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
-        Configuration agentConf = configurations.resolvableDependencyScopeUnlocked(AGENT_CONFIGURATION_NAME);
+        Configuration agentConf = configurations.resolvableDependencyScopeLocked(AGENT_CONFIGURATION_NAME);
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
-        Configuration antConf = configurations.resolvableDependencyScopeUnlocked(ANT_CONFIGURATION_NAME);
+        Configuration antConf = configurations.resolvableDependencyScopeLocked(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");

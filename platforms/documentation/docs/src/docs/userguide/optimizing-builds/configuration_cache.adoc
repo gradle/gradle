@@ -289,12 +289,9 @@ include::sample[dir="snippets/configurationCache/stableFeatureFlag/kotlin",files
 include::sample[dir="snippets/configurationCache/stableFeatureFlag/groovy",files="settings.gradle[]"]
 ====
 
-The `STABLE_CONFIGURATION_CACHE` feature flag enforces stricter validation and introduces the following behavior:
-
-Undeclared Shared Build Service Usage::
-Tasks using a <<build_services#build_services, shared Build Service>> without explicitly declaring the requirement via the `Task.usesService` method will trigger a deprecation warning.
-
-Additionally, when the Configuration Cache is not enabled but this feature flag is present, deprecations for the following <<config_cache:requirements, Configuration Cache requirements>> will be enforced:
+If the configuration cache is not enabled,
+the `STABLE_CONFIGURATION_CACHE` feature flag enforces stricter validation,
+issuing deprecation warnings for violations of the following <<config_cache:requirements, Configuration Cache requirements>>:
 
 - <<config_cache:requirements:build_listeners, Registering build listeners>>
 - <<config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>

@@ -30,7 +30,7 @@ public class DefaultComponentDependencies implements ComponentDependencies {
 
     @Inject
     public DefaultComponentDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName) {
-        implementation = configurations.dependencyScopeUnlocked(implementationName);
+        implementation = configurations.dependencyScopeLocked(implementationName);
     }
 
     public Configuration getImplementationDependencies() {

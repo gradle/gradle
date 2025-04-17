@@ -147,6 +147,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
+    @Nullable
     public ConfigurationInternal findByName(String name) {
         return (ConfigurationInternal) super.findByName(name);
     }
@@ -247,20 +248,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action) {
-        assertCanMutate("resolvableUnlocked(String, Action)");
+        assertCanMutate("resolvable(String, Action)");
         return registerResolvableConfiguration(name, action);
     }
 
     @Override
-    public Configuration resolvableUnlocked(String name) {
-        assertCanMutate("resolvableUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
+    public Configuration resolvableLocked(String name) {
+        assertCanMutate("resolvableLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
     }
 
     @Override
-    public Configuration resolvableUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("resolvableUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
+    public Configuration resolvableLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("resolvableLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
     }
 
     @Override
@@ -276,15 +277,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration consumableUnlocked(String name) {
-        assertCanMutate("consumableUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
+    public Configuration consumableLocked(String name) {
+        assertCanMutate("consumableLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
     }
 
     @Override
-    public Configuration consumableUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("consumableUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
+    public Configuration consumableLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("consumableLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
     }
 
     @Override
@@ -300,102 +301,109 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration dependencyScopeUnlocked(String name) {
-        assertCanMutate("dependencyScopeUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+    public Configuration dependencyScopeLocked(String name) {
+        assertCanMutate("dependencyScopeLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
-    public Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("dependencyScopeUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
-    }
-
-    @Override
-    @Deprecated
-    public Configuration resolvableDependencyScopeUnlocked(String name) {
-        assertCanMutate("resolvableDependencyScopeUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
+    public Configuration dependencyScopeLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("dependencyScopeLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
     }
 
     @Override
     @Deprecated
-    public Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("resolvableDependencyScopeUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
+    public Configuration resolvableDependencyScopeLocked(String name) {
+        assertCanMutate("resolvableDependencyScopeLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
-    public Configuration migratingUnlocked(String name, ConfigurationRole role) {
-        assertCanMutate("migratingUnlocked(String, ConfigurationRole)");
-        return migratingUnlocked(name, role, Actions.doNothing());
+    @Deprecated
+    public Configuration resolvableDependencyScopeLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("resolvableDependencyScopeLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
     }
 
     @Override
-    public Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
-        assertCanMutate("migratingUnlocked(String, ConfigurationRole, Action)");
+    public Configuration migratingLocked(String name, ConfigurationRole role) {
+        assertCanMutate("migratingLocked(String, ConfigurationRole)");
+        return migratingLocked(name, role, Actions.doNothing());
+    }
+
+    @Override
+    public Configuration migratingLocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
+        assertCanMutate("migratingLocked(String, ConfigurationRole, Action)");
 
         if (ConfigurationRolesForMigration.ALL.contains(role)) {
-            return createLegacyConfiguration(name, role, action);
+            return createLockedLegacyConfiguration(name, role, action);
         } else {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
     }
 
     @Override
-    public Configuration maybeCreateResolvableUnlocked(String name) {
-        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE), true);
+    public Configuration maybeCreateResolvableLocked(String name) {
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE), true);
     }
 
     @Override
-    public Configuration maybeCreateConsumableUnlocked(String name) {
-        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE), true);
+    public Configuration maybeCreateConsumableLocked(String name) {
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE), true);
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(String name) {
-        return maybeCreateDependencyScopeUnlocked(name, true);
+    public Configuration maybeCreateDependencyScopeLocked(String name) {
+        return maybeCreateDependencyScopeLocked(name, true);
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting) {
-        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
+    public Configuration maybeCreateDependencyScopeLocked(String name, boolean verifyPrexisting) {
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
     }
 
     @Override
-    public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
+    public Configuration maybeCreateMigratingLocked(String name, ConfigurationRole role) {
         AbstractRoleBasedConfigurationCreationRequest request = new NoContextRoleBasedConfigurationCreationRequest(name, role);
 
-        Configuration conf = findByName(request.getConfigurationName());
+        ConfigurationInternal conf = findByName(request.getConfigurationName());
         if (null != conf) {
-            return request.verifyExistingConfigurationUsage(conf);
+            request.verifyExistingConfigurationUsage(conf);
+            conf.preventUsageMutation();
+            return conf;
         } else {
-            return migratingUnlocked(request.getConfigurationName(), request.getRole());
+            return migratingLocked(request.getConfigurationName(), request.getRole());
         }
     }
 
     @Override
     @Deprecated
-    public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
-        return maybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
+    public Configuration maybeCreateResolvableDependencyScopeLocked(String name) {
+        return maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
     }
 
     @Override
-    public Configuration maybeCreate(RoleBasedConfigurationCreationRequest request) {
-        return doMaybeCreate(request, true);
+    public Configuration maybeCreateLocked(RoleBasedConfigurationCreationRequest request) {
+        return doMaybeCreateLocked(request, true);
     }
 
-    private Configuration doMaybeCreate(RoleBasedConfigurationCreationRequest request, boolean verifyPrexisting) {
-        Configuration conf = findByName(request.getConfigurationName());
+    private Configuration doMaybeCreateLocked(RoleBasedConfigurationCreationRequest request, boolean verifyPrexisting) {
+        ConfigurationInternal conf = findByName(request.getConfigurationName());
         if (null != conf) {
             if (verifyPrexisting) {
-                return request.verifyExistingConfigurationUsage(conf);
+                request.verifyExistingConfigurationUsage(conf);
+                conf.preventUsageMutation();
+                return conf;
             } else {
+                // We should also prevent usage mutation here, but we can't because this would break
+                // existing undeprecated behavior.
+                // Introduce locking here in Gradle 9.x.
                 return getByName(request.getConfigurationName());
             }
         } else {
             if (VALID_MAYBE_CREATE_ROLES.contains(request.getRole())) {
-                return createLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
+                return createLockedLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
             } else {
                 throw new GradleException("Cannot maybe create invalid role: " + request.getRole());
             }
@@ -420,12 +428,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         );
     }
 
-    private Configuration createLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+    private ConfigurationInternal createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
-        Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
+        ConfigurationInternal configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
         super.add(configuration);
         configureAction.execute(configuration);
+        configuration.preventUsageMutation();
         return configuration;
     }
 

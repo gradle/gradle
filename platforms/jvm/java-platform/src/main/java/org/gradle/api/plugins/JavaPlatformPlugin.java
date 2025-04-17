@@ -100,19 +100,19 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         Capability enforcedCapability = new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
-        Configuration api = configurations.dependencyScopeUnlocked(API_CONFIGURATION_NAME);
+        Configuration api = configurations.dependencyScopeLocked(API_CONFIGURATION_NAME);
         Configuration apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
         Configuration enforcedApiElements = createConsumableApi(project, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
         enforcedApiElements.getOutgoing().capability(enforcedCapability);
 
-        Configuration runtime = project.getConfigurations().dependencyScopeUnlocked(RUNTIME_CONFIGURATION_NAME);
+        Configuration runtime = project.getConfigurations().dependencyScopeLocked(RUNTIME_CONFIGURATION_NAME);
         runtime.extendsFrom(api);
 
         Configuration runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
         Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
         enforcedRuntimeElements.getOutgoing().capability(enforcedCapability);
 
-        Configuration classpath = configurations.migratingUnlocked(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
+        Configuration classpath = configurations.migratingLocked(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
         classpath.extendsFrom(runtimeElements);
         declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME, LibraryElements.JAR);
 
@@ -120,7 +120,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private Configuration createConsumableRuntime(ProjectInternal project, Configuration apiElements, String name, String platformKind) {
-        Configuration runtimeElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        Configuration runtimeElements = project.getConfigurations().migratingLocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         runtimeElements.setVisible(false);
         runtimeElements.extendsFrom(apiElements);
         declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
@@ -129,7 +129,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private Configuration createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind) {
-        Configuration apiElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        Configuration apiElements = project.getConfigurations().migratingLocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         apiElements.setVisible(false);
         apiElements.extendsFrom(api);
         declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);

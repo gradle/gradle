@@ -18,6 +18,9 @@ package org.gradle.smoketests
 
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.VersionNumber
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
@@ -25,7 +28,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         given:
         buildFile << """
             plugins {
-                id 'org.asciidoctor.jvm.convert' version '${TestedVersions.asciidoctor}'
+                id 'org.asciidoctor.jvm.convert' version '${version}'
             }
 
             ${mavenCentralRepository()}
@@ -40,10 +43,15 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        runner('asciidoc').build()
+        runner('asciidoc').deprecations(AsciidocDeprecations) {
+            expectAsciiDocDeprecationWarnings(version)
+        }.build()
 
         then:
         file('build/docs/asciidoc').isDirectory()
+
+        where:
+        version << [TestedVersions.asciidoctor]
     }
 
     @Override
@@ -64,6 +72,25 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     void configureValidation(String pluginId, String version) {
         validatePlugins {
             alwaysPasses()
+        }
+    }
+
+    static class AsciidocDeprecations extends BaseDeprecations {
+        AsciidocDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectAsciiDocDeprecationWarnings(String asciidoctorVersion) {
+            def versionNumber = VersionNumber.parse(asciidoctorVersion)
+            runner.expectDeprecationWarningIf(
+                // Once the plugin is fixed, we should include the fixed version in the smoke-tested set and flip the condition to be less-than (<)
+                versionNumber.major >= 4,
+                "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
+                    "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
+                "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/751"
+            )
         }
     }
 }

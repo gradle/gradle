@@ -275,17 +275,17 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String sourceSetName = sourceSet.toString();
 
         SourceSetConfigurationCreationRequest implementationRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), implementationConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration implementationConfiguration = configurations.maybeCreate(implementationRequest);
+        Configuration implementationConfiguration = configurations.maybeCreateLocked(implementationRequest);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
         SourceSetConfigurationCreationRequest compileOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyRequest);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateLocked(compileOnlyRequest);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
         SourceSetConfigurationCreationRequest compileClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathRequest);
+        Configuration compileClasspathConfiguration = configurations.maybeCreateLocked(compileClasspathRequest);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
@@ -293,18 +293,18 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
         @SuppressWarnings("deprecation")
         SourceSetConfigurationCreationRequest annotationProcessorRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
-        Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorRequest);
+        Configuration annotationProcessorConfiguration = configurations.maybeCreateLocked(annotationProcessorRequest);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
         SourceSetConfigurationCreationRequest runtimeOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyRequest);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateLocked(runtimeOnlyRequest);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
         SourceSetConfigurationCreationRequest runtimeClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathRequest);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateLocked(runtimeClasspathRequest);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
