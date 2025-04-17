@@ -254,6 +254,13 @@ In Gradle 9.0, referencing tasks or other domain objects using the `"name"()` sy
 
 Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
 
+==== Removal of `outputFile` property in `WriteProperties` task
+
+The `outputFile` property in the `WriteProperties` task has been removed in Gradle 9.0.
+
+This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
+
+
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
 When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.

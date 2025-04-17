@@ -1169,6 +1169,30 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.getOutputFile()",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.setOutputFile(java.io.File)",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.setOutputFile(java.lang.Object)",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
             "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchivePath()",
             "acceptation": "remove deprecated property",
