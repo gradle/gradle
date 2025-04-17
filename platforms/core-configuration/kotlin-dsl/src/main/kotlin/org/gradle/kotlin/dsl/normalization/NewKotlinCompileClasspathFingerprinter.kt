@@ -78,7 +78,7 @@ class NewKotlinCompileClasspathFingerprinter(
 
     private
     fun computeHashForFile(file: File): HashCode {
-        val snapshots = compilationService.calculateClasspathSnapshot(file, ClassSnapshotGranularity.CLASS_LEVEL).classSnapshots
+        val snapshots = compilationService.calculateClasspathSnapshot(file, ClassSnapshotGranularity.CLASS_LEVEL, true).classSnapshots
         return hash(snapshots)
     }
 
