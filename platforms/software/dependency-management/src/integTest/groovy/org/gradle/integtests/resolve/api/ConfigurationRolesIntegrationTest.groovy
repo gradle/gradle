@@ -92,41 +92,42 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
     def "cannot resolve a configuration with role #role using #method"() {
         given:
         buildFile << """
-
-        configurations {
-            internal {
-                $role
+            configurations {
+                internal {
+                    $role
+                }
             }
-        }
-        dependencies {
-            internal files('foo.jar')
-        }
-
-        task checkState {
-            doLast {
-                configurations.internal.$method
+            dependencies {
+                internal files('foo.jar')
             }
-        }
 
+            task checkState {
+                doLast {
+                    configurations.internal.$method
+                }
+            }
         """
 
-        when:
-        if (method == 'getResolvedConfiguration()') {
-            if (role == 'canBeResolved = false') {
-                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
-\tConsumable - this configuration can be selected by another project as a dependency
-\tDeclarable - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
-            } else {
-                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
-\tDeclarable - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
-            }
+        def expectedUsagesMsg
+        if (role == 'canBeResolved = false') {
+            expectedUsagesMsg = """\tConsumable - this configuration can be selected by another project as a dependency
+  \tDeclarable - this configuration can have dependencies added to it"""
+        } else {
+            expectedUsagesMsg = "\tDeclarable - this configuration can have dependencies added to it"
         }
-        fails 'checkState'
 
-        then:
-        failure.assertHasCause("Resolving dependency configuration 'internal' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends 'internal' should be resolved.")
+        expect:
+        fails 'checkState'
+        failure.assertHasDescription("Execution failed for task ':checkState'.")
+        if (method in ['getResolvedConfiguration()']) {
+            failure.assertHasCause("""Method call not allowed
+  Calling configuration method '$method' is not allowed for configuration 'internal', which has permitted usage(s):
+  $expectedUsagesMsg
+  This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
+        } else {
+            failure.assertHasCause("""Resolving dependency configuration 'internal' is not allowed as it is defined as 'canBeResolved=false'.
+Instead, a resolvable ('canBeResolved=true') dependency configuration that extends 'internal' should be resolved.""")
+        }
 
         where:
         [method, role] << [
