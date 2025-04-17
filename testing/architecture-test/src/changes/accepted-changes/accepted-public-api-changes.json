@@ -1161,6 +1161,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchivePath()",
+            "acceptation": "remove deprecated property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.AbstractCompile",
             "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
             "acceptation": "Removing @Deprecated property for Gradle 9.0",
