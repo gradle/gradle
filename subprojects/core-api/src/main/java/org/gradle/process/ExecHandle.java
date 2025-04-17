@@ -25,6 +25,7 @@ import org.gradle.api.Incubating;
  * The process will be started immediately.
  *
  * @see org.gradle.process.ExecOperations#execAsync
+ * @since 9.0
  */
 @Incubating
 public interface ExecHandle extends Describable {
@@ -33,11 +34,15 @@ public interface ExecHandle extends Describable {
      * Blocks until the process has exited (either successfully or unsuccessfully).
      *
      * Does nothing if the process has already completed.
+     *
+     * @since 9.0
      */
     ExecResult waitForFinish();
 
     /**
      * Aborts the process, blocking until the process has exited. Does nothing if the process has already completed.
+     *
+     * @since 9.0
      */
     void abort();
 }
