@@ -159,6 +159,7 @@ val core = platform("core") {
         subproject("model-groovy")
         subproject("software-features")
         subproject("software-features-api")
+        subproject("software-features-demos")
     }
 
     // Core Execution Module
