@@ -16,8 +16,6 @@
 
 package org.gradle.process;
 
-import org.gradle.process.internal.ExecException;
-
 /**
  * Represents the result of running an external process.
  */
@@ -28,18 +26,18 @@ public interface ExecResult {
     int getExitValue();
 
     /**
-     * Throws an {@link org.gradle.process.internal.ExecException} if the process exited with a non-zero exit value.
+     * Throws a {@link ProcessExecutionException} if the process exited with a non-zero exit value.
      *
      * @return this
-     * @throws ExecException if the process exited with a non-zero exit value
+     * @throws ProcessExecutionException if the process exited with a non-zero exit value
      */
-    ExecResult assertNormalExitValue() throws ExecException;
+    ExecResult assertNormalExitValue() throws ProcessExecutionException;
 
     /**
      * Re-throws any failure executing this process.
      *
      * @return this
-     * @throws ExecException the execution failure
+     * @throws ProcessExecutionException the execution failure
      */
-    ExecResult rethrowFailure() throws ExecException;
+    ExecResult rethrowFailure() throws ProcessExecutionException;
 }

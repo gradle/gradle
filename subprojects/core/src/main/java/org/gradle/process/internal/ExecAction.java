@@ -18,15 +18,16 @@ package org.gradle.process.internal;
 import org.gradle.api.NonExtensible;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
+import org.gradle.process.ProcessExecutionException;
 
 import javax.annotation.Nonnull;
 
 @NonExtensible
 public interface ExecAction extends ExecSpec {
-    ExecResult execute() throws ExecException;
+    ExecResult execute() throws ProcessExecutionException;
 
     @Nonnull
-    org.gradle.process.ExecHandle executeAsync() throws ExecException;
+    org.gradle.process.ExecHandle executeAsync() throws ProcessExecutionException;
 
     ExecAction listener(ExecHandleListener listener);
 }

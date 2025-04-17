@@ -25,6 +25,7 @@ import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.remote.ObjectConnectionBuilder
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.WorkerProcess
@@ -304,7 +305,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             try {
                 proc.start()
                 assertFalse(startFails)
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 if (!startFails) {
                     throw new AssertionError(e)
                 }
@@ -324,7 +325,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
             try {
                 proc.waitForStop()
                 assertFalse("Expected process to fail", stopFails)
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 assertTrue("Unexpected failure in worker process", stopFails)
             }
         }
