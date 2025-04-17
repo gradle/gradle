@@ -121,19 +121,28 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         reportDir4 == reportDir2
     }
 
-    def "report is written to root project's buildDir"() {
-        file("build.gradle") << """
-            buildDir = 'out'
+    def "report is written to root project's build directory"() {
+        settingsFile """
+            include("sub")
+        """
+
+        buildFile """
+            layout.buildDirectory = layout.projectDirectory.dir("customBuildDir")
+        """
+
+        // problem can be in a subproject
+        buildFile "sub/build.gradle", """
+            def capturedProject = project
             tasks.register('broken') {
-                doFirst { println(project.name) }
+                doFirst { println(capturedProject.name) }
             }
         """
 
         when:
-        configurationCacheFails 'broken'
+        configurationCacheFails ':sub:broken'
 
         then:
-        resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory.file("customBuildDir"), failure.error)?.isDirectory()
     }
 
     def "link to report is not shown with --warn if there are no-CC problems"() {
