@@ -176,7 +176,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     private RuntimeException failOnAttemptToAdd(String behavior) {
-        GradleException ex = new GradleException(behavior + " ");
+        GradleException ex = new GradleException(behavior);
         ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
         throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
@@ -186,22 +186,22 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public boolean add(@Nullable Configuration o) {
-        throw failOnAttemptToAdd("Adding a configuration directly to the configuration container is not allowed.  Use a factory method instead.");
+        throw failOnAttemptToAdd("Adding a configuration directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public boolean addAll(Collection<? extends Configuration> c) {
-        throw failOnAttemptToAdd("Adding a collection of configurations directly to the configuration container is not allowed.  Use a factory method instead.");
+        throw failOnAttemptToAdd("Adding a collection of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addLater(Provider<? extends Configuration> provider) {
-        throw failOnAttemptToAdd("Adding a configuration provider directly to the configuration container is not allowed.  Use a factory method instead.");
+        throw failOnAttemptToAdd("Adding a configuration provider directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addAllLater(Provider<? extends Iterable<Configuration>> provider) {
-        throw failOnAttemptToAdd("Adding a provider of configurations directly to the configuration container is not allowed.  Use a factory method instead.");
+        throw failOnAttemptToAdd("Adding a provider of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
