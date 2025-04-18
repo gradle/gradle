@@ -21,7 +21,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
     def "projects are treated as coupled when parent mutates child project"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b", "c")
+        includeProjects("a", "b", "c")
         file("build.gradle") << """
             project(":a") {
                 plugins.apply(my.MyPlugin)
@@ -107,7 +107,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
     def "projects are treated as coupled when child mutates parent project"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         file("a/build.gradle") << """
             parent.plugins.apply(my.MyPlugin)
             parent.myExtension.message = "root project"
@@ -172,7 +172,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
     def "projects are treated as coupled when project queries a sibling project"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b", "c")
+        includeProjects("a", "b", "c")
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
             myExtension.message = "the message"
@@ -272,7 +272,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
     def "can ignore project couplings using internal system property"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b", "c")
+        includeProjects("a", "b", "c")
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
             myExtension.message = "the message"

@@ -26,10 +26,8 @@ class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecifi
 
     def "can references sibling source folders"() {
         given:
-        settingsFile.text = """
-include ':subprojectA'
-include ':subprojectB'
-"""
+        includeProjects("subprojectA", "subprojectB")
+
         file('build.gradle').text = '''
 subprojects {
     apply plugin: 'java'

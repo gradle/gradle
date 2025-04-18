@@ -31,7 +31,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "caches creation of custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -96,7 +96,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "can cache models with tasks"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
 
@@ -139,7 +139,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "can cache models with tasks using internal option"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
 
@@ -212,7 +212,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
     def "can ignore problems and cache custom model"() {
         given:
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
             allprojects {
@@ -244,7 +244,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
     def "caches calculation of GradleBuild model"() {
         given:
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         settingsFile << """
             println("configuring build")
         """
@@ -364,7 +364,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "can store fingerprint for reused projects"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         // Materializing of `ValueSource` at configuration time is leading to serializing its `Class`
         file("a/build.gradle") << """
             import org.gradle.api.provider.ValueSourceParameters

@@ -24,7 +24,7 @@ class ToolingApiEclipseProjectDependenciesCrossVersionSpec extends ToolingApiSpe
 
     def "project dependency does not leak test sources"() {
         setup:
-        settingsFile << "include 'a', 'b'"
+        includeProjects("a", "b")
         file('a/build.gradle') << """
             plugins {
                 id 'java-library'
@@ -50,7 +50,7 @@ class ToolingApiEclipseProjectDependenciesCrossVersionSpec extends ToolingApiSpe
 
     def "project dependency pointing to test fixture project exposes test sources"() {
         setup:
-        settingsFile << "include 'a', 'b'"
+        includeProjects("a", "b")
         file('a/build.gradle') << """
             plugins {
                 id 'java-library'

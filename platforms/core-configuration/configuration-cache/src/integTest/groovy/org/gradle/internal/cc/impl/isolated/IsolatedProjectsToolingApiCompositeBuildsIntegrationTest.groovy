@@ -21,7 +21,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
     def "invalidates cached state when plugin in buildSrc changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -88,7 +88,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         settingsFile << """
             includeBuild("plugins")
         """
-        createProjectDirs("a", "b")
+        includeProjects("a", "b")
         buildFile << """
             plugins {
                 id("my.plugin")
@@ -160,7 +160,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
             includeBuild("plugins")
             includeBuild("libs")
         """
-        createDirs("libs/a", "libs/b")
+        createProjectSubDirs("libs/a", "libs/b")
         file("libs/settings.gradle") << """
             include("a")
             include("b")
