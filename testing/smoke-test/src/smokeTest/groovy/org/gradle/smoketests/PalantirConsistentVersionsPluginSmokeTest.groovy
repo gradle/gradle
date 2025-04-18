@@ -25,7 +25,8 @@ import spock.lang.Ignore
 class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
     /*
-    TODO: Until this is fixed in a new version of the plugin, we need to ignore this test.
+    TODO: Until these are fixed in a new version of the plugin, we need to ignore this test.
+> Extending a detachedConfiguration is not allowed
 
 > Method call not allowed
     Calling setCanBeConsumed(true) on configuration ':compileClasspathCopy' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.
@@ -36,7 +37,7 @@ https://github.com/tresat/gradle-consistent-versions/blob/23e53fa3b6f7071df8788c
 because of:
 https://github.com/tresat/gradle-consistent-versions/blob/23e53fa3b6f7071df8788cecbaeac16f93e90660/src/main/java/com/palantir/gradle/versions/VersionsLockPlugin.java#L609
     */
-    @Ignore("Palantir copies compileClasspath and sets it to be consumable (this is the first failure, there may be others)")
+    @Ignore("Palantir copies compileClasspath and sets it to be consumable, Palantir extends detachedConfigurations")
     def 'basic functionality'() {
         given:
         buildFile << """
