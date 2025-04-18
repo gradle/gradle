@@ -135,7 +135,7 @@ When resolving properties, Gradle first looks in the project-level `gradle.prope
 
 Project properties are specific to your Gradle project, they can be used to customize your build.
 Project properties can be accessed in your build files and get passed in from an external source when your build is executed.
-Project properties can be retrieved lazily using `providers.gradleProperty()`.
+Project properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.gradleProperty()`.
 
 === Setting a project property
 
@@ -211,7 +211,7 @@ The command line interface and the available flags are described in <<command_li
 == System properties
 
 System properties are variables set at the JVM level and accessible to the Gradle build process.
-System properties can be retrieved lazily using `providers.systemProperty()`.
+System properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.systemProperty()`.
 
 === Setting a system property
 
@@ -250,7 +250,7 @@ Only the root project's `gradle.properties` file will be checked for properties 
 == Gradle properties
 
 Gradle properties configure Gradle itself and usually have the name `org.gradle.\*`.
-Gradle properties should not be used in build logic, their values should not be read/retrieved.
+Gradle properties should not be used in build logic, their values should not be read/retrieved in build scripts.
 
 === Setting a Gradle property
 
@@ -422,7 +422,7 @@ _Default is the number of CPU processors._
 == Environment variables
 
 Gradle provides a number of environment variables, which are listed below.
-Environment variables can be retrieved lazily using `providers.environmentVariable()`.
+Environment variables can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.environmentVariable()`.
 
 === Setting environment variables
 
