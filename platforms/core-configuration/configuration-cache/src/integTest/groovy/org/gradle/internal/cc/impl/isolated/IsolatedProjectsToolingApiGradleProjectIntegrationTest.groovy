@@ -24,13 +24,10 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.check
 class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 
     def "can fetch GradleProject model for empty projects"() {
-        createDirs("lib1", "lib1/lib11")
         settingsFile << """
             rootProject.name = 'root'
-
-            include(":lib1")
-            include(":lib1:lib11")
         """
+        includeProjects("lib1", "lib1:lib11")
 
         when: "fetching without Isolated Projects"
         def expectedProjectModel = fetchModel(GradleProject)
@@ -69,7 +66,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         settingsFile << """
             rootProject.name = 'root'
         """
-        createProjectDirs("lib1")
+        includeProjects("lib1")
 
         buildFile << """
             tasks.register("lazy") {
@@ -115,7 +112,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         settingsFile << """
             rootProject.name = "root"
         """
-        createProjectDirs("a")
+        includeProjects("a")
 
         when:
         withIsolatedProjects()
@@ -128,7 +125,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
     }
 
     def "can fetch GradleProject model for an included build project"() {
-        createDirs("included1", "lib1", "included1/lib2")
+        createProjectSubDirs("included1", "lib1", "included1/lib2")
         settingsFile << """
             rootProject.name = 'root'
             includeBuild("included1")

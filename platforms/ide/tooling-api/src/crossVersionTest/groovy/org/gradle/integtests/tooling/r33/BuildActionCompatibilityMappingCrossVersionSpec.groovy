@@ -23,10 +23,7 @@ class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecific
 
     def "Applies idea module name compatibility mapping"() {
         given:
-        settingsFile << """
-            include 'a'
-            include 'b'
-        """
+        includeProjects("a", "b")
         buildFile << """
             allprojects {
                 apply plugin: 'java'
@@ -50,10 +47,7 @@ class BuildActionCompatibilityMappingCrossVersionSpec extends ToolingApiSpecific
 
     def "Applies gradle project identifier mapping"() {
         given:
-        settingsFile << """
-            include 'a'
-            include 'b'
-        """
+        includeProjects("a", "b")
 
         when:
         def gradleBuild = withConnection {

@@ -136,8 +136,8 @@ class CompositeBuildModuleNamesCrossVersionSpec extends ToolingApiSpecification 
         settingsFile << """
             rootProject.name = 'module-main'
             includeBuild('module-b-folder')
-            include('module-b-name')
         """
+        includeProjects("module-b-name")
         file('module-b-folder').mkdir()
         file('module-b-folder/settings.gradle') << """
             rootProject.name = 'module-b-name'

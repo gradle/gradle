@@ -447,7 +447,7 @@ abstract class FileContentGenerator {
         def subProjectDependencies = ''
         if (subProjectNumbers?.size() > 0) {
             def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
-            subProjectDependencies = subProjectNumbers.collect {
+            subProjectDependencies = new HashSet<Integer>(subProjectNumbers).collect {
                 it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
             }.join("\n            ")
         }

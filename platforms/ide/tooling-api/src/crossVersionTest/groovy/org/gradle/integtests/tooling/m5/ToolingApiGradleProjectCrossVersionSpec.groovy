@@ -22,7 +22,7 @@ import org.gradle.tooling.model.GradleTask
 class ToolingApiGradleProjectCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides tasks of a project"() {
-        file('build.gradle') << '''
+        buildFile << '''
 task a {
    description = 'this is task a'
 }
@@ -44,8 +44,8 @@ task c
     }
 
     def "provides hierarchy"() {
-        file('settings.gradle') << "include 'a', 'a:b', 'a:c', 'a:c:d'"
-        file('build.gradle') << '''
+        includeProjects("a", "a:b", "a:c", "a:c:d")
+        buildFile << '''
 task rootTask
 project (':a') { description = 'A rocks!' }
 '''
@@ -65,12 +65,12 @@ project (':a') { description = 'A rocks!' }
         a.children.size() == 2
         a.children.find { it.name == 'b' && it.path == ':a:b' }
         a.children.find { it.name == 'c' && it.path == ':a:c' }
-        
+
         a.children.find { it.name == 'c'}.children[0].name == 'd'
     }
 
     def "can provide tasks for hierarchical project"() {
-        file('settings.gradle') << "include 'a', 'a:b', 'a:c'"
+        includeProjects("a", "a:b", "a:c")
         file('build.gradle') << '''
 task rootTask
 project(':a') { task taskA }

@@ -80,7 +80,7 @@ subprojects {
     apply plugin: 'java'
 }
 '''
-        file('settings.gradle').text = "include 'api', 'impl'"
+        includeProjects("api", "impl")
 
         when:
         IdeaProject project = loadToolingModel(IdeaProject)
@@ -202,7 +202,7 @@ project(':impl') {
     idea.module.downloadJavadoc = true
 }
 """
-        file('settings.gradle').text = "include 'api', 'impl'"
+        includeProjects("api", "impl")
 
         when:
         IdeaProject project = loadToolingModel(IdeaProject)
@@ -248,7 +248,8 @@ project(':impl') {
     task implTask {}
 }
 """
-        file('settings.gradle').text = "include 'api', 'impl'; rootProject.name = 'root'"
+        includeProjects("api", "impl")
+        settingsFile << "rootProject.name = 'root'"
 
         when:
         IdeaProject project = loadToolingModel(IdeaProject)
@@ -280,7 +281,8 @@ project(':impl') {
     }
 }
 """
-        settingsFile.text = "include 'api', 'impl'"
+
+        includeProjects("api", "impl")
 
         when:
         BasicIdeaProject project = withConnection { connection -> connection.getModel(BasicIdeaProject.class) }

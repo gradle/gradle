@@ -89,12 +89,10 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
     }
 
     def "can fetch IdeaProject model for empty projects"() {
-        createDirs("lib1", "lib1/lib11")
         settingsFile << """
             rootProject.name = 'root'
-            include(":lib1")
-            include(":lib1:lib11")
         """
+        includeProjects("lib1", "lib1:lib11")
 
         when: "fetching without Isolated Projects"
         def originalIdeaModel = fetchModel(IdeaProject)
@@ -124,7 +122,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         settingsFile << """
             rootProject.name = "root"
         """
-        createProjectDirs("a")
+        includeProjects("a")
 
         when:
         withIsolatedProjects()

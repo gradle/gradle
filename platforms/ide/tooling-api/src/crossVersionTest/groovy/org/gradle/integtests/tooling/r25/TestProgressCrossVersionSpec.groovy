@@ -362,10 +362,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     @Requires(UnitTestPreconditions.NotWindows)
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
-        projectDir.createFile('settings.gradle') << """
-            include ':sub1'
-            include ':sub2'
-        """
+        includeProjects("sub1", "sub2")
         projectDir.createFile('build.gradle')
 
         [projectDir.createDir('sub1'), projectDir.createDir('sub2')].eachWithIndex { TestFile it, def index ->
