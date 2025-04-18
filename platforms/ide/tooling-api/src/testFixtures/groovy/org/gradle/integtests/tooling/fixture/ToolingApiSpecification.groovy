@@ -110,6 +110,13 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     private ExecutionResult result
     private ExecutionFailure failure
 
+
+    def setupProjectDirs(String... names) {
+        createDirs(names.collect { it.replace(":", "/")  }.toArray() as String[])
+        settingsFile << """
+            include ${names.collect { "'$it'" }.join(",")}
+        """
+    }
     // used reflectively by retry rule
     String getReleasedGradleVersion() {
         return targetDist.version.baseVersion.version

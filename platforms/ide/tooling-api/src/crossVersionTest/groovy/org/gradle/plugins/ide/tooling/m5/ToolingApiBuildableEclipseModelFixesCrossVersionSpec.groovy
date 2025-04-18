@@ -48,8 +48,7 @@ project(':api') {
     apply plugin: 'eclipse'
 }
 '''
-        createDirs("api", "impl")
-        file('settings.gradle').text = "include 'api', 'impl'"
+        setupProjectDirs("api", "impl")
 
         when:
         EclipseProject eclipseProject = loadToolingModel(EclipseProject)

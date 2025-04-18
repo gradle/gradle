@@ -29,7 +29,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "jdkName property from idea module model is available in the tooling API"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        setupProjectDirs("root", "child1", "child2", "child3")
         buildFile << """
             allprojects {
                 apply plugin: 'idea'
@@ -69,13 +69,13 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child2' }.jdkName == 'MyJDK3'
         ideaProject.modules.find { it.name == 'child3' }.jdkName == null
     }
-    
+
     @TargetGradleVersion(">=4.0 <4.5")
     def "provides correct dependencies when using java-library plugin"() {
         given:
+        setupProjectDirs("a", "b", "c", "d", "e", "f")
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b', 'c', 'd', 'e', 'f'
         """
 
         buildFile << """
@@ -124,8 +124,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b', 'c', 'd', 'e', 'f'
         """
+        setupProjectDirs("a", "b", "c", "d", "e", "f")
 
         buildFile << """
             allprojects {

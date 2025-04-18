@@ -23,11 +23,9 @@ class IdeaProjectModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "Idea modules are returned in order"() {
         given:
-        createDirs("a", "b")
+        setupProjectDirs("a", "b")
         settingsFile << """
             rootProject.name = 'root'
-            include 'a'
-            include 'b'
         """
 
         when:

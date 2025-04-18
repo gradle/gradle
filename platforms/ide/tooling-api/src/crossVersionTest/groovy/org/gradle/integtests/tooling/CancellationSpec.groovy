@@ -48,8 +48,8 @@ throw new RuntimeException("should not run")
     }
 
     void setupCancelInConfigurationBuild() {
+        setupProjectDirs("sub")
         settingsFile << '''
-include 'sub'
 rootProject.name = 'cancelling'
 '''
         buildFile << waitForCancel()
