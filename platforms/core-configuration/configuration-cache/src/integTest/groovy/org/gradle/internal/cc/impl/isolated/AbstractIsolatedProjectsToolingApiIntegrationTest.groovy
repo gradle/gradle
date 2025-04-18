@@ -16,9 +16,9 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.cc.impl.fixtures.ToolingApiBackedGradleExecuter
 import org.gradle.internal.cc.impl.fixtures.ToolingApiSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec {
 
@@ -32,5 +32,11 @@ class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolated
     @Override
     GradleExecuter createExecuter() {
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
+    }
+
+    def createProjectDirs(String... names) {
+        createDirs(names)
+        settingsFile <<
+            names.collect { "include(':$it')" }.join("\n")
     }
 }

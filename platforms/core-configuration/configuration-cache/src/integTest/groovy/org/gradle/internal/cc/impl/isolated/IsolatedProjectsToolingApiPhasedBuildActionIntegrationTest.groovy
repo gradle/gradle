@@ -28,10 +28,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
     def "caches execution of phased BuildAction that queries custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        createProjectDirs("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -113,10 +110,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
     def "caches execution of phased BuildAction that queries custom tooling model and that may, but does not actually, run tasks"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        createProjectDirs("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """

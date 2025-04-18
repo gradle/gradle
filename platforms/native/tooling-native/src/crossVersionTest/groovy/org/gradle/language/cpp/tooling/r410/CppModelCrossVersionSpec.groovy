@@ -417,6 +417,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "can query the models for each project in a build"() {
+        createDirs('app', 'lib', 'other')
         settingsFile << """
             include 'app'
             include 'lib'
@@ -471,6 +472,7 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "can query the models for each project in a composite build"() {
+        createDirs('app', 'lib')
         settingsFile << """
             include 'app'
             includeBuild 'lib'

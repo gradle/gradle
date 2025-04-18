@@ -95,7 +95,7 @@ class TestProjectGenerator extends AbstractTestProjectGenerator {
         }
 
         if (projectDepth > 0) {
-            def subProjectDir = new File(projectDir, "sub${projectDepth}project$subProjectNumber")
+            def subProjectDir = new File(projectDir, "sub${projectDepth}project${subProjectNumber ?: 0}")
             subProjectDir.mkdirs()
             generateProject(subProjectDir, dependencyTree, subProjectNumber, projectDepth - 1)
         }
