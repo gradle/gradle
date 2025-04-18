@@ -687,7 +687,7 @@ tasks.named<Test>("docsTest") {
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
             // Kotlin does not yet support 24 JDK target
-            excludeTestsMatching("org.gradle.docs.samples.*.best-practices-kotlin-std-lib*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
