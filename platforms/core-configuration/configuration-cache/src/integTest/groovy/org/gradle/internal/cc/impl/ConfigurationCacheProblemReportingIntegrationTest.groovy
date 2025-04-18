@@ -121,19 +121,28 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         reportDir4 == reportDir2
     }
 
-    def "report is written to root project's buildDir"() {
-        file("build.gradle") << """
-            buildDir = 'out'
+    def "report is written to root project's build directory"() {
+        settingsFile """
+            include("sub")
+        """
+
+        buildFile """
+            layout.buildDirectory = layout.projectDirectory.dir("customBuildDir")
+        """
+
+        // problem can be in a subproject
+        buildFile "sub/build.gradle", """
+            def capturedProject = project
             tasks.register('broken') {
-                doFirst { println(project.name) }
+                doFirst { println(capturedProject.name) }
             }
         """
 
         when:
-        configurationCacheFails 'broken'
+        configurationCacheFails ':sub:broken'
 
         then:
-        resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory.file("customBuildDir"), failure.error)?.isDirectory()
     }
 
     def "link to report is not shown with --warn if there are no-CC problems"() {
@@ -817,84 +826,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
-    }
-
-    def "reports #invocation access during execution"() {
-
-        def configurationCache = newConfigurationCacheFixture()
-
-        given:
-        settingsFile << "rootProject.name = 'root'"
-        buildFile << """
-            abstract class MyTask extends DefaultTask {
-                @TaskAction
-                def action() {
-                    println($code)
-                }
-            }
-
-            class MyAction implements Action<Task> {
-                void execute(Task task) {
-                    task.$code
-                }
-            }
-
-            tasks.register("a", MyTask)
-            tasks.register("b", MyTask) {
-                doLast(new MyAction())
-            }
-            tasks.register("c") {
-                doFirst(new MyAction())
-            }
-            tasks.register("d") {
-                doFirst { $code }
-            }
-        """
-
-        when:
-        configurationCacheFails "a", "b", "c", "d"
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("Configuration cache entry discarded with 5 problems.")
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
-            withTotalProblemsCount(5)
-        }
-
-        when:
-        configurationCacheRunLenient "a", "b", "c", "d"
-
-        then:
-        configurationCache.assertStateStored()
-        postBuildOutputContains("Configuration cache entry stored with 5 problems.")
-        problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
-            withTotalProblemsCount(5)
-        }
-
-        when:
-        configurationCacheRunLenient "a", "b", "c", "d"
-
-        then:
-        configurationCache.assertStateLoaded()
-        postBuildOutputContains("Configuration cache entry reused with 5 problems.")
-        problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
-            withTotalProblemsCount(5)
-        }
-
-        where:
-        invocation              | code
-        'Task.project'          | 'project.name'
-        'Task.dependsOn'        | 'dependsOn'
-        'Task.taskDependencies' | 'taskDependencies'
     }
 
     def "reports build listener registration on #registrationPoint"() {

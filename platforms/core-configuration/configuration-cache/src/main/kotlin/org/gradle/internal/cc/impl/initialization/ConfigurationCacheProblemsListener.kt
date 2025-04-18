@@ -66,7 +66,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
-        problems.onProblem(problem)
+        problems.onExecutionTimeProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -107,7 +107,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         // the build to fail when it really shouldn't.
         val contextTask = runningTask ?: task
         val isExecutingOtherTask = contextTask != task
-        problemsListenerFor(contextTask).onProblem(
+        problemsListenerFor(contextTask).onExecutionTimeProblem(
             problemFactory.problem {
                 if (isExecutingOtherTask) {
                     text("execution of task ")
