@@ -16,6 +16,8 @@
 
 package org.gradle.java.compile.incremental
 
+
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
@@ -562,6 +564,32 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
 
         then:
         recompiledWithFailure('Runnable r = (B) b;', 'A', 'B')
+    }
+
+    @Ignore("Broken due to https://github.com/gradle/gradle/issues/33161")
+    def "detects changes to class referenced in method body via lambda"() {
+        given:
+        source '''class A {
+    void doSomething() {
+        takeRunnable((B) () -> {
+            System.out.println("Hello");
+        });
+    }
+
+    void takeRunnable(Runnable r) {
+        r.run();
+    }
+}'''
+        source '''interface B extends Runnable {
+}'''
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/B.${languageName}").text = "class B { }"
+
+        then:
+        recompiledWithFailure('takeRunnable((B) () -> {', 'A', 'B')
     }
 
     def "detects changes to class referenced through return type"() {
