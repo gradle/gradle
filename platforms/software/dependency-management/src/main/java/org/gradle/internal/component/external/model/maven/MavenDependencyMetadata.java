@@ -72,6 +72,11 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
     }
 
     @Override
+    protected ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> artifacts) {
+        return new MavenDependencyMetadata(dependencyDescriptor, getReason(), isEndorsingStrictVersions(), artifacts);
+    }
+
+    @Override
     protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> artifacts) {
         MavenDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
         return new MavenDependencyMetadata(newDelegate, getReason(), isEndorsingStrictVersions(), artifacts);
