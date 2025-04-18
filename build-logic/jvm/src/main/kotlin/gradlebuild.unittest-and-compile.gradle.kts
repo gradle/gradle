@@ -110,7 +110,7 @@ fun enforceCompatibility(gradlebuildJava: UnitTestAndCompileExtension) {
     // When using the release flag, compiled code cannot access JDK internal classes or standard library
     // APIs defined in future versions of Java. If either of these cases are true, we do not use the
     // release flag, but instead set the source and target compatibility flags.
-    val useRelease = this.gradlebuildJava.usesJdkInternals.zip(this.gradlebuildJava.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
+    val useRelease = gradlebuildJava.usesJdkInternals.zip(gradlebuildJava.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
 
     val targetVersion = gradlebuildJava.targetVersion
     enforceJavaCompatibility(targetVersion, useRelease)
