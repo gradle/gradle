@@ -88,15 +88,18 @@ fun findArchiveOperations(project: Project) =
     (project as ProjectInternal).services.get<ArchiveOperations>(ArchiveOperations::class.java)
 
 fun findPluginJar(pluginClass: Class<*>) =
-    toFile(pluginClass.protectionDomain.codeSource.location)
+    try {
+        pluginClass.protectionDomain.codeSource.location?.let { url -> toFile(url)}
+    } catch (ex: Exception) {
+        null
+    }
 
 fun isExternal(pluginClass: Class<*>) =
     !pluginClass.name.startsWith("org.gradle")
 
-fun toFile(url: URL): File? {
-    return try {
+fun toFile(url: URL): File? =
+    try {
         File(url.toURI())
     } catch (e: URISyntaxException) {
         null
     }
-}
