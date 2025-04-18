@@ -126,7 +126,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
             // https://github.com/gradle/gradle/issues/23155
             // This should make the spec invalid when the enum gets removed
             DeprecationLogger.deprecateBehaviour("Requesting JVM vendor IBM_SEMERU.")
-                .willBeRemovedInGradle9()
+                .willBeRemovedInGradle10()
                 .withUpgradeGuideSection(8, "ibm_semeru_should_not_be_used")
                 .nagUser();
         }
