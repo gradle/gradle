@@ -524,6 +524,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         val pluginRepositoriesBlock = repositoriesBlockFor(pluginsRepository)
 
+        file("bar").mkdirs()
         withSettings(
             """
             pluginManagement {

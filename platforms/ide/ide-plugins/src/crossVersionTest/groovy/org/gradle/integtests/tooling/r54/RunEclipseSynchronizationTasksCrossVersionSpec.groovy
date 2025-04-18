@@ -24,6 +24,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel
 class RunEclipseSynchronizationTasksCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file("sub1").mkdirs()
+        createDirs("sub", "sub1")
 
         buildFile << """
             apply plugin: 'eclipse'

@@ -25,6 +25,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec {
 
     def 'Different equal instances of LifecycleAwareProject bear the same state'() {
         given:
+        createDirs("a")
         settingsFile """
             rootProject.name = 'root'
             include(":a")
