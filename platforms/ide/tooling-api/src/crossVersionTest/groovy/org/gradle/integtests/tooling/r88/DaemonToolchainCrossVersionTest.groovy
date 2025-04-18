@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
+import org.junit.Ignore
 
 // 8.8 did not support configuring the set of available Java homes or disabling auto-detection
 @TargetGradleVersion(">=8.9")
@@ -56,6 +57,27 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
         when:
         withConnection {
             it.newBuild().forTasks("help").run()
+        }
+
+        then:
+        assertDaemonUsedJvm(otherJvm.javaHome)
+    }
+
+    @Ignore("https://github.com/gradle/gradle/issues/32969")
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given criteria matching JAVA_HOME environment variable and disabled auto-detection When executing any task Then daemon jvm was set up with expected configuration"() {
+        given:
+        def otherJvm = AvailableJavaHomes.differentVersion
+        writeJvmCriteria(otherJvm.javaVersion.majorVersion)
+        captureJavaHome()
+
+        when:
+        withConnection {
+            it.newBuild()
+                .setEnvironmentVariables(["JAVA_HOME": otherJvm.javaHome.absolutePath])
+                .forTasks("help").withArguments(
+                "-Dorg.gradle.java.installations.auto-detect=false",
+            ).run()
         }
 
         then:

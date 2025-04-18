@@ -70,6 +70,22 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         assertDaemonUsedJvm(otherJvm)
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given criteria matching JAVA_HOME environment variable and disabled auto-detection When executing any task Then daemon jvm was set up with expected configuration"() {
+        given:
+        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+        writeJvmCriteria(otherJvm.javaVersion, otherMetadata.vendor.knownVendor.name())
+        captureJavaHome()
+
+        executer.withJavaHome(Jvm.current().javaHome.absolutePath)
+            .withEnvironmentVars([JAVA_HOME: otherJvm.javaHome.absolutePath])
+
+        expect:
+        succeeds("help")
+        assertDaemonUsedJvm(otherJvm)
+    }
+
     def "Given daemon toolchain criteria with version that doesn't match installed ones When executing any task Then fails with the expected message"() {
         given:
         // Java 10 is not available
