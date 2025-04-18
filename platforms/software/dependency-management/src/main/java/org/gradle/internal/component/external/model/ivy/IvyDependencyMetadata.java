@@ -105,6 +105,11 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
     }
 
     @Override
+    protected ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> artifacts) {
+        return new IvyDependencyMetadata(configuration, dependencyDescriptor, getReason(), isEndorsingStrictVersions(), artifacts);
+    }
+
+    @Override
     protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> artifacts) {
         IvyDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
         return new IvyDependencyMetadata(configuration, newDelegate, getReason(), isEndorsingStrictVersions(), artifacts);

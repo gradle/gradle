@@ -101,7 +101,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (target instanceof ModuleComponentSelector) {
             return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, endorsing, reason, force, artifacts);
         }
-        return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
+        return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this.withArtifacts(artifacts));
+    }
+
+    private DependencyMetadata withArtifacts(List<IvyArtifactName> artifacts) {
+        return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, force, artifacts);
     }
 
     @Override
