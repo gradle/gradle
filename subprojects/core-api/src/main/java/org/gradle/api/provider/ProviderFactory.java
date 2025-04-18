@@ -44,7 +44,7 @@ import java.util.function.BiFunction;
  * @since 4.0
  */
 @NonExtensible
-@ServiceScope(Scope.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ProviderFactory {
 
     /**

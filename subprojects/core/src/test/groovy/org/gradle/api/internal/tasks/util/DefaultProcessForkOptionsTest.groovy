@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.tasks.util
 
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
 import org.gradle.process.ProcessForkOptions
 import org.gradle.process.internal.DefaultProcessForkOptions
 import spock.lang.Specification
@@ -25,7 +28,14 @@ class DefaultProcessForkOptionsTest extends Specification {
     def resolver = Mock(FileResolver.class) {
         resolve(".") >> baseDir
     }
-    def options = new DefaultProcessForkOptions(resolver)
+    def workingDir = Mock(DirectoryProperty) {
+        getAsFile() >> Mock(Provider)
+        convention(_) >> it
+    }
+    def objectFactory = Mock(ObjectFactory.class) {
+        directoryProperty() >> workingDir
+    }
+    def options = new DefaultProcessForkOptions(objectFactory, resolver)
 
     def defaultValues() {
         expect:
@@ -36,10 +46,12 @@ class DefaultProcessForkOptionsTest extends Specification {
     def resolvesWorkingDirectoryOnGet() {
         when:
         options.workingDir = 12
+        options.workingDir == baseDir
 
         then:
-        1 * resolver.resolve(12) >> baseDir
-        options.workingDir == baseDir
+        1 * resolver.parseToFile(12) >> baseDir
+        1 * workingDir.set(baseDir)
+        1 * workingDir.getAsFile().get() >> baseDir
     }
 
     def convertsEnvironmentToString() {
@@ -81,6 +93,7 @@ class DefaultProcessForkOptionsTest extends Specification {
         options.copyTo(target)
 
         then:
+        1 * workingDir.getAsFile().get() >> baseDir
         1 * target.setWorkingDir(baseDir)
         1 * target.setExecutable('executable')
         1 * target.setEnvironment({ !it.empty })

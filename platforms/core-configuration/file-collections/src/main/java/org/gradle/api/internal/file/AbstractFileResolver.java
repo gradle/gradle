@@ -58,6 +58,11 @@ public abstract class AbstractFileResolver implements FileResolver {
     }
 
     @Override
+    public File parseToFile(Object path) {
+        return unpackAndParseNotation(path, fileNotationParser, "File");
+    }
+
+    @Override
     public NotationParser<Object, File> asNotationParser() {
         return new NotationParser<Object, File>() {
             @Override
@@ -80,7 +85,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Override
     public File resolve(Object path, PathValidation validation) {
-        File maybeRelativeFile = unpackAndParseNotation(path, fileNotationParser, "File");
+        File maybeRelativeFile = parseToFile(path);
         return resolveFile(maybeRelativeFile, validation);
     }
 

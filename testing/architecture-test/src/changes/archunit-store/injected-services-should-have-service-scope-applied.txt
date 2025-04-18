@@ -4,7 +4,6 @@ Class <org.gradle.api.artifacts.transform.TransformParameters> is not annotated 
 Class <org.gradle.api.cache.CacheConfigurations> is not annotated with @ServiceScope in (CacheConfigurations.java:0)
 Class <org.gradle.api.execution.TaskExecutionGraph> is not annotated with @ServiceScope in (TaskExecutionGraph.java:0)
 Class <org.gradle.api.initialization.dsl.ScriptHandler> is not annotated with @ServiceScope in (ScriptHandler.java:0)
-Class <org.gradle.api.internal.ProcessOperations> is not annotated with @ServiceScope in (ProcessOperations.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver> is not annotated with @ServiceScope in (ProjectDependencyPublicationResolver.java:0)
 Class <org.gradle.api.internal.project.ProjectRegistry> is not annotated with @ServiceScope in (ProjectRegistry.java:0)
 Class <org.gradle.api.logging.LoggingManager> is not annotated with @ServiceScope in (LoggingManager.java:0)
