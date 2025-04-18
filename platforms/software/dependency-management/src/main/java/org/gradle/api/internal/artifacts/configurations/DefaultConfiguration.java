@@ -1729,13 +1729,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void assertNotDetachedExtensionDoingExtending(Iterable<Configuration> extendsFrom) {
         if (isDetachedConfiguration()) {
             String summarizedExtensionTargets = StreamSupport.stream(extendsFrom.spliterator(), false)
-                .map(c -> "'" + c.getName() + "'")
+                .map(ConfigurationInternal.class::cast)
+                .map(ConfigurationInternal::getDisplayName)
                 .collect(Collectors.joining(", "));
-            DeprecationLogger.deprecateAction(String.format("Calling extendsFrom on %s", this.getDisplayName()))
-                .withContext(String.format("Detached configurations should not extend other configurations, this was extending: %s.", summarizedExtensionTargets))
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "detached_configurations_cannot_extend")
-                .nagUser();
+            GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
+            ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
+            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+                spec.contextualLabel(ex.getMessage());
+                spec.severity(Severity.ERROR);
+            });
         }
     }
 

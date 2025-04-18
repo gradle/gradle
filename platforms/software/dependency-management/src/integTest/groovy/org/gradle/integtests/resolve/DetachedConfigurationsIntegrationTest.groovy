@@ -289,7 +289,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30239")
-    def "detached configuration can not extend configurations"() {
+    def "detached configuration can not extend #description"() {
         disableProblemsApiCheck()
 
         given:
@@ -299,11 +299,21 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def detached = project.configurations.detachedConfiguration()
-            detached.extendsFrom(project.configurations.implementation)
+            detached.extendsFrom($extendsFromCall)
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'implementation'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
-        succeeds "tasks"
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause("""Extending a detachedConfiguration is not allowed
+  configuration ':detachedConfiguration1' cannot extend $description""")
+
+        where:
+        extendsFromCall                                                                     | description
+        "project.configurations.implementation"                                             | "configuration ':implementation'"
+        "project.configurations.detachedConfiguration()"                                    | "configuration ':detachedConfiguration2'"
+        "project.configurations.compileClasspath, project.configurations.runtimeClasspath"  | "configuration ':compileClasspath', configuration ':runtimeClasspath'"
     }
 }
