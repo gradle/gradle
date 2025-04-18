@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.StartParameter;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -31,6 +32,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -58,10 +60,17 @@ class DefaultBuildController implements BuildController {
     private final WorkerLeaseService workerLeaseService;
 
     private State state = State.DiscoveringTasks;
+    private final boolean isDiagnostic;
 
     public DefaultBuildController(BuildState build, WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
         this.workGraph = build.getWorkGraph().newWorkGraph();
+        if (build instanceof RootBuildState) {
+            StartParameter startParameter = ((RootBuildState) build).getStartParameter();
+            this.isDiagnostic = startParameter.isTaskGraph() || startParameter.isDryRun();
+        } else {
+            this.isDiagnostic = false;
+        }
     }
 
     @Override
@@ -127,6 +136,11 @@ class DefaultBuildController implements BuildController {
         assertInState(State.ReadyToRun);
         executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));
         state = State.RunningTasks;
+    }
+
+    @Override
+    public boolean isDiagnostic() {
+        return isDiagnostic;
     }
 
     @Override
