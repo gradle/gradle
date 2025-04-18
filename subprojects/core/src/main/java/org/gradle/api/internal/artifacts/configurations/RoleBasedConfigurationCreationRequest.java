@@ -58,19 +58,12 @@ public interface RoleBasedConfigurationCreationRequest {
     }
 
     /**
-     * Issues a deprecation warning when a configuration already exists and Gradle needs to mutate its
+     * Throws an exception when a configuration already exists and Gradle would need to mutate its
      * usage to match the role in the request.
      *
      * @param conf the existing configuration
      */
-    void warnAboutNeedToMutateUsage(DeprecatableConfiguration conf);
-
-    /**
-     * Throws an exception when Gradle fails to mutate the usage of a pre-existing configuration.
-     *
-     * @throws UnmodifiableUsageException always
-     */
-    void failOnInabilityToMutateUsage();
+    void failOnNeedToMutateUsage(DeprecatableConfiguration conf);
 
     /**
      * Ensures the usage of the requested configuration is consistent
