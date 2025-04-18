@@ -289,10 +289,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         role << [
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
-            ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE,
-            ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-            ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE,
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         ]
     }
 
@@ -387,7 +384,7 @@ class DefaultConfigurationContainerTest extends Specification {
         e.message == "Cannot maybe create invalid role: ${role.getName()}"
 
         where:
-        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
+        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE]
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements

@@ -116,7 +116,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         buildFile << """
             configurations {
                 deps
-                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE) {
                     addResolutionAlternatives("anotherConf")
                     extendsFrom(deps)
                 }
@@ -341,6 +341,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
     }
 
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     @Issue("https://github.com/gradle/gradle/issues/26461")
     def "when anticipating configurations to be created from sourcesets, their usage cannot be modified (creation = #description)"() {
         given:
@@ -708,7 +709,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 testConf "org:foo:1.0"
             }
         """
-
         expect:
         executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds 'help'

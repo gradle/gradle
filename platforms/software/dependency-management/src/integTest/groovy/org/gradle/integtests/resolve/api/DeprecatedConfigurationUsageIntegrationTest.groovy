@@ -153,20 +153,16 @@ This method is only meant to be called on configurations which allow the usage(s
     def "configuration explicitly deprecated for resolution will warn if resolved, but not fail"() {
         buildFile << """
             configurations {
-                migratingLocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                migratingLocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
             }
-
             ${mavenCentralRepository()}
-
             dependencies {
                 foo 'org.apache.commons:commons-lang3:3.9'
             }
-
             configurations.foo.files
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("help")
     }

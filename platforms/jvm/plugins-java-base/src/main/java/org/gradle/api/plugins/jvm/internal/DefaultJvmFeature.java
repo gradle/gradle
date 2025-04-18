@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -270,7 +269,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         boolean useMigrationRoleForElementsConfigurations
     ) {
         if (useMigrationRoleForElementsConfigurations) {
-            return configurations.maybeCreateMigratingLocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+            return configurations.maybeCreateConsumableLocked(name);
         } else {
             return configurations.maybeCreateConsumableLocked(name);
         }
