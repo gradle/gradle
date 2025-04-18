@@ -911,11 +911,10 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
     }
 
-    def "execOperations.#method in #location resolves relative path correctly"() {
+    def "execOperations.#method in non-root build.gradle resolves relative path correctly"() {
         settingsFile << "include 'a'"
-        testDirectory.file("a").mkdirs()
-        testDirectory.file("a/build/test/folder").mkdirs()
-        file("a/$location") << """
+        testDirectory.createDirs("a/build/test/folder")
+        file("a/build.gradle") << """
             interface ExecOperationsProvider {
                 @Inject
                 abstract ExecOperations getExec()
@@ -935,12 +934,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         succeeds("run")
 
         then:
-        outputContains("user.dir=${testDirectory.file("a/build/test/folder").absolutePath}")
+        outputContains("user.dir=${file("a/build/test/folder").absolutePath}")
 
         where:
-        location       | method     | configuration
-        "build.gradle" | "exec"     | execSpecWithJavaExecutable()
-        "build.gradle" | "javaexec" | javaExecSpec()
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
     }
 
     def "providers.#method in a non-root build.gradle resolves relative path correctly"() {
@@ -972,9 +971,8 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         succeeds("run")
 
         then:
-        testDirectory.file("a/build/test/folder/output.txt").exists()
-        testDirectory.file("a/build/test/folder/output.txt").text.contains(
-            "user.dir=${testDirectory.file("a/build/test/folder").absolutePath}"
+        file("a/build/test/folder/output.txt").text.contains(
+            "user.dir=${file("a/build/test/folder").absolutePath}"
         )
 
         where:

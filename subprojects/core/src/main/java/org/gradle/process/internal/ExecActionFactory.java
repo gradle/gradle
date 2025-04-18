@@ -19,7 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope({Scope.Global.class, Scope.UserHome.class, Scope.BuildSession.class, Scope.Build.class, Scope.Project.class})
 public interface ExecActionFactory {
     /**
      * Creates an {@link ExecAction} that is not decorated. Use this when the action is not made visible to the DSL.
