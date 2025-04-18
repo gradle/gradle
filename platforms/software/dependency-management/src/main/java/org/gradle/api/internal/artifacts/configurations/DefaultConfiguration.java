@@ -1478,11 +1478,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         usageCanBeMutated = false;
     }
 
-    @Override
-    public boolean usageCanBeMutated() {
-        return usageCanBeMutated;
-    }
-
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
@@ -1654,19 +1649,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-        }
-    }
-
-    @Override
-    public void setAllowedUsageFromRole(ConfigurationRole role) {
-        if (isCanBeConsumed() != role.isConsumable()) {
-            setCanBeConsumedInternal(role.isConsumable());
-        }
-        if (isCanBeResolved() != role.isResolvable()) {
-            setCanBeResolvedInternal(role.isResolvable());
-        }
-        if (isCanBeDeclared() != role.isDeclarable()) {
-            setCanBeDeclaredInternal(role.isDeclarable());
         }
     }
 
