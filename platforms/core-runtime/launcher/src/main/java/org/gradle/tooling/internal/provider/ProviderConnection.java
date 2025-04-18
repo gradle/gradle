@@ -347,7 +347,7 @@ public class ProviderConnection {
 
         AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory);
+        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), operationParameters.getEnvironmentVariables(null));
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -378,11 +378,6 @@ public class ProviderConnection {
 
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());
-
-        Map<String, String> envVariables = operationParameters.getEnvironmentVariables(null);
-        if (envVariables != null) {
-            daemonParams.setEnvironmentVariables(envVariables);
-        }
 
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
