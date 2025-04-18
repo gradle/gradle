@@ -17,11 +17,9 @@
 package org.gradle.internal.artifacts.configurations;
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
  * An {@link AbstractRoleBasedConfigurationCreationRequest} that does not provide any additional contextual
@@ -45,17 +43,5 @@ public final class NoContextRoleBasedConfigurationCreationRequest extends Abstra
         return String.format("Yet Gradle expected to create it with the usage(s):\n" +
             "%s\n" +
             "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, getConfigurationName());
-    }
-
-    @Override
-    public void failOnNeedToMutateUsage(DeprecatableConfiguration conf) {
-        String msgDiscovery = getUsageDiscoveryMessage(conf);
-        String msgExpectation = getUsageExpectationMessage();
-
-        DeprecationLogger.deprecate(msgDiscovery + msgExpectation)
-            .withAdvice(RoleBasedConfigurationCreationRequest.getDefaultReservedNameAdvice(configurationName))
-            .willBecomeAnErrorInGradle9()
-            .withUserManual("authoring_maintainable_build_scripts", "sec:dont_anticipate_configuration_creation")
-            .nagUser();
     }
 }
