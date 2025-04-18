@@ -17,7 +17,6 @@
 package org.gradle.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -38,7 +37,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
-import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -55,7 +53,6 @@ import java.util.stream.Collectors;
  * @since 8.8
  */
 @DisableCachingByDefault(because = "Not worth caching")
-@Incubating
 public abstract class UpdateDaemonJvm extends DefaultTask {
 
     /**
@@ -79,8 +76,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
 
     @TaskAction
     void generate() {
-        IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
-
         final String jvmVendorCriteria;
         if (getVendor().isPresent()) {
             jvmVendorCriteria = getVendor().map(v -> ((DefaultJvmVendorSpec)v).toCriteria()).get();
@@ -104,7 +99,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.8
      */
     @OutputFile
-    @Incubating
     public abstract RegularFileProperty getPropertiesFile();
 
     /**
@@ -117,7 +111,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @Input
     @Optional
     @Option(option = "jvm-version", description = "The version of the JVM required to run the Gradle Daemon.")
-    @Incubating
     public abstract Property<JavaLanguageVersion> getLanguageVersion();
 
     /**
@@ -127,7 +120,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      */
     @Input
     @Optional
-    @Incubating
     @Option(option = "jvm-vendor", description = "The vendor of the JVM required to run the Gradle Daemon.")
     public abstract Property<JvmVendorSpec> getVendor();
 
@@ -149,7 +141,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      */
     @Input
     @Optional
-    @Incubating
     @Option(option = "native-image-capable", description = "Indicates if the native-image capability is required.")
     public abstract Property<Boolean> getNativeImageCapable();
 
@@ -162,7 +153,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.13
      */
     @Internal
-    @Incubating
     public abstract SetProperty<BuildPlatform> getToolchainPlatforms();
 
     /**
@@ -176,6 +166,5 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.13
      */
     @Input
-    @Incubating
     public abstract MapProperty<BuildPlatform, URI> getToolchainDownloadUrls();
 }
