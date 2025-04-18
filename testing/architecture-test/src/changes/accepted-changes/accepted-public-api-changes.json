@@ -249,6 +249,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.ProjectDependency",
+            "member": "Method org.gradle.api.artifacts.ProjectDependency.getDependencyProject()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ResolveException",
             "member": "Constructor org.gradle.api.artifacts.ResolveException(java.lang.String,java.lang.Iterable)",
             "acceptation": "Public consturctor was deprecated",
