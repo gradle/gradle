@@ -254,6 +254,14 @@ $ ./gradlew updateDaemonJvm --jvm-version=17
 
 Or configure the task in the build script of the root project:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/daemon-jvm/customized-task">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-daemon-jvm-task]"]
 include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-daemon-jvm-task]"]
