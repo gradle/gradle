@@ -67,7 +67,6 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
             testFixturesSourceSet,
             Collections.singleton(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
             (ProjectInternal) project,
-            true,
             false
         );
 

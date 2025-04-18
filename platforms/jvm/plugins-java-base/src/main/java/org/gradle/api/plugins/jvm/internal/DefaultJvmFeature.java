@@ -116,10 +116,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         SourceSet sourceSet,
         Set<Capability> capabilities,
         ProjectInternal project,
-        // The elements configurations' roles should always be consumable only, but
-        // some users of this class are still migrating towards that. In 9.0, we can remove this
-        // parameter and hard-code the elements configurations' roles to consumable only.
-        boolean useMigrationRoleForElementsConfigurations,
         boolean extendProductionCode
     ) {
         this.name = name;
