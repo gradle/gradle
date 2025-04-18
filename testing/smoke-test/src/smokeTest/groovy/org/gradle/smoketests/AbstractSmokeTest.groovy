@@ -201,13 +201,16 @@ abstract class AbstractSmokeTest extends Specification {
 
     static class Versions implements Iterable<String> {
         static Versions of(String... versions) {
+            new Versions(Arrays.asList(versions))
+        }
+        static Versions of(List<String> versions) {
             new Versions(versions)
         }
 
         final List<String> versions
 
-        private Versions(String... given) {
-            versions = Arrays.asList(given)
+        private Versions(List<String> given) {
+            versions = given
         }
 
         @Override
