@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -250,6 +252,12 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
             """
         )
 
+        // Kotlin compiler uses sun.misc.Unsafe that prints a warning with Java 24
+        Jvm.current().javaVersion?.let {
+            if (it.isCompatibleWith(JavaVersion.VERSION_24)) {
+                executer.expectDeprecationWarning("WARNING: A terminally deprecated method in sun.misc.Unsafe has been called")
+            }
+        }
         println(
             build("test").output
         )
