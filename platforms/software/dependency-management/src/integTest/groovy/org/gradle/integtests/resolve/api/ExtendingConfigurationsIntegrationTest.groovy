@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
@@ -185,7 +184,7 @@ task checkResolveParentThenChild {
         succeeds("resolve")
     }
 
-    def "extending a configuration in another project is deprecated"() {
+    def "extending a configuration in another project is not allowed"() {
         given:
         settingsFile """
             include ":project1", ":project2"
@@ -206,19 +205,11 @@ task checkResolveParentThenChild {
         """)
 
         expect:
-        executer.expectDeprecationWarning("Configuration 'conf2' in project ':project2' extends configuration 'conf1' in project ':project1'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Configurations can only extend from configurations in the same project. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#extending_configurations_in_same_project")
-        succeeds ':project2:resolvableConfigurations', '--all'
-        outputContains("""
---------------------------------------------------
-Configuration conf2
---------------------------------------------------
-
-Extended Configurations
-    - conf1
-""")
+        fails ':project2:resolvableConfigurations', '--all'
+        failure.assertHasCause("Configuration ':project2:conf2' in project ':project2' cannot extend configuration ':project1:conf1' from project ':project1'. Configurations can only extend from configurations in the same context.")
     }
 
-    def "extending a configuration from the buildscript is deprecated"() {
+    def "extending a configuration from the buildscript is not allowed"() {
         settingsFile """
             rootProject.name = 'foo'
         """
@@ -231,17 +222,8 @@ Extended Configurations
         """
 
         expect:
-        executer.expectDeprecationWarning("Configuration 'conf1' in root project 'foo' extends configuration 'classpath' in buildscript of root project 'foo'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Configurations can only extend from configurations in the same project. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#extending_configurations_in_same_project")
-        succeeds ':resolvableConfigurations', '--configuration', 'conf1'
-        outputContains("""
---------------------------------------------------
-Configuration conf1
---------------------------------------------------
-
-Extended Configurations
-    - classpath
-""")
-
+        fails':resolvableConfigurations', '--configuration', 'conf1'
+        failure.assertHasCause("Configuration ':conf1' in root project 'foo' cannot extend configuration 'classpath' from buildscript of root project 'foo'. Configurations can only extend from configurations in the same context.")
     }
 
     def "extending a configuration in same project is fine"() {
