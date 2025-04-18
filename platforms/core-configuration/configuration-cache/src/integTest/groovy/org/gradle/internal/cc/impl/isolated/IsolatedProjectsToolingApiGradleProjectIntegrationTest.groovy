@@ -69,7 +69,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         settingsFile << """
             rootProject.name = 'root'
         """
-        createProjectDirs("lib1")
+        setupProjectDirs("lib1")
 
         buildFile << """
             tasks.register("lazy") {
@@ -115,7 +115,7 @@ class IsolatedProjectsToolingApiGradleProjectIntegrationTest extends AbstractIso
         settingsFile << """
             rootProject.name = "root"
         """
-        createProjectDirs("a")
+        setupProjectDirs("a")
 
         when:
         withIsolatedProjects()

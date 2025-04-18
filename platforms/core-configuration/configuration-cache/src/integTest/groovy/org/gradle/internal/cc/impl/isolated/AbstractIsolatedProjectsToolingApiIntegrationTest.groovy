@@ -34,7 +34,7 @@ class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolated
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
     }
 
-    def createProjectDirs(String... names) {
+    def setupProjectDirs(String... names) {
         createDirs(names)
         settingsFile <<
             names.collect { "include(':$it')" }.join("\n")

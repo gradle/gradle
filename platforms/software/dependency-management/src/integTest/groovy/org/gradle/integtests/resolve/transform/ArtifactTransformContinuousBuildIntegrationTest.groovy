@@ -27,7 +27,7 @@ class ArtifactTransformContinuousBuildIntegrationTest extends AbstractContinuous
 
     @ToBeImplemented("We treat parameters as an opaque hash")
     def "changes to artifact transform parameters trigger a build"() {
-        file("produser").mkdirs()
+        file("producer").mkdirs()
         file("consumer").mkdirs()
         settingsFile << """
             include 'producer', 'consumer'

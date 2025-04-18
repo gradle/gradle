@@ -30,9 +30,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
     def events = ProgressEvents.create()
 
     def setup() {
-        settingsFile << """
-            include 'lib', 'app'
-        """
+        setupProjectDirs("lib", "app")
         buildFile << """
             import org.gradle.api.artifacts.transform.TransformParameters
 
@@ -146,6 +144,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
         withFileSizerTransform()
         settingsFile.moveToDirectory(file('included'))
         buildFile.moveToDirectory(file('included'))
+        createDirs("included/lib", "included/app")
         settingsFile << """
             includeBuild 'included'
         """

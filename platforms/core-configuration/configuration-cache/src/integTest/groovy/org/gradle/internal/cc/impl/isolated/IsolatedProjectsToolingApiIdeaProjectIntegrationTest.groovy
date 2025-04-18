@@ -124,7 +124,7 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         settingsFile << """
             rootProject.name = "root"
         """
-        createProjectDirs("a")
+        setupProjectDirs("a")
 
         when:
         withIsolatedProjects()
