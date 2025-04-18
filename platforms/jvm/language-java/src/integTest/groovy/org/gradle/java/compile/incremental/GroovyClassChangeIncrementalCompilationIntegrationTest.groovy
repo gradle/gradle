@@ -18,6 +18,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import spock.lang.Issue
 
 class GroovyClassChangeIncrementalCompilationIntegrationTest extends AbstractClassChangeIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -29,5 +30,30 @@ class GroovyClassChangeIncrementalCompilationIntegrationTest extends AbstractCla
     void recompiledWithFailure(String expectedFailure, String... recompiledClasses) {
         succeeds language.compileTaskName
         outputs.recompiledClasses(recompiledClasses)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33161")
+    def "detects changes to class referenced in method body via lambda"() {
+        given:
+        source '''class A {
+            void doSomething() {
+                takeRunnable((B) () -> {
+                    System.out.println("Hello");
+                });
+            }
+
+            void takeRunnable(Runnable r) {
+                r.run();
+            }
+        }'''
+        source "interface B extends Runnable {}"
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/B.${languageName}").text = "class B { }"
+
+        then:
+        recompiledWithFailure('takeRunnable((B) () -> {', 'A', 'B', 'A$_doSomething_closure1')
     }
 }
