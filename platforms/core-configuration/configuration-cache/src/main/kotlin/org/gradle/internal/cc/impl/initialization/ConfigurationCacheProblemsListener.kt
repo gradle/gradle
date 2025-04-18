@@ -29,6 +29,7 @@ import org.gradle.execution.ExecutionAccessListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.Workarounds.canAccessConventions
 import org.gradle.internal.cc.impl.isSupportedListener
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsExternalProcess
@@ -53,7 +54,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val inputTrackingState: InputTrackingState
+    private val inputTrackingState: InputTrackingState,
+    private val userCodeApplicationContext: UserCodeApplicationContext
 ) : ConfigurationCacheProblemsListener {
 
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
@@ -95,7 +97,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Starting an external process '$command' during configuration time is unsupported.")
             .documentationSection(RequirementsExternalProcess)
             .build()
-        problems.onProblem(problem)
+        reportProblemForUserCode(problem.trace).onProblem(problem)
     }
 
     private
@@ -151,18 +153,23 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         else -> problems.forIncompatibleTask(locationForTask(task), task.reasonTaskIsIncompatibleWithConfigurationCache.get())
     }
 
+    private
+    fun reportProblemForUserCode(propertyTrace: PropertyTrace): ProblemsListener =
+        userCodeApplicationContext.current()?.source?.configurationCacheIncompatibilityReason?.let {
+            problems.forIncompatiblePlugin(propertyTrace, it)
+        } ?: problems
+
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource) || isSupportedListener(listener)) {
             return
         }
-        problems.onProblem(
-            listenerRegistrationProblem(
-                invocationDescription,
-                InvalidUserCodeException(
-                    "Listener registration '$invocationDescription' by $invocationSource is unsupported."
-                )
+        val problem = listenerRegistrationProblem(
+            invocationDescription,
+            InvalidUserCodeException(
+                "Listener registration '$invocationDescription' by $invocationSource is unsupported."
             )
         )
+        reportProblemForUserCode(problem.trace).onProblem(problem)
     }
 
     private
