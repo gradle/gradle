@@ -28,6 +28,7 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.caching.local.internal.TemporaryFileFactory
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter
@@ -64,6 +65,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     BuildCacheEntryPacker packer = Stub(BuildCacheEntryPacker)
     OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
     Interner<String> stringInterner = Stub(Interner)
+    ManagedExecutor managedExecutor = Stub(ManagedExecutor)
 
     def operations = new TestBuildOperationRunner()
     def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
@@ -89,7 +91,8 @@ class DefaultBuildCacheControllerTest extends Specification {
             disableRemoteOnError,
             packer,
             originMetadataFactory,
-            stringInterner
+            stringInterner,
+            managedExecutor
         )
     }
 
