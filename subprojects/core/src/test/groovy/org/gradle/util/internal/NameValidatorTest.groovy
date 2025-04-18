@@ -55,7 +55,7 @@ class NameValidatorTest extends Specification {
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
-        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, Mock(DependencyMetaDataProvider), StandaloneDomainObjectContext.ANONYMOUS, Mock(AttributesSchemaInternal), rootComponentMetaDataBuilderFactory, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory))],
+        ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, Mock(DependencyMetaDataProvider), StandaloneDomainObjectContext.ANONYMOUS, Mock(AttributesSchemaInternal), rootComponentMetaDataBuilderFactory, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory), TestUtil.problemsService())],
         ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.taskDependencyFactory(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]

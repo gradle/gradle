@@ -378,7 +378,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def "cannot maybeCreate invalid role (#role)"() {
         when:
-        configurationContainer.maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest("foo", role));
+        configurationContainer.maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest("foo", role, TestUtil.problemsService()));
 
         then:
         def e = thrown(GradleException)
