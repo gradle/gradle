@@ -17,23 +17,24 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 public class ProjectDerivedCapability implements CapabilityInternal {
-    private final Project project;
+
+    private final ProjectInternal project;
     private final String featureName;
 
     private volatile String capabilityName;
 
-    public ProjectDerivedCapability(Project project) {
+    public ProjectDerivedCapability(ProjectInternal project) {
         this(project, null);
     }
 
-    public ProjectDerivedCapability(Project project, @Nullable String featureName) {
+    public ProjectDerivedCapability(ProjectInternal project, @Nullable String featureName) {
         this.project = project;
         this.featureName = featureName;
     }
@@ -51,11 +52,12 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         return capabilityName;
     }
 
-    private static String computeCapabilityName(Project project, @Nullable String featureName) {
+    private static String computeCapabilityName(ProjectInternal project, @Nullable String featureName) {
+        String projectName = project.getOwner().getIdentity().getProjectName();
         if (featureName == null) {
-            return project.getName();
+            return projectName;
         }
-        return project.getName() + "-" + TextUtil.camelToKebabCase(featureName);
+        return projectName + "-" + TextUtil.camelToKebabCase(featureName);
     }
 
     @Override
