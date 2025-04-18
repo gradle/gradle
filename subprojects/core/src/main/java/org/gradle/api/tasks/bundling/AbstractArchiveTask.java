@@ -85,8 +85,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveFile = objectFactory.fileProperty();
         archiveFile.convention(archiveDestinationDirectory.file(archiveName));
 
-        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(true);
-        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(false);
+        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
+        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
     }
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
