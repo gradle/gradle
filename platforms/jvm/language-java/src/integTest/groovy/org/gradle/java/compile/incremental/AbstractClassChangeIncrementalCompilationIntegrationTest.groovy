@@ -16,6 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
+
 import spock.lang.Unroll
 
 abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
