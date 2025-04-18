@@ -66,21 +66,33 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['build', 'check']
     }
 
-    def "can define 'default' and 'archives' configurations prior to applying plugin"() {
+    def "can not define configuration #conf using #creationCall prior to applying plugin"() {
         buildFile << """
             configurations {
-                create("default")
-                archives
+                $creationCall
             }
             apply plugin: 'base'
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The configuration default was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name default. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration default to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Do not create a configuration with the name default. For more information, please refer to https://docs.gradle.org/current/userguide/authoring_maintainable_build_scripts.html#sec:dont_anticipate_configuration_creation in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("The configuration archives was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name archives. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration archives to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Do not create a configuration with the name archives. For more information, please refer to https://docs.gradle.org/current/userguide/authoring_maintainable_build_scripts.html#sec:dont_anticipate_configuration_creation in the Gradle documentation.")
-        succeeds "help"
+        when:
+        executer.expectDocumentedDeprecationWarning("The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name $conf. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        fails "help"
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failureHasCause("""Unexpected configuration usage
+  Configuration $conf already exists with permitted usage(s):
+  \tConsumable - this configuration can be selected by another project as a dependency
+  \tResolvable - this configuration can be resolved by this project to a set of files
+  \tDeclarable - this configuration can have dependencies added to it
+  Yet Gradle expected to create it with the usage(s):
+  \tConsumable - this configuration can be selected by another project as a dependency""")
+
+        where:
+        conf        | creationCall
+        "default"   | "create('default')"
+        "archives"  | "archives"
+        "archives"  | "create('archives')"
     }
 
     def "can override archiveBaseName in custom Jar task"() {

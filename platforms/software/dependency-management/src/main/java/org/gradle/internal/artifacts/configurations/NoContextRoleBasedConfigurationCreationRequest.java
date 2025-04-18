@@ -40,8 +40,6 @@ public final class NoContextRoleBasedConfigurationCreationRequest extends Abstra
     @Override
     protected String getUsageExpectationMessage() {
         String expectedUsageDesc = UsageDescriber.describeRole(getRole());
-        return String.format("Yet Gradle expected to create it with the usage(s):\n" +
-            "%s\n" +
-            "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, getConfigurationName());
+        return String.format("Yet Gradle expected to create it with the usage(s):\n%s", expectedUsageDesc);
     }
 }
