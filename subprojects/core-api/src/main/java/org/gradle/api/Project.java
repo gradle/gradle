@@ -53,9 +53,6 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -1075,52 +1072,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return {@link WorkResult} that can be used to check if delete did any work.
      */
     WorkResult delete(Action<? super DeleteSpec> action);
-
-    /**
-     * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
-
-    /**
-     * Executes an external Java process.
-     * <p>
-     * The given action configures a {@link org.gradle.process.JavaExecSpec}, which is used to launch the process.
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param action The action for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#javaexec(Action)} or {@link ProviderFactory#javaexec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult javaexec(Action<? super JavaExecSpec> action);
-
-    /**
-     * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
-
-    /**
-     * Executes an external command.
-     * <p>
-     * The given action configures a {@link org.gradle.process.ExecSpec}, which is used to launch the process.
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param action The action for configuring the execution.
-     * @return the result of the execution
-     * @deprecated Since 8.11. This method will be removed in Gradle 9.0. Use {@link org.gradle.process.ExecOperations#exec(Action)} or {@link ProviderFactory#exec(Action)} instead.
-     */
-    @Deprecated
-    ExecResult exec(Action<? super ExecSpec> action);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>

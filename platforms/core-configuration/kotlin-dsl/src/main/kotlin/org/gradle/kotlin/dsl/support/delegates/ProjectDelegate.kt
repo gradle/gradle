@@ -57,9 +57,6 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.normalization.InputNormalizationHandler
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
-import org.gradle.process.JavaExecSpec
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Callable
@@ -204,16 +201,6 @@ abstract class ProjectDelegate : Project {
 
     override fun <T : Any> configure(objects: Iterable<T>, configureAction: Action<in T>): Iterable<T> =
         delegate.configure(objects, configureAction)
-
-    @Deprecated("Deprecated in Java")
-    override fun exec(closure: Closure<*>): ExecResult =
-        @Suppress("DEPRECATION")
-        delegate.exec(closure)
-
-    @Deprecated("Deprecated in Java")
-    override fun exec(action: Action<in ExecSpec>): ExecResult =
-        @Suppress("DEPRECATION")
-        delegate.exec(action)
 
     override fun sync(action: Action<in SyncSpec>): WorkResult =
         delegate.sync(action)
@@ -391,16 +378,6 @@ abstract class ProjectDelegate : Project {
 
     override fun evaluationDependsOn(path: String): Project =
         delegate.evaluationDependsOn(path)
-
-    @Deprecated("Deprecated in Java")
-    override fun javaexec(closure: Closure<*>): ExecResult =
-        @Suppress("DEPRECATION")
-        delegate.javaexec(closure)
-
-    @Deprecated("Deprecated in Java")
-    override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
-        @Suppress("DEPRECATION")
-        delegate.javaexec(action)
 
     @AllowUsingApiForExternalUse
     override fun getChildProjects(): MutableMap<String, Project> =

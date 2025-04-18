@@ -64,9 +64,6 @@ abstract class KotlinSettingsScript(
     override val fileOperations
         get() = host.fileOperations
 
-    override val processOperations
-        get() = host.processOperations
-
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)
 
