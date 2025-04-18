@@ -286,7 +286,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
             sourceSet,
             Collections.emptySet(),
             project,
-            false,
             false
         );
 

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dependencies
 
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.file.FileCollectionInternal
 import spock.lang.Specification
@@ -40,21 +38,6 @@ class DefaultFileCollectionDependencyTest extends Specification {
         then:
         copy.targetComponentId == targetComponent
         copy.files == source
-        copy.contentEquals(dependency)
-        dependency.contentEquals(copy)
-    }
-
-    def contentsAreEqualWhenFileSetsAreEqual() {
-        given:
-        FileCollectionDependency equalDependency = new DefaultFileCollectionDependency(source)
-        FileCollectionDependency differentSource = new DefaultFileCollectionDependency(Mock(FileCollectionInternal))
-        Dependency differentType = Mock(Dependency.class)
-
-        expect:
-        dependency.contentEquals(dependency)
-        dependency.contentEquals(equalDependency)
-        !dependency.contentEquals(differentSource)
-        !dependency.contentEquals(differentType)
     }
 
 }

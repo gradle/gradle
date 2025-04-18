@@ -26,79 +26,80 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
- * All methods in this interface produce <strong>unlocked</strong> configurations, meaning they
- * are allowed to change roles. Starting in Gradle 9.0, all Gradle-created configurations will be locked.
- *
- * <p>The methods on this interface are meant to be transitional, and as such all usages of this interface
- * should be migrated to the public API starting in Gradle 9.0.<p>
- *
+ * <p>
+ * All methods in this interface produce <strong>locked</strong> configurations, meaning they
+ * are <strong>not</strong> allowed to change roles. All Gradle-created configurations will be locked.
+ * <p>
+ * The methods on this interface are meant to be transitional, and as such all usages of this interface
+ * should be migrated to the public API starting in Gradle 9.0.
+ * <p>
  * <strong>New configurations should leverage the role-based factory methods on {@link ConfigurationContainer}.</strong>
  */
 @ServiceScope(Scope.Project.class)
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer, DomainObjectCollectionInternal<Configuration> {
 
     /**
-     * Creates a consumable configuration which can change roles.
+     * Creates a consumable configuration which can <strong>NOT</strong> change roles.
      */
-    Configuration consumableUnlocked(String name);
+    Configuration consumableLocked(String name);
 
     /**
-     * Creates a consumable configuration which can change roles and executes the provided
+     * Creates a consumable configuration which can <strong>NOT</strong> change roles and executes the provided
      * {@code action} against the configuration.
      */
-    Configuration consumableUnlocked(String name, Action<? super Configuration> action);
+    Configuration consumableLocked(String name, Action<? super Configuration> action);
 
     /**
-     * Creates a resolvable configuration which can change roles.
+     * Creates a resolvable configuration which can <strong>NOT</strong> change roles.
      */
-    Configuration resolvableUnlocked(String name);
+    Configuration resolvableLocked(String name);
 
     /**
-     * Creates a resolvable configuration which can change roles and executes the provided
+     * Creates a resolvable configuration which can <strong>NOT</strong> change roles and executes the provided
      * {@code action} against the configuration.
      */
-    Configuration resolvableUnlocked(String name, Action<? super Configuration> action);
+    Configuration resolvableLocked(String name, Action<? super Configuration> action);
 
     /**
-     * Creates a dependency scope configuration which can change roles.
+     * Creates a dependency scope configuration which can <strong>NOT</strong> change roles.
      */
-    Configuration dependencyScopeUnlocked(String name);
+    Configuration dependencyScopeLocked(String name);
 
     /**
-     * Creates a dependency scope configuration which can change role and executes the provided
+     * Creates a dependency scope configuration which can <strong>NOT</strong> change roles and executes the provided
      * {@code action} against the configuration.
      */
-    Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action);
+    Configuration dependencyScopeLocked(String name, Action<? super Configuration> action);
 
     /**
-     * Creates a new configuration, which can change roles, with initial role {@code role}.
+     * Creates a new configuration, which can <strong>NOT</strong> change roles, with initial role {@code role}.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    Configuration migratingUnlocked(String name, ConfigurationRole role);
+    Configuration migratingLocked(String name, ConfigurationRole role);
 
     /**
-     * Creates a new configuration, which can change roles, with initial role {@code role},
+     * Creates a new configuration, which can <strong>NOT</strong> change roles, with initial role {@code role},
      * and executes the provided {@code action} against the configuration.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
+    Configuration migratingLocked(String name, ConfigurationRole role, Action<? super Configuration> action);
 
     /**
-     * Creates a resolvable + dependency scope configuration which can change roles.
+     * Creates a resolvable + dependency scope configuration which can <strong>NOT</strong> change roles.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    Configuration resolvableDependencyScopeUnlocked(String name);
+    Configuration resolvableDependencyScopeLocked(String name);
 
     /**
-     * Creates a resolvable + dependency scope configuration which can change roles and executes the provided
+     * Creates a resolvable + dependency scope configuration which can <strong>NOT</strong> change roles and executes the provided
      * {@code action} against the configuration.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
@@ -106,7 +107,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
+    Configuration resolvableDependencyScopeLocked(String name, Action<? super Configuration> action);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -115,7 +116,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
      * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
-    Configuration maybeCreateResolvableUnlocked(String name);
+    Configuration maybeCreateResolvableLocked(String name);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -124,7 +125,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
      * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
-    Configuration maybeCreateConsumableUnlocked(String name);
+    Configuration maybeCreateConsumableLocked(String name);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -133,7 +134,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
      * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
      */
-    Configuration maybeCreateDependencyScopeUnlocked(String name);
+    Configuration maybeCreateDependencyScopeLocked(String name);
 
     /**
      * If a configuration with the given name already exists,return it.
@@ -146,7 +147,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * would be set if the configuration needed to be created and emit an additional deprecation warning when doing this
      * <strong>IFF</strong> {@code verifyPrexisting} is set to {@code true}.
      */
-    Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting);
+    Configuration maybeCreateDependencyScopeLocked(String name, boolean verifyPrexisting);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -158,7 +159,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role);
+    Configuration maybeCreateMigratingLocked(String name, ConfigurationRole role);
 
     /**
      * If a configuration with the given name already exists, return it.
@@ -173,7 +174,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    Configuration maybeCreateResolvableDependencyScopeUnlocked(String name);
+    Configuration maybeCreateResolvableDependencyScopeLocked(String name);
 
     /**
      * If a configuration with the given name already exists, verify its usage matches the expected role and return it.
@@ -183,5 +184,5 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * @return the configuration that was created or already existed
      * @throws GradleException if the request cannot be fulfilled
      */
-    Configuration maybeCreate(RoleBasedConfigurationCreationRequest request);
+    Configuration maybeCreateLocked(RoleBasedConfigurationCreationRequest request);
 }

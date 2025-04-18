@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
 
@@ -129,14 +130,6 @@ public class StartParameterInternal extends StartParameter {
     }
 
     /**
-     * Used by the Kotlin plugin, via reflection.
-     */
-    @Deprecated
-    public boolean isConfigurationCache() {
-        return getConfigurationCache().get();
-    }
-
-    /**
      * Is the configuration cache requested? Note: depending on the build action, this may not be the final value for this option.
      *
      * Consider querying {@link BuildModelParameters} instead.
@@ -156,6 +149,7 @@ public class StartParameterInternal extends StartParameter {
     @SuppressWarnings("deprecation")
     @Override
     public boolean isConfigurationCacheRequested() {
+        StartParameterDeprecations.nagOnIsConfigurationCacheRequested();
         return configurationCache.get();
     }
 

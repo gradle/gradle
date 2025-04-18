@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.InstallationLocation
-import org.gradle.process.internal.ExecException
+import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -56,7 +56,7 @@ class DefaultJvmVersionDetectorTest extends Specification {
         detector.getJavaVersionMajor("unknown")
 
         then:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.message.contains("A problem occurred starting process 'command 'unknown''")
     }
 

@@ -58,7 +58,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         reason = "newer Kotlin version always leaks on the classpath when running embedded"
     )
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
+    fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin`() {
 
         KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 

@@ -49,6 +49,6 @@ tasks.register<SimpleTranslationTask>("translateBad") {
 
 // tag::do-this[]
 tasks.register<SimpleTranslationTask>("translateGood") {
-    inputs.file(tasks.named<SimplePrintingTask>("helloWorld").get().messageFile) // <1>
+    inputs.file(tasks.named<SimplePrintingTask>("helloWorld").map { messageFile }) // <1>
 }
 // end::do-this[]

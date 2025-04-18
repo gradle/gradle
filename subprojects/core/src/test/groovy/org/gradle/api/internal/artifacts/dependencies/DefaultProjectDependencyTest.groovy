@@ -56,7 +56,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         def d2 = createProjectDependency()
 
         expect:
-        d1.contentEquals(d2)
+        d1 == d2
     }
 
     void "knows when content is not equal"() {
@@ -65,7 +65,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         d2.setTransitive(false)
 
         expect:
-        !d1.contentEquals(d2)
+        d1 != d2
     }
 
     void "can copy"() {
