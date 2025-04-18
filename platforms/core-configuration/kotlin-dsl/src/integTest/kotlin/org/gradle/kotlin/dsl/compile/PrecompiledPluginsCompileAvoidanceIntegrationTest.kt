@@ -16,13 +16,17 @@
 
 package org.gradle.kotlin.dsl.compile
 
+import org.junit.Ignore
 import org.junit.Test
 
 
 class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceIntegrationTest() {
 
     @Test
+    @Ignore("https://youtrack.jetbrains.com/issue/KT-62556/Wrong-ABI-fingerprint-for-public-function-delegating-to-private-function-with-lambda-parameter?s=Wrong-ABI-fingerprint-for-public-function-delegating-to-private-function-with-lambda-parameter")
     fun `avoids buildscript recompilation when task is configured in precompiled script plugin`() {
+        // TODO: consult ignore reason issue, adapt our expectectation
+
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
             pluginId,

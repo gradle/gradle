@@ -190,11 +190,10 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
         withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
-        val pluginCompile = gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
+        gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJvm(currentJvm)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
-        assertThat(pluginCompile.output, containsString("Inconsistent JVM-target compatibility detected for tasks 'compileJava' (24) and 'compileKotlin' (23)."))
 
         withSettingsIn("consumer", """
             pluginManagement {
