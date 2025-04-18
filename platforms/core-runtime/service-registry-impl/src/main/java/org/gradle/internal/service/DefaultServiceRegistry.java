@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -74,10 +72,10 @@ import static org.gradle.util.internal.CollectionUtils.join;
  *
  * </ul>
  *
- * <p>Service instances are created on demand. {@link #getFactory(Class)} looks for a service instance which implements {@code Factory<T>} where {@code T} is the expected type.</p>
- *
- * <p>Service instances and factories are closed when the registry that created them is closed using {@link #close()}. If a service instance or factory implements {@link java.io.Closeable} or {@link
- * org.gradle.internal.concurrent.Stoppable} then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called. Instances are closed in reverse dependency order.</p>
+ * <p>Service instances are closed when the registry that created them is closed using {@link #close()}.
+ * If a service instance implements {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable}
+ * then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called.
+ * Instances are closed in reverse dependency order.
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  *
@@ -363,23 +361,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     @Override
-    public <T> Factory<T> getFactory(Class<T> type) {
-        assertValidServiceType(type);
-        Service provider = getFactoryService(type);
-        Factory<T> factory = provider == null ? null : Cast.<Factory<T>>uncheckedCast(provider.get());
-        if (factory == null) {
-            throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), getDisplayName()));
-        }
-        return factory;
-    }
-
-    @Nullable
-    private Service getFactoryService(Class<?> serviceType) {
-        serviceRequested();
-        return allServices.getFactory(serviceType, null);
-    }
-
-    @Override
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
         assertValidServiceType(serviceType);
         List<T> services = new ArrayList<T>();
@@ -421,11 +402,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    @Override
-    public <T> T newInstance(Class<T> type) {
-        return getFactory(type).create();
-    }
-
     private class OwnServices implements ServiceProvider {
         private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
         private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
@@ -434,44 +410,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         public OwnServices() {
             providersByType.put(ServiceRegistry.class, Collections.<ServiceProvider>singletonList(new ThisAsService(ServiceAccess.getPublicScope())));
-        }
-
-        @Override
-        public Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
-            List<ServiceProvider> serviceProviders = getProviders(Factory.class);
-            if (serviceProviders.isEmpty()) {
-                return null;
-            }
-            if (serviceProviders.size() == 1) {
-                return serviceProviders.get(0).getFactory(type, token);
-            }
-
-            List<Service> services = new ArrayList<Service>(serviceProviders.size());
-            for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getFactory(type, token);
-                if (service != null) {
-                    services.add(service);
-                }
-            }
-
-            if (services.isEmpty()) {
-                return null;
-            }
-            if (services.size() == 1) {
-                return services.get(0);
-            }
-
-            Set<String> descriptions = new TreeSet<String>();
-            for (Service candidate : services) {
-                descriptions.add(candidate.getDisplayName());
-            }
-
-            Formatter formatter = new Formatter();
-            formatter.format("Multiple factories for objects of type %s available in %s:", format(type), getDisplayName());
-            for (String description : descriptions) {
-                formatter.format("%n   - %s", description);
-            }
-            throw new ServiceLookupException(formatter.toString());
         }
 
         @Override
@@ -729,11 +667,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         BindState state = BindState.UNBOUND;
 
-        // Singleton service is implemented by a single instance and must extend/implement all declared service types.
-        // But it can only implement a single `Factory<? extends ElementType>` due to Java type constraints.
-        // The value of the field is computed lazily.
-        Class<?> factoryElementType;
-
         SingletonService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, List<? extends Type> serviceTypes) {
             super(owner);
 
@@ -825,71 +758,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
             return visitor;
         }
-
-        @Override
-        public Service getFactory(Class<?> elementType, @Nullable ServiceAccessToken token) {
-            if (!accessScope.contains(token)) {
-                return null;
-            }
-            if (!isFactoryFor(elementType)) {
-                return null;
-            }
-            return prepare();
-        }
-
-        // Finds the first element type of `Factory<? extends ElementType>` in the type hierarchy
-        @Nullable
-        private static Class<?> findFactoryElementType(Type type) {
-            Class<?> c = unwrap(type);
-            if (!Factory.class.isAssignableFrom(c)) {
-                return null;
-            }
-
-            if (type instanceof ParameterizedType) {
-                // Check if type is Factory<? extends ElementType>
-                ParameterizedType parameterizedType = (ParameterizedType) type;
-                if (parameterizedType.getRawType().equals(Factory.class)) {
-                    Type actualType = parameterizedType.getActualTypeArguments()[0];
-                    if (actualType instanceof Class) {
-                        return (Class<?>) actualType;
-                    }
-                }
-            }
-
-            // Check if type extends Factory<? extends ElementType>
-            for (Type interfaceType : c.getGenericInterfaces()) {
-                Class<?> parentFactoryElementType = findFactoryElementType(interfaceType);
-                if (parentFactoryElementType != null) {
-                    return parentFactoryElementType;
-                }
-            }
-
-            return null;
-        }
-
-        @Nullable
-        private static Class<?> findFactoryElementType(List<? extends Type> factoryCandidates) {
-            for (Type factoryCandidate : factoryCandidates) {
-                Class<?> factoryElementType = findFactoryElementType(factoryCandidate);
-                if (factoryElementType != null) {
-                    return factoryElementType;
-                }
-            }
-
-            return null;
-        }
-
-        private boolean isFactoryFor(Class<?> elementType) {
-            // This method can be called concurrently, but in the worst case we repeat the computation
-            if (factoryElementType == null) {
-                Class<?> foundFactoryElementType = findFactoryElementType(serviceTypes);
-                factoryElementType = foundFactoryElementType == null ? NonFactoryMarker.class : foundFactoryElementType;
-            }
-
-            return !factoryElementType.equals(NonFactoryMarker.class) && elementType.isAssignableFrom(factoryElementType);
-        }
-
-        private interface NonFactoryMarker {}
     }
 
     private static abstract class FactoryService extends SingletonService {
@@ -1206,17 +1074,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
-            for (ServiceProvider serviceProvider : serviceProviders) {
-                Service factory = serviceProvider.getFactory(type, token);
-                if (factory != null) {
-                    return factory;
-                }
-            }
-            return null;
-        }
-
-        @Override
         public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
             for (ServiceProvider serviceProvider : serviceProviders) {
                 visitor = serviceProvider.getAll(serviceType, token, visitor);
@@ -1250,11 +1107,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getFactory(Class<?> serviceType, @Nullable ServiceAccessToken token) {
-            return parent.getFactory(serviceType, token);
-        }
-
-        @Override
         public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             return parent.getService(serviceType, token);
         }
@@ -1279,10 +1131,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         if (serviceType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) serviceType;
             Type rawType = parameterizedType.getRawType();
-            if (rawType.equals(Factory.class)) {
-                final Type typeArg = parameterizedType.getActualTypeArguments()[0];
-                return getFactoryService(typeArg, token, serviceProvider);
-            }
             if (rawType instanceof Class) {
                 if (((Class<?>) rawType).isAssignableFrom(List.class)) {
                     Type typeArg = parameterizedType.getActualTypeArguments()[0];
@@ -1298,27 +1146,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(serviceType)));
-    }
-
-    @Nullable
-    private static Service getFactoryService(Type type, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
-        if (type instanceof Class) {
-            return serviceProvider.getFactory((Class) type, token);
-        }
-        if (type instanceof WildcardType) {
-            final WildcardType wildcardType = (WildcardType) type;
-            if (wildcardType.getLowerBounds().length == 1 && wildcardType.getUpperBounds().length == 1) {
-                if (wildcardType.getLowerBounds()[0] instanceof Class && wildcardType.getUpperBounds()[0].equals(Object.class)) {
-                    return serviceProvider.getFactory((Class<?>) wildcardType.getLowerBounds()[0], token);
-                }
-            }
-            if (wildcardType.getLowerBounds().length == 0 && wildcardType.getUpperBounds().length == 1) {
-                if (wildcardType.getUpperBounds()[0] instanceof Class) {
-                    return serviceProvider.getFactory((Class<?>) wildcardType.getUpperBounds()[0], token);
-                }
-            }
-        }
-        throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(type)));
     }
 
     private static Service getCollectionService(Type elementType, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
@@ -1501,12 +1328,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             if (serviceType.equals(ServiceRegistry.class)) {
                 return this;
             }
-            return null;
-        }
-
-        @Override
-        public Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
-            // Note: if any implementation is added, it must check the [accessScope] first
             return null;
         }
 

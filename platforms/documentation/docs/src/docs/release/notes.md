@@ -14,6 +14,8 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
+Gradle 9.0 has many bug fixes and other general improvements. As a major version, this release also has changes to deprecated APIs and behavior. Consult the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html) for guidance on removed APIs and behavior.
+
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -39,53 +41,31 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+### Kotlin 2 TO DO
 
-<!--
+### Groovy 4 TO DO
 
-================== TEMPLATE ==============================
+<a name="config-cache"></a>
+### Configuration Cache improvements
 
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
+Gradle's [Configuration Cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase.
+Gradle uses the Configuration Cache to reload a saved configuration when nothing that affects the build configuration has changed.
 
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
+#### CC TO DO
 
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
+Check out the link:https://blog.gradle.org/road-to-configuration-cache[blog post] to learn more.
 
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
-For Wistia, contact Gradle's Video Team.
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-@wistia(Summary,a5izazvgit)@
+<a name="build-authoring"></a>
+### Build authoring improvements
 
-================== END TEMPLATE ==========================
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
-=== Gradle API now uses JSpecify Nullability Annotations
+#### Gradle API now uses JSpecify Nullability Annotations
 
 Since Gradle 5.0 we've been using annotations from the dormant and unfinished JSR-305 to make the nullness of type usages explicit for the Gradle API.
 Starting with Gradle 9.0, the Gradle API is annotated using JSpecify instead.
 
 For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html).
-
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
 
 ## Promoted features
 
@@ -93,6 +73,8 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+### Problems API TO DO
 
 <!--
 ### Example promoted

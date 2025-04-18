@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -163,7 +162,7 @@ public abstract class SigningExtension {
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration
-            : configurations.migratingUnlocked(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE);
+            : configurations.consumableLocked(DEFAULT_CONFIGURATION_NAME);
     }
 
     /**

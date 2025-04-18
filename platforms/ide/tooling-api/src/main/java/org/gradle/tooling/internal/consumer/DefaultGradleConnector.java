@@ -179,8 +179,4 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
             return connection;
         }
     }
-
-    ConnectionFactory getConnectionFactory() {
-        return connectionFactory;
-    }
 }

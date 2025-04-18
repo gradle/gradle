@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -55,6 +55,14 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
                 kotlin("jvm") version "1.9.21"
             }
             """
+        )
+
+        executer.expectDocumentedDeprecationWarning(
+            "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10.0. " +
+                "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
         )
 
         val result = build("buildEnvironment")

@@ -63,7 +63,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
-        1 * configurationContainer.resolvableDependencyScopeUnlocked('classpath') >> configuration
+        1 * configurationContainer.resolvableDependencyScopeLocked('classpath') >> configuration
         1 * configurationContainer.beforeCollectionChanges(_)
         1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         0 * configurationContainer._
@@ -79,7 +79,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
-        1 * configurationContainer.resolvableDependencyScopeUnlocked('classpath') >> configuration
+        1 * configurationContainer.resolvableDependencyScopeLocked('classpath') >> configuration
         1 * configurationContainer.beforeCollectionChanges(_)
         1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         0 * configurationContainer._
@@ -112,7 +112,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
-        1 * configurationContainer.resolvableDependencyScopeUnlocked('classpath') >> configuration
+        1 * configurationContainer.resolvableDependencyScopeLocked('classpath') >> configuration
         1 * configuration.callAndResetResolutionState(_) >> { args -> args[0].create() }
         1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         1 * buildLogicBuilder.resolveClassPath(configuration, resolutionContext) >> classpath
@@ -150,7 +150,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * buildLogicBuilder.prepareDependencyHandler(dependencyHandler) >> resolutionContext
-        1 * configurationContainer.resolvableDependencyScopeUnlocked('classpath') >> configuration
+        1 * configurationContainer.resolvableDependencyScopeLocked('classpath') >> configuration
         1 * buildLogicBuilder.prepareClassPath(configuration, resolutionContext)
         1 * dependencyHandler.add('config', 'dep')
     }

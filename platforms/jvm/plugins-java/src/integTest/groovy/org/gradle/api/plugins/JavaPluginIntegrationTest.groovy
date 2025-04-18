@@ -553,45 +553,43 @@ Artifacts
         result.assertTasksExecuted(":compileJava", ":bar")
     }
 
-    def "changing the role of jvm configurations emits deprecation warnings"() {
+    def "changing the role of jvm configurations fails (#configuration - #method(true))"() {
         buildFile << """
             plugins {
                 id("java-library")
             }
 
             configurations {
-                [apiElements, runtimeElements].each {
-                    it.canBeResolved = true
-                    it.canBeDeclared = true
-                }
-
-                [implementation, runtimeOnly, compileOnly, api, compileOnlyApi].each {
-                    it.canBeConsumed = true
-                    it.canBeResolved = true
-                }
-
-                [runtimeClasspath, compileClasspath].each {
-                    it.canBeDeclared = true
-                    it.canBeConsumed = true
-                }
+                $configuration.$method(true)
             }
         """
 
-        expect:
-        [":apiElements", ":runtimeElements"].each {
-            expectResolvableChanging(it, true)
-            expectDeclarableChanging(it, true)
-        }
-        [":implementation", ":runtimeOnly", ":compileOnly", ":api", ":compileOnlyApi"].each {
-            expectConsumableChanging(it, true)
-            expectResolvableChanging(it, true)
-        }
-        [":runtimeClasspath", ":compileClasspath"].each {
-            expectDeclarableChanging(it, true)
-            expectConsumableChanging(it, true)
-        }
+        when:
+        fails("help")
 
-        succeeds("help")
+        then:
+        assertUsageLockedFailure(configuration, role)
+
+        where:
+        configuration       | method                | role
+        "apiElements"       | "setCanBeResolved"    | "Consumable"
+        "apiElements"       | "setCanBeDeclared"    | "Consumable"
+        "runtimeElements"   | "setCanBeResolved"    | "Consumable"
+        "runtimeElements"   | "setCanBeDeclared"    | "Consumable"
+        "implementation"    | "setCanBeResolved"    | "Dependency Scope"
+        "implementation"    | "setCanBeConsumed"    | "Dependency Scope"
+        "runtimeOnly"       | "setCanBeResolved"    | "Dependency Scope"
+        "runtimeOnly"       | "setCanBeConsumed"    | "Dependency Scope"
+        "compileOnly"       | "setCanBeResolved"    | "Dependency Scope"
+        "compileOnly"       | "setCanBeConsumed"    | "Dependency Scope"
+        "api"               | "setCanBeResolved"    | "Dependency Scope"
+        "api"               | "setCanBeConsumed"    | "Dependency Scope"
+        "compileOnlyApi"    | "setCanBeResolved"    | "Dependency Scope"
+        "compileOnlyApi"    | "setCanBeConsumed"    | "Dependency Scope"
+        "runtimeClasspath"  | "setCanBeConsumed"    | "Resolvable"
+        "runtimeClasspath"  | "setCanBeDeclared"    | "Resolvable"
+        "compileClasspath"  | "setCanBeConsumed"    | "Resolvable"
+        "compileClasspath"  | "setCanBeDeclared"    | "Resolvable"
     }
 
     def "registerFeature features are added to java component"() {
