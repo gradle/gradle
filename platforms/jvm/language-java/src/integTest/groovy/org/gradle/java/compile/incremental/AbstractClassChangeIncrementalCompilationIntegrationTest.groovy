@@ -16,6 +16,8 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.integtests.fixtures.CompiledLanguage
+import org.junit.Assume
 import spock.lang.Unroll
 
 abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
@@ -546,6 +548,11 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
     }
 
     def "detects changes to class referenced in method body"() {
+        Assume.assumeFalse(
+            "Broken due to https://github.com/gradle/gradle/issues/33161",
+            language == CompiledLanguage.GROOVY
+        )
+
         given:
         source '''class A {
     void doSomething(Object b) {

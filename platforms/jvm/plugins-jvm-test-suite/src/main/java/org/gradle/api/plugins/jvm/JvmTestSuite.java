@@ -123,7 +123,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
      * <p>
-     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.2-groovy-3.0}
+     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.3-groovy-4.0}
      * </p>
      */
     void useSpock();

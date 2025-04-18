@@ -16,13 +16,12 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByCurrentJdk })
@@ -47,12 +46,9 @@ class CodeNarcNonJvmIntegrationTest extends MultiVersionIntegrationSpec implemen
                 source "test.groovy"
             }
 
-            ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
-                """
-                    configurations.codenarc {
-                        resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovyCoverage.MINIMAL_GROOVY_3}' // force latest Groovy 3 when using Java 14+.  Do not use GroovySystem#version as Groovy 4 needs different coordinates
-                    }
-                """ : ""}
+            configurations.codenarc {
+                resolutionStrategy.force 'org.apache.groovy:groovy:${GroovySystem.version}'
+            }
         """
         writeRuleFile()
         file('test.groovy').createFile()

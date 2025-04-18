@@ -162,7 +162,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             testing {
                 suites {
                     test {
-                        useSpock("2.2-groovy-3.0")
+                        useSpock("2.3-groovy-4.0")
                     }
                 }
             }

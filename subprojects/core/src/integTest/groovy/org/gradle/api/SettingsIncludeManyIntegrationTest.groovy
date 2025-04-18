@@ -37,25 +37,6 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         }) as String[])
     }
 
-    @Requires(UnitTestPreconditions.IsGroovy3)
-    def "including over 250 projects is not possible via varargs in Groovy 3"() {
-        createProjectDirectories(254, includeFunction)
-        // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
-        // 254 projects must be used instead.
-        settingsFile << """
-            rootProject.name = 'root'
-            $includeFunction ${projectNames.take(254).collect { "\"$it\"" }.join(", ")}
-        """
-
-        expect:
-        def result = fails("projects")
-        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
-
-        where:
-        includeFunction << ["include", "includeFlat"]
-    }
-
     @Requires(UnitTestPreconditions.IsGroovy4)
     def "including over 250 projects is not possible via varargs in Groovy 4"() {
         createProjectDirectories(254, includeFunction)
@@ -71,26 +52,6 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
         // In Java 8 "call site" is used, in Java 11 "bootstrap method"
         failureHasCause(~/(call site|bootstrap method) initialization exception/)
-
-        where:
-        includeFunction << ["include", "includeFlat"]
-    }
-
-    @Requires(UnitTestPreconditions.IsGroovy3)
-    def "including large amounts of projects is not possible via varargs in Groovy 3"() {
-        createProjectDirectories(projectNames.size(), includeFunction)
-        settingsFile << """
-            rootProject.name = 'root'
-            $includeFunction $projectNamesCommaSeparated
-        """
-
-        // The failure here emits a stacktrace because it's at compilation time
-        executer.withStackTraceChecksDisabled()
-
-        expect:
-        def result = fails("projects")
-        result.assertThatDescription(containsNormalizedString("Could not compile settings file"))
-        failureCauseContains("The max number of supported arguments is 255, but found 301")
 
         where:
         includeFunction << ["include", "includeFlat"]

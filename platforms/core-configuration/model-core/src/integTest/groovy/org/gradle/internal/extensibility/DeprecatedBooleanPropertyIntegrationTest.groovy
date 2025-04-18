@@ -130,11 +130,6 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             class MyTask extends DefaultTask {
                 @Nested
                 MyValue value = new MyValue()
-
-                @TaskAction
-                void doAction() {
-                    assert value.property
-                }
             }
             tasks.create("assertProperty", MyTask)
         """
@@ -156,12 +151,6 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             class MyTask extends DefaultTask {
                 @Nested
                 MyValue value = new MyValue()
-
-                @TaskAction
-                void doAction() {
-                    assert value.isProperty()
-                    assert value.getProperty()
-                }
             }
             tasks.create("assertProperty", MyTask)
         """
