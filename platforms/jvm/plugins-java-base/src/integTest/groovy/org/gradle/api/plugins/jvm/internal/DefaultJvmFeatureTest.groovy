@@ -154,8 +154,7 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
             name,
             sourceSet,
             Collections.emptySet(),
-            project
-            ,
+            project,
             false
         )
     }
