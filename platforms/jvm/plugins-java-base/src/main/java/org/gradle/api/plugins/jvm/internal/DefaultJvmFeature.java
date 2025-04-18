@@ -116,10 +116,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         SourceSet sourceSet,
         Set<Capability> capabilities,
         ProjectInternal project,
-        // The elements configurations' roles should always be consumable only, but
-        // some users of this class are still migrating towards that. In 9.0, we can remove this
-        // parameter and hard-code the elements configurations' roles to consumable only.
-        boolean useMigrationRoleForElementsConfigurations,
         boolean extendProductionCode
     ) {
         this.name = name;
@@ -153,8 +149,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
-        this.apiElements = createApiElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
-        this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, useMigrationRoleForElementsConfigurations);
+        this.apiElements = createApiElements(configurations, jarArtifact, compileJava);
+        this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava);
 
         if (extendProductionCode) {
             doExtendProductionCode();
@@ -220,11 +216,10 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private Configuration createApiElements(
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
-        TaskProvider<JavaCompile> compileJava,
-        boolean useMigrationRoleForElementsConfigurations
+        TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration apiElements = maybeCreateElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations);
+        Configuration apiElements = configurations.maybeCreateConsumableLocked(configName);
 
         apiElements.setVisible(false);
         jvmLanguageUtilities.useDefaultTargetPlatformInference(apiElements, compileJava);
@@ -241,11 +236,10 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private Configuration createRuntimeElements(
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
-        TaskProvider<JavaCompile> compileJava,
-        boolean useMigrationRoleForElementsConfigurations
+        TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeElements = maybeCreateElementsConfiguration(configName, configurations, useMigrationRoleForElementsConfigurations);
+        Configuration runtimeElements = configurations.maybeCreateConsumableLocked(configName);
 
         runtimeElements.setVisible(false);
         jvmLanguageUtilities.useDefaultTargetPlatformInference(runtimeElements, compileJava);
@@ -261,18 +255,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
 
         return runtimeElements;
-    }
-
-    private static Configuration maybeCreateElementsConfiguration(
-        String name,
-        RoleBasedConfigurationContainerInternal configurations,
-        boolean useMigrationRoleForElementsConfigurations
-    ) {
-        if (useMigrationRoleForElementsConfigurations) {
-            return configurations.maybeCreateConsumableLocked(name);
-        } else {
-            return configurations.maybeCreateConsumableLocked(name);
-        }
     }
 
     @Override
