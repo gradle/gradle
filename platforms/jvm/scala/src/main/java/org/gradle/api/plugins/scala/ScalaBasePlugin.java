@@ -39,8 +39,8 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultScalaSourceDirectorySet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
@@ -59,7 +59,6 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -310,17 +309,12 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    /**
-     * In 9.0, once {@link org.gradle.api.internal.tasks.DefaultScalaSourceSet} is removed, we can update this to only construct the source directory
-     * set instead of the entire source set.
-     */
     @SuppressWarnings("deprecation")
     private ScalaSourceDirectorySet createScalaSourceDirectorySet(SourceSet sourceSet) {
-        org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = objectFactory.newInstance(org.gradle.api.internal.tasks.DefaultScalaSourceSet.class, ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-        DeprecationLogger.whileDisabled(() ->
-            new DslObject(sourceSet).getConvention().getPlugins().put("scala", scalaSourceSet)
-        );
-        return scalaSourceSet.getScala();
+        String displayName = ((DefaultSourceSet) sourceSet).getDisplayName() + " Scala source";
+        ScalaSourceDirectorySet scalaSourceDirectorySet = objectFactory.newInstance(DefaultScalaSourceDirectorySet.class, objectFactory.sourceDirectorySet("scala", displayName));
+        scalaSourceDirectorySet.getFilter().include("**/*.java", "**/*.scala");
+        return scalaSourceDirectorySet;
     }
 
     private static FileCollection createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
