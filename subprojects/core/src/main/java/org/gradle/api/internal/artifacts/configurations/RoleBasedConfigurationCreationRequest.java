@@ -49,7 +49,9 @@ public interface RoleBasedConfigurationCreationRequest {
     /**
      * Issues a deprecation warning about the creation of a configuration with a reserved name.
      */
-    default void warnAboutReservedName() {
+    default RuntimeException failOnReservedName() {
+
+
         DeprecationLogger.deprecateBehaviour("The configuration " + getConfigurationName() + " was created explicitly. This configuration name is reserved for creation by Gradle.")
             .withAdvice(getDefaultReservedNameAdvice(getConfigurationName()))
             .willBeRemovedInGradle9()
