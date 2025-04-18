@@ -20,7 +20,6 @@ import org.gradle.api.cache.Cleanup
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.cache.DefaultCacheConfigurations
-import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.time.FixedClock
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -31,25 +30,10 @@ import java.util.concurrent.TimeUnit
 
 class DirectoryBuildCacheEntryRetentionTest extends Specification {
     def clock = FixedClock.create()
-    def directoryBuildCache = Mock(DirectoryBuildCache)
     def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, clock)
 
     def "setup"() {
         cacheConfigurations.cleanup.set(Cleanup.DEFAULT)
-    }
-
-    def "uses directory build cache expiry when set to value other than default"() {
-        when:
-        cacheConfigurations.buildCache.removeUnusedEntriesAfterDays = 1
-
-        and:
-        1 * directoryBuildCache.getRemoveUnusedEntriesAfterDays() >> 10
-        0 * _
-
-        then:
-        def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
-        equalWithinOneSecond(expiration.entryRetentionTimestampSupplier.get(), System.currentTimeMillis() - TimeUnit.DAYS.toMillis(10))
-        expiration.description == "after 10 days"
     }
 
     def "uses cache retention configured for #description"() {
@@ -57,11 +41,10 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
         cacheConfigurations.buildCache.removeUnusedEntriesAfterDays = expiryDays
 
         and:
-        1 * directoryBuildCache.getRemoveUnusedEntriesAfterDays() >> CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
         0 * _
 
         then:
-        def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
+        def expiration = new DirectoryBuildCacheEntryRetention(cacheConfigurations)
         expiration.entryRetentionTimestampSupplier.get() == clock.currentTime - TimeUnit.DAYS.toMillis(expiryDays)
         expiration.description == description
 
@@ -77,11 +60,10 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
         cacheConfigurations.buildCache.removeUnusedEntriesOlderThan = timestamp
 
         and:
-        1 * directoryBuildCache.getRemoveUnusedEntriesAfterDays() >> CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
         0 * _
 
         then:
-        def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
+        def expiration = new DirectoryBuildCacheEntryRetention(cacheConfigurations)
         expiration.entryRetentionTimestampSupplier.get() == timestamp
         expiration.description == "older than 2024-11-10 09:35:44 UTC"
     }
@@ -94,11 +76,10 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
         cacheConfigurations.buildCache.entryRetention.set(CacheResourceConfigurationInternal.EntryRetention.relative(cacheExpirySecs * 1000))
 
         and:
-        1 * directoryBuildCache.getRemoveUnusedEntriesAfterDays() >> CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES
         0 * _
 
         then:
-        def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
+        def expiration = new DirectoryBuildCacheEntryRetention(cacheConfigurations)
         expiration.entryRetentionTimestampSupplier.get() == clock.currentTime - cacheExpirySecs * 1000
         expiration.description == "after 2h 25m 44s"
     }
@@ -109,11 +90,10 @@ class DirectoryBuildCacheEntryRetentionTest extends Specification {
         cacheConfigurations.cleanup.set(Cleanup.DISABLED)
 
         and:
-        1 * directoryBuildCache.getRemoveUnusedEntriesAfterDays() >> removeUnusedEntriesAfterDays
         0 * _
 
         then:
-        def expiration = new DirectoryBuildCacheEntryRetention(directoryBuildCache, cacheConfigurations)
+        def expiration = new DirectoryBuildCacheEntryRetention(cacheConfigurations)
         expiration.description == "disabled"
 
         where:

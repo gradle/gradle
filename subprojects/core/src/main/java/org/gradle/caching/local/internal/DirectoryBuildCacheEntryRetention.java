@@ -19,9 +19,7 @@ package org.gradle.caching.local.internal;
 import org.gradle.api.cache.Cleanup;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal;
-import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.time.TimeFormatting;
-import org.gradle.internal.time.TimestampSuppliers;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -34,20 +32,8 @@ public class DirectoryBuildCacheEntryRetention {
     private final String retentionDescription;
     private final boolean cleanupDisabled;
 
-    public DirectoryBuildCacheEntryRetention(DirectoryBuildCache directoryBuildCache, CacheConfigurationsInternal cacheConfigurations) {
+    public DirectoryBuildCacheEntryRetention(CacheConfigurationsInternal cacheConfigurations) {
         this.cleanupDisabled = cacheConfigurations.getCleanup().get() == Cleanup.DISABLED;
-
-        @SuppressWarnings("deprecation")
-        int deprecatedRemoveUnusedEntriesAfter = directoryBuildCache.getRemoveUnusedEntriesAfterDays();
-
-        // Use the deprecated retention period if configured on `DirectoryBuildCache`, or use the core 'buildCache' cleanup configuration if not.
-        // If the deprecated property remains at the default, we can safely use the central value (which has the same default).
-        if (deprecatedRemoveUnusedEntriesAfter != CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES) {
-            this.entryRetentionTimestampSupplier = TimestampSuppliers.daysAgo(deprecatedRemoveUnusedEntriesAfter);
-            this.retentionDescription = "after " + deprecatedRemoveUnusedEntriesAfter + " days";
-            return;
-        }
-
         CacheResourceConfigurationInternal buildCacheConfig = cacheConfigurations.getBuildCache();
         this.entryRetentionTimestampSupplier = buildCacheConfig.getEntryRetentionTimestampSupplier();
         this.retentionDescription = describeEntryRetention(buildCacheConfig.getEntryRetention().get());
