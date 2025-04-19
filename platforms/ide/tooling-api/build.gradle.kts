@@ -73,6 +73,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.problems)

@@ -18,13 +18,13 @@ package org.gradle.integtests.tooling
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.fixtures.Flaky
-import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
 
-abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
+abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
         System.out.println("TAPI client is using Java " + clientJdkVersion)
@@ -34,11 +34,12 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         }
         buildFile << """
             plugins {
-                id 'java'
+                id("java-library")
             }
 
+            ${mavenCentralRepository()}
+
             repositories {
-                ${mavenCentralRepository()}
                 maven { url = '${buildContext.localRepository.toURI()}' }
             }
 
@@ -66,7 +67,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                 }
                 enableAssertions = true
 
-                if (${clientJdkVersion.isCompatibleWith(JavaVersion.VERSION_16)} && ['2.14.1'].contains(project.findProperty("gradleVersion"))) {
+                if (${clientJdkVersion.isCompatibleWith(JavaVersion.VERSION_16)} && ['4.0'].contains(project.findProperty("gradleVersion"))) {
                     jvmArgs = ["--add-opens", "java.base/java.lang=ALL-UNNAMED"]
                 }
             }
@@ -219,13 +220,12 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(gradleDaemonJdk != null)
-        sortOutNotSupportedNotWorkingCombinations(gradleVersion)
 
         when:
+        withInstallations(AvailableJavaHomes.getAvailableJvms())
         succeeds("runTask",
             "-PclientJdk=" + clientJdkVersion.majorVersion,
             "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
             "-PgradleVersion=" + gradleVersion)
 
         then:
@@ -242,10 +242,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_1_8 | "4.10.3"
         JavaVersion.VERSION_1_8 | "5.6.4"
         JavaVersion.VERSION_1_8 | "6.9.2"
-    }
-
-    private sortOutNotSupportedNotWorkingCombinations(String gradleVersion) {
-        Assume.assumeFalse(clientJdkVersion.majorVersion.toInteger() >= 16 && GradleVersion.version(gradleVersion) <= GradleVersion.version("4.0"))
+        JavaVersion.VERSION_1_8 | "7.6.4"
     }
 
     @Flaky
@@ -253,13 +250,12 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(gradleDaemonJdk != null)
-        sortOutNotSupportedNotWorkingCombinations(gradleVersion)
 
         when:
+        withInstallations(AvailableJavaHomes.getAvailableJvms())
         succeeds("buildAction",
             "-PclientJdk=" + clientJdkVersion.majorVersion,
             "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
             "-PgradleVersion=" + gradleVersion)
 
         then:
@@ -272,6 +268,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_1_8 | "4.10.3"
         JavaVersion.VERSION_1_8 | "5.6.4"
         JavaVersion.VERSION_1_8 | "6.9.2"
+        JavaVersion.VERSION_1_8 | "7.6.4"
     }
 
     @Flaky
@@ -279,18 +276,17 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(gradleDaemonJdk != null)
-        sortOutNotSupportedNotWorkingCombinations(gradleVersion)
 
         when:
         executer.withStackTraceChecksDisabled()
         executer.ignoreCleanupAssertions()
 
         then:
+        withInstallations(AvailableJavaHomes.getAvailableJvms())
         fails(
             "buildAction",
             "-PclientJdk=" + clientJdkVersion.majorVersion,
             "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
             "-PgradleVersion=" + gradleVersion
         )
 

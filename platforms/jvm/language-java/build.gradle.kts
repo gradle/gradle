@@ -86,6 +86,8 @@ dependencies {
     }
 
     integTestImplementation(projects.messaging)
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
+
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.commonsHttpclient)

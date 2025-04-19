@@ -49,6 +49,11 @@ trait JUnitJupiterMultiVersionTest {
         String getExcludeCategoryOrTagConfigurationElement() {
             return "excludeTags"
         }
+
+        @Override
+        boolean supportsJavaVersion(int javaVersion) {
+            return javaVersion > 8
+        }
     }
 
     static class JUnitJupiterTestSourceConfiguration implements AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration {
