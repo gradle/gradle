@@ -16,5 +16,7 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.inject)
+
+    testImplementation(projects.functional)
 }
 
