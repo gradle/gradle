@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
@@ -25,58 +24,47 @@ import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.List;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
 
-    private final ProjectInternal dependencyProject;
+    private final ProjectState projectState;
 
-    public DefaultProjectDependency(ProjectInternal dependencyProject) {
-        this.dependencyProject = dependencyProject;
+    public DefaultProjectDependency(ProjectState projectState) {
+        this.projectState = projectState;
     }
 
     @Override
     public String getPath() {
-        return getTargetProjectIdentity().getProjectPath().toString();
-    }
-
-    @Override
-    @Deprecated
-    public Project getDependencyProject() {
-        DeprecationLogger.deprecateMethod(ProjectDependency.class, "getDependencyProject()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_get_dependency_project")
-            .nagUser();
-
-        return dependencyProject;
+        return getTargetProjectIdentity().getProjectPath().getPath();
     }
 
     @Override
     public String getGroup() {
-        return dependencyProject.getGroup().toString();
+        return unsafeGetProject().getGroup().toString();
     }
 
     @Override
     public String getName() {
-        return dependencyProject.getName();
+        return getTargetProjectIdentity().getProjectName();
     }
 
     @Override
     public String getVersion() {
-        return dependencyProject.getVersion().toString();
+        return unsafeGetProject().getVersion().toString();
     }
 
     @Override
     public ProjectIdentity getTargetProjectIdentity() {
-        return dependencyProject.getOwner().getIdentity();
+        return projectState.getIdentity();
     }
 
     @Override
     public ProjectDependency copy() {
-        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject);
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(projectState);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -89,7 +77,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 if (c instanceof SpecificCapabilitySelector) {
                     return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
                 } else if (c instanceof FeatureCapabilitySelector) {
-                    return new ProjectDerivedCapability(dependencyProject, ((FeatureCapabilitySelector) c).getFeatureName());
+                    return new ProjectDerivedCapability(unsafeGetProject(), ((FeatureCapabilitySelector) c).getFeatureName());
                 } else {
                     throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
                 }
@@ -123,6 +111,17 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public String toString() {
         return "project '" + getTargetProjectIdentity().getBuildTreePath() + "'";
+    }
+
+    /**
+     * Any code which depends on this method should be deprecated and removed.
+     * <p>
+     * A project dependency should be a simple wrapper around the _identity_ of a given
+     * project, and should not retain any reference to the actual project instance.
+     */
+    @Deprecated
+    private ProjectInternal unsafeGetProject() {
+        return projectState.getMutableModel();
     }
 
 }
