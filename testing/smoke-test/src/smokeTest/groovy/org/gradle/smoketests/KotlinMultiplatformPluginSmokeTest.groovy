@@ -41,9 +41,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber != VersionNumber.parse("2.1.21-RC"),
                 "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getMpp' with the same behavior and mark the old one with @Deprecated, or change the type of 'org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget.isMpp' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
-                "https://youtrack.jetbrains.com/issue/KT-71879"
             )
             .build()
 
@@ -66,9 +66,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber != VersionNumber.parse("2.1.21-RC"), // 2.2.0-Beta1 still has the deprecation
                 "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getMpp' with the same behavior and mark the old one with @Deprecated, or change the type of 'org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget.isMpp' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
-                "https://youtrack.jetbrains.com/issue/KT-71879"
             )
             .expectDeprecationWarningIf(
                 kotlinVersionNumber >= VersionNumber.parse('1.9.22') && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
@@ -88,8 +88,8 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions.findAll {
             // versions prior to 2.0.0 don't support java 21
             (JavaVersion.current() < JavaVersion.VERSION_21 || VersionNumber.parse(it) >= VersionNumber.parse('2.0.0-Beta1'))
-            // versions prior to 2.0.20 use deprecated APIs removed in Gradle 9.0
-            && VersionNumber.parse(it) >= KotlinGradlePluginVersions.KOTLIN_2_0_20
+                // versions prior to 2.0.20 use deprecated APIs removed in Gradle 9.0
+                && VersionNumber.parse(it) >= KotlinGradlePluginVersions.KOTLIN_2_0_20
         }
     }
 
@@ -181,7 +181,10 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin
+            'org.jetbrains.kotlin.multiplatform': Versions.of(
+                // Broken, see https://youtrack.jetbrains.com/issue/KT-76878
+                TestedVersions.kotlin.versions.findAll { it != "2.2.0-Beta1" }
+            )
         ]
     }
 

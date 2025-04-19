@@ -86,6 +86,7 @@ trait WithPluginValidation {
                 "--init-script", "validate-external-gradle-plugin.gradle.kts",
                 "validateExternalPlugins",
                 "--continue",
+                "--stacktrace",
                 *extraParameters] as String[])
             validation.ignoreDeprecationWarnings("We are only checking type validation problems here")
             validation.withJdkWarningChecksDisabled()
