@@ -1,0 +1,11 @@
+[versions]
+swaggerCoreVersion = "2.2.25"
+springDocVersion = "1.8.0"
+classGraphVersion = "4.8.112"
+
+[libraries]
+swaggercore = {group="io.swagger.core.v3", name="swagger-core", version.ref = "swaggerCoreVersion"}
+swaggerannotations = {group="io.swagger.core.v3", name="swagger-annotations", version.ref = "swaggerCoreVersion"}
+swaggerintegration = {group="io.swagger.core.v3", name="swagger-integration", version.ref = "swaggerCoreVersion"}
+classgraph = {group="io.github.classgraph", name="classgraph", version.ref = "classGraphVersion"}
+springdoc = {group="org.springdoc", name="springdoc-openapi-ui", version.ref = "springDocVersion"}

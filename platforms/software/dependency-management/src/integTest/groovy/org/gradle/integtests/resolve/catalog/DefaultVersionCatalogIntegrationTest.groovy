@@ -49,8 +49,6 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
 
         file.text = versionCatalogSampleText
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         settingsKotlinFile << """
             rootProject.name = "learn"
 
@@ -65,7 +63,7 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
         def result = succeeds "build"
 
         then:
-        def receivedResults = result.getOutput() // Capture the failure details
+        def receivedResults = result.getOutput()
         verifyAll {
             receivedResults.contains(message)
         }
@@ -81,8 +79,6 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
 
         file.text = versionCatalogSampleText
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         settingsKotlinFile << """
             rootProject.name = "learn"
 
@@ -98,7 +94,7 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
         def result = fails "build"
 
         then:
-        def receivedResults = result.getError() // Capture the failure details
+        def receivedResults = result.getError()
         verifyAll {
             receivedResults.contains(message)
         }
@@ -131,7 +127,7 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
         def result = fails "build"
 
         then:
-        def receivedResults = result.getError() // Capture the failure details
+        def receivedResults = result.getError()
         verifyAll {
             receivedResults.contains(message)
         }
@@ -173,7 +169,42 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
         def result = fails "build"
 
         then:
-        def receivedResults = result.getError() // Capture the failure details
+        def receivedResults = result.getError()
+        verifyAll {
+            receivedResults.contains(message)
+        }
+    }
+
+    def "can use custom catalog with same name as default from subdirectory"() {
+        String message = "BUILD SUCCESSFUL"
+
+        def customToml = file("somesubdir/gradle/libs.versions.toml")
+        customToml.text = """
+        [versions]
+        someVersion = "1.0.0"
+
+        [libraries]
+        someLib = { group = "com.example", name = "lib", version.ref = "someVersion" }
+        """
+
+        settingsKotlinFile << """
+        rootProject.name = "learn"
+
+        dependencyResolutionManagement {
+            versionCatalogs {
+                create("custom") {
+                    // This should work, as it's explicitly pointing to a non-default location
+                    from(files("somesubdir/gradle/libs.versions.toml"))
+                }
+            }
+        }
+         """
+
+        when:
+        def result = succeeds "build"
+
+        then:
+        def receivedResults = result.getOutput()
         verifyAll {
             receivedResults.contains(message)
         }

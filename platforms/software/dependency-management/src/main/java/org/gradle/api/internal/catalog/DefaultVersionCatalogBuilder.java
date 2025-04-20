@@ -38,6 +38,7 @@ import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser;
 import org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -286,7 +287,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             if(isDefaultCatalogImported) {
                 throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
                     configureVersionCatalogError(builder,getProblemInVersionCatalog() + "you can only import default catalog `gradle/libs.versions.toml` once.", TOO_MANY_IMPORT_INVOCATION)
-                        .details("The default catalog was imported more than once")
+                        .details("The default catalog was imported more than once. Path: " + getPathFromDependencyNotation(dependencyNotation))
                         .solution("Remove explicit import of the default version catalog.")));
             }
         }
@@ -649,10 +650,32 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
     }
 
-    private boolean isDefaultVersionCatalog(Object dependencyNotation){
-        try {
-            return ((AbstractFileCollection) dependencyNotation).getAsPath().endsWith("/gradle/libs.versions.toml");
+    private String getPathFromDependencyNotation(Object dependencyNotation){
+        try{
+            String catalogPath = ((AbstractFileCollection) dependencyNotation).getAsPath();
+            return  catalogPath;
         } catch (Exception ex){
+            LOGGER.error("dependencyNotation provided is invalid. Path is empty.");
+        }
+        return "";
+    }
+
+    private boolean isDefaultVersionCatalog(Object dependencyNotation) {
+        try {
+            if (dependencyNotation instanceof AbstractFileCollection) {
+                String catalogPath = ((AbstractFileCollection) dependencyNotation).getAsPath();
+                FileResolver fileResolver = dependencyResolutionServicesSupplier.get().getFileResolver();
+                File settingsDir = fileResolver.resolve(".");
+                File defaultCatalogFile = new File(settingsDir, "gradle/libs.versions.toml");
+
+                // Normalize paths for comparison
+                String normalizedCatalogPath = new File(catalogPath).getCanonicalPath();
+                String normalizedDefaultPath = defaultCatalogFile.getCanonicalPath();
+
+                return normalizedCatalogPath.equals(normalizedDefaultPath);
+            }
+            return false;
+        } catch (Exception ex) {
             return false;
         }
     }
