@@ -65,16 +65,16 @@ or better yet, upgrade to the latest version of the link:https://docs.gradle.com
 
 For Gradle 8.x, the minimum supported version was 3.0.
 
-==== Upgrade to Kotlin 2.1.20
+==== Upgrade to Kotlin 2.1.21-RC
 
-Gradle now embeds link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.20[Kotlin 2.1.20], upgrading from the previously embedded version 2.0.21.
+Gradle now embeds link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC[Kotlin 2.1.21-RC], upgrading from the previously embedded version 2.0.21.
 
 This upgrade includes several important changes:
 
 * Support for Kotlin language versions 1.4 and 1.5 has been removed.
 * Kotlin language version 1.7 is now deprecated.
 
-For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.20[Kotlin release notes].
+For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC[Kotlin release notes].
 
 ==== Kotlin DSL now uses the Kotlin language version 2.1
 
