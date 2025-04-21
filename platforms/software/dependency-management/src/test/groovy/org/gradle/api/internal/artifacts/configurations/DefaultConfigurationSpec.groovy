@@ -1667,6 +1667,7 @@ class DefaultConfigurationSpec extends Specification {
             project.name ?: "foo"
         )
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
+        _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,

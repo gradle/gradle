@@ -23,7 +23,6 @@ import org.gradle.api.component.PublishableComponent
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -386,7 +385,8 @@ class NativeBasePluginTest extends Specification {
         def component = Stub(ConfigurableComponentWithLinkUsage)
         component.name >> "debugWindows"
         component.names >> Names.of("debugWindows")
-        component.implementationDependencies >> Stub(ConfigurationInternal)
+        def implementation = project.configurations.dependencyScope("implementation").get()
+        component.implementationDependencies >> implementation
         component.linkFile >> project.objects.fileProperty()
 
         given:
@@ -401,7 +401,8 @@ class NativeBasePluginTest extends Specification {
         def component = Stub(ConfigurableComponentWithRuntimeUsage)
         component.name >> "debugWindows"
         component.names >> Names.of("debugWindows")
-        component.implementationDependencies >> Stub(ConfigurationInternal)
+        def implementation = project.configurations.dependencyScope("implementation").get()
+        component.implementationDependencies >> implementation
 
         given:
         project.pluginManager.apply(NativeBasePlugin)
