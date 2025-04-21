@@ -1385,6 +1385,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.TestFrameworkOptions",
+            "member": "Class org.gradle.api.tasks.testing.TestFrameworkOptions",
+            "acceptation": "abstract classes are better for injection",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getDestinationDir()",
             "acceptation": "Removed deprecated method",
@@ -1422,6 +1430,22 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "member": "Class org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "acceptation": "abstract classes are better for injection",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "member": "Class org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "acceptation": "abstract classes are better for decoration",
+            "changes": [
+                "Class is now abstract"
             ]
         },
         {

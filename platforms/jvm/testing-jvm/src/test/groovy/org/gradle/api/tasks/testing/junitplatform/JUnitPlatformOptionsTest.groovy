@@ -16,20 +16,21 @@
 
 package org.gradle.api.tasks.testing.junitplatform
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JUnitPlatformOptionsTest extends Specification {
 
     def copyFromOverridesOldOptions() {
         given:
-        def source = new JUnitPlatformOptions()
+        def source = TestUtil.objectFactory().newInstance(JUnitPlatformOptions)
             .includeEngines("sourceIncludedCategory")
             .excludeEngines("sourceExcludedCategory")
             .includeTags("sourceIncludedTag")
             .excludeTags("sourceExcludedTag")
 
         when:
-        def target = new JUnitPlatformOptions()
+        def target = TestUtil.objectFactory().newInstance(JUnitPlatformOptions)
             .includeEngines("targetIncludedCategory")
             .excludeEngines("targetExcludedCategory")
             .includeTags("targetIncludedTag")
