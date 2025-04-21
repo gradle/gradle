@@ -32,19 +32,22 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+
+import javax.inject.Inject;
 
 /**
  * A concrete consumable {@link DefaultConfiguration} that cannot change roles.
  */
 public class DefaultConsumableConfiguration extends DefaultConfiguration implements ConsumableConfiguration {
+    @Inject
     public DefaultConsumableConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
@@ -54,7 +57,7 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
         BuildOperationRunner buildOperationRunner,
-        Instantiator instantiator,
+        ObjectFactory objectFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         AttributesFactory attributesFactory,
@@ -80,7 +83,7 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
             resolutionStrategyFactory,
             fileCollectionFactory,
             buildOperationRunner,
-            instantiator,
+            objectFactory,
             artifactNotationParser,
             capabilityNotationParser,
             attributesFactory,
