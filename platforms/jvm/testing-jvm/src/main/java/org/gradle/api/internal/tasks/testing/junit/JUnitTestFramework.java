@@ -24,60 +24,59 @@ import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManage
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
-public class JUnitTestFramework implements TestFramework {
+public abstract class JUnitTestFramework implements TestFramework {
     private static final Logger LOGGER = Logging.getLogger(JUnitTestFramework.class);
 
-    private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
     private final Factory<File> testTaskTemporaryDir;
     private final Provider<Boolean> dryRun;
 
-    public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
-        this(filter, new JUnitOptions(), testTask.getTemporaryDirFactory(), testTask.getDryRun());
-    }
-
-    private JUnitTestFramework(DefaultTestFilter filter, JUnitOptions options, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun) {
+    @Inject
+    public JUnitTestFramework(DefaultTestFilter filter, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun) {
         this.filter = filter;
-        this.options = options;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
         this.detector = new JUnitDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
         this.dryRun = dryRun;
     }
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        JUnitOptions copiedOptions = new JUnitOptions();
-        copiedOptions.copyFrom(options);
-
-        return new JUnitTestFramework(
-            (DefaultTestFilter) newTestFilters,
-            copiedOptions,
+        JUnitTestFramework newTestFramework = getObjectFactory().newInstance(
+            JUnitTestFramework.class,
+            newTestFilters,
             testTaskTemporaryDir,
             dryRun
         );
+        newTestFramework.getOptions().copyFrom(getOptions());
+        return newTestFramework;
     }
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         validateOptions();
         return new JUnitTestClassProcessorFactory(new JUnitSpec(
-            filter.toSpec(), options.getIncludeCategories(), options.getExcludeCategories(), dryRun.get()));
+            filter.toSpec(), getOptions().getIncludeCategories(), getOptions().getExcludeCategories(), dryRun.get()));
     }
 
     @Override
@@ -90,13 +89,8 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public JUnitOptions getOptions() {
-        return options;
-    }
-
-    void setOptions(JUnitOptions options) {
-        this.options = options;
-    }
+    @Nested
+    public abstract JUnitOptions getOptions();
 
     @Override
     public JUnitDetector getDetector() {
@@ -111,8 +105,8 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     private void validateOptions() {
-        Set<String> intersection = Sets.newHashSet(options.getIncludeCategories());
-        intersection.retainAll(options.getExcludeCategories());
+        Set<String> intersection = Sets.newHashSet(getOptions().getIncludeCategories());
+        intersection.retainAll(getOptions().getExcludeCategories());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The category '" + intersection.iterator().next() + "' is both included and excluded.  " +

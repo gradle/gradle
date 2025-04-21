@@ -16,18 +16,19 @@
 
 package org.gradle.api.tasks.testing.junit
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class JUnitOptionsTest extends Specification {
 
     def copyFromOverridesOldOptions() {
         given:
-        def source = new JUnitOptions()
+        def source = TestUtil.objectFactory().newInstance(JUnitOptions)
             .includeCategories("sourceIncludedCategory")
             .excludeCategories("sourceExcludedCategory")
 
         when:
-        def target = new JUnitOptions()
+        def target = TestUtil.objectFactory().newInstance(JUnitOptions)
             .includeCategories("targetIncludedCategory")
             .excludeCategories("targetExcludedCategory")
         target.copyFrom(source)

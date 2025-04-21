@@ -201,7 +201,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
-        testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -984,7 +984,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        useTestFramework(getObjectFactory().newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     /**
