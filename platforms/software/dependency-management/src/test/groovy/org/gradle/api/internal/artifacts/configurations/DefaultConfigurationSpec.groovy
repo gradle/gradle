@@ -76,8 +76,6 @@ import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -95,8 +93,6 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-
     def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
@@ -1670,13 +1666,13 @@ class DefaultConfigurationSpec extends Specification {
         _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
-            instantiator,
+            TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
         new DefaultConfigurationFactory(
-            DirectInstantiator.INSTANCE,
+            TestUtil.objectFactory(),
             resolver,
             listenerManager,
             domainObjectContext,

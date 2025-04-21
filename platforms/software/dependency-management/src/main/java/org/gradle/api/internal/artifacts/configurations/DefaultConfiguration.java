@@ -87,6 +87,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -113,7 +114,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
@@ -123,6 +123,7 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -172,7 +173,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationRunner buildOperationRunner;
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private @Nullable ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
@@ -248,7 +249,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
         BuildOperationRunner buildOperationRunner,
-        Instantiator instantiator,
+        ObjectFactory objectFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         AttributesFactory attributesFactory,
@@ -282,7 +283,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
         this.buildOperationRunner = buildOperationRunner;
-        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
         this.exceptionMapper = exceptionMapper;
@@ -292,7 +293,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
 
         this.resolutionAccess = new ConfigurationResolutionAccess();
-        this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
+        this.resolvableDependencies = objectFactory.newInstance(ConfigurationResolvableDependencies.class, this);
 
         this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
@@ -307,7 +308,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
+        this.outgoing = objectFactory.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
@@ -613,7 +614,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 calculatedValueContainerFactory,
                 attributesFactory,
                 attributeDesugaring,
-                instantiator
+                objectFactory
             );
         }
     }
@@ -1715,43 +1716,49 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    public class ConfigurationResolvableDependencies implements ResolvableDependencies {
+    public static class ConfigurationResolvableDependencies implements ResolvableDependencies {
+        private final DefaultConfiguration configuration;
+
+        @Inject
+        public ConfigurationResolvableDependencies(DefaultConfiguration configuration) {
+            this.configuration = configuration;
+        }
 
         @Override
         public String getName() {
-            return name;
+            return configuration.name;
         }
 
         @Override
         public String getPath() {
-            return projectPath.getPath();
+            return configuration.projectPath.getPath();
         }
 
         @Override
         public String toString() {
-            return "dependencies '" + identityPath + "'";
+            return "dependencies '" + configuration.identityPath + "'";
         }
 
         @Override
         public FileCollection getFiles() {
-            return getIntrinsicFiles();
+            return configuration.getIntrinsicFiles();
         }
 
         @Override
         public DependencySet getDependencies() {
-            runDependencyActions();
-            return getAllDependencies();
+            configuration.runDependencyActions();
+            return configuration.getAllDependencies();
         }
 
         @Override
         public DependencyConstraintSet getDependencyConstraints() {
-            runDependencyActions();
-            return getAllDependencyConstraints();
+            configuration.runDependencyActions();
+            return configuration.getAllDependencyConstraints();
         }
 
         @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            dependencyResolutionListeners.add("beforeResolve", userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("beforeResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
@@ -1761,7 +1768,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            dependencyResolutionListeners.add("afterResolve", userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("afterResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
@@ -1771,23 +1778,23 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionResult getResolutionResult() {
-            assertIsResolvable();
-            return new DefaultResolutionResult(resolutionAccess, attributeDesugaring);
+            configuration.assertIsResolvable();
+            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.attributeDesugaring);
         }
 
         @Override
         public ArtifactCollection getArtifacts() {
-            return resolutionAccess.getPublicView().getArtifacts();
+            return configuration.resolutionAccess.getPublicView().getArtifacts();
         }
 
         @Override
         public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction) {
-            return resolutionAccess.getPublicView().artifactView(configAction);
+            return configuration.resolutionAccess.getPublicView().artifactView(configAction);
         }
 
         @Override
         public AttributeContainer getAttributes() {
-            return configurationAttributes;
+            return configuration.configurationAttributes;
         }
     }
 

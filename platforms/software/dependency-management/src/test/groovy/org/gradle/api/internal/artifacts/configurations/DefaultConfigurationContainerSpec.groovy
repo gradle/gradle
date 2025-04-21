@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
+import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -31,12 +32,13 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -45,7 +47,7 @@ import spock.lang.Specification
 class DefaultConfigurationContainerSpec extends Specification {
 
     private ConfigurationResolver resolver = Mock()
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    private ObjectFactory objectFactory = TestUtil.objectFactory()
     private DomainObjectContext domainObjectContext = Mock()
     private ListenerManager listenerManager = Mock()
     private DependencyMetaDataProvider metaDataProvider = Mock()
@@ -67,7 +69,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         create(_, _, _, _) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
-        instantiator,
+        objectFactory,
         resolver,
         listenerManager,
         domainObjectContext,
@@ -87,7 +89,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         new DocumentationRegistry()
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-        instantiator,
+        TestUtil.instantiatorFactory().decorateLenient(),
         domainObjectCollectionCallbackActionDecorator,
         metaDataProvider,
         domainObjectContext,
@@ -100,6 +102,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
     def setup() {
         metadataBuilder.newBuilder(_, _) >> metadataBuilder
+        listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> Mock(AnonymousListenerBroadcast)
     }
 
     def "adds and gets"() {
