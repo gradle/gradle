@@ -1449,14 +1449,6 @@
             ]
         },
         {
-            "type": "org.gradle.jvm.toolchain.JvmVendorSpec",
-            "member": "Field IBM_SEMERU",
-            "acceptation": "Deprecated API",
-            "changes": [
-                "Field has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.kotlin.dsl.ClientModuleScope",
             "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
             "acceptation": "Remove deprecated class",
