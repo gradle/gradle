@@ -1050,7 +1050,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
-        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getObjectFactory()));
+        useTestFramework(getObjectFactory().newInstance(TestNGTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun(), this.getReports().getHtml()));
 
     }
 
