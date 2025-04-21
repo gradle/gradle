@@ -11,7 +11,7 @@ tasks.register<Zip>("badZippingTask") {
 
 // tag::good-zipping-task[]
 tasks.register<Zip>("goodZippingTask") {
-    val files = files(configurations.runtimeClasspath, layout.projectDirectory.file("extra.txt")) // <1>
-    from(files)
+    from(configurations.runtimeClasspath) // <1>
+    from(layout.projectDirectory.file("extra.txt"))
 }
 // end::good-zipping-task[]
