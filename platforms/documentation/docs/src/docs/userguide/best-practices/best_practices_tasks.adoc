@@ -152,9 +152,12 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy
 
 Resolving configuration before the task execution phase can lead to incorrect results and slower builds.
 
-Once configuration is resolved it can't be resolved again, and it can lose some information when it is resolved too early.
+=== Explanation
+ 
 Calling manual resolution via link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[resolve] method returns a set of Files that doesn't preserve references to the tasks that produced these files.
 This will break automatic task dependencies wiring through task input properties.
+
+Resolving configuration outside task execution phase can slow down configuration phase even for tasks (e.g. `help`) that don't need results of the resolved configuration.
 
 === Example
 
