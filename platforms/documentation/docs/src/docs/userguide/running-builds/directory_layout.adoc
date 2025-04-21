@@ -37,9 +37,9 @@ It is roughly structured as follows:
 ----
 ├── caches              // <1>
 │   ├── 4.8         // <2>
-│   ├── 4.9         // <2>
+│   ├── 4.9             // <2>
 │   ├── ⋮
-│   ├── jars-3          // <3>
+│   ├── jars-3      // <3>
 │   └── modules-2       // <3>
 ├── daemon          // <4>
 │   ├── ⋮
@@ -47,11 +47,11 @@ It is roughly structured as follows:
 │   └── 4.9
 ├── init.d              // <5>
 │   └── my-setup.gradle
-├── jdks            // <6>
+├── jdks                // <6>
 │   ├── ⋮
 │   └── jdk-14.0.2+12
 ├── wrapper
-│   └── dists       // <7>
+│   └── dists           // <7>
 │       ├── ⋮
 │       ├── gradle-4.8-bin
 │       ├── gradle-4.9-all
