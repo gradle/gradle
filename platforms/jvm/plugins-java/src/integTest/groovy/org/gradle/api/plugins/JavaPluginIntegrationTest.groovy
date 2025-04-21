@@ -24,6 +24,32 @@ import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
 
+    @Issue("https://github.com/gradle/gradle/issues/23932")
+    def "does not eagerly resolve compile tasks"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            tasks.withType(JavaCompile).configureEach {
+                throw new RuntimeException("Compile task should not have been realized")
+            }
+
+            tasks.register("anotherCompileTask") {
+                throw new RuntimeException("anotherCompileTask should not have been realized")
+            }
+
+            sourceSets {
+                main {
+                    output.dir(tasks.named("anotherCompileTask").map { it.outputs })
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+    }
+
     def "main component is java component"() {
         given:
         buildFile << """
