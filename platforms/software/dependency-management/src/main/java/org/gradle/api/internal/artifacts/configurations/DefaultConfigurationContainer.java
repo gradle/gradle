@@ -37,6 +37,9 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
@@ -172,44 +175,33 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
+    private RuntimeException failOnAttemptToAdd(String behavior) {
+        GradleException ex = new GradleException(behavior);
+        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            spec.contextualLabel(ex.getMessage());
+            spec.severity(Severity.ERROR);
+        });
+    }
+
     @Override
-    public boolean add(Configuration o) {
-        DeprecationLogger.deprecateBehaviour("Adding a configuration directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        return super.add(o);
+    public boolean add(@Nullable Configuration o) {
+        throw failOnAttemptToAdd("Adding a configuration directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public boolean addAll(Collection<? extends Configuration> c) {
-        DeprecationLogger.deprecateBehaviour("Adding a collection of configurations directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        return super.addAll(c);
+        throw failOnAttemptToAdd("Adding a collection of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addLater(Provider<? extends Configuration> provider) {
-        DeprecationLogger.deprecateBehaviour("Adding a configuration provider directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        super.addLater(provider);
+        throw failOnAttemptToAdd("Adding a configuration provider directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addAllLater(Provider<? extends Iterable<Configuration>> provider) {
-        DeprecationLogger.deprecateBehaviour("Adding a provider of configurations directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        super.addAllLater(provider);
+        throw failOnAttemptToAdd("Adding a provider of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
