@@ -52,6 +52,7 @@ class KnownProblemIds {
     private static final Map<String, String> KNOWN_GROUPS = [
         'problems-api': 'Problems API',
         'validation': 'Validation',
+        'configuration-usage': 'Configuration usage',
         'compilation': 'Compilation',
         'deprecation': 'Deprecation',
         'compilation:java': 'Java compilation',
@@ -78,6 +79,7 @@ class KnownProblemIds {
     private static final HashMap<String, List<String>> KNOWN_DEFINITIONS = [
         'problems-api:missing-id': ['Problem id must be specified'],
         'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
+        'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
         'compilation:groovy-dsl:compilation-failed': ['Groovy DSL script compilation problem'],
         // Flexible java compilation categories
         // The end of the category is matched with a regex, as there are many possible endings (and also changes with JDK versions)
@@ -93,7 +95,6 @@ class KnownProblemIds {
         'dependency-version-catalog:too-many-import-invocation': ['version catalog error'],
         'dependency-version-catalog:no-import-files': ['version catalog error'],
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
-        'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration': ['Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.'],
         'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
         'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower has been deprecated.'],
         'deprecation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin.'],
