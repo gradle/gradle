@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
-import static org.hamcrest.CoreMatchers.containsString
-
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -334,18 +332,12 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name $conf. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         fails 'help'
 
         then:
         failure.assertHasDescription("An exception occurred applying plugin request [id: 'java']")
         failureHasCause("""Unexpected configuration usage
-  When creating configurations during sourceSet $sourceSet setup, Gradle found that configuration $conf already exists with permitted usage(s):
-  \tConsumable - this configuration can be selected by another project as a dependency
-  \tResolvable - this configuration can be resolved by this project to a set of files
-  \tDeclarable - this configuration can have dependencies added to it
-  Yet Gradle expected it to exist with the usage(s):
-  \tDeclarable - this configuration can have dependencies added to it""")
+  The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle.""")
 
         where:
         conf                | sourceSet
@@ -411,11 +403,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The configuration additionalRuntimeClasspath was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name additionalRuntimeClasspath. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-
         fails "resolve"
         failure.assertHasDescription("A problem occurred evaluating project ':producer'.")
-        failure.assertThatCause(containsString("When creating configurations during sourceSet additional setup, Gradle found that configuration additionalRuntimeClasspath already exists with permitted usage(s):"))
+        failure.assertHasCause("""Unexpected configuration usage
+  The configuration additionalRuntimeClasspath was created explicitly. This configuration name is reserved for creation by Gradle.""")
 
         where:
         confCreationCode | createdRole | description

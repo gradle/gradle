@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-@NullMarked
+/**
+    * This package contains classes and interfaces related to the requesting the creation of a configuration in Gradle.
+    */
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.artifacts.configurations;
-
-import org.jspecify.annotations.NullMarked;

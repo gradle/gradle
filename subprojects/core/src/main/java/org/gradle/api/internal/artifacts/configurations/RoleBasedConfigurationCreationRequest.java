@@ -17,9 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ResolutionProvider;
 
 import java.util.Collections;
@@ -47,40 +44,12 @@ public interface RoleBasedConfigurationCreationRequest {
     ConfigurationRole getRole();
 
     /**
-     * Issues a deprecation warning about the creation of a configuration with a reserved name.
+     * Throws an exception upon an attempt to create a configuration using a reserved name.
+     *
+     * @return the exception thrown by this method; to satisfy compiler checks
+     * @throws RuntimeException upon every call
      */
-    default void warnAboutReservedName() {
-        DeprecationLogger.deprecateBehaviour("The configuration " + getConfigurationName() + " was created explicitly. This configuration name is reserved for creation by Gradle.")
-            .withAdvice(getDefaultReservedNameAdvice(getConfigurationName()))
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "configurations_allowed_usage")
-            .nagUser();
-    }
-
-    /**
-     * Throws an exception when a configuration already exists and Gradle would need to mutate its
-     * usage to match the role in the request.
-     *
-     * @param conf the existing configuration
-     */
-    void failOnNeedToMutateUsage(DeprecatableConfiguration conf);
-
-    /**
-     * Ensures the usage of the requested configuration is consistent
-     * with the role in the request.
-     *
-     * This method should only be called by the container when maybe-creating a configuration that already exists.
-     *
-     * This method will emit a detailed deprecation method with suggestions if the usage is inconsistent.  It will then attempt to mutate
-     * the usage to match the expectation.  If the usage cannot be mutated, it will throw an exception.
-     *
-     * Does <strong>NOT</strong> check anything to do with deprecated usage.
-     *
-     * @param conf the existing configuration
-     * @return the existing configuration, with its usage now matching the requested usage
-     * @throws UnmodifiableUsageException if the usage doesn't match this request and cannot be mutated
-     */
-    Configuration verifyExistingConfigurationUsage(Configuration conf);
+    RuntimeException failOnReservedName();
 
     /**
      * An exception thrown when Gradle cannot mutate the usage of a configuration that already
