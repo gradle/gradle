@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-
 @FluidDependenciesResolveTest
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
