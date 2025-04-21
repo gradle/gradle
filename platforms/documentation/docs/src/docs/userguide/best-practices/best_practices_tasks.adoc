@@ -164,23 +164,28 @@ Resolving configuration outside task execution phase can slow down configuration
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="build.gradle.kts[tags=resolve-call]"]
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="build.gradle[tags=resolve-call]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="library/build.gradle.kts;build.gradle.kts[tags=bad-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="library/build.gradle;build.gradle[tags=bad-classpath-printer]"]
 ====
 
-<1> *Explicit resolve call*: `runtimeClasspath` configuration will be resolved as soon as task created. It will lose all task dependencies as well.
+<1> *Add project dependency*: It implies that `:library:jar` task should be executed in order to resolve runtime classpath.
+<2> *Declare input files property as Set of files*: It doesn't track task dependencies.
+<3> *Pass resolved configuration to input files property*: Dependency on `:library:jar` task will be lost here.
+<4> *Consume actual jar file or classes directory to calculate digest*: Due to broken task dependencies, library.jar file will not exist at this point.
 
 ==== Do This Instead
 
 Use lazy link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] API instead.
 
 ====
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="build.gradle.kts[tags=good-classpath-printer]"]
-include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="build.gradle[tags=good-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="library/build.gradle.kts;build.gradle.kts[tags=good-classpath-printer]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/groovy",files="library/build.gradle;build.gradle[tags=good-classpath-printer]"]
 ====
 
-<1> *Pass runtimeClasspath as input to the File Collection*: the File Collection will not resolve `runtimeClasspath` immediately, and will preserve its task dependencies.
-<2> *Access resolved files*: It is safe to access files from the File Collection during task execution.
+<1> *Add project dependency*: It implies that jar task should be executed in order to resolve runtime classpath.
+<2> *Declare input files property as ConfigurableFileCollection*: It will track task dependencies.
+<3> *Pass configuration as-is to input files property*: It will be resolved when necessary and task dependencies will be preserved.
+<4> *Consume actual jar file or classes directory to calculate digest*: Here all files should exist at this point.
 
 === Tags
 `#tasks`, `#inputs-and-outputs`, `#configurations`
