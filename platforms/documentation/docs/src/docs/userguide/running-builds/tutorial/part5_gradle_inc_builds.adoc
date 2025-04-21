@@ -57,7 +57,7 @@ To better see incremental builds in action, we are going to switch the console o
 
 In the top-level folder of your app (`tutorial`), create a `gradle.properties` file:
 
-[source,properties]
+[source,bash]
 ----
 $ touch gradle.properties
 ----

@@ -33,29 +33,20 @@ To add a dependency to your project, specify a dependency in the `dependencies {
 
 The following `build.gradle.kts` file adds a plugin and two dependencies to the project:
 
-[source,kotlin]
-----
-plugins {
-    id("com.android.application")             // <1>
-}
-
-dependencies {
-    // Dependency on a remote binary to compile and run the code
-    implementation("com.google.android.material:material:1.1.0-alpha05")   // <2>
-    // Dependency on a remote binary to compile and run the test code
-    testImplementation("org.mockito:mockito-core:2.16.0")                  // <3>
-}
-----
-<1> Applies the Android Gradle plugin, which adds support for building Android apps.
-<2> Adds a dependency on Material Design components used in production code.
-<3> Adds a dependency on Mockito, used in test code to create mocks.
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-dep]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-dep]"]
+====
+<1> Applies the Java Library plugin, which adds support for building Java libraries.
+<2> Adds a dependency on Google's Guava library used in production code.
+<3> Adds a dependency on Apache's Juneau Marshall library, used in library code.
 
 Dependencies in Gradle are grouped by *configurations*, which define when and how the dependency is used:
 
 - `implementation` is used for dependencies needed to compile and run your production code.
-- `testImplementation` is used for dependencies only required to compile and run your test code.
+- `api` is used for dependencies that should be exposed to consumers of your library.
 
-NOTE: Gradle supports many other configurations, such as `runtimeOnly`, `compileOnly`, `api`, and more.
+NOTE: Gradle supports many other configurations, such as `testImplementation`, `runtimeOnly`, `compileOnly`, `api`, and more.
 
 == Viewing Project Dependencies
 
@@ -79,13 +70,21 @@ $ ./gradlew :app:dependencies
 Project ':app'
 ------------------------------------------------------------
 
-implementation - Implementation only dependencies for source set 'main'. (n)
-\--- com.google.android.material:material:1.1.0-alpha05 (n)
-
-testImplementation - Implementation only dependencies for source set 'test'. (n)
-\--- org.mockito:mockito-core:2.16.0 (n)
-
 ...
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.juneau:juneau-marshall:8.2.0
+|    \--- org.apache.httpcomponents:httpcore:4.4.13
+\--- com.google.guava:guava:32.1.2-jre
+     +--- com.google.guava:guava-parent:32.1.2-jre
+     |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
+     |    +--- org.checkerframework:checker-qual:3.33.0 (c)
+     |    \--- com.google.errorprone:error_prone_annotations:2.18.0 (c)
+     +--- com.google.guava:failureaccess:1.0.1
+     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     +--- com.google.code.findbugs:jsr305 -> 3.0.2
+     +--- org.checkerframework:checker-qual -> 3.33.0
+     \--- com.google.errorprone:error_prone_annotations -> 2.18.0
 ----
 
 == Using a Version Catalog
@@ -108,19 +107,9 @@ The version catalog typically contains four sections:
 
 Here's an example:
 
-[source,gradle/libs.versions.toml]
-----
-[versions]
-androidGradlePlugin = "7.4.1"
-mockito = "2.16.0"
-
-[libraries]
-googleMaterial = { group = "com.google.android.material", name = "material", version = "1.1.0-alpha05" }
-mockitoCore = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-
-[plugins]
-androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
-----
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="gradle/libs.versions.toml[]"]
+====
 
 Place this file in the `gradle/` directory of your project as `libs.versions.toml`.
 Gradle will pick it up automatically and expose its contents through the `libs` accessor in your build scripts.
@@ -128,22 +117,12 @@ IDEs like IntelliJ and Android Studio will also pick up this metadata for code c
 
 Once defined, you can reference these aliases directly in your build file:
 
-[source,kotlin]
-----
-plugins {
-   alias(libs.plugins.androidApplication)  // <1>
-}
+====
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-catalog]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-catalog]"]
+====
 
-dependencies {
-    implementation(libs.googleMaterial)    // <2>
-    testImplementation(libs.mockitoCore)   // <3>
-}
-----
-<1> Applies the Android Gradle plugin using the plugin alias.
-<2> Adds the Material Design dependency using a library alias.
-<3> Adds Mockito for use in test code.
-
-To learn more, consult the <<glossary.adoc#dependency_management_terminology,Dependency Management chapter>>.
+To learn more, consult the <<TO DO,Dependency Management chapter>>.
 
 [.text-right]
 **Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

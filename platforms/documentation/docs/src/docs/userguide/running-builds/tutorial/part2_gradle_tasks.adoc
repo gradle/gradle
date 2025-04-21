@@ -102,13 +102,10 @@ Gradle includes some tasks by default, and many others are added automatically w
 
 If you remember back in <<part1_gradle_init.adoc#part1_begin,part 1>>, the build script of our Java application applies the `application` plugin:
 
-[source,kotlin]
-----
-plugins {
-    // Apply the application plugin
-    application
-}
-----
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
+====
 
 Applying the `application` plugin adds tasks like `run`, `build`, `compileJava`, `test`, and `jar`.
 
@@ -120,29 +117,10 @@ For example, the `Copy` task type is used to copy files from one location to ano
 
 Here's how you could register a custom task that copies all `.war` files from a source directory to a target directory:
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-tasks.register<Copy>("copyTask") {
-    from("source")
-    into("target")
-    include("*.war")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-tasks.register("copyTask", Copy) {
-    from("source")
-    into("target")
-    include("*.war")
-}
-
-----
-=====
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-task]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-task]"]
+====
 
 If this task is defined in the `build.gradle(.kts)` file for the app subproject, you can run it with:
 
@@ -177,43 +155,10 @@ There are two kinds of task dependencies:
 
 Here is an example of explicit task dependency:
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-tasks.register("hello") {
-    doLast {
-        println("Hello!")
-    }
-}
-
-tasks.register("greet") {
-    doLast {
-        println("How are you?")
-    }
-    dependsOn("hello")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-tasks.register("hello") {
-    doLast {
-        println('Hello!')
-    }
-}
-
-tasks.register("greet") {
-    doLast {
-        println('How are you?')
-    }
-    dependsOn("hello")
-}
-
-----
-=====
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-hello]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-hello]"]
+====
 
 In this case, `hello` prints before `greet`.
 The output is `Hello! How are you?`.
@@ -319,17 +264,9 @@ The `run` task executes the code in `tutorial/app/src/main/java/com.gradle.tutor
 
 You can take a minute and take a look at the Java code in `App.java` which simply prints "Hello World" to the screen:
 
-[source,java]
-----
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
-    }
-}
-----
+====
+include::sample[dir="snippets/init/generated/groovy",files="app/src/main/java/org/example/App.java[]"]
+====
 
 [.text-right]
 **Next Step:** <<part3_gradle_dep_man#part3_begin,Dependency Management>> >>

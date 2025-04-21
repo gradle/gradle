@@ -22,26 +22,14 @@ image:gradle.png[float=left] Gradle Build Tool is a fast, dependable, and adapta
 
 In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
 
-== Why Gradle?
+== Supported Languages and Frameworks
 
-Gradle is a widely used and mature tool with an active community and a strong developer ecosystem.
-
-* Gradle is the most popular build system for the JVM and is the default system for Android and Kotlin Multi-Platform projects.
-It has a rich community plugin ecosystem.
-* Gradle can automate a wide range of software build scenarios using either its built-in functionality, third-party plugins, or custom build logic.
-* Gradle provides a high-level, declarative, and expressive build language that makes it easy to read and write build logic.
-* Gradle is fast, scalable, and can build projects of any size and complexity.
-* Gradle produces dependable results while benefiting from optimizations such as incremental builds, build caching, and parallel execution.
-
-Gradle, Inc. provides a free service called https://scans.gradle.com/[Build Scan®] that provides extensive information and insights about your builds.
-You can view scans to identify problems or share them for debugging help.
-
-=== Supported Languages and Frameworks
 Gradle supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.
 
 image::userguide-languages.png[]
 
-=== Compatible IDEs
+== Compatible IDEs
+
 All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
 image::userguide-ides.png[]
@@ -50,22 +38,77 @@ You can also invoke Gradle via its <<command_line_interface.adoc#command_line_in
 
 == Releases
 
-Information on Gradle releases and how to install Gradle is found on the <<installation.adoc#installation,Installation page>>.
+Information on Gradle releases is found on the link:https://gradle.org/releases/[Release page].
 
-== User Manual
-The Gradle User Manual is the official documentation for the Gradle Build Tool:
+== Installing Gradle
 
-* **<<getting_started_eng.adoc#introduction,Running Gradle Builds>>** — Learn how to use Gradle with your project.
-* **<<getting_started_dev.adoc#dev_introduction,Authoring Gradle Builds>>** — Learn how to develop tasks and plugins to customize your build.
-* **<<getting_started_dep_man.adoc#dependency-management-in-gradle,Working with Dependencies>>** — Learn how to add dependencies to your build.
-* **<<building_java_projects.adoc#building_java_projects,Authoring JVM Builds>>** — Learn how to use Gradle with your Java project.
-* **<<performance.adoc#performance_gradle,Optimizing Builds>>** — Learn how to use caches and other tools to optimize your build.
+Most projects will start with an existing Gradle build which does not require the installation of Gradle.
+However, if you are starting a project from scratch, and you need to install Gradle, check out the <<installation.adoc#installation,installation guide>>.
 
-== Education
+== DPE University
 
-* **Training Courses** — Head over to the link:https://gradle.org/courses/[courses page] to sign up for free Gradle training.
+Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at DPE University:
+
+++++
+<div class="badge-wrapper">
+    <a class="badge" href="https://dpeuniversity.gradle.com/" target="_blank">
+        <span class="badge-type button--blue">LEARN</span>
+        <span class="badge-text">Take courses on DPE University&nbsp;&nbsp;&nbsp;&gt;</span>
+    </a>
+</div>
+++++
+
+== For Software Developers
+
+For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
+
+=== 1. Learning the Basics
+
+[sidebar]
+_Description_: *Learn how to invoke tasks and add dependencies.* +
+_Training level_: **Beginner** +
+_Reading time_: **25 minutes** +
+<<gradle_basics.adoc#gradle,-> Read Core Concepts >>
+
+=== 2. Hands-on Beginner Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle build for a basic Java App.* +
+_Training level_: **Beginner** +
+_Training time_: **45 minutes** +
+<<part1_gradle_init#part1_begin,-> Start the Tutorial >>
+
+== For Build Engineers
+
+Build engineers that are ready to configure custom build logic or write their own plugins should start here:
+
+=== 1. Beyond the Basics
+
+[sidebar]
+_Description_: *Learn to configure builds, create tasks, and write plugins.* +
+_Training level_: **Intermediate** +
+_Reading time_: **35 minutes** +
+<<gradle_directories.adoc#gradle_directories,-> Read Core Concepts >>
+
+=== 2. Hands-on Advanced Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle project and create a basic plugin.* +
+_Training level_: **Intermediate** +
+_Training time_: **55 minutes** +
+<<part1_gradle_init_project#part1_begin,-> Start the Tutorial >>
+
+[[reference]]
+=== 3. API Reference
+
+Gradle's API references can be found in the links below:
+
+- link:{javadocPath}/index.html[Javadocs^]
+- link:{groovyDslPath}/index.html[Groovy DSL Reference^]
+- link:{kotlinDslPath}/index.html[Kotlin DSL Reference^]
 
 == Support
+
 * **Forum** — The fastest way to get help is through the link:https://discuss.gradle.org/[Gradle Forum].
 * **Slack** — Community members and core contributors answer questions directly on our link:https://gradle-community.slack.com/[Slack Channel].
 

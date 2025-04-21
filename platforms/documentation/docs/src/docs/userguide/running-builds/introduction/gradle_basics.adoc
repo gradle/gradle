@@ -34,8 +34,8 @@ image::gradle-basic-1.png[]
 
 === Dependencies and Dependency Management:
 
-- *Dependency management* is an automated technique for declaring and resolving external resources (i.e., *dependencies*) required by a project.
-- Each project typically includes a number of external dependencies that Gradle will resolve during the build.
+- *Dependency management* is an automated technique for declaring and resolving external resources required by a project.
+- Each project typically includes a number of *dependencies* that Gradle resolves during the build.
 
 === Tasks:
 
@@ -44,7 +44,7 @@ image::gradle-basic-1.png[]
 
 === Plugins:
 
-- Plugins are used to *extend Gradle's capability*
+- Plugins are used to *extend Gradle's capability*.
 - Plugins optionally contribute tasks to a project.
 
 == Project structure
@@ -58,41 +58,42 @@ A Gradle project will look similar to the following:
 [source,text]
 ----
 project
-├── gradle                              // <1>
+├── gradle                          // <1>
 │   ├── libs.versions.toml              // <2>
 │   └── wrapper
 │       ├── gradle-wrapper.jar
 │       └── gradle-wrapper.properties
-├── gradlew                             // <3>
+├── gradlew                         // <3>
 ├── gradlew.bat                         // <3>
-├── settings.gradle(.kts)               // <4>
+├── settings.gradle(.kts)           // <4>
 ├── subproject-a
 │   ├── build.gradle(.kts)              // <5>
-│   └── src                             // <6>
+│   └── src                         // <6>
 └── subproject-b
     ├── build.gradle(.kts)              // <5>
-    └── src                             // <6>
+    └── src                         // <6>
 ----
 <1> Gradle directory to store wrapper files and more
 <2> Gradle *version catalog* for dependency management
-<3> Gradle *wrapper scripts*
+<3> Gradle *wrapper scripts* - _THIS IS A GRADLE PROJECT!_
 <4> Gradle *settings file* to define a root project name and subprojects
 <5> Gradle *build scripts* of the two subprojects - `subproject-a` and `subproject-b`
 <6> *Source code* and/or additional files for the projects
 
 == Invoking Gradle
 
-=== IDE
+=== In the IDE
 
-- Gradle is <<gradle_ides.adoc#gradle_ides,built-in to many IDEs>> including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
-- Gradle can be automatically invoked when you build, clean, or run your app in the IDE.
+Gradle is <<gradle_ides.adoc#gradle_ides,built-in to many IDEs>> including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+
+Gradle can be automatically invoked when you build, clean, or run your app in the IDE.
 
 Consult the manual for the IDE of your choice to learn more about how Gradle can be used and configured.
 
-=== Command line
+=== On the Command Line
 
-- Gradle can be invoked in the command line once <<installation.adoc#installation, installed>>:
-+
+Gradle can be invoked in the command line once <<installation.adoc#installation, installed>>:
+
 [source,text]
 ----
 $ gradle build
@@ -100,19 +101,10 @@ $ gradle build
 
 Most projects do not use the installed version of Gradle but rather the Gradle Wrapper.
 
-=== Gradle Wrapper
+=== With the Gradle Wrapper
 
-- The Wrapper is a script that invokes a declared version of Gradle and is *the recommended way to execute a Gradle build*.
-- It is found in the project root directory as a `gradlew` or `gradlew.bat` file:
-+
-[source,text]
-----
-$ gradlew build         // Linux or OSX
-$ gradlew.bat build     // Windows
-----
+The wrapper is a script that invokes a declared version of Gradle and is *the recommended way to execute a Gradle build*:
 
-- The Wrapper executes the build as follows:
-+
 [source,text]
 ----
 $ ./gradlew build

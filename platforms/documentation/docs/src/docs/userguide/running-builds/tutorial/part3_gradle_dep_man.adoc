@@ -49,6 +49,7 @@ For example:
 ----
 dependencies {
     implementation("com.google.guava:guava:32.1.2-jre") // <1>
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1") // <2>
 }
 ----
@@ -63,41 +64,17 @@ It helps keep your dependencies consistent across subprojects and avoids repeati
 
 The version catalog is located at `gradle/libs.versions.toml`:
 
-.libs.versions.toml
-[source,text]
-----
-[versions]
-guava = "32.1.2-jre"
-junit-jupiter = "5.10.0"
-
-[libraries]
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
-----
+====
+include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions.toml[]"]
+====
 
 Once defined, you can reference these libraries in your `build.gradle(.kts)` files using the `libs` accessor.
 This is why our build script actually looks like this:
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-dependencies {
-    implementation(libs.guava)
-    testImplementation(libs.junit.jupiter)
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-dependencies {
-    implementation(libs.guava)
-    testImplementation(libs.junit.jupiter)
-}
-----
-=====
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+====
 
 TIP: The `libs.junit.jupiter` syntax is used because the key contains a hyphen which is a special character.
 
@@ -112,46 +89,10 @@ Gradle provides excellent support for dependency management and automation.
 
 Let's take another look at our build script, specifically the following section:
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
-
-dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation(libs.junit.jupiter)
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    // This dependency is used by the application.
-    implementation(libs.guava)
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
-
-dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation libs.junit.jupiter
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // This dependency is used by the application.
-    implementation libs.guava
-}
-----
-=====
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-declarations]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-declarations]"]
+====
 
 Some key concepts in Gradle dependency management include:
 
@@ -168,7 +109,7 @@ Let's look at `libs.guava` and `libs.junit.jupiter`:
 
 [cols="10h,30,40,20"]
 |===
-| |Description | com.google.guava:guava:32.1.2-jre | org.junit.jupiter:junit-jupiter-api:5.9.1
+| |Description | com.google.guava:guava:33.3.1-jre | org.junit.jupiter:junit-jupiter-api:5.11.3
 
 |Group
 |identifier of an organization
@@ -182,8 +123,8 @@ Let's look at `libs.guava` and `libs.junit.jupiter`:
 
 |Version
 |version # to import
-|`32.1.2-jre`
-|`5.9.1`
+|`33.3.1-jre`
+|`5.11.3`
 |===
 
 == Step 3. Understanding Transitive Dependencies
@@ -209,23 +150,53 @@ Project ':app'
 
 ...
 
-compileClasspath - Compile classpath for source set 'main'.
-\--- com.google.guava:guava:32.1.2-jre
-     +--- com.google.guava:guava-parent:32.1.2-jre
-     |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
-     |    +--- org.checkerframework:checker-qual:3.33.0 (c)
-     |    +--- com.google.errorprone:error_prone_annotations:2.18.0 (c)
-     |    \--- com.google.j2objc:j2objc-annotations:2.8 (c)
-     +--- com.google.guava:failureaccess:1.0.1
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- com.google.guava:guava:33.3.1-jre
+     +--- com.google.guava:failureaccess:1.0.2
      +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-     +--- com.google.code.findbugs:jsr305 -> 3.0.2
-     +--- org.checkerframework:checker-qual -> 3.33.0
-     +--- com.google.errorprone:error_prone_annotations -> 2.18.0
-     \--- com.google.j2objc:j2objc-annotations -> 2.8
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:3.43.0
+     +--- com.google.errorprone:error_prone_annotations:2.28.0
+     \--- com.google.j2objc:j2objc-annotations:3.0.0
 
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- com.google.guava:guava:33.3.1-jre
+|    +--- com.google.guava:failureaccess:1.0.2
+|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- org.checkerframework:checker-qual:3.43.0
+|    +--- com.google.errorprone:error_prone_annotations:2.28.0
+|    \--- com.google.j2objc:j2objc-annotations:3.0.0
++--- org.junit.jupiter:junit-jupiter:5.11.3
+|    +--- org.junit:junit-bom:5.11.3
+|    |    +--- org.junit.jupiter:junit-jupiter:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-api:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-engine:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-params:5.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-launcher:1.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-commons:1.11.3 (c)
+|    |    \--- org.junit.platform:junit-platform-engine:1.11.3 (c)
+|    +--- org.junit.jupiter:junit-jupiter-api:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    +--- org.opentest4j:opentest4j:1.3.0
+|    |    \--- org.junit.platform:junit-platform-commons:1.11.3
+|    |         \--- org.junit:junit-bom:5.11.3 (*)
+|    +--- org.junit.jupiter:junit-jupiter-params:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+|    \--- org.junit.jupiter:junit-jupiter-engine:5.11.3
+|         +--- org.junit:junit-bom:5.11.3 (*)
+|         +--- org.junit.platform:junit-platform-engine:1.11.3
+|         |    +--- org.junit:junit-bom:5.11.3 (*)
+|         |    +--- org.opentest4j:opentest4j:1.3.0
+|         |    \--- org.junit.platform:junit-platform-commons:1.11.3 (*)
+|         \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+\--- org.junit.platform:junit-platform-launcher -> 1.11.3
+     +--- org.junit:junit-bom:5.11.3 (*)
+     \--- org.junit.platform:junit-platform-engine:1.11.3 (*)
 ----
 
-The output clearly depicts that `com.google.guava:guava:32.1.2-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
+The output clearly depicts that `com.google.guava:guava:33.3.1-jre` has a dependency on `com.google.guava:failureaccess:1.0.2`.
 
 == Step 5. Viewing Dependencies in a Build Scan®
 
@@ -268,12 +239,12 @@ image::tutorial/build-scan-dependencies.png[]
 
 As expected, we can see the declared dependencies `junit` and `guava` are used by Gradle to compile, run, and test the app.
 
-Expand `com.google.guava:guava:32.1.2-jre` and `org.junit.jupiter:junit-jupiter:5.9.1` in the window:
+Expand `com.google.guava:guava:33.3.1-jre` and `org.junit.jupiter:junit-jupiter:5.11.3` in the window:
 
 image::tutorial/build-scan-trans-dependencies.png[]
 
 There are several transitive dependencies under `junit` and `guava`.
-For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:32.1.2-jre` dependency.
+For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:33.3.1-jre` dependency.
 
 == Step 6. Updating Project Dependencies
 
@@ -288,7 +259,7 @@ Change the `guava` dependency in the version catalog to:
 ----
 [versions]
 guava = "30.0-jre"
-junit-jupiter = "5.10.0"
+junit-jupiter = "5.11.3"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -309,16 +280,41 @@ Run `./gradlew :app:dependencies` in the terminal to check the changes in the de
 ----
 ...
 
-compileClasspath - Compile classpath for source set 'main'.
-\--- com.google.guava:guava:30.0-jre
-     +--- com.google.guava:failureaccess:1.0.1
-     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-     +--- com.google.code.findbugs:jsr305:3.0.2
-     +--- org.checkerframework:checker-qual:3.5.0
-     +--- com.google.errorprone:error_prone_annotations:2.3.4
-     \--- com.google.j2objc:j2objc-annotations:1.3
-
-...
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- com.google.guava:guava:30.0-jre
+|    +--- com.google.guava:failureaccess:1.0.1
+|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- org.checkerframework:checker-qual:3.5.0
+|    +--- com.google.errorprone:error_prone_annotations:2.3.4
+|    \--- com.google.j2objc:j2objc-annotations:1.3
++--- org.junit.jupiter:junit-jupiter:5.11.3
+|    +--- org.junit:junit-bom:5.11.3
+|    |    +--- org.junit.jupiter:junit-jupiter:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-api:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-engine:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-params:5.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-launcher:1.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-commons:1.11.3 (c)
+|    |    \--- org.junit.platform:junit-platform-engine:1.11.3 (c)
+|    +--- org.junit.jupiter:junit-jupiter-api:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    +--- org.opentest4j:opentest4j:1.3.0
+|    |    \--- org.junit.platform:junit-platform-commons:1.11.3
+|    |         \--- org.junit:junit-bom:5.11.3 (*)
+|    +--- org.junit.jupiter:junit-jupiter-params:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+|    \--- org.junit.jupiter:junit-jupiter-engine:5.11.3
+|         +--- org.junit:junit-bom:5.11.3 (*)
+|         +--- org.junit.platform:junit-platform-engine:1.11.3
+|         |    +--- org.junit:junit-bom:5.11.3 (*)
+|         |    +--- org.opentest4j:opentest4j:1.3.0
+|         |    \--- org.junit.platform:junit-platform-commons:1.11.3 (*)
+|         \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+\--- org.junit.platform:junit-platform-launcher -> 1.11.3
+     +--- org.junit:junit-bom:5.11.3 (*)
+     \--- org.junit.platform:junit-platform-engine:1.11.3 (*)
 ----
 
 It is clear the `guava` dependency has been updated to version `30.0` and the transitive dependencies have changed as well.

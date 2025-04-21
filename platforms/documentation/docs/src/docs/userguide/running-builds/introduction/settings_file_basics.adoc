@@ -15,14 +15,12 @@
 [[settings_file_basics]]
 = Settings File Basics
 
-The settings file is the *entry point* of every Gradle project.
+The settings file (`settings.gradle(.kts)`) is the *entry point* of every Gradle project.
 
 image::gradle-basic-3.png[]
 
-The primary purpose of the _settings file_ is to add subprojects to your build.
-
-Gradle supports single and multi-project builds.
-For:
+The primary purpose of the _settings file_ is to define the project structure, usually adding subprojects to your build.
+Therefore in:
 
 - *Single-project* builds, the settings file is *optional*.
 - *Multi-project* builds, the settings file is *mandatory* and declares all subprojects.
@@ -35,8 +33,7 @@ It is either a `settings.gradle` file written in Groovy or a `settings.gradle.kt
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
-The settings file is typically located in the root directory of the project.
-It *defines the structure of the build*, such as which projects are included.
+The settings file is typically located in the root directory of the project since it *defines the structure of the build*, such as which projects are included.
 Without a settings file, Gradle treats the build as a single-project build by default.
 
 Let's take a look at an example and break it down:
@@ -90,9 +87,9 @@ The settings file defines the structure of the project by including subprojects,
 
 [source,kotlin]
 ----
-include("app")
-include("business-logic")
-include("data-model")
+include("sub-project-a")
+include("sub-project-b")
+include("sub-project-c")
 ----
 
 The settings script is evaluated before any build scripts, making it the right place to enable or configure **build-wide features** such as plugin management, included builds, version catalogs, and more.
