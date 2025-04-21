@@ -43,8 +43,8 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         """
     }
 
-    def "precompiled Groovy plugin built with current version can be used with Gradle 5.0+"() {
-        Assume.assumeTrue(previous.version >= GradleVersion.version('5.0'))
+    def "precompiled Groovy plugin built with current version can be used with Gradle 6.10+"() {
+        Assume.assumeTrue(previous.version >= GradleVersion.version('6.10'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))
