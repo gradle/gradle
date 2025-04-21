@@ -35,6 +35,7 @@ We would like to thank the following community members for their contributions t
 [Daniel Hammer](https://github.com/dlehammer),
 [Danish Nawab](https://github.com/danishnawab),
 [Florian Dreier](https://github.com/DreierF),
+[Ivy Chen](https://github.com/Mengmeiivy),
 [Jendrik Johannes](https://github.com/jjohannes),
 [jimmy1995-gu](https://github.com/jimmy1995-gu),
 [Madalin Valceleanu](https://github.com/vmadalin),
