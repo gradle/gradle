@@ -37,7 +37,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Provider
-import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
+import org.gradle.internal.artifacts.configurations.DefaultRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -378,7 +378,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def "cannot maybeCreate invalid role (#role)"() {
         when:
-        configurationContainer.maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest("foo", role, TestUtil.problemsService()));
+        configurationContainer.maybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest("foo", role, TestUtil.problemsService()));
 
         then:
         def e = thrown(GradleException)

@@ -44,8 +44,8 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
-import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest;
+import org.gradle.internal.artifacts.configurations.DefaultRoleBasedConfigurationCreationRequest;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.jspecify.annotations.Nullable;
@@ -341,12 +341,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Configuration maybeCreateResolvableLocked(String name) {
-        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE, problemsService), true);
+        return doMaybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE, problemsService), true);
     }
 
     @Override
     public Configuration maybeCreateConsumableLocked(String name) {
-        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE, problemsService), true);
+        return doMaybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE, problemsService), true);
     }
 
     @Override
@@ -356,18 +356,16 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Configuration maybeCreateDependencyScopeLocked(String name, boolean verifyPrexisting) {
-        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService), verifyPrexisting);
+        return doMaybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService), verifyPrexisting);
     }
 
     @Override
     public Configuration maybeCreateMigratingLocked(String name, ConfigurationRole role) {
-        AbstractRoleBasedConfigurationCreationRequest request = new NoContextRoleBasedConfigurationCreationRequest(name, role, problemsService);
+        DefaultRoleBasedConfigurationCreationRequest request = new DefaultRoleBasedConfigurationCreationRequest(name, role, problemsService);
 
         ConfigurationInternal conf = findByName(request.getConfigurationName());
         if (null != conf) {
-            request.verifyExistingConfigurationUsage(conf);
-            conf.preventUsageMutation();
-            return conf;
+            throw request.failOnReservedName();
         } else {
             return migratingLocked(request.getConfigurationName(), request.getRole());
         }
@@ -376,7 +374,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     @Deprecated
     public Configuration maybeCreateResolvableDependencyScopeLocked(String name) {
-        return maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, problemsService));
+        return maybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, problemsService));
     }
 
     @Override
@@ -388,9 +386,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         ConfigurationInternal conf = findByName(request.getConfigurationName());
         if (null != conf) {
             if (verifyPrexisting) {
-                request.verifyExistingConfigurationUsage(conf);
-                conf.preventUsageMutation();
-                return conf;
+                throw request.failOnReservedName();
             } else {
                 // We should also prevent usage mutation here, but we can't because this would break
                 // existing undeprecated behavior.

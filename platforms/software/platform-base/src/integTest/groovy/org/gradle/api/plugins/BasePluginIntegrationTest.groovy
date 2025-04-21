@@ -75,18 +75,12 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name $conf. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         fails "help"
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
         failureHasCause("""Unexpected configuration usage
-  Configuration $conf already exists with permitted usage(s):
-  \tConsumable - this configuration can be selected by another project as a dependency
-  \tResolvable - this configuration can be resolved by this project to a set of files
-  \tDeclarable - this configuration can have dependencies added to it
-  Yet Gradle expected to create it with the usage(s):
-  \tConsumable - this configuration can be selected by another project as a dependency""")
+  The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle.""")
 
         where:
         conf        | creationCall
