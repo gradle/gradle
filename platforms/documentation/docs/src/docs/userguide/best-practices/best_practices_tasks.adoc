@@ -214,7 +214,7 @@ include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollectio
 include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/groovy",files="build.gradle[tags=good-zipping-task]"]
 ====
 
-<1> *Use ConfigurableFileCollection*: This allows combining file collections without their implicit resolution.
+<1> *Pass files separately*: This allows combining file collections without their implicit resolution.
 
 === Tags
 `#tasks`, `#inputs-and-outputs`, `#configurations`
