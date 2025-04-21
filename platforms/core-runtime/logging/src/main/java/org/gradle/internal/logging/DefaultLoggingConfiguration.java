@@ -20,6 +20,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.NavigationBarColorization;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
 
@@ -29,7 +30,8 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
-    private WarningMode warningMode =  WarningMode.Summary;
+    private NavigationBarColorization navigationBarColorization = NavigationBarColorization.AUTO;
+    private WarningMode warningMode = WarningMode.Summary;
 
     @Override
     public boolean equals(Object obj) {
@@ -59,6 +61,16 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     @Override
     public void setConsoleOutput(ConsoleOutput consoleOutput) {
         this.consoleOutput = consoleOutput;
+    }
+
+    @Override
+    public NavigationBarColorization getNavigationBarColorization() {
+        return navigationBarColorization;
+    }
+
+    @Override
+    public void setNavigationBarColorization(NavigationBarColorization colorization) {
+        this.navigationBarColorization = colorization;
     }
 
     @Override

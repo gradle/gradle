@@ -1,0 +1,46 @@
+== Navigation Bar Colorization
+
+Starting with Gradle 8.7, you can enable colorization of the navigation bar levels to improve visual distinction between different operation levels in the console output. This is particularly helpful when dealing with deep build hierarchies.
+
+=== Configuring Navigation Bar Colors
+
+You can control the navigation bar colorization through the `org.gradle.console.navigation.colors` property in your `gradle.properties` file:
+
+[source,properties]
+----
+# Enable navigation bar colorization
+org.gradle.console.navigation.colors=on
+
+# Only enable when supported (default)
+org.gradle.console.navigation.colors=auto
+
+# Disable navigation bar colorization
+org.gradle.console.navigation.colors=off
+----
+
+You can also control it through the command line:
+
+[source,shell]
+----
+gradle build --console-navigation-colors=on
+----
+
+=== Default Color Scheme
+
+The default color scheme uses distinct colors for each level:
+
+* Root level: Cyan
+* First level: Green
+* Second level: Yellow
+* Third level: Magenta
+* Fourth level and beyond: Blue
+
+This helps visually distinguish between different levels of operations in your build.
+
+=== Requirements
+
+Navigation bar colorization requires:
+
+* Gradle 8.7 or later
+* A terminal that supports ANSI color codes (when using `auto` mode)
+* Rich console output enabled (not plain text mode) 

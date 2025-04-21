@@ -20,51 +20,83 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
 /**
- * A {@code LoggingConfiguration} defines the logging settings for a Gradle build.
+ * <p>A {@code LoggingConfiguration} defines the logging settings for a Gradle instance.</p>
  */
 @NotToBeMigratedToLazy
 public interface LoggingConfiguration {
     /**
-     * Returns the minimum logging level to use. All log messages with a lower log level are ignored.
-     * Defaults to {@link LogLevel#LIFECYCLE}.
+     * Returns the minimum logging level to use. All messages at a lower level are discarded.
+     *
+     * @return The minimum logging level.
      */
     LogLevel getLogLevel();
 
     /**
-     * Specifies the minimum logging level to use. All log messages with a lower log level are ignored.
+     * Sets the minimum logging level to use.
+     *
+     * @param logLevel The minimum logging level.
      */
     void setLogLevel(LogLevel logLevel);
 
     /**
-     * Returns the style of logging output that should be written to the console.
-     * Defaults to {@link ConsoleOutput#Auto}
-     */
-    ConsoleOutput getConsoleOutput();
-
-    /**
-     * Specifies the style of logging output that should be written to the console.
-     */
-    void setConsoleOutput(ConsoleOutput consoleOutput);
-
-    /**
-     * Specifies which type of warnings should be written to the console.
-     * @since 4.5
-     */
-    WarningMode getWarningMode();
-
-    /**
-     * Specifies which type of warnings should be written to the console.
-     * @since 4.5
-     */
-    void setWarningMode(WarningMode warningMode);
-
-    /**
-     * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.
+     * Returns the categories of stacktrace to show.
+     *
+     * @return The stacktrace display options.
      */
     ShowStacktrace getShowStacktrace();
 
     /**
-     * Sets the detail that should be included in stacktraces.
+     * Sets the categories of stacktrace to show.
+     *
+     * @param showStacktrace The stacktrace display options.
      */
     void setShowStacktrace(ShowStacktrace showStacktrace);
+
+    /**
+     * Returns the console output type.
+     *
+     * @return The console output type.
+     */
+    ConsoleOutput getConsoleOutput();
+
+    /**
+     * Sets the console output type.
+     *
+     * @param consoleOutput The console output type.
+     */
+    void setConsoleOutput(ConsoleOutput consoleOutput);
+
+    /**
+     * Returns the navigation bar colorization setting.
+     *
+     * @return The navigation bar colorization setting.
+     * @since 8.7
+     */
+    default NavigationBarColorization getNavigationBarColorization() {
+        return NavigationBarColorization.AUTO;
+    }
+
+    /**
+     * Sets the navigation bar colorization setting.
+     *
+     * @param colorization The navigation bar colorization setting.
+     * @since 8.7
+     */
+    default void setNavigationBarColorization(NavigationBarColorization colorization) {
+        // Default implementation does nothing
+    }
+
+    /**
+     * Returns the warning mode.
+     *
+     * @return The warning mode.
+     */
+    WarningMode getWarningMode();
+
+    /**
+     * Sets the warning mode.
+     *
+     * @param warningMode The warning mode.
+     */
+    void setWarningMode(WarningMode warningMode);
 }

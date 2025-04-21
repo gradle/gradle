@@ -17,6 +17,8 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.NavigationBarColorization;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -24,12 +26,15 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
+import org.gradle.internal.logging.text.NavigationBarColors;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -62,11 +67,20 @@ public class BuildStatusRenderer implements OutputEventListener {
     private long buildStartTimestamp;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    private final NavigationBarColors navigationBarColors;
+    private final ConsoleOutput consoleOutput;
+    private final NavigationBarColorization colorization;
+    private final Map<OperationIdentifier, Integer> operationLevels = new HashMap<>();
+    private int currentLevel = 0;
+
+    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, ConsoleOutput consoleOutput, NavigationBarColorization colorization) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
         this.consoleMetaData = consoleMetaData;
+        this.consoleOutput = consoleOutput;
+        this.colorization = colorization;
+        this.navigationBarColors = new NavigationBarColors();
     }
 
     @Override
@@ -159,5 +173,42 @@ public class BuildStatusRenderer implements OutputEventListener {
             PROGRESS_BAR_COMPLETE_CHAR,
             PROGRESS_BAR_INCOMPLETE_CHAR,
             initialSuffix, initialProgress, totalProgress);
+    }
+
+    public void onStart(ProgressStartEvent event) {
+        if (event.getBuildOperationCategory() != null) {
+            operationLevels.put(event.getOperationId(), currentLevel);
+            currentLevel++;
+        }
+    }
+
+    public void onComplete(OperationIdentifier operationId) {
+        Integer level = operationLevels.remove(operationId);
+        if (level != null) {
+            currentLevel = level;
+        }
+    }
+
+    public String formatOperation(String text, OperationIdentifier operationId) {
+        if (shouldColorize()) {
+            Integer level = operationLevels.get(operationId);
+            if (level != null) {
+                return navigationBarColors.colorize(text, level);
+            }
+        }
+        return text;
+    }
+
+    private boolean shouldColorize() {
+        switch (colorization) {
+            case OFF:
+                return false;
+            case ON:
+                return true;
+            case AUTO:
+            default:
+                return consoleOutput == ConsoleOutput.Rich || 
+                       (consoleOutput == ConsoleOutput.Auto && ConsoleMetaData.isStdOutIsTerminal());
+        }
     }
 }
