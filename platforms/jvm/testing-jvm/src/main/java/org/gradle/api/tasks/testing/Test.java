@@ -1023,7 +1023,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), getDryRun()));
+        useTestFramework(getObjectFactory().newInstance(JUnitPlatformTestFramework.class, getFilter(), getDryRun()));
     }
 
     /**

@@ -1441,6 +1441,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "member": "Class org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "acceptation": "abstract classes are better for decoration",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.caching.BuildCacheKey",
             "member": "Method org.gradle.caching.BuildCacheKey.getDisplayName()",
             "acceptation": "Removed deprecated method",
