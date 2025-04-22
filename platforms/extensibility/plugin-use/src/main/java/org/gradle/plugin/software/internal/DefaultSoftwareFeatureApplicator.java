@@ -17,6 +17,7 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -74,8 +75,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     public <T> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
-            Class<? extends T> dslType = softwareFeature.getModelPublicType();
-            T dslObject = target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+            T dslObject = createDslObject(target, softwareFeature);
             Object buildModelObject = ((ExtensionAware)dslObject).getExtensions().create(SoftwareFeatureBinding.MODEL, softwareFeature.getBuildModelType());
             SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
             softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(target), Cast.uncheckedCast(buildModelObject));
@@ -87,6 +87,19 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             modelDefaultsApplicator.applyDefaultsTo(target, new ClassLoaderContextFromScope(classLoaderScope), plugin, softwareFeature);
         }
         return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getFeatureName()));
+    }
+
+    private <T> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature) {
+        Class<? extends T> dslType = softwareFeature.getDefinitionImplementationType();
+        if (Named.class.isAssignableFrom(dslType)) {
+            if (Named.class.isAssignableFrom(target.getClass())) {
+                return target.getExtensions().create(softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
+            } else {
+                throw new IllegalArgumentException("Cannot infer a name for " + dslType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
+            }
+        } else {
+            return target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+        }
     }
 
     private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareFeatureImplementation<T> softwareFeature, Plugin<?> plugin) {

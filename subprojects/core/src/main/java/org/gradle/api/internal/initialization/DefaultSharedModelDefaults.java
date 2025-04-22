@@ -66,10 +66,10 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
         if (softwareFeatureRegistry.getSoftwareFeatureImplementations().containsKey(name)) {
             SoftwareFeatureImplementation<?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
-            if (softwareFeature.getModelPublicType().isAssignableFrom(publicType)) {
+            if (softwareFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
                 softwareFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
-                throw new IllegalArgumentException(String.format("Cannot add convention for software type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, softwareFeature.getModelPublicType()));
+                throw new IllegalArgumentException(String.format("Cannot add convention for software type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, softwareFeature.getDefinitionPublicType()));
             }
         } else {
             throw new IllegalArgumentException(String.format("Cannot add convention for unknown software type '%s'.", name));
@@ -93,7 +93,7 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
                 SoftwareFeatureImplementation<?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
-                add(name, softwareFeature.getModelPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
+                add(name, softwareFeature.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
             } else {
                 return DynamicInvokeResult.notFound();

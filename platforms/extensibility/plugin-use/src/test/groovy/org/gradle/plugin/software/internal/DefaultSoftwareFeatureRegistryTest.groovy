@@ -58,7 +58,7 @@ class DefaultSoftwareFeatureRegistryTest extends Specification {
 
         and:
         implementations.size() == 1
-        implementations[0].modelPublicType == TestModel
+        implementations[0].definitionPublicType == TestModel
         implementations[0].featureName == "test"
 
         where:

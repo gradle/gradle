@@ -138,7 +138,7 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
 
     override fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>> =
         softwareFeatureRegistry.softwareFeatureImplementations.entries.map { (name, implementation) ->
-            SoftwareFeatureEntry(name, TypeOf.typeOf(implementation.modelPublicType))
+            SoftwareFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType))
         }
 
     /**

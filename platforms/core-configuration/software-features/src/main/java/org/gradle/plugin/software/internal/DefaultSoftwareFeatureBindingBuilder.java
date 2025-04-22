@@ -36,4 +36,10 @@ public class DefaultSoftwareFeatureBindingBuilder extends AbstractDslBindingBuil
         configuration.execute(this);
         return this;
     }
+
+    @Override
+    public <V> SoftwareFeatureBindingBuilder withImplementationType(Class<V> implementationType) {
+        super.withImplementationType(implementationType);
+        return this;
+    }
 }
