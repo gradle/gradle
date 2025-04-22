@@ -97,7 +97,6 @@ class KnownProblemIds {
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
         'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
         'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower has been deprecated.'],
-        'deprecation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin.'],
         'deprecation:included-build-script': ['Included build script has been deprecated.'],
         'deprecation:included-build-task': ['Included build task has been deprecated.'],
         'deprecation:init-script': ['Init script has been deprecated.'],
@@ -143,6 +142,7 @@ class KnownProblemIds {
         'validation:type-validation:invalid-use-of-type-annotation': ['Incorrect use of type annotation'],
         'validation:type-validation:not-cacheable-without-reason': ['Not cacheable without reason'],
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
+        'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
 
         // dependency resolution failures
         'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
