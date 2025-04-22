@@ -297,4 +297,48 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         "project.configurations.detachedConfiguration()"                                    | "configuration ':detachedConfiguration2'"
         "project.configurations.compileClasspath, project.configurations.runtimeClasspath"  | "configuration ':compileClasspath', configuration ':runtimeClasspath'"
     }
+
+    def "foo"() {
+        mavenRepo.module("org", "foo").publish()
+
+        settingsFile << """
+            include 'a'
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(':a'))
+            }
+
+            // Execute resolution at configuration time, causing
+            // project :a to be resolved on-demand at configuration time.
+            configurations.compileClasspath.incoming.files.each {
+                println it
+            }
+        """
+
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+
+            // Execute resolution at configuration time
+            configurations.compileClasspath.incoming.files.each {
+                println it
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
 }
