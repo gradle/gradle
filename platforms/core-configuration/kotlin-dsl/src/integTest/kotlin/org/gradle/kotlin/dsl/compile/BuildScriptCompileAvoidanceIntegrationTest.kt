@@ -304,9 +304,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
     }
 
     @Test
-    @Ignore("https://youtrack.jetbrains.com/issue/KT-62557/Wrong-ABI-fingerprint-for-public-function-delegating-to-internal-inline-function")
     fun `avoids buildscript recompilation on internal inline function change in buildSrc class`() {
-        // TODO: see ignore reason issue, this is working "as designed", adapt our expectations
+        // discussed in: https://youtrack.jetbrains.com/issue/KT-62557/Wrong-ABI-fingerprint-for-public-function-delegating-to-internal-inline-function
 
         val className = givenKotlinClassInBuildSrcContains(
             """
@@ -327,7 +326,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
             }
             """
         )
-        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
     @Test
