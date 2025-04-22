@@ -127,7 +127,7 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 - <<build_cache_concepts.adoc#non_cacheable_tasks,Non-cacheable Tasks>>
 
 === Tags
-`#tasks`, `#caching`
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
 
 == Don't resolve Configurations before Task Execution
 
@@ -169,7 +169,7 @@ include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually
 <4> *Consume actual jar file or classes directory to calculate digest*: Here all files should exist at this point.
 
 === Tags
-`#tasks`, `#inputs-and-outputs`, `#configurations`
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#configurations>>`
 
 == Avoid using eager APIs on File Collections before Task Execution
 
@@ -199,4 +199,4 @@ include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollectio
 <1> *Pass files separately*: This allows combining file collections without their implicit resolution.
 
 === Tags
-`#tasks`, `#inputs-and-outputs`, `#configurations`
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#configurations>>`
