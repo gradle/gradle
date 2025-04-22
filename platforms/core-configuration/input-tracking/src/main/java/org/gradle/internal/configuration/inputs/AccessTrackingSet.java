@@ -21,8 +21,13 @@ import com.google.common.collect.Iterators;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -31,7 +36,7 @@ import java.util.function.Function;
  *
  * @param <E> the type of elements
  */
-class AccessTrackingSet<E> extends ForwardingSet<E> {
+class AccessTrackingSet<E> extends ForwardingSet<E> implements Serializable {
     public interface Listener {
         void onAccess(@Nullable Object o);
 
@@ -42,7 +47,6 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
         void onClear();
     }
 
-    // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of entrySet/keySet methods are currently tracked.
     private final Set<? extends E> delegate;
     private final Listener listener;
     private final Function<E, E> factory;
@@ -159,5 +163,31 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
 
     private void reportAggregatingAccess() {
         listener.onAggregatingAccess();
+    }
+
+    private Object writeReplace() {
+        // When we serialize the whole set, it is likely used as a task input.
+        // We don't know how it is going to be used afterward, and we cannot affect the fingerprint during execution.
+        // Let's be pessimistic and consider everything an input.
+        reportAggregatingAccess();
+        // We cannot just return a LinkedHashSet here, because of a CC bug.
+        // When handling the writeReplace result, CC always serializes it as a Bean, not adhering to any custom protocol.
+        // The LinkedHashSet cannot be serialized correctly as a bean, so we have to wrap it.
+        return new SerializedForm(new ArrayList<>(delegate));
+    }
+
+    /**
+     * Workaround for <a href="https://github.com/gradle/gradle/issues/26942">CC's inability to serialize result of writeReplace properly</a>.
+     */
+    private static class SerializedForm implements Serializable {
+        private final List<?> delegate;
+
+        private SerializedForm(List<?> delegate) {
+            this.delegate = delegate;
+        }
+
+        private Object readResolve() {
+            return new LinkedHashSet<>(Objects.requireNonNull(delegate));
+        }
     }
 }
