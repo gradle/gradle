@@ -765,6 +765,11 @@
             <pgp value="263923711EF4FE3F3F0C28AF11509ED50EC155E6"/>
          </artifact>
       </component>
+      <component group="com.typesafe" name="config" version="1.4.1">
+         <artifact name="config-1.4.1.jar">
+            <pgp value="E88BF2559874BA889D34357C0555B3BA1CA4ECF9"/>
+         </artifact>
+      </component>
       <component group="com.uwyn" name="jhighlight" version="1.0">
          <artifact name="jhighlight-1.0.jar">
             <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c" origin="Verified" reason="Artifact is not signed"/>
@@ -1658,6 +1663,7 @@
       </component>
       <component group="org.vafer" name="jdependency" version="2.12">
          <artifact name="jdependency-2.12.jar">
+            <pgp value="79156E0351AF8604DE9B186B09A79E1E15A04694"/>
             <sha256 value="c6ec4d03f9f04fb6448d36af43a1cc069a21ecb5e870133dd18fed4f4db1de68" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
