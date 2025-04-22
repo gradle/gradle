@@ -43,7 +43,7 @@ public class SupportedJavaVersions {
     /**
      * The minimum JVM version that is required to run the Gradle daemon.
      */
-    public static final int MINIMUM_DAEMON_JAVA_VERSION = 8;
+    public static final int MINIMUM_DAEMON_JAVA_VERSION = 17;
 
     /**
      * The minimum JVM version that will be required to run the Gradle daemon in the next major Gradle version.

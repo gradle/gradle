@@ -34,12 +34,11 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
@@ -85,7 +84,6 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
-    GradleConnectionException caughtGradleConnectionException
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
@@ -500,7 +498,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         List<String> maybeExpectedDeprecations = []
         if (filterJavaVersionDeprecation) {
             maybeExpectedDeprecations.add(
-                normalizeDeprecationWarning(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(targetDist.version))
+                normalizeDeprecationWarning(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(targetDist.version))
             )
         }
 

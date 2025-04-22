@@ -19,7 +19,7 @@ package org.gradle.testfixtures
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -103,7 +103,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         testExecuted()
-        assertTestStdout(containsString(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning))
+        assertTestStdout(containsString(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning))
     }
 
     @Requires(UnitTestPreconditions.NonDeprecatedDaemonJdkVersion)
@@ -119,7 +119,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         testExecuted()
-        assertTestStdout(not(containsString(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)))
+        assertTestStdout(not(containsString(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)))
     }
 
     void withTest(String body) {
