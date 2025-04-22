@@ -209,6 +209,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.Dependency",
+            "member": "Method org.gradle.api.artifacts.Dependency.contentEquals(org.gradle.api.artifacts.Dependency)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.LenientConfiguration",
             "member": "Method org.gradle.api.artifacts.LenientConfiguration.getArtifacts(org.gradle.api.specs.Spec)",
             "acceptation": "Removed deprecated method",
@@ -1161,6 +1169,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchivePath()",
+            "acceptation": "remove deprecated property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.AbstractCompile",
             "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
             "acceptation": "Removing @Deprecated property for Gradle 9.0",
@@ -1369,6 +1385,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.TestFrameworkOptions",
+            "member": "Class org.gradle.api.tasks.testing.TestFrameworkOptions",
+            "acceptation": "abstract classes are better for injection",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getDestinationDir()",
             "acceptation": "Removed deprecated method",
@@ -1409,6 +1433,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "member": "Class org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "acceptation": "abstract classes are better for injection",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "member": "Class org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "acceptation": "abstract classes are better for decoration",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.caching.BuildCacheKey",
             "member": "Method org.gradle.caching.BuildCacheKey.getDisplayName()",
             "acceptation": "Removed deprecated method",
@@ -1430,14 +1470,6 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.jvm.toolchain.JvmVendorSpec",
-            "member": "Field IBM_SEMERU",
-            "acceptation": "Deprecated API",
-            "changes": [
-                "Field has been removed"
             ]
         },
         {

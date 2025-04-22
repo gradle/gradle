@@ -1059,7 +1059,7 @@ tasks.withType(JavaCompile) {
 [[deprecated_content_equals]]
 ==== Deprecated `Dependency#contentEquals(Dependency)`
 
-The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
+The `Dependency#contentEquals(Dependency)` method has been deprecated and will be removed in Gradle 9.0.
 
 The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
 The existing method does not behave as specified by its Javadoc, and we do not plan to introduce a replacement that does.

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
@@ -60,6 +60,6 @@ public class TestNGTestFrameworkTest extends Specification {
     }
 
     TestNGTestFramework createFramework() {
-        new TestNGTestFramework(testTask, new DefaultTestFilter(), objects)
+        TestUtil.objectFactory().newInstance(TestNGTestFramework.class, testTask.getFilter(), testTask.getTemporaryDirFactory(), testTask.getDryRun(), testTask.getReports().getHtml())
     }
 }

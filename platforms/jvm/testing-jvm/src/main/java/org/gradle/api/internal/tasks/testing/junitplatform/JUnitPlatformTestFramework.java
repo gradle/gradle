@@ -24,53 +24,52 @@ import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
-public class JUnitPlatformTestFramework implements TestFramework {
+public abstract class JUnitPlatformTestFramework implements TestFramework {
     private static final Logger LOGGER = Logging.getLogger(JUnitPlatformTestFramework.class);
 
-    private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
     private final Provider<Boolean> dryRun;
 
+    @Inject
     public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun) {
-        this(filter, new JUnitPlatformOptions(), dryRun);
-    }
-
-    private JUnitPlatformTestFramework(DefaultTestFilter filter, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
         this.filter = filter;
-        this.options = options;
         this.dryRun = dryRun;
     }
 
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        JUnitPlatformOptions copiedOptions = new JUnitPlatformOptions();
-        copiedOptions.copyFrom(options);
+        JUnitPlatformTestFramework newTestFramework = getObjectFactory().newInstance(JUnitPlatformTestFramework.class,
+            newTestFilters,
+            dryRun);
 
-        return new JUnitPlatformTestFramework(
-            (DefaultTestFilter) newTestFilters,
-            copiedOptions,
-            dryRun
-        );
+        newTestFramework.getOptions().copyFrom(getOptions());
+        return newTestFramework;
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         validateOptions();
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
-            filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
-            options.getIncludeTags(), options.getExcludeTags(), dryRun.get()
+            filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
+            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get()
         ));
     }
 
@@ -80,9 +79,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public JUnitPlatformOptions getOptions() {
-        return options;
-    }
+    @Nested
+    public abstract JUnitPlatformOptions getOptions();
 
     @Override
     public TestFrameworkDetector getDetector() {
@@ -95,8 +93,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     private void validateOptions() {
-        Set<String> intersection = Sets.newHashSet(options.getIncludeTags());
-        intersection.retainAll(options.getExcludeTags());
+        Set<String> intersection = Sets.newHashSet(getOptions().getIncludeTags());
+        intersection.retainAll(getOptions().getExcludeTags());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  " +

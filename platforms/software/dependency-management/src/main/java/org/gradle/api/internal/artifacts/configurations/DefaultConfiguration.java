@@ -397,21 +397,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         for (Configuration extended : extendsFrom) {
             ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
             if (!domainObjectContext.equals(other.getDomainObjectContext())) {
-
-                String message = String.format(
-                    "Configuration '%s' in %s extends configuration '%s' in %s.",
-                    this.getName(),
+                throw new InvalidUserDataException(String.format(
+                    "%s in %s cannot extend %s from %s. Configurations can only extend from configurations in the same context.",
+                    displayName.getCapitalizedDisplayName(),
                     this.domainObjectContext.getDisplayName(),
-                    other.getName(),
+                    other.getDisplayName(),
                     other.getDomainObjectContext().getDisplayName()
-                );
-
-                DeprecationLogger.deprecateBehaviour(message)
-                    .withAdvice("Configurations can only extend from configurations in the same project.")
-                    .willBeRemovedInGradle9()
-                    .withUpgradeGuideSection(8, "extending_configurations_in_same_project")
-                    .nagUser();
-
+                ));
             }
             if (other.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -1478,11 +1470,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         usageCanBeMutated = false;
     }
 
-    @Override
-    public boolean usageCanBeMutated() {
-        return usageCanBeMutated;
-    }
-
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
@@ -1657,19 +1644,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    @Override
-    public void setAllowedUsageFromRole(ConfigurationRole role) {
-        if (isCanBeConsumed() != role.isConsumable()) {
-            setCanBeConsumedInternal(role.isConsumable());
-        }
-        if (isCanBeResolved() != role.isResolvable()) {
-            setCanBeResolvedInternal(role.isResolvable());
-        }
-        if (isCanBeDeclared() != role.isDeclarable()) {
-            setCanBeDeclaredInternal(role.isDeclarable());
-        }
-    }
-
     @VisibleForTesting
     ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
@@ -1729,13 +1703,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void assertNotDetachedExtensionDoingExtending(Iterable<Configuration> extendsFrom) {
         if (isDetachedConfiguration()) {
             String summarizedExtensionTargets = StreamSupport.stream(extendsFrom.spliterator(), false)
-                .map(c -> "'" + c.getName() + "'")
+                .map(ConfigurationInternal.class::cast)
+                .map(ConfigurationInternal::getDisplayName)
                 .collect(Collectors.joining(", "));
-            DeprecationLogger.deprecateAction(String.format("Calling extendsFrom on %s", this.getDisplayName()))
-                .withContext(String.format("Detached configurations should not extend other configurations, this was extending: %s.", summarizedExtensionTargets))
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "detached_configurations_cannot_extend")
-                .nagUser();
+            GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
+            ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
+            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+                spec.contextualLabel(ex.getMessage());
+                spec.severity(Severity.ERROR);
+            });
         }
     }
 

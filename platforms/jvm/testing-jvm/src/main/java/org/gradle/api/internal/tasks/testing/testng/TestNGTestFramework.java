@@ -25,49 +25,35 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 @UsedByScanPlugin("test-retry")
-public class TestNGTestFramework implements TestFramework {
-    private final TestNGOptions options;
+public abstract class TestNGTestFramework implements TestFramework {
     private TestNGDetector detector;
     private final DefaultTestFilter filter;
-    private final ObjectFactory objects;
     private final Factory<File> testTaskTemporaryDir;
-    private final DirectoryReport htmlReport;
     private final Provider<Boolean> dryRun;
+    private final DirectoryReport html;
 
-    public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, ObjectFactory objects) {
-        this(
-            filter,
-            objects,
-            testTask.getTemporaryDirFactory(),
-            testTask.getReports().getHtml(),
-            objects.newInstance(TestNGOptions.class),
-            testTask.getDryRun()
-        );
-    }
-
-    private TestNGTestFramework(DefaultTestFilter filter, ObjectFactory objects, Factory<File> testTaskTemporaryDir, DirectoryReport htmlReport, TestNGOptions options, Provider<Boolean> dryRun) {
+    @Inject
+    public TestNGTestFramework(DefaultTestFilter filter, Factory<File> testTaskTemporaryDir, Provider<Boolean> dryRun, DirectoryReport html) {
         this.filter = filter;
-        this.objects = objects;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
-        this.htmlReport = htmlReport;
-        this.options = options;
         this.detector = new TestNGDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
         this.dryRun = dryRun;
-
-        conventionMapOutputDirectory(options, htmlReport);
+        this.html = html;
+        conventionMapOutputDirectory(getOptions(), html);
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
@@ -79,26 +65,23 @@ public class TestNGTestFramework implements TestFramework {
         });
     }
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        TestNGOptions copiedOptions = objects.newInstance(TestNGOptions.class);
-        copiedOptions.copyFrom(options);
+        TestNGTestFramework newTestFramework = getObjectFactory().newInstance(TestNGTestFramework.class, newTestFilters, testTaskTemporaryDir, dryRun, html);
+        newTestFramework.getOptions().copyFrom(getOptions());
 
-        return new TestNGTestFramework(
-            (DefaultTestFilter) newTestFilters,
-            objects,
-            testTaskTemporaryDir,
-            htmlReport,
-            copiedOptions,
-            dryRun);
+        return newTestFramework;
     }
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
-        TestNGSpec spec = toSpec(options, filter);
-        return new TestNgTestClassProcessorFactory(this.options.getOutputDirectory(), spec, suiteFiles);
+        List<File> suiteFiles = getOptions().getSuites(testTaskTemporaryDir.create());
+        TestNGSpec spec = toSpec(getOptions(), filter);
+        return new TestNgTestClassProcessorFactory(this.getOptions().getOutputDirectory(), spec, suiteFiles);
     }
 
     private TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
@@ -116,9 +99,8 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public TestNGOptions getOptions() {
-        return options;
-    }
+    @Nested
+    public abstract TestNGOptions getOptions();
 
     @Override
     public TestNGDetector getDetector() {

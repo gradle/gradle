@@ -680,9 +680,9 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                 [apiElements, runtimeElements].each {
                     assert it.canBeConsumed == true
                     assert it.canBeResolved == false
-                    assert it.canBeDeclared == true
+                    assert it.canBeDeclared == false
 
-                    assert it.deprecatedForDeclarationAgainst == true
+                    assert it.deprecatedForDeclarationAgainst == false
                     assert it.deprecatedForResolution == false
                     assert it.deprecatedForConsumption == false
                 }

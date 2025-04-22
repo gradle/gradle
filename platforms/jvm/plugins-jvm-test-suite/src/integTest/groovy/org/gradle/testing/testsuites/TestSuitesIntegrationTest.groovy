@@ -1028,7 +1028,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             // alphabetical ordering seems to interfere here, if we used `s` instead of `t`, the check passes just fine
             def testImplHolder = configurations.create("uasdf")
             def testCopy = configurations.testImplementation.copy()
-            configurations.add(testCopy)
             testImplHolder.extendsFrom(testCopy)
 
             task assertCopyCanBeResolved {

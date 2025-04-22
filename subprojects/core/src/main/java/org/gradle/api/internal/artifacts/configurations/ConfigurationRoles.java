@@ -59,6 +59,7 @@ public final class ConfigurationRoles {
      *
      * These situations should be updated to use a separate dependency scope configuration for declaring dependencies and extend it with a separate resolvable configuration.
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public static final ConfigurationRole RESOLVABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole("Resolvable Dependency Scope", false, true, true);
 
@@ -67,6 +68,7 @@ public final class ConfigurationRoles {
      *
      * This <strong>SHOULD NOT</strong> be necessary, and is a symptom of an over-permissive configuration.
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE = createNonDeprecatedRole("Consumable Dependency Scope", true, false, true);
 

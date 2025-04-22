@@ -16,10 +16,16 @@
 
 package org.gradle.internal.artifacts.configurations;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 /**
  * An {@code abstract} implementation of {@link RoleBasedConfigurationCreationRequest} that
@@ -28,10 +34,12 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCr
 public abstract class AbstractRoleBasedConfigurationCreationRequest implements RoleBasedConfigurationCreationRequest {
     protected final String configurationName;
     protected final ConfigurationRole role;
+    protected final InternalProblems problemsService;
 
-    protected AbstractRoleBasedConfigurationCreationRequest(String configurationName, ConfigurationRole role) {
+    protected AbstractRoleBasedConfigurationCreationRequest(String configurationName, ConfigurationRole role, InternalProblems problemsService) {
         this.configurationName = configurationName;
         this.role = role;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -64,14 +72,26 @@ public abstract class AbstractRoleBasedConfigurationCreationRequest implements R
         ConfigurationInternal internalConf = (ConfigurationInternal) conf;
 
         if (!getRole().isUsageConsistentWithRole(conf)) {
-            warnAboutNeedToMutateUsage(internalConf);
-            if (internalConf.usageCanBeMutated()) {
-                internalConf.setAllowedUsageFromRole(getRole());
-            } else {
-                failOnInabilityToMutateUsage();
-            }
+            failOnNeedToMutateUsage(internalConf);
         }
 
         return conf;
     }
+
+    @Override
+    public void failOnNeedToMutateUsage(DeprecatableConfiguration conf) {
+        String msgDiscovery = getUsageDiscoveryMessage(conf);
+        String msgExpectation = getUsageExpectationMessage();
+
+        GradleException ex = new GradleException(msgDiscovery + msgExpectation);
+        ProblemId id = ProblemId.create("unexpected configuration usage", "Unexpected configuration usage", GradleCoreProblemGroup.configurationUsage());
+        throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            spec.contextualLabel(ex.getMessage());
+            spec.severity(Severity.ERROR);
+        });
+    }
+
+    protected abstract String getUsageDiscoveryMessage(DeprecatableConfiguration conf);
+
+    protected abstract String getUsageExpectationMessage();
 }

@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
@@ -100,31 +98,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
-    @Deprecated
-    public boolean contentEquals(Dependency dependency) {
-
-        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
-            .withAdvice("Use Object.equals(Object) instead")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_content_equals")
-            .nagUser();
-
-        if (this == dependency) {
-            return true;
-        }
-        if (getClass() != dependency.getClass()) {
-            return false;
-        }
-
-        DefaultProjectDependency that = (DefaultProjectDependency) dependency;
-        if (!isCommonContentEquals(that)) {
-            return false;
-        }
-
-        return getTargetProjectIdentity().equals(that.getTargetProjectIdentity());
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -134,20 +107,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
 
         DefaultProjectDependency that = (DefaultProjectDependency) o;
-        if (!this.getTargetProjectIdentity().equals(that.getTargetProjectIdentity())) {
-            return false;
-        }
-        if (getTargetConfiguration() != null ? !this.getTargetConfiguration().equals(that.getTargetConfiguration())
-            : that.getTargetConfiguration() != null) {
-            return false;
-        }
-        if (!Objects.equal(getAttributes(), that.getAttributes())) {
-            return false;
-        }
-        if (!Objects.equal(getCapabilitySelectors(), that.getCapabilitySelectors())) {
-            return false;
-        }
-        return true;
+        return getTargetProjectIdentity().equals(that.getTargetProjectIdentity()) &&
+            isCommonContentEquals(that);
     }
 
     @Override

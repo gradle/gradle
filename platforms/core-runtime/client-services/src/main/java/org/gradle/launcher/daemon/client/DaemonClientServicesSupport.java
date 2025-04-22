@@ -51,6 +51,7 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
@@ -140,7 +141,12 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, PropertyFactory propertyFactory, ServiceRegistry serviceRegistry) {
+        // The creation of this service is deemed expensive enough in the context of the launcher.
+        // We defer it, because it is only needed if daemon toolchains are active and there is no compatible running daemon.
+        // The service registry does not currently support lazy service injection out-of-the-box.
+        // Caveat of this hack: the service registry does not observe the dependency between these two services, so there is no closing order guarantee
+        Lazy<JavaToolchainQueryService> javaToolchainQueryService = Lazy.unsafe().of(() -> serviceRegistry.get(JavaToolchainQueryService.class));
         return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
     }
 

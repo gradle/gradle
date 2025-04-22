@@ -87,6 +87,7 @@ trait WithPluginValidation {
                 "validateExternalPlugins",
                 "--continue",
                 *extraParameters] as String[])
+            validation.ignoreStackTraces("We are only checking type validation problems here")
             validation.ignoreDeprecationWarnings("We are only checking type validation problems here")
             validation.withJdkWarningChecksDisabled()
 
