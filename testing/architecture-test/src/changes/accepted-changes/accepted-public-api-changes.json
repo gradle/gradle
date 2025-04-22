@@ -969,6 +969,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.reporting.ConfigurableReport",
+            "member": "Method org.gradle.api.reporting.ConfigurableReport.setDestination(java.io.File)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.reporting.GenerateBuildDashboard",
             "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getCollectionCallbackActionDecorator()",
             "acceptation": "Removed deprecated method",
