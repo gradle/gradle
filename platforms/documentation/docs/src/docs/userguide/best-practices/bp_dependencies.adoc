@@ -160,3 +160,42 @@ include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[dont_depend_on_kotlin_stdlib]]
+== Don't Explicitly Depend on the Kotlin Standard Library
+:keywords: dependencies
+
+The Kotlin Gradle Plugin automatically adds a dependency on the Kotlin standard library (`stdlib`) to each source set, so there is no need to declare it explicitly.
+
+=== Explanation
+
+The version of the standard library added is the same as the version of the Kotlin Gradle Plugin applied to the project.  
+If your build does not require a specific or different version of the standard library, you should avoid adding it manually.
+
+NOTE: Setting the `kotlin.stdlib.default.dependency` property to `false` prevents the Kotlin plugin from automatically adding the Kotlin standard library dependency to your project. This can be useful in specific scenarios, such as when you want to manage the Kotlin standard library dependency version manually.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *`stdlib` is explicitly depended upon*: This project contains an implicit dependency on the Kotlin standard library, which is required to compile its source code.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/kotlinStdLib-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/kotlinStdLib-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+*`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
+
+=== References
+- https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html[the `kotlin()` function]
+
+=== Tags
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
