@@ -16,20 +16,18 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.junit.Assume
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 
 /**
  * Test the worker API behavior across JDK versions.
  */
-class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
+class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorIntegrationTest implements JavaToolchainFixture {
 
-    def configureForVersion(JavaVersion javaVersion) {
-        String version = javaVersion.majorVersion
-
-        def target = AvailableJavaHomes.getJdk(javaVersion)
-        Assume.assumeNotNull(target)
+    def configureForJdk(Jvm jvm) {
+        // Ensure the plugin will run on both the daemon and the worker process
+        int pluginJavaVersion = Math.min(jvm.javaVersionMajor, Jvm.current().javaVersionMajor)
 
         file("included/src/main/java/com/example/BlankPlugin.java") << """
             package com.example;
@@ -57,17 +55,17 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
                 public TestWorkAction() {}
                 @Override
                 public void execute() {
-                    System.out.println("Version: " + System.getProperty("java.version"));
+                    System.out.println("Version: " + System.getProperty("java.specification.version"));
                 }
             }
         """
         file("included/build.gradle") << """
             plugins {
-                id 'java-gradle-plugin'
+                id("java-gradle-plugin")
             }
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(${version})
+                    languageVersion = JavaLanguageVersion.of(${pluginJavaVersion})
                 }
             }
             gradlePlugin {
@@ -82,13 +80,13 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
         settingsFile << "includeBuild 'included'"
         buildFile << """
             plugins {
-                id 'jvm-toolchains'
-                id 'test.worker'
+                id("jvm-toolchains")
+                id("test.worker")
             }
             import com.example.TestWorkAction
 
             def launcher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(${version})
+                languageVersion = JavaLanguageVersion.of(${jvm.javaVersionMajor})
             }.get()
             task runInDaemon(type: WorkerTask) {
                 isolationMode = 'processIsolation'
@@ -98,35 +96,21 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
             }
         """
 
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + target.javaHome.absolutePath)
-    }
-
-    def "fails when using incompatible java version: #version"() {
-        given:
-        configureForVersion(version)
-
-        when:
-        executer.withStackTraceChecksDisabled()
-        fails("runInDaemon")
-
-        then:
-        outputContains("Unsupported major.minor version 52.0")
-
-        where:
-        // We can't test against Java 6 since the gradleApi dependencies are compiled to java 8.
-        // However, the java 7 compiler is permissive enough to compile against the java 8 API classes.
-        version << [JavaVersion.VERSION_1_7]
+        withInstallations(jvm)
     }
 
     def "succeeds when running with compatible java version"() {
         given:
-        configureForVersion(JavaVersion.current())
+        configureForJdk(jvm)
 
         when:
         succeeds("runInDaemon")
 
         then:
-        outputContains("Version: " + JavaVersion.current().toString())
+        outputContains("Version: " + jvm.javaVersion)
+
+        where:
+        jvm << AvailableJavaHomes.getSupportedWorkerJdks()
     }
 
 }

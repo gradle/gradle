@@ -24,7 +24,8 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 @SuppressWarnings("IntegrationTestFixtures")
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+
+    @Requires(IntegTestPreconditions.UnsupportedWrapperJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current).withJvm(jdk)
@@ -34,10 +35,10 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
         result.hasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${jdk.javaVersionMajor}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
+        jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedWrapperJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current)
@@ -48,6 +49,7 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
         result.hasErrorOutput("Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
+        jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
     }
+
 }

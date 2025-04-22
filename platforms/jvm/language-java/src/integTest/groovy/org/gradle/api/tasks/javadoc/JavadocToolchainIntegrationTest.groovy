@@ -158,6 +158,21 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         "assigned tool"  | "over everything else"               | "other"  | null           | "current"         | "other"
     }
 
+    def "can generate javadoc with java version #jdk.javaVersionMajor"() {
+        configureProjectWithJavaPlugin()
+        configureJavadocTool(jdk)
+
+        when:
+        withInstallations(jdk)
+        succeeds(":javadoc")
+
+        then:
+        executedAndNotSkipped(":javadoc")
+
+        where:
+        jdk << AvailableJavaHomes.allJdkVersions
+    }
+
     def "uses #what toolchain #when (without java-base plugin)"() {
         Jvm currentJdk = Jvm.current()
         Jvm otherJdk = AvailableJavaHomes.differentVersion

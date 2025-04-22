@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.TestFile
 
 /**
@@ -39,14 +40,14 @@ trait JavaToolchainFixture {
     }
 
     String javaPluginToolchainVersion(Jvm jvm) {
-        return javaPluginToolchainVersion(jvm.javaVersion.majorVersion.toInteger())
+        return javaPluginToolchainVersion(jvm.javaVersionMajor)
     }
 
     String javaPluginToolchainVersion(JvmInstallationMetadata installationMetadata) {
-        return javaPluginToolchainVersion(installationMetadata.languageVersion.majorVersion.toInteger())
+        return javaPluginToolchainVersion(installationMetadata.javaMajorVersion)
     }
 
-    String javaPluginToolchainVersion(Integer majorVersion) {
+    String javaPluginToolchainVersion(int majorVersion) {
         """
             java {
                 toolchain {
@@ -104,7 +105,8 @@ trait JavaToolchainFixture {
      */
     JavaVersion classJavaVersion(File classFile) {
         assert classFile.exists()
-        return JavaVersion.forClass(classFile.bytes)
+        int version = JavaClassUtil.getClassMajorVersion(classFile)
+        return JavaVersion.forClassVersion(version)
     }
 
     /**

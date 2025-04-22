@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling
+package org.gradle.testing.junit.jupiter
 
-import org.gradle.api.JavaVersion
-import org.gradle.internal.jvm.SupportedJavaVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
 
-class ToolingApiClientMinJdkCompatibilityTest extends ToolingApiClientJdkCompatibilityTest {
-    JavaVersion getClientJdkVersion() {
-        return JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION)
-    }
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+
+/**
+ * Tests support for different JUnit Jupiter versions across different Java versions.
+ */
+@TargetCoverage({ JUNIT_JUPITER })
+class JUnitJupiterJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitJupiterMultiVersionTest {
 }
