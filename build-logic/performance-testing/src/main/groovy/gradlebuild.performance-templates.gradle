@@ -359,7 +359,7 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
 tasks.register("buildBuilder", RemoteProject) {
     remoteUri = 'https://github.com/gradle/build-builder.git'
     // From master branch
-    ref = '39037ebf30b9eab5bdceff259ce50126f94a5561'
+    ref = '76349287aac653e500a4c2581707cae98fe85e79'
 }
 
 tasks.register("installBuildBuilder", GradleBuild) {
@@ -411,8 +411,8 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 // === Android ===
 performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    // From android-73 branch
-    ref = "6f56fcdbaade0a9ce43777cf91ab8bf79cd14dd0"
+    // From android-10-rc branch
+    ref = "273bbcc1706a0f4153a0d0fcae5e1935fc1a6e92"
 }
 
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
@@ -573,7 +573,6 @@ performanceTest.registerTestProject("largeNativeBuild", RemoteProject) {
 }
 
 performanceTest.registerTestProject("largeNativeBuildPrebuilt", GradleBuild) {
-    buildFile = file("$largeNativeBuild.outputDirectory/prebuilt/util/build.gradle")
     dir = file("$largeNativeBuild.outputDirectory/prebuilt/util")
     tasks = ['build']
 }
