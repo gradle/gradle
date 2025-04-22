@@ -17,5 +17,8 @@
 package org.gradle.api.internal.plugins;
 
 public interface SoftwareTypeBindingBuilder extends DslBindingBuilder {
+    @Override
+    <V> SoftwareTypeBindingBuilder withImplementationType(Class<V> implementationType);
+
     <T, U> SoftwareTypeBindingBuilder bind(String name, Class<T> dslType, Class<U> buildModelType, SoftwareTypeTransform<T, U> transform);
 }

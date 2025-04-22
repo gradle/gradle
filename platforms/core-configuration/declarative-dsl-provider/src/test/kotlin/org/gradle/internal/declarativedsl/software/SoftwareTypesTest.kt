@@ -39,7 +39,7 @@ class SoftwareTypesTest {
             on(mock.softwareFeatureImplementations).thenReturn(
                 setOf(object : SoftwareFeatureImplementation<Subtype> {
                     override fun getFeatureName(): String = "subtype"
-                    override fun getModelPublicType(): Class<out Subtype> = Subtype::class.java
+                    override fun getDefinitionPublicType(): Class<out Subtype> = Subtype::class.java
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                     override fun addModelDefault(rule: ModelDefault<*>) = Unit

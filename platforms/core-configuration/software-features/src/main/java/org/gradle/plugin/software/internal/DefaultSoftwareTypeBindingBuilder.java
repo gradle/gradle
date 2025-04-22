@@ -38,4 +38,10 @@ public class DefaultSoftwareTypeBindingBuilder extends AbstractDslBindingBuilder
         configuration.execute(this);
         return this;
     }
+
+    @Override
+    public <V> SoftwareTypeBindingBuilder withImplementationType(Class<V> implementationType) {
+        super.withImplementationType(implementationType);
+        return this;
+    }
 }

@@ -131,7 +131,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     private List<SoftwareFeatureImplementation<?>> getSoftwareTypesForProject(Project project) {
         List<SoftwareFeatureImplementation<?>> results = new ArrayList<>(1);
         getSoftwareTypeRegistry().getSoftwareFeatureImplementations().values().forEach(registeredType -> {
-            Class<?> softwareType = registeredType.getModelPublicType();
+            Class<?> softwareType = registeredType.getDefinitionPublicType();
             if (project.getExtensions().findByType(softwareType) != null) {
                 results.add(registeredType);
             }
@@ -190,7 +190,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
             softwareTypes.forEach(type -> {
                 styledTextOutput.withStyle(Identifier).text(type.getFeatureName());
-                styledTextOutput.append(" (").append(type.getModelPublicType().getName()).append(")").println();
+                styledTextOutput.append(" (").append(type.getDefinitionPublicType().getName()).append(")").println();
                 styledTextOutput.append("        ").append("Defined in: ").append(type.getPluginClass().getName()).println();
                 styledTextOutput.append("        ").append("Registered by: ").append(type.getRegisteringPluginClass().getName()).println();
             });

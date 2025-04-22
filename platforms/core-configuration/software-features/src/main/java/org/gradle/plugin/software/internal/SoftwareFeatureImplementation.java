@@ -27,7 +27,9 @@ import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 public interface SoftwareFeatureImplementation<T> {
     String getFeatureName();
 
-    Class<? extends T> getModelPublicType();
+    Class<? extends T> getDefinitionPublicType();
+
+    Class<? extends T> getDefinitionImplementationType();
 
     Class<?> getBindingType();
 
