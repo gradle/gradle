@@ -153,11 +153,11 @@ To control cache cleanup behavior in Gradle 9.0 and later, use an <<directory_la
 
 ==== Removal of `buildCache.local.removeUnusedEntriesAfterDays` property
 
-In Gradle 9.0, the link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[buildCache.local.removeUnusedEntriesAfterDays] property has been removed.
+In Gradle 9.0, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
 
-This property was previously used to configure build cache retention period directly on local build cache.
+This property was previously used to configure the retention period for the local build cache.
 
-To set local build cache retention period, you should now use <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,Gradle User Home cache cleanup and retention periods configuration>> instead.
+To configure retention for unused entries in the local build cache, use the <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,Gradle User Home cache cleanup settings>> instead.
 
 ==== Removal of deprecated `org.gradle.util` members
 
