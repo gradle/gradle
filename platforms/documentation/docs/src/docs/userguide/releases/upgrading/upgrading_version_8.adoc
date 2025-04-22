@@ -285,6 +285,14 @@ Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for det
 
 NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
 
+==== Stale outputs placed outside of the build directory are no longer deleted
+
+In previous versions of Gradle, class files placed outside of the build directory were deleted when they were considered stale. This was a special case for class files registered as the output of a source set.
+
+This is not a common practice and required Gradle to eagerly realize all compile related tasks in every build. As of Gradle 9.0, this special case has been removed.
+
+Gradle will still delete stale outputs inside the build directory as necessary.
+
 ==== Scala plugins no longer create unresolvable configurations
 
 Previously, the Scala plugins used configurations named `incrementalScalaAnalysisFor` to resolve incremental analysis information between projects.
