@@ -79,6 +79,8 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
 ====
 
+WARNING: Forcing a specific version of a dependency should be a conscious and deliberate decision. It can lead to conflicts or unexpected behavior, especially when transitive dependencies rely on different versions.
+
 [[sec:module-replacement]]
 == 2. Module Replacement
 
@@ -381,6 +383,8 @@ In this example, the `pluginTool` configuration will use `org.gradle:my-util:1.0
 == 6. Excluding Transitive Dependencies
 
 To completely exclude a transitive dependency for a particular configuration, use the link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)[`Configuration.exclude(Map)`] method.
+
+WARNING: Excluding a transitive dependency should be a conscious and deliberate choice. Removing a dependency that other libraries rely on can lead to runtime errors or unexpected behavior. If you choose to exclude something, make sure your code doesn't rely on it—ideally backed by comprehensive test coverage to catch potential issues early.
 
 This approach will automatically exclude the specified transitive dependency from all dependencies declared within the configuration:
 
