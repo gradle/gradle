@@ -33,11 +33,11 @@ Android Studio also link:https://developer.android.com/build/migrate-to-kotlin-d
 
 === References
 
-<<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
+- <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
 
 === Tags
 
-`#kotlin-dsl`
+<<tags_reference.adoc#tag:kotlin-dsl,`#kotlin-dsl`>>
 
 [[use_latest_minor_versions]]
 == Use the Latest Minor Version of Gradle
@@ -83,7 +83,7 @@ Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay 
 
 === References
 
-<<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
+- <<upgrading_version_8.adoc#upgrading_version_8,Upgrade Guide>>
 
 === Tags
 
@@ -134,7 +134,6 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 === Tags
 
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
-
 
 [[do_not_use_internal_apis]]
 == Do Not Use Internal APIs
