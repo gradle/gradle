@@ -217,8 +217,8 @@ Duplicating dependencies in Gradle build scripts can lead to:
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin/avoid-this",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/avoid-this",files="build.gradle[]"]
 ====
 
 <1> Redundant dependency on `implementation` scope.
@@ -226,8 +226,8 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",f
 ==== Do This Instead
 
 ====
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin/do-this",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/do-this",files="build.gradle[]"]
 ====
 
 <1> Declare dependency once
