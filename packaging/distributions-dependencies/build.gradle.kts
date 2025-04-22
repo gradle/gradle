@@ -216,8 +216,8 @@ dependencies {
         api(libs.mySqlConnector)        { version { strictly("9.2.0") }}
         api(libs.netty)                 { version { strictly("4.1.63.Final") }}
         api(libs.opentest4j)            { version { strictly("1.3.0") }}
-        api(libs.samplesCheck)          { version { strictly("1.0.0") }}
-        api(libs.samplesDiscovery)      { version { strictly("1.0.0") }}
+        api(libs.samplesCheck)          { version { strictly("1.0.3") }}
+        api(libs.samplesDiscovery)      { version { strictly("1.0.3") }}
         api(libs.snappy)                { version { strictly("0.5") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
         api(libs.spock)                 { version { strictly(spockVersion) }}
