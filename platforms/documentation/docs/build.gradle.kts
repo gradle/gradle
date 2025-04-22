@@ -692,6 +692,11 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
         }
 
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // Kotlin does not yet support 24 JDK target
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
+        }
+
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-native*.sample")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-swift*.sample")
