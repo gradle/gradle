@@ -148,6 +148,35 @@ public class Other {}
         recompiledWithFailure('takeRunnable((B) () -> {', 'A', 'B')
     }
 
+    def "does not recompile downstream class for change in method body lambda"() {
+        given:
+        source '''class A {
+            void doSomething() {
+                takeRunnable((B) () -> {
+                    System.out.println("Hello");
+                });
+            }
+
+            void takeRunnable(Runnable r) {
+                r.run();
+            }
+        }'''
+        source "interface B extends Runnable {}"
+        source "class C extends A {}"
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/B.${languageName}").text = """interface B extends Runnable {
+            default void newMethod() {}
+        }"""
+        run language.compileTaskName
+
+        then:
+        // C should not be recompiled as the API of A has not changed
+        outputs.recompiledClasses("A", "B")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/33161")
     @Requires(value = UnitTestPreconditions.Jdk21OrLater, reason = "JDK 21+ required for new enum switch expressions")
     def "detects changes to class referenced in method body via enum in switch expression"() {

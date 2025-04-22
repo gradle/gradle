@@ -286,8 +286,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             if (tryHandleSpecialBootstrapMethod(BootstrapMethod.fromIndy(bootstrapMethodHandle, bootstrapMethodArguments))) {
                 return;
             }
-            addTypesFromMethodDescriptor(types, descriptor);
-            maybeAddDependentType(types, Type.getObjectType(bootstrapMethodHandle.getOwner()));
+            addTypesFromMethodDescriptor(privateTypes, descriptor);
+            maybeAddDependentType(privateTypes, Type.getObjectType(bootstrapMethodHandle.getOwner()));
 
             for (Object arg : bootstrapMethodArguments) {
                 addDependentTypeFromBootstrapMethodArgument(arg);
@@ -305,7 +305,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             if (tryHandleSpecialBootstrapMethod(BootstrapMethod.fromConstantDynamic(arg))) {
                 return;
             }
-            maybeAddDependentType(types, Type.getObjectType(arg.getBootstrapMethod().getOwner()));
+            maybeAddDependentType(privateTypes, Type.getObjectType(arg.getBootstrapMethod().getOwner()));
 
             for (int i = 0; i < arg.getBootstrapMethodArgumentCount(); i++) {
                 addDependentTypeFromBootstrapMethodArgument(arg.getBootstrapMethodArgument(i));
@@ -314,9 +314,9 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         private void addDependentTypeFromBootstrapMethodArgument(Object arg) {
             if (arg instanceof Type) {
-                maybeAddDependentType(types, (Type) arg);
+                maybeAddDependentType(privateTypes, (Type) arg);
             } else if (arg instanceof Handle) {
-                maybeAddDependentType(types, Type.getObjectType(((Handle) arg).getOwner()));
+                maybeAddDependentType(privateTypes, Type.getObjectType(((Handle) arg).getOwner()));
             } else if (arg instanceof ConstantDynamic) {
                 addDependentTypesFromConstantDynamic((ConstantDynamic) arg);
             }
@@ -347,7 +347,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             if (!(className instanceof String)) {
                 return false;
             }
-            maybeAddDependentType(types, Type.getObjectType(((String) className).replace('.', '/')));
+            maybeAddDependentType(privateTypes, Type.getObjectType(((String) className).replace('.', '/')));
             return true;
         }
     }
