@@ -137,18 +137,18 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 [[use_convention_plugins]]
 == Use Convention Plugins for Common Build Logic
 
-You should use convention plugins to encapsulate and reuse common build logic across multiple build files.
+Use convention plugins to encapsulate and reuse shared build logic across multiple projects in your build.
 
 === Explanation
 
-Convention plugins help you avoid duplicating build logic across multiple build files by moving shared configuration into a reusable plugin. This approach:
+Instead of duplicating configuration across multiple `build.gradle.kts` files, you can move common logic into a reusable plugin. This approach offers several benefits:
 
-* Reduces duplication and makes build scripts more maintainable
-* Centralizes common configuration, making it easier to update
-* Makes build files cleaner and more focused on project-specific configuration
-* Enables better IDE support and validation for your build logic
+* Reduces duplication: Shared logic lives in one place, making it easier to maintain.
+Centralizes configuration: Updates to build behavior can be made in one file instead of many.
+* Keeps build files clean: Project build files stay focused on project-specific configuration.
+* Improves IDE support: IDEs can better understand and validate build logic when structured as plugins.
 
-Although the initial setup of a convention plugin requires some effort, it significantly simplifies maintenance and addition of new build logic in the long run.
+While setting up convention plugins takes some initial effort, it pays off by simplifying maintenance, improving consistency, and scaling better as your codebase grows.
 
 === Example
 
@@ -159,9 +159,9 @@ include::sample[dir="snippets/bestPractices/useConventionPlugins/kotlin/avoid-th
 include::sample[dir="snippets/bestPractices/useConventionPlugins/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
 ====
 
-<1> Common compiler settings duplicated across multiple build files
-<2> Test configuration that needs to be maintained in multiple places
-<3> Common dependencies that could be centralized
+<1> Common compiler settings repeated across multiple projects
+<2> Shared test configuration that must be maintained in multiple places
+<3> Common dependencies that could be managed centrally
 
 ==== Do This Instead
 
@@ -172,15 +172,15 @@ include::sample[dir="snippets/bestPractices/useConventionPlugins/kotlin/buildSrc
 include::sample[dir="snippets/bestPractices/useConventionPlugins/groovy/buildSrc/src/main/groovy",files="my.java-common-conventions.gradle[tags=do-this]"]
 ====
 
-And apply it in your build files:
+And apply the plugin in any build file where you want to use the shared logic:
 
 ====
 include::sample[dir="snippets/bestPractices/useConventionPlugins/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/useConventionPlugins/groovy/do-this",files="build.gradle[tags=do-this]"]
 ====
 
-<1> Apply the convention plugin to get all common configuration
-<2> Focus on project-specific configuration only
+<1> Apply the convention plugin to inherit all shared build logic
+<2> Keeps the build file focused on project-specific configuration
 
 === References
 <<custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>>
