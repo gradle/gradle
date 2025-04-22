@@ -307,6 +307,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         given:
         createDir('dir1') {
             file('test1.txt') << 'test1'
+            file("test1.txt").setPermissions("r--r--r--")
             file('test2.txt') << 'test2'
         }
         buildFile << """
