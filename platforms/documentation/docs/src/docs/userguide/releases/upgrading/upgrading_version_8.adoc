@@ -382,6 +382,39 @@ Accessing `libraries` or `bundles` from dependency version catalogs in the `plug
 Gradle 9.0 completes their removal, attempting to use them will result in errors and the failure of the build.
 Please only use `versions` or `plugins` from dependency version catalogs in the `plugins {}` block.
 
+[[validate_plugins_without_java_toolchain_90]]
+==== Using `ValidatePlugins` task without a Java Toolchain is an error
+
+Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:toolchains.html[Java Toolchains] plugin is an error in Gradle 9.0.
+
+To avoid the error, please apply the plugin to your project:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("jvm-toolchains")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'jvm-toolchains'
+}
+----
+=====
+====
+
+The Java Toolchains plugin is applied automatically by the <<java_library_plugin#java_library_plugin,Java library plugin>> or other JVM plugins.
+So you can apply any of them to your project and it will fix the warning.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
@@ -3520,35 +3553,10 @@ Please only use `versions` or `plugins` from dependency version catalogs in the 
 [[validate_plugins_without_java_toolchain]]
 ==== Using `ValidatePlugins` task without a Java Toolchain
 
-Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:toolchains.html[Java Toolchains] plugin is deprecated, and will become an error in Gradle 9.0.
+Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:toolchains.html[Java Toolchains] plugin, or any other Java plugin
+that applies Java Toolchains, has been deprecated in Gradle 8.1 and has become an error in Gradle 9.0.
 
-To avoid this warning, please apply the plugin to your project:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("jvm-toolchains")
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id 'jvm-toolchains'
-}
-----
-=====
-====
-
-The Java Toolchains plugin is applied automatically by the <<java_library_plugin#java_library_plugin,Java library plugin>> or other JVM plugins.
-So you can apply any of them to your project and it will fix the warning.
+To avoid the error, follow the steps in <<upgrading_version_8#validate_plugins_without_java_toolchain_90, the 9.0 upgrade guide>>.
 
 [[org_gradle_util_reports_deprecations_80]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
