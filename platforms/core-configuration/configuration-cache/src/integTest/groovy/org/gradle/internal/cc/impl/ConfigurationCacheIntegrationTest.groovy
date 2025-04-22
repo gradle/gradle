@@ -84,7 +84,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         expect:
         configurationCacheRun "help"
-        output.contains("Configuration cache entry discarded and execution switched to vintage because incompatible plugins applied: plugin 'foo'")
+        output.contains("Configuration cache entry discarded and execution switched to vintage because incompatible plugins applied: 'plugin 'foo''")
     }
 
     def "configuration cache is out of incubation"() {
