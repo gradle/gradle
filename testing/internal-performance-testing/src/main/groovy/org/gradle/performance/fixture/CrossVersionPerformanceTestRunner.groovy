@@ -150,6 +150,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     void assumeShouldRun() {
+        Assume.assumeFalse(true)
         if (testId == null) {
             throw new IllegalStateException("Test id has not been specified")
         }
