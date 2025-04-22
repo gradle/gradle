@@ -35,46 +35,46 @@ Learn the basics of project dependencies and Gradle's dependency management.
 2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
 
 == Step 1. Understanding the Version Catalog
-A version catalog is used to declare all direct dependencies of a project in a central location.
 
-It is created by Gradle init in `gradle/libs.versions.toml` and referenced in subproject build files.
+In Gradle, the `dependencies {}` block in your build script is where you declare the external libraries your project needs to work.
 
-.libs.versions.toml
-[source,text]
-----
-[versions]
-guava = "32.1.2-jre"
-junit-jupiter = "5.10.0"
+Each line inside this block tells Gradle two things:
 
-[libraries]
-guava = { module = "com.google.guava:guava", version.ref = "guava" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
-----
+1. **What the dependency is** (like Guava or JUnit)
+2. **How it's used** (for production code, test code, etc.)
 
-To reference the libraries defined in the version catalog:
+For example:
 
-[.multi-language-sample]
-=====
 [source, kotlin]
 ----
 dependencies {
-    implementation(libs.guava)
-    testImplementation(libs.junit.jupiter)
+    implementation("com.google.guava:guava:32.1.2-jre") // <1>
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1") // <2>
 }
 ----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-dependencies {
-    implementation libs.guava
-    testImplementation libs.junit.jupiter
-}
-----
-=====
 
-In this example, `libs.guava` and `libs.junit.jupiter` refer to the corresponding libraries defined in your version catalog.
+<1> `implementation(guava)`: This means your main application code depends on the Guava library. Gradle will download it from a repository and include it on the compile and runtime classpaths.
+<2> `testImplementation(jupiter)`: This means your test code depends on JUnit Jupiter (a testing library). It's only available during testing — not in the final packaged app.
+
+In <<part1_gradle_init.adoc#part1_begin,part 1>>, Gradle init created a project that uses version catalogs.
+
+A version catalog is a central file that defines library versions and aliases you can use throughout your build.
+It helps keep your dependencies consistent across subprojects and avoids repeating version numbers.
+
+The version catalog is located at `gradle/libs.versions.toml`:
+
+====
+include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions.toml[]"]
+====
+
+Once defined, you can reference these libraries in your `build.gradle(.kts)` files using the `libs` accessor.
+This is why our build script actually looks like this:
+
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+====
 
 TIP: The `libs.junit.jupiter` syntax is used because the key contains a hyphen which is a special character.
 
@@ -84,90 +84,60 @@ A version catalog provides a number of advantages over declaring dependencies di
 - It is a central place to declare a version of a dependency so that any changes apply to every subproject.
 
 == Step 2. Understanding Project Dependencies
+
 Gradle provides excellent support for dependency management and automation.
 
-Let's take another look at our build script (the `build.gradle(.kts)` file), specifically the following section:
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
+Let's take another look at our build script, specifically the following section:
 
-dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation(libs.junit.jupiter)
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    // This dependency is used by the application.
-    implementation(libs.guava)
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
-
-dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation libs.junit.jupiter
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // This dependency is used by the application.
-    implementation libs.guava
-}
-----
-=====
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-declarations]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-declarations]"]
+====
 
 Some key concepts in Gradle dependency management include:
 
-*Repositories* - The source of dependencies -> `mavenCentral()`
+Repositories :: The source of dependencies -> `mavenCentral()` in our app.
 
-https://mvnrepository.com/repos/central[Maven Central] is a collection of jar files, plugins, and libraries provided by the Maven community and backed by https://central.sonatype.org/[Sonatype^].
+Dependencies :: Dependencies declared via configuration types -> https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api[`libs.junit.jupiter`] and https://mvnrepository.com/artifact/com.google.guava/guava[`libs.guava`] in our app.
+
+The https://mvnrepository.com/repos/central[Maven Central] repository is a collection of jar files, plugins, and libraries provided by the Maven community and backed by https://central.sonatype.org/[Sonatype^].
 It is the de-facto public artifact store for Java and is used by many build systems.
 
-*Dependencies* - Dependencies declared via configuration types -> https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api[`libs.junit.jupiter`] and https://mvnrepository.com/artifact/com.google.guava/guava[`libs.guava`] +
-
-Gradle needs specific information to find a dependency.
-Let's look at `libs.guava` -> `com.google.guava:guava:32.1.2-jre` and `libs.junit.jupiter` -> `org.junit.jupiter:junit-jupiter-api:5.9.1`; they are broken down as follows:
+Gradle needs specific information, called GAV coordinates, to locate and download a dependency.
+GAV stands for Group, Artifact, and Version — three pieces of information that uniquely identify a library in a repository.
+Let's look at `libs.guava` and `libs.junit.jupiter`:
 
 [cols="10h,30,40,20"]
 |===
-| |Description | com.google.guava:guava:32.1.2-jre | org.junit.jupiter:junit-jupiter-api:5.9.1
+| |Description | com.google.guava:guava:33.3.1-jre | org.junit.jupiter:junit-jupiter-api:5.11.3
 
 |Group
 |identifier of an organization
 |`com.google.guava`
 |`org.junit.jupiter`
 
-|Name
+|Artifact (Name)
 |dependency identifier
 |`guava`
 |`junit-jupiter-api`
 
 |Version
 |version # to import
-|`32.1.2-jre`
-|`5.9.1`
+|`33.3.1-jre`
+|`5.11.3`
 |===
 
 == Step 3. Understanding Transitive Dependencies
+
 A _transitive dependency_ is a dependency of a dependency.
 
 For our `guava` dependency to work, it requires a library called `failureaccess`.
 Therefore `failureaccess` is a transitive dependency of the project.
 
 == Step 4. Viewing Project Dependencies
+
 You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
+
 [source,kotlin]
 ----
 $ ./gradlew :app:dependencies
@@ -180,28 +150,60 @@ Project ':app'
 
 ...
 
-compileClasspath - Compile classpath for source set 'main'.
-\--- com.google.guava:guava:32.1.2-jre
-     +--- com.google.guava:guava-parent:32.1.2-jre
-     |    +--- com.google.code.findbugs:jsr305:3.0.2 (c)
-     |    +--- org.checkerframework:checker-qual:3.33.0 (c)
-     |    +--- com.google.errorprone:error_prone_annotations:2.18.0 (c)
-     |    \--- com.google.j2objc:j2objc-annotations:2.8 (c)
-     +--- com.google.guava:failureaccess:1.0.1
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- com.google.guava:guava:33.3.1-jre
+     +--- com.google.guava:failureaccess:1.0.2
      +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-     +--- com.google.code.findbugs:jsr305 -> 3.0.2
-     +--- org.checkerframework:checker-qual -> 3.33.0
-     +--- com.google.errorprone:error_prone_annotations -> 2.18.0
-     \--- com.google.j2objc:j2objc-annotations -> 2.8
+     +--- com.google.code.findbugs:jsr305:3.0.2
+     +--- org.checkerframework:checker-qual:3.43.0
+     +--- com.google.errorprone:error_prone_annotations:2.28.0
+     \--- com.google.j2objc:j2objc-annotations:3.0.0
 
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- com.google.guava:guava:33.3.1-jre
+|    +--- com.google.guava:failureaccess:1.0.2
+|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- org.checkerframework:checker-qual:3.43.0
+|    +--- com.google.errorprone:error_prone_annotations:2.28.0
+|    \--- com.google.j2objc:j2objc-annotations:3.0.0
++--- org.junit.jupiter:junit-jupiter:5.11.3
+|    +--- org.junit:junit-bom:5.11.3
+|    |    +--- org.junit.jupiter:junit-jupiter:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-api:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-engine:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-params:5.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-launcher:1.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-commons:1.11.3 (c)
+|    |    \--- org.junit.platform:junit-platform-engine:1.11.3 (c)
+|    +--- org.junit.jupiter:junit-jupiter-api:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    +--- org.opentest4j:opentest4j:1.3.0
+|    |    \--- org.junit.platform:junit-platform-commons:1.11.3
+|    |         \--- org.junit:junit-bom:5.11.3 (*)
+|    +--- org.junit.jupiter:junit-jupiter-params:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+|    \--- org.junit.jupiter:junit-jupiter-engine:5.11.3
+|         +--- org.junit:junit-bom:5.11.3 (*)
+|         +--- org.junit.platform:junit-platform-engine:1.11.3
+|         |    +--- org.junit:junit-bom:5.11.3 (*)
+|         |    +--- org.opentest4j:opentest4j:1.3.0
+|         |    \--- org.junit.platform:junit-platform-commons:1.11.3 (*)
+|         \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+\--- org.junit.platform:junit-platform-launcher -> 1.11.3
+     +--- org.junit:junit-bom:5.11.3 (*)
+     \--- org.junit.platform:junit-platform-engine:1.11.3 (*)
 ----
 
-The output clearly depicts that `com.google.guava:guava:32.1.2-jre` has a dependency on `com.google.guava:failureaccess:1.0.1`.
+The output clearly depicts that `com.google.guava:guava:33.3.1-jre` has a dependency on `com.google.guava:failureaccess:1.0.2`.
 
 == Step 5. Viewing Dependencies in a Build Scan®
+
 To view dependencies using a https://scans.gradle.com/[Build Scan], run the build task with an optional `--scan` flag.
 
 In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
+
 [source,text]
 ----
 $ ./gradlew build --scan
@@ -237,14 +239,15 @@ image::tutorial/build-scan-dependencies.png[]
 
 As expected, we can see the declared dependencies `junit` and `guava` are used by Gradle to compile, run, and test the app.
 
-Expand `com.google.guava:guava:32.1.2-jre` and `org.junit.jupiter:junit-jupiter:5.9.1` in the window:
+Expand `com.google.guava:guava:33.3.1-jre` and `org.junit.jupiter:junit-jupiter:5.11.3` in the window:
 
 image::tutorial/build-scan-trans-dependencies.png[]
 
 There are several transitive dependencies under `junit` and `guava`.
-For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:32.1.2-jre` dependency.
+For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:33.3.1-jre` dependency.
 
 == Step 6. Updating Project Dependencies
+
 Adding and changing dependencies is done in the build file and in the version catalog.
 
 Let's change the `guava` version and look at how this affects the dependency tree.
@@ -256,7 +259,7 @@ Change the `guava` dependency in the version catalog to:
 ----
 [versions]
 guava = "30.0-jre"
-junit-jupiter = "5.10.0"
+junit-jupiter = "5.11.3"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -277,22 +280,50 @@ Run `./gradlew :app:dependencies` in the terminal to check the changes in the de
 ----
 ...
 
-compileClasspath - Compile classpath for source set 'main'.
-\--- com.google.guava:guava:30.0-jre
-     +--- com.google.guava:failureaccess:1.0.1
-     +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-     +--- com.google.code.findbugs:jsr305:3.0.2
-     +--- org.checkerframework:checker-qual:3.5.0
-     +--- com.google.errorprone:error_prone_annotations:2.3.4
-     \--- com.google.j2objc:j2objc-annotations:1.3
-
-...
+testRuntimeClasspath - Runtime classpath of source set 'test'.
++--- com.google.guava:guava:30.0-jre
+|    +--- com.google.guava:failureaccess:1.0.1
+|    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- org.checkerframework:checker-qual:3.5.0
+|    +--- com.google.errorprone:error_prone_annotations:2.3.4
+|    \--- com.google.j2objc:j2objc-annotations:1.3
++--- org.junit.jupiter:junit-jupiter:5.11.3
+|    +--- org.junit:junit-bom:5.11.3
+|    |    +--- org.junit.jupiter:junit-jupiter:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-api:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-engine:5.11.3 (c)
+|    |    +--- org.junit.jupiter:junit-jupiter-params:5.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-launcher:1.11.3 (c)
+|    |    +--- org.junit.platform:junit-platform-commons:1.11.3 (c)
+|    |    \--- org.junit.platform:junit-platform-engine:1.11.3 (c)
+|    +--- org.junit.jupiter:junit-jupiter-api:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    +--- org.opentest4j:opentest4j:1.3.0
+|    |    \--- org.junit.platform:junit-platform-commons:1.11.3
+|    |         \--- org.junit:junit-bom:5.11.3 (*)
+|    +--- org.junit.jupiter:junit-jupiter-params:5.11.3
+|    |    +--- org.junit:junit-bom:5.11.3 (*)
+|    |    \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+|    \--- org.junit.jupiter:junit-jupiter-engine:5.11.3
+|         +--- org.junit:junit-bom:5.11.3 (*)
+|         +--- org.junit.platform:junit-platform-engine:1.11.3
+|         |    +--- org.junit:junit-bom:5.11.3 (*)
+|         |    +--- org.opentest4j:opentest4j:1.3.0
+|         |    \--- org.junit.platform:junit-platform-commons:1.11.3 (*)
+|         \--- org.junit.jupiter:junit-jupiter-api:5.11.3 (*)
+\--- org.junit.platform:junit-platform-launcher -> 1.11.3
+     +--- org.junit:junit-bom:5.11.3 (*)
+     \--- org.junit.platform:junit-platform-engine:1.11.3 (*)
 ----
 
 It is clear the `guava` dependency has been updated to version `30.0` and the transitive dependencies have changed as well.
 
 == Step 7. Run the Java app
+
 Finally, make sure everything is working using the `run` task, either in your terminal or IDE:
+
+[source,text]
 ----
 ./gradlew run
 

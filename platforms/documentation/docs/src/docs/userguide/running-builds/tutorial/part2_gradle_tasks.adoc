@@ -32,9 +32,13 @@ Learn the basics of Gradle tasks by running one and looking at its output.
 1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
 
 == Step 1. Viewing available Tasks
+
 A _task_ is a basic unit of work that can be done by Gradle as part of the build.
 
+A task might be responsible for compilation, copying and moving files, creating JAR files, generating Javadoc, publishing artifacts to repositories, or many other discrete units of work.
+
 In the `tutorial` directory, enter the command below to list all the available tasks in the project:
+
 [source,text]
 ----
 $ ./gradlew tasks
@@ -67,46 +71,65 @@ compileJava - Compiles main Java source.
 
 ...
 ----
-A task might be responsible for compilation, copying, and moving files around, creating JAR files, generating Javadoc, publishing artifacts to repositories, or many other discrete units of work.
 
-You can also list the tasks only available in the `app` subproject by running `./gradlew :app:tasks`.
+Tasks are the fundamental building blocks of the build process.
+Each task represents a specific action that Gradle can perform, and tasks can be combined and ordered based on their dependencies.
 
-TIP: You can obtain more information in the task listing using the `--all` option: `./gradlew tasks --all`.
+For example, the `build` task you ran in <<part1_gradle_init.adoc#part1_begin,part 1>> of the tutorial depends on `compileJava`, `processResources`, and `test`, ensuring that code is compiled, resources are processed, and tests are run before the final build is packaged.
 
-In <<part1_gradle_init.adoc#part1_begin,part 1>> of the tutorial, we ran the `build` task using the `./gradlew build` command.
+If you want to list the tasks available in a specific subproject, you can use `./gradlew :<subproject name>:tasks`.
+To list the tasks in the `app` subproject:
+
+[source,text]
+----
+$ ./gradlew :app:tasks
+----
+
+You can view more tasks by adding the `--all` option:
+
+[source,bash]
+----
+$ ./gradlew tasks --all
+$ ./gradlew :app:tasks --all
+----
+
+This shows internal and lifecycle tasks that are normally hidden in the default summary.
 
 == Step 2. Understanding Tasks
-We've listed the tasks available when the project is initialized, but what if we want to create our own tasks?
 
-Gradle provides many _built-in_ tasks that developers can use to enhance build scripts.
+Tasks can come from several places.
+Gradle includes some tasks by default, and many others are added automatically when you apply plugins.
 
-This example task copies `*.war` files from the `source` directory to the `target` directory using the `Copy` built-in task.
+If you remember back in <<part1_gradle_init.adoc#part1_begin,part 1>>, the build script of our Java application applies the `application` plugin:
 
-[.multi-language-sample]
-=====
-[source, kotlin]
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
+====
+
+Applying the `application` plugin adds tasks like `run`, `build`, `compileJava`, `test`, and `jar`.
+
+You can also define your own custom tasks in your build script using the `tasks.register()` method, and configure what the task does using Gradle’s task APIs.
+
+Gradle provides several built-in task types that make it easy to perform common operations, like copying files, archiving outputs, or running commands.
+
+For example, the `Copy` task type is used to copy files from one location to another as part of your build.
+
+Here's how you could register a custom task that copies all `.war` files from a source directory to a target directory:
+
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-task]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-task]"]
+====
+
+If this task is defined in the `build.gradle(.kts)` file for the app subproject, you can run it with:
+
+[source,text]
 ----
-tasks.register<Copy>("copyTask") {
-    from("source")
-    into("target")
-    include("*.war")
-}
+$ ./gradlew :app:copyTask
 ----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-tasks.register("copyTask", Copy) {
-    from("source")
-    into("target")
-    include("*.war")
-}
 
-----
-=====
-
-This task, if added to `build.gradle(.kts)` file in the `app` subproject directory, would be executed using the command `./gradlew :app:copyTask`.
+Gradle will execute the task and copy any `.war` files it finds in the source directory into the target directory.
 
 Popular built-in tasks include:
 
@@ -118,65 +141,42 @@ Popular built-in tasks include:
 With many more documented in the Kotlin and Groovy DSLs.
 
 == Step 3. Understanding Dependencies Between Tasks
-Many times, a task requires another task to run first.
-If task B uses the output of task A, then task A must complete before task B begins.
 
-- A task may declare its dependencies explicitly.
-- A task may depend on other tasks implicitly.
+Often, one task needs another task to run first.
+For example, a task that creates a JAR file can’t run until the code has been compiled.
+
+If Task B needs the output of Task A, then Gradle must run Task A before it runs Task B.
+This relationship is called a task dependency.
+
+There are two kinds of task dependencies:
+
+1. *Explicit dependencies*: One task directly declares that it depends on another.
+2. *Implicit dependencies*: Gradle figures out the order automatically because one task uses the output of another (like compiled class files).
 
 Here is an example of explicit task dependency:
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-tasks.register("hello") {
-    doLast {
-        println("Hello!")
-    }
-}
 
-tasks.register("greet") {
-    doLast {
-        println("How are you?")
-    }
-    dependsOn("hello")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-tasks.register("hello") {
-    doLast {
-        println('Hello!')
-    }
-}
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-hello]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-hello]"]
+====
 
-tasks.register("greet") {
-    doLast {
-        println('How are you?')
-    }
-    dependsOn("hello")
-}
-
-----
-=====
-
-In this case, `hello` prints before `greet`. The output is `Hello! How are you?`.
+In this case, `hello` prints before `greet`.
+The output is `Hello! How are you?`.
 
 Task execution order is automatically determined by Gradle, taking into account explicit and implicit task dependencies.
 If there is no dependency between tasks, Gradle enables users to request a specific execution order.
 
-== Step 4. Viewing Tasks in the IDE
+== Step 4. Viewing Tasks in the IDE (Optional)
+
 Project tasks are also available in IntelliJ.
 The project should be open following <<part1_gradle_init.adoc#part1_begin,part 1>> of the tutorial.
 
-On the right-hand side of your window, open the `Gradle` pane:
+On the right-hand side of your window, open the `Gradle` pane to view all available tasks:
 
 image::tutorial/intellij-idea-tasks.png[]
 
-== Step 5. Running Tasks in the IDE
+== Step 5. Running Tasks in the IDE (Optional)
+
 You can run a Gradle task via IntelliJ by double-clicking that task in the pane.
 
 Double-click **tutorial > app > build > build**.
@@ -184,6 +184,7 @@ Double-click **tutorial > app > build > build**.
 image::tutorial/intellij-idea-build.png[]
 
 Once the build finishes, make sure it is successful in the IntelliJ console:
+
 [source,text]
 ----
 BUILD SUCCESSFUL in 966ms
@@ -192,11 +193,14 @@ BUILD SUCCESSFUL in 966ms
 ----
 
 == Step 6. Running Tasks in the Terminal
+
 Run the following command in your terminal:
+
 [source,text]
 ----
 $ ./gradlew build
 ----
+
 ----
 > Task :app:compileJava
 > Task :app:processResources
@@ -213,6 +217,7 @@ $ ./gradlew build
 > Task :app:check
 > Task :app:build
 ----
+
 The `build` task uses the source code and its dependencies to build the app.
 As seen in the output, the `build` task compiles, assembles, tests, and checks the code.
 
@@ -221,24 +226,29 @@ The `jar` tasks is a dependency of the `build` task.
 
 The `jar` task creates an executable JAR file of the app.
 Let's run it by itself:
+
 [source,text]
 ----
 $ ./gradlew jar
 ----
+
 ----
 > Task :app:compileJava
 > Task :app:processResources
 > Task :app:classes
 > Task :app:jar
 ----
+
 As expected, the `compileJava` task is a dependency of the `jar` task and executed first.
 Once the task finishes, an `app.jar` file is created in your `tutorial/app/build/libs/` folder.
 
 Invoke the `run` task and check the output:
+
 [source,text]
 ----
 $ ./gradlew run
 ----
+
 ----
 > Task :app:compileJava
 > Task :app:processResources
@@ -251,18 +261,12 @@ BUILD SUCCESSFUL in 325ms
 ----
 
 The `run` task executes the code in `tutorial/app/src/main/java/com.gradle.tutorial/App.java`.
-The Java code in `App.java` simply prints "Hello World" to the screen:
-[source,java]
-----
-public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
-    }
-}
-----
+
+You can take a minute and take a look at the Java code in `App.java` which simply prints "Hello World" to the screen:
+
+====
+include::sample[dir="snippets/init/generated/groovy",files="app/src/main/java/org/example/App.java[]"]
+====
 
 [.text-right]
 **Next Step:** <<part3_gradle_dep_man#part3_begin,Dependency Management>> >>
