@@ -19,6 +19,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -127,56 +128,56 @@ public abstract class AvailableJavaHomes {
      * Get a JDK for each major Java version installed on this machine.
      */
     public static List<Jvm> getAllJdkVersions() {
-        return getJdksAtOrAbove(0);
+        return getJdksInRange(Range.atLeast(0));
     }
 
     /**
      * Get a JDK for each major Java version that is not able to run the Gradle wrapper, if available.
      */
     public static List<Jvm> getUnsupportedWrapperJdks() {
-        return getJdksBelow(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION);
+        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION));
     }
 
     /**
      * Get a JDK for each major Java version that is able to run the Gradle wrapper, if available.
      */
     public static List<Jvm> getSupportedWrapperJdks() {
-        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION);
+        return getJdksInRange(Range.atLeast(SupportedJavaVersions.MINIMUM_WRAPPER_JAVA_VERSION));
     }
 
     /**
      * Get a JDK for each major Java version that is not able to run a Gradle client, if available.
      */
     public static List<Jvm> getUnsupportedClientJdks() {
-        return getJdksBelow(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION);
+        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION));
     }
 
     /**
      * Get a JDK for each major Java version that is able to run a Gradle client, if available.
      */
     public static List<Jvm> getSupportedClientJdks() {
-        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION);
+        return getJdksInRange(Range.atLeast(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION));
     }
 
     /**
      * Get a JDK for each major Java version that is not able to run a Gradle worker, if available.
      */
     public static List<Jvm> getUnsupportedWorkerJdks() {
-        return getJdksBelow(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION);
+        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION));
     }
 
     /**
      * Get a JDK for each major Java version that is able to run a Gradle worker, if available.
      */
     public static List<Jvm> getSupportedWorkerJdks() {
-        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION);
+        return getJdksInRange(Range.atLeast(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION));
     }
 
     /**
      * Get a JDK for each major Java version that is not able to run the Gradle daemon, if available.
      */
     public static List<Jvm> getUnsupportedDaemonJdks() {
-        return getJdksBelow(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION);
+        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION));
     }
 
     /**
@@ -185,8 +186,10 @@ public abstract class AvailableJavaHomes {
      */
     public static List<Jvm> getDeprecatedDaemonJdks() {
         return getJdksInRange(
-            SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-            SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION
+            Range.closedOpen(
+                SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
+                SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION
+            )
         );
     }
 
@@ -194,7 +197,7 @@ public abstract class AvailableJavaHomes {
      * Get a JDK for each major Java version that is able to run the Gradle daemon, if available.
      */
     public static List<Jvm> getSupportedDaemonJdks() {
-        return getJdksAtOrAbove(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION);
+        return getJdksInRange(Range.atLeast(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION));
     }
 
     /**
@@ -202,7 +205,7 @@ public abstract class AvailableJavaHomes {
      * and will continue to be able to in the next major version.
      */
     public static List<Jvm> getNonDeprecatedDaemonJdks() {
-        return getJdksAtOrAbove(SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION);
+        return getJdksInRange(Range.atLeast(SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION));
     }
 
     /**
@@ -238,26 +241,17 @@ public abstract class AvailableJavaHomes {
      * Return a list of JDK installations, containing one installation per version
      * in the specified range, if such a version is available on this machine.
      */
-    public static List<Jvm> getJdksInRange(@Nullable Integer minVersionInclusive, @Nullable Integer maxVersionExclusive) {
+    public static List<Jvm> getJdksInRange(Range<Integer> range) {
         Set<Integer> found = new HashSet<>();
         return getAvailableJvmMetadatas().stream()
             .filter(input -> input.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES))
             .filter(element ->
-                (minVersionInclusive == null || element.getJavaMajorVersion() >= minVersionInclusive) &&
-                    (maxVersionExclusive == null || element.getJavaMajorVersion() < maxVersionExclusive) &&
+                range.contains(element.getJavaMajorVersion()) &&
                     found.add(element.getJavaMajorVersion())
             )
             .sorted(Comparator.comparingInt(JvmInstallationMetadata::getJavaMajorVersion))
             .map(AvailableJavaHomes::jvmFromMetadata)
             .collect(Collectors.toList());
-    }
-
-    private static List<Jvm> getJdksAtOrAbove(int minVersionInclusive) {
-        return getJdksInRange(minVersionInclusive, null);
-    }
-
-    private static List<Jvm> getJdksBelow(int maxVersionExclusive) {
-        return getJdksInRange(null, maxVersionExclusive);
     }
 
     /**

@@ -52,7 +52,7 @@ trait JUnitJupiterMultiVersionTest {
 
         @Override
         boolean supportsJavaVersion(int javaVersion) {
-            return javaVersion > 8
+            return javaVersion >= 8
         }
     }
 

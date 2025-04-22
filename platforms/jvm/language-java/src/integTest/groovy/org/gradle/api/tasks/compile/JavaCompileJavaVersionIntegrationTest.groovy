@@ -30,10 +30,12 @@ import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
 
 class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires use of specific JDK version")
+    @Requires(value = [
+        IntegTestPreconditions.NotEmbeddedExecutor,
+        IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable
+    ], reason = "requires use of specific JDK version")
     def "not up-to-date when default Java version changes"() {
-        def otherJdk = AvailableJavaHomes.getDifferentVersion(jdk.javaVersion)
-        Assume.assumeTrue(otherJdk != null)
+        def otherJdk = AvailableJavaHomes.differentVersion
 
         given:
         buildFile << """
@@ -44,20 +46,18 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec impl
         withHelloJava()
 
         when:
-        executer.withJvm(jdk)
         succeeds "compileJava"
 
         then:
         executedAndNotSkipped ":compileJava"
-        assertCompiledWith(jdk)
+        assertCompiledWith(Jvm.current())
 
         when:
-        executer.withJvm(jdk)
         succeeds "compileJava"
 
         then:
         skipped ":compileJava"
-        assertCompiledWith(jdk)
+        assertCompiledWith(Jvm.current())
 
         when:
         executer.withJvm(otherJdk)
@@ -67,9 +67,6 @@ class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec impl
         executedAndNotSkipped ":compileJava"
         assertCompiledWith(otherJdk)
         output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
-
-        where:
-        jdk << AvailableJavaHomes.supportedDaemonJdks
     }
 
     def "not up-to-date when java version for forking changes"() {
