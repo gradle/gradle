@@ -233,4 +233,4 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",f
 <1> Declare dependency once
 
 === Tags
-`#dependency-management`
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
