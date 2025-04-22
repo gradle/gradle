@@ -17,5 +17,5 @@
 package org.gradle.api.internal.plugins;
 
 public interface SoftwareFeatureBindingRegistration {
-    void configure(SoftwareFeatureBindingBuilder builder);
+    void register(SoftwareFeatureBindingBuilder builder);
 }

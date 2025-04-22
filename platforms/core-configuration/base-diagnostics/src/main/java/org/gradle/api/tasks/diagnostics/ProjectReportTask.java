@@ -130,7 +130,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     private List<SoftwareFeatureImplementation<?>> getSoftwareTypesForProject(Project project) {
         List<SoftwareFeatureImplementation<?>> results = new ArrayList<>(1);
         getSoftwareTypeRegistry().getSoftwareFeatureImplementations().values().forEach(registeredType -> {
-            Class<?> softwareType = registeredType.getModelPublicType();
+            Class<?> softwareType = registeredType.getDefinitionPublicType();
             if (project.getExtensions().findByType(softwareType) != null) {
                 results.add(registeredType);
             }

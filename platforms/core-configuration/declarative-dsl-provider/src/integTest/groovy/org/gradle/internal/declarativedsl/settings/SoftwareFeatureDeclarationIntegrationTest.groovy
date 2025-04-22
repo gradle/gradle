@@ -99,7 +99,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             public class SoftwareFeatureImplPlugin implements Plugin<Project> {
 
                 static class Binding implements SoftwareFeatureBindingRegistration {
-                    @Override public void configure(SoftwareFeatureBindingBuilder builder) {
+                    @Override public void register(SoftwareFeatureBindingBuilder builder) {
                         builder.bind("feature", FeatureDefinition.class, TestSoftwareTypeExtension.class, FeatureModel.class,
                             (context, feature, parent, model) -> {
                                 System.out.println("Binding FeatureDefinition");
@@ -142,7 +142,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             class SoftwareFeatureImplPlugin : Plugin<Project> {
 
                 class Binding : SoftwareFeatureBindingRegistration {
-                    override fun configure(builder: SoftwareFeatureBindingBuilder) {
+                    override fun register(builder: SoftwareFeatureBindingBuilder) {
                         builder.bind<FeatureDefinition, TestSoftwareTypeExtension, FeatureModel>("feature") { feature, parent, model ->
                             println("Binding FeatureDefinition")
                             model.getText().set(feature.getText())

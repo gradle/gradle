@@ -97,6 +97,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             new DefaultSoftwareFeatureImplementation<>(
                 binding.getPath().getName(),
                 binding.getDslType(),
+                Cast.uncheckedCast(binding.getImplementationType().orElse(binding.getDslType())),
                 binding.getBindingTargetType(),
                 binding.getBuildModelType(),
                 pluginClass,
@@ -113,7 +114,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             Class<? extends SoftwareFeatureBindingRegistration> bindingRegistrationClass = bindsSoftwareType.value();
             SoftwareFeatureBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             SoftwareFeatureBindingBuilder builder = new DefaultSoftwareFeatureBindingBuilder();
-            bindingRegistration.configure(builder);
+            bindingRegistration.register(builder);
             SoftwareFeatureBinding binding = builder.build();
             registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder);
         }
@@ -126,7 +127,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             Class<? extends SoftwareTypeBindingRegistration> bindingRegistrationClass = bindsSoftwareType.value();
             SoftwareTypeBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             SoftwareTypeBindingBuilder builder = new DefaultSoftwareTypeBindingBuilder();
-            bindingRegistration.configure(builder);
+            bindingRegistration.register(builder);
             SoftwareFeatureBinding binding = builder.build();
             registerFeature(registeringPluginClass, pluginClass, binding, softwareFeatureImplementationsBuilder);
         }
@@ -151,7 +152,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     public NamedDomainObjectCollectionSchema getSchema() {
         return () -> Iterables.transform(
             () -> getSoftwareFeatureImplementations().entrySet().iterator(),
-            entry -> new SoftwareFeatureSchema(entry.getKey(), entry.getValue().getModelPublicType())
+            entry -> new SoftwareFeatureSchema(entry.getKey(), entry.getValue().getDefinitionPublicType())
         );
     }
 

@@ -32,7 +32,8 @@ import java.util.Objects;
  */
 public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureImplementation<T> {
     private final String featureName;
-    private final Class<T> modelPublicType;
+    private final Class<T> definitionPublicType;
+    private final Class<? extends T> definitionImplementationType;
     private final Class<?> bindingType;
     private final Class<?> buildModelType;
     private final Class<? extends Plugin<Project>> pluginClass;
@@ -41,14 +42,16 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     private final SoftwareFeatureTransform<T, ?, ?> bindingTransform;
 
     public DefaultSoftwareFeatureImplementation(String featureName,
-                                                Class<T> modelPublicType,
+                                                Class<T> definitionPublicType,
+                                                Class<? extends T> definitionImplementationType,
                                                 Class<?> bindingType,
                                                 Class<?> buildModelType,
                                                 Class<? extends Plugin<Project>> pluginClass,
                                                 Class<? extends Plugin<Settings>> registeringPluginClass,
                                                 SoftwareFeatureTransform<T, ?, ?> bindingTransform) {
         this.featureName = featureName;
-        this.modelPublicType = modelPublicType;
+        this.definitionPublicType = definitionPublicType;
+        this.definitionImplementationType = definitionImplementationType;
         this.bindingType = bindingType;
         this.buildModelType = buildModelType;
         this.pluginClass = pluginClass;
@@ -62,8 +65,13 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     }
 
     @Override
-    public Class<T> getModelPublicType() {
-        return modelPublicType;
+    public Class<T> getDefinitionPublicType() {
+        return definitionPublicType;
+    }
+
+    @Override
+    public Class<? extends T> getDefinitionImplementationType() {
+        return definitionImplementationType;
     }
 
     @Override
@@ -114,11 +122,11 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
             return false;
         }
         DefaultSoftwareFeatureImplementation<?> that = (DefaultSoftwareFeatureImplementation<?>) o;
-        return Objects.equals(featureName, that.featureName) && Objects.equals(modelPublicType, that.modelPublicType) && Objects.equals(pluginClass, that.pluginClass);
+        return Objects.equals(featureName, that.featureName) && Objects.equals(definitionPublicType, that.definitionPublicType) && Objects.equals(pluginClass, that.pluginClass);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(featureName, modelPublicType, pluginClass);
+        return Objects.hash(featureName, definitionPublicType, pluginClass);
     }
 }

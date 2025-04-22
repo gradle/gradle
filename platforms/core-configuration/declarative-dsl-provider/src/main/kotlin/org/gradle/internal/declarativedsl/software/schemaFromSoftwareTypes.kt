@@ -92,7 +92,7 @@ class SoftwareFeatureComponent(
     private val softwareFeatureImplementations: List<SoftwareFeatureInfo<*>>
 ) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(schemaTypeToExtend, softwareFeatureImplementations.map { it.modelPublicType.kotlin })
+        FixedTypeDiscovery(schemaTypeToExtend, softwareFeatureImplementations.map { it.definitionPublicType.kotlin })
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
@@ -152,7 +152,7 @@ data class SoftwareFeatureInfo<T : Any>(
             emptyList(),
             isDirectAccessOnly = true,
             semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(modelPublicType.kotlin), customAccessorId),
+                accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(definitionPublicType.kotlin), customAccessorId),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
             )
@@ -185,7 +185,7 @@ class RuntimeModelTypeAccessors(
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
         val softwareFeature = modelTypeById[accessor.customAccessorIdentifier]
             ?: return InstanceAndPublicType.NULL
-        return InstanceAndPublicType.of(applySoftwareFeaturePlugin(receiverObject, softwareFeature, softwareFeatureApplicator), softwareFeature.modelPublicType.kotlin)
+        return InstanceAndPublicType.of(applySoftwareFeaturePlugin(receiverObject, softwareFeature, softwareFeatureApplicator), softwareFeature.definitionPublicType.kotlin)
     }
 
     private
