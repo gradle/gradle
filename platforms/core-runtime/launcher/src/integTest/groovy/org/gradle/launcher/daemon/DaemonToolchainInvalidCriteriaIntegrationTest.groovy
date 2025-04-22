@@ -26,10 +26,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(
-    value = [IntegTestPreconditions.NotEmbeddedExecutor],
-    reason = "embedded may pick up the running JVM where it should not"
-)
 class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
 
     def "Given empty daemon-jvm properties file When execute any task Then succeeds using the current java home"() {
@@ -61,6 +57,10 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
     }
 
     // FIXME: running embedded this test passes as it picks up the running Temurin Java 17 and uses that
+    @Requires(
+        value = [IntegTestPreconditions.NotEmbeddedExecutor],
+        reason = "embedded may pick up the running JVM where it should not"
+    )
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {
         given:
         writeJvmCriteria(JavaVersion.VERSION_17, "unexpectedVendor")

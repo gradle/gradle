@@ -17,12 +17,11 @@ package org.gradle.integtests.wrapper
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 @SuppressWarnings("IntegrationTestFixtures")
-@DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
 
     @Requires(IntegTestPreconditions.UnsupportedWrapperJavaHomeAvailable)
@@ -32,7 +31,7 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
 
         then:
         def result = executor.withArgument('help').runWithFailure()
-        result.hasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${jdk.javaVersionMajor}.")
+        result.assertHasErrorOutput(SupportedJavaVersionsExpectations.getErrorPattern(jdk.javaVersionMajor))
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
@@ -46,7 +45,7 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
 
         then:
         def result = executor.withArgument('help').runWithFailure()
-        result.hasErrorOutput("Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}.")
+        result.assertHasErrorOutput(SupportedJavaVersionsExpectations.getErrorPattern(jdk.javaVersionMajor))
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()

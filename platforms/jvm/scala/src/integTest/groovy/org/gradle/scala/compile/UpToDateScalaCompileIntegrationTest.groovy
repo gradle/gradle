@@ -22,12 +22,10 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-
-import static org.gradle.api.JavaVersion.VERSION_11
-import static org.gradle.api.JavaVersion.VERSION_1_8
 
 class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
@@ -68,30 +66,30 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Requires(value = [
-        IntegTestPreconditions.Java8HomeAvailable,
-        IntegTestPreconditions.Java11HomeAvailable,
+        IntegTestPreconditions.Java17HomeAvailable,
+        IntegTestPreconditions.Java21HomeAvailable,
         IntegTestPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with specific JDK versions")
     def "compile is out of date when changing the java version"() {
-        def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
-        def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
+        def jdk17 = AvailableJavaHomes.jdk17
+        def jdk21 = AvailableJavaHomes.jdk21
 
-        buildFile(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, '2.12.6'))
+        buildFile(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, ScalaCoverage.getLatestSupportedScala2Version()))
         when:
-        executer.withJvm(jdk8)
+        executer.withJvm(jdk17)
         run 'compileScala'
 
         then:
         executedAndNotSkipped(':compileScala')
 
         when:
-        executer.withJvm(jdk8)
+        executer.withJvm(jdk17)
         run 'compileScala'
         then:
         skipped ':compileScala'
 
         when:
-        executer.withJvm(jdk11)
+        executer.withJvm(jdk21)
         run 'compileScala', '--info'
         then:
         executedAndNotSkipped(':compileScala')
@@ -118,9 +116,14 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         """.stripIndent()
     }
 
+    @Requires(value = [
+        IntegTestPreconditions.Java21HomeAvailable,
+        IntegTestPreconditions.Java24HomeAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with specific JDK versions")
     def "compile is out of date when changing the java launcher"() {
-        def jdk8 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_1_8))
-        def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
+        def jdk21 = AvailableJavaHomes.jdk21
+        def jdk24 = AvailableJavaHomes.jdk24
 
         buildFile """
             apply plugin: 'scala'
@@ -139,8 +142,8 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(
                         !providers.gradleProperty("changed").isPresent()
-                            ? ${jdk8.languageVersion.majorVersion}
-                            : ${jdk11.languageVersion.majorVersion}
+                            ? ${jdk21.javaVersionMajor}
+                            : ${jdk24.javaVersionMajor}
                     )
                 }
             }
@@ -153,32 +156,40 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         """
 
         when:
-        withInstallations(jdk8, jdk11).run 'compileScala'
+        withInstallations(jdk21, jdk24).run 'compileScala'
 
         then:
         executedAndNotSkipped ':compileScala'
 
         when:
-        withInstallations(jdk8, jdk11).run 'compileScala'
+        withInstallations(jdk21, jdk24).run 'compileScala'
         then:
         skipped ':compileScala'
 
         when:
-        withInstallations(jdk8, jdk11).run 'compileScala', '-Pchanged', '--info'
+        withInstallations(jdk21, jdk24).run 'compileScala', '-Pchanged', '--info'
         then:
         executedAndNotSkipped ':compileScala'
         outputContains("Value of input property 'javaLauncher.metadata.taskInputs.languageVersion' has changed for task ':compileScala'")
 
         when:
-        withInstallations(jdk8, jdk11).run 'compileScala', '-Pchanged', '--info'
+        withInstallations(jdk21, jdk24).run 'compileScala', '-Pchanged', '--info'
         then:
         skipped ':compileScala'
     }
 
+    @Requires(value = [
+        IntegTestPreconditions.Java21HomeAvailable,
+        IntegTestPreconditions.Java24HomeAvailable,
+    ], reason = "needed for toolchain use")
     def "compilation emits toolchain usage events"() {
         captureBuildOperations()
+        def jdk = AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersion.toInteger() in 21..24 }
+        if (jdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            jdk = Jvm.current()
+        }
 
-        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.majorVersion.toInteger() in 8..17 })
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jdk)
 
         buildFile """
             apply plugin: 'scala'

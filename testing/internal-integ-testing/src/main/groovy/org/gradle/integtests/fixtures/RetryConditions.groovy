@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
+import org.junit.AssumptionViolatedException
 
 import javax.annotation.Nullable
 
@@ -72,6 +73,10 @@ class RetryConditions {
     }
 
     static boolean onIssueWithReleasedGradleVersion(Object specification, Throwable failure) {
+        if (failure instanceof AssumptionViolatedException) {
+            return false
+        }
+
         def daemonsFixture = specification.hasProperty("daemonsFixture") ? specification.daemonsFixture : null
         return shouldRetry(specification, failure, daemonsFixture)
     }
