@@ -383,11 +383,11 @@ Gradle 9.0 completes their removal, attempting to use them will result in errors
 Please only use `versions` or `plugins` from dependency version catalogs in the `plugins {}` block.
 
 [[validate_plugins_without_java_toolchain_90]]
-==== Using `ValidatePlugins` task without a Java Toolchain is an error
+==== `ValidatePlugins` task now requires Java Toolchains
 
-Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:toolchains.html[Java Toolchains] plugin is an error in Gradle 9.0.
+In Gradle 9.0, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
 
-To avoid the error, please apply the plugin to your project:
+To fix this, explicitly apply the `jvm-toolchains` plugin:
 
 ====
 [.multi-language-sample]
@@ -412,8 +412,8 @@ plugins {
 =====
 ====
 
-The Java Toolchains plugin is applied automatically by the <<java_library_plugin#java_library_plugin,Java library plugin>> or other JVM plugins.
-So you can apply any of them to your project and it will fix the warning.
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins. 
+If you are already applying one of those, no further action is needed.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
@@ -3553,10 +3553,9 @@ Please only use `versions` or `plugins` from dependency version catalogs in the 
 [[validate_plugins_without_java_toolchain]]
 ==== Using `ValidatePlugins` task without a Java Toolchain
 
-Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:toolchains.html[Java Toolchains] plugin, or any other Java plugin
-that applies Java Toolchains, has been deprecated in Gradle 8.1 and has become an error in Gradle 9.0.
+Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] without applying the link:toolchains.html[Java Toolchains] plugin
+—or any other Java plugin that applies the Java Toolchains plugin—was deprecated in Gradle 8.1 and is now an error in Gradle 9.0.
 
-To avoid the error, follow the steps in <<upgrading_version_8#validate_plugins_without_java_toolchain_90, the 9.0 upgrade guide>>.
 
 [[org_gradle_util_reports_deprecations_80]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
