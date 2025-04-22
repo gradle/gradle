@@ -189,7 +189,7 @@ Avoid declaring the same dependency multiple times, especially when it is alread
 Duplicating dependencies in Gradle build scripts can lead to:
 
 * Increased maintenance: Declaring a dependency in multiple places makes it harder to manage.
-Unexpected behavior: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
+* Unexpected behavior: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
 
 === Example
 
@@ -200,8 +200,7 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin",f
 include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
-<1> Dependency on library version `1.10.0`
-<2> Redundant declaration that can be removed
+<1> Redundant dependency on `implementation` scope.
 
 ==== Do This Instead
 
