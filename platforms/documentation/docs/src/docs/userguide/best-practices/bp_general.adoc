@@ -182,14 +182,14 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 [[avoid_duplicate_dependencies]]
 == Avoid Redundant Dependency Declarations
 
-You should avoid duplicating dependencies in your build scripts, whether with different versions or in different dependency configurations.
+Avoid declaring the same dependency multiple times, especially when it is already available transitively or through another configuration.
 
 === Explanation
 
-Duplicating dependencies in build scripts can lead to several problems:
+Duplicating dependencies in Gradle build scripts can lead to:
 
-* Conflicting versions may cause unexpected behavior or runtime errors due to version mismatches
-* Confusion during maintenance of build scripts and dependencies
+* Increased maintenance: Declaring a dependency in multiple places makes it harder to manage.
+Unexpected behavior: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
 
 === Example
 
