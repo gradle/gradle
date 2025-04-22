@@ -7,11 +7,11 @@ dependencies {
     runtimeOnly project(":library") // <1>
 }
 
-class BadClasspathPrinter extends DefaultTask {
+abstract class BadClasspathPrinter extends DefaultTask {
     @InputFiles
     Set<File> classpath = [] as Set // <2>
 
-    private int calculateDigest(File fileOrDirectory) {
+    protected int calculateDigest(File fileOrDirectory) {
         if (!fileOrDirectory.exists()) {
             throw new IllegalArgumentException("File or directory $fileOrDirectory doesn't exist")
         }
@@ -30,7 +30,7 @@ class BadClasspathPrinter extends DefaultTask {
 }
 
 tasks.register("badClasspathPrinter", BadClasspathPrinter) {
-    classpath = configurations.runtimeClasspath.get().resolve() // <3>
+    classpath = configurations.runtimeClasspath.resolve() // <3>
 }
 // end::bad-classpath-printer[]
 
@@ -39,12 +39,12 @@ dependencies {
     runtimeOnly project(":library") // <1>
 }
 
-class GoodClasspathPrinter extends DefaultTask {
+abstract class GoodClasspathPrinter extends DefaultTask {
 
     @InputFiles
     abstract ConfigurableFileCollection getResolvedClasspath() // <2>
 
-    private int calculateDigest(File fileOrDirectory) {
+    protected int calculateDigest(File fileOrDirectory) {
         if (!fileOrDirectory.exists()) {
             throw new IllegalArgumentException("File or directory $fileOrDirectory doesn't exist")
         }
