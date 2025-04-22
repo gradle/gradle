@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -55,10 +56,10 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     // The variants to use for variant selection during graph resolution
-    private final CalculatedValue<LocalComponentGraphSelectionCandidates> graphSelectionCandidates;
+    private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
 
     // The public view of all selectable variants of this component
-    private final CalculatedValue<List<ResolvedVariantResult>> selectableVariantResults;
+    private final AtomicReference<CalculatedValue<List<ResolvedVariantResult>>> selectableVariantResults = new AtomicReference<>();
 
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
@@ -74,11 +75,32 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
 
         // Mutable state
-        this.graphSelectionCandidates = this.calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
-            computeGraphSelectionCandidates(this.variantFactory)
+        initCalculatedValues();
+    }
+
+    @Override
+    public void reevaluate() {
+        // TODO: This is not really thread-safe.
+        //       We should atomically clear all the different fields at once.
+        //       Or better yet, we should not allow reevaluation of the state.
+        initCalculatedValues();
+    }
+
+    private void initCalculatedValues() {
+        // TODO: We wrap the CalculatedValues in an AtomicReference so that we can reset their state, however
+        //       CalculatedValues are not resettable for a reason. This is a pretty terrible hack.
+        //       We should get rid of reevaluate entirely, so that we do not need these AtomicReferences.
+        //       We are already on this path -- we deprecated mutating a configuration after observation.
+        //       However, while mutation is still allowed, we need hacks like this.
+        this.graphSelectionCandidates.set(
+            calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
+                computeGraphSelectionCandidates(this.variantFactory)
+            )
         );
-        this.selectableVariantResults = this.calculatedValueContainerFactory.create(Describables.of("public variants of", getMetadata()), context ->
-            computeSelectableVariantResults(this)
+        this.selectableVariantResults.set(
+            calculatedValueContainerFactory.create(Describables.of("public variants of", getMetadata()), context ->
+                computeSelectableVariantResults(this)
+            )
         );
     }
 
@@ -99,8 +121,9 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public LocalComponentGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        graphSelectionCandidates.finalizeIfNotAlready();
-        return graphSelectionCandidates.get();
+        CalculatedValue<LocalComponentGraphSelectionCandidates> value = graphSelectionCandidates.get();
+        value.finalizeIfNotAlready();
+        return value.get();
     }
 
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
@@ -127,8 +150,9 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        selectableVariantResults.finalizeIfNotAlready();
-        return selectableVariantResults.get();
+        CalculatedValue<List<ResolvedVariantResult>> value = selectableVariantResults.get();
+        value.finalizeIfNotAlready();
+        return value.get();
     }
 
     private static List<ResolvedVariantResult> computeSelectableVariantResults(DefaultLocalComponentGraphResolveState component) {

@@ -21,9 +21,10 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -124,8 +125,21 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
             schema
         );
 
-        ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
-        return resolveStateFactory.stateFor(projectState, metadata, configurations);
+        DefaultConfigurationContainer configurations = (DefaultConfigurationContainer) project.getConfigurations();
+        LocalComponentGraphResolveState componentState = resolveStateFactory.stateFor(projectState, metadata, configurations);
+
+        // If a configuration is modified after the component is created, invalidate the component state
+        // to incorporate the changes. This should not be necessary. Instead, we should throw an exception if
+        // the user tries to mutate a configuration after the component is created.
+        configurations.configureEach(configuration -> {
+            ((ConfigurationInternal) configuration).addMutationValidator(type -> {
+                if (type != MutationValidator.MutationType.STRATEGY) {
+                    componentState.reevaluate();
+                }
+            });
+        });
+
+        return componentState;
     }
 
     @Override
