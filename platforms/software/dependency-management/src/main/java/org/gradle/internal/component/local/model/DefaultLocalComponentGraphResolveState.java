@@ -42,13 +42,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
- * Holds the resolution state for a local component. The state is calculated as required, and an instance can be used for multiple resolutions across a build tree.
- *
- * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
+ * Holds the resolution state for a local component. The state is calculated as required,
+ * and an instance can be used for multiple resolutions across a build tree.
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata> implements LocalComponentGraphResolveState {
 
@@ -57,10 +55,10 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     // The variants to use for variant selection during graph resolution
-    private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
+    private final CalculatedValue<LocalComponentGraphSelectionCandidates> graphSelectionCandidates;
 
     // The public view of all selectable variants of this component
-    private final AtomicReference<CalculatedValue<List<ResolvedVariantResult>>> selectableVariantResults = new AtomicReference<>();
+    private final CalculatedValue<List<ResolvedVariantResult>> selectableVariantResults;
 
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
@@ -76,35 +74,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
 
         // Mutable state
-        initCalculatedValues();
-    }
-
-    @Override
-    public void reevaluate() {
-        // TODO: This is not really thread-safe.
-        //       We should atomically clear all the different fields at once.
-        //       Or better yet, we should not allow reevaluation of the state.
-        variantFactory.invalidate();
-        initCalculatedValues();
-    }
-
-    private void initCalculatedValues() {
-        // TODO: We wrap the CalculatedValues in an AtomicReference so that we can reset their state, however
-        //       CalculatedValues are not resettable for a reason. This is a pretty terrible hack.
-        //       We should get rid of reevaluate entirely, so that we do not need these AtomicReferences.
-        //       We are already on this path -- we deprecated mutating a configuration after observation.
-        //       However, while mutation is still allowed, we need hacks like this, as plugins are relying
-        //       on the deprecated behavior, for example the Spring dependency management plugin which adds
-        //       excludes to dependencies in a beforeResolve.
-        this.graphSelectionCandidates.set(
-            calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
-                computeGraphSelectionCandidates(variantFactory)
-            )
+        this.graphSelectionCandidates = this.calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
+            computeGraphSelectionCandidates(this.variantFactory)
         );
-        this.selectableVariantResults.set(
-            calculatedValueContainerFactory.create(Describables.of("public variants of", getMetadata()), context ->
-                computeSelectableVariantResults(this)
-            )
+        this.selectableVariantResults = this.calculatedValueContainerFactory.create(Describables.of("public variants of", getMetadata()), context ->
+            computeSelectableVariantResults(this)
         );
     }
 
@@ -125,9 +99,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public LocalComponentGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        CalculatedValue<LocalComponentGraphSelectionCandidates> value = graphSelectionCandidates.get();
-        value.finalizeIfNotAlready();
-        return value.get();
+        graphSelectionCandidates.finalizeIfNotAlready();
+        return graphSelectionCandidates.get();
     }
 
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
@@ -154,9 +127,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        CalculatedValue<List<ResolvedVariantResult>> value = selectableVariantResults.get();
-        value.finalizeIfNotAlready();
-        return value.get();
+        selectableVariantResults.finalizeIfNotAlready();
+        return selectableVariantResults.get();
     }
 
     private static List<ResolvedVariantResult> computeSelectableVariantResults(DefaultLocalComponentGraphResolveState component) {

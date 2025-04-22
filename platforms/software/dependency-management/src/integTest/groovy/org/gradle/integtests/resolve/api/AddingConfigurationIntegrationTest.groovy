@@ -129,14 +129,18 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
             def conf = configurations.create("conf")
             configurations.remove(conf)
-            assert conf.files.empty
+
+            task resolve {
+                def files = conf.incoming.files
+                doLast {
+                    assert files.empty
+                }
+            }
+
         """
 
-        when:
-        fails("help")
-
-        then:
-        failure.assertHasCause("Expected resolvable configuration 'conf' to be present in root project")
+        expect:
+        succeeds("resolve")
     }
 
     def "removing a configuration with dependencies and resolving it fails"() {
@@ -149,13 +153,18 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
             def conf = configurations.create("conf")
             conf.dependencies.add(project.dependencies.create("org:foo:1.0"))
             configurations.remove(conf)
-            conf.files
+
+            task resolve {
+                def files = conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-1.0.jar"]
+                }
+            }
         """
 
         when:
-        fails("help")
 
-        then:
-        failure.assertHasCause("Expected resolvable configuration 'conf' to be present in root project")
+        expect:
+        succeeds("resolve")
     }
 }

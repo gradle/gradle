@@ -522,10 +522,8 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         }
     }
 
-    // TODO #9591: This does not reflect desired behavior. The recursive copy is a detached configuration, which
-    // effectively replaces the root component, preventing the consumable configuration from being selected.
     @Issue('GRADLE-3280')
-    def "cannot resolve recursive copy of configuration with cyclic project dependencies"() {
+    def "can resolve recursive copy of configuration with cyclic project dependencies"() {
         given:
         settingsFile << "include 'a', 'b', 'c'"
         def common = """
@@ -587,12 +585,8 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         expect:
         succeeds(":a:assertCanResolve")
 
-        when:
-        fails(":a:assertCanResolveRecursiveCopy")
-
-        then:
-        failure.assertHasCause("Could not resolve all files for configuration ':a:resCopy'.")
-        failure.assertHasErrorOutput("No variants exist.")
+        and:
+        succeeds(":a:assertCanResolveRecursiveCopy")
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about

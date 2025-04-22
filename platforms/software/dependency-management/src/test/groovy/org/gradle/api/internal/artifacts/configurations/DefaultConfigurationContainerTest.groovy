@@ -28,16 +28,16 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -55,18 +55,13 @@ class DefaultConfigurationContainerTest extends Specification {
     private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
+        decorateSpec(_) >> { Spec spec -> spec }
         decorate(_ as Action) >> { it[0] }
     }
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private ObjectFactory objectFactory = TestUtil.objectFactory()
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
-    private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
-        getValidator() >> Mock(MutationValidator)
-    }
-    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_, _, _, _) >> metadataBuilder
-    }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         objectFactory,
         resolver,
@@ -95,10 +90,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
         TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
-        metaDataProvider,
         StandaloneDomainObjectContext.ANONYMOUS,
-        Mock(AttributesSchemaInternal),
-        rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory),
         TestUtil.problemsService()
@@ -178,6 +170,61 @@ class DefaultConfigurationContainerTest extends Specification {
 
         then:
         thrown MissingMethodException
+    }
+
+    def "adds and gets"() {
+        when:
+        def compile = configurationContainer.create("compile")
+
+        then:
+        compile.name == "compile"
+        compile.incoming.path == "compile"
+        compile instanceof DefaultConfiguration
+
+        and:
+        configurationContainer.getByName("compile") == compile
+
+        //finds configurations
+        configurationContainer.findByName("compile") == compile
+        configurationContainer.findByName("foo") == null
+        configurationContainer.findAll { it.name == "compile" } as Set == [compile] as Set
+        configurationContainer.findAll { it.name == "foo" } as Set == [] as Set
+
+        configurationContainer as List == [compile] as List
+
+        when:
+        configurationContainer.getByName("fooo")
+
+        then:
+        thrown(UnknownConfigurationException)
+    }
+
+    def "configures and finds"() {
+        when:
+        def compile = configurationContainer.create("compile") {
+            description = "I compile!"
+        }
+
+        then:
+        configurationContainer.getByName("compile") == compile
+        compile.description == "I compile!"
+        compile.incoming.path == "compile"
+    }
+
+    def "creates detached"() {
+        given:
+        def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
+        def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
+
+        when:
+        def detached = configurationContainer.detachedConfiguration(dependency1, dependency2)
+
+        then:
+        detached.name == "detachedConfiguration1"
+        detached.getHierarchy() == [detached] as Set
+        [dependency1, dependency2].each { detached.getDependencies().contains(it) }
+        detached.getDependencies().size() == 2
+        detached.incoming.path == "detachedConfiguration1"
     }
 
     def "#name creates legacy configurations"() {
@@ -406,15 +453,13 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    private verifyUsageChangeFailsProperly(Closure step) {
-        boolean thrown = false
+    private static verifyUsageChangeFailsProperly(Closure step) {
         try {
             step.call()
+            assert false : "Expected exception to be thrown"
         } catch (GradleException e) {
             assert e.message.startsWith("Cannot change the allowed usage of configuration")
-            thrown = true
         }
-        assert thrown
     }
 
     def verifyEagerConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {

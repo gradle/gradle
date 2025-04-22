@@ -63,7 +63,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentProvider;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
@@ -235,7 +236,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         void configure(ServiceRegistration registration) {
             registration.add(TransformedVariantFactory.class, DefaultTransformedVariantFactory.class);
-            registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
+            registration.add(RootComponentProvider.class);
             registration.add(ResolveExceptionMapper.class);
             registration.add(ResolutionStrategyFactory.class);
             registration.add(LocalComponentRegistry.class, DefaultLocalComponentRegistry.class);
@@ -420,10 +421,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationContainerInternal createConfigurationContainer(
             Instantiator instantiator,
             CollectionCallbackActionDecorator callbackDecorator,
-            DependencyMetaDataProvider dependencyMetaDataProvider,
             DomainObjectContext domainObjectContext,
-            AttributesSchemaInternal attributesSchema,
-            DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
             ResolutionStrategyFactory resolutionStrategyFactory,
             InternalProblems problemsService
@@ -431,10 +429,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
                 callbackDecorator,
-                dependencyMetaDataProvider,
                 domainObjectContext,
-                attributesSchema,
-                rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory,
                 resolutionStrategyFactory,
                 problemsService
@@ -559,7 +554,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ArtifactTypeRegistry artifactTypeRegistry,
             ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler,
             AttributeSchemaServices attributeSchemaServices,
-            DependencyLockingProvider dependencyLockingProvider
+            DependencyLockingProvider dependencyLockingProvider,
+            RootComponentProvider rootComponentProvider,
+            LocalVariantGraphResolveStateBuilder variantStateBuilder,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            AttributesSchemaInternal attributesSchema
         ) {
             ShortCircuitingResolutionExecutor shortCircuitingResolutionExecutor = new ShortCircuitingResolutionExecutor(
                 resolutionExecutor,
@@ -572,7 +571,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 shortCircuitingResolutionExecutor,
                 artifactTypeRegistry,
                 componentModuleMetadataHandler,
-                attributeSchemaServices
+                attributeSchemaServices,
+                rootComponentProvider,
+                variantStateBuilder,
+                calculatedValueContainerFactory,
+                attributesSchema
             );
         }
 
