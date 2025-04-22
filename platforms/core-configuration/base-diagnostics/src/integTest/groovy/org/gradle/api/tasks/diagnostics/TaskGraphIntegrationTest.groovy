@@ -22,23 +22,7 @@ class TaskGraphIntegrationTest extends AbstractIntegrationSpec {
 
     def "shows simple graph of tasks"() {
         given:
-        buildFile """
-            def leaf1 = tasks.register("leaf1") {
-                doLast {
-                    println("I'm a task called leaf1")
-                }
-            }
-            def leaf2 = tasks.register("leaf2")
-            def middle = tasks.register("middle") {
-                dependsOn(leaf1, leaf2)
-            }
-            tasks.register("root") {
-                dependsOn(leaf1, middle)
-                doLast {
-                    println("I'm a task called root")
-                }
-            }
-        """
+        buildFile sampleGraph
 
         when:
         succeeds("root", "--task-graph")
@@ -91,17 +75,21 @@ Tasks graph for: root r2
 """)
     }
 
-    def "shows graph of tasks included from included build"() {
+    def "shows graph of tasks with tasks included from an included build with included build task graph omitted"() {
         given:
         settingsFile """
             rootProject.name = 'root'
             includeBuild "included"
         """
-        file("included/settings.gradle") << """
+        settingsFile "included/settings.gradle", """
             rootProject.name = "included"
         """
-        file('included/build.gradle') << """
-            tasks.register("fromIncluded")
+        buildFile 'included/build.gradle', """
+            def leaf1 = tasks.register("leaf1")
+            def leaf2 = tasks.register("leaf2")
+            tasks.register("fromIncluded") {
+                dependsOn(leaf1, leaf2)
+            }
         """
         buildFile """
             def leaf1 = tasks.register("leaf1")
@@ -121,6 +109,7 @@ Tasks graph for: root r2
         succeeds("root", "r2", "--task-graph")
 
         then:
+        // not that the subgraph for the included task is not shown
         outputContains("""
 Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
@@ -135,8 +124,22 @@ Tasks graph for: root r2
 """)
     }
 
-    def "shows simple graph of tasks with task removed"() {
+    def "does not show the subgraph of a task included from included build for qualified task invocation"() {
         given:
+        settingsFile """
+            rootProject.name = 'root'
+            includeBuild "included"
+        """
+        settingsFile "included/settings.gradle", """
+            rootProject.name = "included"
+        """
+        buildFile 'included/build.gradle', """
+            def leaf1 = tasks.register("leaf1")
+            def leaf2 = tasks.register("leaf2")
+            tasks.register("fromIncluded") {
+                dependsOn(leaf1, leaf2)
+            }
+        """
         buildFile """
             def leaf1 = tasks.register("leaf1")
             def leaf2 = tasks.register("leaf2")
@@ -146,7 +149,26 @@ Tasks graph for: root r2
             tasks.register("root") {
                 dependsOn(leaf1, middle)
             }
+            tasks.register("root2") {
+                dependsOn(gradle.includedBuild("included").task(":fromIncluded"))
+            }
         """
+
+        when:
+        succeeds(":included:fromIncluded", "--task-graph")
+
+        then:
+        // not that the subgraph for the included task is not shown
+        outputContains("""
+Tasks graph for: :included:fromIncluded
+\\--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+
+""")
+    }
+
+    def "shows simple graph of tasks with task removed"() {
+        given:
+        buildFile sampleGraph
 
         when:
         succeeds("root", "-x", "middle", "--task-graph")
@@ -156,6 +178,7 @@ Tasks graph for: root r2
 Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      \\--- :leaf1 (org.gradle.api.DefaultTask)
+
 """)
     }
 
@@ -208,6 +231,43 @@ Tasks graph for: root
             }
             tasks.register("root2") {
                 dependsOn(leaf1)
+            }
+        """
+
+        when:
+        succeeds("root", "root2", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: root root2
++--- :root (org.gradle.api.DefaultTask)
+|    \\--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \\--- :leaf2 (org.gradle.api.DefaultTask)
+\\--- :root2 (org.gradle.api.DefaultTask)
+     \\--- :leaf1 (org.gradle.api.DefaultTask) (*)
+
+(*) - details omitted (listed previously)
+""")
+    }
+
+    def "displays finalizations"() {
+        given:
+        buildFile """
+            def leaf1 = tasks.register("leaf1")
+            def leaf2 = tasks.register("leaf2")
+            def leaf3 = tasks.register("leaf3")
+            def leaf4 = tasks.register("leaf4") {
+                dependsOn(leaf3)
+            }
+            def middle = tasks.register("middle") {
+                dependsOn(leaf1, leaf2)
+            }
+            tasks.register("root") {
+                dependsOn(middle)
+            }
+            tasks.register("root2") {
+                dependsOn(leaf1)
                 finalizedBy(leaf4)
             }
         """
@@ -237,14 +297,7 @@ Tasks graph for: root root2
             plugins {
                 id "base"
             }
-            def leaf1 = tasks.register("leaf1")
-            def leaf2 = tasks.register("leaf2")
-            def middle = tasks.register("middle") {
-                dependsOn(leaf1, leaf2)
-            }
-            tasks.register("root") {
-                dependsOn(leaf1, middle)
-            }
+            $sampleGraph
         """
 
         when:
@@ -292,6 +345,7 @@ Tasks graph for: clean root
      \\--- :middle (org.gradle.api.DefaultTask)
           +--- :compileJava (org.gradle.api.tasks.compile.JavaCompile)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
+
 """)
     }
 
@@ -325,6 +379,116 @@ Tasks graph for: consumeFile
 \\--- :consumeFile (org.gradle.api.DefaultTask)
      \\--- :generateFile (org.gradle.api.DefaultTask)
 """)
+    }
+
+    def "task graph can be empty"() {
+        given:
+        buildFile sampleGraph
+
+        when:
+        succeeds("leaf1", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: leaf1
+\\--- :leaf1 (org.gradle.api.DefaultTask)
+
+""")
+    }
+
+    def "dry-run has higher priority than task graph"() {
+        given:
+        buildFile sampleGraph
+
+        when:
+        succeeds("root", "--task-graph", "--dry-run")
+
+        then:
+        outputDoesNotContain("""Tasks graph for""")
+        outputContains(":leaf1 SKIPPED")
+        outputContains(":root SKIPPED")
+    }
+
+    def "does not show artifact transforms"() {
+        settingsFile """
+            include 'lib', 'app'
+        """
+        createDir('lib')
+        createDir('app')
+        buildFile """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            def artifactType = Attribute.of('artifactType', String)
+            subprojects {
+                apply plugin: 'java'
+            }
+            project(":app") {
+                dependencies {
+                    implementation project(":lib")
+                }
+            }
+            abstract class FileSizer implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".txt")
+                    output.text = String.valueOf(input.length())
+                }
+            }
+            project(":app") {
+                dependencies {
+                    registerTransform(FileSizer) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'size')
+                    }
+                }
+                task resolve(type: Copy) {
+                    from configurations.runtimeClasspath.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts.artifactFiles
+                    into "\$buildDir/libs"
+                }
+            }
+"""
+        when:
+        succeeds("resolve", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: resolve
+\\--- :app:resolve (org.gradle.api.tasks.Copy)
+
+""")
+    }
+
+    def "does not print detailed task graph for GradleBuild task"() {
+        buildFile """
+            task b1(type:GradleBuild) {
+                tasks = ["t"]
+                buildName = 'bp'
+            }
+            task b2(type:GradleBuild) {
+                tasks = [":t"]
+                buildName = 'bp'
+                mustRunAfter ":b1"
+            }
+            task t
+        """
+
+        when:
+        succeeds("b1", "b2", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: b1 b2
++--- :b1 (org.gradle.api.tasks.GradleBuild)
+\\--- :b2 (org.gradle.api.tasks.GradleBuild)
+
+""")
+
+        outputDoesNotContain(":t")
     }
 
     def "does not mix the output with included build"() {
@@ -369,4 +533,79 @@ Tasks graph for: consumeFile
         then:
         output.find(~/(?m):task\d+ (org.gradle.api.DefaultTask)\s*> Task /) == null
     }
+
+    def "shows graph of tasks when project dependency is involved"() {
+        given:
+        settingsFile """
+            include "lib"
+            include "app"
+        """
+        buildFile 'lib/build.gradle', """
+            plugins {
+                id 'java-library'
+            }
+            def leaf1 = tasks.register("libleaf1") {
+                doLast {
+                    println("I'm a task called libleaf1")
+                }
+            }
+            tasks.named("compileJava") {
+                dependsOn(leaf1)
+            }
+        """
+        buildFile 'app/build.gradle', """
+            plugins {
+                id 'java'
+            }
+            dependencies {
+                implementation(project(":lib"))
+            }
+            def leaf1 = tasks.register("leaf1")
+            def leaf2 = tasks.register("leaf2")
+            def middle = tasks.register("middle") {
+                dependsOn(leaf1, leaf2)
+            }
+            tasks.register("root") {
+                dependsOn(leaf1, middle, "compileJava")
+            }
+        """
+
+        when:
+        succeeds("root", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: root
+\\--- :app:root (org.gradle.api.DefaultTask)
+     +--- :app:compileJava (org.gradle.api.tasks.compile.JavaCompile)
+     |    \\--- :lib:compileJava (org.gradle.api.tasks.compile.JavaCompile)
+     |         \\--- :lib:libleaf1 (org.gradle.api.DefaultTask)
+     +--- :app:leaf1 (org.gradle.api.DefaultTask)
+     \\--- :app:middle (org.gradle.api.DefaultTask)
+          +--- :app:leaf1 (org.gradle.api.DefaultTask) (*)
+          \\--- :app:leaf2 (org.gradle.api.DefaultTask)
+
+(*) - details omitted (listed previously)
+""")
+
+        outputDoesNotContain("I'm a task called")
+    }
+
+    private def sampleGraph = """
+        def leaf1 = tasks.register("leaf1") {
+            doLast {
+                println("I'm a task called leaf1")
+            }
+        }
+        def leaf2 = tasks.register("leaf2")
+        def middle = tasks.register("middle") {
+            dependsOn(leaf1, leaf2)
+        }
+        tasks.register("root") {
+            dependsOn(leaf1, middle)
+            doLast {
+                println("I'm a task called root")
+            }
+        }
+    """
 }
