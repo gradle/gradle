@@ -19,6 +19,8 @@ package common
 import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import configurations.CompileAll
 import configurations.FunctionalTest
+import configurations.PerformanceTest
+import configurations.PerformanceTestsPass
 import configurations.branchesFilterExcluding
 import configurations.checkCleanDirUnixLike
 import configurations.checkCleanDirWindows
@@ -258,7 +260,7 @@ fun BuildStep.onlyRunOnGitHubMergeQueueBranch() {
 
 fun BuildStep.skipConditionally(buildType: BuildType? = null) {
     // we need to run CompileALl unconditionally because of artifact dependency
-    if (buildType !is CompileAll) {
+    if (buildType !is CompileAll && buildType !is PerformanceTest && buildType !is PerformanceTestsPass) {
         conditions {
             doesNotEqual("skip.build", "true")
         }

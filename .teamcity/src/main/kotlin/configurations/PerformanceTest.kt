@@ -90,7 +90,7 @@ class PerformanceTest(
                     substDirOnWindows(os)
 
                     repeat(if (performanceTestBuildSpec.type == PerformanceTestType.FLAKINESS_DETECTION) 2 else 1) { repeatIndex: Int ->
-                        gradleWrapper {
+                        gradleWrapper(buildTypeThis) {
                             name = "GRADLE_RUNNER${if (repeatIndex == 0) "" else "_2"}"
                             tasks = ""
                             workingDir = os.perfTestWorkingDir

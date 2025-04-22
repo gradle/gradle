@@ -86,7 +86,7 @@ fun BuildSteps.substDirOnWindows(os: Os) {
                 subst p: /d
                 subst p: "%teamcity.build.checkoutDir%"
                 """.trimIndent()
-            skipConditionally()
+//            skipConditionally()
         }
     }
 }
@@ -109,7 +109,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """dir p: && subst p: /d"""
-            skipConditionally()
+//            skipConditionally()
         }
     }
 }
