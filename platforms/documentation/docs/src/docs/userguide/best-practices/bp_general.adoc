@@ -180,7 +180,7 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 `<<tags_reference.adoc#tag:upgrades,#upgrades>>`
 
 [[avoid_duplicate_dependencies]]
-== Avoid Declaring Dependencies Multiple Times
+== Avoid Redundant Dependency Declarations
 
 You should avoid duplicating dependencies in your build scripts, whether with different versions or in different dependency configurations.
 
