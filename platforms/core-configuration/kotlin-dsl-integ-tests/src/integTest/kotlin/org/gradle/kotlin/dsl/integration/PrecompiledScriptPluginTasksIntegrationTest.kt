@@ -36,14 +36,18 @@ import org.junit.Test
 class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk21OrEarlier::class)
+    @Requires(
+        value = [UnitTestPreconditions.Jdk21OrEarlier::class],
+        reason = "detekt does not support 22+. See https://github.com/detekt/detekt?tab=readme-ov-file#requirements"
+    )
+    // TODO: Convert this into a smoke test
     fun `generated code follows kotlin-dsl coding conventions`() {
 
         withBuildScript(
             """
             plugins {
                 `kotlin-dsl`
-                id("io.gitlab.arturbosch.detekt") version "1.23.6"
+                id("io.gitlab.arturbosch.detekt") version "1.23.8"
             }
 
             $repositoriesBlock

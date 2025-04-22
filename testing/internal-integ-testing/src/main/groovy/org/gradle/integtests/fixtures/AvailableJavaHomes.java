@@ -129,7 +129,7 @@ public abstract class AvailableJavaHomes {
      * Get a JDK for each major Java version installed on this machine.
      */
     public static List<Jvm> getAllJdkVersions() {
-        return getJdksInRange(Range.atLeast(0));
+        return getJdksInRange(Range.all());
     }
 
     /**
@@ -236,6 +236,19 @@ public abstract class AvailableJavaHomes {
     @Nullable
     public static Jvm getJdk(final JavaVersion version) {
         return Iterables.getFirst(getAvailableJdks(version), null);
+    }
+
+    /**
+     * Return any JDK installation that falls within the given JVM version range.
+     */
+    @Nullable
+    public static Jvm getJdkInRange(Range<Integer> range) {
+        return getAvailableJvmMetadatas().stream()
+            .filter(input -> input.getCapabilities().containsAll(JavaInstallationCapability.JDK_CAPABILITIES))
+            .filter(element -> range.contains(element.getJavaMajorVersion()))
+            .map(AvailableJavaHomes::jvmFromMetadata)
+            .findFirst()
+            .orElse(null);
     }
 
     /**

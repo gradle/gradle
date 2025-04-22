@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
@@ -590,6 +591,38 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         javaClassFile("compile/test/Person.class").exists()
         javaClassFile("compile/test/Person2.class").exists()
         !javaClassFile("Bar.class").exists()
+    }
+
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    def "bootclasspath can be set"() {
+        Assume.assumeTrue(Jvm.current().javaVersionMajor > 8)
+        file('src/main/java/Main.java') << """
+            import java.nio.file.Files;
+            import java.nio.file.Paths;
+
+            public class Main {
+                public static void main(String... args) throws Exception {
+                    // Flow was introduced in Java 9
+                    java.util.concurrent.Flow flow = null;
+                }
+            }
+        """
+
+        expect:
+        succeeds("compileJava")
+
+        when:
+        buildFile << """
+            compileJava {
+                sourceCompatibility = 8 // bootstrapClasspath is ignored by the compiler otherwise
+                targetCompatibility = 8 // bootstrapClasspath is ignored by the compiler otherwise
+                ${configureBoostrapClasspath(AvailableJavaHomes.getJdk8())}
+            }
+        """
+
+        then:
+        fails("compileJava")
+        failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
     }
 
     def "can use annotation processor"() {
