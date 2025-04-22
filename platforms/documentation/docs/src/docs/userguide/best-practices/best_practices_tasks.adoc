@@ -150,14 +150,14 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations-do/groovy
 
 == Don't resolve Configurations before Task Execution
 
-Resolving configuration before the task execution phase can lead to incorrect results and slower builds.
+Resolving configurations before the task execution phase can lead to incorrect results and slower builds.
 
 === Explanation
  
-Calling manual resolution via link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[resolve] method returns a set of Files that doesn't preserve references to the tasks that produced these files.
-This will break automatic task dependencies wiring through task input properties.
+Calling manual resolution via the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method returns a set of files that does not preserve references to the tasks that produced those files.
+This breaks automatic task dependency wiring through task input properties.
 
-Resolving configuration outside task execution phase can slow down configuration phase even for tasks (e.g. `help`) that don't need results of the resolved configuration.
+In addition, resolving configurations during the configuration phase can slow down the build, even for tasks (e.g., `help`) that don't require the resolved dependencies.
 
 === Example
 
@@ -175,7 +175,7 @@ include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually
 
 ==== Do This Instead
 
-Use lazy link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] API instead.
+To avoid issues, always defer resolution to the execution phase by using lazy APIs like link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`].
 
 ====
 include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually/kotlin",files="library/build.gradle.kts;build.gradle.kts[tags=good-classpath-printer]"]
@@ -190,10 +190,10 @@ include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually
 === Tags
 `#tasks`, `#inputs-and-outputs`, `#configurations`
 
-== Avoid using eager API on Gradle File Collections before task execution
+== Avoid using eager APIs on File Collections before Task Execution
 
-Gradle link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration] and link:{javadocPath}/org/gradle/api/artifacts/FileCollection.html[FileCollection]
-extend JDK's `Collection<File>` interface, however calls to the JDK Collection API on configuration and file collection instances will trigger their implicit resolution.
+Gradle's link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] and link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`] types extend the JDK’s `Collection<File>` interface.
+However, calling eager methods—such as `.size()`, `.isEmpty()`, `.files`, `.asPath`, or `.toList()`—on these types during the configuration phase will trigger their implicit resolution.
 
 === Example
 ==== Don't Do This
@@ -207,7 +207,8 @@ include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollectio
 
 ==== Do This Instead
 
-Use Gradle API that supports lazy evaluation.
+To avoid issues, always defer resolution until the execution phase. 
+Use APIs that support lazy evaluation.
 
 ====
 include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections/kotlin",files="build.gradle.kts[tags=good-zipping-task]"]
