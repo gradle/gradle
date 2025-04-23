@@ -221,7 +221,7 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin/av
 include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/avoid-this",files="build.gradle[]"]
 ====
 
-<1> Redundant dependency on `implementation` scope.
+<1> Redundant dependency in `implementation` scope.
 
 ==== Do This Instead
 
