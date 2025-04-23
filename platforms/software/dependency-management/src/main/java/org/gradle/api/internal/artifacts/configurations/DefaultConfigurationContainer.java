@@ -44,8 +44,6 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.artifacts.configurations.DefaultRoleBasedConfigurationCreationRequest;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.jspecify.annotations.Nullable;
@@ -340,66 +338,33 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration maybeCreateResolvableLocked(String name) {
-        return doMaybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE, problemsService), true);
-    }
-
-    @Override
-    public Configuration maybeCreateConsumableLocked(String name) {
-        return doMaybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE, problemsService), true);
-    }
-
-    @Override
-    public Configuration maybeCreateDependencyScopeLocked(String name) {
-        return maybeCreateDependencyScopeLocked(name, true);
-    }
-
-    @Override
     public Configuration maybeCreateDependencyScopeLocked(String name, boolean verifyPrexisting) {
-        return doMaybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService), verifyPrexisting);
-    }
-
-    @Override
-    public Configuration maybeCreateMigratingLocked(String name, ConfigurationRole role) {
-        DefaultRoleBasedConfigurationCreationRequest request = new DefaultRoleBasedConfigurationCreationRequest(name, role, problemsService);
-
-        ConfigurationInternal conf = findByName(request.getConfigurationName());
-        if (null != conf) {
-            throw request.failOnReservedName();
-        } else {
-            return migratingLocked(request.getConfigurationName(), request.getRole());
-        }
-    }
-
-    @Override
-    @Deprecated
-    public Configuration maybeCreateResolvableDependencyScopeLocked(String name) {
-        return maybeCreateLocked(new DefaultRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, problemsService));
-    }
-
-    @Override
-    public Configuration maybeCreateLocked(RoleBasedConfigurationCreationRequest request) {
-        return doMaybeCreateLocked(request, true);
-    }
-
-    private Configuration doMaybeCreateLocked(RoleBasedConfigurationCreationRequest request, boolean verifyPrexisting) {
-        ConfigurationInternal conf = findByName(request.getConfigurationName());
+        ConfigurationInternal conf = findByName(name);
         if (null != conf) {
             if (verifyPrexisting) {
-                throw request.failOnReservedName();
+                throw failOnReservedName(name);
             } else {
                 // We should also prevent usage mutation here, but we can't because this would break
                 // existing undeprecated behavior.
                 // Introduce locking here in Gradle 9.x.
-                return getByName(request.getConfigurationName());
+                return getByName(name);
             }
         } else {
-            if (VALID_MAYBE_CREATE_ROLES.contains(request.getRole())) {
-                return createLockedLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
+            if (VALID_MAYBE_CREATE_ROLES.contains(ConfigurationRoles.DEPENDENCY_SCOPE)) {
+                return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
             } else {
-                throw new GradleException("Cannot maybe create invalid role: " + request.getRole());
+                throw new GradleException("Cannot maybe create invalid role: " + ConfigurationRoles.DEPENDENCY_SCOPE);
             }
         }
+    }
+
+    private RuntimeException failOnReservedName(String confName) {
+        GradleException ex = new GradleException("The configuration " + confName + " was created explicitly. This configuration name is reserved for creation by Gradle.");
+        ProblemId id = ProblemId.create("unexpected configuration usage", "Unexpected configuration usage", GradleCoreProblemGroup.configurationUsage());
+        throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            spec.contextualLabel(ex.getMessage());
+            spec.severity(Severity.ERROR);
+        });
     }
 
     private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
