@@ -76,7 +76,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
             T dslObject = createDslObject(target, softwareFeature);
-            Object buildModelObject = ((ExtensionAware)dslObject).getExtensions().create(SoftwareFeatureBinding.MODEL, softwareFeature.getBuildModelType());
+            Object buildModelObject = createBuildModelObject((ExtensionAware) dslObject, softwareFeature);
             SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
             softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(target), Cast.uncheckedCast(buildModelObject));
 
@@ -99,6 +99,19 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             }
         } else {
             return target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+        }
+    }
+
+    private Object createBuildModelObject(ExtensionAware target, SoftwareFeatureImplementation<?> softwareFeature) {
+        Class<?> buildModelType = softwareFeature.getBuildModelImplementationType();
+        if (Named.class.isAssignableFrom(buildModelType)) {
+            if (Named.class.isAssignableFrom(target.getClass())) {
+                return target.getExtensions().create(SoftwareFeatureBinding.MODEL, buildModelType, ((Named) target).getName());
+            } else {
+                throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
+            }
+        } else {
+            return target.getExtensions().create(SoftwareFeatureBinding.MODEL, buildModelType);
         }
     }
 

@@ -23,3 +23,19 @@ inline fun <reified T: Any, reified U: Any, reified V: Any> SoftwareFeatureBindi
 inline fun <reified T: Any, reified U: Any> SoftwareTypeBindingBuilder.bind(name: String, noinline block: SoftwareFeatureApplicationContext.(T, U) -> Unit): SoftwareTypeBindingBuilder {
     return this.bind(name, T::class.java, U::class.java, block)
 }
+
+inline fun <reified T: Any> SoftwareTypeBindingBuilder.withDslImplementationType() : SoftwareTypeBindingBuilder {
+    return this.withDslImplementationType(T::class.java)
+}
+
+inline fun <reified T: Any> SoftwareTypeBindingBuilder.withBuildModelImplementationType() : SoftwareTypeBindingBuilder {
+    return this.withBuildModelImplementationType(T::class.java)
+}
+
+inline fun <reified T: Any> SoftwareFeatureBindingBuilder.withDslImplementationType() : SoftwareFeatureBindingBuilder {
+    return this.withDslImplementationType(T::class.java)
+}
+
+inline fun <reified T: Any> SoftwareFeatureBindingBuilder.withBuildModelImplementationType() : SoftwareFeatureBindingBuilder {
+    return this.withBuildModelImplementationType(T::class.java)
+}

@@ -97,9 +97,10 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             new DefaultSoftwareFeatureImplementation<>(
                 binding.getPath().getName(),
                 binding.getDslType(),
-                Cast.uncheckedCast(binding.getImplementationType().orElse(binding.getDslType())),
+                Cast.uncheckedCast(binding.getDslImplementationType().orElse(binding.getDslType())),
                 binding.getBindingTargetType(),
                 binding.getBuildModelType(),
+                binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
                 pluginClass,
                 registeringPluginClass,
                 Cast.uncheckedCast(binding.getTransform())

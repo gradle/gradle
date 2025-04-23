@@ -23,8 +23,9 @@ import java.util.Optional;
 public interface SoftwareFeatureBinding {
     Class<?> getBindingTargetType();
     Class<?> getDslType();
-    Optional<Class<?>> getImplementationType();
+    Optional<Class<?>> getDslImplementationType();
     Class<?> getBuildModelType();
+    Optional<Class<?>> getBuildModelImplementationType();
     Path getPath();
     SoftwareFeatureTransform<?, ?, ?> getTransform();
 
