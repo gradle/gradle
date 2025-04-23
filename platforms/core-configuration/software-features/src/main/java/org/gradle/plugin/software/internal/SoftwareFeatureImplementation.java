@@ -35,6 +35,8 @@ public interface SoftwareFeatureImplementation<T> {
 
     Class<?> getBuildModelType();
 
+    Class<?> getBuildModelImplementationType();
+
     Class<? extends Plugin<Project>> getPluginClass();
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();

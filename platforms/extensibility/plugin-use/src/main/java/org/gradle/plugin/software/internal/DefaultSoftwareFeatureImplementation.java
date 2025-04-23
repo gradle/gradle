@@ -36,6 +36,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     private final Class<? extends T> definitionImplementationType;
     private final Class<?> bindingType;
     private final Class<?> buildModelType;
+    private final Class<?> buildModelImplementationType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
@@ -46,6 +47,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
                                                 Class<? extends T> definitionImplementationType,
                                                 Class<?> bindingType,
                                                 Class<?> buildModelType,
+                                                Class<?> buildModelImplementationType,
                                                 Class<? extends Plugin<Project>> pluginClass,
                                                 Class<? extends Plugin<Settings>> registeringPluginClass,
                                                 SoftwareFeatureTransform<T, ?, ?> bindingTransform) {
@@ -54,6 +56,7 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
         this.definitionImplementationType = definitionImplementationType;
         this.bindingType = bindingType;
         this.buildModelType = buildModelType;
+        this.buildModelImplementationType = buildModelImplementationType;
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
         this.bindingTransform = bindingTransform;
@@ -77,6 +80,11 @@ public class DefaultSoftwareFeatureImplementation<T> implements SoftwareFeatureI
     @Override
     public Class<?> getBuildModelType() {
         return buildModelType;
+    }
+
+    @Override
+    public Class<?> getBuildModelImplementationType() {
+        return buildModelImplementationType;
     }
 
     @Override
