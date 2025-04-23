@@ -1526,8 +1526,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public void prepareForRuleBasedPlugins() {
         if (!preparedForRuleBasedPlugins) {
             preparedForRuleBasedPlugins = true;
+            addModelAndComponentReportingTasks();
             ruleBasedPluginListenerBroadcast.getSource().prepareForRuleBasedPlugins(this);
         }
+    }
+
+    private void addModelAndComponentReportingTasks() {
+        getPluginManager().apply("org.gradle.model-reporting-tasks");
+        getPluginManager().apply("org.gradle.component-reporting-tasks");
     }
 
     @Inject

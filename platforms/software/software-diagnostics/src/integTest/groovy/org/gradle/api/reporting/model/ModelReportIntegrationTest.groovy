@@ -29,7 +29,11 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "displays basic structure of an empty project"() {
         given:
-        buildFile
+        buildFile << """
+            plugins {
+                id 'model-reporting-tasks'
+            }
+        """
 
         when:
         run "model"

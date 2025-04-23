@@ -16,6 +16,8 @@
 
 package org.gradle.platform.base.plugins
 
+import org.gradle.api.plugins.ComponentReportingTasksPlugin
+import org.gradle.api.plugins.ModelReportingTasksPlugin
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.PlatformBaseSpecification
@@ -31,15 +33,17 @@ class ComponentBasePluginTest extends PlatformBaseSpecification {
         project.pluginManager.pluginContainer.hasPlugin(ComponentBasePlugin)
     }
 
-    def "applies lifecycle base plugin only"() {
+    def "applies lifecycle base and reporting plugins only"() {
         when:
         dsl {
             apply plugin: ComponentBasePlugin
         }
 
         then:
-        project.pluginManager.pluginContainer.size() == 2
+        project.pluginManager.pluginContainer.size() == 4
         project.pluginManager.pluginContainer.findPlugin(LifecycleBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(ComponentReportingTasksPlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(ModelReportingTasksPlugin) != null
     }
 
     def "registers ComponentSpec"() {

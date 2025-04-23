@@ -17,6 +17,8 @@
 package org.gradle.platform.base.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.plugins.ComponentReportingTasksPlugin
+import org.gradle.api.plugins.ModelReportingTasksPlugin
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.platform.base.BinarySpec
@@ -30,9 +32,11 @@ class BinaryBasePluginTest extends PlatformBaseSpecification {
         }
 
         then:
-        project.pluginManager.pluginContainer.size() == 3
+        project.pluginManager.pluginContainer.size() == 5
         project.pluginManager.pluginContainer.findPlugin(ComponentBasePlugin) != null
         project.pluginManager.pluginContainer.findPlugin(LifecycleBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(ComponentReportingTasksPlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(ModelReportingTasksPlugin) != null
     }
 
     def "registers BinarySpec"() {
