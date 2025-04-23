@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -297,6 +298,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public String healthDiagnostics() {
             return taskNode.healthDiagnostics();
+        }
+
+        @Override
+        public TaskNode getTaskNode() {
+            return taskNode.getTaskNode();
         }
     }
 }

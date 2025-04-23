@@ -77,17 +77,17 @@ Tasks graph for: root r2
 """)
     }
 
-    def "shows graph of tasks with tasks included from an included build with included build task graph omitted"() {
+    def "shows graph of tasks with tasks included from an included build"() {
         given:
         settingsFile """
-            rootProject.name = 'root'
             includeBuild "included"
         """
-        settingsFile "included/settings.gradle", """
-            rootProject.name = "included"
-        """
         buildFile 'included/build.gradle', """
-            def leaf1 = tasks.register("leaf1")
+            def leaf1 = tasks.register("leaf1"){
+                doLast {
+                    println("I'm a task called included leaf1")
+                }
+            }
             def leaf2 = tasks.register("leaf2")
             tasks.register("fromIncluded") {
                 dependsOn(leaf1, leaf2)
@@ -111,7 +111,6 @@ Tasks graph for: root r2
         succeeds("root", "r2", "--task-graph")
 
         then:
-        // not that the subgraph for the included task is not shown
         outputContains("""
 Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
@@ -121,25 +120,34 @@ Tasks graph for: root r2
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
      \\--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+          +--- :included:leaf1 (org.gradle.api.DefaultTask)
+          \\--- :included:leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
 """)
+        // see https://github.com/gradle/gradle/issues/2517
+        outputContains("I'm a task called included leaf1")
     }
 
-    def "does not show the subgraph of a task included from included build for qualified task invocation"() {
+    def "shows the subgraph of a task included from included build for qualified task invocation"() {
         given:
         settingsFile """
-            rootProject.name = 'root'
             includeBuild "included"
         """
-        settingsFile "included/settings.gradle", """
-            rootProject.name = "included"
-        """
         buildFile 'included/build.gradle', """
-            def leaf1 = tasks.register("leaf1")
+            def leaf1 = tasks.register("leaf1"){
+                doLast {
+                    println("I'm a task called included leaf1")
+                }
+            }
             def leaf2 = tasks.register("leaf2")
-            tasks.register("fromIncluded") {
+            def leaf3 = tasks.register("leaf3")
+            def middle = tasks.register("middle") {
                 dependsOn(leaf1, leaf2)
+            }
+            tasks.register("fromIncluded") {
+                dependsOn(middle, leaf2)
+                finalizedBy(leaf3)
             }
         """
         buildFile """
@@ -160,12 +168,93 @@ Tasks graph for: root r2
         succeeds(":included:fromIncluded", "--task-graph")
 
         then:
-        // not that the subgraph for the included task is not shown
         outputContains("""
 Tasks graph for: :included:fromIncluded
 \\--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+     +--- :included:leaf2 (org.gradle.api.DefaultTask)
+     +--- :included:middle (org.gradle.api.DefaultTask)
+     |    +--- :included:leaf1 (org.gradle.api.DefaultTask)
+     |    \\--- :included:leaf2 (org.gradle.api.DefaultTask) (*)
+     \\--- :included:leaf3 (org.gradle.api.DefaultTask, finalizer)
 
+(*) - details omitted (listed previously)
 """)
+        // see https://github.com/gradle/gradle/issues/2517
+        outputContains("I'm a task called included leaf1")
+    }
+
+    def "does not show graph for buildSrc tasks"() {
+        given:
+        buildFile 'buildSrc/build.gradle', ""
+        buildFile sampleGraph
+
+        when:
+        succeeds("root", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: root
+\\--- :root (org.gradle.api.DefaultTask)
+     +--- :leaf1 (org.gradle.api.DefaultTask)
+     \\--- :middle (org.gradle.api.DefaultTask)
+          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          \\--- :leaf2 (org.gradle.api.DefaultTask)
+
+(*) - details omitted (listed previously)
+""")
+        outputContains("> Task :buildSrc:jar")
+        outputDoesNotContain("--- :buildSrc:jar")
+    }
+
+    def "does not show graph for tasks from early included builds"() {
+        given:
+        createDir('included') {
+            file('build.gradle') << """
+                plugins { id 'groovy-gradle-plugin' }
+            """
+            file('src/main/groovy/my-plugin.gradle') << """
+                println 'In script plugin'
+            """
+            file('build.gradle') << """
+                plugins { id 'java' }
+                group = 'org.test'
+                version = '1.0'
+            """
+            file('src/main/java/Lib.java') << """
+                public class Lib { public static void main() {
+                    System.out.println("Before!");
+                } }
+            """
+        }
+        settingsFile """
+             pluginManagement {
+                includeBuild("included")
+            }
+        """
+        buildFile """
+            plugins {
+                id 'my-plugin'
+            }
+            $sampleGraph
+        """
+
+        when:
+        succeeds("root", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: root
+\\--- :root (org.gradle.api.DefaultTask)
+     +--- :leaf1 (org.gradle.api.DefaultTask)
+     \\--- :middle (org.gradle.api.DefaultTask)
+          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          \\--- :leaf2 (org.gradle.api.DefaultTask)
+
+(*) - details omitted (listed previously)
+""")
+        outputContains("In script plugin")
+        outputContains("> Task :included:jar")
+        outputDoesNotContain("--- :included:jar")
     }
 
     def "shows simple graph of tasks with task removed"() {
@@ -496,11 +585,7 @@ Tasks graph for: b1 b2
         given:
         def taskCount = 500
         settingsFile """
-            rootProject.name = 'root'
             includeBuild "included"
-        """
-        settingsFile "included/settings.gradle", """
-            rootProject.name = "included"
         """
         buildFile 'included/build.gradle', """
             tasks.register("task0")
