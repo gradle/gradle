@@ -699,7 +699,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         return """
             plugins {
                 id('java-gradle-plugin')
-                ${ if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + new KotlinGradlePluginVersions().latest + '")' } else { '' } }
+                ${ if (kotlin) { 'id("org.jetbrains.kotlin.jvm") version("' + new KotlinGradlePluginVersions().latestStableOrRC + '")' } else { '' } }
             }
 
             ${mavenCentralRepository()}
