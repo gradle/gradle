@@ -3078,6 +3078,110 @@
             ]
         },
         {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Class org.gradle.util.ConfigureUtil",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Constructor org.gradle.util.ConfigureUtil()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configure(groovy.lang.Closure,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureByMap(java.util.Map,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureByMap(java.util.Map,java.lang.Object,java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureSelf(groovy.lang.Closure,java.lang.Object)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureSelf(groovy.lang.Closure,java.lang.Object,org.gradle.internal.metaobject.ConfigureDelegate)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil",
+            "member": "Method org.gradle.util.ConfigureUtil.configureUsing(groovy.lang.Closure)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "member": "Class org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "member": "Constructor org.gradle.util.ConfigureUtil$IncompleteInputException(java.lang.String,java.util.Collection)",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$IncompleteInputException",
+            "member": "Method org.gradle.util.ConfigureUtil$IncompleteInputException.getMissingKeys()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$WrappedConfigureAction",
+            "member": "Class org.gradle.util.ConfigureUtil$WrappedConfigureAction",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.util.ConfigureUtil$WrappedConfigureAction",
+            "member": "Method org.gradle.util.ConfigureUtil$WrappedConfigureAction.getConfigureClosure()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.util.DistributionLocator",
             "member": "Class org.gradle.util.DistributionLocator",
             "acceptation": "Deprecated in 8.x",
