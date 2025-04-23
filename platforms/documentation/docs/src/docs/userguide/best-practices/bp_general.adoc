@@ -178,3 +178,67 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 === Tags
 
 `<<tags_reference.adoc#tag:upgrades,#upgrades>>`
+
+[[favor_composite_builds]]
+== Favor Composite Builds over `buildSrc`
+:keywords: structuring-builds,composite-builds,buildSrc
+
+You should setup a <<composite_builds.adoc#defining_composite_builds,Composite Build>> (often called an "included build") to hold your build logic—including any custom plugins, convention plugins, and other build-specific customizations.
+
+=== Explanation
+
+The preferred location for build logic is an included build (typically named `build-logic`), **not** in `buildSrc`.
+
+The automatically available `buildSrc` is great for rapid prototyping, but it comes with some subtle disadvantages:
+- There are classloader differences in how these 2 approaches behave that can be surprising; included builds are treated just like external dependencies, which is a simpler mental model.  Dependency resolution behaves subtly differently in buildSrc.
+- There can potentially be fewer task invalidations in a build when files in an included build are modified, leading to faster builds.
+- Included builds are complete Gradle builds and can be opened, worked on, and built independently as standalone projects.  It is straightforward to publish their products, including plugins, in order to share them with other projects.
+
+Ideally, there would be no difference between using `buildSrc` and an included build, `buildSrc` is intended to behave like an implicitly available included build.
+However, due to historical reasons, some subtle differences still exist.
+Gradle is working to unify the behavior of these two approaches, and this recommendation may be revised in the future.
+For now, these differences can introduce confusion and are best avoided.
+
+Since setting up a composite build requires only minimal additional configuration, we recommend using it over `buildSrc`.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/kotlin/buildSrc",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/groovy/buildSrc",files="build.gradle[tags=avoid-this]"]
+====
+
+*Setup a Plugin Build*: This is the same using either method.
+
+====
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/kotlin",files="settings.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/groovy",files="settings.gradle[tags=avoid-this]"]
+====
+
+*BuildSrc products are automatically usable*: There is no additional configuration with this method.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/kotlin/build-logic",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy/build-logic",files="build.gradle[tags=do-this]"]
+====
+
+*Setup a Plugin Build*: This is the same using either method.
+
+====
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/favorCompositeBuilds-do/groovy",files="settings.gradle[tags=do-this]"]
+====
+
+<1> *Composite builds must be declared*: Use the `includeBuild` method to locate and include a build in order to use its products.
+
+=== References
+- <<part3_multi_project_builds.adoc#step_3_understand_composite_builds,Composite Builds in the Multi-Project Builds Tutorial>>
+- <<composite_builds.adoc#composite_builds,Composite Builds reference documentation>>
+- link:https://github.com/gradle/gradle/issues/6045[Gradle Issue #6045: buildSrc vs. included builds]
+
+=== Tags
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:composite-builds,#composite-builds>>`
