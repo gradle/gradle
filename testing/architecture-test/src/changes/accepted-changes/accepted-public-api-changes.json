@@ -1505,6 +1505,22 @@
             ]
         },
         {
+            "type": "org.gradle.caching.local.DirectoryBuildCache",
+            "member": "Method org.gradle.caching.local.DirectoryBuildCache.getRemoveUnusedEntriesAfterDays()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.local.DirectoryBuildCache",
+            "member": "Method org.gradle.caching.local.DirectoryBuildCache.setRemoveUnusedEntriesAfterDays(int)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClassName()",
             "acceptation": "Removed deprecated method",

@@ -241,7 +241,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         @Override
         public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
             if (removeUnusedEntriesAfterDays < 1) {
-                throw new IllegalArgumentException(name + " cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days.  For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
+                throw new IllegalArgumentException("Cache '" + name + "' cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days. For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
             }
             long daysInMillis = TimeUnit.DAYS.toMillis(removeUnusedEntriesAfterDays);
             getEntryRetention().set(EntryRetention.relative(daysInMillis));
