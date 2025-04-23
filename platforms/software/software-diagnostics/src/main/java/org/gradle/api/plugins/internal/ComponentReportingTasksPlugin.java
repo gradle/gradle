@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins;
+package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.diagnostics.internal.DiagnosticsTaskNames;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Plugin that adds tasks to report on the deprecated software model components configured for the project.
  *
  * @since 9.0
  */
-@Incubating
+@NullMarked
 abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
     @Override
     @SuppressWarnings("deprecation")
@@ -37,6 +37,7 @@ abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
+    @NullMarked
     private static class ComponentReportAction implements Action<org.gradle.api.reporting.components.ComponentReport> {
         private final String projectName;
 
@@ -52,6 +53,7 @@ abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
+    @NullMarked
     private static class DependentComponentsReportAction implements Action<org.gradle.api.reporting.dependents.DependentComponentsReport> {
         private final String projectName;
 

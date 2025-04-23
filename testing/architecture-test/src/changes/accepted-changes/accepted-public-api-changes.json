@@ -737,12 +737,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.ComponentReportingTasksPlugin",
-            "member": "Constructor org.gradle.api.plugins.ComponentReportingTasksPlugin()",
-            "acceptation": "Removing component reporting tasks from HelpTasksPlugin",
-            "changes": []
-        },
-        {
             "type": "org.gradle.api.plugins.HelpTasksPlugin",
             "member": "Field COMPONENTS_TASK",
             "acceptation": "This task is no longer associated with HelpTasksPlugin",
@@ -957,12 +951,6 @@
             "changes": [
                 "Method has been removed"
             ]
-        },
-        {
-            "type": "org.gradle.api.plugins.ModelReportingTasksPlugin",
-            "member": "Constructor org.gradle.api.plugins.ModelReportingTasksPlugin()",
-            "acceptation": "Removing model reporting tasks from HelpTasksPlugin",
-            "changes": []
         },
         {
             "type": "org.gradle.api.plugins.ProjectReportsPluginConvention",

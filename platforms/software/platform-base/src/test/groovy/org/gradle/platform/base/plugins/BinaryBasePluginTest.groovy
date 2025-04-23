@@ -17,8 +17,8 @@
 package org.gradle.platform.base.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.plugins.ComponentReportingTasksPlugin
-import org.gradle.api.plugins.ModelReportingTasksPlugin
+import org.gradle.api.plugins.internal.ComponentReportingTasksPlugin
+import org.gradle.api.plugins.internal.ModelReportingTasksPlugin
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.platform.base.BinarySpec
