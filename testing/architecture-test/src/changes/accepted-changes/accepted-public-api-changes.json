@@ -971,7 +971,7 @@
         {
             "type": "org.gradle.api.reporting.ConfigurableReport",
             "member": "Method org.gradle.api.reporting.ConfigurableReport.setDestination(java.io.File)",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]
