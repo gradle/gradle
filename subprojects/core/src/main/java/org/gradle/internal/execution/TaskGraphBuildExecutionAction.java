@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.graph.DirectedGraph;
@@ -89,13 +90,13 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
     private static Stream<TaskInfo> extractTaskNodes(Collection<Node> collection, DependencyType type) {
         return collection.stream()
-            .filter(node -> node instanceof TaskNode && !node.isDoNotIncludeInPlan())
+            .filter(node -> node instanceof TaskNode && !(node.isDoNotIncludeInPlan() && !node.isExecuted()))
             .map(taskNode -> new DefaultTaskInfo((TaskNode) taskNode, type));
     }
 
     private enum DependencyType {
         REGULAR,
-        FINALIZING
+        FINALIZING,
     }
 
     private interface TaskInfo {
@@ -163,9 +164,13 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
         @Override
         public Collection<TaskInfo> getDependencies() {
+            TaskNode targetNode = node;
+            if (node instanceof TaskInAnotherBuild) {
+                targetNode = ((TaskInAnotherBuild) node).getTargetNode();
+            }
             return Streams.concat(
-                extractTaskNodes(node.getDependencySuccessors(), DependencyType.REGULAR),
-                extractTaskNodes(node.getFinalizers(), DependencyType.FINALIZING)
+                extractTaskNodes(targetNode.getDependencySuccessors(), DependencyType.REGULAR),
+                extractTaskNodes(targetNode.getFinalizers(), DependencyType.FINALIZING)
             ).collect(Collectors.toList());
         }
 
