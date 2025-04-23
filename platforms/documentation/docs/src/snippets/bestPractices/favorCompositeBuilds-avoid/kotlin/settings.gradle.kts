@@ -1,3 +1,3 @@
 // tag::avoid-this[]
-rootProject.name = "favor-composite-builds-avoid"
+rootProject.name = "favor-composite-builds"
 // end::avoid-this[]
