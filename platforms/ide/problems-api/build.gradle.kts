@@ -25,9 +25,11 @@ description = """A problems description API
     |
     |It's a stripped down version of the original code available
     |at https://github.com/melix/jdoctor/
-""".trimMargin()
+"""
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.baseServices)

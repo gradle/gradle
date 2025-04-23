@@ -26,8 +26,8 @@ plugins {
 
 description = "Entry point of the Gradle wrapper command"
 
-gradlebuildJava {
-    usedForStartup() // Used in the wrapper
+gradleModule {
+    usedForStartup = true
     usesFutureStdlib = true
     usesIncompatibleDependencies = true // For test dependencies
 }

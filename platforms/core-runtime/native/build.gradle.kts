@@ -5,7 +5,9 @@ plugins {
 
 description = "This project contains various native operating system integration utilities"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 /**
  * Use Java 8 compatibility for JMH benchmarks

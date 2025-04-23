@@ -4,7 +4,9 @@ plugins {
 
 description = "Internal API to dynamically lookup services provided by Gradle modules"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(libs.jspecify)

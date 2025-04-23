@@ -18,16 +18,20 @@ tasks.classpathManifest {
 
 // Instrumentation interceptors for tests
 // Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
-sourceSets {
-    val testInterceptors = create("testInterceptors") {
-        compileClasspath += sourceSets.main.get().output
-        runtimeClasspath += sourceSets.main.get().output
-    }
-    getByName("test") {
-        compileClasspath += testInterceptors.output
-        runtimeClasspath += testInterceptors.output
+val testInterceptors = sourceSets.create("testInterceptors") {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+}
+sourceSets.test {
+    compileClasspath += testInterceptors.output
+    runtimeClasspath += testInterceptors.output
+}
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(testInterceptors.name)
     }
 }
+
 val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
