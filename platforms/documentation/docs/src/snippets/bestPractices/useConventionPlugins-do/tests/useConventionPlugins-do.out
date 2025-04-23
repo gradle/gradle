@@ -1,0 +1,5 @@
+> Task :build-logic:jar
+:do-this:conventionPluginApplied SKIPPED
+:do-this:compileJava SKIPPED
+
+BUILD SUCCESSFUL in 0s
