@@ -15,16 +15,11 @@
 [[build_file_basics]]
 = Build File Basics
 
-Generally, a build script details *build configuration, tasks, and plugins*.
+Generally, a build script (`build.gradle(.kts)`) details *build configuration, tasks, and plugins*.
 
 image::gradle-basic-4.png[]
 
 Every Gradle build comprises at least one _build script_.
-
-In the build file, two types of dependencies can be added:
-
-1. The libraries and/or plugins on which Gradle and the build script depend.
-2. The libraries on which the project sources (i.e., source code) depend.
 
 [[sec:build_script]]
 == Build scripts
@@ -33,62 +28,57 @@ The build script is either a `build.gradle` file written in Groovy or a `build.g
 
 The link:{groovyDslPath}/index.html[Groovy DSL^] and the link:{kotlinDslPath}/index.html[Kotlin DSL^] are the only accepted languages for Gradle scripts.
 
+In multi-project builds, each subproject typically has its own build file located in its root directory.
+
+Inside a build script, you'll typically specify:
+
+- *Plugins*: Tools that extend Gradle's functionality for tasks like compiling code, running tests, or packaging artifacts.
+- *Dependencies*: External libraries and tools your project uses.
+
+Specifically, build scripts contain two main types of dependencies:
+
+- *Gradle and Build Script Dependencies*: These include plugins and libraries required by Gradle itself or the build script logic.
+- *Project Dependencies*: Libraries required directly by your project's source code to compile and run correctly.
+
 Let's take a look at an example and break it down:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("application")               // <1>
-}
-
-application {
-    mainClass = "com.example.Main"  // <2>
-}
-----
-<1> Add plugins.
-<2> Use convention properties.
-=====
-
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id 'application'                // <1>
-}
-
-application {
-    mainClass = 'com.example.Main'  // <2>
-}
-----
-<1> Add plugins.
-<2> Use convention properties.
-=====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init]"]
 ====
+<1> Add plugins.
+<2> Add dependencies.
+<3> Use convention properties.
 
-=== 1. Add plugins
+== 1. Add plugins
+
 Plugins extend Gradle's functionality and can contribute tasks to a project.
 
 Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
 
-[source,kotlin]
-----
-plugins {
-    id("application")
-}
-----
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
+====
 
 The `application` plugin facilitates creating an executable JVM application.
 
 Applying the <<application_plugin.adoc#application_plugin,Application plugin>> also implicitly applies the <<java_plugin.adoc#java_plugin,Java plugin>>.
 The `java` plugin adds Java compilation along with testing and bundling capabilities to a project.
 
-=== 2. Use convention properties
+== 2. Add dependencies
+
+Your project needs external libraries to compile, run, and test.
+
+In this example, the project uses `JUnit Jupiter` for testing and Google’s `Guava` library in the main application code:
+
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+====
+
+== 3. Use convention properties
+
 A plugin adds tasks to a project.
 It also adds properties and methods to a project.
 
@@ -96,16 +86,21 @@ The `application` plugin defines tasks that package and distribute an applicatio
 
 The Application plugin provides a way to declare the main class of a Java application, which is required to execute the code.
 
-[source,kotlin]
-----
-application {
-    mainClass = "com.example.Main"
-}
-----
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-app]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-app]"]
+====
 
 In this example, the main class (i.e., the point where the program's execution begins) is `com.example.Main`.
 
-Consult the <<writing_build_scripts.adoc#writing_build_scripts,Writing Build Scripts>> page to learn more.
+Build scripts are evaluated during the configuration phase of a build, and they serve as the main entry point for defining a (sub)project’s build logic.
+In addition to applying plugins and setting convention properties, build scripts can:
+
+* Declare dependencies
+* Configure tasks
+* Reference shared settings (from version catalogs or convention plugins)
+
+To learn more about scripting the build file, see <<writing_build_scripts.adoc#writing_build_scripts,Writing Build Files>>.
 
 [.text-right]
 **Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>
