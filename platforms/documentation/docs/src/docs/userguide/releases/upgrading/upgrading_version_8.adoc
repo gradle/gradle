@@ -157,9 +157,9 @@ The following members of the `org.gradle.util` package have been removed:
 
 * `CollectionUtils`
 
-* `ConfigureUtil`
+* `ConfigureUtil`, `ClosureBackedAction`
 +
-This class used to provide utilities for configuring Groovy objects with `groovy.lang.Closure` instances.
+These classes used to provide utilities related to `groovy.lang.Closure`.
 Plugins should avoid relying on Groovy specifics, such as `Closure`, in their APIs. Instead, plugins should create methods that use
 link:{javadocPath}/org/gradle/api/Action.html[Action]:
 +
