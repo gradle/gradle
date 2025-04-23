@@ -178,38 +178,3 @@ include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.g
 === Tags
 
 `<<tags_reference.adoc#tag:upgrades,#upgrades>>`
-
-[[avoid_duplicate_dependencies]]
-== Avoid Redundant Dependency Declarations
-
-Avoid declaring the same dependency multiple times, especially when it is already available transitively or through another configuration.
-
-=== Explanation
-
-Duplicating dependencies in Gradle build scripts can lead to:
-
-* Increased maintenance: Declaring a dependency in multiple places makes it harder to manage.
-* Unexpected behavior: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
-
-=== Example
-
-==== Don't Do This
-
-====
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",files="build.gradle[tags=avoid-this]"]
-====
-
-<1> Redundant dependency on `implementation` scope.
-
-==== Do This Instead
-
-====
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy",files="build.gradle[tags=do-this]"]
-====
-
-<1> Declare dependency once
-
-=== Tags
-`#dependency-management`
