@@ -14,6 +14,7 @@
 
 [[build_environment]]
 = Configuring the Build Environment
+:keywords: properties,gradle,system,project,environment,variables
 
 Configuring the build environment is a powerful way to customize the build process.
 There are many mechanisms available.
@@ -178,6 +179,14 @@ This is typically the preferred method for supplying project properties, especia
 It is possible to change the behavior of a task based on project properties specified at invocation time.
 Suppose you’d like to ensure release builds are only triggered by CI.
 A simple way to handle this is through an `isCI` project property:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tutorial/configureTaskUsingProjectProperty">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]

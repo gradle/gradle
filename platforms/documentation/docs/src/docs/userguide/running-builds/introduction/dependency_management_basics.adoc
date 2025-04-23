@@ -33,6 +33,14 @@ To add a dependency to your project, specify a dependency in the `dependencies {
 
 The following `build.gradle.kts` file adds a plugin and two dependencies to the project:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/introductionDependencies">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-dep]"]
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-dep]"]
@@ -116,6 +124,14 @@ Gradle will pick it up automatically and expose its contents through the `libs` 
 IDEs like IntelliJ and Android Studio will also pick up this metadata for code completion.
 
 Once defined, you can reference these aliases directly in your build file:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/introductionDependencies">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-catalog]"]

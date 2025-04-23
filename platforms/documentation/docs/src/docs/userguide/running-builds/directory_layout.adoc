@@ -14,11 +14,12 @@
 
 [[directory_layout]]
 = Gradle-managed Directories
+:keywords: gradle,user,home,project,root
 
 Gradle uses two main directories to perform and manage its work:
 
-1. The <<#dir:gradle_user_home>>
-2. The <<#dir:project_root>>
+- <<#dir:gradle_user_home>>
+- <<#dir:project_root>>
 
 image::author-gradle-2.png[]
 
