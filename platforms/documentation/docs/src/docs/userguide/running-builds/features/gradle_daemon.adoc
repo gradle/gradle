@@ -48,10 +48,12 @@ Larger builds with hundreds of subprojects, configuration, and source code may b
 
 To get a list of running Daemons and their statuses, use the `--status` command:
 
+[source,bash]
 ----
 $ gradle --status
 ----
 
+[source,text]
 ----
    PID STATUS   INFO
  28486 IDLE     7.5
@@ -66,9 +68,12 @@ This means the status output only shows Daemons spawned running the same version
 
 If you have installed the Java Development Kit (JDK), you can view live daemons with the `jps` command.
 
+[source,text]
 ----
 $ jps
 ----
+
+[source,text]
 ----
 33920 Jps
 27171 GradleDaemon
@@ -84,13 +89,14 @@ Because this command uses the JDK, you can view Daemons running any version of G
 Gradle enables the Daemon by default since Gradle 3.0.
 If your project doesn't use the Daemon, you can enable it for a single build with the `--daemon` flag when you run a build:
 
+[source,bash]
 ----
 $ gradle <task> --daemon
 ----
 
 This flag overrides any settings that disable the Daemon in your project or user `gradle.properties` files.
 
-To enable the Daemon by default in older Gradle versions, add the following setting to the `gradle.properties` file in the project root or your Gradle User Home (`GRADLE_USER_HOME`:
+To enable the Daemon by default in older Gradle versions, add the following setting to the `gradle.properties` file in the <<directory_layout.adoc#dir:project_root,project root>> or your Gradle User Home (<<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>>):
 
 ====
 .gradle.properties
@@ -114,6 +120,7 @@ No Daemon :: If the `JAVA_OPTS` and `GRADLE_OPTS` match `org.gradle.jvmargs`, th
 
 To disable the Daemon for a single build, pass the `--no-daemon` flag when you run a build:
 
+[source,bash]
 ----
 $ gradle <task> --no-daemon
 ----
@@ -122,7 +129,7 @@ This flag overrides any settings that enable the Daemon in your project includin
 
 === Disable for a project
 
-To disable the Daemon for all builds of a project, add `org.gradle.daemon=false` to the `gradle.properties` file in the project root.
+To disable the Daemon for all builds of a project, add `org.gradle.daemon=false` to the `gradle.properties` file in the <<directory_layout.adoc#dir:project_root,project root>>.
 
 === Disable for a user
 
@@ -161,6 +168,7 @@ Daemons automatically stop given any of the following conditions:
 
 To stop running Daemon processes, use the following command:
 
+[source,bash]
 ----
 $ gradle --stop
 ----
@@ -169,6 +177,50 @@ This terminates all Daemon processes started with the same version of Gradle use
 
 You can also kill Daemons manually with your operating system.
 To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.
+
+== Troubleshooting the Daemon
+
+The Gradle Daemon is a long-lived background process, as such, it can sometimes encounter issues.
+
+If builds start behaving unexpectedly, try stopping and restarting the Daemon:
+
+[source,bash]
+----
+$ gradle --stop
+----
+
+If you see a warning like: `Multiple Gradle daemons might be spawned because the Gradle JDK and JAVA_HOME locations are different`.
+
+Gradle is telling you that it's using more than one Java version across your environment.
+This can lead to multiple daemons being started, increasing memory usage unnecessarily.
+
+To resolve this, make sure your Java versions match across:
+
+1. Your environment (`JAVA_HOME`)
+2. Your build script (if using toolchains)
+3. Your IDE's configured JDK
+
+To check `JAVA_HOME`, run this in your terminal:
+
+[source,bash]
+----
+echo $JAVA_HOME
+----
+
+Your project may be using a specific toolchain in your `build.gradle(.kts)` file.
+Check for similar code:
+
+[source,kotlin]
+----
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+----
+
+If your build uses a toolchain, ensure it matches the `JAVA_HOME` value, or at least know they differ intentionally.
+You should also check your IDE settings to make sure they match as well.
 
 == Configuring the Daemon JVM
 
@@ -201,6 +253,14 @@ $ ./gradlew updateDaemonJvm --jvm-version=17
 ----
 
 Or configure the task in the build script of the root project:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/daemon-jvm/customized-task">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-daemon-jvm-task]"]
@@ -509,11 +569,12 @@ To disable this monitoring, set the `org.gradle.daemon.performance.enable-monito
 
 You can do this on the command line with the following command:
 
+[source,bash]
 ----
 $ gradle <task> -Dorg.gradle.daemon.performance.enable-monitoring=false
 ----
 
-Or you can configure the property in the `gradle.properties` file in the project root or your GRADLE_USER_HOME (Gradle User Home):
+Or you can configure the property in the `gradle.properties` file in the <<directory_layout.adoc#dir:project_root,project root>> or your <<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>> (Gradle User Home):
 
 ====
 .gradle.properties

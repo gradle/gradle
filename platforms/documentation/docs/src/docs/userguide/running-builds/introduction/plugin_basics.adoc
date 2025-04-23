@@ -15,27 +15,34 @@
 [[plugin_basics]]
 = Plugin Basics
 
-Gradle is built on a plugin system.
-Gradle itself is primarily composed of infrastructure, such as a sophisticated dependency resolution engine.
-The rest of its functionality comes from plugins.
+Gradle is built on a flexible plugin system.
 
-A plugin is a piece of software that *provides additional functionality to the Gradle build system*.
+Out of the box, Gradle provides core infrastructure like dependency resolution, task orchestration, and incremental builds.
+Most functionality — like compiling Java, building Android apps, or publishing artifacts — comes from *plugins*.
 
 image::gradle-basic-6.png[]
 
-Plugins can be applied to a Gradle build script to *add new tasks, configurations, or other build-related capabilities*:
+A plugin is a reusable piece of software that *provides additional functionality to the Gradle build system*.
+It can:
 
-The Java Library Plugin - `java-library` :: Used to define and build Java libraries. It compiles Java source code with the `compileJava` task, generates Javadoc with the `javadoc` task, and packages the compiled classes into a JAR file with the `jar` task.
-The Google Services Gradle Plugin - `com.google.gms:google-services` :: Enables Google APIs and Firebase services in your Android application with a configuration block called `googleServices{}` and a task called `generateReleaseAssets`.
-The Gradle Bintray Plugin - `com.jfrog.bintray` :: Allows you to publish artifacts to Bintray by configuring the plugin using the `bintray{}` block.
+* Add new tasks to your build (like `compileJava` or `test`)
+* Add new configurations (like `implementation` or `runtimeOnly`)
+* Contribute DSL elements (like `application {}` or `publishing {}`)
 
-== Plugin distribution
+Plugins are applied to build scripts using the `plugins` block (Kotlin DSL or Groovy DSL), and they bring in all the logic needed for a specific domain or workflow.
 
-Plugins are distributed in three ways:
+== Common plugins
 
-1. **Core plugins** - Gradle develops and maintains a set of <<plugin_reference#plugin_reference,Core Plugins>>.
-2. **Community plugins** - Gradle's community shares plugins via the https://plugins.gradle.org[Gradle Plugin Portal].
-3. **Local plugins** - Gradle enables users to create custom plugins using link:{javadocPath}/org/gradle/api/Plugin.html[APIs].
+Here are some popular plugins and what they do:
+
+**Java Library Plugin** (`java-library`)::
+Compiles Java source code, generates Javadoc, and packages classes into a JAR. Adds tasks like `compileJava`, `javadoc`, and `jar`.
+
+**Google Services Plugin** (`com.google.gms.google-services`)::
+Configures Firebase and Google APIs in Android builds. Adds DSL like `googleServices {}` and tasks like `generateReleaseAssets`.
+
+**Gradle Bintray Plugin** (`com.jfrog.bintray`)::
+Publishes artifacts to Bintray (or other Maven-style repositories) using a `bintray {}` configuration block.
 
 [[applying_plugins]]
 == Applying plugins
@@ -47,112 +54,90 @@ You apply plugins in the build script using a *plugin id* (a globally unique ide
 [source,text]
 ----
 plugins {
-    id «plugin id» version «plugin version»
+    id("«plugin id»").version("«plugin version»")
 }
 ----
 
-== 1. Core plugins
+For example:
+
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("com.diffplug.spotless").version("6.25.0")
+}
+----
+
+This tells Gradle to:
+
+* Apply the built-in `java-library` plugin, which adds tasks for compiling Java, running tests, and packaging libraries.
+* Apply the community-maintained `spotless` plugin (version `6.25.0`), which adds code formatting tasks and integrates tools like `ktlint`, `prettier`, and `google-java-format`.
+
+== Plugin types
+
+Gradle supports three types of plugins:
+
+1. **Script plugins** – Reusable `.gradle` or `.gradle.kts` files that are applied using `apply from:`.
+2. **Pre-compiled plugins** – Packaged Kotlin or Groovy code applied with the `plugins {}` block.
+3. **Binary plugins** – Packaged and published plugins (often from the Plugin Portal or Maven) that are applied with the `plugins {}` block.
+
+Most modern builds prefer **binary** or **precompiled** plugins.
+
+== Plugin distribution
+
+Gradle plugins come from different sources, and you can choose the right type depending on your use case.
+
+=== 1. Core Plugins (built into Gradle)
 
 Gradle Core plugins are a set of plugins that are included in the Gradle distribution itself.
 These plugins provide essential functionality for building and managing projects.
 
-Some examples of core plugins include:
+Core plugins are unique in that they provide short names, such as `java-library` for the core link:{javadocPath}/org/gradle/api/plugins/JavaLibraryPlugin.html[JavaLibraryPlugin].
+You can apply them by ID with no extra setup:
 
-- *java*: Provides support for building Java projects.
-- *groovy*: Adds support for compiling and testing Groovy source files.
-- *ear*: Adds support for building EAR files for enterprise applications.
-
-Core plugins are unique in that they provide short names, such as `java` for the core link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin], when applied in build scripts.
-They also do not require versions.
-To apply the `java` plugin to a project:
-
-.build.gradle.kts
 [source,kotlin]
 ----
 plugins {
-    id("java")
+    id("java-library")
 }
 ----
 
-There are many <<plugin_reference#plugin_reference,Gradle Core Plugins>> users can take advantage of.
+These plugins are maintained by the Gradle team.
+See the <<plugin_reference#plugin_reference,Core Plugin Reference>> for a full list.
 
-== 2. Community plugins
+=== 2. Community Plugins (from the Plugin Portal)
 
 Community plugins are plugins developed by the Gradle community, rather than being part of the core Gradle distribution.
 These plugins provide additional functionality that may be specific to certain use cases or technologies.
 
-The link:https://plugins.gradle.org/plugin/org.springframework.boot[Spring Boot Gradle plugin] packages executable JAR or WAR archives, and runs link:https://spring.io/[Spring Boot] Java applications.
+Gradle’s plugin ecosystem includes thousands of open-source plugins shared by the community.
+These are published to the link:https://plugins.gradle.org/[Gradle Plugin Portal] and can be applied by ID and version:
 
-To apply the `org.springframework.boot` plugin to a project:
-
-.build.gradle.kts
 [source,kotlin]
 ----
 plugins {
-    id("org.springframework.boot") version "3.1.5"
+    id("org.springframework.boot").version("3.1.5")
 }
 ----
 
-Community plugins can be published at the link:http://plugins.gradle.org/[Gradle Plugin Portal], where other Gradle users can easily discover and use them.
+Gradle will automatically download the plugin when the build runs.
 
-== 3. Local plugins
+=== 3. Local or Custom Plugins (defined in your build)
 
-Custom or local plugins are developed and used within a specific project or organization.
-These plugins are not shared publicly and are tailored to the specific needs of the project or organization.
+You can also write your own plugins — either for use in a single project or shared across multiple projects in the same build.
 
-Local plugins can encapsulate common build logic, provide integrations with internal systems or tools, or abstract complex functionality into reusable components.
+The most common type of custom plugin is a **convention plugin**, which lives in either a `buildSrc/` directory or a standalone `build-logic` module. These plugins are written in Kotlin or Groovy and follow the same structure as published plugins.
 
-Gradle provides users with the ability to develop custom plugins using APIs.
-To create your own plugin, you'll typically follow these steps:
+Convention plugins are applied using the `plugins {}` block, just like external plugins:
 
-1. *Define the plugin class:* create a new class that implements the `Plugin<Project>` interface.
-+
 [source,kotlin]
 ----
-// Define a 'HelloPlugin' plugin
-class HelloPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        // Define the 'hello' task
-        val helloTask = project.tasks.register("hello") {
-            doLast {
-                println("Hello, Gradle!")
-            }
-        }
-    }
-}
-----
-
-2. *Build and optionally publish your plugin:* generate a JAR file containing your plugin code and optionally publish this JAR to a repository (local or remote) to be used in other projects.
-+
-[source,kotlin]
-----
-// Publish the plugin
 plugins {
-    `maven-publish`
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-        }
-    }
-    repositories {
-        mavenLocal()
-    }
-}
-----
-3. *Apply your plugin:* when you want to use the plugin, include the plugin ID and version in the `plugins{}` block of the build file.
-+
-[source,kotlin]
-----
-// Apply the plugin
-plugins {
-    id("com.example.hello") version "1.0"
+    id("my.custom-conventions")
 }
 ----
 
-Consult the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>> to learn more.
+To learn how to create your own plugin, see the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>>.
 
 [.text-right]
 **Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Incremental Builds and Build Caching>> >>

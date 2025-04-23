@@ -1,0 +1,7 @@
+[versions]
+guava = "32.1.2-jre"
+juneau = "8.2.0"
+
+[libraries]
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+juneau-marshall = { group = "org.apache.juneau", name = "juneau-marshall", version.ref = "juneau" }

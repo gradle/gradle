@@ -35,6 +35,7 @@ Learn about the references you will need as you work with Gradle.
 6. You turned on the local cache in <<part6_gradle_caching#part6_begin,part 6>>.
 
 == Step 1. Gradle References
+
 To work with Gradle, the following references are useful:
 
 - Gradle API http://gradle.org/docs/current/javadoc/[Javadocs]
@@ -58,7 +59,10 @@ For Gradle support:
 - link:https://gradle.org/courses/[Free Gradle Training]
 
 == Step 2. Next steps
-We recommend going through each section of the User Manual.
+
+If you haven’t read the <<gradle_basics.adoc#gradle,Core Concepts section>> yet, we recommend starting there to build a solid foundation.
+
+Already comfortable with the basics? Great — you’re ready to move on to the more advanced concepts next.
 
 [.text-right]
-**Next Step:** <<command_line_interface#command_line_interface_reference,Running Gradle Builds>> >>
+**Next Step:** <<getting_started_dev.adoc#dev_introduction,Authoring Gradle Builds>> >>

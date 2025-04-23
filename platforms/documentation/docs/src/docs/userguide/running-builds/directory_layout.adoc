@@ -15,12 +15,15 @@
 [[directory_layout]]
 = Gradle-managed Directories
 
-Gradle uses two main directories to perform and manage its work: the <<#dir:gradle_user_home>> and the <<#dir:project_root>>.
+Gradle uses two main directories to perform and manage its work:
+
+1. The <<#dir:gradle_user_home>>
+2. The <<#dir:project_root>>
 
 image::author-gradle-2.png[]
 
 [[dir:gradle_user_home]]
-== Gradle User Home directory
+== 1. Gradle User Home directory
 
 By default, the Gradle User Home (`~/.gradle` or `C:\Users\<USERNAME>\.gradle`) stores global configuration properties, initialization scripts, caches, and log files.
 
@@ -32,28 +35,28 @@ It is roughly structured as follows:
 
 [listing]
 ----
-├── caches // <1>
-│   ├── 4.8 // <2>
-│   ├── 4.9 // <2>
+├── caches              // <1>
+│   ├── 4.8         // <2>
+│   ├── 4.9             // <2>
 │   ├── ⋮
-│   ├── jars-3 // <3>
-│   └── modules-2 // <3>
-├── daemon // <4>
+│   ├── jars-3      // <3>
+│   └── modules-2       // <3>
+├── daemon          // <4>
 │   ├── ⋮
 │   ├── 4.8
 │   └── 4.9
-├── init.d // <5>
+├── init.d              // <5>
 │   └── my-setup.gradle
-├── jdks // <6>
+├── jdks                // <6>
 │   ├── ⋮
 │   └── jdk-14.0.2+12
 ├── wrapper
-│   └── dists // <7>
+│   └── dists           // <7>
 │       ├── ⋮
 │       ├── gradle-4.8-bin
 │       ├── gradle-4.9-all
 │       └── gradle-4.9-bin
-└── gradle.properties // <8>
+└── gradle.properties   // <8>
 ----
 <1> Global cache directory (for everything that is not project-specific).
 <2> Version-specific caches (e.g., to support incremental builds).
@@ -66,6 +69,7 @@ It is roughly structured as follows:
 
 [[dir:gradle_user_home:cache_cleanup]]
 === Cleanup of caches and distributions
+
 Gradle automatically cleans its user home directory.
 
 By default, the cleanup runs in the background when the Gradle daemon is stopped or shut down.
@@ -89,6 +93,7 @@ Unused distributions are deleted.
 
 [[dir:gradle_user_home:configure_cache_cleanup]]
 ==== Configuring cleanup of caches and distributions
+
 The retention periods of the various caches can be configured.
 
 Caches are classified into five categories:
@@ -142,6 +147,7 @@ This effectively couples the configuration of cache cleanup to the Gradle User H
 
 [[dir:gradle_user_home:multi_version_cache_cleanup]]
 ==== Multiple versions of Gradle sharing a Gradle User Home
+
 It is common to share a single Gradle User Home between multiple versions of Gradle.
 
 As stated above, caches in Gradle User Home are version-specific.
@@ -184,6 +190,7 @@ include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",fil
 
 [[dir:gradle_user_home:cache_marking]]
 === Cache marking
+
 Beginning with Gradle version 8.1, Gradle supports marking caches with a `CACHEDIR.TAG` file.
 
 It follows the format described in https://bford.info/cachedir/[the Cache Directory Tagging Specification].
@@ -193,6 +200,7 @@ By default, the directories `caches`, `wrapper/dists`, `daemon`, and `jdks` in t
 
 [[dir:gradle_user_home:configure_cache_marking]]
 ==== Configuring cache marking
+
 The cache marking feature can be configured via an init script in the Gradle User Home:
 
 ====
@@ -203,7 +211,7 @@ include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUser
 NOTE: Cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home to which those settings apply and limits the possibility of different conflicting settings from different projects being applied to the same directory.
 
 [[dir:project_root]]
-== Project Root directory
+== 2. Project Root directory
 
 The project root directory contains all source files from your project.
 
@@ -215,20 +223,20 @@ The anatomy of a typical project root directory looks as follows:
 
 [listing,subs=+macros]
 ----
-├── .gradle // <1>
-│   ├── 4.8 // <2>
-│   ├── 4.9 // <2>
+├── .gradle                 // <1>
+│   ├── 4.8                 // <2>
+│   ├── 4.9                 // <2>
 │   └── ⋮
-├── build   // <3>
+├── build                   // <3>
 ├── gradle
-│   └── wrapper // <4>
-├── gradle.properties   // <5>
-├── gradlew // <6>
-├── gradlew.bat // <6>
-├── settings.gradle.kts // <7>
-├── subproject-one  // <8>
+│   └── wrapper             // <4>
+├── gradle.properties       // <5>
+├── gradlew                 // <6>
+├── gradlew.bat             // <6>
+├── settings.gradle.kts     // <7>
+├── subproject-one          // <8>
 |   └── build.gradle.kts    // <9>
-├── subproject-two  // <8>
+├── subproject-two          // <8>
 |   └── build.gradle.kts    // <9>
 └── ⋮
 ----
