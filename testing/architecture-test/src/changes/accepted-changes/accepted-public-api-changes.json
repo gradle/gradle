@@ -353,6 +353,30 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Class org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Constructor org.gradle.api.artifacts.transform.VariantTransformConfigurationException(java.lang.String)",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Constructor org.gradle.api.artifacts.transform.VariantTransformConfigurationException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.file.CopyProcessingSpec",
             "member": "Method org.gradle.api.file.CopyProcessingSpec.getDirMode()",
             "acceptation": "API is being remove in Gradle 9.0",
