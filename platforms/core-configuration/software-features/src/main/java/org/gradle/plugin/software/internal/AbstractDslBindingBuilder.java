@@ -30,10 +30,11 @@ abstract public class AbstractDslBindingBuilder implements DslBindingBuilder {
     @Nullable protected Class<?> dslType;
     @Nullable protected Class<?> buildModelType;
     @Nullable protected Path path;
-    @Nullable private Class<?> implementationType;
+    @Nullable private Class<?> dslImplementationType;
+    @Nullable private Class<?> buildModelImplementationType;
     @Nullable protected SoftwareFeatureTransform<?, ?, ?> transform;
 
-    private static <T> SoftwareFeatureBinding bindingOf(Class<T> dslType, @Nullable Class<? extends T> implementationType, Path path, Class<?> bindingTargetType, Class<?> buildModelType, SoftwareFeatureTransform<T, ?, ?> transform) {
+    private static <T, U> SoftwareFeatureBinding bindingOf(Class<T> dslType, @Nullable Class<? extends T> dslImplementationType, Path path, Class<?> bindingTargetType, Class<U> buildModelType, @Nullable Class<? extends U> buildModelImplementationType, SoftwareFeatureTransform<T, ?, ?> transform) {
         return new SoftwareFeatureBinding() {
             @Override
             public Class<?> getBindingTargetType() {
@@ -46,8 +47,8 @@ abstract public class AbstractDslBindingBuilder implements DslBindingBuilder {
             }
 
             @Override
-            public Optional<Class<?>> getImplementationType() {
-                return Optional.ofNullable(implementationType);
+            public Optional<Class<?>> getDslImplementationType() {
+                return Optional.ofNullable(dslImplementationType);
             }
 
             @Override
@@ -64,24 +65,40 @@ abstract public class AbstractDslBindingBuilder implements DslBindingBuilder {
             public Class<?> getBuildModelType() {
                 return buildModelType;
             }
+
+            @Override
+            public Optional<Class<?>> getBuildModelImplementationType() {
+                return Optional.ofNullable(buildModelImplementationType);
+            }
         };
     }
 
     @Override
-    public <V> DslBindingBuilder withImplementationType(Class<V> implementationType) {
-        this.implementationType = implementationType;
+    public <V> DslBindingBuilder withDslImplementationType(Class<V> implementationType) {
+        this.dslImplementationType = implementationType;
+        return this;
+    }
+
+    @Override
+    public <V> DslBindingBuilder withBuildModelImplementationType(Class<V> implementationType) {
+        this.buildModelImplementationType = implementationType;
         return this;
     }
 
     @Override
     public SoftwareFeatureBinding build() {
-        if (dslType == null) {
+        if (dslType == null  || buildModelType == null) {
             throw new IllegalStateException("No binding has been specified please call bind() first");
         }
 
-        if (implementationType != null && !dslType.isAssignableFrom(implementationType)) {
-            throw new IllegalArgumentException("Implementation type " + implementationType + " is not a subtype of dsl type " + dslType);
+        if (dslImplementationType != null && !dslType.isAssignableFrom(dslImplementationType)) {
+            throw new IllegalArgumentException("Implementation type " + dslImplementationType + " is not a subtype of dsl type " + dslType);
         }
-        return AbstractDslBindingBuilder.bindingOf(dslType, Cast.uncheckedCast(implementationType), path, bindingTargetType, buildModelType, Cast.uncheckedCast(transform));
+
+        if (buildModelImplementationType != null && !buildModelType.isAssignableFrom(buildModelImplementationType)) {
+            throw new IllegalArgumentException("Implementation type " + buildModelImplementationType + " is not a subtype of build model type " + buildModelType);
+        }
+
+        return AbstractDslBindingBuilder.bindingOf(dslType, Cast.uncheckedCast(dslImplementationType), path, bindingTargetType, buildModelType, Cast.uncheckedCast(buildModelImplementationType), Cast.uncheckedCast(transform));
     }
 }
