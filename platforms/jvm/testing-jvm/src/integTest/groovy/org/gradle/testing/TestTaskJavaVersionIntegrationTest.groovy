@@ -79,6 +79,12 @@ class TestTaskJavaVersionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     def "uses configured toolchain"() {
+        if (otherJdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            // if current JAVA_HOME and target jdk are different, but have same major version
+            // the test will start with JAVA_HOME=/path/to/jdk-1 and -Porg.gradle.java.installations.paths=/path/to/jdk-2
+            // resulting in flakiness result
+            otherJdk = Jvm.current()
+        }
         buildFile << """
             ${baseProjectForJdk(otherJdk)}
             ${withTestToolchain(otherJdk)}

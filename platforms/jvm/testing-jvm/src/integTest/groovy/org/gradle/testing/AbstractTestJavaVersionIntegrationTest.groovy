@@ -18,6 +18,7 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.junit.Assume
 
@@ -33,6 +34,13 @@ abstract class AbstractTestJavaVersionIntegrationTest extends AbstractTestingMul
 
     def "can run test on java #jdk.javaVersionMajor"() {
         Assume.assumeTrue(supportsJavaVersion(jdk.javaVersionMajor))
+
+        if (jdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            // if current JAVA_HOME and target jdk are different, but have same major version
+            // the test will start with JAVA_HOME=/path/to/jdk-1 and -Porg.gradle.java.installations.paths=/path/to/jdk-2
+            // resulting in flakiness result
+            jdk = Jvm.current()
+        }
 
         given:
         file("src/test/java/SomeTest.java") << """
