@@ -27,7 +27,7 @@ abstract class MyIntroTask : DefaultTask() {
 val configurationProvider: Provider<String> = project.provider { "Hello, Gradle!" }
 
 tasks.register("myIntroTask", MyIntroTask::class) {
-    configuration.set(configurationProvider)
+    configuration = configurationProvider
 }
 // end::introduction[]
 
