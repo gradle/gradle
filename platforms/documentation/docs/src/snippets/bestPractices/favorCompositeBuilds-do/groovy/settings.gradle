@@ -3,5 +3,5 @@ pluginManagement {
     includeBuild("build-logic")
 }
 
-rootProject.name = "favor-composite-builds-do"
+rootProject.name = "favor-composite-builds"
 // end::do-this[]

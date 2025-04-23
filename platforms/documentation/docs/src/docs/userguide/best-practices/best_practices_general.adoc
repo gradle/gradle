@@ -595,7 +595,7 @@ You should setup a <<composite_builds.adoc#defining_composite_builds,Composite B
 
 === Explanation
 
-The preferred location for build logic is an included build named `build-logic`, **not** in `buildSrc`.
+The preferred location for build logic is an included build (typically named `build-logic`), **not** in `buildSrc`.
 
 The automatically available `buildSrc` is great for rapid prototyping, but it comes with some subtle disadvantages:
 - There are classloader differences in how these 2 approaches behave that can be surprising; included builds are treated just like external dependencies, which is a simpler mental model.  Dependency resolution behaves subtly differently in buildSrc.
