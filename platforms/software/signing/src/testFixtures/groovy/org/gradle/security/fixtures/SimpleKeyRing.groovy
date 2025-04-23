@@ -44,7 +44,7 @@ class SimpleKeyRing {
     void writePublicKeyRingTo(File file) {
         def asciiArmored = file.name.endsWith(".keys")
         file.newOutputStream().withCloseable {stream ->
-            (asciiArmored ? new ArmoredOutputStream(stream) : stream).withCloseable { out ->
+            (asciiArmored ? ArmoredOutputStream.builder().build(stream) : stream).withCloseable { out ->
                 new PGPPublicKeyRingCollection(
                     [new PGPPublicKeyRing([publicKey])]
                 ).encode(out)
@@ -76,7 +76,7 @@ class SimpleKeyRing {
         }
         def signed = new File(toSign.parentFile, "${toSign.name}.asc")
         signed.newOutputStream().withCloseable { stream ->
-            new ArmoredOutputStream(stream).withCloseable { out ->
+            ArmoredOutputStream.builder().build(stream).withCloseable { out ->
                 generators.each {
                     it.generate().encode(out)
                 }
