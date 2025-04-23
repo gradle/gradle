@@ -426,7 +426,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
 @VisibleForTesting
 internal
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 21
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 23
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
         else JVM_23
