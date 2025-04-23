@@ -51,7 +51,7 @@ tasks.register<MyPropertyTask>("myPropertyTask") {
 // Provider
 // tag::prov-managed[]
 abstract class MyProviderTask : DefaultTask() {
-    final val messageProvider: Provider<String> = project.providers.provider { "Hello, Gradle!" } // message provider
+    val messageProvider: Provider<String> = project.providers.provider { "Hello, Gradle!" } // message provider
 
     @TaskAction
     fun printMessage() {
