@@ -24,7 +24,7 @@ By leveraging these mechanisms, you can make your Gradle builds more flexible an
 
 Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects:
 
-[cols="~,~,~"]
+[%autowidth.stretch]
 |===
 |Mechanism |Information |Example
 
@@ -55,7 +55,7 @@ When configuring Gradle behavior, you can use these methods, but you must consid
 
 The following table lists these methods in order of highest to lowest precedence (the first one wins):
 
-[cols="~,~,~,~"]
+[%autowidth.stretch]
 |===
 |Priority |Method |Location |Notes
 
@@ -282,7 +282,7 @@ org.gradle.caching.debug=false
 The final configuration considered by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files.
 If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
-[cols="~,~,~,~"]
+[%autowidth.stretch]
 |===
 |Priority |Method |Location |Details
 

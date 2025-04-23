@@ -318,7 +318,7 @@ $ ./gradlew updateDaemonJvm --jvm-version=17 --jvm-vendor=adoptium
 
 List of recognized vendors:
 
-[cols="~,~,~"]
+[%autowidth.stretch]
 |===
 |Known Vendors |Acceptable Strings |`toolchainVendor` Value
 
