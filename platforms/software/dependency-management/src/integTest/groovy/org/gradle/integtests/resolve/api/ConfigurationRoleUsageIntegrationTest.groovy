@@ -336,8 +336,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         failure.assertHasDescription("An exception occurred applying plugin request [id: 'java']")
-        failureHasCause("""Unexpected configuration usage
-  The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle.""")
+        failureHasCause("""Cannot add a configuration with name '$conf' as a configuration with that name already exists.""")
 
         where:
         conf                | sourceSet
@@ -345,9 +344,8 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         'implementation'    | 'main'
     }
 
-    @SuppressWarnings('GrDeprecatedAPIUsage')
     @Issue("https://github.com/gradle/gradle/issues/26461")
-    def "when anticipating configurations to be created from sourcesets, their usage cannot be modified (creation = #description)"() {
+    def "cannot anticipate configuration names to be created from sourcesets"() {
         given:
         settingsFile """
             include 'resolver', 'producer'
@@ -405,8 +403,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expect:
         fails "resolve"
         failure.assertHasDescription("A problem occurred evaluating project ':producer'.")
-        failure.assertHasCause("""Unexpected configuration usage
-  The configuration additionalRuntimeClasspath was created explicitly. This configuration name is reserved for creation by Gradle.""")
+        failure.assertHasCause("""Cannot add a configuration with name 'additionalRuntimeClasspath' as a configuration with that name already exists.""")
 
         where:
         confCreationCode | createdRole | description
@@ -424,7 +421,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with explicit set consumed = true"
         "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | "role-based configuration"
         "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration"
-        "configurations.maybeCreateConsumableLocked('additionalRuntimeClasspath')"      | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration, if it doesn't already exist"
     }
 
     def "redundantly changing usage on a legacy configuration does not warn even if flag is set"() {

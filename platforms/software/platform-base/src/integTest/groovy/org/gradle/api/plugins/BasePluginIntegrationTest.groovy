@@ -79,8 +79,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failureHasCause("""Unexpected configuration usage
-  The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle.""")
+        failureHasCause("""Cannot add a configuration with name '$conf' as a configuration with that name already exists.""")
 
         where:
         conf        | creationCall
