@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Optional;
 import java.util.Set;
 
-final class EmptyFileCollection extends AbstractFileCollection {
+public final class EmptyFileCollection extends AbstractFileCollection {
     public static final FileCollectionInternal INSTANCE = new EmptyFileCollection(DEFAULT_COLLECTION_DISPLAY_NAME);
 
     private final String displayName;
