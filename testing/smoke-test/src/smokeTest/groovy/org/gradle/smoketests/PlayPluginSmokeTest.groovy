@@ -21,11 +21,9 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Ignore("https://github.com/gradle/gradle/issues/30530")
 class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
@@ -56,10 +54,7 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         when:
         def result = runner('build')
             .withJdkWarningChecksDisabled()
-            .expectDeprecationWarning(supportedJvmDeprecation(8), "https://github.com/gradle/gradle/issues/30530")
-            .expectDeprecationWarning(taskProjectDeprecation(7), "Follow-up not yet defined")
-            .expectDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION, "https://github.com/gradle/gradle/issues/30530")
-            .expectDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION, "https://github.com/gradle/gradle/issues/30530")
+            .expectDeprecationWarning(supportedJvmDeprecation(9), "https://github.com/gradle/gradle/issues/30530")
             .build()
 
         then:
@@ -68,18 +63,12 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     private String supportedJvmDeprecation(int major) {
         "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. " +
+            "This will fail with an error in Gradle ${major+1}.0. " +
             "Use JVM 17 or greater to execute Gradle. " +
             "Projects can continue to use older JVM versions via toolchains. " +
             "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "minimum_daemon_jvm_version")}"
     }
 
-    private String taskProjectDeprecation(int major) {
-        "Invocation of Task.project at execution time has been deprecated. " +
-            "This will fail with an error in Gradle 10.0. " +
-            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "task_project")}"
-    }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
