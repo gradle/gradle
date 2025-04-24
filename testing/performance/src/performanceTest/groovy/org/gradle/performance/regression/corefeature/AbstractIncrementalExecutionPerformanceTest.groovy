@@ -19,6 +19,9 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 
 class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -39,7 +42,60 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 
+    protected boolean enableReproducibleArchives(boolean reproducibleArchivesEnabled, CrossVersionPerformanceTestRunner runner) {
+        if (reproducibleArchivesEnabled) {
+            runner.addBuildMutator { invocationSettings ->
+                new EnableReproducibleArchivesMutator(invocationSettings.projectDir)
+            }
+        }
+    }
+
     protected static configurationCachingMessage(boolean configurationCachingEnabled) {
         return configurationCachingEnabled ? " with configuration caching" : ""
+    }
+
+    class EnableReproducibleArchivesMutator implements BuildMutator {
+
+        private final File projectDir
+
+        EnableReproducibleArchivesMutator(File projectDir) {
+            this.projectDir = projectDir
+        }
+
+        @Override
+        void beforeScenario(ScenarioContext context) {
+            def groovySettingsFile = new File(projectDir, "settings.gradle")
+            def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
+            if (groovySettingsFile.exists()) {
+                applyReproducibleArchives(
+                    groovySettingsFile,
+                    "tasks.withType(AbstractArchiveTask)",
+                    "preserveFileTimestamps",
+                    "reproducibleFileOrder"
+                )
+            } else if (kotlinSettingsFile.exists()) {
+                applyReproducibleArchives(
+                    kotlinSettingsFile,
+                    "tasks.withType<AbstractArchiveTask>()",
+                    "isPreserveFileTimestamps",
+                    "isReproducibleFileOrder"
+                )
+            } else {
+                throw new IllegalStateException("No settings file found in project directory: $projectDir")
+            }
+        }
+
+        private void applyReproducibleArchives(File settingsFile, String withType, String preserveFileTimestamps, String reproducibleFileOrder) {
+            settingsFile << """
+                |settings.gradle.lifecycle.beforeProject {
+                |    ${withType}.configureEach {
+                |        $preserveFileTimestamps = false
+                |        $reproducibleFileOrder = true
+                |        dirPermissions { }
+                |        filePermissions { }
+                |    }
+                |}
+            """.stripMargin()
+        }
     }
 }
