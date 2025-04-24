@@ -2233,7 +2233,7 @@ resultsFile:
         transformingBuild.waitForFinish()
     }
 
-    def "does not clean up cache when cache cleanup is disabled via #cleanupMethod"() {
+    def "does not clean up cache when cache cleanup is disabled"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
         ["lib1", "lib2"].each { name ->
@@ -2243,8 +2243,7 @@ resultsFile:
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup(cleanupMethod)
-        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        disableCacheCleanupViaDsl()
         succeeds ":app:resolve"
 
         then:
@@ -2260,51 +2259,12 @@ resultsFile:
         gcFile.lastModified = daysAgo(2)
 
         and:
-        cleanupMethod.maybeExpectDeprecationWarning(executer)
         // start as new process so journal is not restored from in-memory cache
         executer.withTasks("help").start().waitForFinish()
 
         then:
         outputDir1.assertExists()
         outputDir2.assertExists()
-
-        where:
-        cleanupMethod << CleanupMethod.values()
-    }
-
-    def "cleans up cache when DSL is configured even if legacy property is set"() {
-        given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
-        ["lib1", "lib2"].each { name ->
-            buildFile << withExternalLibDependency(name)
-        }
-
-        when:
-        executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanupViaProperty()
-        explicitlyEnableCacheCleanupViaDsl()
-        succeeds ":app:resolve"
-
-        then:
-        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
-        journal.assertExists()
-
-        when:
-        run '--stop' // ensure daemon does not cache file access times in memory
-        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
-        gcFile.lastModified = daysAgo(2)
-
-        and:
-        // start as new process so journal is not restored from in-memory cache
-        executer.withTasks("help").start().waitForFinish()
-
-        then:
-        outputDir1.assertDoesNotExist()
-        outputDir2.assertExists()
-        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
 
     String getResolveTask() {

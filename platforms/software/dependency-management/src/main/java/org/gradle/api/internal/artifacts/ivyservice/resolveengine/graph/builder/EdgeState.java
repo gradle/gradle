@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
@@ -25,17 +25,19 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the edges in the dependency graph.
@@ -176,7 +178,7 @@ class EdgeState implements DependencyGraphEdge {
      * end fail resolution.
      */
     void failWith(Throwable err) {
-        targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
+        targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getSelector(), err);
     }
 
     /**
@@ -252,9 +254,7 @@ class EdgeState implements DependencyGraphEdge {
 
         GraphVariantSelectionResult targetVariants;
         try {
-            ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
-            attributes = resolveState.getAttributesFactory().concat(attributes, safeGetAttributes());
-            targetVariants = dependencyMetadata.selectVariants(resolveState.getVariantSelector(), attributes, targetComponentState, resolveState.getConsumerSchema(), dependencyState.getDependency().getSelector().getCapabilitySelectors());
+            targetVariants = selectTargetVariants(targetComponentState);
         } catch (AttributeMergingException mergeError) {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
@@ -268,10 +268,79 @@ class EdgeState implements DependencyGraphEdge {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
             return;
         }
+
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
             this.targetNodes.add(targetNodeState);
         }
+    }
+
+    /**
+     * Determine which variants of a given target component that this edge should point to.
+     */
+    private GraphVariantSelectionResult selectTargetVariants(ComponentGraphResolveState targetComponentState) {
+        ImmutableAttributes requestAttributes = resolveState.getRoot().getMetadata().getAttributes();
+        ImmutableAttributes attributes = resolveState.getAttributesFactory().concat(requestAttributes, safeGetAttributes());
+
+        GraphVariantSelector variantSelector = resolveState.getVariantSelector();
+        ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
+
+        // First allow the dependency to override variant selection, if it has a special
+        // variant selection mechanism for its ecosystem.
+        List<? extends VariantGraphResolveState> overrideVariants = dependencyMetadata.overrideVariantSelection(
+            variantSelector,
+            attributes,
+            targetComponentState,
+            consumerSchema
+        );
+
+        if (overrideVariants != null) {
+            return new GraphVariantSelectionResult(overrideVariants, false);
+        }
+
+        // Use attribute matching if it is supported.
+        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
+            Set<CapabilitySelector> capabilitySelectors = dependencyState.getDependency().getSelector().getCapabilitySelectors();
+            VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
+                attributes,
+                capabilitySelectors,
+                targetComponentState,
+                consumerSchema,
+                dependencyMetadata.getArtifacts()
+            );
+
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
+        }
+
+        // Otherwise, for target components that don't support attribute matching, fallback to legacy variant selection.
+        List<? extends VariantGraphResolveState> legacyVariants = dependencyMetadata.selectLegacyVariants(
+            variantSelector,
+            attributes,
+            targetComponentState,
+            consumerSchema
+        );
+
+        return new GraphVariantSelectionResult(legacyVariants, false);
+    }
+
+    public static class GraphVariantSelectionResult {
+
+        private final List<? extends VariantGraphResolveState> variants;
+        private final boolean selectedByVariantAwareResolution;
+
+        public GraphVariantSelectionResult(List<? extends VariantGraphResolveState> variants, boolean selectedByVariantAwareResolution) {
+            this.variants = variants;
+            this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
+        }
+
+        public List<? extends VariantGraphResolveState> getVariants() {
+            return variants;
+        }
+
+        public boolean isSelectedByVariantAwareResolution() {
+            return selectedByVariantAwareResolution;
+        }
+
     }
 
     private boolean isVirtualDependency() {
@@ -422,14 +491,6 @@ class EdgeState implements DependencyGraphEdge {
     @Nullable
     private ComponentState getSelectedComponent() {
         return selector.getTargetModule().getSelected();
-    }
-
-    @Override
-    public Dependency getOriginalDependency() {
-        if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
-            return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
-        }
-        return null;
     }
 
     @Override

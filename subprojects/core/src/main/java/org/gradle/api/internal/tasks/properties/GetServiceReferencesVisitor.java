@@ -21,8 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.services.BuildService;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class GetServiceReferencesVisitor implements PropertyVisitor {
     private final ImmutableSortedSet.Builder<ServiceReferenceSpec> serviceReferences = ImmutableSortedSet.naturalOrder();

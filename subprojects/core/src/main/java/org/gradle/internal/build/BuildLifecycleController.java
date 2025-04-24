@@ -23,8 +23,8 @@ import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;

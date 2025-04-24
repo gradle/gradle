@@ -22,8 +22,8 @@ import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -58,6 +58,10 @@ public class DaemonJvmPropertiesAccessor {
             // match any vendor
             return DefaultJvmVendorSpec.any();
         }
+    }
+
+    public boolean getNativeImageCapable() {
+        return Boolean.parseBoolean(properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY));
     }
 
     public Map<BuildPlatform, String> getToolchainDownloadUrls() {

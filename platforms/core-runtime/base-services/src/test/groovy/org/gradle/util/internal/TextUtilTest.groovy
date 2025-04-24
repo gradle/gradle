@@ -120,4 +120,20 @@ class TextUtilTest extends Specification {
         "aBc"       | "a-bc"
         "aBec"      | "a-bec"
     }
+
+    def "removeTrailing should remove the last occurrence of the given suffix only if it is at the end"() {
+        expect:
+        TextUtil.removeTrailing(input, suffix) == expectedOutput
+
+        where:
+        input              | suffix     || expectedOutput
+        "helloworld"       | "world"    || "hello"
+        "foobarfoo"        | "foo"      || "foobar"
+        "textsuffixsuffix" | "suffix"   || "textsuffix"
+        "randomtext"       | "text"     || "random"
+        "nosuffixhere"     | "suffix"   || "nosuffixhere"
+        "somethinglong"    | "long"     || "something"
+        "removeme"         | "removeme" || ""
+        "unchanged"        | "nothing"  || "unchanged"
+    }
 }

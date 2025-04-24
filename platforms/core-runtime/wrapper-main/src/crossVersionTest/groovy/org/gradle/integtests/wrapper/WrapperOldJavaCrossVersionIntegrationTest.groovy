@@ -20,25 +20,25 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.GradleVersion
 
 @SuppressWarnings("IntegrationTestFixtures")
 @DoesNotSupportNonAsciiPaths(reason = "Java 6 seems to have issues with non-ascii paths")
 class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+
+    @Requires(IntegTestPreconditions.UnsupportedWrapperJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current).withJvm(jdk)
 
         then:
         def result = executor.withArgument('help').runWithFailure()
-        result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
+        result.hasErrorOutput("Gradle requires JVM 8 or later to run. You are currently using JVM ${jdk.javaVersionMajor}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
+        jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
     }
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(IntegTestPreconditions.UnsupportedWrapperJavaHomeAvailable)
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:
         GradleExecuter executor = prepareWrapperExecuter(previous, current)
@@ -46,9 +46,10 @@ class WrapperOldJavaCrossVersionIntegrationTest extends AbstractWrapperCrossVers
 
         then:
         def result = executor.withArgument('help').runWithFailure()
-        result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
+        result.hasErrorOutput("Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}.")
 
         where:
-        jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
+        jdk << AvailableJavaHomes.getUnsupportedWrapperJdks()
     }
+
 }

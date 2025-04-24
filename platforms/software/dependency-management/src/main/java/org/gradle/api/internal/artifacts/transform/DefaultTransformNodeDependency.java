@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Collection;
 
-@NonNullApi
+@NullMarked
 public class DefaultTransformNodeDependency implements TransformNodeDependency {
     private final Collection<TransformStepNode> nodes;
 

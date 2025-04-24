@@ -186,14 +186,14 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
 
         when:
         executer.expectDocumentedDeprecationWarning "Requesting JVM vendor IBM_SEMERU. " +
-            "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. " +
+            "This behavior has been deprecated. This is scheduled to be removed in Gradle 10.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#ibm_semeru_should_not_be_used"
 
         then:
         fails ':build'
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9}. " +
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
     }
 
@@ -215,7 +215,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         fails ':build'
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9}. " +
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
     }
 }

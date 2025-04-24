@@ -44,7 +44,8 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
     def work = Stub(UnitOfWork)
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
-    def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP)
+    def problems = TestUtil.problemsService()
+    def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
     def handler = new DefaultExecutionProblemHandler(warningReporter, virtualFileSystem)
 
     def setup() {

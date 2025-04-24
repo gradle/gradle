@@ -11,43 +11,48 @@ dependency for any projects working directly with Test tasks.
 """
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.time)
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildProcessServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)
+    api(projects.jvmServices)
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.reporting)
+    api(projects.stdlibJavaExtensions)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)
+    api(projects.time)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
-    api(projects.buildProcessServices)
 
     api(libs.asm)
     api(libs.groovy)
     api(libs.groovyXml)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
+    implementation(projects.buildProcessStartup)
+    implementation(projects.classloaders)
     implementation(projects.concurrent)
-    implementation(projects.serviceLookup)
     implementation(projects.fileTemp)
     implementation(projects.functional)
-    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
+    implementation(projects.serviceLookup)
     implementation(projects.testingJvmInfrastructure)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)
-    implementation(libs.junit)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.junit) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelReflect))
@@ -55,6 +60,7 @@ dependencies {
 
     integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testFixtures(projects.languageGroovy))
+    integTestImplementation(testFixtures(projects.scala))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

@@ -20,8 +20,8 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.work.Synchronizer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.function.Function;
@@ -327,13 +327,11 @@ public class StateTransitionController<T extends StateTransitionController.State
      * Currently in the given state.
      */
     private static class InState<T> extends CurrentState<T> {
-        private final DisplayName displayName;
         @Nullable
         private final InState<T> previous;
 
         public InState(DisplayName displayName, T state, @Nullable InState<T> previous) {
             super(displayName, state);
-            this.displayName = displayName;
             this.previous = previous;
         }
 

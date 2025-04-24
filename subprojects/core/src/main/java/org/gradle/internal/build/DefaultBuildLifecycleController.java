@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 import com.google.common.collect.ImmutableList;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -42,8 +41,9 @@ import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -203,7 +203,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         });
     }
 
-    @NonNullApi
+    @NullMarked
     private class EntryTaskSelectorContext implements EntryTaskSelector.Context {
 
         @Override

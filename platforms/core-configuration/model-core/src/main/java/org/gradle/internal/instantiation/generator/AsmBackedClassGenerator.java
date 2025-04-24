@@ -24,7 +24,6 @@ import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.IsolatedAction;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionMapping;
@@ -37,8 +36,8 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
@@ -59,19 +58,21 @@ import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGenerator;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.asm.BytecodeFragment;
 import org.gradle.model.internal.asm.ClassGeneratorSuffixRegistry;
 import org.gradle.model.internal.asm.ClassVisitorScope;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -122,7 +123,7 @@ import static sun.reflect.ReflectionFactory.getReflectionFactory;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<>();
-    private static final AtomicReference<CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
+    private static final AtomicReference<Cache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
     private final boolean decorate;
     private final String suffix;
     private final int factoryId;
@@ -145,16 +146,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     // Used by generated code, see ^
     @SuppressWarnings("unused")
     public static ServiceLookup getServicesForNext() {
-        return SERVICES_FOR_NEXT_OBJECT.get().services;
+        return getDetails().services;
     }
 
     private static final String GET_FACTORY_FOR_NEXT_METHOD_NAME = "getFactoryForNext";
 
     // Used by generated code, see ^
+
     @SuppressWarnings("unused")
     public static ManagedObjectFactory getFactoryForNext() {
-        ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
+        ObjectCreationDetails details = getDetails();
         return new ManagedObjectFactory(details.services, details.instantiator, details.roleHandler);
+    }
+
+    @NonNull
+    private static ObjectCreationDetails getDetails() {
+        ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
+        if (details == null) {
+            // something has gone wrong
+            throw new IllegalStateException(String.format("No object creation details have been provided for this context (clz: %s, cl: %s)", System.identityHashCode(AsmBackedClassGenerator.class), AsmBackedClassGenerator.class.getClassLoader()));
+        }
+        return details;
     }
 
     private AsmBackedClassGenerator(
@@ -162,7 +174,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         Collection<Class<? extends Annotation>> enabledInjectAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
-        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses,
+        Cache<Class<?>, GeneratedClassImpl> generatedClasses,
         int factoryId
     ) {
         super(allKnownAnnotations, enabledInjectAnnotations, roleHandler, generatedClasses);
@@ -178,11 +190,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
         Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-        CrossBuildInMemoryCacheFactory cacheFactory,
+        ClassCacheFactory cacheFactory,
         int factoryId
     ) {
         String suffix;
-        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
+        Cache<Class<?>, GeneratedClassImpl> generatedClasses;
         if (enabledInjectAnnotations.isEmpty()) {
             // TODO wolfs: We use `_Decorated` here, since IDEA import currently relies on this
             // See https://github.com/gradle/gradle/issues/8244
@@ -211,7 +223,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
         Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-        CrossBuildInMemoryCacheFactory cacheFactory,
+        ClassCacheFactory cacheFactory,
         int factoryId
     ) {
         // TODO - the suffix should be a deterministic function of the known and enabled annotations
@@ -409,7 +421,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class ClassBuilderImpl extends ClassVisitorScope implements ClassGenerationVisitor {
         public static final int PV_FINAL_STATIC = ACC_PRIVATE | ACC_STATIC | ACC_FINAL | ACC_SYNTHETIC;
         private static final Set<? extends Class<?>> PRIMITIVE_TYPES = ImmutableSet.of(Byte.TYPE, Boolean.TYPE, Character.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
@@ -625,7 +637,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             includeNotInheritedAnnotations();
 
-            visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
+            visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), AsmClassGeneratorUtils.encodeTypeVariablesAsSignature(type),
                 superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
 
             generateInitMethod();
@@ -718,7 +730,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
         }
 
-        @Nonnull
+        @NonNull
         private static List<Type> paramTypesOf(Constructor<?> constructor, boolean addNameParameter) {
             Class<?>[] parameterTypes = constructor.getParameterTypes();
             List<Type> paramTypes = new ArrayList<>(parameterTypes.length + (addNameParameter ? 1 : 0));
@@ -1949,7 +1961,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return null;
     }
 
-    @Nonnull
+    @NonNull
     private static String descriptorOf(Class<?> type) {
         return getType(type).getDescriptor();
     }

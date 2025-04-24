@@ -32,7 +32,10 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
-    private static final List<String> MODULES = Arrays.asList(
+    /**
+     * List of Gradle API jar entry points. These modules and their dependencies are available for ProjectBuilder.
+     */
+    private static final List<String> GRADLE_API_ENTRY_POINTS = Arrays.asList(
         "gradle-worker-main",
         "gradle-launcher",
         "gradle-workers",
@@ -40,7 +43,23 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         "gradle-plugin-use",
         "gradle-tooling-api-builders",
         "gradle-configuration-cache",
+        "gradle-isolated-action-services",
         "gradle-unit-test-fixtures"
+    );
+
+    public static final Set<String> GROOVY_MODULES = ImmutableSet.of(
+        "groovy",
+        "groovy-ant",
+        "groovy-astbuilder",
+        "groovy-console",
+        "groovy-datetime",
+        "groovy-dateutil",
+        "groovy-groovydoc",
+        "groovy-json",
+        "groovy-nio",
+        "groovy-sql",
+        "groovy-templates",
+        "groovy-xml"
     );
 
     private final ModuleRegistry moduleRegistry;
@@ -83,7 +102,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         // This method is involved in generating the gradleApi() Jar which is used in a real Gradle run.
         // See: `org.gradle.api.internal.notations.DependencyClassPathNotationConverter`
         ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : MODULES) {
+        for (String moduleName : GRADLE_API_ENTRY_POINTS) {
             classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
@@ -101,24 +120,11 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath localGroovy() {
-        Set<String> groovyModules = ImmutableSet.of(
-            "groovy-ant",
-            "groovy-astbuilder",
-            "groovy-console",
-            "groovy-datetime",
-            "groovy-dateutil",
-            "groovy-groovydoc",
-            "groovy-json",
-            "groovy-nio",
-            "groovy-sql",
-            "groovy-templates",
-            "groovy-test",
-            "groovy-xml",
-            "javaparser-core");
-        ClassPath groovy = moduleRegistry.getExternalModule("groovy").getClasspath();
-        for (String groovyModule : groovyModules) {
+        ClassPath groovy = ClassPath.EMPTY;
+        for (String groovyModule : GROOVY_MODULES) {
             groovy = groovy.plus(moduleRegistry.getExternalModule(groovyModule).getClasspath());
         }
+        groovy = groovy.plus(moduleRegistry.getExternalModule("javaparser-core").getClasspath());
         return groovy;
     }
 

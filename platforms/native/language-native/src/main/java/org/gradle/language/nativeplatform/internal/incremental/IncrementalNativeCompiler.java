@@ -16,7 +16,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
@@ -26,6 +25,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
     private final Logger logger = LoggerFactory.getLogger(IncrementalNativeCompiler.class);
 

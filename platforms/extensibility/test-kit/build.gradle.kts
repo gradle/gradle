@@ -10,21 +10,21 @@ description = "A library that aids in testing Gradle plugins and build logic in 
 errorprone {
     disabledChecks.addAll(
         "CatchAndPrintStackTrace", // 1 occurrences
-        "ImmutableEnumChecker", // 1 occurrences
     )
 }
 
 dependencies {
     api(projects.baseServices)
+    api(projects.classloaders)
     api(projects.stdlibJavaExtensions)
-    api(projects.logging)
     api(projects.toolingApi)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.core)
     implementation(projects.fileTemp)
     implementation(projects.io)
+    implementation(projects.logging)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)
 
@@ -46,6 +46,7 @@ dependencies {
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.jvmServices)
     integTestImplementation(testFixtures(projects.buildConfiguration))
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 
@@ -54,6 +55,10 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
+
+// Test kit should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
     classpath.from(sourceSets.main.map { it.runtimeClasspath })

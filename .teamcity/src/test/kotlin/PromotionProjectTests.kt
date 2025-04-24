@@ -61,7 +61,7 @@ class PromotionProjectTests {
         val model = setupModelFor("release")
 
         assertEquals("Promotion", model.name)
-        assertEquals(11, model.buildTypes.size)
+        assertEquals(12, model.buildTypes.size)
         assertEquals(
             listOf(
                 "SanityCheck",
@@ -74,6 +74,7 @@ class PromotionProjectTests {
                 "Release - Milestone",
                 "Release - Release Candidate",
                 "Release - Final",
+                "Merge Release into Master",
                 "Nightly Documentation",
             ),
             model.buildTypes.map { it.name },

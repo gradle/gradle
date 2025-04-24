@@ -25,7 +25,6 @@ import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 import com.nhaarman.mockito_kotlin.verify
-
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -36,30 +35,22 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
-
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.withFolders
-
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.jetbrains.kotlin.name.NameUtils
-
 import org.junit.Test
-
 import org.mockito.invocation.InvocationOnMock
-
 import java.io.File
 
 
@@ -481,12 +472,14 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
+        // Error message relies on Kotlin's Deprecated.HIDDEN
+        executer.noDeprecationChecks()
         buildAndFail("classes").run {
             assertHasDescription(
                 "Execution failed for task ':compileKotlin'."
             )
             assertHasErrorOutput(
-                """my-project-plugin.gradle.kts:3:17 Using 'plugins(PluginDependenciesSpec.() -> Unit): Nothing' is an error. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
+                """my-project-plugin.gradle.kts:3:17 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
             )
         }
     }
@@ -667,7 +660,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         givenPrecompiledKotlinScript(
             fileName,
             """
-            fun <T> applyActionTo(a: T, action: ${Action::class.qualifiedName}<T>) = action(a)
+            fun <T : Any> applyActionTo(a: T, action: ${Action::class.qualifiedName}<T>) = action(a)
             object receiver
             applyActionTo(receiver) {
                 require(this === receiver)

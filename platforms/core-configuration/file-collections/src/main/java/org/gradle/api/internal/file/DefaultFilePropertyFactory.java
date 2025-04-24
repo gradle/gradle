@@ -35,13 +35,12 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
     private final PropertyHost host;
@@ -413,36 +412,4 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    private static class DirectoryProviderPathToFileResolver implements PathToFileResolver {
-        private final Provider<Directory> directoryProvider;
-        private final PathToFileResolver parentResolver;
-
-        public DirectoryProviderPathToFileResolver(Provider<Directory> directoryProvider, PathToFileResolver parentResolver) {
-            this.directoryProvider = directoryProvider;
-            this.parentResolver = parentResolver;
-        }
-
-        private PathToFileResolver createResolver() {
-            File resolved = directoryProvider.get().getAsFile();
-            return parentResolver.newResolver(resolved);
-        }
-
-        @Override
-        public File resolve(Object path) {
-            return createResolver().resolve(path);
-        }
-
-        @Override
-        public PathToFileResolver newResolver(File baseDir) {
-            return new DirectoryProviderPathToFileResolver(
-                directoryProvider.map(transformer(dir -> dir.dir(baseDir.getPath()))),
-                parentResolver
-            );
-        }
-
-        @Override
-        public boolean canResolveRelativePath() {
-            return true;
-        }
-    }
 }

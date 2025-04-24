@@ -17,8 +17,8 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.concurrent.Stoppable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 /**
@@ -29,12 +29,8 @@ interface ServiceProvider extends Stoppable {
     /**
      * Locates a service instance of the given type. Returns null if this provider does not provide a service of this type.
      */
-    @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token);
-
-    /**
-     * Locates a factory for services of the given type. Returns null if this provider does not provide any services of this type.
-     */
-    @Nullable Service getFactory(Class<?> type, @Nullable ServiceAccessToken token);
+    @Nullable
+    Service getService(Type serviceType, @Nullable ServiceAccessToken token);
 
     /**
      * Collects all services of the given type.

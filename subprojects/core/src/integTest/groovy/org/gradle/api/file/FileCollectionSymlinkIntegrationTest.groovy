@@ -22,6 +22,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
@@ -29,7 +30,10 @@ import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.work.ChangeType.ADDED
 import static org.gradle.work.ChangeType.REMOVED
 
-@Requires(UnitTestPreconditions.Symlinks)
+@Requires(value = [
+    UnitTestPreconditions.Symlinks,
+    IntegTestPreconditions.NotEmbeddedExecutor,
+], reason = "requires isolated daemons for symlink data cleanup between builds")
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()

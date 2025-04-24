@@ -158,6 +158,21 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         "assigned tool"  | "over everything else"               | "other"  | null           | "current"         | "other"
     }
 
+    def "can generate javadoc with java version #jdk.javaVersionMajor"() {
+        configureProjectWithJavaPlugin()
+        configureJavadocTool(jdk)
+
+        when:
+        withInstallations(jdk)
+        succeeds(":javadoc")
+
+        then:
+        executedAndNotSkipped(":javadoc")
+
+        where:
+        jdk << AvailableJavaHomes.allJdkVersions
+    }
+
     def "uses #what toolchain #when (without java-base plugin)"() {
         Jvm currentJdk = Jvm.current()
         Jvm otherJdk = AvailableJavaHomes.differentVersion
@@ -206,7 +221,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         withInstallations(jre).fails("javadoc")
 
         then:
-        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${jre.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific}. " +
+        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${jre.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),

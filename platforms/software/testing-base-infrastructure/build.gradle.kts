@@ -15,7 +15,7 @@ dependencies {
     api(projects.time)
     api(projects.workerMain)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.io)
     implementation(projects.serviceLookup)

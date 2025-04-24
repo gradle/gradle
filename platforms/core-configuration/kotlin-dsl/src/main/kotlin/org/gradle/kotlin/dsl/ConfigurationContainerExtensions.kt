@@ -15,9 +15,6 @@
  */
 
 
-@file:Incubating
-
-
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
@@ -40,7 +37,6 @@ import org.gradle.api.artifacts.ResolvableConfiguration
  * @since 8.4
  */
 @Suppress("nothing_to_inline")
-@Incubating
 inline operator fun ConfigurationContainer.invoke(
     configuration: Action<ConfigurationContainerScope>
 ): ConfigurationContainer = apply {
@@ -66,21 +62,27 @@ private constructor(
     override fun detachedConfiguration(vararg dependencies: Dependency): Configuration =
         delegate.detachedConfiguration(*dependencies)
 
+    @Incubating
     override fun resolvable(name: String): NamedDomainObjectProvider<ResolvableConfiguration> =
         delegate.resolvable(name)
 
+    @Incubating
     override fun resolvable(name: String, action: Action<in ResolvableConfiguration>): NamedDomainObjectProvider<ResolvableConfiguration> =
         delegate.resolvable(name, action)
 
+    @Incubating
     override fun consumable(name: String): NamedDomainObjectProvider<ConsumableConfiguration> =
         delegate.consumable(name)
 
+    @Incubating
     override fun consumable(name: String, action: Action<in ConsumableConfiguration>): NamedDomainObjectProvider<ConsumableConfiguration> =
         delegate.consumable(name, action)
 
+    @Incubating
     override fun dependencyScope(name: String): NamedDomainObjectProvider<DependencyScopeConfiguration> =
         delegate.dependencyScope(name)
 
+    @Incubating
     override fun dependencyScope(name: String, action: Action<in DependencyScopeConfiguration>): NamedDomainObjectProvider<DependencyScopeConfiguration> =
         delegate.dependencyScope(name, action)
 }

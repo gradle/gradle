@@ -23,7 +23,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
+import org.gradle.internal.declarativedsl.interpreter.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.extensions.core.callableBuildOperation
 import org.gradle.internal.operations.BuildOperationRunner

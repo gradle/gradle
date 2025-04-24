@@ -9,6 +9,7 @@ dependencies {
     api(projects.core)
     api(libs.kotlinStdlib)
 
+    implementation(projects.classloaders)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
@@ -22,6 +23,8 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
+
+    implementation(libs.jspecify)
 
     testImplementation(testFixtures(projects.kotlinDsl))
     integTestImplementation(testFixtures(projects.toolingApi))
@@ -43,3 +46,7 @@ dependencies {
 }
 
 testFilesCleanup.reportOnly = true
+
+// Kotlin DSL tooling builders should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())

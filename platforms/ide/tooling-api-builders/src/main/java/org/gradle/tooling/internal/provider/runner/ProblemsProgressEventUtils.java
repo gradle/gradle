@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
@@ -34,6 +33,7 @@ import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PluginIdLocation;
 import org.gradle.api.problems.internal.ProblemSummaryData;
+import org.gradle.api.problems.internal.StackTraceLocation;
 import org.gradle.api.problems.internal.TaskLocation;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypedAdditionalData;
@@ -68,9 +68,9 @@ import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +80,7 @@ import java.util.function.Supplier;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toMap;
 
-@NonNullApi
+@NullMarked
 public class ProblemsProgressEventUtils {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);
@@ -177,26 +177,31 @@ public class ProblemsProgressEventUtils {
     }
 
     private static List<InternalLocation> toInternalLocations(List<ProblemLocation> locations) {
-        return locations.stream().map(location -> {
-            if (location instanceof LineInFileLocation) {
-                LineInFileLocation fileLocation = (LineInFileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
-            } else if (location instanceof OffsetInFileLocation) {
-                OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
-            } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
-                FileLocation fileLocation = (FileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
-            } else if (location instanceof PluginIdLocation) {
-                PluginIdLocation pluginLocation = (PluginIdLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
-            } else if (location instanceof TaskLocation) {
-                TaskLocation taskLocation = (TaskLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
-            } else {
-                throw new RuntimeException("No mapping defined for " + location.getClass().getName());
-            }
-        }).collect(toImmutableList());
+        return locations.stream()
+            .filter(location -> !(location instanceof StackTraceLocation && ((StackTraceLocation) location).getFileLocation() == null))
+            .map(location -> location instanceof StackTraceLocation
+                ? ((StackTraceLocation) location).getFileLocation()
+                : location)
+            .map(location -> {
+                if (location instanceof LineInFileLocation) {
+                    LineInFileLocation fileLocation = (LineInFileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+                } else if (location instanceof OffsetInFileLocation) {
+                    OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
+                } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
+                    FileLocation fileLocation = (FileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
+                } else if (location instanceof PluginIdLocation) {
+                    PluginIdLocation pluginLocation = (PluginIdLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
+                } else if (location instanceof TaskLocation) {
+                    TaskLocation taskLocation = (TaskLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
+                } else {
+                    throw new RuntimeException("No mapping defined for " + location.getClass().getName());
+                }
+            }).collect(toImmutableList());
     }
 
     @Nullable
@@ -234,7 +239,7 @@ public class ProblemsProgressEventUtils {
             );
         } else if (additionalData instanceof TypedAdditionalData) {
             TypedAdditionalData typedData = (TypedAdditionalData) additionalData;
-            return new DefaultInternalPayloadSerializedAdditionalData(typedData.getData(), (SerializedPayload) typedData.getSerializedType());
+            return new DefaultInternalPayloadSerializedAdditionalData(typedData.getBytesForIsolatedObject(), typedData.getSerializedType());
         } else {
             return new DefaultInternalAdditionalData(Collections.emptyMap());
         }

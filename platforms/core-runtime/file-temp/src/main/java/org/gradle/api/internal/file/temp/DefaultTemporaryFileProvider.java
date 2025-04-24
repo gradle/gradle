@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.temp;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 

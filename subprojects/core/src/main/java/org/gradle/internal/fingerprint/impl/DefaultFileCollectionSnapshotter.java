@@ -71,7 +71,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     root.getAbsolutePath(),
                     new PatternSetSnapshottingFilter(patterns, stat)
                 )
-                .map(roots::add);
+                .ifPresent(roots::add);
         }
 
         @Override

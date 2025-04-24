@@ -16,7 +16,8 @@
 
 package org.gradle.api.provider;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -24,6 +25,11 @@ import java.util.List;
  *
  * <p>
  * You can create a {@link ListProperty} instance using factory method {@link org.gradle.api.model.ObjectFactory#listProperty(Class)}.
+ * </p>
+ *
+ * <p>
+ * Instances of this interface are not thread-safe for reading and writing.
+ * It is not safe to share the same ListProperty instance between different projects.
  * </p>
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.

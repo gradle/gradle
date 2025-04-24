@@ -28,8 +28,8 @@ import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -724,8 +724,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         this.noDeprecated.setValue(noDeprecated);
     }
 
-    public StandardJavadocDocletOptions noDeprecated(boolean nodeprecated) {
-        setNoDeprecated(nodeprecated);
+    public StandardJavadocDocletOptions noDeprecated(boolean noDeprecated) {
+        setNoDeprecated(noDeprecated);
         return this;
     }
 

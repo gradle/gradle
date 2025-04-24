@@ -20,10 +20,13 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A container responsible for managing the configuration of a project.
  */
+@ServiceScope(Scope.Project.class)
 public interface ProjectConfigurationActionContainer {
     void finished();
 

@@ -125,7 +125,6 @@ class BuildActionExecuterBuilder implements BuildActionExecuter.Builder {
  * While still allowing the ToolingApiConnection to be used as a ProjectConnection.
  * This avoids loading the ProjectConnection class from the test code and postbones loading to the tooling api magic.
  */
-
 trait ProjectConnectionTrait implements ProjectConnection {
 }
 

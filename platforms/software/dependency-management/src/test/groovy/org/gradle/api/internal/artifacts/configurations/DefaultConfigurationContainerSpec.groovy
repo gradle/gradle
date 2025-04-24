@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.Action
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
@@ -36,7 +37,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -80,11 +80,11 @@ class DefaultConfigurationContainerSpec extends Specification {
         userCodeApplicationContext,
         CollectionCallbackActionDecorator.NOOP,
         projectStateRegistry,
-        Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),
-        TestUtil.problemsService()
+        TestUtil.problemsService(),
+        new DocumentationRegistry()
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
@@ -94,7 +94,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         Mock(AttributesSchemaInternal),
         rootComponentMetadataBuilderFactory,
         configurationFactory,
-        Mock(ResolutionStrategyFactory)
+        Mock(ResolutionStrategyFactory),
+        TestUtil.problemsService(),
     )
 
     def setup() {
@@ -161,7 +162,6 @@ class DefaultConfigurationContainerSpec extends Specification {
 
         then:
         detached.name == "detachedConfiguration1"
-        detached.getAll() == [detached] as Set
         detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }
         detached.getDependencies().size() == 2

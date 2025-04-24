@@ -27,8 +27,10 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.collections.ImmutableFilteredList;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +44,7 @@ import java.util.function.BiFunction;
  * Caches the results, as often the same request is made for many components in a
  * dependency graph.
  */
+@ServiceScope(Scope.Project.class)
 public class ConsumerProvidedVariantFinder {
     private final VariantTransformRegistry variantTransforms;
     private final AttributesFactory attributesFactory;

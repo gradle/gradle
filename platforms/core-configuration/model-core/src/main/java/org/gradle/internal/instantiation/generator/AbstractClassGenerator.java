@@ -36,7 +36,6 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.IsolatedAction;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -55,7 +54,7 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -73,8 +72,9 @@ import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -90,7 +90,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -139,18 +138,17 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static final Object[] NO_PARAMS = new Object[0];
 
-    private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
+    private final Cache<Class<?>, GeneratedClassImpl> generatedClasses;
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
     private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
-    private final Function<Class<?>, GeneratedClassImpl> generator = this::generateUnderLock;
     private final PropertyRoleAnnotationHandler roleHandler;
 
     protected AbstractClassGenerator(
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         Collection<Class<? extends Annotation>> enabledAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
-        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache
+        Cache<Class<?>, GeneratedClassImpl> generatedClassesCache
     ) {
         this.generatedClasses = generatedClassesCache;
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
@@ -189,7 +187,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
-        return Cast.uncheckedNonnullCast(generatedClasses.get(unpack(type), generator));
+        return Cast.uncheckedNonnullCast(generatedClasses.get(unpack(type), this::generateUnderLock));
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
@@ -1571,7 +1569,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
      * <p>
      * To create a boolean property, you need to use {@code boolean isFoo()} or {@code Boolean getFoo()}.
      */
-    @NonNullApi
+    @NullMarked
     private static class BooleanPropertyDeprecatingValidator implements ClassValidator {
         @Override
         public void validateProperty(PropertyDetails property) {

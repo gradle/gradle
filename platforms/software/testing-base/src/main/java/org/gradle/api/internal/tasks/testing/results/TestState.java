@@ -32,6 +32,7 @@ public class TestState {
     private final Map<Object, TestState> executing;
     public boolean failedChild;
     public List<TestFailure> failures = new ArrayList<TestFailure>();
+    public TestFailure assumptionFailure = null;
     public long testCount;
     public long successfulCount;
     public long failedCount;
@@ -73,6 +74,8 @@ public class TestState {
                     break;
                 case FAILURE:
                     failedCount = 1;
+                    break;
+                case SKIPPED:
                     break;
             }
         }

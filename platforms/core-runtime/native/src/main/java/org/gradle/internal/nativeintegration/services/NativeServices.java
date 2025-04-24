@@ -61,10 +61,10 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -178,10 +178,20 @@ public class NativeServices implements ServiceRegistrationProvider {
             public boolean isEnabled() {
                 return true;
             }
+
+            @Override
+            public boolean isPotentiallyEnabled() {
+                return true;
+            }
         },
         DISABLED {
             @Override
             public boolean isEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isPotentiallyEnabled() {
                 return false;
             }
         },
@@ -190,9 +200,27 @@ public class NativeServices implements ServiceRegistrationProvider {
             public boolean isEnabled() {
                 throw new UnsupportedOperationException("Cannot determine if native services are enabled or not for " + this + " mode.");
             }
+
+            @Override
+            public boolean isPotentiallyEnabled() {
+                return true;
+            }
         };
 
         public abstract boolean isEnabled();
+
+        /**
+         * Check if the native services might be enabled. This is used to determine if a process needs to be started with flags that allow native access.
+         *
+         * <p>
+         * This is used instead of looking at all possible sources of system properties to determine if the native services would be used, as that would be expensive and complicated.
+         * This could result in a process being started with flags that allow native access when it's not needed by Gradle.
+         * As it's likely that the native services are enabled, this trade-off is acceptable.
+         * </p>
+         *
+         * @return {@code true} if the native services might be enabled, {@code false} otherwise
+         */
+        public abstract boolean isPotentiallyEnabled();
 
         public static NativeServicesMode from(boolean isEnabled) {
             return isEnabled ? ENABLED : DISABLED;

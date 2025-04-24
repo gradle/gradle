@@ -47,6 +47,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         result.add(new TestMethodResult(2, "some test two", SUCCESS, 15, startTime + 30))
         result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
         result.add(new TestMethodResult(4, "some skipped test", SKIPPED, 10, startTime + 45))
+        result.add(new TestMethodResult(5, "some assumption failure test", SKIPPED, 10, startTime + 50).setAssumptionFailure("assumption failed", "[assumption-failure-stack-trace]", "AssumptionViolationException"))
 
         provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
         provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
@@ -56,9 +57,9 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
-            .assertTestCount(4, 1, 1, 0)
+            .assertTestCount(5, 2, 1, 0)
             .assertTestFailed("some failing test", equalTo('failure message'))
-            .assertTestsSkipped("some skipped test")
+            .assertTestsSkipped("some skipped test", "some assumption failure test")
             .assertTestsExecuted("some test", "some test two", "some failing test")
             .assertStdout(equalTo("""1st output message
 2nd output message
@@ -67,7 +68,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.FooTest" tests="4" skipped="1" failures="1" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.045">
+<testsuite name="com.foo.FooTest" tests="5" skipped="2" failures="1" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.05">
   <properties/>
   <testcase name="some test" classname="com.foo.FooTest" time="0.015"/>
   <testcase name="some test two" classname="com.foo.FooTest" time="0.015"/>
@@ -76,6 +77,9 @@ class JUnitXmlResultWriterSpec extends Specification {
   </testcase>
   <testcase name="some skipped test" classname="com.foo.FooTest" time="0.01">
     <skipped/>
+  </testcase>
+  <testcase name="some assumption failure test" classname="com.foo.FooTest" time="0.01">
+    <skipped message="assumption failed" type="AssumptionViolationException">[assumption-failure-stack-trace]</skipped>
   </testcase>
   <system-out><![CDATA[1st output message
 2nd output message
@@ -91,7 +95,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList(), null)))
         _ * provider.writeAllOutput(_, _, _)
 
         when:

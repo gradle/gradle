@@ -16,19 +16,20 @@
 
 package org.gradle.internal.execution.steps
 
-
 import org.gradle.internal.execution.ExecutionProblemHandler
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
+import org.gradle.util.TestUtil
 
 class ValidateStepTest extends StepSpec<BeforeExecutionContext> {
 
     def problemHandler = Mock(ExecutionProblemHandler)
     def step = new ValidateStep<>(problemHandler, delegate)
     def delegateResult = Mock(Result)
+    def problems = TestUtil.problemsService()
 
     def setup() {
-        def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP)
+        def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
         context.getValidationContext() >> validationContext
     }
 

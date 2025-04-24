@@ -340,7 +340,7 @@ It's also beneficial to make our task class `abstract` because Gradle will handl
 ----
 import org.gradle.api.DefaultTask
 
-public abstract class GenerateReportTask : DefaultTask() {
+abstract class GenerateReportTask : DefaultTask() {
 
 }
 ----
@@ -352,7 +352,7 @@ public abstract class GenerateReportTask : DefaultTask() {
 ----
 import org.gradle.api.DefaultTask
 
-public abstract class GenerateReportTask extends DefaultTask {
+abstract class GenerateReportTask extends DefaultTask {
 
 }
 ----
@@ -372,12 +372,13 @@ We annotate it with `@InputDirectory` to indicate that it is an input to the tas
 [source,kotlin]
 ----
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.InputDirectory
 
-public abstract class GenerateReportTask : DefaultTask() {
+abstract class GenerateReportTask : DefaultTask() {
 
     @get:InputDirectory
-    abstract var sourceDirectory: DirectoryProperty
+    abstract val sourceDirectory: DirectoryProperty
 
 }
 ----
@@ -388,12 +389,13 @@ public abstract class GenerateReportTask : DefaultTask() {
 [source,groovy]
 ----
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.InputDirectory
 
-public abstract class GenerateReportTask extends DefaultTask {
+abstract class GenerateReportTask extends DefaultTask {
 
     @InputDirectory
-    DirectoryProperty sourceDirectory
+    abstract DirectoryProperty getSourceDirectory()
 
 }
 ----
@@ -409,16 +411,18 @@ Similarly, for the output, we use a `RegularFileProperty` and annotate it with `
 [source,kotlin]
 ----
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
 
-public abstract class GenerateReportTask : DefaultTask() {
+abstract class GenerateReportTask : DefaultTask() {
 
     @get:InputDirectory
-    abstract var sourceDirectory: DirectoryProperty
+    abstract val sourceDirectory: DirectoryProperty
 
     @get:OutputFile
-    abstract var reportFile: File
+    abstract val reportFile: RegularFileProperty
 
 }
 ----
@@ -429,16 +433,18 @@ public abstract class GenerateReportTask : DefaultTask() {
 [source,groovy]
 ----
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
 
-public abstract class GenerateReportTask extends DefaultTask {
+abstract class GenerateReportTask extends DefaultTask {
 
     @InputDirectory
-    DirectoryProperty sourceDirectory
+    abstract DirectoryProperty getSourceDirectory()
 
     @OutputFile
-    File reportFile
+    abstract RegularFileProperty getReportFile()
 
 }
 ----
@@ -455,20 +461,24 @@ Inside this method, we write code accessing inputs and outputs using Gradle-spec
 [source,kotlin]
 ----
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-public abstract class GenerateReportTask : DefaultTask() {
+abstract class GenerateReportTask : DefaultTask() {
 
     @get:InputDirectory
-    abstract var sourceDirectory: DirectoryProperty
+    abstract val sourceDirectory: DirectoryProperty
 
     @get:OutputFile
-    abstract var reportFile: File
+    abstract val reportFile: RegularFileProperty
 
     @TaskAction
     fun generateReport() {
+        val sourceDirectory = sourceDirectory.asFile.get()
+        val reportFile = reportFile.asFile.get()
         val fileCount = sourceDirectory.listFiles().count { it.isFile }
         val directoryCount = sourceDirectory.listFiles().count { it.isDirectory }
 
@@ -491,20 +501,24 @@ public abstract class GenerateReportTask : DefaultTask() {
 [source,groovy]
 ----
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-public abstract class GenerateReportTask extends DefaultTask {
+abstract class GenerateReportTask extends DefaultTask {
 
     @InputDirectory
-    DirectoryProperty sourceDirectory
+    abstract DirectoryProperty getSourceDirectory()
 
     @OutputFile
-    File reportFile
+    abstract RegularFileProperty getReportFile()
 
     @TaskAction
     void generateReport() {
+        def sourceDirectory = sourceDirectory.asFile.get()
+        def reportFile = reportFile.asFile.get()
         def fileCount = sourceDirectory.listFiles().count { it.isFile() }
         def directoryCount = sourceDirectory.listFiles().count { it.isDirectory() }
 
@@ -535,8 +549,8 @@ At the same time, we configure the inputs and outputs of the task:
 [source,kotlin]
 ----
 tasks.register<GenerateReportTask>("generateReport") {
-    sourceDirectory.set(layout.projectDirectory.dir("src/main"))
-    reportFile.set(layout.buildDirectory.file("reports/directoryReport.txt"))
+    sourceDirectory = layout.projectDirectory.dir("src/main")
+    reportFile = layout.buildDirectory.file("reports/directoryReport.txt")
 }
 
 tasks.build {
@@ -549,9 +563,9 @@ tasks.build {
 .app/build.gradle
 [source,groovy]
 ----
-tasks.register(GenerateReportTask, "generateReport") {
-    sourceDirectory = layout.projectDirectory.dir("src/main").asFile
-    reportFile = layout.buildDirectory.file("reports/directoryReport.txt").asFile
+tasks.register("generateReport", GenerateReportTask) {
+    sourceDirectory = layout.projectDirectory.dir("src/main")
+    reportFile = layout.buildDirectory.file("reports/directoryReport.txt")
 }
 
 tasks.build.dependsOn("generateReport")
@@ -980,11 +994,11 @@ You can configure the inputs and outputs of a task in two main ways:
 ----
 abstract class ConfigurableTask : DefaultTask() {
 
-    @Input
-    val inputProperty = project.objects.property(String::class.java)
+    @get:Input
+    abstract val inputProperty: Property<String>
 
-    @OutputFile
-    val outputFile = project.objects.fileProperty()
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
 
     // Static Configuration: Inputs and Outputs defined in the task class
     init {
@@ -994,7 +1008,7 @@ abstract class ConfigurableTask : DefaultTask() {
 
     @TaskAction
     fun executeTask() {
-        println("Executing task with input: ${inputProperty.get()} and output: ${outputFile.get()}")
+        println("Executing task with input: ${inputProperty.get()} and output: ${outputFile.asFile.get()}")
     }
 
 }
@@ -1002,10 +1016,10 @@ abstract class ConfigurableTask : DefaultTask() {
 // Dynamic Configuration: Adding inputs and outputs to a task instance
 tasks.register("dynamicTask", ConfigurableTask::class) {
     // Set the input property dynamically
-    inputProperty.set("dynamic input value")
+    inputProperty = "dynamic input value"
 
     // Set the output file dynamically
-    outputFile.set(layout.buildDirectory.file("dynamicOutput.txt"))
+    outputFile = layout.buildDirectory.file("dynamicOutput.txt")
 }
 ----
 =====
@@ -1016,20 +1030,20 @@ tasks.register("dynamicTask", ConfigurableTask::class) {
 abstract class ConfigurableTask extends DefaultTask {
 
     @Input
-    def inputProperty = project.objects.property(String)
+    abstract Property<String> getInputProperty()
 
     @OutputFile
-    def outputFile = project.objects.fileProperty()
+    abstract RegularFileProperty getOutputFile()
 
     // Static Configuration: Inputs and Outputs defined in the task class
-    {
+    ConfigurableTask() {
         group = 'custom'
         description = 'A configurable task example'
     }
 
     @TaskAction
     void executeTask() {
-        println "Executing task with input: ${inputProperty.get()} and output: ${outputFile.get()}"
+        println "Executing task with input: ${inputProperty.get()} and output: ${outputFile.asFile.get()}"
     }
 
 }
@@ -1037,10 +1051,10 @@ abstract class ConfigurableTask extends DefaultTask {
 // Dynamic Configuration: Adding inputs and outputs to a task instance
 tasks.register('dynamicTask', ConfigurableTask) {
     // Set the input property dynamically
-    inputProperty.set('dynamic input value')
+    inputProperty = 'dynamic input value'
 
     // Set the output file dynamically
-    outputFile.set(layout.buildDirectory.file('dynamicOutput.txt'))
+    outputFile = layout.buildDirectory.file('dynamicOutput.txt')
 }
 ----
 =====
@@ -1060,8 +1074,8 @@ abstract class MyTask : DefaultTask() {
     var myEagerProperty: String = "default value"
 
     // Use Gradle managed properties instead
-    @Input
-    val myLazyProperty: Property<String> = project.objects.property(String::class.java)
+    @get:Input
+    abstract val myLazyProperty: Property<String>
 
     @TaskAction
     fun myAction() {
@@ -1081,7 +1095,7 @@ abstract class MyTask extends DefaultTask {
 
     // Use Gradle managed properties instead
     @Input
-    Property<String> myLazyProperty = project.objects.property(String)
+    abstract Property<String> getMyLazyProperty()
 
     @TaskAction
     void myAction() {
@@ -1245,9 +1259,9 @@ abstract class AllTypes : DefaultTask() {
     @get:InputDirectory
     abstract val inputDirectory: DirectoryProperty
     @get:InputFiles
-    abstract val inputFileCollection: ListProperty<RegularFile>
+    abstract val inputFileCollection: ConfigurableFileCollection
     @get:Classpath
-    abstract val inputClasspath: ListProperty<RegularFile>
+    abstract val inputClasspath: ConfigurableFileCollection
 
     // outputs
     @get:OutputFile
@@ -1255,9 +1269,9 @@ abstract class AllTypes : DefaultTask() {
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
     @get:OutputFiles
-    abstract val outputFiles: ListProperty<RegularFile>
+    abstract val outputFiles: ConfigurableFileCollection
     @get:OutputDirectories
-    abstract val outputDirectories: ListProperty<Directory>
+    abstract val outputDirectories: ConfigurableFileCollection
 }
 ----
 =====
@@ -1270,25 +1284,25 @@ abstract class AllTypes extends DefaultTask {
 
     //inputs
     @Input
-    final abstract Property<String> inputString = ""
+    abstract Property<String> getInputString()
     @InputFile
-    final abstract RegularFileProperty inputFile = ""
+    abstract RegularFileProperty getInputFile()
     @InputDirectory
-    final abstract DirectoryProperty inputDirectory = ""
+    abstract DirectoryProperty getInputDirectory()
     @InputFiles
-    final abstract ConfigurableFileCollection inputFileCollection = ""
+    abstract ConfigurableFileCollection getInputFileCollection()
     @Classpath
-    final abstract ConfigurableFileCollection inputClasspath = ""
+    abstract ConfigurableFileCollection getInputClasspath()
 
     // outputs
     @OutputFile
-    final abstract RegularFileProperty outputFile = ""
+    abstract RegularFileProperty getOutputFile()
     @OutputDirectory
-    final abstract DirectoryProperty outputDirectory = ""
+    abstract DirectoryProperty getOutputDirectory()
     @OutputFiles
-    final abstract ConfigurableFileCollection outputFiles = ""
+    abstract ConfigurableFileCollection getOutputFiles()
     @OutputDirectories
-    final abstract ConfigurableFileCollection outputDirectories = ""
+    abstract ConfigurableFileCollection getOutputDirectories()
 }
 ----
 =====

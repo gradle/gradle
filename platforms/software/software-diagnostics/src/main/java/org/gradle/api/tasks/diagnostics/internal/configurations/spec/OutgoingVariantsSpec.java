@@ -17,8 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.spec;
 
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConfiguration;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An {@link AbstractConfigurationReportSpec} extension that describes an {@link org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask outgoingVariants} report.

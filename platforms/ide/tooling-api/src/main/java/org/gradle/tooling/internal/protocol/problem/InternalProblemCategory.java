@@ -18,6 +18,11 @@ package org.gradle.tooling.internal.protocol.problem;
 
 import java.util.List;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol. </p>
+ *
+ * The concept of problem categories was removed in Gradle 8.7, however this interface should be kept to maintain backwards compatibility.
+ */
 public interface InternalProblemCategory {
 
     String getNamespace();

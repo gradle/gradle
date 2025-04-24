@@ -27,13 +27,12 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -45,8 +44,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
-
-import java.util.Collections;
 
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
@@ -66,6 +63,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private final TaskDependencyFactory taskDependencyFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final AttributesFactory attributesFactory;
+    private final AttributeDesugaring attributeDesugaring;
     private final Instantiator instantiator;
 
     public DefaultResolutionOutputs(
@@ -73,42 +71,32 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         TaskDependencyFactory taskDependencyFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         AttributesFactory attributesFactory,
+        AttributeDesugaring attributeDesugaring,
         Instantiator instantiator
     ) {
         this.resolutionAccess = resolutionAccess;
         this.taskDependencyFactory = taskDependencyFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.attributesFactory = attributesFactory;
+        this.attributeDesugaring = attributeDesugaring;
         this.instantiator = instantiator;
-    }
-
-    @Override
-    public ResolutionResultProvider<ResolverResults> getRawResults() {
-        return resolutionAccess.getResults();
     }
 
     @Override
     public Provider<ResolvedVariantResult> getRootVariant() {
         return new DefaultProvider<>(() -> {
-            MinimalResolutionResult resolutionResult = getVisitedGraphResults().getResolutionResult();
+            MinimalResolutionResult resolutionResult = getResolutionResult();
             return resolutionResult.getRootSource().get().getVariant(resolutionResult.getRootVariantId());
         });
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> getVisitedGraphResults().getResolutionResult().getRootSource().get());
+        return new DefaultProvider<>(() -> getResolutionResult().getRootSource().get());
     }
 
-    /**
-     * Get the resolved graph, throwing any non-fatal exception that occurred during resolution.
-     */
-    private VisitedGraphResults getVisitedGraphResults() {
-        VisitedGraphResults graph = resolutionAccess.getResults().getValue().getVisitedGraph();
-        graph.getResolutionFailure().ifPresent(ex -> {
-            resolutionAccess.getHost().rethrowFailuresAndReportProblems("dependencies", Collections.singleton(ex));
-        });
-        return graph;
+    private MinimalResolutionResult getResolutionResult() {
+        return resolutionAccess.getResults().getValue().getVisitedGraph().getResolutionResult();
     }
 
     @Override
@@ -140,7 +128,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             resolutionAccess,
             taskDependencyFactory,
             calculatedValueContainerFactory,
-            attributesFactory
+            attributesFactory,
+            attributeDesugaring
         );
     }
 
@@ -158,6 +147,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final TaskDependencyFactory taskDependencyFactory;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
         private final AttributesFactory attributesFactory;
+        private final AttributeDesugaring attributeDesugaring;
 
         public DefaultArtifactView(
             boolean lenient,
@@ -168,7 +158,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             ResolutionAccess resolutionAccess,
             TaskDependencyFactory taskDependencyFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
-            AttributesFactory attributesFactory
+            AttributesFactory attributesFactory,
+            AttributeDesugaring attributeDesugaring
         ) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
@@ -179,6 +170,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             this.taskDependencyFactory = taskDependencyFactory;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
             this.attributesFactory = attributesFactory;
+            this.attributeDesugaring = attributeDesugaring;
         }
 
         @Override
@@ -187,7 +179,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 getFiles(),
                 lenient,
                 resolutionAccess.getHost(),
-                calculatedValueContainerFactory
+                calculatedValueContainerFactory,
+                attributeDesugaring
             );
         }
 

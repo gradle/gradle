@@ -16,12 +16,14 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4648")
 class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
     WorkerExecutorFixture.WorkParameterClass parallelParameterType

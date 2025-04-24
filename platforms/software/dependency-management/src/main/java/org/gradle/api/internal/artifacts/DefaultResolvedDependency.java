@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Paral
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -42,7 +41,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class DefaultResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
+public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
     private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
@@ -65,11 +64,6 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         this.buildOperationExecutor = buildOperationExecutor;
         this.resolutionHost = resolutionHost;
         this.moduleArtifacts = new LinkedHashSet<>();
-    }
-
-    @Override
-    public ResolvedDependency getPublicView() {
-        return this;
     }
 
     @Override
@@ -108,11 +102,6 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     }
 
     @Override
-    public Collection<? extends DependencyGraphNodeResult> getOutgoingEdges() {
-        return children;
-    }
-
-    @Override
     public Set<ResolvedArtifact> getModuleArtifacts() {
         return sort(CompositeResolvedArtifactSet.of(moduleArtifacts));
     }
@@ -131,7 +120,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
 
     @Override
     public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
-        return sort(getArtifactsForIncomingEdge((DependencyGraphNodeResult) parent));
+        return sort(getArtifactsForIncomingEdge(parent));
     }
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
@@ -143,16 +132,11 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         return visitor.getArtifacts();
     }
 
-    @Override
-    public ResolvedArtifactSet getArtifactsForNode() {
-        return CompositeResolvedArtifactSet.of(moduleArtifacts);
-    }
-
-    private ResolvedArtifactSet getArtifactsForIncomingEdge(DependencyGraphNodeResult parent) {
+    private ResolvedArtifactSet getArtifactsForIncomingEdge(ResolvedDependency parent) {
         if (!parents.contains(parent)) {
             throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
         }
-        return CompositeResolvedArtifactSet.of(parentArtifacts.get((ResolvedDependency) parent));
+        return CompositeResolvedArtifactSet.of(parentArtifacts.get(parent));
     }
 
     @Override

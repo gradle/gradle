@@ -22,9 +22,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.internal.Pair;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Set;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface CompositeBuildContext extends DependencySubstitutionRules {
     void addAvailableModules(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules);
     void registerSubstitution(Action<DependencySubstitution> substitutions);

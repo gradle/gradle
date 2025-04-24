@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Scopes determine which services can be accessed on the level of individual service providers.

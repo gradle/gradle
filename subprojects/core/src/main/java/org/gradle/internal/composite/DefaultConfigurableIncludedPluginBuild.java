@@ -17,11 +17,11 @@
 package org.gradle.internal.composite;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.tasks.TaskReference;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
+import org.gradle.api.tasks.TaskReference;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultConfigurableIncludedPluginBuild implements ConfigurableIncludedPluginBuild {
@@ -36,25 +36,25 @@ public class DefaultConfigurableIncludedPluginBuild implements ConfigurableInclu
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public String getName() {
         return name;
     }
 
     @Override
-    public void setName(@Nonnull String name) {
+    public void setName(@NonNull String name) {
         Preconditions.checkNotNull(name, "name must not be null");
         this.name = name;
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public File getProjectDir() {
         return projectDir;
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public TaskReference task(@Nullable String path) {
         throw new IllegalStateException("IncludedBuild.task() cannot be used while configuring the included build");
     }

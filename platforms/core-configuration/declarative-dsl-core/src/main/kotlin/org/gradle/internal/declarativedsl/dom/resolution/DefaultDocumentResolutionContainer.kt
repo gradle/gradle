@@ -47,6 +47,7 @@ import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolu
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.NamedReferenceResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.dom.ElementNotResolvedReason
+import org.gradle.internal.declarativedsl.dom.IllegalAugmentedAssignment
 import org.gradle.internal.declarativedsl.dom.NamedReferenceNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.NonEnumValueNamedReference
 import org.gradle.internal.declarativedsl.dom.NotAssignable
@@ -60,7 +61,7 @@ import org.gradle.internal.declarativedsl.dom.ValueFactoryNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.ValueTypeMismatch
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.LanguageTreeBackedDocument
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
-import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AssignmentLikeStatement
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 
@@ -179,13 +180,13 @@ class DocumentResolver(
         fun visitNode(node: DeclarativeDocument.DocumentNode) {
             when (node) {
                 is ElementNode -> {
-                    elementResolution[node] = elementResolution(document.languageTreeMappingContainer.data(node) as FunctionCall)
+                    elementResolution[node] = elementResolution(document.languageTreeMappingContainer.data(node))
                     node.elementValues.forEach(::visitValue)
                     node.content.forEach(::visitNode)
                 }
 
                 is PropertyNode -> {
-                    val resolution = propertyResolution(document.languageTreeMappingContainer.data(node) as Assignment)
+                    val resolution = propertyResolution(document.languageTreeMappingContainer.data(node))
                     propertyResolution[node] = resolution
                     visitValue(node.value)
                 }
@@ -204,10 +205,10 @@ class DocumentResolver(
         is ResolutionTrace.ResolutionOrErrors.Resolution -> run {
             val functionOrigin = callResolution.result as ObjectOrigin.FunctionOrigin
             val receiver = functionOrigin.receiver
+            val function = functionOrigin.function
             if (strictReceiverChecks && receiver is ObjectOrigin.ImplicitThisReceiver && !receiver.isCurrentScopeReceiver) {
                 return@run ElementResolution.ElementNotResolved(listOf(CrossScopeAccess))
             }
-            val function = functionOrigin.function
             when (val semantics = function.semantics) {
                 is FunctionSemantics.AccessAndConfigure -> {
                     val configuredType = typeRefContext.resolveRef(semantics.accessor.objectType) as DataClass
@@ -230,7 +231,7 @@ class DocumentResolver(
     }
 
     private
-    fun propertyResolution(statement: Assignment) = when (val assignment = trace.assignmentResolution(statement)) {
+    fun propertyResolution(statement: AssignmentLikeStatement) = when (val assignment = trace.assignmentResolution(statement)) {
         is ResolutionTrace.ResolutionOrErrors.Resolution -> {
             val receiver = assignment.result.lhs.receiverObject
             if (strictReceiverChecks && receiver is ObjectOrigin.ImplicitThisReceiver && !receiver.isCurrentScopeReceiver) {
@@ -250,8 +251,14 @@ class DocumentResolver(
         mapElementErrors(errors).map { it as ValueFactoryNotResolvedReason }
 
     private
-    fun mapNamedReferenceErrors(errors: Iterable<ResolutionError>) : List<NamedReferenceNotResolvedReason> =
-        mapElementErrors(errors).map { it as NamedReferenceNotResolvedReason}
+    fun mapNamedReferenceErrors(errors: Iterable<ResolutionError>) : List<NamedReferenceNotResolvedReason> = errors.map {
+        when (it.errorReason) {
+            is ErrorReason.NonReadableProperty -> NonEnumValueNamedReference
+            is ErrorReason.UnresolvedReference -> UnresolvedName
+
+            else -> unexpectedErrorInErrorMapping(it)
+        }
+    }
 
     private
     fun mapPropertyErrors(errors: Iterable<ResolutionError>): List<PropertyNotAssignedReason> = errors.map {
@@ -263,6 +270,7 @@ class DocumentResolver(
             is ErrorReason.AssignmentTypeMismatch -> ValueTypeMismatch
             is ErrorReason.ReadOnlyPropertyAssignment -> NotAssignable
             ErrorReason.UnresolvedAssignmentRhs -> UnresolvedValueUsed
+            is ErrorReason.AugmentingAssignmentNotResolved -> IllegalAugmentedAssignment
 
             ErrorReason.MissingConfigureLambda,
             ErrorReason.UnusedConfigureLambda,
@@ -277,7 +285,8 @@ class DocumentResolver(
             is ErrorReason.NonReadableProperty,
             is ErrorReason.OpaqueArgumentForIdentityParameter,
             ErrorReason.UnitAssignment, // TODO: should we still check for this?
-            ErrorReason.AccessOnCurrentReceiverOnlyViolation -> error("not expected here")
+            ErrorReason.AccessOnCurrentReceiverOnlyViolation -> unexpectedErrorInErrorMapping(it)
+
         }
     }.distinct()
 
@@ -309,7 +318,21 @@ class DocumentResolver(
             is ErrorReason.ValReassignment,
             ErrorReason.AccessOnCurrentReceiverOnlyViolation,
             is ErrorReason.NonReadableProperty,
-            is ErrorReason.AmbiguousImport -> error("not expected here")
+            is ErrorReason.AugmentingAssignmentNotResolved,
+            is ErrorReason.AmbiguousImport -> unexpectedErrorInErrorMapping(it)
+
         }
     }.distinct()
+
+    /**
+     * Throws an exception because the [error] is not expected in this case.
+     *
+     * Therefore, this is not a user-facing error but rather a violation of the DOM contract, which should be investigated.
+     */
+    private fun unexpectedErrorInErrorMapping(error: ResolutionError): Nothing {
+        error(
+            "Unexpected error ${error.errorReason} on ${error.element} at: " +
+                "${error.element.sourceData.sourceIdentifier.fileIdentifier}:${error.element.sourceData.lineRange.start}"
+        )
+    }
 }

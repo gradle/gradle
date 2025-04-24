@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @TargetGradleVersion('>=5.4')
 class ToolingApiEclipseModelAutoBuildTasksCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion('>=3.0 <5.4')
+    @TargetGradleVersion('>=4.0 <5.4')
     def "returns false for old versions"() {
         setup:
         EclipseProject eclipseProject = loadToolingModel(EclipseProject)

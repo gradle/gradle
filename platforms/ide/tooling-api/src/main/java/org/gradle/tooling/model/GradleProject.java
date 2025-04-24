@@ -17,8 +17,8 @@
 package org.gradle.tooling.model;
 
 import org.gradle.tooling.model.gradle.GradleScript;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**

@@ -17,8 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a property whose value can be set using multiple elements of type {@link T}, such as a collection property.

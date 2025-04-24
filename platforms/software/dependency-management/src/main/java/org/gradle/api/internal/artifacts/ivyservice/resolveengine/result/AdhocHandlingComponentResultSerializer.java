@@ -19,11 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A {@link ComponentResultSerializer} that determines whether to fully serialize a component
  * depending on if it is adhoc or not.
  */
+@ServiceScope(Scope.BuildTree.class)
 public class AdhocHandlingComponentResultSerializer implements ComponentResultSerializer {
 
     private final ThisBuildTreeOnlyComponentResultSerializer thisBuildTreeOnlyComponentResultSerializer;

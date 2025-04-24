@@ -16,20 +16,12 @@ errorprone {
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
         "IdentityHashMapUsage", // 2 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
-        "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
-        "InlineMeSuggester", // 2 occurrences
         "InvalidParam", // 1 occurrences
-        "MathAbsoluteNegative",
-        "MissingCasesInEnumSwitch", // 7 occurrences
-        "MixedMutabilityReturnType", // 5 occurrences
-        "ModifiedButNotUsed", // 1 occurrences
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
         "ReferenceEquality", // 10 occurrences
-        "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
@@ -44,6 +36,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -62,6 +55,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.security)
     api(projects.serialization)
     api(projects.serviceLookup)
@@ -75,6 +69,7 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.ivy)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.maven3Settings)
     api(libs.maven3SettingsBuilder)
@@ -87,6 +82,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.wrapperShared)
 
     implementation(libs.ant)
     implementation(libs.asm)

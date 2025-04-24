@@ -1,19 +1,19 @@
 
 > Task :dependencyInsight
-com.google.code.gson:gson:2.8.5 FAILED
+com.google.code.gson:gson:2.13.0 FAILED
    Failures:
-      - Could not resolve com.google.code.gson:gson:2.8.5.
+      - Could not resolve com.google.code.gson:gson:2.13.0.
           - Unable to find a variant with the requested capability: feature 'test-fixtures':
-               - Variant 'compile' provides 'com.google.code.gson:gson:2.8.5'
-               - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
-               - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
-               - Variant 'javadoc' provides 'com.google.code.gson:gson:2.8.5'
-               - Variant 'platform-compile' provides 'com.google.code.gson:gson-derived-platform:2.8.5'
-               - Variant 'platform-runtime' provides 'com.google.code.gson:gson-derived-platform:2.8.5'
-               - Variant 'runtime' provides 'com.google.code.gson:gson:2.8.5'
-               - Variant 'sources' provides 'com.google.code.gson:gson:2.8.5'
+               - Variant 'compile' provides 'com.google.code.gson:gson:2.13.0'
+               - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.13.0'
+               - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.13.0'
+               - Variant 'javadoc' provides 'com.google.code.gson:gson:2.13.0'
+               - Variant 'platform-compile' provides 'com.google.code.gson:gson-derived-platform:2.13.0'
+               - Variant 'platform-runtime' provides 'com.google.code.gson:gson-derived-platform:2.13.0'
+               - Variant 'runtime' provides 'com.google.code.gson:gson:2.13.0'
+               - Variant 'sources' provides 'com.google.code.gson:gson:2.13.0'
 
-com.google.code.gson:gson:2.8.5 FAILED
+com.google.code.gson:gson:2.13.0 FAILED
 \--- functionalTestClasspath
 
 A web-based, searchable dependency report is available by adding the --scan option.

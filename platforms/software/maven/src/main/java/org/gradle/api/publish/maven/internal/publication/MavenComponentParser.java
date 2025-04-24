@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -56,10 +57,9 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.validation.MavenPublicationErrorChecker;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -322,27 +322,19 @@ public class MavenComponentParser {
             }
 
             // If the dependency has artifacts, only map the coordinates to component-level precision.
-            // This is so we match the Gradle behavior where an explicit artifact on a dependency
+            // This is so we match the dependency-management behavior where an explicit artifact on a dependency
             // that would otherwise map to different coordinates resolves to the declared coordinates.
             ResolvedCoordinates coordinates = resolveDependency(dependency, false);
             for (DependencyArtifact artifact : dependency.getArtifacts()) {
-                ResolvedCoordinates artifactCoordinates = coordinates;
                 if (!artifact.getName().equals(dependency.getName())) {
-                    DeprecationLogger.deprecateBehaviour("Publishing a dependency with an artifact name different from the dependency's artifactId.")
-                        .withContext("This functionality is only supported by Ivy repositories.")
-                        .withAdvice(String.format("Declare a dependency with artifactId '%s' instead of '%s'.", artifact.getName(), dependency.getName()))
-                        .willBecomeAnErrorInGradle9()
-                        .withUpgradeGuideSection(8, "publishing_artifact_name_different_from_artifact_id_maven")
-                        .nagUser();
-
-                    artifactCoordinates = ResolvedCoordinates.create(
-                        coordinates.getGroup(),
-                        artifact.getName(),
-                        coordinates.getVersion()
+                    throw new InvalidUserCodeException(
+                        "Cannot publish a dependency with an artifact name different from the dependency's artifactId. " +
+                            "This functionality is only supported by Ivy repositories. " +
+                            String.format("Declare a dependency with artifactId '%s' instead of '%s'.", artifact.getName(), dependency.getName())
                     );
                 }
 
-                collector.accept(newDependency(artifactCoordinates, artifact.getType(), artifact.getClassifier(), scope, allExcludeRules, optional));
+                collector.accept(newDependency(coordinates, artifact.getType(), artifact.getClassifier(), scope, allExcludeRules, optional));
             }
         }
 

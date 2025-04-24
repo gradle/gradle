@@ -21,8 +21,8 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.OutputStream;
 
 /**

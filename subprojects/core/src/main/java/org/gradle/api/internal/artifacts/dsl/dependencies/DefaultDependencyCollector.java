@@ -34,8 +34,8 @@ import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;

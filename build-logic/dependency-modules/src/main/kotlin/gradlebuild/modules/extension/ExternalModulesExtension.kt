@@ -20,19 +20,18 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = if (isBundleGroovy4) "4.0.22" else "3.0.22"
+    val groovyVersion = if (isBundleGroovy4) "4.0.26" else "3.0.24"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 
-    val configurationCacheReportVersion = "1.24"
+    val configurationCacheReportVersion = "1.25"
     val gradleIdeStarterVersion = "0.5"
-    val kotlinVersion = "2.0.21"
+    val kotlinVersion = "2.1.21-RC"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
     val agp = "com.android.tools.build:gradle"
     val ansiControlSequenceUtil = "net.rubygrapefruit:ansi-control-sequence-util"
     val ant = "org.apache.ant:ant"
-    val antJunit = "org.apache.ant:ant-junit"
     val antLauncher = "org.apache.ant:ant-launcher"
     val asm = "org.ow2.asm:asm"
     val asmAnalysis = "org.ow2.asm:asm-analysis"
@@ -86,7 +85,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val guava = "com.google.guava:guava"
     val h2Database = "com.h2database:h2"
     val hamcrest = "org.hamcrest:hamcrest"
-    val hamcrestCore = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
     val ivy = "org.apache.ivy:ivy"
@@ -112,8 +110,10 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
+    val jspecify = "org.jspecify:jspecify"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
+    val junitJupiter = "org.junit.jupiter:junit-jupiter"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
@@ -262,7 +262,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         guice to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
-        hamcrestCore to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
         inject to License.Apache2,

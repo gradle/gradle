@@ -18,8 +18,8 @@ package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +28,11 @@ import java.util.Set;
  *
  * <p>
  * You can create a {@link MapProperty} instance using factory method {@link org.gradle.api.model.ObjectFactory#mapProperty(Class, Class)}.
+ * </p>
+ *
+ * <p>
+ * Instances of this interface are not thread-safe for reading and writing.
+ * It is not safe to share the same MapProperty instance between different projects.
  * </p>
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
@@ -50,7 +55,8 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * Returns a provider that resolves to the value of the mapping of the given key. It will have no value
      * if the property has no value, or if it does not contain a mapping for the key.
      *
-     * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
+     * <p>The returned provider tracks changes to this property and resolves its value dynamically when queried.
+     * It also inherits the task dependencies of all entries in the map, if any.
      *
      * <p>This method is equivalent to
      *
@@ -150,7 +156,8 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     /**
      * Returns a {@link Provider} that returns the set of keys for the map that is the property value.
      *
-     * <p>The returned provider will track the value of this property and query its value when it is queried.</p>
+     * <p>The returned provider tracks changes to this property and resolves its value dynamically when queried.
+     * It also inherits the task dependencies of all entries in the map, if any.
      *
      * <p>This method is equivalent to
      *

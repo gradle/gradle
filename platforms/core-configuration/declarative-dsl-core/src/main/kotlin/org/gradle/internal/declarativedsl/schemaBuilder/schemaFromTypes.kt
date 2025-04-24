@@ -21,7 +21,6 @@ import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.KVisibility
 
 
@@ -29,16 +28,17 @@ import kotlin.reflect.KVisibility
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
     types: Iterable<KClass<*>>,
-    externalFunctions: List<KFunction<*>> = emptyList(),
+    externalFunctionDiscovery: TopLevelFunctionDiscovery = CompositeTopLevelFunctionDiscovery(listOf()),
     externalObjects: Map<FqName, KClass<*>> = emptyMap(),
     defaultImports: List<FqName> = emptyList(),
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
     propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(isPublicAndRestricted),
     functionExtractor: FunctionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndRestricted),
+    augmentationsProvider: AugmentationsProvider = CompositeAugmentationsProvider(emptyList()),
     typeDiscovery: TypeDiscovery = TypeDiscovery.none
 ): AnalysisSchema =
-    DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor).schemaFromTypes(
-        topLevelReceiver, types, externalFunctions, externalObjects, defaultImports
+    DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor, augmentationsProvider).schemaFromTypes(
+        topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports,
     )
 
 

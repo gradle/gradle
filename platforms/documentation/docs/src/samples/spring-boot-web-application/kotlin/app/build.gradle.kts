@@ -1,13 +1,15 @@
 plugins {
-    id("org.springframework.boot") version("2.7.8")
-    java
+    id("org.springframework.boot") version("3.4.3")
+    id("java")
 }
 
 version = "1.0.2"
 group = "org.gradle.samples"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 repositories {
@@ -15,12 +17,12 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:2.7.8"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.4.3"))
 
     implementation("org.springframework.boot:spring-boot-starter")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(mapOf("group" to "org.junit.vintage", "module" to "junit-vintage-engine"))
-    }
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

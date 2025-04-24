@@ -37,6 +37,12 @@ interface DeclarativeDocument : DocumentNodeContainer {
         interface PropertyNode : DocumentNode {
             val name: String
             val value: ValueNode
+            val augmentation: PropertyAugmentation
+
+            sealed interface PropertyAugmentation {
+                data object None : PropertyAugmentation
+                data object Plus : PropertyAugmentation
+            }
         }
 
         interface ElementNode : DocumentNode, DocumentNodeContainer {
@@ -63,6 +69,7 @@ interface DeclarativeDocument : DocumentNodeContainer {
 
         interface ValueFactoryNode : ValueNode {
             val factoryName: String
+            val isInfix: Boolean
             val values: List<ValueNode> // TODO: restrict to a single value? or even a single literal?
         }
     }

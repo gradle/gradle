@@ -20,8 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.internal.Cast;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.

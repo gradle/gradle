@@ -27,9 +27,6 @@ description = "Operations on files, such as archiving, copying, deleting"
 
 errorprone {
     disabledChecks.addAll(
-        "ImmutableEnumChecker", // 2 occurrences
-        "InlineMeSuggester", // 1 occurrences
-        "InconsistentCapitalization", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
     )
 }
@@ -54,13 +51,16 @@ dependencies {
     api(projects.native)
     api(projects.persistentCache)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.serviceLookup)
 
     api(libs.commonsCompress)
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
+
+    implementation(projects.wrapperShared)
 
     implementation(libs.ant)
     implementation(libs.commonsIo)

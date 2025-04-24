@@ -30,8 +30,8 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FilterReader;
 import java.util.Map;
@@ -238,18 +238,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    @Deprecated
-    public Integer getFileMode() {
-        return getDelegateCopySpec().getFileMode();
-    }
-
-    @Override
-    @Deprecated
-    public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
-        return getDelegateCopySpec().setFileMode(mode);
-    }
-
-    @Override
     public Property<ConfigurableFilePermissions> getFilePermissions() {
         return getDelegateCopySpec().getFilePermissions();
     }
@@ -257,18 +245,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public CopyProcessingSpec filePermissions(Action<? super ConfigurableFilePermissions> configureAction) {
         return getDelegateCopySpec().filePermissions(configureAction);
-    }
-
-    @Override
-    @Deprecated
-    public Integer getDirMode() {
-        return getDelegateCopySpec().getDirMode();
-    }
-
-    @Override
-    @Deprecated
-    public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
-        return getDelegateCopySpec().setDirMode(mode);
     }
 
     @Override

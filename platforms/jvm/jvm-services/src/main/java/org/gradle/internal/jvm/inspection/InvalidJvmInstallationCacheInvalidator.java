@@ -18,18 +18,18 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 
 @ServiceScope(Scope.Build.class)
 public class InvalidJvmInstallationCacheInvalidator implements Closeable {
 
-    @Nonnull
+    @NonNull
     private final ConditionalInvalidation<JvmInstallationMetadata> cache;
 
-    public InvalidJvmInstallationCacheInvalidator(@Nonnull ConditionalInvalidation<JvmInstallationMetadata> cache) {
+    public InvalidJvmInstallationCacheInvalidator(@NonNull ConditionalInvalidation<JvmInstallationMetadata> cache) {
         this.cache = cache;
     }
 

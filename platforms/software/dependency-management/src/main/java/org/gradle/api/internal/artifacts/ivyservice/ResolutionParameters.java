@@ -28,10 +28,9 @@ import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTy
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Thread safe description of what and how to resolve. This type is almost entirely deeply immutable,
@@ -53,7 +52,7 @@ public class ResolutionParameters {
     private final LocalVariantGraphResolveState rootVariant;
     private final ImmutableList<ModuleVersionLock> moduleVersionLocks;
     private final ResolutionStrategy.SortOrder defaultSortOrder;
-    private final ConfigurationIdentity configurationIdentity;
+    private final @Nullable ConfigurationIdentity configurationIdentity;
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ImmutableModuleReplacements moduleReplacements;
     private final ConflictResolution moduleConflictResolutionStrategy;
@@ -285,9 +284,10 @@ public class ResolutionParameters {
 
         /**
          * Provide resolutions to add to a failure to assist the user on resolving the provided
-         * version conflicts.
+         * version conflict.
          */
-        List<String> forVersionConflict(Set<Conflict> conflicts);
+        List<String> forVersionConflict(Conflict conflict);
+
     }
 
     /**

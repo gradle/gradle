@@ -79,9 +79,9 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     test("MyTestInternal") {
-                        testDisplayName "My test!"
+                        displayName "My test!"
                         metadata("mykey", "my value")
                     }
                 }
@@ -135,9 +135,9 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     test("MyTestInternal") {
-                        testDisplayName "My test!"
+                        displayName "My test!"
                         metadata("mykey", "myvalue")
                     }
                 }
@@ -194,9 +194,9 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     test("MyTestInternal") {
-                        testDisplayName "My test!"
+                        displayName "My test!"
                         output("This is a test output on stdout")
                         output("More output on stdout")
                         metadata("mykey1", "apple")
@@ -264,14 +264,14 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     metadata("myroot", "my root value")
                     composite("My Group") {
                         metadata("mygroup", "my group value")
                         composite("My Inner Group") {
                             metadata("myinnergroup", "my inner group value")
                             test("MyTestInternal") {
-                                testDisplayName "My test!"
+                                displayName "My test!"
                                 metadata("mytest", "my test value")
                             }
                         }
@@ -326,9 +326,9 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     test("MyTestInternal") {
-                        testDisplayName "My test!"
+                        displayName "My test!"
                     }
                 }
             }

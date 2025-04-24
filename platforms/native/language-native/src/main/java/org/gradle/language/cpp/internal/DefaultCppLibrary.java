@@ -24,7 +24,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -71,8 +70,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
         Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        @SuppressWarnings("deprecation")
-        Configuration ae = configurations.migratingUnlocked(getNames().withSuffix("cppApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        Configuration ae = configurations.consumableLocked(getNames().withSuffix("cppApiElements"));
         apiElements = ae;
         apiElements.extendsFrom(dependencies.getApiDependencies());
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);

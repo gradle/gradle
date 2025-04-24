@@ -32,15 +32,16 @@ class DefaultToolchainSpecTest extends Specification {
     def "spec key implements equals"() {
         given:
         def spec11 = createSpec()
-        def spec12 = createSpec()
         def spec11Vendor1 = createSpec()
         def spec11Vendor2 = createSpec()
         def spec11Impl1 = createSpec()
         def spec11Impl2 = createSpec()
+        def spec12 = createSpec()
+        def spec21 = createSpec()
+        def spec21Native = createSpec()
 
         when:
         spec11.languageVersion.set(JavaLanguageVersion.of(11))
-        spec12.languageVersion.set(JavaLanguageVersion.of(12))
         spec11Vendor1.languageVersion.set(JavaLanguageVersion.of(11))
         spec11Vendor1.vendor.set(JvmVendorSpec.AMAZON)
         spec11Vendor2.languageVersion.set(JavaLanguageVersion.of(11))
@@ -52,6 +53,10 @@ class DefaultToolchainSpecTest extends Specification {
 
         spec12.languageVersion.set(JavaLanguageVersion.of(12))
 
+        spec21.languageVersion.set(JavaLanguageVersion.of(21))
+        spec21Native.languageVersion.set(JavaLanguageVersion.of(21))
+        spec21Native.nativeImageCapable.set(true)
+
         then:
         Matchers.strictlyEquals(spec11.toKey(), spec11.toKey())
         Matchers.strictlyEquals(spec11.toKey(), spec11Impl1.toKey())
@@ -61,5 +66,7 @@ class DefaultToolchainSpecTest extends Specification {
         Matchers.strictlyEquals(spec11Impl1.toKey(), spec11Impl1.toKey())
         !Matchers.strictlyEquals(spec11Impl1.toKey(), spec11Impl2.toKey())
         !Matchers.strictlyEquals(spec11Vendor1.toKey(), spec11Vendor2.toKey())
+        Matchers.strictlyEquals(spec21Native.toKey(), spec21Native.toKey())
+        !Matchers.strictlyEquals(spec21.toKey(), spec21Native.toKey())
     }
 }

@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.operations.problems.ProblemUsageProgressDetails
-import org.gradle.util.internal.TextUtil
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
+import static org.gradle.util.internal.TextUtil.escapeString
 
 class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
@@ -61,7 +61,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             details == null
             originLocations.empty
             contextualLocations.size() == 1
-            with(contextualLocations[0]) {
+            with(contextualLocations[0].fileLocation) {
                 path == this.buildFile.absolutePath
                 line == 13
                 column == null
@@ -102,10 +102,13 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             details == null
             originLocations.size() == 1
             with(originLocations[0]) {
-                path == this.buildFile.absolutePath
-                line == 13
-                column == null
-                length == null
+                with(fileLocation) {
+                    path == this.buildFile.absolutePath
+                    line == 13
+                    column == null
+                    length == null
+                }
+                stackTrace.find() { it.className == 'ProblemReportingTask' && it.methodName == 'run' }
             }
             contextualLocations.empty
             failure == null
@@ -126,18 +129,18 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)
             problems.getReporter().report(problemId) {
                 it.contextualLabel("contextual label")
-                it.documentedAt("https://example.org/doc")
-                it.fileLocation("${TextUtil.escapeString(location0)}")
-                it.lineInFileLocation("${TextUtil.escapeString(location1)}", 25)
-                it.lineInFileLocation("${TextUtil.escapeString(location2)}", 35, 4)
-                it.lineInFileLocation("${TextUtil.escapeString(location3)}", 45, 7, 10)
-                it.offsetInFileLocation("${TextUtil.escapeString(location4)}", 55, 20)
-                it.stackLocation()
-                it.details("problem details")
-                it.solution("solution 1")
-                it.solution("solution 2")
-                it.severity(Severity.ERROR)
-                it.withException(new IllegalArgumentException("problem exception"))
+                  .documentedAt("https://example.org/doc")
+                  .fileLocation("${escapeString(location0)}")
+                  .lineInFileLocation("${escapeString(location1)}", 25)
+                  .lineInFileLocation("${escapeString(location2)}", 35, 4)
+                  .lineInFileLocation("${escapeString(location3)}", 45, 7, 10)
+                  .offsetInFileLocation("${escapeString(location4)}", 55, 20)
+                  .stackLocation()
+                  .details("problem details")
+                  .solution("solution 1")
+                  .solution("solution 2")
+                  .severity(Severity.ERROR)
+                  .withException(new IllegalArgumentException("problem exception"))
             }
         """
 
@@ -218,8 +221,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             .multiProjectBuild("included", ['sub1', 'sub2']) {
                 file('sub1').file('build.gradle') << getProblemReportingScript("""
                     ${problemIdScript()}
-                    problems.getReporter().report(problemId) {
-                    }
+                    problems.getReporter().report(problemId) {}
                 """)
             }
 
@@ -246,10 +248,12 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             originLocations.empty
             contextualLocations.size() == 1
             with(contextualLocations[0]) {
-                path == this.file('included/sub1/build.gradle').absolutePath
-                line == 13
-                column == null
-                length == null
+                with(fileLocation) {
+                    path == this.file('included/sub1/build.gradle').absolutePath
+                    line == 13
+                    column == null
+                    length == null
+                }
             }
             failure == null
         }

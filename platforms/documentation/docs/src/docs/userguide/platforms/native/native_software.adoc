@@ -160,7 +160,7 @@ Gradle uses the single build worker pool to concurrently compile and link native
 
 By default, the worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM). To explicitly set the number of workers use the `--max-workers` command-line option or `org.gradle.workers.max` system property. There is generally no need to change this setting from its default.
 
-The build worker pool is shared across all build tasks. This means that when using <<performance.adoc#parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
+The build worker pool is shared across all build tasks. This means that when using <<performance.adoc#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
 
 [[sec:building_a_library]]
 == Building a library
@@ -594,9 +594,9 @@ As with other source types, you can configure the location of the windows resour
 === Example: Configuring the location of Windows resource sources
 
 [source.multi-language-sample,groovy,indent=0]
-.build-resource-only-dll.gradle
+.only-dll/build.gradle
 ----
-include::{snippetsPath}/native-binaries/windows-resources/groovy/build-resource-only-dll.gradle[tag=windows-resource-set]
+include::{snippetsPath}/native-binaries/windows-resources/groovy/only-dll/build.gradle[tag=windows-resource-set]
 ----
 
 You are able to construct a resource-only library by providing Windows Resource sources with no other language sources, and configure the linker as appropriate:
@@ -604,9 +604,9 @@ You are able to construct a resource-only library by providing Windows Resource 
 === Example: Building a resource-only dll
 
 [source.multi-language-sample,groovy]
-.build-resource-only-dll.gradle
+.only-dll/build.gradle
 ----
-include::{snippetsPath}/native-binaries/windows-resources/groovy/build-resource-only-dll.gradle[tag=resource-only-library]
+include::{snippetsPath}/native-binaries/windows-resources/groovy/bonly-dll/build.gradle[tag=resource-only-library]
 ----
 
 The example above also demonstrates the mechanism of passing extra command-line arguments to the resource compiler. The `rcCompiler` extension is of type link:{javadocPath}/org/gradle/nativeplatform/PreprocessingTool.html[PreprocessingTool].

@@ -9,11 +9,11 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.concurrent)
+    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.inject)
 }

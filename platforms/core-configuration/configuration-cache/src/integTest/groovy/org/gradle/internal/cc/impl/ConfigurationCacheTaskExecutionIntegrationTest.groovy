@@ -192,7 +192,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         buildKotlinFile '''
             tasks.register("report") {
                 extra["outputFile"] = file("$buildDir/output.txt")
-                outputs.files(extra["outputFile"])
+                outputs.files(extra["outputFile"] as File)
                 doLast {
                     val outputFile: File by extra
                     outputFile.writeText("")

@@ -35,7 +35,6 @@ public abstract class LazilyInitializedFileCollection extends CompositeFileColle
      * @deprecated Use the overload accepting the TaskDependencyFactory
      */
     @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public LazilyInitializedFileCollection() {
         this(DefaultTaskDependencyFactory.withNoAssociatedProject());
     }

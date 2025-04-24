@@ -27,6 +27,6 @@ public class IdeServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultIdeArtifactRegistry.class);
+        registration.add(IdeArtifactRegistry.class, DefaultIdeArtifactRegistry.class);
     }
 }

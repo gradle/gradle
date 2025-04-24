@@ -62,26 +62,11 @@ plugins {
 // compile tasks to permit some of these requirements.
 // TODO: Rename this. It controls more than just java compilation.
 val gradlebuildJava = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava").apply {
-    usesFutureStdlib.convention(targetVersion.map {
-        // Assume most of our projects targeting workers use Java standard libraries
-        // that were introduced in version later than the version they target.
-
-        // It is by chance that these future libraries are not loaded on test workers during runtime.
-        // TODO: In Gradle 9.0, tooling API and workers will target JVM 8 and we can set this value to false by default.
-        it < 8
-    })
-    usesIncompatibleDependencies.convention(targetVersion.map {
-        // Assume most of our projects targeting workers use dependencies like guava
-        // which require Java 8. (base-services for example uses guava).
-
-        // It is by chance that these incompatible dependencies are not loaded on test workers during runtime.
-        // TODO: In Gradle 9.0, tooling API and workers will target JVM 8 and we can set this value to false by default.
-        it < 8
-    })
-
-    // Assume by default, a library targets the daemon and does not reference JDK internal classes.
+    // By default, assume a library targets the daemon and does not use any workarounds
     usedInDaemon()
     usesJdkInternals.convention(false)
+    usesFutureStdlib.convention(false)
+    usesIncompatibleDependencies.convention(false)
 }
 
 enforceCompatibility(gradlebuildJava)
@@ -125,7 +110,7 @@ fun enforceCompatibility(gradlebuildJava: UnitTestAndCompileExtension) {
     // When using the release flag, compiled code cannot access JDK internal classes or standard library
     // APIs defined in future versions of Java. If either of these cases are true, we do not use the
     // release flag, but instead set the source and target compatibility flags.
-    val useRelease = this.gradlebuildJava.usesJdkInternals.zip(this.gradlebuildJava.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
+    val useRelease = gradlebuildJava.usesJdkInternals.zip(gradlebuildJava.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
 
     val targetVersion = gradlebuildJava.targetVersion
     enforceJavaCompatibility(targetVersion, useRelease)
@@ -133,11 +118,6 @@ fun enforceCompatibility(gradlebuildJava: UnitTestAndCompileExtension) {
     enforceKotlinCompatibility(targetVersion, useRelease)
 
     project.afterEvaluate {
-        if (targetVersion.get() < 8) {
-            // Apply ParameterNamesIndex since 6 and 7 bytecode doesn't support -parameters
-            project.apply(plugin = "gradlebuild.api-parameter-names-index")
-        }
-
         if (gradlebuildJava.usesIncompatibleDependencies.get()) {
             // Some projects use dependencies that target higher JVM versions
             // than the projects target. Disable dependency management checks
@@ -285,6 +265,7 @@ fun addDependencies() {
         testImplementation(libs.develocityTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
+        testRuntimeOnly(libs.junitPlatform)
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
         val platformImplementation by configurations.creating
@@ -355,7 +336,15 @@ fun Test.configureJvmForTest() {
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
         if (isUnitTest() || usesEmbeddedExecuter()) {
-            jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
+            // Temporary workaround for smoke tests until we have the new API (`forDaemonProcesses`) available normally.
+            val clazz = org.gradle.internal.jvm.JpmsConfiguration::class.java
+            val jpmsArgs = try {
+                val non24CompatibleArgs = clazz.getDeclaredField("GRADLE_DAEMON_JPMS_ARGS").get(null) as List<*>
+                non24CompatibleArgs + (if (jvmVersionForTest().canCompileOrRun(24)) listOf("--enable-native-access=ALL-UNNAMED") else emptyList<String>())
+            } catch (ignored: NoSuchFieldException) {
+                clazz.getMethod("forDaemonProcesses", Int::class.java, Boolean::class.java).invoke(null, jvmVersionForTest().asInt(), true)
+            }
+            jvmArgs(jpmsArgs as List<*>)
         } else {
             jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
             jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils
@@ -425,7 +414,6 @@ fun configureTests() {
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
             server = uri(testDistributionServerUrl.orElse("https://gbt-td.grdev.net"))
-            useAgentDemandOptimization = true // ideally this would be disabled locally, but dv#41283 blocks that
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
                 enabled = true

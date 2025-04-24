@@ -21,16 +21,13 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.tasks.AntGroovydoc;
+import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -40,8 +37,9 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.workers.WorkerExecutor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -68,8 +66,6 @@ public abstract class Groovydoc extends SourceTask {
     private FileCollection classpath;
 
     private File destinationDir;
-
-    private AntGroovydoc antGroovydoc;
 
     private boolean use;
 
@@ -101,6 +97,9 @@ public abstract class Groovydoc extends SourceTask {
         getLogging().captureStandardOutput(LogLevel.INFO);
     }
 
+    @Inject
+    protected abstract WorkerExecutor getWorkerExecutor();
+
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
@@ -110,13 +109,33 @@ public abstract class Groovydoc extends SourceTask {
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
-        getAntGroovydoc().execute(
-            getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
-            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(),
-            getAccess().get(), getLinks(), getGroovyClasspath(), getClasspath(),
-            getTemporaryDir(), getServices().get(FileSystemOperations.class),
-            getIncludeAuthor().get(), getProcessScripts().get(), getIncludeMainForScripts().get()
-        );
+        FileSystemOperations fsOperations = getServices().get(FileSystemOperations.class);
+
+        // Copy all sources into one place
+        File tmpDir = getTemporaryDir();
+        fsOperations.delete(spec -> spec.delete(tmpDir));
+        fsOperations.copy(spec -> spec.from(getSource()).into(tmpDir));
+
+        getWorkerExecutor().classLoaderIsolation().submit(GroovydocAntAction.class, parameters -> {
+            parameters.getAntLibraryClasspath().from(getClasspath());
+            parameters.getAntLibraryClasspath().from(getGroovyClasspath());
+            parameters.getSource().convention(getSource());
+            parameters.getDestinationDirectory().fileValue(destinationDir);
+            parameters.getUse().convention(isUse());
+            parameters.getNoTimestamp().convention(isNoTimestamp());
+            parameters.getNoVersionStamp().convention(isNoVersionStamp());
+            parameters.getWindowTitle().convention(getWindowTitle());
+            parameters.getDocTitle().convention(getDocTitle());
+            parameters.getHeader().convention(getHeader());
+            parameters.getFooter().convention(getFooter());
+            parameters.getOverview().convention(getPathToOverview());
+            parameters.getAccess().convention(getAccess());
+            parameters.getLinks().convention(getLinks());
+            parameters.getTmpDir().fileValue(getTemporaryDir());
+            parameters.getIncludeAuthor().convention(getIncludeAuthor());
+            parameters.getProcessScripts().convention(getProcessScripts());
+            parameters.getIncludeMainForScripts().convention(getIncludeMainForScripts());
+        });
     }
 
     @Nullable
@@ -196,21 +215,6 @@ public abstract class Groovydoc extends SourceTask {
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
-    }
-
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public AntGroovydoc getAntGroovydoc() {
-        if (antGroovydoc == null) {
-            IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
-            TemporaryFileProvider temporaryFileProvider = getServices().get(TemporaryFileProvider.class);
-            antGroovydoc = new AntGroovydoc(antBuilder, temporaryFileProvider);
-        }
-        return antGroovydoc;
-    }
-
-    public void setAntGroovydoc(AntGroovydoc antGroovydoc) {
-        this.antGroovydoc = antGroovydoc;
     }
 
     /**

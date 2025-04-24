@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+
 import org.gradle.api.problems.Severity
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
@@ -55,9 +56,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             originLocations.size() == 1
             originLocations[0].path == "build file 'build.gradle'"
             originLocations[0].line == 2
-            contextualLocations.size() == 1
-            contextualLocations[0].path == buildFile.absolutePath
-            contextualLocations[0].line == 2
+            contextualLocations.empty
             additionalData.asMap.trace == "build file 'build.gradle': line 2"
         }
 
@@ -72,9 +71,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             definition.documentationLink.url.endsWith("/userguide/configuration_cache.html#config_cache:requirements:build_listeners")
             originLocations[0].path == "build file 'build.gradle'"
             originLocations[0].line == 2
-            contextualLocations.size() == 1
-            contextualLocations[0].path == buildFile.absolutePath
-            contextualLocations[0].line == 2
+            contextualLocations.empty
             additionalData.asMap.trace == "build file 'build.gradle': line 2"
 
         }

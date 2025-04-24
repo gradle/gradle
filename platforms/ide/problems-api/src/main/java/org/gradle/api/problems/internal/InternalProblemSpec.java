@@ -24,8 +24,8 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
-
-import javax.annotation.Nullable;
+import org.gradle.problems.ProblemDiagnostics;
+import org.jspecify.annotations.Nullable;
 
 public interface InternalProblemSpec extends ProblemSpec {
 
@@ -45,8 +45,6 @@ public interface InternalProblemSpec extends ProblemSpec {
 
     @Override
     <T extends AdditionalData> InternalProblemSpec additionalData(Class<T> type, Action<? super T> config);
-
-    <T extends AdditionalData> InternalProblemSpec additionalDataInternal(T additionalDataInstance);
 
     /**
      * Declares that this problem was emitted by a task with the given path.
@@ -122,4 +120,11 @@ public interface InternalProblemSpec extends ProblemSpec {
 
     @Override
     InternalProblemSpec severity(Severity severity);
+
+    /**
+     * The diagnostics to determine the stacktrace and the location of the problem.
+     * <p>
+     * We pass this in when we already have a diagnostics object, for example for deprecation warnings.
+     */
+    InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics);
 }

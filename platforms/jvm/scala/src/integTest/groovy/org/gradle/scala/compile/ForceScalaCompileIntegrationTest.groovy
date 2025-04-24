@@ -17,6 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
 import spock.lang.Issue
@@ -42,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.12.18'
+    implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
 }
 
 tasks.withType(ScalaCompile).configureEach {
@@ -78,7 +79,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.12.18'
+    implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
 }
 
 tasks.withType(ScalaCompile).configureEach {

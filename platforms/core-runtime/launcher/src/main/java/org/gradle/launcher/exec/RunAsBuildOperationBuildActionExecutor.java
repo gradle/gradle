@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -29,11 +28,12 @@ import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroad
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
-@NonNullApi
+@NullMarked
 public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActionExecutor {
     private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {
     };

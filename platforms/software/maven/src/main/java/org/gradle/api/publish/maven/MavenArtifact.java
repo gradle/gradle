@@ -17,8 +17,7 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An artifact published as part of a {@link MavenPublication}.

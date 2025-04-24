@@ -18,10 +18,10 @@ public abstract class FailingTask extends DefaultTask {
         // tag::problems-api-fail-the-build[]
         ProblemId id = ProblemId.create("sample-error", "Sample Error", StandardPlugin.PROBLEM_GROUP);
         throw getProblems().getReporter().throwing((new RuntimeException("Message from runtime exception")), id, problemSpec -> {
-            problemSpec.contextualLabel("This happened because ProblemReporter.throwing() was called");
-            problemSpec.details("This is a demonstration of how to add\ndetailed information to a build failure");
-            problemSpec.documentedAt("https://example.com/docs");
-            problemSpec.solution("Remove the Problems.throwing() method call from the task action");
+            problemSpec.contextualLabel("This happened because ProblemReporter.throwing() was called")
+                .details("This is a demonstration of how to add\ndetailed information to a build failure")
+                .documentedAt("https://example.com/docs")
+                .solution("Remove the Problems.throwing() method call from the task action");
         });
         // end::problems-api-fail-the-build[]
     }

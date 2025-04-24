@@ -16,95 +16,258 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Assume
 import spock.lang.Issue
 
-import static org.gradle.api.JavaVersion.VERSION_1_8
+/**
+ * Tests running JavaExec tasks, ExecOperations.javaexec and ProviderFactory.javaexec
+ * with JVM versions different from the current Daemon JVM.
+ */
+class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
-class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
+    def "up-to-date when executing JavaExec task twice in a row with the same java version"() {
+        if (jdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            jdk = Jvm.current()
+        }
 
-    def setup() {
-        // Without this, executing the JavaExec tasks leave behind running daemons.
-        executer.requireDaemon().requireIsolatedDaemons()
-    }
-
-    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
-    def "up-to-date when executing twice in a row"() {
         given:
-        setupRunHelloWorldTask()
+        configureJavaExecTask()
 
         when:
-        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
+        runWith(jdk)
         succeeds "runHelloWorld"
+
         then:
         executedAndNotSkipped ":runHelloWorld"
+        assertExecutedWith(jdk)
 
         when:
-        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
+        runWith(jdk)
         succeeds "runHelloWorld"
+
         then:
         skipped ":runHelloWorld"
+
+        where:
+        jdk << AvailableJavaHomes.allJdkVersions
     }
 
+    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
     @Issue("https://github.com/gradle/gradle/issues/6694")
-    @Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
-    def "not up-to-date when the Java version changes"() {
+    def "not up-to-date when executing JavaExec task twice in a row with a different java versions"() {
         given:
-        setupRunHelloWorldTask()
+        configureJavaExecTask()
 
         when:
-        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
+        runWith(Jvm.current())
         succeeds "runHelloWorld"
+
         then:
         executedAndNotSkipped ":runHelloWorld"
+        assertExecutedWith(Jvm.current())
 
         when:
-        executer.withJvm(AvailableJavaHomes.getHighestSupportedLTS())
+        def otherJdk = AvailableJavaHomes.differentVersion
+        runWith(otherJdk)
         succeeds "runHelloWorld", "--info"
+
         then:
         executedAndNotSkipped ":runHelloWorld"
+        assertExecutedWith(otherJdk)
         output.contains "Value of input property 'javaVersion' has changed for task ':runHelloWorld'"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
-    @Requires(IntegTestPreconditions.MoreThanOneJava8HomeAvailable)
     def "up-to-date when the Java executable changes but the version does not"() {
+        // We must have at least two JDKs of the same version for this test
+        Assume.assumeTrue(jdks.size() > 1)
+        // it doesn't work if current JAVA_HOME has same major version, because current JVM is always used
+        Assume.assumeTrue(jdks[0].javaVersionMajor != Jvm.current().javaVersionMajor)
+
         given:
-        setupRunHelloWorldTask()
+        configureJavaExecTask()
 
         when:
-        executer.withJvm(AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[0])
+        runWith(jdks[0])
         succeeds "runHelloWorld"
+
         then:
         executedAndNotSkipped ":runHelloWorld"
+        assertExecutedWith(jdks[0])
 
         when:
-        executer.withJvm(AvailableJavaHomes.getAvailableJdks(VERSION_1_8)[1])
+        runWith(jdks[1])
         succeeds "runHelloWorld"
+
         then:
         skipped ":runHelloWorld"
+
+        where:
+        jdks << AvailableJavaHomes.getAvailableJdksByVersion().values()
     }
 
-    private void setupRunHelloWorldTask() {
-        buildFile '''
-            apply plugin: "java"
+    def "can execute ExecOperations.javaexec on java #jvm"() {
+        if (jvm.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            jvm = Jvm.current()
+        }
+        given:
+        configureExecOperationTask()
+
+        when:
+        runWith(jvm)
+        succeeds("runHelloWorld")
+
+        then:
+        assertExecutedWith(jvm)
+
+        where:
+        jvm << AvailableJavaHomes.allJdkVersions
+    }
+
+    def "can execute ProviderFactory.javaexec on java #jvm"() {
+        if (jvm.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            jvm = Jvm.current()
+        }
+        given:
+        configureProviderFactoryTask()
+
+        when:
+        runWith(jvm)
+        succeeds("runHelloWorld")
+
+        then:
+        assertExecutedWith(jvm)
+
+        where:
+        jvm << AvailableJavaHomes.allJdkVersions
+    }
+
+    private static String getBaseProject() {
+        """
+            plugins {
+                id("java-library")
+            }
+
+            def launcher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(providers.systemProperty("execJavaVersion").get())
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(providers.systemProperty("execJavaVersion").get())
+                }
+            }
+        """
+    }
+
+    private void configureJavaExecTask() {
+        buildFile << """
+            ${baseProject}
 
             task runHelloWorld(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = "Hello"
-                outputs.dir "$buildDir/runHelloWorld"
+                outputs.dir layout.buildDirectory.dir("foo") // Required for up-to-date checks
+                javaLauncher = launcher
             }
-        '''
+        """
 
-        file("src/main/java/Hello.java") << '''
+        withHelloJava()
+    }
+
+    private void configureExecOperationTask() {
+        buildFile << """
+            ${baseProject}
+
+            abstract class ExecOperationsTask extends DefaultTask {
+
+                @Inject
+                abstract ExecOperations getExecOperations()
+
+                @Input
+                abstract Property<JavaLauncher> getJavaLauncher()
+
+                @InputFiles
+                abstract ConfigurableFileCollection getClasspath()
+
+                @TaskAction
+                void exec() {
+                    execOperations.javaexec {
+                        classpath = this.getClasspath()
+                        mainClass = "Hello"
+                        executable = this.getJavaLauncher().get().getExecutablePath().asFile
+                    }
+                }
+
+            }
+
+            tasks.register("runHelloWorld", ExecOperationsTask) {
+                classpath = sourceSets.main.runtimeClasspath
+                javaLauncher = launcher
+            }
+
+        """
+
+        withHelloJava()
+    }
+
+    private void configureProviderFactoryTask() {
+        buildFile << """
+            ${baseProject}
+
+            abstract class PrintingTask extends DefaultTask {
+
+                @Input
+                abstract Property<String> getText()
+
+                @TaskAction
+                void exec() {
+                    System.out.println(getText().get())
+                }
+
+            }
+
+            tasks.register("runHelloWorld", PrintingTask) {
+                dependsOn(sourceSets.main.runtimeClasspath) // Ideally this would not be necessary.
+
+                text = providers.javaexec {
+                    classpath = sourceSets.main.runtimeClasspath
+                    mainClass = "Hello"
+                    executable = launcher.get().getExecutablePath().asFile
+                }.standardOutput.asText
+            }
+
+        """
+
+        withHelloJava()
+    }
+
+    private void withHelloJava() {
+        file("src/main/java/Hello.java") << """
             public class Hello {
-                public static void main(String... args) {
-                    // Generate files into "$buildDir/runHelloWorld"
+                public static void main(String[] args) {
+                    System.out.println("Version: " + System.getProperty("java.specification.version"));
+                    System.out.println("Java home: " + System.getProperty("java.home"));
                 }
             }
-        '''
+        """
     }
+
+    void runWith(Jvm jvm) {
+        withInstallations(jvm)
+        executer.withArgument("-DexecJavaVersion=${jvm.javaVersionMajor}")
+    }
+
+    void assertExecutedWith(Jvm jvm) {
+        outputContains("Version: " + JavaVersion.toVersion(jvm.javaVersionMajor))
+        outputContains("Java home: " + jvm.javaHome.absolutePath)
+    }
+
 }

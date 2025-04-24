@@ -15,12 +15,13 @@
  */
 package org.gradle.internal.resolve
 
+import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.internal.Describables
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionResolveExceptionTest extends Specification {
@@ -37,9 +38,9 @@ class ModuleVersionResolveExceptionTest extends Specification {
     }
 
     def "can add incoming paths to exception"() {
-        def a = newId(mid("org", "a"), "1.2")
-        def b = newId(mid("org", "b"), "5")
-        def c = newId(mid("org", "c"), "1.0")
+        Describable a = Describables.of("org:a:1.2")
+        Describable b = Describables.of("org:b:5")
+        Describable c = Describables.of("org:c:1.0")
 
         def cause = new RuntimeException()
         def exception = new ModuleVersionResolveException(newSelector(mid("a", "b"), "c"), cause)

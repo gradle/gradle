@@ -16,9 +16,8 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
@@ -28,7 +27,7 @@ import javax.annotation.Nullable;
  * @since 8.3
  */
 @Incubating
-@NonNullApi
+@NullMarked
 public interface InternalFileComparisonTestAssertionFailure extends InternalTestAssertionFailure {
 
     /**
@@ -36,14 +35,12 @@ public interface InternalFileComparisonTestAssertionFailure extends InternalTest
      *
      * @return the expected file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures
      */
-    @Nullable
-    byte[] getExpectedContent();
+    byte @Nullable [] getExpectedContent();
 
     /**
      * Returns the actual file contents.
      *
      * @return the actual file contents or {@code null} if the test framework doesn't supply detailed information on assertion failures
      */
-    @Nullable
-    byte[] getActualContent();
+    byte @Nullable [] getActualContent();
 }

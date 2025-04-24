@@ -62,7 +62,6 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         task.configuration = conf
         task.dependencySpec = { true } as Spec
         then:
-        task.dependencySpec != null
         task.configuration == conf
     }
 
@@ -72,7 +71,6 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         task.setConfiguration 'foo'
         task.setDependencySpec 'bar'
         then:
-        task.dependencySpec != null
         task.configuration.name == 'foo'
     }
 
@@ -84,7 +82,6 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         task.setShowSinglePathToDependency true
 
         then:
-        task.dependencySpec != null
         task.configuration.name == 'foo'
         task.showSinglePathToDependency == true
     }

@@ -28,13 +28,15 @@ import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Timeout
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
+
+    def setup() {
+        executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
+    }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "reasonable failure message when --max-workers=#value"() {
-        given:
-        executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
-
         when:
         executer.withArgument("--max-workers=$value")
 
@@ -49,9 +51,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "reasonable failure message when org.gradle.workers.max=#value"() {
-        given:
-        executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
-
         when:
         executer.withArgument("-Dorg.gradle.workers.max=$value")
 
@@ -69,7 +68,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     def "can debug with org.gradle.debug=true"() {
         given:
         Assume.assumeTrue(debugPortIsFree())
-        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil(5005)
 
         when:
@@ -88,7 +86,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
-        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil()
 
         when:
@@ -110,8 +107,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can debug via host"() {
         given:
-        executer.requireDaemon().requireIsolatedDaemons()
-
         JDWPUtil jdwpClient = new JDWPUtil()
 
         def jdwpHost = nonLoopbackAddress()
@@ -148,8 +143,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "can debug on explicitly any host"() {
         given:
-        executer.requireDaemon().requireIsolatedDaemons()
-
         JDWPUtil jdwpClient = new JDWPUtil()
 
         def address = nonLoopbackAddress()
@@ -183,9 +176,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Issue('https://github.com/gradle/gradle/issues/18084')
     @Timeout(30)
     def "reasonable failure message when org.gradle.debug.port=#value"() {
-        given:
-        executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
-
         when:
         args("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.port=$value")
 
@@ -205,7 +195,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Timeout(30)
     def "can debug with org.gradle.debug.server=false"() {
         given:
-        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil()
         jdwpClient.listen(false)
 
@@ -229,7 +218,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Timeout(30)
     def "can debug with org.gradle.debug.suspend=false"() {
         given:
-        executer.requireDaemon().requireIsolatedDaemons()
         JDWPUtil jdwpClient = new JDWPUtil()
         jdwpClient.listen(false)
 
@@ -250,7 +238,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         jdwpClient.close()
     }
 
-    static boolean debugPortIsFree() {
+    private static boolean debugPortIsFree() {
         boolean free = true
         ConcurrentTestUtil.poll(30) {
             Socket probe

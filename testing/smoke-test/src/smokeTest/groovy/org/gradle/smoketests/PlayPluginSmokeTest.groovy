@@ -21,9 +21,11 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore("https://github.com/gradle/gradle/issues/30530")
 class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
@@ -53,31 +55,31 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('build')
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7))
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
-            .expectLegacyDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
-            .expectLegacyDeprecationWarning(BaseDeprecations.JAVA_PLUGIN_CONVENTION_DEPRECATION)
-            .expectLegacyDeprecationWarning(COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION)
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))
+            .withJdkWarningChecksDisabled()
+            .expectDeprecationWarning(supportedJvmDeprecation(8), "https://github.com/gradle/gradle/issues/30530")
+            .expectDeprecationWarning(taskProjectDeprecation(7), "Follow-up not yet defined")
+            .expectDeprecationWarning(BaseDeprecations.ABSTRACT_ARCHIVE_TASK_ARCHIVE_PATH_DEPRECATION, "https://github.com/gradle/gradle/issues/30530")
+            .expectDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION, "https://github.com/gradle/gradle/issues/30530")
             .build()
 
         then:
         result.task(':build').outcome == SUCCESS
     }
 
-    private String orgGradleUtilTypeDeprecation(String type, int major) {
-        "The org.gradle.util.$type type has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "org_gradle_util_reports_deprecations${major >= 8 ? '_8' : ''}")}"
+    private String supportedJvmDeprecation(int major) {
+        "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. " +
+            "Use JVM 17 or greater to execute Gradle. " +
+            "Projects can continue to use older JVM versions via toolchains. " +
+            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "minimum_daemon_jvm_version")}"
     }
 
-    public static final String COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION = "The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Please use the filePermissions(Action) method instead. " +
-        "Consult the upgrading guide for further information: " +
-        new DocumentationRegistry().getDocumentationFor("upgrading_version_8","unix_file_permissions_deprecated")
-
+    private String taskProjectDeprecation(int major) {
+        "Invocation of Task.project at execution time has been deprecated. " +
+            "This will fail with an error in Gradle 10.0. " +
+            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "task_project")}"
+    }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {

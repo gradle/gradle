@@ -17,10 +17,10 @@ package org.gradle.internal.file.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.Deleter;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

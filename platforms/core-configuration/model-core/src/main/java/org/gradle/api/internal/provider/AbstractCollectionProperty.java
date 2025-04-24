@@ -28,9 +28,9 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -205,12 +205,20 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     private void addExplicitCollector(Collector<T> collector) {
         assertCanMutate();
-        CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
-        setSupplier(explicitValue.plus(collector));
+        setSupplier(withAppendedValue(collector));
+    }
+
+    private CollectionSupplier<T, C> withAppendedValue(Collector<T> value) {
+        CollectionSupplier<T, C> currentValue = getExplicitValue(defaultValue);
+        try {
+            return currentValue.plus(value);
+        } catch (IllegalStateException e) {
+            throw failWithCorruptedStateException(e);
+        }
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public Class<C> getType() {
         return Cast.uncheckedNonnullCast(collectionType);
     }
@@ -592,7 +600,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transformation) {
+    public void replace(Transformer<? extends @Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transformation) {
         Provider<? extends Iterable<? extends T>> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             set(newValue);

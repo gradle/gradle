@@ -24,5 +24,5 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(libs.asm)
-    api(libs.jsr305)
+    api(libs.jspecify)
 }

@@ -138,6 +138,7 @@ public class ExecutionNodeAccessHierarchy {
             }
         }
 
+        @SuppressWarnings("UnusedVariable")
         boolean acceptChildren(Supplier<String> relativePathSupplier) {
             return true;
         }

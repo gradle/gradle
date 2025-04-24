@@ -16,14 +16,20 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.jetbrains.kotlin.config.JvmTarget
 
-class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
+final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
     def 'can configure an extension using DependencyCollector in declarative DSL'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtension()
@@ -427,6 +433,101 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         succeeds(":producer:build")
     }
 
+    def "can configure a platform using DependencyCollector in declarative DSL from a platform project"() {
+        given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTask()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+
+        and: "a project that defines a platform"
+        file("platform/build.gradle") << """
+            plugins {
+                id 'java-platform'
+            }
+
+            dependencies {
+                constraints {
+                    api("org.apache.commons:commons-lang3:3.8.1")
+                }
+            }
+        """
+
+        and: "a lib project that uses the platform"
+        file("lib/build.gradle.dcl") << """
+            library {
+                dependencies {
+                    implementation(platform(project(":platform")))
+                    implementation("org.apache.commons:commons-lang3")
+                }
+            }
+        """
+
+        and: "a root project including both of these projects"
+        file("settings.gradle") << defineSettings() + 'include("lib", "platform")'
+
+        expect:
+        succeeds(":lib:resolve")
+        outputContains("commons-lang3-3.8.1.jar")
+    }
+
+    def "can configure a platform using DependencyCollector in declarative DSL by converting a BOM"() {
+        given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTask()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+
+        and: "a lib project that uses a BOM as a platform"
+        file("lib/build.gradle.dcl") << """
+            library {
+                dependencies {
+                    implementation(platform("io.micronaut:micronaut-bom:3.10.4"))
+                    implementation("io.micronaut:micronaut-core")
+                }
+            }
+        """
+
+        file("settings.gradle") << defineSettings() + 'include("lib")'
+
+        expect:
+        succeeds(":lib:resolve")
+        outputContains("micronaut-core-3.10.4.jar")
+    }
+
+    def "calling the platform method with an invalid type (#invalidType) produces a sensible error message"() {
+        given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTask()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+
+        and: "a lib project that misuses platform()"
+        file("lib/build.gradle.dcl") << """
+            library {
+                dependencies {
+                    implementation(platform($invalidType))
+                }
+            }
+        """
+
+        file("settings.gradle") << defineSettings() + 'include("lib")'
+
+        expect:
+        fails(":lib:resolve")
+        errorOutput.contains("Failed to interpret the declarative DSL file '${file("lib/build.gradle.dcl").path}':")
+        errorOutput.contains("unresolved function call signature for 'platform'")
+
+        where:
+        invalidType << ["layout", "1", "true", "null"]
+    }
+
     private String defineDependenciesExtension(boolean extendDependencies = true) {
         return """
             package com.example.restricted;
@@ -437,6 +538,23 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
             @Restricted
             public interface DependenciesExtension ${(extendDependencies) ? "extends Dependencies" : "" } {
+                DependencyCollector getApi();
+                DependencyCollector getImplementation();
+            }
+        """
+    }
+
+    private String defineDependenciesExtensionWithPlatformModifiers() {
+        return """
+            package com.example.restricted;
+
+            import org.gradle.api.artifacts.dsl.DependencyCollector;
+            import org.gradle.api.artifacts.dsl.Dependencies;
+            import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            @Restricted
+            public interface DependenciesExtension extends Dependencies, PlatformDependencyModifiers {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
             }
@@ -475,23 +593,47 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
         """
     }
 
+    private String defineResolveTask() {
+        return """
+            package com.example.restricted;
+
+            import ${DefaultTask.name};
+            import ${ConfigurableFileCollection.name};
+            import ${InputFiles.name};
+            import ${PathSensitive.name};
+            import ${PathSensitivity.name};
+            import ${TaskAction.name};
+
+            public abstract class ResolveTask extends DefaultTask {
+                @InputFiles
+                @PathSensitive(PathSensitivity.NONE)
+                public abstract ConfigurableFileCollection getResolvedFiles();
+
+                @TaskAction
+                public void action() {
+                    getResolvedFiles().getFiles().forEach(file -> System.out.println(file.getName()));
+                }
+            }
+        """
+    }
+
     private String defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin() {
         return """
-        package com.example.restricted;
+            package com.example.restricted;
 
-        import org.gradle.api.DefaultTask;
-        import org.gradle.api.Plugin;
-        import org.gradle.api.initialization.Settings;
-        import org.gradle.api.internal.SettingsInternal;
-        import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-        import ${RegistersSoftwareTypes.class.name};
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+            import org.gradle.api.internal.SettingsInternal;
+            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+            import ${RegistersSoftwareTypes.class.name};
 
-        @RegistersSoftwareTypes({ RestrictedPlugin.class })
-        abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
-            @Override
-            public void apply(Settings target) {
+            @RegistersSoftwareTypes({ RestrictedPlugin.class })
+            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
+                @Override
+                public void apply(Settings target) {
+                }
             }
-        }
         """
     }
 
@@ -514,6 +656,40 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
                 @Configuring
                 fun dependencies(configure: Action<DependenciesExtension>) {
                     configure.execute(dependencies)
+                }
+            }
+        """
+    }
+
+    private String defineRestrictedPluginWithResolveTask() {
+        return """
+            package com.example.restricted;
+
+            import org.gradle.api.NamedDomainObjectProvider;
+            import org.gradle.api.logging.Logger;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.DependencyScopeConfiguration;
+            import org.gradle.api.artifacts.ResolvableConfiguration;
+            import ${SoftwareType.class.name};
+
+            public abstract class RestrictedPlugin implements Plugin<Project> {
+                @SoftwareType(name = "library", modelPublicType = LibraryExtension.class)
+                public abstract LibraryExtension getLibrary();
+
+                @Override
+                public void apply(Project project) {
+                    // no plugin application, must create configurations manually
+                    DependencyScopeConfiguration implementation = project.getConfigurations().dependencyScope("implementation").get();
+                    // create and wire the custom dependencies extension's dependencies to these global configurations
+                    implementation.fromDependencyCollector(getLibrary().getDependencies().getImplementation());
+                    // and create and wire a configuration that can resolve that one
+                    NamedDomainObjectProvider<ResolvableConfiguration> resolveMe = project.getConfigurations().resolvable("resolveMe");
+                    resolveMe.get().extendsFrom(implementation);
+
+                    project.getTasks().register("resolve", ResolveTask.class, task -> {
+                        task.getResolvedFiles().from(resolveMe);
+                    });
                 }
             }
         """

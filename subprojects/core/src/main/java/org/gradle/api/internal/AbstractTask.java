@@ -72,6 +72,7 @@ import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
@@ -85,8 +86,8 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -560,7 +561,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private LoggingManagerInternal loggingManager() {
         if (loggingManager == null) {
-            loggingManager = services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create();
+            loggingManager = services.get(LoggingManagerFactory.class).createLoggingManager();
         }
         return loggingManager;
     }
@@ -742,10 +743,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static class ClosureTaskAction implements InputChangesAwareTaskAction {
         private final Closure<?> closure;
         private final String actionName;
-        @Nullable
-        private final UserCodeApplicationContext.Application application;
+        private final UserCodeApplicationContext.@Nullable Application application;
 
-        private ClosureTaskAction(Closure<?> closure, String actionName, @Nullable UserCodeApplicationContext.Application application) {
+        private ClosureTaskAction(Closure<?> closure, String actionName, UserCodeApplicationContext.@Nullable Application application) {
             this.closure = closure;
             this.actionName = actionName;
             this.application = application;

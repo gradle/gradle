@@ -23,7 +23,7 @@ import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult

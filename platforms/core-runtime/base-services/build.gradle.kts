@@ -5,7 +5,10 @@ plugins {
 
 description = "A set of generic services and utilities."
 
-gradlebuildJava.usedInWorkers()
+gradlebuildJava {
+    usedInWorkers()
+    usesFutureStdlib = true
+}
 
 /**
  * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
@@ -30,22 +33,25 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
 moduleIdentity.createBuildReceipt()
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
-    api(projects.fileTemp)
-    api(projects.serviceLookup)
-    api(projects.hashing)
     api(projects.buildOperations)
+    api(projects.classloaders)
+    api(projects.concurrent)
+    api(projects.fileTemp)
+    api(projects.hashing)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
+
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
 
-    implementation(projects.io)
     implementation(projects.time)
     implementation(projects.baseAsm)
+    implementation(projects.buildProcessStartup)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     integTestImplementation(projects.logging)

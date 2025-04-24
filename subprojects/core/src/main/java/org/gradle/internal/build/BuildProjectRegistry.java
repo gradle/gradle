@@ -19,8 +19,8 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Factory;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Consumer;
 

@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain;
 
 import com.google.common.base.MoreObjects;
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -74,6 +75,14 @@ public interface JavaToolchainSpec extends Describable {
      */
     Property<JvmImplementation> getImplementation();
 
+    /**
+     * Indicates if the toolchain should be native-image capable.
+     *
+     * @since 8.14
+     */
+    @Incubating
+    Property<Boolean> getNativeImageCapable();
+
     @Override
     default String getDisplayName() {
         final MoreObjects.ToStringHelper builder = MoreObjects.toStringHelper("");
@@ -81,6 +90,7 @@ public interface JavaToolchainSpec extends Describable {
         builder.add("languageVersion", getLanguageVersion().map(JavaLanguageVersion::toString).getOrElse("unspecified"));
         builder.add("vendor", getVendor().map(JvmVendorSpec::toString).getOrNull());
         builder.add("implementation", getImplementation().map(JvmImplementation::toString).getOrNull());
+        builder.add("nativeImageCapable", getNativeImageCapable().getOrElse(false));
         return builder.toString();
     }
 

@@ -486,7 +486,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
-    def "custom Test tasks eagerly realized prior to Java and Test Suite plugin application do not fail to be configured when combined with test suites"() {
+    def "by convention custom Test tasks have no classpath or test classes"() {
         buildFile << """
             tasks.withType(Test) {
                 // realize all test tasks
@@ -505,6 +505,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        // Define some test classes in the convention test directory
+        // Previously, Gradle would have used these for all Test tasks by default
         file('src/test/java/example/UnitTest.java') << '''
             package example;
 
@@ -520,13 +522,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
-        executer.expectDocumentedDeprecationWarning("Relying on the convention for Test.testClassesDirs in custom Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
-        executer.expectDocumentedDeprecationWarning("Relying on the convention for Test.classpath in custom Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
         succeeds("mytest")
 
         then:
-        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/mytest')
-        unitTestResults.assertTestClassesExecuted('example.UnitTest')
+        // No sources, so mytest is skipped
+        result.assertTaskSkipped(":mytest")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
@@ -1028,7 +1028,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             // alphabetical ordering seems to interfere here, if we used `s` instead of `t`, the check passes just fine
             def testImplHolder = configurations.create("uasdf")
             def testCopy = configurations.testImplementation.copy()
-            configurations.add(testCopy)
             testImplHolder.extendsFrom(testCopy)
 
             task assertCopyCanBeResolved {

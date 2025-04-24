@@ -72,7 +72,16 @@ class PerformanceTestBuildTypeTest {
             ),
             performanceTest.steps.items.map(BuildStep::name),
         )
-
+        val linuxPaths =
+            listOf(
+                "%linux.java7.oracle.64bit%",
+                "%linux.java8.oracle.64bit%",
+                "%linux.java11.openjdk.64bit%",
+                "%linux.java17.openjdk.64bit%",
+                "%linux.java21.openjdk.64bit%",
+                "%linux.java24.openjdk.64bit%",
+            )
+        val expectedInstallationPaths = linuxPaths.joinToString(",")
         val expectedRunnerParams =
             listOf(
                 "-PperformanceBaselines=%performance.baselines%",
@@ -81,7 +90,7 @@ class PerformanceTestBuildTypeTest {
                 "-PautoDownloadAndroidStudio=true",
                 "-PrunAndroidStudioInHeadlessMode=true",
                 "-Porg.gradle.java.installations.auto-download=false",
-                "\"-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%,%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java23.openjdk.64bit%\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
                 "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
                 "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
@@ -90,9 +99,7 @@ class PerformanceTestBuildTypeTest {
                 "-PmaxParallelForks=%maxParallelForks%",
                 PLUGINS_PORTAL_URL_OVERRIDE,
                 "-s",
-                "--no-configuration-cache",
                 "%additional.gradle.parameters%",
-                "--daemon",
                 "--continue",
                 "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
                 "-Dscan.tag.PerformanceTest",
@@ -140,7 +147,15 @@ class PerformanceTestBuildTypeTest {
             ),
             performanceTest.steps.items.map(BuildStep::name),
         )
-
+        val windowsPaths =
+            listOf(
+                "%windows.java8.openjdk.64bit%",
+                "%windows.java11.openjdk.64bit%",
+                "%windows.java17.openjdk.64bit%",
+                "%windows.java21.openjdk.64bit%",
+                "%windows.java24.openjdk.64bit%",
+            )
+        val expectedInstallationPaths = windowsPaths.joinToString(",")
         val expectedRunnerParams =
             listOf(
                 "-PperformanceBaselines=%performance.baselines%",
@@ -149,7 +164,7 @@ class PerformanceTestBuildTypeTest {
                 "-PautoDownloadAndroidStudio=true",
                 "-PrunAndroidStudioInHeadlessMode=true",
                 "-Porg.gradle.java.installations.auto-download=false",
-                "\"-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java23.openjdk.64bit%\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "-Porg.gradle.performance.branchName=\"%teamcity.build.branch%\"",
                 "-Porg.gradle.performance.db.url=\"%performance.db.url%\"",
                 "-Porg.gradle.performance.db.username=\"%performance.db.username%\"",
@@ -158,9 +173,7 @@ class PerformanceTestBuildTypeTest {
                 "-PmaxParallelForks=%maxParallelForks%",
                 PLUGINS_PORTAL_URL_OVERRIDE,
                 "-s",
-                "--no-configuration-cache",
                 "%additional.gradle.parameters%",
-                "--daemon",
                 "--continue",
                 "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
                 "-Dscan.tag.PerformanceTest",

@@ -205,8 +205,7 @@ class NamedDomainObjectContainerExtensionsTest {
             }
             val b = "bob"(type = DomainObjectBase.Bar::class)
             val j = "jim" {}
-            @Suppress("deprecation")
-            val s = "steve"() // can invoke without a block, but must invoke
+            val s = named("steve")
 
             assertThat(a.get(), sameInstance(alice))
             assertThat(b.get(), sameInstance(bob))

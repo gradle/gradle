@@ -46,16 +46,15 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FilterReader;
@@ -72,7 +71,7 @@ import java.util.regex.Pattern;
 @NonExtensible
 public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
-    protected final Factory<PatternSet> patternSetFactory;
+    protected final PatternSetFactory patternSetFactory;
     protected final FileCollectionFactory fileCollectionFactory;
     protected final Instantiator instantiator;
     private final PropertyFactory propertyFactory;
@@ -93,11 +92,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
-        this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSetFactory.create());
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory) {
+        this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSetFactory.createPatternSet());
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, PatternSet patternSet) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, PatternSet patternSet) {
         this.sourcePaths = fileCollectionFactory.configurableFiles();
         this.fileCollectionFactory = fileCollectionFactory;
         this.propertyFactory = propertyFactory;
@@ -108,7 +107,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.dirPermissions = propertyFactory.property(ConfigurableFilePermissions.class);
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, PatternSetFactory patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
         this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);
         destDir = destPath;
@@ -476,57 +475,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    @Deprecated
-    public Integer getDirMode() {
-        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getDirMode()")
-            .replaceWith("getDirPermissions()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-            .nagUser();
-        return getMode(buildRootResolver().getDirPermissions());
-    }
-
-    @Override
-    @Deprecated
-    public Integer getFileMode() {
-        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getFileMode()")
-            .replaceWith("getFilePermissions()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-            .nagUser();
-        return getMode(buildRootResolver().getFilePermissions());
-    }
-
-    @Nullable
-    private Integer getMode(Provider<ConfigurableFilePermissions> permissions) {
-        return permissions.map(FilePermissions::toUnixNumeric).getOrNull();
-    }
-
-    @Override
-    @Deprecated
-    public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
-        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setDirMode(Integer)")
-            .replaceWith("dirPermissions(Action)")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-            .nagUser();
-        dirPermissions.set(mode == null ? null : instantiator.newInstance(DefaultConfigurableFilePermissions.class, mode));
-        return this;
-    }
-
-    @Override
-    @Deprecated
-    public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
-        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setFileMode(Integer)")
-            .replaceWith("filePermissions(Action)")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-            .nagUser();
-        filePermissions.set(mode == null ? null : instantiator.newInstance(DefaultConfigurableFilePermissions.class, mode));
-        return this;
-    }
-
-    @Override
     public Property<ConfigurableFilePermissions> getFilePermissions() {
         return filePermissions;
     }
@@ -797,33 +745,6 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        @Deprecated
-        public Integer getFileMode() {
-            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getFileMode()")
-                .replaceWith("getImmutableFilePermissions()")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-                .nagUser();
-            return getMode(getImmutableFilePermissions());
-        }
-
-        @Override
-        @Deprecated
-        public Integer getDirMode() {
-            DeprecationLogger.deprecateMethod(CopySpecResolver.class, "getDirMode()")
-                .replaceWith("getImmutableDirPermissions()")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-                .nagUser();
-            return getMode(getImmutableDirPermissions());
-        }
-
-        @Nullable
-        private Integer getMode(Provider<FilePermissions> permissions) {
-            return permissions.map(FilePermissions::toUnixNumeric).getOrNull();
-        }
-
-        @Override
         public Provider<ConfigurableFilePermissions> getFilePermissions() {
             return filePermissions;
         }
@@ -873,8 +794,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         public PatternSet getPatternSet() {
-            PatternSet patterns = patternSetFactory.create();
-            assert patterns != null;
+            PatternSet patterns = patternSetFactory.createPatternSet();
             patterns.setCaseSensitive(isCaseSensitive());
             patterns.include(this.getAllIncludes());
             patterns.includeSpecs(getAllIncludeSpecs());

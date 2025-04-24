@@ -63,11 +63,10 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     @Override
     @Deprecated
     public org.gradle.api.plugins.Convention getConvention() {
-// TODO nag once KGP doesn't register conventions anymore
-//        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
-//            .willBeRemovedInGradle9()
-//            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-//            .nagUser();
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+            .nagUser();
         if (convention == null) {
             this.convention = DeprecationLogger.whileDisabled(() ->
                 toType(object, org.gradle.api.internal.HasConvention.class).getConvention()

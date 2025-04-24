@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -39,13 +40,11 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
  * A concrete consumable {@link DefaultConfiguration} that cannot change roles.
  */
 public class DefaultConsumableConfiguration extends DefaultConfiguration implements ConsumableConfiguration {
-
     public DefaultConsumableConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
@@ -65,12 +64,12 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        DocumentationRegistry documentationRegistry
     ) {
         super(
             domainObjectContext,
@@ -91,13 +90,13 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
             taskDependencyFactory,
             ConfigurationRoles.CONSUMABLE,
             problemsService,
+            documentationRegistry,
             true
         );
 

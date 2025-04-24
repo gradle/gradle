@@ -602,6 +602,9 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         supportedType | value
         'Integer'     | 'Integer.valueOf(0)'
         'String'      | '"foo"'
+        'Letter'      | 'Letter.A'
+        // This was allowed in older versions of Gradle
+        // Map<Enum, Options>
         'Enum'        | 'Letter.A'
     }
 
@@ -647,8 +650,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem) {
             fqid == 'validation:property-validation:nested-map-unsupported-key-type'
             contextualLabel == "Type 'MyTask' property 'mapWithUnsupportedKey' where key of nested map is of type 'java.lang.Boolean'"
-            details == 'Key of nested map must be one of the following types: \'Enum\', \'Integer\', \'String\''
-            solutions == [ 'Change type of key to one of the following types: \'Enum\', \'Integer\', \'String\'' ]
+            details == "Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'"
+            solutions == [ "Change type of key to an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'" ]
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapWithUnsupportedKey',
@@ -832,7 +835,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         assertValidationSucceeds()
     }
 
-    def "missing Java Toolchain plugin causes a deprecation warning"() {
+    def "missing Java Toolchain plugin causes a build failure"() {
         given:
         source("producer/settings.gradle") << ""
         source("producer/build.gradle") << "plugins { id 'java' }"
@@ -852,21 +855,15 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             .run()
 
         executer.inDirectory(file("consumer"))
-            .expectDocumentedDeprecationWarning(
-                "Using task ValidatePlugins without applying the Java Toolchain plugin. " +
-                    "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain"
-            )
 
         then:
-        succeeds "validatePlugins"
+        fails "validatePlugins"
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:missing-java-toolchain-plugin'
-            contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin. This behavior has been deprecated.'
+            fqid == 'validation:missing-java-toolchain-plugin'
+            contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.'
+            definition.documentationLink.url.endsWith("/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain_90")
         }
-
     }
 }

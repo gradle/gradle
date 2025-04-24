@@ -29,15 +29,18 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
     private final ResolvedVariantCache resolvedVariantCache;
 
-    public DefaultVariantArtifactResolver(ArtifactResolver artifactResolver, ImmutableArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache resolvedVariantCache) {
+    public DefaultVariantArtifactResolver(
+        ArtifactResolver artifactResolver,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
+        ResolvedVariantCache resolvedVariantCache
+    ) {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.resolvedVariantCache = resolvedVariantCache;
@@ -94,14 +97,14 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     }
 
     private ResolvedVariant createResolvedVariant(
-        @Nullable VariantResolveMetadata.Identifier identifier,
+        VariantResolveMetadata.@Nullable Identifier identifier,
         ComponentArtifactResolveMetadata component,
         VariantResolveMetadata artifactVariant,
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
 
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
         ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
 
         // TODO: This value gets cached in a build-tree-scoped cache. It captures a project-scoped `artifactResolver`, which

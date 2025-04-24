@@ -36,7 +36,7 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
     private static final Grouper<String> GROUPER = new Grouper<String>() {
         @Override
         public String determineGroup(String s) {
-            return String.valueOf(Math.abs(s.hashCode()) % 100);
+            return String.valueOf(Math.abs(s.hashCode() % 100));
         }
 
         @Override

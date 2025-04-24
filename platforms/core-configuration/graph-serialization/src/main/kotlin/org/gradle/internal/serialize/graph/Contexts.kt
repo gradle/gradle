@@ -64,6 +64,8 @@ class DefaultWriteContext(
     private
     val beanStateWriterLookup: BeanStateWriterLookup,
 
+    override val isIntegrityCheckEnabled: Boolean,
+
     override val logger: Logger,
 
     override val tracer: Tracer?,
@@ -229,6 +231,8 @@ class DefaultReadContext(
 
     private
     val beanStateReaderLookup: BeanStateReaderLookup,
+
+    override val isIntegrityCheckEnabled: Boolean,
 
     override val logger: Logger,
 

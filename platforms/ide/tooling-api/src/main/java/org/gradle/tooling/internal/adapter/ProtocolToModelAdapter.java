@@ -27,8 +27,8 @@ import org.gradle.tooling.ToolingModelContract;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -144,6 +145,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static <T> T createView(Class<T> targetType, @Nullable Object sourceObject, ViewDecoration decoration, ViewGraphDetails graphDetails) {
         if (sourceObject == null) {
             return null;
+        }
+        if (sourceObject instanceof Supplier) {
+            return createView(targetType, ((Supplier<?>) sourceObject).get(), decoration, graphDetails);
         }
 
         // Calculate the actual type

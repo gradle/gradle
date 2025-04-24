@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.analysis
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.AssignmentAugmentation
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.ContainerElementFactory
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
@@ -14,6 +15,7 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
@@ -28,8 +30,8 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
-import java.util.Collections
 
 
 @Serializable
@@ -37,22 +39,13 @@ import java.util.Collections
 data class DefaultAnalysisSchema(
     override val topLevelReceiverType: DataClass,
     override val dataClassTypesByFqName: Map<FqName, DataType.ClassDataType>,
+    override val genericSignaturesByFqName: Map<FqName, DataType.ParameterizedTypeSignature>,
+    override val genericInstantiationsByFqName: Map<FqName, Map<List<TypeArgument>, DataType.ClassDataType>>,
     override val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
-    override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>,
-    override val defaultImports: Set<FqName>
-) : AnalysisSchema {
-    companion object Empty : AnalysisSchema {
-        override val topLevelReceiverType: DataClass = DefaultDataClass.Empty
-        override val dataClassTypesByFqName: Map<FqName, DataClass> = mapOf()
-        override val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction> = mapOf()
-        override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey> = mapOf()
-        override val defaultImports: Set<FqName> = setOf()
-
-        @Suppress("unused")
-        private
-        fun readResolve(): Any = Empty
-    }
-}
+    override val infixFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
+    override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>, override val defaultImports: Set<FqName>,
+    override val assignmentAugmentationsByTypeName: Map<FqName, List<AssignmentAugmentation>>,
+) : AnalysisSchema
 
 
 @Serializable
@@ -66,22 +59,7 @@ data class DefaultDataClass(
     override val memberFunctions: List<SchemaMemberFunction>,
     override val constructors: List<DataConstructor>
 ) : DataClass {
-
     override fun toString(): String = name.simpleName
-
-    companion object Empty : DataClass {
-        override val name: FqName = FqName.Empty
-        override val javaTypeName: String = ""
-        override val javaTypeArgumentTypeNames: List<String> = emptyList()
-        override val supertypes: Set<FqName> = Collections.emptySet()
-        override val properties: List<DataProperty> = Collections.emptyList()
-        override val memberFunctions: List<SchemaMemberFunction> = Collections.emptyList()
-        override val constructors: List<DataConstructor> = Collections.emptyList()
-
-        @Suppress("unused")
-        private
-        fun readResolve(): Any = Empty
-    }
 }
 
 
@@ -92,18 +70,7 @@ data class DefaultEnumClass(
     override val javaTypeName: String,
     override val entryNames: List<String>
 ) : EnumClass {
-
     override fun toString(): String = name.simpleName
-
-    companion object Empty : EnumClass {
-        override val name: FqName = FqName.Empty
-        override val javaTypeName: String = ""
-        override val entryNames: List<String> = emptyList()
-
-        @Suppress("unused")
-        private
-        fun readResolve(): Any = Empty
-    }
 }
 
 
@@ -171,6 +138,7 @@ data class DefaultDataBuilderFunction(
 @SerialName("dataTopLevelFunction")
 data class DefaultDataTopLevelFunction(
     override val packageName: String,
+    override val ownerJvmTypeName: String,
     override val simpleName: String,
     override val parameters: List<DataParameter>,
     override val semantics: Pure,
@@ -209,6 +177,15 @@ data class DefaultDataParameter(
     override val isDefault: Boolean,
     override val semantics: ParameterSemantics
 ) : DataParameter
+
+@Serializable
+data class DefaultVarargParameter(
+    override val name: String?,
+    @SerialName("privateType")
+    override val type: DataTypeRef,
+    override val isDefault: Boolean,
+    override val semantics: ParameterSemantics
+) : VarargParameter
 
 
 object ParameterSemanticsInternal {
@@ -364,7 +341,7 @@ data class DefaultExternalObjectProviderKey(override val objectType: DataTypeRef
 object DataTypeRefInternal {
     @Serializable
     @SerialName("dataTypeRefType")
-    data class DefaultType(override val dataType: DataType) : DataTypeRef.Type {
+    data class DefaultType(override val dataType: DataType.PrimitiveType) : DataTypeRef.Type {
         override fun toString(): String = dataType.toString()
     }
 
@@ -372,6 +349,26 @@ object DataTypeRefInternal {
     @SerialName("dataTypeRefName")
     data class DefaultName(override val fqName: FqName) : DataTypeRef.Name {
         override fun toString(): String = fqName.simpleName
+    }
+
+    @Serializable
+    @SerialName("dataTypeRefNameWithArgs")
+    data class DefaultNameWithArgs(override val fqName: FqName, override val typeArguments: List<TypeArgument>) : DataTypeRef.NameWithArgs {
+        override fun toString(): String = fqName.simpleName + "<${typeArguments.joinToString { (it as? TypeArgument.ConcreteTypeArgument)?.type?.toString() ?: "*" }}>"
+    }
+}
+
+object TypeArgumentInternal {
+    @Serializable
+    @SerialName("concreteType")
+    data class DefaultConcreteTypeArgument(@SerialName("dataType") override val type: DataTypeRef) : TypeArgument.ConcreteTypeArgument {
+        override fun toString(): String = type.toString()
+    }
+
+    @Serializable
+    @SerialName("starProjection")
+    class DefaultStarProjection : TypeArgument.StarProjection {
+        override fun toString(): String = "*"
     }
 }
 
@@ -387,6 +384,9 @@ object SchemaItemMetadataInternal {
 
 inline fun <reified T : SchemaItemMetadata> List<SchemaItemMetadata>.dataOfTypeOrNull(): T? = singleOrNull { it is T } as? T
 
-
 val DataType.ref: DataTypeRef
-    get() = DataTypeRefInternal.DefaultType(this)
+    get() = when (this) {
+        is DataType.PrimitiveType -> DataTypeRefInternal.DefaultType(this)
+        is DataType.ParameterizedTypeInstance -> DataTypeRefInternal.DefaultNameWithArgs(name, typeArguments)
+        is DataType.ClassDataType -> DataTypeRefInternal.DefaultName(name)
+    }

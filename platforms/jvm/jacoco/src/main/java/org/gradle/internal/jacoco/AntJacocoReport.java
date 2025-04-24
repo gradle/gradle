@@ -17,47 +17,80 @@
 package org.gradle.internal.jacoco;
 
 import com.google.common.collect.ImmutableMap;
-import groovy.lang.GroovyObjectSupport;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
-import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 
-public class AntJacocoReport extends AbstractAntJacocoReport<JacocoReportsContainer> {
+public class AntJacocoReport implements Action<AntBuilderDelegate> {
 
-    public AntJacocoReport(IsolatedAntBuilder ant) {
-        super(ant);
-    }
+    private final JacocoReportParameters params;
 
-    public void execute(FileCollection classpath, final String projectName,
-                        final FileCollection allClassesDirs, final FileCollection allSourcesDirs,
-                        @Nullable final String encoding, final FileCollection executionData, final JacocoReportsContainer reports) {
-        configureAntReportTask(classpath, new Action<GroovyObjectSupport>() {
-            @Override
-            public void execute(GroovyObjectSupport antBuilder) {
-                invokeJacocoReport(antBuilder, projectName, allClassesDirs, allSourcesDirs, encoding, executionData, reports);
-            }
-        });
+    public AntJacocoReport(JacocoReportParameters params) {
+        this.params = params;
     }
 
     @Override
-    protected void configureReport(GroovyObjectSupport antBuilder, JacocoReportsContainer reports) {
-        if (reports.getHtml().getRequired().get()) {
-            antBuilder.invokeMethod("html", new Object[]{
-                ImmutableMap.<String, Object>of("destdir", reports.getHtml().getOutputLocation().getAsFile().get())
-            });
-        }
-        if (reports.getXml().getRequired().get()) {
-            antBuilder.invokeMethod("xml", new Object[]{
-                ImmutableMap.<String, Object>of("destfile", reports.getXml().getOutputLocation().getAsFile().get())
-            });
-        }
-        if (reports.getCsv().getRequired().get()) {
-            antBuilder.invokeMethod("csv", new Object[]{
-                ImmutableMap.<String, Object>of("destfile", reports.getCsv().getOutputLocation().getAsFile().get())
-            });
-        }
+    public void execute(AntBuilderDelegate antBuilder) {
+        antBuilder.invokeMethod("taskdef", ImmutableMap.of(
+            "name", "jacocoReport",
+            "classname", "org.jacoco.ant.ReportTask"
+        ));
+        final Map<String, Object> emptyArgs = Collections.emptyMap();
+        antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
+            @SuppressWarnings("UnusedDeclaration")
+            public Object doCall(Object ignore) {
+                antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                    public Object doCall(Object ignore) {
+                        params.getExecutionData().filter(File::exists).addToAntBuilder(antBuilder, "resources");
+                        return Void.class;
+                    }
+                }});
+                Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", params.getProjectName().get());
+                antBuilder.invokeMethod("structure", new Object[]{structureArgs, new Closure<Object>(this, this) {
+                    public Object doCall(Object ignore) {
+                        antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                            public Object doCall(Object ignore) {
+                                params.getAllClassesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
+                                return Void.class;
+                            }
+                        }});
+                        final Map<String, Object> sourcefilesArgs;
+                        String encoding = params.getEncoding().getOrNull();
+                        if (encoding == null) {
+                            sourcefilesArgs = emptyArgs;
+                        } else {
+                            sourcefilesArgs = Collections.singletonMap("encoding", encoding);
+                        }
+                        antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
+                            public Object doCall(Object ignore) {
+                                params.getAllSourcesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
+                                return Void.class;
+                            }
+                        }});
+                        return Void.class;
+                    }
+                }});
+                if (params.getGenerateHtml().get()) {
+                    antBuilder.invokeMethod("html", new Object[]{
+                        ImmutableMap.<String, Object>of("destdir", params.getHtmlDestination().getAsFile().get())
+                    });
+                }
+                if (params.getGenerateXml().get()) {
+                    antBuilder.invokeMethod("xml", new Object[]{
+                        ImmutableMap.<String, Object>of("destfile", params.getXmlDestination().getAsFile().get())
+                    });
+                }
+                if (params.getGenerateCsv().get()) {
+                    antBuilder.invokeMethod("csv", new Object[]{
+                        ImmutableMap.<String, Object>of("destfile", params.getCsvDestination().getAsFile().get())
+                    });
+                }
+                return Void.class;
+            }
+        }});
     }
 }

@@ -18,8 +18,8 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
 

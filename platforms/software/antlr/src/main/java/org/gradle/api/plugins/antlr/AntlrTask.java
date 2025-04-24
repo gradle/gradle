@@ -16,17 +16,16 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.plugins.antlr.internal.AntlrExecuter;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
-import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -41,10 +40,14 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.worker.MultiRequestClient;
+import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -59,7 +62,7 @@ import java.util.concurrent.Callable;
 /**
  * Generates parsers from Antlr grammars.
  */
-@NonNullApi
+@NullMarked
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {
 
@@ -241,10 +244,35 @@ public abstract class AntlrTask extends SourceTask {
             grammarFiles.addAll(stableSources.getFiles());
         }
 
-        AntlrWorkerManager manager = new AntlrWorkerManager();
         AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles, sourceSetDirectories);
-        AntlrResult result = manager.runWorker(projectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
+        MultiRequestClient<AntlrSpec, AntlrResult> client = getAntlrWorkerClient(spec);
+
+        AntlrResult result;
+        try {
+            client.start();
+            result = client.run(spec);
+        } finally {
+            client.stop();
+        }
+
         evaluate(result);
+    }
+
+    private MultiRequestClient<AntlrSpec, AntlrResult> getAntlrWorkerClient(AntlrSpec spec) {
+        MultiRequestWorkerProcessBuilder<AntlrSpec, AntlrResult> builder =
+            getWorkerProcessBuilderFactory().multiRequestWorker(AntlrExecuter.class);
+
+        builder.setBaseName("Gradle ANTLR Worker");
+        builder.applicationClasspath(getAntlrClasspath());
+        builder.sharedPackages("antlr", "org.antlr");
+
+        JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
+        javaCommand.setWorkingDir(projectDir());
+        javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
+        javaCommand.systemProperty("ANTLR_DO_NOT_EXIT", "true");
+        javaCommand.redirectErrorStream();
+
+        return builder.build();
     }
 
     private void evaluate(AntlrResult result) {

@@ -20,8 +20,8 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class MutableStateAccessAwareDynamicObject extends AbstractDynamicObject {
@@ -80,6 +80,15 @@ public class MutableStateAccessAwareDynamicObject extends AbstractDynamicObject 
     }
 
     @Override
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        DynamicInvokeResult result = delegate.trySetPropertyWithoutInstrumentation(name, value);
+        if (!result.isFound()) {
+            onMutableStateAccess.run();
+        }
+        return result;
+    }
+
+    @Override
     public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
         delegate.setProperty(name, value);
     }
@@ -95,7 +104,7 @@ public class MutableStateAccessAwareDynamicObject extends AbstractDynamicObject 
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         onMutableStateAccess.run();
         return delegate.getProperties();
     }

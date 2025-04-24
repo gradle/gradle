@@ -1,8 +1,6 @@
 Accessors for org.gradle.StartParameter.currentDir don't use symmetrical @Nullable
 Accessors for org.gradle.StartParameter.gradleUserHomeDir don't use symmetrical @Nullable
 Accessors for org.gradle.StartParameter.taskNames don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.AbstractCopyTask.dirMode don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.AbstractCopyTask.fileMode don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.AbstractExecTask.args don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.AbstractExecTask.executable don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.Exec.args don't use symmetrical @Nullable
@@ -10,10 +8,8 @@ Accessors for org.gradle.api.tasks.JavaExec.executable don't use symmetrical @Nu
 Accessors for org.gradle.api.tasks.SourceSetOutput.resourcesDir don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.bundling.War.classpath don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.bundling.Zip.metadataCharset don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.compile.CompileOptions.annotationProcessorGeneratedSourcesDirectory don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.javadoc.Javadoc.destinationDir don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.javadoc.Javadoc.maxMemory don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.testing.Test.forkEvery don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.testing.testng.TestNGOptions.parallel don't use symmetrical @Nullable
 Accessors for org.gradle.caching.http.HttpBuildCache.url don't use symmetrical @Nullable
 Accessors for org.gradle.external.javadoc.MinimalJavadocOptions.destinationDirectory don't use symmetrical @Nullable

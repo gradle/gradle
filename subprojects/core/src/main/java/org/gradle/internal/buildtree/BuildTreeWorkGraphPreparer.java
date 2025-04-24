@@ -16,9 +16,13 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Performs any initial setup that needs to happen to a build tree work graph prior to scheduling the requested tasks.
  */
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeWorkGraphPreparer {
     void prepareToScheduleTasks(BuildTreeWorkGraph.Builder workGraph);
 }

@@ -23,9 +23,9 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 
 dependencies {
     constraints {
-        api("org.gradle.guides:gradle-guides-plugin:0.23.1")
+        api("org.gradle.guides:gradle-guides-plugin:0.23.4")
         api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
-        api("com.gradle:develocity-gradle-plugin:3.19.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+        api("com.gradle:develocity-gradle-plugin:4.0") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.2.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.10")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
@@ -33,17 +33,14 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.33.0")
-        api("com.squareup.okio:okio:3.4.0") {
-            because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
-        }
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:2.16.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
-        api("com.google.guava:guava:32.1.2-jre")
+        api("com.google.guava:guava:33.4.6-jre")
         api("com.google.errorprone:error_prone_annotations:2.5.1")
-        api("com.google.code.gson:gson:2.8.9")
+        api("com.google.code.gson:gson:2.13.0") // keep in sync with settings.gradle.kts
         api("com.nhaarman:mockito-kotlin:1.6.0")
         api("com.thoughtworks.qdox:qdox:2.0.3")
         api("com.uwyn:jhighlight:1.0")
@@ -64,9 +61,8 @@ dependencies {
         api("junit:junit:4.13.2")
         api("org.spockframework:spock-core:$spockVersion")
         api("org.spockframework:spock-junit4:$spockVersion")
-        api("org.asciidoctor:asciidoctorj:2.5.11")
-        api("org.asciidoctor:asciidoctorj-api:2.5.11")
-        api("org.asciidoctor:asciidoctorj-pdf:2.3.10")
+        api("org.asciidoctor:asciidoctorj:2.5.13")
+        api("org.asciidoctor:asciidoctorj-api:2.5.13")
         api("dev.adamko.dokkatoo:dokkatoo-plugin:2.3.1")
         api("org.jetbrains.dokka:dokka-core:1.9.20")
         api("com.fasterxml.woodstox:woodstox-core:6.4.0") {

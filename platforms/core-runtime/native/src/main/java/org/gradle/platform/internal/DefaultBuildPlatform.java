@@ -59,4 +59,12 @@ public class DefaultBuildPlatform implements BuildPlatform, Serializable {
     public int hashCode() {
         return Objects.hash(getArchitecture(), getOperatingSystem());
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+            architecture +
+            ", " + operatingSystem +
+            '}';
+    }
 }

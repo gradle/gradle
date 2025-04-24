@@ -1,3 +1,4 @@
+// tag::artifact-views-lib[]
 plugins {
     `java-library`
 }
@@ -7,20 +8,21 @@ repositories {
 }
 
 dependencies {
-
+    // Define some dependencies here
 }
 
 // Define a task that produces a custom artifact
-tasks.register("createProductionArtifact", Jar::class) {
+tasks.register<Jar>("createProductionArtifact") {
     archiveBaseName.set("production")
     from(sourceSets["main"].output)
     destinationDirectory.set(file("build/libs"))
 }
 
 configurations {
-    // Define a custom configuration and extend from runtimeClasspath
+    // Define a custom configuration and extend from apiElements
     create("apiProductionElements") {
         extendsFrom(configurations.apiElements.get())
+        outgoing.artifacts.clear()
         attributes {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named("production"))
         }
@@ -29,6 +31,7 @@ configurations {
         }
     }
 }
+// end::artifact-views-lib[]
 
 tasks.register("checkProducerVariants") {
     val producerProject = project(":producer")
@@ -37,7 +40,7 @@ tasks.register("checkProducerVariants") {
     producerProject.configurations.forEach { config ->
         println("Configuration: ${config.name}")
         config.outgoing.artifacts.forEach {
-            println("  - Artifact: ${it.file}")
+            println("  - Artifact: ${it.name}")
         }
     }
 }

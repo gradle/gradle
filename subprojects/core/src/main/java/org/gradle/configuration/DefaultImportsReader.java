@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.LineProcessor;
@@ -26,6 +25,7 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +68,7 @@ public class DefaultImportsReader implements ImportsReader {
         if (url == null) {
             throw new IllegalStateException("Could not load default imports resource: " + RESOURCE);
         }
-        return Resources.asCharSource(url, Charsets.UTF_8).readLines(new LineProcessor<String[]>() {
+        return Resources.asCharSource(url, StandardCharsets.UTF_8).readLines(new LineProcessor<String[]>() {
             private final List<String> packages = new LinkedList<>();
 
             @Override
@@ -89,7 +89,7 @@ public class DefaultImportsReader implements ImportsReader {
         if (url == null) {
             throw new IllegalStateException("Could not load default imports resource: " + MAPPING_RESOURCE);
         }
-        return Resources.asCharSource(url, Charsets.UTF_8).readLines(new LineProcessor<Map<String, List<String>>>() {
+        return Resources.asCharSource(url, StandardCharsets.UTF_8).readLines(new LineProcessor<Map<String, List<String>>>() {
             private final ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
 
             @Override

@@ -12,27 +12,24 @@ errorprone {
     disabledChecks.addAll(
         "CheckReturnValue", // 2 occurrences
         "DoNotClaimAnnotations", // 6 occurrences
-        "InconsistentCapitalization", // 1 occurrences
-        "InvalidInlineTag", // 3 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "MixedMutabilityReturnType", // 3 occurrences
     )
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildEvents)
     api(projects.buildOperations)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
+    api(projects.jvmServices)
     api(projects.languageJvm)
     api(projects.modelCore)
     api(projects.persistentCache)
@@ -40,26 +37,28 @@ dependencies {
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.scopedPersistentCache)
+    api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
     api(projects.testSuitesBase)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workerMain)
     api(projects.workers)
-    api(projects.buildProcessServices)
 
     api(libs.asm)
     api(libs.fastutil)
     api(libs.groovy)
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
-    implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.logging)
@@ -77,6 +76,7 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.toolchainsJvm))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
@@ -86,6 +86,8 @@ dependencies {
     }
 
     integTestImplementation(projects.messaging)
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
+
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.commonsHttpclient)

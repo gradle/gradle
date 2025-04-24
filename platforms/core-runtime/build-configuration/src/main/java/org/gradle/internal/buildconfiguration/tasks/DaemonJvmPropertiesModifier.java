@@ -19,12 +19,14 @@ package org.gradle.internal.buildconfiguration.tasks;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -33,6 +35,7 @@ import java.util.Properties;
 
 import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform;
 
+@ServiceScope(Scope.Project.class)
 public class DaemonJvmPropertiesModifier {
 
     public DaemonJvmPropertiesModifier() {
@@ -42,6 +45,7 @@ public class DaemonJvmPropertiesModifier {
         File propertiesFile,
         JavaLanguageVersion toolchainVersion,
         @Nullable String toolchainVendor,
+        boolean nativeImageCapable,
         Map<BuildPlatform, URI> downloadUrlsByPlatform
     ) {
         validateToolchainVersion(toolchainVersion);
@@ -50,6 +54,9 @@ public class DaemonJvmPropertiesModifier {
         daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, toolchainVersion.toString());
         if (toolchainVendor != null) {
             daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, toolchainVendor);
+        }
+        if (nativeImageCapable) {
+            daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY, "true");
         }
 
         downloadUrlsByPlatform.forEach((buildPlatform, uri) -> {

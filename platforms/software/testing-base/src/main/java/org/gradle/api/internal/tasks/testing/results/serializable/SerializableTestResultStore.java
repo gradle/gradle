@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.input.NullReader;
-import org.gradle.api.NonNullApi;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -32,8 +32,9 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,7 +62,7 @@ import java.util.zip.ZipOutputStream;
 /**
  * An object that can store test results and their outputs.
  */
-@NonNullApi
+@NullMarked
 public final class SerializableTestResultStore {
 
     /**
@@ -88,7 +90,7 @@ public final class SerializableTestResultStore {
         return new Writer(serializedResultsFile, outputZipFile);
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class Writer implements Closeable, TestListenerInternal {
         private final Map<Object, Long> assignedIds = new HashMap<>();
         private final Path serializedResultsFile;
@@ -97,7 +99,7 @@ public final class SerializableTestResultStore {
         private final FileSystem outputZipFileSystem;
         private long nextId = 1;
 
-        // Map from testDescripter -> Serialized metadatas associated with that descriptor
+        // Map from testDescriptor -> Serialized metadata associated with that descriptor
         private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
 
         private Writer(Path serializedResultsFile, Path outputZipFile) throws IOException {
@@ -109,7 +111,11 @@ public final class SerializableTestResultStore {
             try {
                 // Truncate existing output zip file
                 new ZipOutputStream(Files.newOutputStream(outputZipFile)).close();
-                outputZipFileSystem = FileSystems.newFileSystem(URI.create("jar:" + outputZipFile.toUri()), Collections.emptyMap());
+                try {
+                    outputZipFileSystem = FileSystems.newFileSystem(URI.create("jar:" + outputZipFile.toUri()), Collections.emptyMap());
+                } catch (FileSystemAlreadyExistsException e) {
+                    throw new InvalidUserCodeException("A previous file system exists for " + outputZipFile + ", which likely means that a previous test reporter was not closed", e);
+                }
             } catch (Throwable t) {
                 // Ensure we don't leak the encoder if we fail to open the output zip file
                 try {
@@ -207,11 +213,14 @@ public final class SerializableTestResultStore {
 
         @Override
         public void close() throws IOException {
-            // Write a 0 id to terminate the file
-            resultsEncoder.writeSmallLong(0);
-            CompositeStoppable.stoppable(resultsEncoder, outputZipFileSystem).stop();
-            // Move the temporary results file to the final location
-            Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                // Write a 0 id to terminate the file
+                resultsEncoder.writeSmallLong(0);
+            } finally {
+                CompositeStoppable.stoppable(resultsEncoder, outputZipFileSystem).stop();
+                // Move the temporary results file to the final location
+                Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
+            }
         }
     }
 
@@ -228,7 +237,7 @@ public final class SerializableTestResultStore {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class OutputTrackedResult {
         private final long id;
         private final SerializableTestResult testResult;
@@ -303,7 +312,7 @@ public final class SerializableTestResultStore {
         return new OutputReader(outputZipFile);
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class OutputReader implements Closeable {
         private final ZipFile outputZipFile;
 

@@ -19,8 +19,7 @@ package org.gradle.internal.buildtree;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     private final BuildState targetBuild;

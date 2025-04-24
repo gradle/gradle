@@ -19,15 +19,15 @@ import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * An attribute container which can be frozen in order to avoid subsequent mutations.
  */
-public class FreezableAttributeContainer implements AttributeContainerInternal {
+public final class FreezableAttributeContainer extends AbstractAttributeContainer {
 
     private final Describable owner;
 
@@ -82,6 +82,9 @@ public class FreezableAttributeContainer implements AttributeContainerInternal {
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
         return delegate.getAttribute(key);
     }
 
@@ -95,14 +98,26 @@ public class FreezableAttributeContainer implements AttributeContainerInternal {
         return delegate.contains(key);
     }
 
-    @Override
-    public AttributeContainer getAttributes() {
-        return this;
-    }
-
     private void assertMutable() {
         if (delegate instanceof ImmutableAttributes) {
             throw new IllegalStateException(String.format("Cannot change attributes of %s after it has been locked for mutation", owner.getDisplayName()));
         }
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        FreezableAttributeContainer that = (FreezableAttributeContainer) o;
+        return owner.equals(that.owner) && delegate.equals(that.delegate);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = owner.hashCode();
+        result = 31 * result + delegate.hashCode();
+        return result;
     }
 }

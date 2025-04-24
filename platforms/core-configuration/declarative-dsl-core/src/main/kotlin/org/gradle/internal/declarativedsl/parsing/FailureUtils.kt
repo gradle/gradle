@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Element
 import org.gradle.internal.declarativedsl.language.ElementResult
@@ -52,6 +53,10 @@ fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResu
                 collectFrom(current.lhs)
                 collectFrom(current.rhs)
             }
+            is AugmentingAssignment -> {
+                collectFrom(current.lhs)
+                collectFrom(current.rhs)
+            }
 
             is FunctionCall -> {
                 current.receiver?.let(::collectFrom)
@@ -61,12 +66,14 @@ fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResu
             is NamedReference -> current.receiver?.let(::collectFrom)
             is LocalValue -> collectFrom(current.rhs)
             is FunctionArgument.Lambda -> collectFrom(current.block)
-            is FunctionArgument.ValueArgument -> collectFrom(current.expr)
+            is FunctionArgument.SingleValueArgument -> collectFrom(current.expr)
+            is FunctionArgument.GroupedVarargs -> current.elementArgs.forEach(::collectFrom)
 
             is Import,
             is Literal<*>,
             is Null,
             is This -> Unit
+
         }
     }
 

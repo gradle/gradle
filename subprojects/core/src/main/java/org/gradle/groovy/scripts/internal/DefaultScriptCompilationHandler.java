@@ -64,10 +64,10 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
@@ -435,7 +435,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         @Override
-        public byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        public byte @Nullable [] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

@@ -19,13 +19,11 @@ package org.gradle.integtests.tooling.r83
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.Snippets
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.TestSpecs
 import spock.lang.Issue
 
-@ToolingApiVersion('>=7.6')
 @TargetGradleVersion(">=8.3")
 class TestLauncherCustomTestTaskCrossVersionTest extends TestLauncherSpec {
 

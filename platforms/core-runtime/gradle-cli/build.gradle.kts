@@ -21,7 +21,7 @@ plugins {
 description = "Implementation of the `gradle` command"
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(projects.baseServices)
     api(projects.cli)
     api(projects.clientServices)
@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(projects.buildOption)
     implementation(projects.buildState)
+    implementation(projects.classloaders)
     implementation(projects.coreApi)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)

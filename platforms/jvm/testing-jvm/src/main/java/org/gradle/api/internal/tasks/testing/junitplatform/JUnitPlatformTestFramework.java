@@ -16,92 +16,60 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import javax.inject.Inject;
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
-public class JUnitPlatformTestFramework implements TestFramework {
+public abstract class JUnitPlatformTestFramework implements TestFramework {
     private static final Logger LOGGER = Logging.getLogger(JUnitPlatformTestFramework.class);
 
-    private static final List<TestFrameworkDistributionModule> DISTRIBUTION_MODULES =
-        ImmutableList.of(
-            new TestFrameworkDistributionModule(
-                "junit-platform-engine",
-                Pattern.compile("junit-platform-engine-1.*\\.jar"),
-                "org.junit.platform.engine.DiscoverySelector"
-            ),
-            new TestFrameworkDistributionModule(
-                "junit-platform-launcher",
-                Pattern.compile("junit-platform-launcher-1.*\\.jar"),
-                "org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder"
-            ),
-            new TestFrameworkDistributionModule(
-                "junit-platform-commons",
-                Pattern.compile("junit-platform-commons-1.*\\.jar"),
-                "org.junit.platform.commons.util.ReflectionUtils"
-            )
-        );
-
-    private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
-    private final boolean useImplementationDependencies;
     private final Provider<Boolean> dryRun;
 
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, Provider<Boolean> dryRun) {
-        this(filter, useImplementationDependencies, new JUnitPlatformOptions(), dryRun);
-    }
-
-    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options, Provider<Boolean> dryRun) {
+    @Inject
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun) {
         this.filter = filter;
-        this.useImplementationDependencies = useImplementationDependencies;
-        this.options = options;
         this.dryRun = dryRun;
     }
 
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
-        JUnitPlatformOptions copiedOptions = new JUnitPlatformOptions();
-        copiedOptions.copyFrom(options);
+        JUnitPlatformTestFramework newTestFramework = getObjectFactory().newInstance(JUnitPlatformTestFramework.class,
+            newTestFilters,
+            dryRun);
 
-        return new JUnitPlatformTestFramework(
-            (DefaultTestFilter) newTestFilters,
-            useImplementationDependencies,
-            copiedOptions,
-            dryRun
-        );
+        newTestFramework.getOptions().copyFrom(getOptions());
+        return newTestFramework;
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        if (!JavaVersion.current().isJava8Compatible()) {
-            throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
-        }
         validateOptions();
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
-            filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
-            options.getIncludeTags(), options.getExcludeTags(), dryRun.get()
+            filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
+            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get()
         ));
     }
 
@@ -111,19 +79,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public List<TestFrameworkDistributionModule> getWorkerApplicationModulepathModules() {
-        return DISTRIBUTION_MODULES;
-    }
-
-    @Override
-    public boolean getUseDistributionDependencies() {
-        return useImplementationDependencies;
-    }
-
-    @Override
-    public JUnitPlatformOptions getOptions() {
-        return options;
-    }
+    @Nested
+    public abstract JUnitPlatformOptions getOptions();
 
     @Override
     public TestFrameworkDetector getDetector() {
@@ -136,8 +93,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     private void validateOptions() {
-        Set<String> intersection = Sets.newHashSet(options.getIncludeTags());
-        intersection.retainAll(options.getExcludeTags());
+        Set<String> intersection = Sets.newHashSet(getOptions().getIncludeTags());
+        intersection.retainAll(getOptions().getExcludeTags());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  " +

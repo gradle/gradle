@@ -131,10 +131,7 @@ fun publishNormalizedToLocalRepository() {
     // For local consumption by tests
     configurations.create("localLibsRepositoryElements") {
         attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named("gradle-local-repository"))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling.EMBEDDED))
+            attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named("gradle-local-repository"))
         }
         isCanBeResolved = false
         isCanBeConsumed = true

@@ -19,7 +19,7 @@
  *
  * @see org.gradle.api.plugins.catalog.VersionCatalogPlugin
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.plugins.catalog.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

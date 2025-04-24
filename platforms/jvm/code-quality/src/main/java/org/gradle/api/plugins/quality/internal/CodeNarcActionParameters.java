@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.plugins.internal.ant.AntWorkParameters;
 import org.gradle.api.plugins.quality.CodeNarcReports;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;

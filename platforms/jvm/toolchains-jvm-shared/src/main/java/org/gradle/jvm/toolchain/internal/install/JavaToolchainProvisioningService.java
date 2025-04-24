@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal.install;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocalBinaryResource;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -59,5 +60,11 @@ public interface JavaToolchainProvisioningService {
             throw new GradleException("Can't determine filename for resource located at: " + uri);
         }
         return fileName;
+    }
+
+    default String buildFileNameWithDetails(URI uri, ExternalResource resource, JavaToolchainSpec spec) {
+        String originalFileName = getFileName(uri, resource);
+        String id = FileUtils.toSafeFileName("-" + spec.getVendor().get() + '-' + spec.getLanguageVersion().get().asInt());
+        return FileUtils.addSuffixToName(originalFileName, id);
     }
 }

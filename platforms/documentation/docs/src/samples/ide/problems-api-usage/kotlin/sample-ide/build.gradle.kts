@@ -17,7 +17,7 @@ application {
 
 dependencies {
     implementation("reporters:model-builder-plugin")
-    implementation("org.gradle:gradle-tooling-api:8.12")
+    implementation("org.gradle:gradle-tooling-api:8.13")
 }
 
 tasks.run.configure {

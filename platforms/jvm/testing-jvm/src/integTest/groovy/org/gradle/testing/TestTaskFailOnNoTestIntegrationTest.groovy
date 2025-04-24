@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION
 
@@ -36,16 +37,23 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
     }
 
-    def "test succeeds with warning if no test was executed"() {
+    def "test fails when no test was executed"() {
         createBuildFileWithJUnitJupiter()
 
         file("src/test/java/NotATest.java") << """
             public class NotATest {}
         """
 
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
+        expect:
+        fails("test")
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30315")
+    def "no deprecation warning when only disabled template tests are present"() {
+        createBuildFileWithJUnitJupiter()
+
+        file("src/test/java/SomeTest.java") << testClassWithDisabledTemplateTest
 
         expect:
         succeeds("test")
@@ -77,5 +85,63 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
                 useJUnitJupiter()
             }
         """.stripIndent()
+    }
+
+    private static String getTestClassWithDisabledTemplateTest() {
+        return """
+            import org.junit.jupiter.api.extension.*;
+            import org.junit.jupiter.api.*;
+            import java.util.stream.Stream;
+            import java.util.List;
+            import java.util.Collections;
+
+            public class SomeTest {
+                @TestTemplate
+                @ExtendWith(CustomTemplateInvocationContextProvider.class)
+                @Disabled
+                public void templateTest() { }
+
+                static public class CustomTemplateInvocationContextProvider implements TestTemplateInvocationContextProvider {
+                    public CustomTemplateInvocationContextProvider() { }
+
+                    @Override
+                    public boolean supportsTestTemplate(ExtensionContext context) {
+                        return true;
+                    }
+
+                    @Override
+                    public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(
+                            ExtensionContext context) {
+                        return Stream.of(invocationContext("foo"), invocationContext("bar"));
+                    }
+
+                    private TestTemplateInvocationContext invocationContext(String parameter) {
+                        return new TestTemplateInvocationContext() {
+                            @Override
+                            public String getDisplayName(int invocationIndex) {
+                                return parameter;
+                            }
+
+                            @Override
+                            public List<Extension> getAdditionalExtensions() {
+                                return Collections.singletonList(new ParameterResolver() {
+                                    @Override
+                                    public boolean supportsParameter(ParameterContext parameterContext,
+                                            ExtensionContext extensionContext) {
+                                        return parameterContext.getParameter().getType().equals(String.class);
+                                    }
+
+                                    @Override
+                                    public Object resolveParameter(ParameterContext parameterContext,
+                                            ExtensionContext extensionContext) {
+                                        return parameter;
+                                    }
+                                });
+                            }
+                        };
+                    }
+                }
+            }
+        """
     }
 }

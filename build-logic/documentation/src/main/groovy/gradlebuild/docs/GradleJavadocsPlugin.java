@@ -24,7 +24,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -69,47 +68,27 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
 
             Javadocs javadocs = extension.getJavadocs();
 
-            // TODO: This should be part of Javadoc task
-            task.getInputs().file(javadocs.getJavadocCss())
-                .withPropertyName("stylesheetFile")
-                .withPathSensitivity(PathSensitivity.NAME_ONLY);
-
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
             options.setEncoding("utf-8");
             options.setDocEncoding("utf-8");
             options.setCharSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setFooter("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">" +
+            options.setHeader("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-light.min.css\">" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
+                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js\"></script>" +
                 "<script>hljs.highlightAll();</script>" +
-                "<script type=\"text/javascript\">" +
-                "const btn = document.querySelector('.theme-toggle');" +
-                "const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');" +
-                "const currentTheme = localStorage.getItem('theme');" +
-                "if (currentTheme == 'dark') {" +
-                "    document.body.classList.toggle('dark-theme');" +
-                "} else if (currentTheme == 'light') {" +
-                "    document.body.classList.toggle('light-theme');" +
-                "}" +
-                "btn.addEventListener('click', function () {" +
-                "   if (prefersDarkScheme.matches) {" +
-                "        document.body.classList.toggle('light-theme');" +
-                "        var theme = document.body.classList.contains('light-theme')? 'light' : 'dark';" +
-                "    } else {" +
-                "        document.body.classList.toggle('dark-theme');" +
-                "        var theme = document.body.classList.contains('dark-theme')? 'dark' : 'light';" +
-                "    }" +
-                "    localStorage.setItem('theme', theme);" +
-                "});</script>"
+                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans\" rel=\"stylesheet\">" +
+                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-serif\" rel=\"stylesheet\">" +
+                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans-mono\" rel=\"stylesheet\">"
             );
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
             // TODO: This breaks the provider
-            options.addStringOption("stylesheetfile", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
+            options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             // TODO: This breaks the provider
@@ -130,7 +109,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         });
 
         extension.javadocs(javadocs -> {
-            javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc.css"));
+            javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc-dark-theme.css"));
 
             // TODO: destinationDirectory should be part of Javadoc
             javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));

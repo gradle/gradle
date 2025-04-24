@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.repositories.layout;
 
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;

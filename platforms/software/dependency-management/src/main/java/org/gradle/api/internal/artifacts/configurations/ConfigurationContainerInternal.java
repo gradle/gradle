@@ -17,7 +17,10 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Project.class)
 public interface ConfigurationContainerInternal extends RoleBasedConfigurationContainerInternal, ConfigurationsProvider {
     @Override
     ConfigurationInternal getByName(String name) throws UnknownConfigurationException;

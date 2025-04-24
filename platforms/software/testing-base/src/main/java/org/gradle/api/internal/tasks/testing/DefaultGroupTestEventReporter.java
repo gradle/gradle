@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.internal.id.IdGenerator;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements GroupTestEventReporter {
     private final IdGenerator<?> idGenerator;
 
@@ -39,7 +39,7 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
         return new DefaultTestEventReporter(listener,
-            new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), name, name, null, displayName), testDescriptor),
+            new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), testDescriptor.getClassName(), name, testDescriptor.getClassDisplayName(), displayName), testDescriptor),
             new TestResultState(testResultState)
         );
     }
@@ -49,7 +49,7 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
         return new DefaultGroupTestEventReporter(
             listener,
             idGenerator,
-            new DecoratingTestDescriptor(new DefaultTestSuiteDescriptor(idGenerator.generateId(), name), testDescriptor),
+            new DecoratingTestDescriptor(new DefaultTestClassDescriptor(idGenerator.generateId(), name), testDescriptor),
             new TestResultState(testResultState)
         );
     }

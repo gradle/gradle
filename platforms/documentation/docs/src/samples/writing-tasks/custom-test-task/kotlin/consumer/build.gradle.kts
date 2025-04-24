@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.gradle:gradle-tooling-api:8.11.1")
+    implementation("org.gradle:gradle-tooling-api:8.13")
     runtimeOnly("org.slf4j:slf4j-simple:1.7.10")
 }
 // end::use-tooling-api[]

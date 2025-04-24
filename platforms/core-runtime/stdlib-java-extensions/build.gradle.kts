@@ -13,4 +13,7 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(libs.jsr305)
+    api(libs.jspecify)
+
+    implementation(projects.buildProcessStartup)
 }

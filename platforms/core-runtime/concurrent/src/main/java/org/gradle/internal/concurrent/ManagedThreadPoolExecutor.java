@@ -16,18 +16,17 @@
 
 package org.gradle.internal.concurrent;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 public interface ManagedThreadPoolExecutor extends ManagedExecutor {
-    void setThreadFactory(@Nonnull ThreadFactory threadFactory);
+    void setThreadFactory(ThreadFactory threadFactory);
 
     ThreadFactory getThreadFactory();
 
-    void setRejectedExecutionHandler(@Nonnull RejectedExecutionHandler handler);
+    void setRejectedExecutionHandler(RejectedExecutionHandler handler);
 
     RejectedExecutionHandler getRejectedExecutionHandler();
 

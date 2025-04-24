@@ -5,7 +5,7 @@ plugins {
 description = "Kotlin DSL Provider Plugins"
 
 dependencies {
-    api(projects.baseServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
     api(projects.execution)
@@ -19,6 +19,7 @@ dependencies {
     api(libs.inject)
     api(libs.kotlinStdlib)
 
+    implementation(projects.baseServices)
     implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.fileCollections)
@@ -35,12 +36,14 @@ dependencies {
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
     implementation(projects.declarativeDslEvaluator)
+    implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslCore)
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinReflect)
@@ -52,3 +55,7 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
 }
+
+// Kotlin DSL provider plugins should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())

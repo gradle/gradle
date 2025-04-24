@@ -28,6 +28,8 @@ import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
 import org.gradle.platform.internal.CurrentBuildPlatform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -37,6 +39,7 @@ import java.util.Locale;
 public class DaemonJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DaemonJavaToolchainProvisioningService.class);
 
     private final SecureFileDownloader downloader;
     private final DefaultJdkCacheDirectory cacheDirProvider;
@@ -74,14 +77,26 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
                 ExternalResource resource = downloader.getResourceFor(uri);
-                File archiveFile = new File(downloadFolder, getFileName(uri, resource));
+                File archiveFile = new File(downloadFolder, buildFileNameWithDetails(uri, resource, spec));
                 final FileLock fileLock = cacheDirProvider.acquireWriteLock(archiveFile, "Downloading toolchain");
+                boolean archiveAlreadyExists = archiveFile.exists();
                 try {
-                    if (!archiveFile.exists()) {
+                    if (!archiveAlreadyExists) {
                         downloader.download(uri, archiveFile, resource);
                     }
                     progressLogger.progress("Unpacking toolchain archive " + archiveFile.getName());
-                    File installedToolchainFile = cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
+                    File installedToolchainFile;
+                    try {
+                        installedToolchainFile = cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
+                    } catch (Exception e) {
+                        if (archiveAlreadyExists) { // re-download and retry in case the archive is corrupted
+                            LOGGER.info("Re-downloading toolchain from URI {} because unpacking the existing archive {} failed with an exception", uri, archiveFile.getName(), e);
+                            downloader.download(uri, archiveFile, resource);
+                            installedToolchainFile = cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
+                        } else {
+                            throw e;
+                        }
+                    }
                     progressLogger.completed("Installed toolchain", false);
                     return installedToolchainFile;
                 } finally {

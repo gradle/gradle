@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -32,8 +31,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentArtifactResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,7 +48,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final ComponentArtifactResolver componentArtifactResolver;
 
     public ArtifactBackedResolvedVariant(
-        @Nullable VariantResolveMetadata.Identifier identifier,
+        VariantResolveMetadata.@Nullable Identifier identifier,
         DisplayName displayName,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
@@ -113,11 +112,11 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
         private final DisplayName variantName;
-        private final AttributeContainer variantAttributes;
+        private final ImmutableAttributes variantAttributes;
         private final ImmutableCapabilities capabilities;
         private final ResolvableArtifact artifact;
 
-        SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+        SingleArtifactSet(DisplayName variantName, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
             this.capabilities = capabilities;

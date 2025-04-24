@@ -27,8 +27,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
     @Issue("GRADLE-3456")
     def "doesn't fail when using Ivy in a plugin"() {
-
-        when:
+        given:
         buildFile << testablePluginProject()
         file('src/main/groovy/MyPlugin.groovy') << """
             import org.gradle.api.Plugin
@@ -49,28 +48,33 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
         """
         file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
 
-        then:
+        when:
         succeeds 'test', '-s'//, '-Dorg.gradle.debug=true'
+
+        then:
+        assertTestExecuted("MyPluginTest", "testCanUseProjectBuilder")
     }
 
     private static String pluginTest() {
         """
-            class MyPluginTest extends groovy.test.GroovyTestCase {
+            class MyPluginTest {
 
+                @org.junit.jupiter.api.Test
                 void testCanUseProjectBuilder() {
                     def project = ${ProjectBuilder.name}.builder().build()
                     project.plugins.apply(MyPlugin)
                     project.evaluate()
                 }
+
             }
         """
     }
 
     def "can read resources both with relative and absolute path in relocated and original path"() {
-
-        when:
+        given:
         buildFile << testablePluginProject()
-        file('src/main/groovy/MyPlugin.groovy') << '''
+
+        file('src/main/groovy/MyPlugin.groovy') << """
             import org.gradle.api.Plugin
             import org.gradle.api.Project
 
@@ -89,68 +93,73 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
                     assert Arrays.equals(original, relocated)
                 }
             }
-        '''
+        """
         file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
 
-        then:
+        when:
         succeeds 'test'
+
+        then:
+        assertTestExecuted("MyPluginTest", "testCanUseProjectBuilder")
     }
 
     @Issue("GRADLE-3525")
     def "can use newer Servlet API"() {
-        when:
+        given:
         buildFile << testablePluginProject()
-
-
         buildFile << """
             dependencies {
                 testImplementation "javax.servlet:javax.servlet-api:3.1.0"
             }
         """
 
-        file('src/test/groovy/ServletApiTest.groovy') << '''
-            import org.junit.Test
-
+        file('src/test/groovy/ServletApiTest.groovy') << """
             public class ServletApiTest {
 
-                @Test
-                public void canLoadNewerServletApi() {
+                @org.junit.jupiter.api.Test
+                void canLoadNewerServletApi() {
                     Class clazz = Class.forName("javax.servlet.AsyncContext")
                     URL source = clazz.classLoader.getResource("javax/servlet/http/HttpServletRequest.class")
                     assert source.toString().contains('servlet-api-3.1.0')
                 }
+
             }
-        '''.stripIndent()
+        """
+
+        when:
+        succeeds 'test'
 
         then:
-        succeeds 'test'
+        assertTestExecuted("ServletApiTest", "canLoadNewerServletApi")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3780")
     def "can use different JGit API"() {
-        when:
+        given:
         buildFile << testablePluginProject()
-
         buildFile << """
             dependencies {
                 testImplementation 'org.eclipse.jgit:org.eclipse.jgit:4.9.1.201712030800-r'
             }
         """
 
-        file('src/test/groovy/JGitTest.groovy') << '''
-            import org.junit.Test
-
+        file('src/test/groovy/JGitTest.groovy') << """
             class JGitTest {
-                @Test
+
+                @org.junit.jupiter.api.Test
                 void loadJGitResources() {
                     assert org.eclipse.jgit.internal.JGitText.getPackage().getImplementationVersion() == "4.9.1.201712030800-r"
                     assert org.eclipse.jgit.internal.JGitText.get() != null
                     assert org.gradle.internal.impldep.org.eclipse.jgit.internal.JGitText.get() != null
                 }
+
             }
-        '''.stripIndent()
+        """
+
+        when:
+        succeeds 'test'
 
         then:
-        succeeds 'test'
+        assertTestExecuted("JGitTest", "loadJGitResources")
     }
 }

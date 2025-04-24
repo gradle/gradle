@@ -77,19 +77,22 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 
         resolver("${prefix}TestDistributionRuntimeClasspath", "gradle-bin-installation", distributionRuntimeOnly)
         resolver("${prefix}TestFullDistributionRuntimeClasspath", "gradle-bin-installation")
-        resolver("${prefix}TestLocalRepositoryPath", "gradle-local-repository", localRepository)
         resolver("${prefix}TestNormalizedDistributionPath", "gradle-normalized-distribution-zip", normalizedDistribution)
         resolver("${prefix}TestBinDistributionPath", "gradle-bin-distribution-zip", binDistribution)
         resolver("${prefix}TestAllDistributionPath", "gradle-all-distribution-zip", allDistribution)
         resolver("${prefix}TestDocsDistributionPath", "gradle-docs-distribution-zip", docsDistribution)
         resolver("${prefix}TestSrcDistributionPath", "gradle-src-distribution-zip", srcDistribution)
         resolver("${prefix}TestAgentsClasspath", LibraryElements.JAR)
+
+        localRepositoryResolver("${prefix}TestLocalRepositoryPath", localRepository)
     }
 
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
             "${prefix}TestImplementation"(project)
+            "${prefix}TestImplementation"(project.the<ExternalModulesExtension>().junitJupiter)
+            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junitPlatform)
             "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
@@ -253,6 +256,19 @@ fun Project.resolver(name: String, libraryElements: String, extends: Configurati
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(libraryElements))
+    }
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    isVisible = false
+    if (extends != null) {
+        extendsFrom(extends)
+    }
+}
+
+private
+fun Project.localRepositoryResolver(name: String, extends: Configuration? = null) = configurations.create(name) {
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("gradle-local-repository"))
     }
     isCanBeResolved = true
     isCanBeConsumed = false

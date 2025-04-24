@@ -142,7 +142,7 @@ class TestCountLoggerTest extends Specification {
     }
 
     private suite(boolean root = false) {
-        [getParent: {root ? null : [:] as TestDescriptor}] as TestDescriptor
+        [getParent: {root ? null : [:] as TestDescriptor}, getClassName: {root ? null : ''}] as TestDescriptor
     }
 
     private result(boolean failed = false) {

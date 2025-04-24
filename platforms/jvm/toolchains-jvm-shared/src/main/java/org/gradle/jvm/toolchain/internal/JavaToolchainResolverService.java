@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain.internal;
 
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainRequest;
 
@@ -29,6 +31,7 @@ import java.util.Optional;
  * @since 8.13
  */
 @Incubating
+@ServiceScope(Scope.Project.class)
 public interface JavaToolchainResolverService {
 
     /**

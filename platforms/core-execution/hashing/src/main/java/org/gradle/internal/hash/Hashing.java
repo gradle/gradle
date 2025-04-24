@@ -16,7 +16,6 @@
 
 package org.gradle.internal.hash;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 
@@ -26,6 +25,7 @@ import java.io.InputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -346,7 +346,7 @@ public class Hashing {
 
         @Override
         public void putString(CharSequence value) {
-            putBytes(value.toString().getBytes(Charsets.UTF_8));
+            putBytes(value.toString().getBytes(StandardCharsets.UTF_8));
         }
 
         @Override

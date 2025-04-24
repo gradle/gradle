@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.jvm
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -27,7 +28,6 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
@@ -65,7 +65,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        e.cause.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}."
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -83,7 +83,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        e.cause.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}."
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -101,7 +101,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        e.cause.cause.message == "Gradle requires JVM 8 or later to run. Your build is currently configured to use JVM ${jdk.javaVersionMajor}."
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -124,7 +124,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
 
         then:
         assertDaemonUsedJvm(jdk)
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
     @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
@@ -141,7 +141,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
 
         then:
         assertDaemonUsedJvm(jdk)
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
         result.output.contains("A problem occurred evaluating root project")
         result.output.contains("> Boom")
     }
@@ -159,7 +159,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
 
         then:
         assertDaemonUsedJvm(jdk)
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
     }
 
     @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
@@ -175,7 +175,7 @@ abstract class GradleRunnerExplicitDaemonJvmIntegrationTest extends BaseGradleRu
         def result = newRunner(jdk, "help").run()
 
         then:
-        result.output.contains("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version")
+        result.output.contains(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(gradleVersion))
         result.output.contains("A problem occurred evaluating root project")
         result.output.contains("> Boom")
         assertDaemonUsedJvm(jdk)

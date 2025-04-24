@@ -17,12 +17,12 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * <p>
  * All the available converters are expected to support disjoint set of {@link Node node types}.
  */
-@NonNullApi
+@NullMarked
 @ThreadSafe
 @ServiceScope(Scope.UserHome.class)
 public class ToPlannedNodeConverterRegistry {

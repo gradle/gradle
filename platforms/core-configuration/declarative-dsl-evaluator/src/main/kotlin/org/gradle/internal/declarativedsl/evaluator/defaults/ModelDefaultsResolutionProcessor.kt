@@ -78,7 +78,7 @@ fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigur
         is ObjectOrigin.ImplicitThisReceiver -> findSoftwareType(objectOrigin.resolvedTo)
         is ObjectOrigin.AccessAndConfigureReceiver ->
             if (isSoftwareType(objectOrigin)) objectOrigin else findSoftwareType(objectOrigin.receiver)
-
+        is ObjectOrigin.NewObjectFromMemberFunction -> findSoftwareType(objectOrigin.receiver)
         is ObjectOrigin.TopLevelReceiver -> null
         else -> null
     }
@@ -102,7 +102,7 @@ fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
 internal
 fun isDefaultsCall(parent: ObjectOrigin.ReceiverOrigin) = parent is ObjectOrigin.AccessAndConfigureReceiver &&
     isTopLevelReceiver(parent.receiver) &&
-    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == DefaultsTopLevelReceiver::defaults.name
+    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == DEFAULTS_BLOCK_NAME
 
 
 /**
