@@ -16,18 +16,13 @@
 
 package org.gradle.api
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can mutate containers inside Project hooks"() {
         createDirs("nested")
-        settingsFile << """
+        settingsFile """
             include 'nested'
         """
-        buildFile << """
+        buildFile """
             project(':nested').afterEvaluate {
                 testContainer.create("afterEvaluate")
             }
@@ -37,9 +32,11 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
             }
 
             task verify {
+                def afterEvaluateValue = provider { testContainer.findByName("afterEvaluate") != null }
+                def beforeEvaluateValue = provider { testContainer.findByName("beforeEvaluate") != null }
                 doLast {
-                    assert testContainer.findByName("afterEvaluate") != null
-                    assert testContainer.findByName("beforeEvaluate") != null
+                    assert afterEvaluateValue.get()
+                    assert beforeEvaluateValue.get()
                 }
             }
         """
@@ -48,10 +45,9 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
         succeeds "verify"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can mutate containers inside Gradle hooks"() {
         createDirs("nested")
-        settingsFile << """
+        settingsFile """
             include 'nested'
             gradle.projectsLoaded {
                 it.rootProject {
@@ -59,7 +55,7 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
                 }
             }
         """
-        buildFile << """
+        buildFile """
             gradle.beforeProject {
                 if (it.name == 'nested') {
                     testContainer.create("beforeProject")
@@ -77,11 +73,15 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
             }
 
             task verify {
+                def beforeProjectValue = provider { testContainer.findByName("beforeProject") != null }
+                def afterProjectValue = provider { testContainer.findByName("afterProject") != null }
+                def projectLoadedValue = provider { testContainer.findByName("projectsLoaded") != null }
+                def projectsEvaluatedValue = provider { testContainer.findByName("projectsEvaluated") != null }
                 doLast {
-                    assert testContainer.findByName("beforeProject") != null
-                    assert testContainer.findByName("afterProject") != null
-                    assert testContainer.findByName("projectsLoaded") != null
-                    assert testContainer.findByName("projectsEvaluated") != null
+                    assert beforeProjectValue.get()
+                    assert afterProjectValue.get()
+                    assert projectLoadedValue.get()
+                    assert projectsEvaluatedValue.get()
                 }
             }
         """
