@@ -483,7 +483,7 @@ plugins {
 =====
 ====
 
-TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins. 
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
 If you are already applying one of those, no further action is needed.
 
 [[changes_8.14]]
@@ -525,6 +525,12 @@ Since the previous version was 3.0.22, this includes changes for https://groovy-
 ==== Upgrade to JaCoCo 0.8.13
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.13].
+
+==== The `JavaExec` task now defaults to the toolchain configured on the `java` extension
+
+Previously, the `JavaExec` task would default to use the Java version of the current Gradle process.
+Now, it will default to the toolchain set in the `java` extension whenever the `java-base` plugin has been applied.
+As always, this default can be overridden in the `JavaExec` task configuration to another toolchain as necessary.
 
 === Deprecations
 

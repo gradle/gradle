@@ -48,11 +48,13 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
@@ -154,6 +156,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         configureBuildNeeded(project);
         configureBuildDependents(project);
         configureArchiveDefaults(project);
+        configureJavaExecTasks(project);
     }
 
     private DefaultJavaPluginExtension addExtensions(final Project project) {
@@ -385,6 +388,14 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
             TestExecutableUtils.getExecutableToolchainSpec(test, propertyFactory));
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
+    }
+
+    private void configureJavaExecTasks(Project project) {
+        project.getTasks().withType(JavaExec.class).configureEach(javaExec -> {
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
+                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(javaExec, propertyFactory));
+            javaExec.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
+        });
     }
 
     private <T> Provider<T> getToolchainTool(
