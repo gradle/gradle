@@ -49,18 +49,20 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
         StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
 
-        plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
-            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
-            String invocation = gradle
-                .getStartParameter()
-                .getTaskRequests()
-                .stream()
-                .map(TaskExecutionRequest::getArgs)
-                .flatMap(List::stream)
-                .collect(Collectors.joining(" "));
+        if (gradle.isRootBuild()) {
+            plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
+                DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+                String invocation = gradle
+                    .getStartParameter()
+                    .getTaskRequests()
+                    .stream()
+                    .map(TaskExecutionRequest::getArgs)
+                    .flatMap(List::stream)
+                    .collect(Collectors.joining(" "));
 
-            renderer.renderTo(new RootNode(entryNodes, invocation), output);
-        });
+                renderer.renderTo(new RootNode(entryNodes, invocation), output);
+            });
+        }
         return ExecutionResult.succeeded();
     }
 
@@ -90,7 +92,7 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
     private static Stream<TaskInfo> extractTaskNodes(Collection<Node> collection, DependencyType type) {
         return collection.stream()
-            .filter(node -> node instanceof TaskNode && !(node.isDoNotIncludeInPlan() && !node.isExecuted()))
+            .filter(node -> node instanceof TaskNode && !node.isDoNotIncludeInPlan())
             .map(taskNode -> new DefaultTaskInfo((TaskNode) taskNode, type));
     }
 

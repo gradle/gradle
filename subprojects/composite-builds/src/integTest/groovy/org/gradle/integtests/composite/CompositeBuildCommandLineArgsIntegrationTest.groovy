@@ -111,7 +111,6 @@ includeBuild '${buildB.toURI()}'
         assertTaskExecuted(":buildB", ":jar")
     }
 
-    // Included build tasks are incorrect executed with `--dry-run`. See gradle/composite-builds#113
     def "does not execute task actions when dry run specified on composite build"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -121,8 +120,10 @@ includeBuild '${buildB.toURI()}'
 
         then:
         skipped(
+            ":buildB:compileJava", ":buildB:processResources", ":buildB:classes", ":buildB:jar",
             ":compileJava", ":processResources", ":classes", ":jar", ":assemble",
-            ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":check", ":build")
+            ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":check", ":build"
+        )
     }
 
     void skipped(String... taskNames) {
