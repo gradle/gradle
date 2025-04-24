@@ -268,6 +268,24 @@ The `outputFile` property in the `WriteProperties` task has been removed in Grad
 
 This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
 
+==== Removal of `Project#exec`, `Project#javaexec`, and Script-Level Counterparts
+
+The following helper methods for launching external processes were <<#deprecated_project_exec,deprecated in Gradle 8.11>> and have now been removed in Gradle 9.0:
+
+* `org.gradle.apiProject#exec(Closure)`
+* `org.gradle.apiProject#exec(Action)`
+* `org.gradle.apiProject#javaexec(Closure)`
+* `org.gradle.apiProject#javaexec(Action)`
+* `org.gradle.api.Script#exec(Closure)`
+* `org.gradle.api.Script#exec(Action)`
+* `org.gradle.api.Script#javaexec(Closure)`
+* `org.gradle.api.Script#javaexec(Action)`
+* `org.gradle.kotlin.dsl.InitScriptApi#exec(Action)`
+* `org.gradle.kotlin.dsl.InitScriptApi#javaexec(Action)`
+* `org.gradle.kotlin.dsl.KotlinScript#exec(Action)`
+* `org.gradle.kotlin.dsl.KotlinScript#javaexec(Action)`
+* `org.gradle.kotlin.dsl.SettingsScriptApi#exec(Action)`
+* `org.gradle.kotlin.dsl.SettingsScriptApi#javaexec(Action)`
 
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
@@ -1125,10 +1143,7 @@ Potential migrations include using `Object.equals(Object)` directly, or comparin
 [[deprecated_project_exec]]
 ==== Deprecated `Project#exec` and `Project#javaexec`
 
-The link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
-link:{javadocPath}/org/gradle/api/Project.html#exec(org.gradle.api.Action)[Project#exec(Action)],
-link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Project#javaexec(Closure)],
-link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] methods have been deprecated and will be removed in Gradle 9.0.
+The `Project#exec(Closure)`, `Project#exec(Action)`, `Project#javaexec(Closure)`, `Project#javaexec(Action)` methods have been deprecated and will be removed in Gradle 9.0.
 
 These methods are scheduled for removal as part of the ongoing effort to make writing configuration-cache-compatible code easier.
 There is no way to use these methods without breaking configuration cache requirements so it is recommended to migrate to a compatible alternative.

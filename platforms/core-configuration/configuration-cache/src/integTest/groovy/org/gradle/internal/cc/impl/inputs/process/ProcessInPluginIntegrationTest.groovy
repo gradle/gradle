@@ -65,13 +65,9 @@ class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
 
         where:
         snippetsFactory             | file
-        exec().groovy               | "buildSrc/src/main/groovy/test-convention-plugin.gradle"
-        javaexec().groovy           | "buildSrc/src/main/groovy/test-convention-plugin.gradle"
         processBuilder().groovy     | "buildSrc/src/main/groovy/test-convention-plugin.gradle"
         stringArrayExecute().groovy | "buildSrc/src/main/groovy/test-convention-plugin.gradle"
         runtimeExec().groovy        | "buildSrc/src/main/groovy/test-convention-plugin.gradle"
-        exec().kotlin               | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts"
-        javaexec().kotlin           | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts"
         processBuilder().kotlin     | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts"
         stringArrayExecute().kotlin | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts"
         runtimeExec().kotlin        | "buildSrc/src/main/kotlin/test-convention-plugin.gradle.kts"
@@ -115,8 +111,6 @@ class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
 
         where:
         snippetsFactory                      | _
-        exec("project").java                 | _
-        javaexec("project").java             | _
         exec("getExecOperations()").java     | _
         javaexec("getExecOperations()").java | _
         processBuilder().java                | _

@@ -50,10 +50,74 @@
         },
         {
             "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.exec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.getProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.javaexec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.javaexec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.exec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.exec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.javaexec(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.Script",
+            "member": "Method org.gradle.api.Script.javaexec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -2426,6 +2490,84 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.exec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getProcessOperations()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.javaexec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Class org.gradle.kotlin.dsl.KotlinBuildScript",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinScript.exec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinScript.javaexec(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.DefaultKotlinScript.javaexec(org.gradle.api.Action)"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerScope",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerScope.invoke(java.lang.String)",
             "acceptation": "Removed deprecated method",
@@ -2458,11 +2600,46 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.exec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getProcessOperations()",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.javaexec(kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.TaskContainerScope",
             "member": "Method org.gradle.kotlin.dsl.TaskContainerScope.invoke(java.lang.String)",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "member": "Class org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(groovy.lang.Closure)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.exec(org.gradle.api.Action)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(groovy.lang.Closure)",
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.javaexec(org.gradle.api.Action)"
             ]
         },
         {
