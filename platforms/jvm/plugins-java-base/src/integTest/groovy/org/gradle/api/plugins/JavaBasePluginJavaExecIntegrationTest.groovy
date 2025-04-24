@@ -19,8 +19,9 @@ package org.gradle.api.plugins
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 
-class JavaBaseJavaExecIntegrationTest extends AbstractIntegrationSpec {
+class JavaBasePluginJavaExecIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     def setup() {
         settingsFile << """
             rootProject.name = 'java-base-javaexec'
@@ -70,7 +71,7 @@ class JavaBaseJavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = run("javaVersion")
+        def result = withInstallations(differentVersionMetadata).run("javaVersion")
 
         then:
         def javaVersion = javaVersionFrom(result.groupedOutput.task(":javaVersion").output)
@@ -113,7 +114,7 @@ class JavaBaseJavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = run("javaVersion")
+        def result = withInstallations(differentVersionMetadata).run("javaVersion")
 
         then:
         def javaVersion = javaVersionFrom(result.groupedOutput.task(":javaVersion").output)
