@@ -34,15 +34,6 @@ public interface ProjectDependency extends ModuleDependency {
     String getPath();
 
     /**
-     * Returns the project associated with this project dependency.
-     *
-     * @deprecated This method will be removed in Gradle 9.0. Accessing the mutable
-     * state of other projects should be avoided.
-     */
-    @Deprecated
-    Project getDependencyProject();
-
-    /**
      * {@inheritDoc}
      */
     @Override

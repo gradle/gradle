@@ -17,9 +17,11 @@
 package org.gradle.api.testing.toolchains.internal;
 
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.Test;
+
+import javax.inject.Inject;
 
 /**
  * A {@link JvmTestToolchain} that uses JUnit 4 with legacy behavior for the default test suite.  Specifically,
@@ -29,8 +31,11 @@ import org.gradle.api.tasks.testing.Test;
  * @since 8.5
  */
 abstract public class LegacyJUnit4TestToolchain implements JvmTestToolchain<JvmTestToolchainParameters.None> {
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
+        return getObjectFactory().newInstance(JUnitTestFramework.class, task.getFilter(), task.getTemporaryDirFactory(), task.getDryRun());
     }
 }

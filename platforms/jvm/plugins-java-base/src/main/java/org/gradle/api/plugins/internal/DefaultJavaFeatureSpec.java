@@ -90,7 +90,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
                 .nagUser();
         }
 
-        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, true, SourceSet.isMain(sourceSet));
+        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, SourceSet.isMain(sourceSet));
         feature.withApi();
 
         if (withJavadocJar) {

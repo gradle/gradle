@@ -137,12 +137,42 @@ class IntegTestPreconditions {
     }
 
     /**
+     * A JVM that is not able to run the Gradle wrapper is available.
+     */
+    static class UnsupportedWrapperJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.unsupportedWrapperJdks.isEmpty()
+        }
+    }
+
+    /**
+     * A JVM that is not able to run a Gradle client is available.
+     */
+    static class UnsupportedClientJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.unsupportedClientJdks.isEmpty()
+        }
+    }
+
+    /**
+     * A JVM that is not able to run a Gradle worker is available.
+     */
+    static class UnsupportedWorkerJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.unsupportedWorkerJdks.isEmpty()
+        }
+    }
+
+    /**
      * A JVM that is not able to run the Gradle daemon is available.
      */
     static class UnsupportedDaemonJavaHomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.unsupportedDaemonJdk != null
+            return !AvailableJavaHomes.unsupportedDaemonJdks.isEmpty()
         }
     }
 
@@ -191,33 +221,12 @@ class IntegTestPreconditions {
         }
     }
 
-    static class MoreThanOneJavacAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.availableJdksWithJavac.size() >= 2
-        }
-    }
-
     static class MoreThanOneJava8HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.getAvailableJdks(
                 JavaVersion.toVersion(8)
             ).size() > 1
-        }
-    }
-
-    static class HighestSupportedLTSJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getHighestSupportedLTS()
-        }
-    }
-
-    static class LowestSupportedLTSJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getLowestSupportedLTS()
         }
     }
 

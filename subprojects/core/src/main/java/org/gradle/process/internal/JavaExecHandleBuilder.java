@@ -464,14 +464,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
-    /**
-     * Kept just for binary compatibility
-     */
-    @Deprecated
-    public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        return this;
-    }
-
     public void copyJavaForkOptions(JavaForkOptions source) {
         source.copyTo(javaOptions);
     }

@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.containsString
+
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -116,7 +118,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         buildFile << """
             configurations {
                 deps
-                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE) {
+                migratingLocked("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE) {
                     addResolutionAlternatives("anotherConf")
                     extendsFrom(deps)
                 }
@@ -298,7 +300,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
     }
 
-    def "using a reserved configuration name emits a deprecation warning if JavaBasePlugin applied"() {
+    def "using a reserved configuration (#conf) fails if JavaBasePlugin applied"() {
         given:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
             import org.gradle.api.Plugin
@@ -311,9 +313,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                     project.pluginManager.apply(JvmEcosystemPlugin.class)
 
                     project.sourceSets.create('custom')
-                    project.configurations.create('customCompileOnly')
-
-                    project.configurations.create('implementation')
+                    project.configurations.create('$conf')
                 }
             }
         """
@@ -333,14 +333,27 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The configuration customCompileOnly was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name customCompileOnly. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration customCompileOnly to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Create source set custom prior to creating or accessing the configurations associated with it. For more information, please refer to https://docs.gradle.org/current/userguide/building_java_projects.html#sec:implicit_sourceset_configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("The configuration implementation was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name implementation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration implementation to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Create source set main prior to creating or accessing the configurations associated with it. For more information, please refer to https://docs.gradle.org/current/userguide/building_java_projects.html#sec:implicit_sourceset_configurations in the Gradle documentation.")
-        succeeds 'help'
+        when:
+        executer.expectDocumentedDeprecationWarning("The configuration $conf was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name $conf. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        fails 'help'
+
+        then:
+        failure.assertHasDescription("An exception occurred applying plugin request [id: 'java']")
+        failureHasCause("""Unexpected configuration usage
+  When creating configurations during sourceSet $sourceSet setup, Gradle found that configuration $conf already exists with permitted usage(s):
+  \tConsumable - this configuration can be selected by another project as a dependency
+  \tResolvable - this configuration can be resolved by this project to a set of files
+  \tDeclarable - this configuration can have dependencies added to it
+  Yet Gradle expected it to exist with the usage(s):
+  \tDeclarable - this configuration can have dependencies added to it""")
+
+        where:
+        conf                | sourceSet
+        'customCompileOnly' | 'custom'
+        'implementation'    | 'main'
     }
 
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     @Issue("https://github.com/gradle/gradle/issues/26461")
     def "when anticipating configurations to be created from sourcesets, their usage cannot be modified (creation = #description)"() {
         given:
@@ -399,31 +412,28 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         expect:
         executer.expectDocumentedDeprecationWarning("The configuration additionalRuntimeClasspath was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with the name additionalRuntimeClasspath. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Gradle will mutate the usage of configuration additionalRuntimeClasspath to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names has been deprecated. This will fail with an error in Gradle 9.0. Create source set additional prior to creating or accessing the configurations associated with it. For more information, please refer to https://docs.gradle.org/current/userguide/building_java_projects.html#sec:implicit_sourceset_configurations in the Gradle documentation.")
-        if (canMutate) {
-            succeeds "resolve"
-        } else {
-            fails "resolve"
-            failure.assertHasErrorOutput("Gradle cannot mutate the usage of configuration 'additionalRuntimeClasspath' because it is locked.")
-        }
+
+        fails "resolve"
+        failure.assertHasDescription("A problem occurred evaluating project ':producer'.")
+        failure.assertThatCause(containsString("When creating configurations during sourceSet additional setup, Gradle found that configuration additionalRuntimeClasspath already exists with permitted usage(s):"))
 
         where:
-        confCreationCode | createdRole | canMutate | description
+        confCreationCode | createdRole | description
         """
             configurations {
                 additionalRuntimeClasspath
             }
-        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with implicit allowed usage"
+        """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with implicit allowed usage"
         """
             configurations {
                 additionalRuntimeClasspath {
                     canBeConsumed = true
                 }
             }
-        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with explicit set consumed = true"
-        "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | false | "role-based configuration"
-        "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | false | "internal locked role-based configuration"
-        "configurations.maybeCreateConsumableLocked('additionalRuntimeClasspath')"      | ConfigurationRoles.CONSUMABLE | false | "internal locked role-based configuration, if it doesn't already exist"
+        """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with explicit set consumed = true"
+        "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | "role-based configuration"
+        "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration"
+        "configurations.maybeCreateConsumableLocked('additionalRuntimeClasspath')"      | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration, if it doesn't already exist"
     }
 
     def "redundantly changing usage on a legacy configuration does not warn even if flag is set"() {
@@ -708,7 +718,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 testConf "org:foo:1.0"
             }
         """
-
         expect:
         executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds 'help'

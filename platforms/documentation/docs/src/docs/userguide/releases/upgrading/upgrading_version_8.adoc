@@ -65,16 +65,16 @@ or better yet, upgrade to the latest version of the link:https://docs.gradle.com
 
 For Gradle 8.x, the minimum supported version was 3.0.
 
-==== Upgrade to Kotlin 2.1.20
+==== Upgrade to Kotlin 2.1.21-RC
 
-Gradle now embeds link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.20[Kotlin 2.1.20], upgrading from the previously embedded version 2.0.21.
+Gradle now embeds link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC[Kotlin 2.1.21-RC], upgrading from the previously embedded version 2.0.21.
 
 This upgrade includes several important changes:
 
 * Support for Kotlin language versions 1.4 and 1.5 has been removed.
 * Kotlin language version 1.7 is now deprecated.
 
-For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.20[Kotlin release notes].
+For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.21-RC[Kotlin release notes].
 
 ==== Kotlin DSL now uses the Kotlin language version 2.1
 
@@ -169,6 +169,14 @@ The `org.gradle.cache.cleanup` property, which previously allowed users to disab
 
 This property no longer has any effect.
 To control cache cleanup behavior in Gradle 9.0 and later, use an <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,init script>> instead.
+
+==== Removal of `buildCache.local.removeUnusedEntriesAfterDays` property
+
+In Gradle 9.0, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
+
+This property was previously used to configure the retention period for the local build cache.
+
+To configure retention for unused entries in the local build cache, use the <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,Gradle User Home cache cleanup settings>> instead.
 
 ==== Removal of deprecated `org.gradle.util` members
 
@@ -273,6 +281,13 @@ In Gradle 9.0, referencing tasks or other domain objects using the `"name"()` sy
 
 Instead of using `"name"()` to reference a task or domain object, use `named("name")` or one of the other supported notations.
 
+==== Removal of `outputFile` property in `WriteProperties` task
+
+The `outputFile` property in the `WriteProperties` task has been removed in Gradle 9.0.
+
+This property was deprecated in Gradle 8.0 and was replaced with the `destinationFile` property.
+
+
 ==== Plugins written with the Kotlin DSL require Gradle >= 8.11 by default
 
 When building and publishing plugins using the Kotlin DSL on Gradle 9.x, those plugins will only be usable on Gradle 8.11 or newer.
@@ -303,6 +318,14 @@ tasks.withType<KotlinCompile>().configureEach {
 Refer to Gradle’s link:compatibility.html#kotlin[compatibility matrix] for details on which Kotlin version is embedded in each Gradle release.
 
 NOTE: Plugins written using the Kotlin DSL and published with Gradle 7.x or 8.x remain compatible with Gradle 6.8 and newer.
+
+==== Stale outputs outside the build directory are no longer deleted
+
+In previous versions of Gradle, class files located outside the build directory were deleted when considered stale. This was a special case for class files registered as outputs of a source set.
+
+Because this setup is uncommon and forced Gradle to eagerly realize all compile related tasks in every build, the behavior has been removed in Gradle 9.0.
+
+Gradle will continue to clean up stale outputs inside the build directory as needed.
 
 ==== Scala plugins no longer create unresolvable configurations
 
@@ -448,6 +471,39 @@ When test sources are present and no filters are applied, the `test` task will n
 This is to help prevent misconfigurations where the tests are written for one test framework but the test task is mistakenly configured to use another test framework.
 
 If filters are applied, the outcome depends on the `failOnNoMatchingTests` property.
+
+[[validate_plugins_without_java_toolchain_90]]
+==== `ValidatePlugins` task now requires Java Toolchains
+
+In Gradle 9.0, using the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] task without applying the <<toolchains.adoc#toolchains,Java Toolchains>> plugin will result in an error.
+
+To fix this, explicitly apply the `jvm-toolchains` plugin:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("jvm-toolchains")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'jvm-toolchains'
+}
+----
+=====
+====
+
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins. 
+If you are already applying one of those, no further action is needed.
 
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
@@ -997,7 +1053,7 @@ Calling the following methods on link:{javadocPath}/org/gradle/api/artifacts/Con
 [[deprecate_get_dependency_project]]
 ==== Deprecated `ProjectDependency#getDependencyProject()`
 
-The link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getDependencyProject()[`ProjectDependency#getDependencyProject()`] method has been deprecated and will be removed in Gradle 9.0.
+The `link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html[ProjectDependency]#getDependencyProject()` method has been deprecated and will be removed in Gradle 9.0.
 
 Accessing the mutable project instance of other projects should be avoided.
 
@@ -1078,7 +1134,7 @@ tasks.withType(JavaCompile) {
 [[deprecated_content_equals]]
 ==== Deprecated `Dependency#contentEquals(Dependency)`
 
-The link:{javadocPath}/org/gradle/api/artifacts/Dependency.html#contentEquals(org.gradle.api.artifacts.Dependency)[Dependency#contentEquals(Dependency)] method has been deprecated and will be removed in Gradle 9.0.
+The `Dependency#contentEquals(Dependency)` method has been deprecated and will be removed in Gradle 9.0.
 
 The method was originally intended to compare dependencies based on their actual target component, regardless of whether they were of different dependency type.
 The existing method does not behave as specified by its Javadoc, and we do not plan to introduce a replacement that does.
@@ -3627,35 +3683,9 @@ Please only use `versions` or `plugins` from dependency version catalogs in the 
 [[validate_plugins_without_java_toolchain]]
 ==== Using `ValidatePlugins` task without a Java Toolchain
 
-Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:toolchains.html[Java Toolchains] plugin is deprecated, and will become an error in Gradle 9.0.
+Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[`ValidatePlugins`] without applying the link:toolchains.html[Java Toolchains] plugin
+—or any other Java plugin that applies the Java Toolchains plugin—was deprecated in Gradle 8.1 and is now an error in Gradle 9.0.
 
-To avoid this warning, please apply the plugin to your project:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("jvm-toolchains")
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id 'jvm-toolchains'
-}
-----
-=====
-====
-
-The Java Toolchains plugin is applied automatically by the <<java_library_plugin#java_library_plugin,Java library plugin>> or other JVM plugins.
-So you can apply any of them to your project and it will fix the warning.
 
 [[org_gradle_util_reports_deprecations_80]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation

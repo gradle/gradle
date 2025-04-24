@@ -35,7 +35,7 @@ class TypeSafeProjectAccessorsCompositeBuildsIntegrationTest extends AbstractTyp
         buildFile << """
             def projectDependency = projects.other
             assert projectDependency instanceof ProjectDependency
-            println("Dependency path: \\"\${projectDependency.dependencyProject.path}\\"")
+            println("Dependency path: \\"\${projectDependency.path}\\"")
         """
 
         when:

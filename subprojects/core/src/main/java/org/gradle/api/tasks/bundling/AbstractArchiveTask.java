@@ -23,22 +23,18 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
@@ -141,24 +137,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Internal("Represented by the archiveFile")
     public DirectoryProperty getDestinationDirectory() {
         return archiveDestinationDirectory;
-    }
-
-    /**
-     * The path where the archive is constructed. The path is simply the {@code destinationDirectory} plus the {@code archiveFileName}.
-     *
-     * @return a File object with the path to the archive
-     * @deprecated Use {@link #getArchiveFile()}
-     */
-    @Deprecated
-    @ReplacedBy("archiveFile")
-    public File getArchivePath() {
-        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first. https://github.com/gradle/gradle/issues/16783
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "archivePath").replaceWith("archiveFile")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        return getArchiveFile().get().getAsFile();
     }
 
     /**

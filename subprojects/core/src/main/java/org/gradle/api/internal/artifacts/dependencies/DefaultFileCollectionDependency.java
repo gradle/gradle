@@ -15,18 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultFileCollectionDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
 
     private @Nullable String reason;
-    private final ComponentIdentifier targetComponentId;
+    private final @Nullable ComponentIdentifier targetComponentId;
     private final FileCollectionInternal source;
 
     public DefaultFileCollectionDependency(FileCollectionInternal source) {
@@ -48,23 +46,6 @@ public class DefaultFileCollectionDependency implements SelfResolvingDependencyI
     @Override
     public void because(@Nullable String reason) {
         this.reason = reason;
-    }
-
-    @Override
-    @Deprecated
-    public boolean contentEquals(Dependency dependency) {
-
-        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
-            .withAdvice("Use Object.equals(Object) instead")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_content_equals")
-            .nagUser();
-
-        if (!(dependency instanceof DefaultFileCollectionDependency)) {
-            return false;
-        }
-        DefaultFileCollectionDependency selfResolvingDependency = (DefaultFileCollectionDependency) dependency;
-        return source.equals(selfResolvingDependency.source);
     }
 
     @Override

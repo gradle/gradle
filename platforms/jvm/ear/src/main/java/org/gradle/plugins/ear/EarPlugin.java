@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -172,13 +171,13 @@ public abstract class EarPlugin implements Plugin<Project> {
 
         // Once these configurations become non-consumable, we can use
         // 'jvmPluginServices.configureAsRuntimeClasspath()' to configure the configurations.
-        Configuration deployConfiguration = configurations.migratingLocked(DEPLOY_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+        Configuration deployConfiguration = configurations.resolvableDependencyScopeLocked(DEPLOY_CONFIGURATION_NAME);
         deployConfiguration.setVisible(false);
         deployConfiguration.setTransitive(false);
         deployConfiguration.setDescription("Classpath for deployable modules, not transitive.");
         jvmPluginServices.configureAttributes(deployConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());
 
-        Configuration earlibConfiguration = configurations.migratingLocked(EARLIB_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+        Configuration earlibConfiguration = configurations.resolvableDependencyScopeLocked(EARLIB_CONFIGURATION_NAME);
         earlibConfiguration.setVisible(false);
         earlibConfiguration.setDescription("Classpath for module dependencies.");
         jvmPluginServices.configureAttributes(earlibConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());

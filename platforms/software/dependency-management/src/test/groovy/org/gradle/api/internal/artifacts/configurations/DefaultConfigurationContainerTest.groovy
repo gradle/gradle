@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
@@ -46,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Specification
 
 class DefaultConfigurationContainerTest extends Specification {
@@ -101,7 +101,8 @@ class DefaultConfigurationContainerTest extends Specification {
         Mock(AttributesSchemaInternal),
         rootComponentMetadataBuilderFactory,
         configurationFactory,
-        Mock(ResolutionStrategyFactory)
+        Mock(ResolutionStrategyFactory),
+        TestUtil.problemsService()
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {
@@ -289,10 +290,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         role << [
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
-            ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE,
-            ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-            ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE,
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
         ]
     }
 
@@ -380,24 +378,40 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def "cannot maybeCreate invalid role (#role)"() {
         when:
-        configurationContainer.maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest("foo", role));
+        configurationContainer.maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest("foo", role, TestUtil.problemsService()));
 
         then:
         def e = thrown(GradleException)
         e.message == "Cannot maybe create invalid role: ${role.getName()}"
 
         where:
-        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
+        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE]
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements
-    @NotYetImplemented
+    @ToBeImplemented
     def "can find all configurations even when they're registered"() {
         when:
         configurationContainer.register("foo")
         configurationContainer.create("bar")
         then:
-        configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar", "foo"]
+        configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar"] // This should include "foo" too, but it doesn't yet
+    }
+
+    def "can't #addMethod a #description to a configuration container"() {
+        when:
+        configurationContainer."$addMethod"(addMe)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Adding a $description directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container."
+
+        where:
+        description                         | addMethod     | addMe
+        "configuration"                     | "add"         | Mock(Configuration.class)
+        "configuration provider"            | "addLater"    | Mock(Provider.class)
+        "collection of configurations"      | "addAll"      | [Mock(Configuration.class), Mock(Configuration.class)]
+        "provider of configurations"        | "addAllLater" | Mock(Provider.class)
     }
 
     def verifyRole(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {

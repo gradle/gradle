@@ -11,7 +11,6 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
@@ -23,6 +22,7 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
+import org.gradle.util.Path
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -147,16 +147,16 @@ class DependencyHandlerExtensionsTest {
             events.add("added")
             dependency
         }
-        val project: Project = mock()
-        whenever(dependency.dependencyProject).thenReturn(project)
+        val projectPath: Path = Path.path(":project")
+        whenever(dependency.path).thenReturn(projectPath.path)
 
         dependencies {
 
             "configuration"(project(path = ":project", configuration = "default")) {
                 events.add("configured")
                 assertThat(
-                    dependencyProject,
-                    sameInstance(project)
+                    path,
+                    sameInstance(projectPath.path)
                 )
             }
         }

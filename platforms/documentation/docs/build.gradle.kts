@@ -73,6 +73,7 @@ dependencies {
     docsTestImplementation(project(":logging"))
     docsTestImplementation(libs.junit5Vintage)
     docsTestImplementation(libs.junit)
+    docsTestRuntimeOnly(libs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
@@ -689,6 +690,11 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*")
             // PMD doesn't support Java 23
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // Kotlin does not yet support 24 JDK target
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {

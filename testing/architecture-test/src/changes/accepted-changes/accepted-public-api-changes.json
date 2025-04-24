@@ -209,6 +209,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.Dependency",
+            "member": "Method org.gradle.api.artifacts.Dependency.contentEquals(org.gradle.api.artifacts.Dependency)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.LenientConfiguration",
             "member": "Method org.gradle.api.artifacts.LenientConfiguration.getArtifacts(org.gradle.api.specs.Spec)",
             "acceptation": "Removed deprecated method",
@@ -235,6 +243,14 @@
         {
             "type": "org.gradle.api.artifacts.LenientConfiguration",
             "member": "Method org.gradle.api.artifacts.LenientConfiguration.getFirstLevelModuleDependencies(org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ProjectDependency",
+            "member": "Method org.gradle.api.artifacts.ProjectDependency.getDependencyProject()",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
@@ -342,6 +358,30 @@
             "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Class org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Constructor org.gradle.api.artifacts.transform.VariantTransformConfigurationException(java.lang.String)",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransformConfigurationException",
+            "member": "Constructor org.gradle.api.artifacts.transform.VariantTransformConfigurationException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Deprecated type removed in Gradle 9.0",
+            "changes": [
+                "Constructor has been removed"
             ]
         },
         {
@@ -961,6 +1001,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.reporting.ConfigurableReport",
+            "member": "Method org.gradle.api.reporting.ConfigurableReport.setDestination(java.io.File)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.reporting.GenerateBuildDashboard",
             "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getCollectionCallbackActionDecorator()",
             "acceptation": "Removed deprecated method",
@@ -1241,6 +1289,38 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.getOutputFile()",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.setOutputFile(java.io.File)",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Method org.gradle.api.tasks.WriteProperties.setOutputFile(java.lang.Object)",
+            "acceptation": "remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchivePath()",
+            "acceptation": "remove deprecated property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.AbstractCompile",
             "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
             "acceptation": "Removing @Deprecated property for Gradle 9.0",
@@ -1449,6 +1529,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.TestFrameworkOptions",
+            "member": "Class org.gradle.api.tasks.testing.TestFrameworkOptions",
+            "acceptation": "abstract classes are better for injection",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getDestinationDir()",
             "acceptation": "Removed deprecated method",
@@ -1489,8 +1577,40 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "member": "Class org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "acceptation": "abstract classes are better for injection",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "member": "Class org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "acceptation": "abstract classes are better for decoration",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.caching.BuildCacheKey",
             "member": "Method org.gradle.caching.BuildCacheKey.getDisplayName()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.local.DirectoryBuildCache",
+            "member": "Method org.gradle.caching.local.DirectoryBuildCache.getRemoveUnusedEntriesAfterDays()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.local.DirectoryBuildCache",
+            "member": "Method org.gradle.caching.local.DirectoryBuildCache.setRemoveUnusedEntriesAfterDays(int)",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
@@ -1510,14 +1630,6 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.jvm.toolchain.JvmVendorSpec",
-            "member": "Field IBM_SEMERU",
-            "acceptation": "Deprecated API",
-            "changes": [
-                "Field has been removed"
             ]
         },
         {
@@ -2592,6 +2704,26 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Class org.gradle.process.ProcessExecutionException",
+            "acceptation": "Introduced public ExecException",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String)",
+            "acceptation": "Introduced public ExecException",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.process.ProcessExecutionException",
+            "member": "Constructor org.gradle.process.ProcessExecutionException(java.lang.String,java.lang.Throwable)",
+            "acceptation": "Introduced public ExecException",
+            "changes": []
         },
         {
             "type": "org.gradle.util.CollectionUtils",

@@ -37,12 +37,15 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.jspecify.annotations.Nullable;
@@ -71,6 +74,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
+    private final InternalProblems problemsService;
 
     @Inject
     public DefaultConfigurationContainer(
@@ -81,7 +85,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         AttributesSchemaInternal schema,
         DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        ResolutionStrategyFactory resolutionStrategyFactory
+        ResolutionStrategyFactory resolutionStrategyFactory,
+        InternalProblems problemsService
     ) {
         super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 
@@ -91,6 +96,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.resolutionStrategyFactory = resolutionStrategyFactory;
 
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(owner, this, rootComponentIdentity, schema);
+        this.problemsService = problemsService;
+
         this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
         this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
@@ -167,44 +174,33 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
+    private RuntimeException failOnAttemptToAdd(String behavior) {
+        GradleException ex = new GradleException(behavior);
+        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            spec.contextualLabel(ex.getMessage());
+            spec.severity(Severity.ERROR);
+        });
+    }
+
     @Override
-    public boolean add(Configuration o) {
-        DeprecationLogger.deprecateBehaviour("Adding a configuration directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        return super.add(o);
+    public boolean add(@Nullable Configuration o) {
+        throw failOnAttemptToAdd("Adding a configuration directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public boolean addAll(Collection<? extends Configuration> c) {
-        DeprecationLogger.deprecateBehaviour("Adding a collection of configurations directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        return super.addAll(c);
+        throw failOnAttemptToAdd("Adding a collection of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addLater(Provider<? extends Configuration> provider) {
-        DeprecationLogger.deprecateBehaviour("Adding a configuration provider directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        super.addLater(provider);
+        throw failOnAttemptToAdd("Adding a configuration provider directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addAllLater(Provider<? extends Iterable<Configuration>> provider) {
-        DeprecationLogger.deprecateBehaviour("Adding a provider of configurations directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        super.addAllLater(provider);
+        throw failOnAttemptToAdd("Adding a provider of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
@@ -345,12 +341,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Configuration maybeCreateResolvableLocked(String name) {
-        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE), true);
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE, problemsService), true);
     }
 
     @Override
     public Configuration maybeCreateConsumableLocked(String name) {
-        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE), true);
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE, problemsService), true);
     }
 
     @Override
@@ -360,12 +356,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Configuration maybeCreateDependencyScopeLocked(String name, boolean verifyPrexisting) {
-        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService), verifyPrexisting);
     }
 
     @Override
     public Configuration maybeCreateMigratingLocked(String name, ConfigurationRole role) {
-        AbstractRoleBasedConfigurationCreationRequest request = new NoContextRoleBasedConfigurationCreationRequest(name, role);
+        AbstractRoleBasedConfigurationCreationRequest request = new NoContextRoleBasedConfigurationCreationRequest(name, role, problemsService);
 
         ConfigurationInternal conf = findByName(request.getConfigurationName());
         if (null != conf) {
@@ -380,7 +376,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     @Deprecated
     public Configuration maybeCreateResolvableDependencyScopeLocked(String name) {
-        return maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
+        return maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, problemsService));
     }
 
     @Override
@@ -448,13 +444,14 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return configuration;
     }
 
-    private static void validateNameIsAllowed(String name) {
+    private void validateNameIsAllowed(String name) {
         if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
-            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
-                .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "reserved_configuration_names")
-                .nagUser();
+            GradleException ex = new GradleException(String.format("Creating a configuration with a name that starts with 'detachedConfiguration' is not allowed.  Use a different name for the configuration '%s'", name));
+            ProblemId id = ProblemId.create("name-not-allowed", "Configuration name not allowed", GradleCoreProblemGroup.configurationUsage());
+            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+                spec.contextualLabel(ex.getMessage());
+                spec.severity(Severity.ERROR);
+            });
         }
     }
 

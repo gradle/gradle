@@ -19,6 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
@@ -1040,7 +1041,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         protected RuntimeException domainObjectCreationException(Throwable cause) {
-            return new IllegalStateException(String.format("Could not create domain object '%s' (%s)", getName(), getType().getSimpleName()), cause);
+            return new InvalidUserCodeException(String.format("Could not create domain object '%s' (%s) in %s", getName(), getType().getSimpleName(), DefaultNamedDomainObjectCollection.this.getDisplayName()), cause);
         }
     }
 

@@ -23,7 +23,7 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 
 dependencies {
     constraints {
-        api("org.gradle.guides:gradle-guides-plugin:0.23.3")
+        api("org.gradle.guides:gradle-guides-plugin:0.23.4")
         api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
         api("com.gradle:develocity-gradle-plugin:4.0") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.2.1")
@@ -33,10 +33,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.33.0")
-        api("com.squareup.okio:okio:3.4.0") {
-            because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
-        }
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:2.16.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
