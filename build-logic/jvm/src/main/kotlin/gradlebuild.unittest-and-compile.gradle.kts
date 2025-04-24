@@ -144,62 +144,38 @@ fun enforceCompatibility(gradleModule: UnitTestAndCompileExtension) {
  */
 fun UnitTestAndCompileExtension.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
-    val versionProviders = listOf(
-        versionProvider(usedForStartup, 6),
-        versionProvider(usedInWrapper, 6), // TODO: Should be 8
-        versionProvider(usedInWorkers, 8),
-        versionProvider(usedInClient, 8),
-        versionProvider(usedInDaemon, 8),
+    val targetRuntimeJavaVersions = mapOf(
+        usedForStartup to 6,
+        usedInWrapper to 6, // TODO: Should be 8
+        usedInWorkers to 8,
+        usedInClient to 8,
+        usedInDaemon to 8
     )
 
-    val iterator = versionProviders.iterator()
-    var state = iterator.next()
-    while (iterator.hasNext()) {
-        state = state.zip(iterator.next()) { left , right ->
-            if (left.isPresent) {
-                if (right.isPresent) {
-                    Optional.of(minOf(left.get(), right.get()))
-                } else {
-                    left
-                }
-            } else {
-                right
-            }
-        }
-    }
-
-    return state.map { it.orElseThrow {
-        GradleException("No target JVM version configured. Specify a target platform on ${UnitTestAndCompileExtension::class.java.simpleName}")
-    }}
+    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(provider {
+        throw GradleException("No target JVM version configured. Specify a runtime target for $project on ${UnitTestAndCompileExtension::class.java.simpleName} for $project")
+    })
 }
 
-fun versionProvider(booleanProperty: Provider<Boolean>, version: Int): Provider<Optional<Int>> =
-    booleanProperty.map {
-        if (it) {
-            Optional.of(version)
-        } else {
-            Optional.empty()
-        }
+fun enforceJavaCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
+    // The build JDK (17) is able to target JVM >= 8
+    val defaultCompiler = javaToolchains.compilerFor(java.toolchain)
+
+    // To compile Java 6 and 7 sources, we need an older compiler.
+    // We choose 11 since it supports both of these versions.
+    val legacyCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(11)
     }
 
-fun enforceJavaCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
     tasks.withType<JavaCompile>().configureEach {
         // Set the release flag is requested.
         // Otherwise, we set the source and target compatibility in the afterEvaluate below.
         options.release = useRelease.zip(targetVersion) { doUseRelease, target -> if (doUseRelease) { target } else { null } }
 
-        // If we are targeting Java < 8, we need to use a different compiler,
-        // since compilers will only cross-compile down to a certain version.
         javaCompiler = targetVersion.flatMap { version ->
-            if (version >= 8) {
-                // The build jvm (Java 17) is able to target JDK >= 8
-                javaToolchains.compilerFor(java.toolchain)
-            } else {
-                // To compile Java 6 and 7 sources, we need an older compiler.
-                // We choose 11 since it supports both of these versions.
-                javaToolchains.compilerFor {
-                    languageVersion = JavaLanguageVersion.of(11)
-                }
+            when {
+                version >= 8 -> defaultCompiler
+                else -> legacyCompiler
             }
         }
     }
@@ -579,4 +555,37 @@ fun Test.configureAndroidUserHome() {
     val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
     environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
     environment["ANDROID_USER_HOME"] = androidUserHomeForTest
+}
+
+/**
+ * Reduces a map of boolean flags to a single property by applying the given combiner function
+ * to the corresponding values of the properties that are true.
+ *
+ * @param flags The map of boolean properties to their values.
+ * @param combiner The function to combine the values of the true properties.
+ *
+ * @return A property that contains the reduced value.
+ */
+fun <T: Any> reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner: (T, T) -> T): Provider<T> {
+    return flags.entries
+        .map { entry ->
+            entry.key.map {
+                when (it) {
+                    true -> Optional.of(entry.value)
+                    false -> Optional.empty()
+                }
+            }.orElse(provider {
+                throw GradleException("Expected boolean flag to be configured")
+            })
+        }
+        .reduce { acc, next ->
+            acc.zip(next) { left , right ->
+                when {
+                    !left.isPresent -> right
+                    !right.isPresent -> left
+                    else -> Optional.of(combiner(left.get(), right.get()))
+                }
+            }
+        }
+        .map { it.orElse(null) }
 }

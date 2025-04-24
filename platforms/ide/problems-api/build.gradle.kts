@@ -19,12 +19,12 @@ plugins {
 }
 
 description = """A problems description API
-    |
-    |This project provides base classes to describe problems and their
-    |solutions, in a way that enforces the creation of good error messages.
-    |
-    |It's a stripped down version of the original code available
-    |at https://github.com/melix/jdoctor/
+
+This project provides base classes to describe problems and their
+solutions, in a way that enforces the creation of good error messages.
+
+It's a stripped down version of the original code available
+at https://github.com/melix/jdoctor/
 """
 
 gradleModule {
