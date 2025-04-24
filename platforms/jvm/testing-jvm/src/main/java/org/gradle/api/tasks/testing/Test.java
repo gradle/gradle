@@ -29,6 +29,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.EmptyFileCollection;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
@@ -185,8 +186,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
-        testClassesDirs = objectFactory.property(FileCollection.class);
-        classpath = objectFactory.property(FileCollection.class);
+        testClassesDirs = objectFactory.property(FileCollection.class).convention(new EmptyFileCollection("empty test classes"));
+        classpath = objectFactory.property(FileCollection.class).convention(new EmptyFileCollection("empty class path"));
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from(new Callable<Object>() {
