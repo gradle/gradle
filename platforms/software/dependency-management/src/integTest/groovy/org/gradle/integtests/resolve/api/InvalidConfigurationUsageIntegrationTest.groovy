@@ -19,6 +19,30 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
+    def "causing invalid resolution via #methodName for role #role fails"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+
+            configurations.$role('custom')
+            configurations.custom.$methodCall
+        """
+
+        when:
+        executer.noDeprecationChecks() // These will be checked elsewhere, this test is about ensuring failures
+        fails('help')
+
+        then:
+        failureCauseContains(message)
+
+        where:
+        methodName                   | role              | methodCall                   || message
+        'getFiles()'                 | 'consumable'      | 'files'                      || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getFiles()'                 | 'dependencyScope' | 'files'                      || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'consumable'      | 'getBuildDependencies()'     || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'     | 'dependencyScope' | 'getBuildDependencies()'     || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+    }
+
     def "calling an invalid public API method #methodName for role #role fails"() {
         given:
         buildFile << """
@@ -32,32 +56,32 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         fails('help')
 
         then:
-        assertCallNotAllowed(methodName, "custom")
+        failureCauseContains(message)
 
         where:
-        methodName                                     | role              | methodCall
-        'attributes(Action)'                           | 'dependencyScope' | "attributes { attribute(Attribute.of('foo', String), 'bar') }"
-        'defaultDependencies(Action)'                  | 'consumable'      | 'defaultDependencies { }'
-        'defaultDependencies(Action)'                  | 'resolvable'      | 'defaultDependencies { }'
-        'shouldResolveConsistentlyWith(Configuration)' | 'consumable'      | 'shouldResolveConsistentlyWith(null)'
-        'shouldResolveConsistentlyWith(Configuration)' | 'dependencyScope' | 'shouldResolveConsistentlyWith(null)'
-        'disableConsistentResolution()'                | 'consumable'      | 'disableConsistentResolution()'
-        'disableConsistentResolution()'                | 'dependencyScope' | 'disableConsistentResolution()'
-        'copy()'                                       | 'consumable'      | 'copy()'
-        'copy()'                                       | 'dependencyScope' | 'copy()'
-        'copyRecursive()'                              | 'consumable'      | 'copyRecursive()'
-        'copyRecursive()'                              | 'dependencyScope' | 'copyRecursive()'
-        'copy(Spec)'                                   | 'consumable'      | 'copy { } as Spec'
-        'copy(Spec)'                                   | 'dependencyScope' | 'copy { } as Spec'
-        'copyRecursive(Spec)'                          | 'consumable'      | 'copyRecursive { } as Spec'
-        'copyRecursive(Spec)'                          | 'dependencyScope' | 'copyRecursive { } as Spec'
-        'getResolvedConfiguration()'                   | 'consumable'      | 'getResolvedConfiguration()'
-        'getResolvedConfiguration()'                   | 'dependencyScope' | 'getResolvedConfiguration()'
-        'resolve()'                                    | 'consumable'      | 'resolve()'
-        'resolve()'                                    | 'dependencyScope' | 'resolve()'
+        methodName                                      | role              | methodCall                                                        || message
+        'attributes(Action)'                            | 'dependencyScope' | "attributes { attribute(Attribute.of('foo', String), 'bar') }"    || buildMethodNotAllowedMessage('attributes(Action)')
+        'copy()'                                        | 'consumable'      | 'copy()'                                                          || buildMethodNotAllowedMessage('copy()')
+        'copy()'                                        | 'dependencyScope' | 'copy()'                                                          || buildMethodNotAllowedMessage('copy()')
+        'copyRecursive()'                               | 'consumable'      | 'copyRecursive()'                                                 || buildMethodNotAllowedMessage('copyRecursive()')
+        'copyRecursive()'                               | 'dependencyScope' | 'copyRecursive()'                                                 || buildMethodNotAllowedMessage('copyRecursive()')
+        'copy(Spec)'                                    | 'consumable'      | 'copy { } as Spec'                                                || buildMethodNotAllowedMessage('copy(Spec)')
+        'copy(Spec)'                                    | 'dependencyScope' | 'copy { } as Spec'                                                || buildMethodNotAllowedMessage('copy(Spec)')
+        'copyRecursive(Spec)'                           | 'consumable'      | 'copyRecursive { } as Spec'                                       || buildMethodNotAllowedMessage('copyRecursive(Spec)')
+        'copyRecursive(Spec)'                           | 'dependencyScope' | 'copyRecursive { } as Spec'                                       || buildMethodNotAllowedMessage('copyRecursive(Spec)')
+        'defaultDependencies(Action)'                   | 'consumable'      | 'defaultDependencies { }'                                         || buildMethodNotAllowedMessage('defaultDependencies(Action)')
+        'defaultDependencies(Action)'                   | 'resolvable'      | 'defaultDependencies { }'                                         || buildMethodNotAllowedMessage('defaultDependencies(Action)')
+        'disableConsistentResolution()'                 | 'consumable'      | 'disableConsistentResolution()'                                   || buildMethodNotAllowedMessage('disableConsistentResolution()')
+        'disableConsistentResolution()'                 | 'dependencyScope' | 'disableConsistentResolution()'                                   || buildMethodNotAllowedMessage('disableConsistentResolution()')
+        'getResolvedConfiguration()'                    | 'consumable'      | 'getResolvedConfiguration()'                                      || buildMethodNotAllowedMessage('getResolvedConfiguration()')
+        'getResolvedConfiguration()'                    | 'dependencyScope' | 'getResolvedConfiguration()'                                      || buildMethodNotAllowedMessage('getResolvedConfiguration()')
+        'resolve()'                                     | 'consumable'      | 'resolve()'                                                       || buildMethodNotAllowedMessage('resolve()')
+        'resolve()'                                     | 'dependencyScope' | 'resolve()'                                                       || buildMethodNotAllowedMessage('resolve()')
+        'shouldResolveConsistentlyWith(Configuration)'  | 'consumable'      | 'shouldResolveConsistentlyWith(null)'                             || buildMethodNotAllowedMessage('shouldResolveConsistentlyWith(Configuration)')
+        'shouldResolveConsistentlyWith(Configuration)'  | 'dependencyScope' | 'shouldResolveConsistentlyWith(null)'                             || buildMethodNotAllowedMessage('shouldResolveConsistentlyWith(Configuration)')
     }
 
-    def "causing resolve of a non-resolvable configuration via public API method #methodName with role #role fails"() {
+    def "calling an invalid internal API method #methodName for role #role fails"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
@@ -70,35 +94,14 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         fails('help')
 
         then:
-        assertResolutionNotAllowed("custom")
+        failureCauseContains(message)
 
         where:
-        methodName               | role              | methodCall
-        'getBuildDependencies()' | 'consumable'      | 'getBuildDependencies()'
-        'getBuildDependencies()' | 'dependencyScope' | 'getBuildDependencies()'
-        'getFiles()'             | 'consumable'      | 'files'
-        'getFiles()'             | 'dependencyScope' | 'files'
-    }
-
-    def "calling an invalid internal API method #methodName for role #role fails"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-
-            configurations.$role('custom')
-            configurations.custom.$methodCall
-        """
-
-        expect:
-        fails('help')
-        assertCallNotAllowed(methodName, "custom")
-
-        where:
-        methodName                        | role              | methodCall
-        'getConsistentResolutionSource()' | 'consumable'      | "getConsistentResolutionSource()"
-        'getConsistentResolutionSource()' | 'dependencyScope' | "getConsistentResolutionSource()"
-        'callAndResetResolutionState()'   | 'consumable'      | "callAndResetResolutionState { 'foo' }"
-        'callAndResetResolutionState()'   | 'dependencyScope' | "callAndResetResolutionState { 'foo' }"
+        methodName                                      | role              | methodCall                                                        || message
+        'callAndResetResolutionState()'                 | 'consumable'      | "callAndResetResolutionState { 'foo' }"                           || buildMethodNotAllowedMessage('callAndResetResolutionState(Factory)')
+        'callAndResetResolutionState()'                 | 'dependencyScope' | "callAndResetResolutionState { 'foo' }"                           || buildMethodNotAllowedMessage('callAndResetResolutionState(Factory)')
+        'getConsistentResolutionSource()'               | 'consumable'      | "getConsistentResolutionSource()"                                 || buildMethodNotAllowedMessage('getConsistentResolutionSource()')
+        'getConsistentResolutionSource()'               | 'dependencyScope' | "getConsistentResolutionSource()"                                 || buildMethodNotAllowedMessage('getConsistentResolutionSource()')
     }
 
     def "causing resolve of a non-resolvable configuration via internal API method #methodName for role #role fails"() {
@@ -134,17 +137,32 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds('help')
     }
 
+    def "configuration explicitly deprecated for resolution will warn if resolved, but not fail"() {
+        buildFile << """
+            configurations {
+                migratingLocked('foo', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
+            }
+            ${mavenCentralRepository()}
+            dependencies {
+                foo 'org.apache.commons:commons-lang3:3.9'
+            }
+            configurations.foo.files
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The foo configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        succeeds("help")
+    }
+
+    private String buildMethodNotAllowedMessage(String methodName, String confName = 'custom') {
+        return """Calling configuration method '$methodName' is not allowed for configuration '$confName'"""
+    }
+
     private void assertCallNotAllowed(String methodName, String confName) {
         failureDescriptionContains("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
 
         // Exact usage printing isn't important to test here, it's tested elsewhere; just ensure we're printing the right message
-        failureCauseContains("Calling configuration method '$methodName' is not allowed for configuration '$confName', which has permitted usage(s):")
+        failureCauseContains(buildMethodNotAllowedMessage(methodName, confName))
         failureCauseContains("This method is only meant to be called on configurations which allow")
-    }
-
-    private void assertResolutionNotAllowed(String confName) {
-        failureDescriptionContains("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failureCauseContains("""Resolving dependency configuration '$confName' is not allowed as it is defined as 'canBeResolved=false'.
-Instead, a resolvable ('canBeResolved=true') dependency configuration that extends '$confName' should be resolved.""")
     }
 }
