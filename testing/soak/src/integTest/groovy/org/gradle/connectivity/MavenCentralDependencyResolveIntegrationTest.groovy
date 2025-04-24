@@ -52,13 +52,13 @@ task check {
         assert compile.collect { it.name } == [
             'logback-classic-1.0.13.jar',
             'logback-core-1.0.13.jar',
-            'slf4j-api-2.0.17.jar'
+            'slf4j-api-1.7.5.jar'
         ]
 
         assert compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == [
             'logback-classic-1.0.13.jar',
             'logback-core-1.0.13.jar',
-            'slf4j-api-2.0.17.jar'
+            'slf4j-api-1.7.5.jar'
         ]
     }
 }
