@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
@@ -24,7 +23,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
@@ -48,13 +46,6 @@ private constructor(
 
     override val delegate: DependencyHandler
         get() = dependencies
-
-    @Deprecated(replaceWith = ReplaceWith("constraints"), message = "This method (and the deprecation annotation) is required to ensure that the correct delegate is used" +
-        " and a constraint (versus a dependency) is applied.  We attempted to remove this method in Gradle 8.0, but found it is still necessary.  " +
-        "See: https://github.com/gradle/gradle/pull/22823", level = DeprecationLevel.HIDDEN)
-    override fun constraints(configureAction: Action<in DependencyConstraintHandler>) {
-        super.constraints(configureAction)
-    }
 
     /**
      * Configures dependency constraint for this project.
