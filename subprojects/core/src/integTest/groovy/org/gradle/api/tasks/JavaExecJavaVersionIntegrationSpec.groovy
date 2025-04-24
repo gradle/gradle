@@ -33,6 +33,10 @@ import spock.lang.Issue
 class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def "up-to-date when executing JavaExec task twice in a row with the same java version"() {
+        if (jdk.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            jdk = Jvm.current()
+        }
+
         given:
         configureJavaExecTask()
 
@@ -70,7 +74,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         assertExecutedWith(Jvm.current())
 
         when:
-        def otherJdk = AvailableJavaHomes.differentJdk
+        def otherJdk = AvailableJavaHomes.differentVersion
         runWith(otherJdk)
         succeeds "runHelloWorld", "--info"
 
@@ -84,6 +88,8 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
     def "up-to-date when the Java executable changes but the version does not"() {
         // We must have at least two JDKs of the same version for this test
         Assume.assumeTrue(jdks.size() > 1)
+        // it doesn't work if current JAVA_HOME has same major version, because current JVM is always used
+        Assume.assumeTrue(jdks[0].javaVersionMajor != Jvm.current().javaVersionMajor)
 
         given:
         configureJavaExecTask()
@@ -108,6 +114,9 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
     }
 
     def "can execute ExecOperations.javaexec on java #jvm"() {
+        if (jvm.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            jvm = Jvm.current()
+        }
         given:
         configureExecOperationTask()
 
@@ -123,6 +132,9 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
     }
 
     def "can execute ProviderFactory.javaexec on java #jvm"() {
+        if (jvm.javaVersionMajor == Jvm.current().javaVersionMajor) {
+            jvm = Jvm.current()
+        }
         given:
         configureProviderFactoryTask()
 
