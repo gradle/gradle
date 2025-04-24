@@ -1153,11 +1153,91 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Class org.gradle.api.tasks.GroovySourceSet",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.getAllGroovy()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.getGroovy()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.groovy(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GroovySourceSet",
+            "member": "Method org.gradle.api.tasks.GroovySourceSet.groovy(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.JavaExec",
             "member": "Method org.gradle.api.tasks.JavaExec.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Class org.gradle.api.tasks.ScalaSourceSet",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.getAllScala()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.getScala()",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.scala(groovy.lang.Closure)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ScalaSourceSet",
+            "member": "Method org.gradle.api.tasks.ScalaSourceSet.scala(org.gradle.api.Action)",
+            "acceptation": "Remove deprecated API",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {

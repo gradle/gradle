@@ -115,6 +115,25 @@ These typically indicate places where you need to clarify or adjust null handlin
 
 NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to work in Gradle 9.0 as they did before.
 
+==== Removal of `GroovySourceSet` and `ScalaSourceSet` interfaces
+The following source set interfaces have been removed in Gradle 9.0:
+
+- `org.gradle.api.tasks.GroovySourceSet`
+- `org.gradle.api.tasks.ScalaSourceSet`
+
+To configure Groovy or Scala sources, use the plugin-specific source directory set extensions:
+
+- `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
+- `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
+
+Here's how to configure Groovy sources programmatically:
+
+[source,java]
+----
+GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
+groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
+----
+
 ==== Removal of custom build layout options
 
 The ability to specify custom locations for key build files from the command line has been removed in Gradle 9.0.
