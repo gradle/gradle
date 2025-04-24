@@ -522,7 +522,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
-        succeeds("--stacktrace","mytest")
+        succeeds("mytest")
 
         then:
         // No sources, so mytest is skipped

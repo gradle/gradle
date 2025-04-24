@@ -203,26 +203,26 @@ The following older methods, deprecated in Gradle 8.8, have now been removed:
 - `org.gradle.api.file.FileTreeElement.getMode()`
 - `org.gradle.api.file.FileCopyDetails.setMode(int)`
 
-===== Remove deprecated custom source set interfaces
-The following source set interfaces have been removed:
+==== Removal of custom Source Set interfaces
+
+The following source set interfaces have been removed in Gradle 9.0:
 
 - `org.gradle.api.tasks.GroovySourceSet`
 - `org.gradle.api.tasks.ScalaSourceSet`
 
-Clients should configure the sources with their plugin-specific configuration:
+To configure Groovy or Scala sources, use the plugin-specific Source Directory Sets instead:
 
 - `groovy`: link:{javadocPath}/org/gradle/api/tasks/GroovySourceDirectorySet.html[GroovySourceDirectorySet]
 - `scala`: link:{javadocPath}/org/gradle/api/tasks/ScalaSourceDirectorySet.html[ScalaSourceDirectorySet]
 
-For example, here's how you configure the groovy sources from a plugin:
+For example, to configure Groovy sources in a plugin:
 
-```java
+[source,java]
+----
 GroovySourceDirectorySet groovySources = sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
 groovySources.setSrcDirs(Arrays.asList("sources/groovy"));
-```
+----
 
-[[jspecify]]
-==== Gradle API now uses JSpecify Nullability Annotations
 
 ==== Removal of select Groovy modules from the Gradle distribution
 
@@ -786,7 +786,7 @@ For example, this code:
 [source,java]
 ----
 class MyValue {
-    private Boolean property = Boolean.TRUE;
+    private final Boolean property = Boolean.TRUE;
 
     @Input
     Boolean isProperty() { return property; }
@@ -798,7 +798,7 @@ Should be replaced with the following:
 [source,java]
 ----
 class MyValue {
-    private Boolean property = Boolean.TRUE;
+    private final Boolean property = Boolean.TRUE;
 
     @Deprecated
     @ReplacedBy("getProperty")
@@ -935,20 +935,20 @@ propertyName(value)
 propertyName value
 ----
 
-The latter one, "space-assignment", is a Gradle-specific feature that is not part of the Groovy language.
-In regular Groovy, this is just a method call: `propertyName(value)`, and Gradle generates `propertyName` method in the runtime if this method hasn't been present already.
-This feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
-Sometimes, classes declare methods with the same name, and these may even have semantics that are different from a plain assignment.
+The=latter one, "space-assignment", is a Gradle-specific feature that is not part of the Groovy language.
+In=regular Groovy, this is just a method call: `propertyName(value)`, and Gradle generates `propertyName` method in the runtime if this method hasn't been present already.
+This=feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
+Sometimes,=classes declare methods with the same name, and these may even have semantics that are different from a plain assignment.
 
-These generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
-Use explicit assignment `propertyName = value` instead.
+These=generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
+Use=explicit assignment `propertyName = value` instead.
 
-For explicit methods, consider using the `propertyName(value)` syntax instead of `propertyName value` for clarity.
-For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
+For=explicit methods, consider using the `propertyName(value)` syntax instead of `propertyName value` for clarity.
+For=example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
 
-If you have a big project, to replace occurrences of space-assignment syntax you can use, for example, the following `sed` command:
+If=you have a big project, to replace occurrences of space-assignment syntax you can use, for example, the following `sed` command:
 
-[source,text]
+[source,text]=
 ----
 find . -name 'build.gradle' -type f -exec sed -i.bak -E 's/([^A-Za-z]|^)(replaceme)[ \t]*([^= \t{])/\1\2 = \3/g' {} +
 ----

@@ -38,7 +38,6 @@ dependencies {
     implementation(projects.buildProcessStartup)
     implementation(projects.classloaders)
     implementation(projects.concurrent)
-    implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.functional)
     implementation(projects.loggingApi)
