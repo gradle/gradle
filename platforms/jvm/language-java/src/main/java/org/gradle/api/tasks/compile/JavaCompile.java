@@ -56,7 +56,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -264,7 +263,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
         ForkOptions forkOptions = getOptions().getForkOptions();
         @SuppressWarnings("deprecation")
-        File customJavaHome = DeprecationLogger.whileDisabled(forkOptions::getJavaHome);
+        File customJavaHome = forkOptions.getJavaHome();
         if (customJavaHome != null) {
             JavaExecutableUtils.validateMatchingFiles(
                 customJavaHome, "Toolchain from `javaHome` property on `ForkOptions`",
