@@ -1,6 +1,6 @@
 // tag::do-this[]
 plugins {
-    java
+    `java-library`
 }
 
 repositories {
@@ -14,16 +14,16 @@ java {
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation")) // <1>
+    options.compilerArgs.addAll(listOf("-Xlint:unchecked", "-Xlint:deprecation")) // <3>
 }
 
 tasks.test {
     useJUnitPlatform()
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1 // <2>
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1 // <4>
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3") // <3>
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3") // <5>
 }
 // end::do-this[]
 

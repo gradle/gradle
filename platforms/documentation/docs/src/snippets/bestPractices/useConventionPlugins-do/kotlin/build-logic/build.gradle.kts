@@ -1,6 +1,8 @@
+// tag::do-this[]
 plugins {
-    `kotlin-dsl`
+    `kotlin-dsl` // <2>
 }
+// end::do-this[]
 
 repositories {
     mavenCentral()

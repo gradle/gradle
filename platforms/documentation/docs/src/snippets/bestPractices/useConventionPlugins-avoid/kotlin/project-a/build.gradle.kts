@@ -1,6 +1,6 @@
 // tag::avoid-this[]
 plugins {
-    java
+    `java-library`
 }
 
 // Duplicated configuration across multiple build files

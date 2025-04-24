@@ -1,12 +1,13 @@
-// tag::do-this[]
+// tag::avoid-this[]
 plugins {
-    id 'java'
+    id("java-library")
 }
 
 repositories {
     mavenCentral()
 }
 
+// Duplicated configuration across multiple build files
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -24,7 +25,6 @@ test {
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.3") // <3>
+    api("com.google.guava:guava:23.0") // <4>
 }
-// end::do-this[]
-
-tasks.register("dummyTask")
+// end::avoid-this[]

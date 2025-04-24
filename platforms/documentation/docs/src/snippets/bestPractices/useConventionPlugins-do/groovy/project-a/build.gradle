@@ -1,5 +1,5 @@
 // tag::do-this[]
 plugins {
-    id("groovy-gradle-plugin") // <2>
+    id("my.java-common-conventions") // <6>
 }
 // end::do-this[]

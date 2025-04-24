@@ -1,6 +1,6 @@
 // tag::avoid-this[]
 plugins {
-    java
+    `java-library`
 }
 
 // Duplicated configuration across multiple build files
@@ -25,5 +25,6 @@ tasks.test {
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.3") // <3>
+    api("com.google.guava:guava:23.0") // <4>
 }
 // end::avoid-this[]
