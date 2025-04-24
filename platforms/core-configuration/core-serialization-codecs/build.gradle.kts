@@ -20,7 +20,7 @@ plugins {
 
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
-gradlebuildJava {
+gradleModule {
     usesFutureStdlib = true
 }
 

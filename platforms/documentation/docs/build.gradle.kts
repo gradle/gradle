@@ -47,6 +47,12 @@ configurations.docsTestImplementation {
     exclude("org.slf4j", "slf4j-simple")
 }
 
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(sourceSets.docsTest.name)
+    }
+}
+
 dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))

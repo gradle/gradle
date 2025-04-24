@@ -39,5 +39,7 @@ dependencyAnalysis {
         onUnusedDependencies {
             exclude(libs.junitJupiter)
         }
+
+        ignoreSourceSet(sourceSets.performanceTest.name)
     }
 }
