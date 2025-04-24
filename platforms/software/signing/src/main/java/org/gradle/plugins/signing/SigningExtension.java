@@ -34,6 +34,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
@@ -397,25 +398,26 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
-        @SuppressWarnings("deprecation")
-        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
+        final TaskProvider<Sign> signTask = project.getTasks().register(signTaskName, Sign.class, task -> {
             task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
             task.sign(publicationToSign);
+            final Map<Signature, T> artifacts = new HashMap<>();
+            task.getSignatures().all(signature -> {
+                final T artifact = publicationToSign.addDerivedArtifact(
+                    Cast.uncheckedNonnullCast(signature.getSource()),
+                    new DefaultDerivedArtifactFile(signature, task)
+                );
+                artifact.builtBy(task);
+                artifacts.put(signature, artifact);
+            });
+            task.getSignatures().whenObjectRemoved(signature -> {
+                final T artifact = artifacts.remove(signature);
+                publicationToSign.removeDerivedArtifact(artifact);
+            });
         });
-        final Map<Signature, T> artifacts = new HashMap<>();
-        signTask.getSignatures().all(signature -> {
-            final T artifact = publicationToSign.addDerivedArtifact(
-                Cast.uncheckedNonnullCast(signature.getSource()),
-                new DefaultDerivedArtifactFile(signature, signTask)
-            );
-            artifact.builtBy(signTask);
-            artifacts.put(signature, artifact);
-        });
-        signTask.getSignatures().whenObjectRemoved(signature -> {
-            final T artifact = artifacts.remove(signature);
-            publicationToSign.removeDerivedArtifact(artifact);
-        });
-        return signTask;
+
+        // Unfortunately, our public API exposes the concrete task. We need to change the API to a lazy variant before removing this.
+        return signTask.get();
     }
 
     private String determineSignTaskNameForPublication(Publication publication) {
@@ -427,8 +429,9 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
-        @SuppressWarnings("deprecation")
-        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
+
+        // Unfortunately, our public API exposes the concrete task. We need to change the API to a lazy variant before removing this.
+        final Sign signTask = project.getTasks().register(signTaskName, Sign.class, taskConfiguration).get();
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;
     }

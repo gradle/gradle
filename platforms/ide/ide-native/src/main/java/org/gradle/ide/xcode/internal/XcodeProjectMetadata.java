@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
@@ -27,21 +28,21 @@ import java.util.Set;
 
 public class XcodeProjectMetadata implements IdeProjectMetadata {
     private final DefaultXcodeProject xcodeProject;
-    private final Task projectTask;
+    private final TaskProvider<?> projectTask;
 
-    public XcodeProjectMetadata(DefaultXcodeProject xcodeProject, Task projectTask) {
+    public XcodeProjectMetadata(DefaultXcodeProject xcodeProject, TaskProvider<?> projectTask) {
         this.xcodeProject = xcodeProject;
         this.projectTask = projectTask;
     }
 
     @Override
     public DisplayName getDisplayName() {
-        return Describables.withTypeAndName("Xcode project", projectTask.getProject().getName());
+        return Describables.withTypeAndName("Xcode project", projectTask.get().getProject().getName());
     }
 
     @Override
     public Set<? extends Task> getGeneratorTasks() {
-        return Collections.singleton(projectTask);
+        return Collections.singleton(projectTask.get());
     }
 
     @Override

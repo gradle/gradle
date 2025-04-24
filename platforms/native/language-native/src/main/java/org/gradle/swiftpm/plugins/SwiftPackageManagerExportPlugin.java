@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppLibrary;
@@ -90,9 +91,8 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
 
     @Override
     public void apply(final Project project) {
-        @SuppressWarnings("deprecation")
-        final GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
-        manifestTask.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift"));
+        final TaskProvider<GenerateSwiftPackageManagerManifest> manifestTask = project.getTasks().register("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class,
+            task -> task.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift")));
 
         // Defer attaching the model until all components have been (most likely) configured
         // TODO - make this relationship explicit to make this more reliable and offer better diagnostics
@@ -100,7 +100,7 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             @Override
             public void execute(Project project) {
                 Provider<Package> products = project.getProviders().provider(new MemoizingCallable(new PackageFactory(project)));
-                manifestTask.getPackage().set(products);
+                manifestTask.configure(task -> task.getPackage().set(products));
             }
         });
     }

@@ -195,12 +195,7 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
 
         @Defaults
         public void registerFactoryForCustomNativePlatforms(PlatformContainer platforms, final Instantiator instantiator) {
-            NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = new NamedDomainObjectFactory<NativePlatform>() {
-                @Override
-                public NativePlatform create(String name) {
-                    return instantiator.newInstance(DefaultNativePlatform.class, name);
-                }
-            };
+            NamedDomainObjectFactory<NativePlatform> nativePlatformFactory = name -> instantiator.newInstance(DefaultNativePlatform.class, name);
 
             platforms.registerFactory(NativePlatform.class, nativePlatformFactory);
 
@@ -273,19 +268,15 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
             });
         }
 
-        @SuppressWarnings("deprecation")
         @Mutate
         void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ComponentSpecContainer components) {
             for (final SourceComponentSpec nativeComponentSpec : components.withType(SourceComponentSpec.class).values()) {
                 for (final DependentSourceSetInternal dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSetInternal.class).values()) {
                     if (dependentSourceSet.getPrefixHeaderFile() != null) {
                         String taskName = "generate" + StringUtils.capitalize(nativeComponentSpec.getName()) + StringUtils.capitalize(dependentSourceSet.getName()) + "PrefixHeaderFile";
-                        tasks.create(taskName, PrefixHeaderFileGenerateTask.class, new Action<PrefixHeaderFileGenerateTask>() {
-                            @Override
-                            public void execute(PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
-                                prefixHeaderFileGenerateTask.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
-                                prefixHeaderFileGenerateTask.setHeader(dependentSourceSet.getPreCompiledHeader());
-                            }
+                        tasks.register(taskName, PrefixHeaderFileGenerateTask.class, prefixHeaderFileGenerateTask -> {
+                            prefixHeaderFileGenerateTask.setPrefixHeaderFile(dependentSourceSet.getPrefixHeaderFile());
+                            prefixHeaderFileGenerateTask.setHeader(dependentSourceSet.getPreCompiledHeader());
                         });
                     }
                 }
@@ -296,23 +287,20 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
         void configurePreCompiledHeaderCompileTasks(final TaskContainer tasks, BinaryContainer binaries, final LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry) {
             for (final NativeBinarySpecInternal nativeBinarySpec : binaries.withType(NativeBinarySpecInternal.class)) {
                 for (final PchEnabledLanguageTransform<?> transform : languageTransforms.withType(PchEnabledLanguageTransform.class)) {
-                    nativeBinarySpec.getInputs().withType(transform.getSourceSetType(), new Action<LanguageSourceSet>() {
-                        @Override
-                        public void execute(final LanguageSourceSet languageSourceSet) {
-                            final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
-                            if (dependentSourceSet.getPreCompiledHeader() != null) {
-                                nativeBinarySpec.addPreCompiledHeaderFor(dependentSourceSet);
-                                final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
-                                String pchTaskName = pchTransformTaskConfig.getTaskPrefix() + StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()) + StringUtils.capitalize(dependentSourceSet.getName()) + "PreCompiledHeader";
-                                @SuppressWarnings("deprecation")
-                                Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
-                                    @Override
-                                    public void execute(DefaultTask task) {
-                                        pchTransformTaskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet, serviceRegistry);
-                                    }
-                                });
-                                nativeBinarySpec.getTasks().add(pchTask);
-                            }
+                    nativeBinarySpec.getInputs().withType(transform.getSourceSetType(), (Action<LanguageSourceSet>) languageSourceSet -> {
+                        final DependentSourceSet dependentSourceSet = (DependentSourceSet) languageSourceSet;
+                        if (dependentSourceSet.getPreCompiledHeader() != null) {
+                            nativeBinarySpec.addPreCompiledHeaderFor(dependentSourceSet);
+                            final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
+                            String pchTaskName = pchTransformTaskConfig.getTaskPrefix() + StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()) + StringUtils.capitalize(dependentSourceSet.getName()) + "PreCompiledHeader";
+                            @SuppressWarnings("deprecation")
+                            Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
+                                @Override
+                                public void execute(DefaultTask task) {
+                                    pchTransformTaskConfig.configureTask(task, nativeBinarySpec, dependentSourceSet, serviceRegistry);
+                                }
+                            });
+                            nativeBinarySpec.getTasks().add(pchTask);
                         }
                     });
                 }
@@ -435,12 +423,7 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
                                     CollectionCallbackActionDecorator collectionCallbackActionDecorator,
                                     DomainObjectCollectionFactory domainObjectCollectionFactory) {
             super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer(), collectionCallbackActionDecorator);
-            registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
-                @Override
-                public PrebuiltLibraries create(String name) {
-                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, objectFactory, binaryFactory, collectionCallbackActionDecorator, domainObjectCollectionFactory);
-                }
-            });
+            registerFactory(PrebuiltLibraries.class, name -> instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, objectFactory, binaryFactory, collectionCallbackActionDecorator, domainObjectCollectionFactory));
         }
     }
 
