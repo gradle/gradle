@@ -14,6 +14,7 @@
 
 [[gradle_wrapper_reference]]
 = Gradle Wrapper Reference
+:keywords: wrapper
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 

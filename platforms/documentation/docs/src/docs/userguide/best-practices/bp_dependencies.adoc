@@ -159,6 +159,7 @@ include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files
 ====
 
 === Tags
+
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
 
 [[dont_depend_on_kotlin_stdlib]]
@@ -169,7 +170,7 @@ The Kotlin Gradle Plugin automatically adds a dependency on the Kotlin standard 
 
 === Explanation
 
-The version of the standard library added is the same as the version of the Kotlin Gradle Plugin applied to the project.  
+The version of the standard library added is the same as the version of the Kotlin Gradle Plugin applied to the project.
 If your build does not require a specific or different version of the standard library, you should avoid adding it manually.
 
 NOTE: Setting the `kotlin.stdlib.default.dependency` property to `false` prevents the Kotlin plugin from automatically adding the Kotlin standard library dependency to your project. This can be useful in specific scenarios, such as when you want to manage the Kotlin standard library dependency version manually.
@@ -195,7 +196,9 @@ include::sample[dir="snippets/bestPractices/kotlinStdLib-do/groovy",files="build
 *`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
 
 === References
+
 - https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html[the `kotlin()` function]
 
 === Tags
+
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`

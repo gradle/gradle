@@ -341,35 +341,19 @@ For example, you might have several versions of a library that are compatible wi
 Disambiguation helps Gradle choose the most appropriate one based on additional criteria.
 
 You can define disambiguation rules to guide Gradle in selecting the most suitable variant when multiple candidates are found.
-This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule]:
+This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[AttributeDisambiguationRule] and registering it via the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema] within the `dependencies` block:
 
-[source,kotlin]
-----
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeMatchingStrategy
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-disambiguationRule/kotlin",files="consumer/build.gradle.kts[tags=disambiguation_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-disambiguationRule/groovy",files="consumer/build.gradle[tags=disambiguation_rule]"]
+====
 
-// Define custom attribute
-val javaLanguageVersion = Attribute.of("org.gradle.jvm.version", String::class.java)
+1. **Attribute Selection**: Specify the attribute to disambiguate (e.g., `Usage.USAGE_ATTRIBUTE`, a built-in Gradle attribute).
+2. **Rule Registration**: Register the custom disambiguation rule using `disambiguationRules.add()` within the `attributesSchema` block of `dependencies`.
+3. **Custom Logic**: Implement the `AttributeDisambiguationRule` interface in a separate class. The `execute` method defines how Gradle selects among candidates. In this example, it prefers the `JAVA_API` usage.
 
-// Register disambiguation rules
-configurations.all {
-    attributes {
-        // Define the attribute matching strategy
-        attribute(javaLanguageVersion, "1.8") {
-            // Set up disambiguation logic
-            disambiguationStrategy {
-                // Example disambiguation: Prefer newer versions
-                preferNewer()
-            }
-        }
-    }
-}
-----
-1. **Attribute Definition**: Create or reference the attribute you want to apply disambiguation rules to. Here, `javaLanguageVersion` is used.
-2. **Register Disambiguation Rules**: Apply the disambiguation strategy using `disambiguationStrategy` within the `attributes` block. This example sets up a simple rule to prefer newer versions.
-3. **Disambiguation Logic**: The `preferNewer()` method is a placeholder for your custom logic. You can implement more complex rules based on your requirements.
-
-Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema], which is a member of link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[DependencyHandler].
+Attribute disambiguation rules must be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy], which is accessed through the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema] in the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[DependencyHandler].
+This ensures the rules apply globally to dependency resolution.
 
 [[sec:mapping-maven-ivy-to-variants]]
 == Mapping from Maven/Ivy to Gradle variants

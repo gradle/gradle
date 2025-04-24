@@ -42,6 +42,14 @@ Specifically, build scripts contain two main types of dependencies:
 
 Let's take a look at an example and break it down:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init]"]
 include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init]"]
