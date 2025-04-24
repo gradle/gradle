@@ -101,7 +101,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
     @RunFor(
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeJavaMultiProject", "mediumJavaMultiProjectWithTestNG", "largeMonolithicJavaProject"])
     )
-    def "test for non-abi change"() {
+    def "test for non-abi change#reproducibleArchivesMessage"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.warmUpRuns = 2
@@ -109,6 +109,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         runner.tasksToRun = ['test']
         // Pre-4.0 versions run into memory problems with this test
         runner.minimumBaseVersion = "4.0"
+        enableReproducibleArchives(reproducibleArchivesEnabled, runner)
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
 
         when:
@@ -116,6 +117,11 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        reproducibleArchivesMessage  | reproducibleArchivesEnabled
+        ""                            | true
+        " with reproducible archives" | false
     }
 
     @RunFor([
