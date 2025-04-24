@@ -34,6 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 public class ReproducibleDirectoryWalker implements DirectoryWalker {
+    private final static Comparator<Path> SORT_BY_PATH = Comparator.comparing(Path::toString);
+
     private final FileSystem fileSystem;
 
     public ReproducibleDirectoryWalker(FileSystem fileSystem) {
@@ -69,7 +71,7 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
             }
             IOException exception = null;
             try (Stream<Path> fileStream = Files.list(path)) {
-                Iterable<Path> files = () -> fileStream.sorted(FILES_FIRST).iterator();
+                Iterable<Path> files = () -> fileStream.sorted(SORT_BY_PATH).iterator();
                 for (Path child : files) {
                     FileVisitResult childResult = visit(child, pathVisitor);
                     if (childResult == FileVisitResult.TERMINATE) {
@@ -84,6 +86,4 @@ public class ReproducibleDirectoryWalker implements DirectoryWalker {
             return pathVisitor.visitFile(path, attrs);
         }
     }
-
-    private final static Comparator<Path> FILES_FIRST = Comparator.<Path, Boolean>comparing(x -> x.toFile().isDirectory()).thenComparing(Path::toString);
 }
