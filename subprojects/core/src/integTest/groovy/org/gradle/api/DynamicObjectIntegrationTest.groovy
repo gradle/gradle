@@ -22,8 +22,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         file('settings.gradle') << "rootProject.name = 'test'"
@@ -495,7 +493,6 @@ assert 'overridden value' == global
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canInjectMethodsFromParentProject() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");
@@ -505,11 +502,14 @@ assert 'overridden value' == global
                 ext.useSomeMethod = { file(it) }
             }
         """
-        file("child1/build.gradle") << """
+        buildFile "child1/build.gradle", """
             task testTask {
+                def propertyResult = provider { useSomeProperty() }
+                def methodResult = provider { useSomeMethod('f') }
+                def expectedMethodResult = file('f')
                 doLast {
-                    assert useSomeProperty() == 'child1'
-                    assert useSomeMethod('f') == file('f')
+                    assert propertyResult.get() == 'child1'
+                    assert methodResult.get() == expectedMethodResult
                 }
             }
         """
@@ -843,7 +843,6 @@ task print(type: MyTask) {
     }
 
     @Issue("GRADLE-2163")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def canDecorateBooleanPrimitiveProperties() {
 
         buildFile """
@@ -855,7 +854,9 @@ task print(type: MyTask) {
             extensions.create('bean', CustomBean)
 
             task run {
+                def beanProvider = provider { bean }
                 doLast {
+                    def bean = beanProvider.get()
                     assert bean.b == false
                     bean.conventionMapping.b = { true }
                     assert bean.b == true
