@@ -29,7 +29,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.EmptyFileCollection;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
@@ -173,9 +172,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private Property<FileCollection> testClassesDirs;
+    private final ConfigurableFileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private Property<FileCollection> classpath;
+    private final ConfigurableFileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
@@ -186,8 +185,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
-        testClassesDirs = objectFactory.property(FileCollection.class).convention(new EmptyFileCollection("empty test classes"));
-        classpath = objectFactory.property(FileCollection.class).convention(new EmptyFileCollection("empty class path"));
+        testClassesDirs = getProject().files();
+        classpath = getProject().files();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from(new Callable<Object>() {
@@ -841,7 +840,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal
     @ToBeReplacedByLazyProperty
     public FileCollection getTestClassesDirs() {
-        return testClassesDirs.get();
+        return testClassesDirs;
     }
 
 
@@ -853,7 +852,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Internal
     @Incubating
-    public Property<FileCollection> getTestClassesDirsInternalProperty() {
+    public FileCollection getTestClassesDirsInternalProperty() {
         return testClassesDirs;
     }
 
@@ -865,7 +864,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Internal
     @Incubating
-    public Property<FileCollection> getClasspathInternalProperty() {
+    public FileCollection getClasspathInternalProperty() {
         return classpath;
     }
 
@@ -896,7 +895,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.0
      */
     public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs.set(testClassesDirs);
+        this.testClassesDirs.setFrom(testClassesDirs);
     }
 
     /**
@@ -1022,7 +1021,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @param testFrameworkConfigure A closure used to configure JUnit4 options.
      */
     public void useJUnit(@Nullable @DelegatesTo(JUnitOptions.class) Closure testFrameworkConfigure) {
-        useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
+        useJUnit(ConfigureUtil.configureUsing(testFrameworkConfigure));
     }
 
     /**
@@ -1142,11 +1141,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal("captured by stableClasspath")
     @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
-        return classpath.get();
+        return classpath;
     }
 
     public void setClasspath(FileCollection classpath) {
-        this.classpath.set(classpath);
+        this.classpath.setFrom(classpath);
     }
 
     /**
