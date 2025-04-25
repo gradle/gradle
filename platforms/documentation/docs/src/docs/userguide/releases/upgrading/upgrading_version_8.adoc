@@ -529,7 +529,7 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 ==== `JavaExec` now uses the toolchain from the `java` extension by default
 
 Previously, the `JavaExec` task used the same Java version as the Gradle process itself.
-Now, it will default to the toolchain set in the `java` extension whenever the `java-base` plugin has been applied.
+Starting in Gradle 9.0, when the `java-base` plugin is applied, `JavaExec` will instead default to the Java toolchain configured in the `java` extension.
 As always, this default can be overridden in the `JavaExec` task configuration to another toolchain as necessary.
 
 === Deprecations
