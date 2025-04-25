@@ -102,6 +102,14 @@ Gradle includes some tasks by default, and many others are added automatically w
 
 If you remember back in <<part1_gradle_init.adoc#part1_begin,part 1>>, the build script of our Java application applies the `application` plugin:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
 include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]

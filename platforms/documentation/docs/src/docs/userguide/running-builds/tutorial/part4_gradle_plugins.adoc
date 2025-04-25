@@ -53,6 +53,14 @@ Plugins can:
 
 Our project currently applies a single plugin, the <<application_plugin#application_plugin,Application Plugin>> which is bundled with Gradle:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
 include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
@@ -75,6 +83,14 @@ A publication destined for a Maven repository normally includes:
 - The Maven POM file
 
 Apply the plugin by adding `maven-publish` to the plugins block in `build.gradle(.kts)`:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/upgraded">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/init/upgraded/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]

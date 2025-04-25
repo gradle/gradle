@@ -22,6 +22,7 @@
 The task link:{javadocPath}/org/gradle/api/DefaultTask.html#setDependsOn(java.lang.Iterable)[dependsOn] method should only be used for <<organizing_tasks.adoc#sec:lifecycle_tasks,lifecycle tasks>> (tasks without task actions).
 
 === Explanation
+
 Tasks with actions should declare their inputs and outputs so that Gradle’s up-to-date checking can automatically determine when these tasks need to be run or rerun.
 
 Using `dependsOn` to link tasks is a much coarser-grained mechanism that does **not** allow Gradle to understand why a task requires a prerequisite task to run, or which specific files from a prerequisite task are needed.
@@ -67,9 +68,11 @@ Gradle can use this information to optimize task scheduling.
 Using the `map` method avoids eagerly retrieving the `helloWorld` task until the output is needed to determine if `translateGood` should run.
 
 === References
+
 - <<incremental_build.adoc#sec:task_input_output_side_effects,Task Inputs and Outputs>>
 
 === Tags
+
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:up-to-date-checking,#up-to-date-checking>>`
 
 [[use_cacheability_annotations]]
@@ -118,9 +121,11 @@ include::sample[dir="snippets/bestPractices/useCacheabilityAnnotations/groovy",f
 <2> *Nothing Else Needs To Be Done*: When we register task instances, nothing else needs to be done - Gradle knows to cache them.
 
 === References
+
 - <<more_about_tasks.adoc#sec:caching_tasks,Caching Tasks>>
 - <<build_cache.adoc#sec:task_output_caching_details,Cacheable Tasks>>
 - <<build_cache_concepts.adoc#non_cacheable_tasks,Non-cacheable Tasks>>
 
 === Tags
+
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:caching,#caching>>`

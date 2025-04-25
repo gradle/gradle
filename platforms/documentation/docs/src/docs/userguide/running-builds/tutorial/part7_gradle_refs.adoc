@@ -60,7 +60,7 @@ For Gradle support:
 
 == Step 2. Next steps
 
-If you haven’t read the <<gradle_basics.adoc#gradle,Core Concepts section>> yet, we recommend starting there to build a solid foundation.
+If you haven’t read the <<gradle_basics.adoc#gradle,Learning the Basics>> section yet, we recommend starting there to build a solid foundation.
 
 Already comfortable with the basics? Great — you’re ready to move on to the more advanced concepts next.
 
