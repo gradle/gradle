@@ -121,7 +121,7 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         visitor.visited.indexOf(c) < visitor.visited.indexOf(d)
         visitor.visited.indexOf(c) < visitor.visited.indexOf(e)
         if (visitor.isReproducibleFileOrder) {
-            assert visitor.visited == [a, b, c, d, e, f]
+            assert visitor.visited == [a, b, f, c, d, e]
         }
 
         where:
@@ -160,7 +160,7 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         visitor.visited.indexOf(c) > visitor.visited.indexOf(d)
         visitor.visited.indexOf(c) > visitor.visited.indexOf(e)
         if (visitor.isReproducibleFileOrder) {
-            assert visitor.visited == [a, b, d, e, c, f]
+            assert visitor.visited == [a, b, f, d, e, c]
         }
 
         where:
@@ -222,7 +222,7 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         fileTree.visit(visitor)
 
         then:
-        visitor.visited == [a, b, c, d]
+        visitor.visited == [a, b, f, c, d]
 
         when:
         visitor = new TestVisitor(true)
@@ -230,7 +230,7 @@ class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
         fileTree.visit(visitor)
 
         then:
-        visitor.visited == [a, b, c, d, e, f]
+        visitor.visited == [a, b, f]
 
         where:
         visitor << [new TestVisitor(true)] // stopping at a given point assumes the order is fixed, so only reproducible visitor makes sense here
