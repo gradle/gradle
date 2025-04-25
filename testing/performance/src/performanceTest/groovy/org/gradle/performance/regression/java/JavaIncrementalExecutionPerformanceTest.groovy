@@ -119,7 +119,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        reproducibleArchivesMessage  | reproducibleArchivesEnabled
+        reproducibleArchivesMessage   | reproducibleArchivesEnabled
         ""                            | true
         " with reproducible archives" | false
     }
