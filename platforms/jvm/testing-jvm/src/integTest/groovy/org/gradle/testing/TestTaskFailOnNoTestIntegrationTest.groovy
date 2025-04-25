@@ -71,7 +71,18 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         skipped(":test")
     }
 
-    def createBuildFileWithJUnitJupiter() {
+    def "test succeeds when no test was executed and shouldFailOnNoDiscoveredTests is false"() {
+        createBuildFileWithJUnitJupiter(false)
+
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+
+        expect:
+        succeeds("test")
+    }
+
+    def createBuildFileWithJUnitJupiter(boolean shouldFailOnNoDiscoveredTests = true) {
         buildFile << """
             plugins {
                 id 'java'
@@ -83,6 +94,11 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
             }
             testing.suites.test {
                 useJUnitJupiter()
+                targets.all {
+                    testTask.configure {
+                        ${shouldFailOnNoDiscoveredTests ? "" : "failOnNoDiscoveredTests = false"}
+                    }
+                }
             }
         """.stripIndent()
     }

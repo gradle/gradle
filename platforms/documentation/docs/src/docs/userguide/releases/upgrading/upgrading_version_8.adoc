@@ -487,8 +487,32 @@ configurations {
 
 When test sources are present and no filters are applied, the `test` task will now fail with an error if it runs but doesn’t discover any tests.
 This is to help prevent misconfigurations where the tests are written for one test framework but the test task is mistakenly configured to use another test framework.
-
 If filters are applied, the outcome depends on the `failOnNoMatchingTests` property.
+
+This behavior can be disabled by setting the `failOnNoDiscoveredTests` property to `false` in the test task configuration:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.withType<Test>().configureEach {
+    failOnNoDiscoveredTests = false
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.withType(Test).configureEach {
+    failOnNoDiscoveredTests = false
+}
+----
+=====
+====
 
 [[validate_plugins_without_java_toolchain_90]]
 ==== `ValidatePlugins` task now requires Java Toolchains
@@ -520,7 +544,7 @@ plugins {
 =====
 ====
 
-TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins. 
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
 If you are already applying one of those, no further action is needed.
 
 [[changes_8.14]]
