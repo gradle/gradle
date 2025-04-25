@@ -42,14 +42,20 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 
-    protected boolean enableReproducibleArchives(CrossVersionPerformanceTestRunner runner) {
-        runner.addBuildMutator { invocationSettings ->
-            new EnableReproducibleArchivesMutator(invocationSettings.projectDir)
+    protected boolean enableReproducibleArchives(CrossVersionPerformanceTestRunner runner, boolean reproducibleArchivesEnabled) {
+        if (reproducibleArchivesEnabled) {
+            runner.addBuildMutator { invocationSettings ->
+                new EnableReproducibleArchivesMutator(invocationSettings.projectDir)
+            }
         }
     }
 
     protected static configurationCachingMessage(boolean configurationCachingEnabled) {
         return configurationCachingEnabled ? " with configuration caching" : ""
+    }
+
+    protected static reproducibleArchivesMessage(boolean reproducibleArchivesEnabled) {
+        return reproducibleArchivesEnabled ? " with reproducible archives" : ""
     }
 
     class EnableReproducibleArchivesMutator implements BuildMutator {
