@@ -16,7 +16,6 @@
 
 package gradlebuild.binarycompatibility;
 
-import gradlebuild.modules.extension.ExternalModulesExtension;
 import japicmp.filter.Filter;
 import me.champeau.gradle.japicmp.JApiCmpWorkAction;
 import me.champeau.gradle.japicmp.JApiCmpWorkerAction;
@@ -81,7 +80,6 @@ public abstract class JapicmpTask extends DefaultTask {
         if (GradleVersion.current().compareTo(GradleVersion.version("6.0")) >= 0) {
             classpath.from(resolveGuava());
         }
-        classpath.from(resolveKotlinCompilerEmbeddable());
         additionalJapicmpClasspath = classpath;
     }
 
@@ -186,15 +184,6 @@ public abstract class JapicmpTask extends DefaultTask {
         DependencyHandler dependencies = project.getDependencies();
         return project.getConfigurations().detachedConfiguration(
                 dependencies.create("com.google.guava:guava:30.1.1-jre")
-        );
-    }
-
-    private Configuration resolveKotlinCompilerEmbeddable() {
-        Project project = getProject();
-        DependencyHandler dependencies = project.getDependencies();
-        String kotlinVersion = new ExternalModulesExtension(true) {}.getKotlinVersion();
-        return project.getConfigurations().detachedConfiguration(
-            dependencies.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:" + kotlinVersion)
         );
     }
 

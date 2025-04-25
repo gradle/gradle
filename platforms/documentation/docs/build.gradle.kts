@@ -79,7 +79,6 @@ dependencies {
     docsTestImplementation(project(":logging"))
     docsTestImplementation(libs.junit5Vintage)
     docsTestImplementation(libs.junit)
-    docsTestRuntimeOnly(libs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

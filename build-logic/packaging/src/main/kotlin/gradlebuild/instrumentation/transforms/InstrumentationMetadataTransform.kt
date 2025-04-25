@@ -95,7 +95,9 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
     private
     fun handleClassChange(change: FileChange, superTypes: Properties) {
         val className = change.normalizedPath.removeSuffix(".class")
-        when (change.changeType) {
+        // TODO this is a bug in Kotlin 2.0.21 that is fixed in 2.1, remove once upgraded
+        @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+        when (change.changeType!!) {
             ADDED, MODIFIED -> {
                 // Add also className itself, so we collect all classes
                 val classSuperTypes = (change.file.getClassSuperTypes() + className).filter { it.startsWith("org/gradle") }
@@ -107,7 +109,8 @@ abstract class InstrumentationMetadataTransform : TransformAction<TransformParam
 
     private
     fun handleInstrumentedMetadataFileChange(change: FileChange): MetadataFileChange {
-        return when (change.changeType) {
+        @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
+        return when (change.changeType!!) {
             ADDED, MODIFIED -> MetadataModified(change.file)
             REMOVED -> MetadataRemoved
         }

@@ -13,7 +13,6 @@ dependencies {
     implementation(projects.performanceTesting)
     implementation(projects.profiling)
     implementation(projects.binaryCompatibility)
-    implementation(projects.dependencyModules)
 
     implementation("org.codenarc:CodeNarc") {
         exclude(group = "org.apache.groovy")
@@ -23,7 +22,7 @@ dependencies {
         exclude(group = "com.google.guava")
     }
     implementation(kotlin("gradle-plugin"))
-    compileOnly(kotlin("compiler-embeddable") as String) {
+    implementation(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
     }
     implementation("com.gradle:develocity-gradle-plugin") {

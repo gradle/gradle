@@ -8,7 +8,6 @@ description = "Provides a plugin for configuring japicmp-gradle-plugin to detect
 dependencies {
     api("me.champeau.gradle:japicmp-gradle-plugin")
 
-    implementation(projects.dependencyModules)
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
@@ -19,7 +18,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm")
     implementation("org.jspecify:jspecify")
     implementation("org.ow2.asm:asm")
-    compileOnly(kotlin("compiler-embeddable"))
+    implementation(kotlin("compiler-embeddable"))
 
     testImplementation("org.jsoup:jsoup")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")

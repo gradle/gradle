@@ -20,7 +20,7 @@ dependencies {
         because("Used by class analysis")
     }
 
-    compileOnly(kotlin("compiler-embeddable") as String) {
+    implementation(kotlin("compiler-embeddable") as String) {
         because("Required by KotlinSourceParser")
     }
     implementation(kotlin("gradle-plugin") as String) {
