@@ -52,7 +52,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change"),
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject")
     ])
-    def "assemble for non-abi change#configurationCaching"() {
+    def "assemble for non-abi change#configurationCaching#reproducibleArchives"() {
         given:
         runner.tasksToRun = ['assemble']
         runner.addBuildMutator {
@@ -60,6 +60,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
             return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
         }
         enableConfigurationCaching(configurationCachingEnabled)
+        enableReproducibleArchives(runner, reproducibleArchivesEnabled)
 
         when:
         def result = runner.run()
@@ -68,8 +69,10 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        configurationCachingEnabled << [true, false]
-        configurationCaching = configurationCachingMessage(configurationCachingEnabled)
+        configurationCachingEnabled | configurationCaching                                     | reproducibleArchivesEnabled | reproducibleArchives
+        true                        | configurationCachingMessage(configurationCachingEnabled) | false                       | reproducibleArchivesMessage(reproducibleArchivesEnabled)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | false                       | reproducibleArchivesMessage(reproducibleArchivesEnabled)
+        false                       | configurationCachingMessage(configurationCachingEnabled) | true                        | reproducibleArchivesMessage(reproducibleArchivesEnabled)
     }
 
     @RunFor([
@@ -101,7 +104,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
     @RunFor(
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeJavaMultiProject", "mediumJavaMultiProjectWithTestNG", "largeMonolithicJavaProject"])
     )
-    def "test for non-abi change#reproducibleArchivesMessage"() {
+    def "test for non-abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.warmUpRuns = 2
@@ -110,20 +113,12 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         // Pre-4.0 versions run into memory problems with this test
         runner.minimumBaseVersion = "4.0"
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
-        if (reproducibleArchivesEnabled) {
-            enableReproducibleArchives(runner)
-        }
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        reproducibleArchivesMessage   | reproducibleArchivesEnabled
-        ""                            | false
-        " with reproducible archives" | true
     }
 
     @RunFor([
