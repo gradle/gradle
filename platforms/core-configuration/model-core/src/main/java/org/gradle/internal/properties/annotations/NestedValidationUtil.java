@@ -24,6 +24,7 @@ import org.jspecify.annotations.NullMarked;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -61,7 +62,7 @@ public class NestedValidationUtil {
                     .id("nested-type-unsupported", "Nested type unsupported", GradleCoreProblemGroup.validation().property())
                     .contextualLabel("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
-                    .severity(WARNING)
+                    .severity(ERROR)
                     .details(reason)
                     .solution("Use a different input annotation if type is not a bean")
                     .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types")
