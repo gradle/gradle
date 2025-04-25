@@ -109,8 +109,10 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         runner.tasksToRun = ['test']
         // Pre-4.0 versions run into memory problems with this test
         runner.minimumBaseVersion = "4.0"
-        enableReproducibleArchives(reproducibleArchivesEnabled, runner)
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
+        if (reproducibleArchivesEnabled) {
+            enableReproducibleArchives(runner)
+        }
 
         when:
         def result = runner.run()
@@ -120,8 +122,8 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
 
         where:
         reproducibleArchivesMessage   | reproducibleArchivesEnabled
-        ""                            | true
-        " with reproducible archives" | false
+        ""                            | false
+        " with reproducible archives" | true
     }
 
     @RunFor([
