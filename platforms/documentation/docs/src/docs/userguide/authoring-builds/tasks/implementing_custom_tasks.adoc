@@ -1161,6 +1161,8 @@ Notes:
 - Instead of `List<T>`, use `ListProperty<T>`.
 - Instead of `Set<T>`, use `SetProperty<T>`.
 
+WARNING: Avoid using `FileTree` when order matters — it has no guaranteed, stable file order and may cause unpredictable behavior.
+
 == Annotating inputs and outputs
 
 A good practice is to create a task class for your custom task.

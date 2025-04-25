@@ -71,6 +71,14 @@ include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions
 Once defined, you can reference these libraries in your `build.gradle(.kts)` files using the `libs` accessor.
 This is why our build script actually looks like this:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
 include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
@@ -107,7 +115,7 @@ Gradle needs specific information, called GAV coordinates, to locate and downloa
 GAV stands for Group, Artifact, and Version — three pieces of information that uniquely identify a library in a repository.
 Let's look at `libs.guava` and `libs.junit.jupiter`:
 
-[cols="10h,30,40,20"]
+[cols="10h,~,~,~"]
 |===
 | |Description | com.google.guava:guava:33.3.1-jre | org.junit.jupiter:junit-jupiter-api:5.11.3
 

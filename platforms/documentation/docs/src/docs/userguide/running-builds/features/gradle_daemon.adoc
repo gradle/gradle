@@ -14,6 +14,7 @@
 
 [[gradle_daemon]]
 = Gradle Daemon
+:keywords: daemon
 
 A daemon is a computer program that runs as a background process rather than being under the direct control of an interactive user.
 
@@ -317,7 +318,7 @@ $ ./gradlew updateDaemonJvm --jvm-version=17 --jvm-vendor=adoptium
 
 List of recognized vendors:
 
-[cols="~,~,~"]
+[%autowidth.stretch]
 |===
 |Known Vendors |Acceptable Strings |`toolchainVendor` Value
 
@@ -431,6 +432,14 @@ Gradle sets, by convention, build platforms based on architectures `X86_64` and 
 * https://www.microsoft.com/en-us/windows[Windows]
 
 These platforms can be configured through the `toolchainPlatforms` property of the `UpdateDaemonJvm` task.
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/daemon-jvm/customized-task">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-plat-daemon-jvm-task]"]

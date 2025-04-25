@@ -14,6 +14,7 @@
 
 [[build_environment]]
 = Configuring the Build Environment
+:keywords: properties,gradle,system,project,environment,variables
 
 Configuring the build environment is a powerful way to customize the build process.
 There are many mechanisms available.
@@ -23,7 +24,7 @@ By leveraging these mechanisms, you can make your Gradle builds more flexible an
 
 Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects:
 
-[cols="~,~,~"]
+[%autowidth.stretch]
 |===
 |Mechanism |Information |Example
 
@@ -54,7 +55,7 @@ When configuring Gradle behavior, you can use these methods, but you must consid
 
 The following table lists these methods in order of highest to lowest precedence (the first one wins):
 
-[cols="~,~,~,~"]
+[%autowidth.stretch]
 |===
 |Priority |Method |Location |Notes
 
@@ -179,6 +180,14 @@ It is possible to change the behavior of a task based on project properties spec
 Suppose you’d like to ensure release builds are only triggered by CI.
 A simple way to handle this is through an `isCI` project property:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tutorial/configureTaskUsingProjectProperty">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
@@ -273,7 +282,7 @@ org.gradle.caching.debug=false
 The final configuration considered by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files.
 If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
-[cols="~,~,~,~"]
+[%autowidth.stretch]
 |===
 |Priority |Method |Location |Details
 
