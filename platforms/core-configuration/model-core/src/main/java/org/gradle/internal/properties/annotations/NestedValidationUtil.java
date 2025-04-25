@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -103,7 +102,7 @@ public class NestedValidationUtil {
                     .id("nested-map-unsupported-key-type", "Unsupported nested map key", GradleCoreProblemGroup.validation().property())
                     .contextualLabel("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
-                    .severity(WARNING)
+                    .severity(ERROR)
                     .details("Key of nested map must be an enum or one of the following types: " + getSupportedKeyTypes())
                     .solution("Change type of key to an enum or one of the following types: " + getSupportedKeyTypes())
             );
