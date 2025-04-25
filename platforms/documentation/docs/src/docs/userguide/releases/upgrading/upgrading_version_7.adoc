@@ -1506,7 +1506,7 @@ The classes that were unintentionally exposed are either deprecated or removed, 
 - `ConfigureUtil`
 
 `ConfigureUtil` is being removed without a replacement.
-Plugins can avoid the need for using `ConfigureUtil` by following link:{javadocPath}/org/gradle/util/ConfigureUtil.html[our example].
+Plugins can avoid the need for using `ConfigureUtil`.
 
 ===== The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 

@@ -184,6 +184,27 @@ The following members of the `org.gradle.util` package have been removed:
 
 * `CollectionUtils`
 
+* `ConfigureUtil`, `ClosureBackedAction`
++
+These classes used to provide utilities related to `groovy.lang.Closure`.
+Plugins should avoid relying on Groovy specifics, such as `Closure`, in their APIs. Instead, plugins should create methods that use
+link:{javadocPath}/org/gradle/api/Action.html[Action]:
++
+[source,java]
+----
+abstract class MyExtension {
+    // ...
+    public void options(Action<? extends MyOptions>  action) {
+        action.execute(options)
+    }
+}
+----
++
+Gradle automatically generates a `Closure`-taking method at runtime for each method with an `Action` as a single argument as long as the object is created with link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object...)[ObjectFactory#newInstance].
++
+As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use
+link:{javadocPath}/org/gradle/api/Project.html#configure(java.lang.Object,groovy.lang.Closure)[Project#configure].
+
 ==== Removal of Unix mode based file permissions
 
 Gradle 9.0 removes legacy APIs for specifying file permissions using raw Unix mode integers.
@@ -520,7 +541,7 @@ plugins {
 =====
 ====
 
-TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins. 
+TIP: The `jvm-toolchains` plugin is automatically applied by the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and other JVM-related plugins.
 If you are already applying one of those, no further action is needed.
 
 [[changes_8.14]]
