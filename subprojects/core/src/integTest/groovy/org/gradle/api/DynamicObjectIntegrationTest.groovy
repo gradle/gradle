@@ -17,6 +17,7 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -493,6 +494,7 @@ assert 'overridden value' == global
         succeeds()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Parent project configures children")
     def canInjectMethodsFromParentProject() {
         createDirs("child1", "child2")
         file("settings.gradle").writelns("include 'child1', 'child2'");

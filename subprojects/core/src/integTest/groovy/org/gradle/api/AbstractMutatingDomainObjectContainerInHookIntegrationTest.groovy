@@ -16,7 +16,10 @@
 
 package org.gradle.api
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
 abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")
     def "can mutate containers inside Project hooks"() {
         createDirs("nested")
         settingsFile """
