@@ -21,8 +21,8 @@ Versions not listed here may or may not work.
 == Java Runtime
 
 Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
-A JVM version between 8 and 23 is required to execute Gradle.
-JVM 24 and later versions are not yet supported.
+A JVM version between 8 and 24 is required to execute Gradle.
+JVM 25 and later versions are not yet supported.
 
 Executing the Gradle daemon with JVM 16 or earlier has been deprecated and will become an error in Gradle 9.0.
 The Gradle wrapper, Gradle client, Tooling API client, and TestKit client will remain compatible with JVM 8.
