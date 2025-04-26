@@ -17,11 +17,13 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 
 class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")
     def 'extra properties are inherited to child and grandchild projects'() {
         given:
         extraPropertiesMultiBuild()
@@ -31,6 +33,7 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3530')
+    @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")
     def 'extra properties can be overridden on child projects'() {
         given:
         extraPropertiesMultiBuild('a': 'aValue', 'a:a1': 'aValue') {
