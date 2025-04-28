@@ -34,7 +34,6 @@ sealed class ApiSourceFile {
     internal
     abstract val currentSourceRoot: File
 
-    @ConsistentCopyVisibility
     data class Java internal constructor(
 
         override val currentFile: File,
@@ -43,7 +42,6 @@ sealed class ApiSourceFile {
 
     ) : ApiSourceFile()
 
-    @ConsistentCopyVisibility
     data class Kotlin internal constructor(
 
         override val currentFile: File,

@@ -1,7 +1,6 @@
 package gradlebuild.incubation.tasks
 
 import gradlebuild.incubation.action.IncubatingApiReportWorkAction
-import gradlebuild.modules.extension.ExternalModulesExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
@@ -22,14 +21,6 @@ import javax.inject.Inject
 
 @CacheableTask
 abstract class IncubatingApiReportTask : DefaultTask() {
-
-    private val additionalClasspath = project.objects.fileCollection().apply {
-        from(
-            project.configurations.detachedConfiguration(
-                project.dependencies.create(project.the<ExternalModulesExtension>().futureKotlin("compiler-embeddable"))
-            )
-        )
-    }
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -56,7 +47,7 @@ abstract class IncubatingApiReportTask : DefaultTask() {
     abstract val workerExecutor: WorkerExecutor
 
     @TaskAction
-    fun analyze() = workerExecutor.processIsolation { classpath.from(additionalClasspath) }.submit(IncubatingApiReportWorkAction::class) {
+    fun analyze() = workerExecutor.noIsolation().submit(IncubatingApiReportWorkAction::class) {
         srcDirs.from(this@IncubatingApiReportTask.sources)
         htmlReportFile = this@IncubatingApiReportTask.htmlReportFile
         textReportFile = this@IncubatingApiReportTask.textReportFile
