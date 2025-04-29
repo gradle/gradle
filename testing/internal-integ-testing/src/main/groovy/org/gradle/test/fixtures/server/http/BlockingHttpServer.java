@@ -489,7 +489,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         BuildableExpectedRequest broken();
 
         /**
-         * Sends a 500 response with some arbitrary content as the response body.
+         * Sends a 401 unauthorized response with some arbitrary content as the response body.
          *
          * @return this
          */
