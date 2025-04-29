@@ -429,7 +429,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.tests.findAll { it.descriptor.name =~ 'Gradle Test Executor \\d+' }.toSet().size() == 4       // 2 test processes for each task
     }
 
-    @ToolingApiVersion("<8.12")
+    @ToolingApiVersion(">=8.0 <8.12")
     def "top-level test operation has test task as parent if task listener is attached (Tooling API client <8.12)"() {
         given:
         goodCode()

@@ -32,8 +32,7 @@ import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.util.Path;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService> {
 

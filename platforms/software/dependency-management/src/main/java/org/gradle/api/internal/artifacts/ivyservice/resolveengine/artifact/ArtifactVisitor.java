@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
@@ -38,10 +38,10 @@ public interface ArtifactVisitor {
      *
      * <p>Note that a given artifact may be visited multiple times. The implementation is required to filter out duplicates.</p>
      */
-    void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact);
+    void visitArtifact(DisplayName variantName, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact);
 
     /**
-     * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, ImmutableCapabilities, ResolvableArtifact)}?
+     * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, ImmutableAttributes, ImmutableCapabilities, ResolvableArtifact)}?
      *
      * Returns true here allows the collection to preemptively resolve the files in parallel.
      */

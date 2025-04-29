@@ -17,8 +17,7 @@ package org.gradle.api.publish.internal.versionmapping;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultVariantVersionMappingStrategy implements VariantVersionMappingStrategyInternal {
     private final ConfigurationContainer configurations;

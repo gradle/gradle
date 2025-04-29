@@ -253,6 +253,11 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             misses(buildFile)
         }
 
+        // and: ignore debug stack traces in output causing flakiness
+        executer.beforeExecute {
+            executer.withStackTraceChecksDisabled()
+        }
+
         // expect: memory hog released
         val runs = 10
         // For some reason we have 5 references to the task class.

@@ -78,7 +78,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -376,88 +375,6 @@ class DefaultConfigurationSpec extends Specification {
         def t = thrown(TypedResolveException)
         t == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
-    }
-
-    def fileCollectionWithDependencies() {
-        def dependency1 = dependency("group1", "name", "version")
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(dependency1)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithSpec() {
-        def configuration = conf()
-        Spec<Dependency> spec = Mock(Spec)
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(spec)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithClosureSpec() {
-        def closure = { dep -> dep.group == 'group1' }
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(closure)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithDependencies() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Dependency))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithSpec() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Spec))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithClosureSpec() {
-        def configuration = conf()
-        def closure = { dep -> dep.group == 'group1' }
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(closure)
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
     }
 
     def "multiple resolves use cached result"() {
@@ -1417,19 +1334,6 @@ class DefaultConfigurationSpec extends Specification {
         conf.attributes.getAttribute(buildType).name == 'release'
     }
 
-    def "cannot define two attributes with the same name but different types"() {
-        def conf = conf()
-        def flavor = Attribute.of('flavor', Flavor)
-
-        when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
-        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'flavor\' of type \'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec$Flavor\' and you are trying to store another one of type \'java.lang.String\''
-    }
-
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
@@ -1679,7 +1583,6 @@ class DefaultConfigurationSpec extends Specification {
         }
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(failure),
             Mock(ResolvedConfiguration) {
                 hasError() >> true
             }
@@ -1693,7 +1596,6 @@ class DefaultConfigurationSpec extends Specification {
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(files),
             Mock(ResolvedConfiguration)
         )
 
@@ -1765,6 +1667,7 @@ class DefaultConfigurationSpec extends Specification {
             project.name ?: "foo"
         )
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
+        _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,
@@ -1786,11 +1689,11 @@ class DefaultConfigurationSpec extends Specification {
             userCodeApplicationContext,
             CollectionCallbackActionDecorator.NOOP,
             projectStateRegistry,
-            Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new DocumentationRegistry()
         )
     }
 

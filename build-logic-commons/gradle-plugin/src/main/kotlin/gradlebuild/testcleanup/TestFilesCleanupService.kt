@@ -44,7 +44,6 @@ import javax.inject.Inject
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
-import kotlin.streams.toList
 
 
 typealias LeftoverFiles = Map<File, List<String>>
@@ -136,7 +135,7 @@ abstract class TestFilesCleanupService @Inject constructor(
         }
 
         // Second run: collect and archive leftover files
-        parameters.projectStates.get().forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
+        parameters.projectStates.get().forEach { (projectPath: String, projectExtension: TestFilesCleanupProjectState) ->
             val tmpTestFiles = projectExtension.tmpTestFiles()
 
             projectExtension.prepareReportsForCiPublishing(
@@ -151,7 +150,7 @@ abstract class TestFilesCleanupService @Inject constructor(
         val exceptions = mutableListOf<Exception>()
         parameters.projectStates.get()
             .filter { projectPathToLeftoverFiles.containsKey(it.key) }
-            .forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
+            .forEach { (projectPath: String, projectExtension: TestFilesCleanupProjectState) ->
                 try {
                     projectExtension.verifyTestFilesCleanup(projectPath, projectPathToLeftoverFiles.getValue(projectPath))
                 } catch (e: Exception) {
@@ -320,7 +319,8 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun zip(destZip: File, srcDir: File) {
         val srcPath = srcDir.toPath()
         Files.walk(srcPath).use { paths ->
-            zip(destZip,
+            zip(
+                destZip,
                 paths.filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
                     .map { srcPath.relativize(it).toString() to it.toFile() }
                     .toList()

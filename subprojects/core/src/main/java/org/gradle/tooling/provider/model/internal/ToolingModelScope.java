@@ -17,8 +17,7 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.internal.project.ProjectState;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A scope that allows {@link #getModel(String, ToolingModelParameterCarrier) building models}

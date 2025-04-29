@@ -16,7 +16,7 @@
 /**
  * Internal plugin APIs.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

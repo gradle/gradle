@@ -60,8 +60,8 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -288,13 +288,13 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return "files of " + GenerateModuleMetadata.this.getPath();
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public TaskDependency getBuildDependencies() {
             DefaultTaskDependency dependency = taskDependencyFactory.configurableDependency();
             SoftwareComponentInternal component = component();
@@ -305,7 +305,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public Set<File> getFiles() {
             SoftwareComponentInternal component = component();
             return component == null ? ImmutableSet.of() : filesOf(component);

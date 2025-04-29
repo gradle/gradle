@@ -189,6 +189,25 @@ class BasicParsingTest {
     }
 
     @Test
+    fun `parses an augmenting assignment with += operator`() {
+        val results = ParseTestUtil.parse(
+            """
+            a += 1
+            """.trimIndent()
+        )
+
+        val expected = """
+            AugmentingAssignment [indexes: 0..6, line/column: 1/1..1/7, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = IntLiteral [indexes: 5..6, line/column: 1/6..1/7, file: test] (1)
+                operator = +=)
+            """.trimIndent()
+        results.assert(expected)
+    }
+
+    @Test
     fun `parses assigning 'this' keyword`() {
         val results = ParseTestUtil.parse(
             """
@@ -429,6 +448,185 @@ class BasicParsingTest {
             )""".trimIndent()
         results.assert(expected)
     }
+
+    @Test
+    fun `parses an infix function call to a function named 'to'`() {
+        val results = ParseTestUtil.parse(
+            """
+            a = b to c
+            d = e(f to g)
+            h = i() to j.k.l.m(n)
+            o = p.q(r) to s.t()
+            u = v.w(x to y) to z
+            """.trimIndent()
+        )
+
+        val expected = """
+            Assignment [indexes: 0..10, line/column: 1/1..1/11, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = FunctionCall <infix> [indexes: 4..10, line/column: 1/5..1/11, file: test] (
+                    name = to
+                    args = [
+                        FunctionArgument.Positional [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                            expr = NamedReference [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                                name = b
+                            )
+                        )
+                        FunctionArgument.Positional [indexes: 9..10, line/column: 1/10..1/11, file: test] (
+                            expr = NamedReference [indexes: 9..10, line/column: 1/10..1/11, file: test] (
+                                name = c
+                            )
+                        )
+                    ]
+                )
+            )
+            Assignment [indexes: 11..24, line/column: 2/1..2/14, file: test] (
+                lhs = NamedReference [indexes: 11..12, line/column: 2/1..2/2, file: test] (
+                    name = d
+                )
+                rhs = FunctionCall [indexes: 15..24, line/column: 2/5..2/14, file: test] (
+                    name = e
+                    args = [
+                        FunctionArgument.Positional [indexes: 17..23, line/column: 2/7..2/13, file: test] (
+                            expr = FunctionCall <infix> [indexes: 17..23, line/column: 2/7..2/13, file: test] (
+                                name = to
+                                args = [
+                                    FunctionArgument.Positional [indexes: 17..18, line/column: 2/7..2/8, file: test] (
+                                        expr = NamedReference [indexes: 17..18, line/column: 2/7..2/8, file: test] (
+                                            name = f
+                                        )
+                                    )
+                                    FunctionArgument.Positional [indexes: 22..23, line/column: 2/12..2/13, file: test] (
+                                        expr = NamedReference [indexes: 22..23, line/column: 2/12..2/13, file: test] (
+                                            name = g
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+                    ]
+                )
+            )
+            Assignment [indexes: 25..46, line/column: 3/1..3/22, file: test] (
+                lhs = NamedReference [indexes: 25..26, line/column: 3/1..3/2, file: test] (
+                    name = h
+                )
+                rhs = FunctionCall <infix> [indexes: 29..46, line/column: 3/5..3/22, file: test] (
+                    name = to
+                    args = [
+                        FunctionArgument.Positional [indexes: 29..32, line/column: 3/5..3/8, file: test] (
+                            expr = FunctionCall [indexes: 29..32, line/column: 3/5..3/8, file: test] (
+                                name = i
+                                args = []
+                            )
+                        )
+                        FunctionArgument.Positional [indexes: 42..46, line/column: 3/18..3/22, file: test] (
+                            expr = FunctionCall [indexes: 42..46, line/column: 3/18..3/22, file: test] (
+                                name = m
+                                receiver = NamedReference [indexes: 40..41, line/column: 3/16..3/17, file: test] (
+                                    receiver = NamedReference [indexes: 38..39, line/column: 3/14..3/15, file: test] (
+                                        receiver = NamedReference [indexes: 36..37, line/column: 3/12..3/13, file: test] (
+                                            name = j
+                                        )
+                                        name = k
+                                    )
+                                    name = l
+                                )
+                                args = [
+                                    FunctionArgument.Positional [indexes: 44..45, line/column: 3/20..3/21, file: test] (
+                                        expr = NamedReference [indexes: 44..45, line/column: 3/20..3/21, file: test] (
+                                            name = n
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+                    ]
+                )
+            )
+            Assignment [indexes: 47..66, line/column: 4/1..4/20, file: test] (
+                lhs = NamedReference [indexes: 47..48, line/column: 4/1..4/2, file: test] (
+                    name = o
+                )
+                rhs = FunctionCall <infix> [indexes: 51..66, line/column: 4/5..4/20, file: test] (
+                    name = to
+                    args = [
+                        FunctionArgument.Positional [indexes: 53..57, line/column: 4/7..4/11, file: test] (
+                            expr = FunctionCall [indexes: 53..57, line/column: 4/7..4/11, file: test] (
+                                name = q
+                                receiver = NamedReference [indexes: 51..52, line/column: 4/5..4/6, file: test] (
+                                    name = p
+                                )
+                                args = [
+                                    FunctionArgument.Positional [indexes: 55..56, line/column: 4/9..4/10, file: test] (
+                                        expr = NamedReference [indexes: 55..56, line/column: 4/9..4/10, file: test] (
+                                            name = r
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+                        FunctionArgument.Positional [indexes: 63..66, line/column: 4/17..4/20, file: test] (
+                            expr = FunctionCall [indexes: 63..66, line/column: 4/17..4/20, file: test] (
+                                name = t
+                                receiver = NamedReference [indexes: 61..62, line/column: 4/15..4/16, file: test] (
+                                    name = s
+                                )
+                                args = []
+                            )
+                        )
+                    ]
+                )
+            )
+            Assignment [indexes: 67..87, line/column: 5/1..5/21, file: test] (
+                lhs = NamedReference [indexes: 67..68, line/column: 5/1..5/2, file: test] (
+                    name = u
+                )
+                rhs = FunctionCall <infix> [indexes: 71..87, line/column: 5/5..5/21, file: test] (
+                    name = to
+                    args = [
+                        FunctionArgument.Positional [indexes: 73..82, line/column: 5/7..5/16, file: test] (
+                            expr = FunctionCall [indexes: 73..82, line/column: 5/7..5/16, file: test] (
+                                name = w
+                                receiver = NamedReference [indexes: 71..72, line/column: 5/5..5/6, file: test] (
+                                    name = v
+                                )
+                                args = [
+                                    FunctionArgument.Positional [indexes: 75..81, line/column: 5/9..5/15, file: test] (
+                                        expr = FunctionCall <infix> [indexes: 75..81, line/column: 5/9..5/15, file: test] (
+                                            name = to
+                                            args = [
+                                                FunctionArgument.Positional [indexes: 75..76, line/column: 5/9..5/10, file: test] (
+                                                    expr = NamedReference [indexes: 75..76, line/column: 5/9..5/10, file: test] (
+                                                        name = x
+                                                    )
+                                                )
+                                                FunctionArgument.Positional [indexes: 80..81, line/column: 5/14..5/15, file: test] (
+                                                    expr = NamedReference [indexes: 80..81, line/column: 5/14..5/15, file: test] (
+                                                        name = y
+                                                    )
+                                                )
+                                            ]
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+                        FunctionArgument.Positional [indexes: 86..87, line/column: 5/20..5/21, file: test] (
+                            expr = NamedReference [indexes: 86..87, line/column: 5/20..5/21, file: test] (
+                                name = z
+                            )
+                        )
+                    ]
+                )
+            )
+        """.trimIndent()
+
+        results.assert(expected)
+    }
+
 
     @Test
     fun `keeps empty lines in line number counting`() {

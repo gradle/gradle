@@ -35,11 +35,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "qix", "1.0").publish()
         mavenRepo.module("foo", "baz", "1.0").dependsOn("foo", "bar", "1.0").dependsOn("foo", "qix", "1.0").publish()
 
-        file("settings.gradle") << """
+        settingsFile """
             rootProject.name = 'fooProject'
         """
 
-        file("build.gradle") << """
+        buildFile """
             apply plugin : 'project-report'
             description = 'dummy description'
             repositories {
@@ -102,11 +102,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "qix", "1.0").dependsOn("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "baz", "1.0").dependsOn("foo", "qix", "1.0").publish()
 
-        file("settings.gradle") << """
+        settingsFile """
             rootProject.name = 'fooProject'
         """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             repositories {
                 maven { url = "${mavenRepo.uri}" }
@@ -137,11 +137,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOn("foo", "qix", "1.0").publish()
 
-        file("settings.gradle") << """
+        settingsFile """
             rootProject.name = 'fooProject'
         """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             repositories {
                 maven { url = "${mavenRepo.uri}" }
@@ -172,7 +172,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "bar", "2.0").publish()
         mavenRepo.module("foo", "baz", "1.0").dependsOn("foo", "bar", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             repositories {
                 maven { url = "${mavenRepo.uri}" }
@@ -199,11 +199,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "generates report for multiple projects"() {
         given:
         createDirs("a", "b")
-        file("settings.gradle") << """
+        settingsFile """
             rootProject.name = 'fooProject'
             include 'a', 'b'
         """
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             htmlDependencyReport {
@@ -223,7 +223,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "copies necessary css, images and js files"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             configurations { compile }
         """
@@ -248,11 +248,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def "generates index.html file"() {
         given:
         createDirs("a", "b")
-        file("settings.gradle") << """
+        settingsFile """
             rootProject.name = 'fooProject'
             include 'a', 'b'
         """
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             description = 'dummy description'
@@ -289,7 +289,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "bar", "2.0").publish()
         mavenRepo.module("foo", "baz", "1.0").dependsOn("foo", "bar", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             repositories {
                 maven { url = "${mavenRepo.uri}" }
@@ -369,7 +369,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "barImpl", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             repositories {
                 maven { url = "${mavenRepo.uri}" }
@@ -399,11 +399,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "bar", "2.0").publish()
 
         createDirs("a", "b", "a/c", "d", "e")
-        file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
+        settingsFile """include 'a', 'b', 'a:c', 'd', 'e'
 rootProject.name = 'root'
 """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             allprojects {
@@ -524,7 +524,7 @@ rootProject.name = 'root'
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             repositories {
@@ -559,14 +559,14 @@ rootProject.name = 'root'
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             repositories {
                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
-                migratingUnlocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
+                migratingLocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
             }
             dependencies {
                 compileOnly 'foo:foo:1.0'
@@ -574,7 +574,6 @@ rootProject.name = 'root'
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run "htmlDependencyReport"
         def json = readGeneratedJson("root")
         def apiConfiguration = json.project.configurations.find { it.name == "compileOnly" }
@@ -592,7 +591,7 @@ rootProject.name = 'root'
     void "excludes directly undeclarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             repositories {
@@ -617,7 +616,7 @@ rootProject.name = 'root'
     void "includes indirectly declarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             repositories {

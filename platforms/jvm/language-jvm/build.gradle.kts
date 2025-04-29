@@ -25,14 +25,14 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
-    implementation(projects.modelReflect)
     implementation(projects.testSuitesBase)
 
+    implementation(libs.commonsLang3)
     implementation(libs.guava)
 
     testImplementation(projects.native)

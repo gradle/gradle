@@ -19,7 +19,10 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Project.class)
 public interface ScriptHandlerInternal extends ScriptHandler {
 
     void addScriptClassPathDependency(Dependency dependency);

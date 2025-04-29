@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.guice)
-    implementation(libs.jsr305)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 }
 

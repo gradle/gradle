@@ -34,6 +34,7 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -71,8 +72,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @ToolingApiTest
 @CleanupTestDirectory
-@ToolingApiVersion('>=7.0')
-@TargetGradleVersion('>=3.0')
+@ToolingApiVersion('>=8.0')
+@TargetGradleVersion('>=4.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation {
     /**
@@ -498,14 +499,9 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     void validateOutput(ExecutionResult result) {
         List<String> maybeExpectedDeprecations = []
         if (filterJavaVersionDeprecation) {
-            maybeExpectedDeprecations.add(normalizeDeprecationWarning(
-                "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                    "This will fail with an error in Gradle 9.0. " +
-                    "Use JVM 17 or greater to execute Gradle. " +
-                    "Projects can continue to use older JVM versions via toolchains. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${targetDist.version.version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
-            ))
+            maybeExpectedDeprecations.add(
+                normalizeDeprecationWarning(SupportedJavaVersionsDeprecations.getExpectedDaemonDeprecationWarning(targetDist.version))
+            )
         }
 
         // Check for deprecation warnings.

@@ -16,11 +16,11 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class JvmVendorSpecFromCharSequenceNotationConverter implements NotationConverter<CharSequence, JvmVendorSpec> {
     @Override
     public void convert(CharSequence notation, NotationConvertResult<? super JvmVendorSpec> result) throws TypeConversionException {

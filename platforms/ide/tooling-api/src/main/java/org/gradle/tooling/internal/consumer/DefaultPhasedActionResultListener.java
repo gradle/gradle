@@ -20,8 +20,7 @@ import org.gradle.internal.Cast;
 import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapts individual result handlers of actions in a {@link PhasedBuildAction} to a unified listener to be provided to the connection.

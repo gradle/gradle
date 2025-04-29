@@ -17,5 +17,5 @@
 /**
  * Classes related to build configuration.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.configuration;

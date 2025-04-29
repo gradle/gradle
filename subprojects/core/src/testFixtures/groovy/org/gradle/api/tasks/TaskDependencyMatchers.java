@@ -27,17 +27,14 @@ import java.util.Set;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 public class TaskDependencyMatchers {
-    @Factory
     public static Matcher<Task> dependsOn(final String... tasks) {
         return dependsOn(equalTo(new HashSet<String>(Arrays.asList(tasks))));
     }
 
-    @Factory
     public static Matcher<Task> dependsOn(Matcher<? extends Iterable<String>> matcher) {
         return dependsOn(matcher, false);
     }
 
-    @Factory
     public static Matcher<Task> dependsOnPaths(Matcher<? extends Iterable<String>> matcher) {
         return dependsOn(matcher, true);
     }
@@ -68,12 +65,10 @@ public class TaskDependencyMatchers {
         };
     }
 
-    @Factory
     public static <T extends Buildable> Matcher<T> builtBy(String... tasks) {
         return builtBy(equalTo(new HashSet<String>(Arrays.asList(tasks))));
     }
 
-    @Factory
     public static <T extends Buildable> Matcher<T> builtBy(final Matcher<? extends Iterable<String>> matcher) {
         return new BaseMatcher<T>() {
             @Override

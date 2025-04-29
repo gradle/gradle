@@ -19,7 +19,7 @@ package org.gradle.architecture.test;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith;
@@ -28,6 +28,6 @@ import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackag
 public class BuildOperationsApiTest {
 
     @ArchTest
-    public static final ArchRule classes_in_operations_package_are_annotated_with_non_null_api =
-        classes().should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class));
+    public static final ArchRule classes_in_operations_package_are_annotated_with_null_marked =
+        classes().should(beAnnotatedOrInPackageAnnotatedWith(NullMarked.class));
 }

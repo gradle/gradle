@@ -16,7 +16,8 @@
 
 package org.gradle.internal.buildtree;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 public interface BuildTreeFinishExecutor {

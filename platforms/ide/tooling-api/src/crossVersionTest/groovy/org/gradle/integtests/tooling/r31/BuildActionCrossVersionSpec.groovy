@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.tooling.r31
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleTask
 
-@TargetGradleVersion('>=3.1')
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "can round trip a model queried by a build action"() {
         when:

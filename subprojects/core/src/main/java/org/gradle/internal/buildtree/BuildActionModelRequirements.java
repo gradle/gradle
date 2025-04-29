@@ -19,7 +19,10 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildActionModelRequirements {
     /**
      * Will the action run tasks?

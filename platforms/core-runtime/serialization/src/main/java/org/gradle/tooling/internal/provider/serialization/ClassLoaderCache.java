@@ -18,12 +18,12 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
 public class ClassLoaderCache {
-    @NonNullApi
+    @NullMarked
     public interface Transformer<OUT, IN> {
         /**
          * Transforms the given object, and returns the transformed value.

@@ -16,11 +16,11 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalRootOperationDescriptor;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DefaultRootOperationDescriptor extends DefaultOperationDescriptor implements InternalRootOperationDescriptor {
     public DefaultRootOperationDescriptor(OperationIdentifier id, String name, String displayName, OperationIdentifier parentId) {
         super(id, name, displayName, parentId);

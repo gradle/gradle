@@ -29,8 +29,8 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 

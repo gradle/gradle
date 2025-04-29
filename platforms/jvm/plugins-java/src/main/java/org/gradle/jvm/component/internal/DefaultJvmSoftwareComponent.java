@@ -57,26 +57,36 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
 
     @Override
     public void withJavadocJar() {
-        JvmFeatureInternal feature = getMainFeature();
+        // TODO: This should probably apply to all features and not just the main feature or this
+        // should be configurable at the feature level instead of the project level.
+        // The original implementation only applied to the main feature.
+        getFeatures().configureEach(feature -> {
+            if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
+                feature.withJavadocJar();
 
-        feature.withJavadocJar();
-
-        Configuration javadocElements = feature.getJavadocElementsConfiguration();
-        if (!isRegisteredAsLegacyVariant(javadocElements)) {
-            addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
-        }
+                Configuration javadocElements = feature.getJavadocElementsConfiguration();
+                if (!isRegisteredAsLegacyVariant(javadocElements)) {
+                    addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
+                }
+            }
+        });
     }
 
     @Override
     public void withSourcesJar() {
-        JvmFeatureInternal feature = getMainFeature();
+        // TODO: This should probably apply to all features and not just the main feature or this
+        // should be configurable at the feature level instead of the project level.
+        // The original implementation only applied to the main feature.
+        getFeatures().configureEach(feature -> {
+            if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
+                feature.withSourcesJar();
 
-        feature.withSourcesJar();
-
-        Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-        if (!isRegisteredAsLegacyVariant(sourcesElements)) {
-            addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
-        }
+                Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+                if (!isRegisteredAsLegacyVariant(sourcesElements)) {
+                    addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+                }
+            }
+        });
     }
 
     @Override

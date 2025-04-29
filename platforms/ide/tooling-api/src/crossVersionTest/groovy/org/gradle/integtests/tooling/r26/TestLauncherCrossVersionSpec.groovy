@@ -21,7 +21,6 @@ import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -158,7 +157,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
             We could try to fix this problems, though this is only a problem for testing.
         """
     )
-    @TargetGradleVersion(">=3.0")
     def "can run and cancel test execution in continuous mode"() {
         given:
         collectDescriptorsFromBuild()

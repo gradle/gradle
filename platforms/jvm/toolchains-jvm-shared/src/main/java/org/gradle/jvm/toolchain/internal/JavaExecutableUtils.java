@@ -18,8 +18,8 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 

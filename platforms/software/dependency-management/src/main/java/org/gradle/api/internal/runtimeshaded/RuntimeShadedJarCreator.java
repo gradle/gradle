@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -108,7 +108,7 @@ class RuntimeShadedJarCreator {
     private void writeServiceFiles(ClasspathBuilder.EntryBuilder builder, Map<String, List<String>> services) throws IOException {
         for (Map.Entry<String, List<String>> service : services.entrySet()) {
             String allProviders = Joiner.on("\n").join(service.getValue());
-            builder.put(SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
+            builder.put(SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(StandardCharsets.UTF_8));
         }
     }
 
@@ -152,14 +152,10 @@ class RuntimeShadedJarCreator {
         }
 
         byte[] bytes = entry.getContent();
-        String content = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
+        String content = new String(bytes, StandardCharsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
 
         String[] descriptorImplClasses = periodsToSlashes(separateLines(content));
         String[] relocatedImplClassNames = maybeRelocateResources(descriptorImplClasses);
-        if (relocatedImplClassNames.length == 0) {
-            relocatedImplClassNames = descriptorImplClasses;
-        }
-
         String serviceType = slashesToPeriods(relocatedApiClassName)[0];
         String[] serviceProviders = slashesToPeriods(relocatedImplClassNames);
 
@@ -292,8 +288,13 @@ class RuntimeShadedJarCreator {
     private String[] maybeRelocateResources(String... resources) {
         return Arrays.stream(resources)
             .filter(Objects::nonNull)
-            .map(remapper::maybeRelocateResource)
-            .filter(Objects::nonNull)
+            .map(resource -> {
+                String remapped = remapper.maybeRelocateResource(resource);
+                if (remapped == null) {
+                    return resource; // This resource was not relocated. Use the original name.
+                }
+                return remapped;
+            })
             .toArray(String[]::new);
     }
 

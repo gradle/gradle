@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Controls how user input is routed to the daemon.

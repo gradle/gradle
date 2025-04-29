@@ -16,8 +16,6 @@
 
 package org.gradle.api;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.meta.TypeQualifierDefault;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -28,18 +26,23 @@ import java.lang.annotation.Target;
 /**
  * Marks a type or a whole package as providing a non-null API by default.
  *
- * All parameter and return types are assumed to be {@link Nonnull} unless specifically marked as {@link Nullable}.
+ * All parameter and return types are assumed to be {@link javax.annotation.Nonnull} unless specifically marked as {@link javax.annotation.Nullable}.
  *
  * All types of an annotated package inherit the package rule.
  * Subpackages do not inherit nullability rules and must be annotated.
  *
  * @since 4.2
+ * @deprecated Deprecated in Gradle 9.0 for removal in Gradle 10.
+ * Prefer JSpecify annotations such as {@link org.jspecify.annotations.NullMarked} and {@link org.jspecify.annotations.Nullable}.
+ * Note that you can also still use JSR305 annotations such as {@link javax.annotation.Nonnull} and {@link javax.annotation.Nullable}.
  */
 @Target({ElementType.TYPE, ElementType.PACKAGE})
 @org.jetbrains.annotations.NotNull
-@Nonnull
+@javax.annotation.Nonnull
 @TypeQualifierDefault({ElementType.METHOD, ElementType.PARAMETER})
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
+@SuppressWarnings("unused")
 public @interface NonNullApi {
 }

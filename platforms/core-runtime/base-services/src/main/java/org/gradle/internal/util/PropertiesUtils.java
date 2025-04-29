@@ -16,14 +16,13 @@
 
 package org.gradle.internal.util;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -62,7 +62,7 @@ public class PropertiesUtils {
      * </ul>
      */
     public static void store(Properties properties, File propertyFile, @Nullable String comment) throws IOException {
-        store(properties, propertyFile, comment, Charsets.ISO_8859_1, "\n");
+        store(properties, propertyFile, comment, StandardCharsets.ISO_8859_1, "\n");
     }
 
     /**
@@ -94,10 +94,10 @@ public class PropertiesUtils {
      */
     public static void store(Properties properties, OutputStream outputStream, @Nullable String comment, Charset charset, String lineSeparator) throws IOException {
         String rawContents;
-        if (charset.equals(Charsets.ISO_8859_1)) {
+        if (charset.equals(StandardCharsets.ISO_8859_1)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             properties.store(out, comment);
-            rawContents = new String(out.toByteArray(), Charsets.ISO_8859_1);
+            rawContents = new String(out.toByteArray(), StandardCharsets.ISO_8859_1);
         } else {
             StringWriter out = new StringWriter();
             properties.store(out, comment);

@@ -19,8 +19,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.internal.file.AbstractOpaqueFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 
 import java.io.File;
 import java.util.Set;
@@ -40,7 +39,7 @@ public class FileCollectionAdapter extends AbstractOpaqueFileCollection {
         this.fileSet = fileSet;
     }
 
-    public FileCollectionAdapter(MinimalFileSet fileSet, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    public FileCollectionAdapter(MinimalFileSet fileSet, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         super(taskDependencyFactory, patternSetFactory);
         this.fileSet = fileSet;
     }

@@ -101,6 +101,7 @@ class DomResolutionTest {
                 addAndConfigure("cross-scope") { }
                 add("incorrect signature")
                 enum = X
+                otherNumber = number
             }
             """.trimIndent()
         )
@@ -136,6 +137,8 @@ class DomResolutionTest {
             LiteralValueResolved -> incorrect signature
             PropertyNotAssigned(UnresolvedValueUsed)
             NamedReferenceNotResolved(UnresolvedName)
+            PropertyAssignmentResolved -> NestedReceiver.otherNumber: Int
+            NamedReferenceNotResolved(NonEnumValueNamedReference)
             """.trimIndent(),
             resolutions.joinToString("\n") { resolutionPrettyString(it) }
         )

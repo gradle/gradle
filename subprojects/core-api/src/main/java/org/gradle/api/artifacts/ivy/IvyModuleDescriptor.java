@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts.ivy;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The metadata about an Ivy module that acts as an input to a component metadata rule.

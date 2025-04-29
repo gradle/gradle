@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -36,8 +35,9 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.operations.execution.FilePropertyVisitor;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +52,7 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-@NonNullApi
+@NullMarked
 public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOperationTraceSerialization {
 
     @VisibleForTesting
@@ -74,8 +74,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             .orElse(null);
     }
 
-    @Nullable
-    public byte[] getClassLoaderHashBytes() {
+    public byte @Nullable [] getClassLoaderHashBytes() {
         return getBeforeExecutionState()
             .map(ExecutionInputState::getImplementation)
             .map(BaseSnapshotInputsBuildOperationResult::getClassLoaderHashBytesOrNull)
@@ -101,8 +100,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             .orElse(null);
     }
 
-    @Nullable
-    private static byte[] getClassLoaderHashBytesOrNull(ImplementationSnapshot implementation) {
+    private static byte @Nullable [] getClassLoaderHashBytesOrNull(ImplementationSnapshot implementation) {
         HashCode hash = implementation.getClassLoaderHash();
         return hash == null ? null : hash.toByteArray();
     }
@@ -130,8 +128,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
             .orElse(null);
     }
 
-    @Nullable
-    public byte[] getHashBytes() {
+    public byte @Nullable [] getHashBytes() {
         return getKey()
             .map(BuildCacheKey::toByteArray)
             .orElse(null);

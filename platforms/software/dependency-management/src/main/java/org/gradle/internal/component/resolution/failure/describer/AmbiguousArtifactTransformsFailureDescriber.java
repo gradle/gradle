@@ -38,11 +38,13 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
     private static final String ARTIFACT_TRANSFORMS_REPORT_SUGGESTION = "Run the :artifactTransforms report to see the available artifact transforms.";
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
+    private static final String REMOVE_TRANSFORMATIONS_SUGGESTION =  "Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.";
 
     @Override
     public ArtifactSelectionException describeFailure(AmbiguousArtifactTransformsFailure failure) {
         String message = buildFailureMsg(failure);
         List<String> resolutions = buildResolutions(
+            REMOVE_TRANSFORMATIONS_SUGGESTION,
             ARTIFACT_TRANSFORMS_REPORT_SUGGESTION,
             suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION),
             suggestReviewAlgorithm()

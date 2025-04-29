@@ -21,10 +21,10 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 
 public class HttpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {

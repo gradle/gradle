@@ -18,10 +18,10 @@ package org.gradle.plugins.ide.internal.tooling.idea;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import java.util.List;
  * <p>
  * <b>This model is internal, and is NOT part of the public Tooling API.</b>
  */
-@NonNullApi
+@NullMarked
 public class IsolatedIdeaModuleInternal implements Serializable {
 
     private String name;

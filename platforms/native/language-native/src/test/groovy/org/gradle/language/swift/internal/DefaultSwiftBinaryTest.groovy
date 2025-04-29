@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.provider.Provider
 import org.gradle.language.cpp.internal.NativeVariantIdentity
@@ -40,7 +38,7 @@ class DefaultSwiftBinaryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def implementation = Stub(ConfigurationInternal)
+    def implementation = project.configurations.dependencyScope("implementation").get()
     def compile = Stub(Configuration)
     def link = Stub(Configuration)
     def runtime = Stub(Configuration)
@@ -49,9 +47,9 @@ class DefaultSwiftBinaryTest extends Specification {
     DefaultSwiftBinary binary
 
     def setup() {
-        _ * configurations.resolvableDependencyScopeUnlocked("swiftCompileDebug") >> compile
-        _ * configurations.resolvableDependencyScopeUnlocked("nativeLinkDebug") >> link
-        _ * configurations.migratingUnlocked('nativeRuntimeDebug', ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE) >> runtime
+        _ * configurations.resolvableDependencyScopeLocked("swiftCompileDebug") >> compile
+        _ * configurations.resolvableDependencyScopeLocked("nativeLinkDebug") >> link
+        _ * configurations.resolvableLocked('nativeRuntimeDebug') >> runtime
 
         binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }

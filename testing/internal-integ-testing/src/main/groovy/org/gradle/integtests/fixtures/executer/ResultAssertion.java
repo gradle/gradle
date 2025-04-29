@@ -171,6 +171,12 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (removeFirstExpectedDeprecationWarning(lines, i)) {
                 i += lastMatchedDeprecationWarning.getNumLines();
                 i = skipStackTrace(lines, i);
+            } else if (line.matches("\\s*WARNING:.*")) {
+                // A JDK warning, ignore unless checkJdkWarnings is enabled
+                if (checkJdkWarnings) {
+                    throw new AssertionError(String.format("%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                }
+                i++;
             } else if (line.matches(".*\\s+deprecated.*")) {
                 if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
                     StringBuilder message = new StringBuilder(String.format("%s line %d contains an unexpected deprecation warning:%n - %s", displayName, i + 1, line));
@@ -191,8 +197,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (!expectStackTraces && !insideVariantDescriptionBlock && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                 // 2 or more lines that look like stack trace elements
                 throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
-            } else if (checkJdkWarnings && line.matches("\\s*WARNING:.*")) {
-                throw new AssertionError(String.format("%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
             } else {
                 i++;
             }

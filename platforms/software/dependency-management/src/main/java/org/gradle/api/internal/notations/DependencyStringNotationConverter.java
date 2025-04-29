@@ -87,7 +87,7 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
     @SuppressWarnings("deprecation")
     private ParsedModuleStringNotation splitModuleFromExtension(String notation) {
         int idx = notation.lastIndexOf('@');
-        if (idx == -1 || org.gradle.api.artifacts.ClientModule.class.isAssignableFrom(wantedType)) {
+        if (idx == -1) {
             return new ParsedModuleStringNotation(notation, null);
         }
         int versionIndx = notation.lastIndexOf(':');

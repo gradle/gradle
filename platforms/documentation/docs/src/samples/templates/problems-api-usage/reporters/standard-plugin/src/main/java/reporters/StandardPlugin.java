@@ -33,6 +33,10 @@ public class StandardPlugin implements Plugin<Project> {
                 .documentedAt("https://github.com/gradle/gradle/README.md")
                 .severity(Severity.WARNING)
                 .solution("Please use a more recent plugin version")
+                .additionalData(SomeAdditionalData.class, additionalData -> {
+                    additionalData.setName("Some name");
+                    additionalData.setNames(java.util.Arrays.asList("name1", "name2"));
+                })
         );
         // end::problems-api-report[]
     }

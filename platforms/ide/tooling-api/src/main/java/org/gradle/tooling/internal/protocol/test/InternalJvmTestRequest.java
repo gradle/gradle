@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.protocol.test;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Specifies a method to be tested.

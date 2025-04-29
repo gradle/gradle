@@ -17,5 +17,5 @@
 /**
  * A package for implementation of Property views, used for property upgrades.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.internal.provider.views;

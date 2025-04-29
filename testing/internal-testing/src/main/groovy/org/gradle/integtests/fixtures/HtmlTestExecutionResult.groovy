@@ -16,10 +16,13 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.internal.FileUtils
+import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+
+import java.util.function.Consumer
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.testCase
 import static org.hamcrest.CoreMatchers.hasItems
@@ -224,6 +227,29 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         @Override
         TestClassExecutionResult assertTestSkipped(String name, String displayName) {
             assert testsSkipped.contains(testCase(name, displayName))
+            return this
+        }
+
+        @Override
+        TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
+            TestCase testCase = testsSkipped.find { it == testCase(name) }
+            assert testCase
+
+            final SkippedExecutionResult skippedExecutionResult
+            if (!testCase.messages.isEmpty()) {
+                List<String> possibleText = CollectionUtils.single(testCase.messages).readLines()
+                // In the HTML report, the format is:
+                // message
+                // <newline>
+                // exception stacktrace
+                String message = possibleText[0]
+                String exceptionType = possibleText[2].split(":")[0]
+                skippedExecutionResult = new SkippedExecutionResult(message, exceptionType, possibleText[2,-1].join("\n"))
+            } else {
+                // no messages for this skipped execution
+                skippedExecutionResult = new SkippedExecutionResult("", "", "")
+            }
+            assertions.accept(skippedExecutionResult)
             return this
         }
 

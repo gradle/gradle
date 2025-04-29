@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.process.ExecOperations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -131,6 +133,65 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
+    }
+
+    @ToBeImplemented()
+    @Issue("https://github.com/gradle/gradle/issues/32918")
+    def 'flow actions cannot depend on tasks indirectly'() {
+        given:
+        buildFile '''
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
+            import org.gradle.api.tasks.*
+
+            abstract class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+
+                @Inject FlowActionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+                void apply(Project target) {
+                    def producer = target.tasks.register('producer', Producer) {
+                        outputFile = target.layout.buildDirectory.file('out')
+                    }
+
+                    def lateBindProperty = target.objects.property(String)
+
+                    flowScope.always(PrintAction) {
+                        parameters.text = lateBindProperty
+                    }
+
+                    lateBindProperty.set(producer.flatMap { it.outputFile }.map { it.asFile.text })
+                }
+            }
+
+            abstract class Producer extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOutputFile()
+                @TaskAction def produce() {
+                    outputFile.get().asFile << "42"
+                }
+            }
+
+            class PrintAction implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input Property<String> getText()
+                }
+                void execute(Parameters parameters) {
+                    println(parameters.text.get())
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        expect:
+        fails 'help'
+
+        // TODO(mlopatkin): should have failed because of a task reference or run the producer task first
+        // then:
+        // failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
     }
 
     def '#scriptTarget action can use injectable #simpleServiceTypeName'() {

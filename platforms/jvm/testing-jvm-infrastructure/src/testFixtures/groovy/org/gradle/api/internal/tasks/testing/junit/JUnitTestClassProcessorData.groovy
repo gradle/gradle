@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit
 import junit.extensions.TestSetup
 import junit.framework.TestCase
 import junit.framework.TestSuite
-import org.gradle.api.tasks.testing.TestFailure
 import org.junit.After
 import org.junit.Before
 import org.junit.BeforeClass
@@ -78,19 +77,15 @@ public class AnIgnoredTestClass {
 }
 
 public class ABrokenTestClass {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-
     @Test
     public void broken() {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 }
 
 public class ATestClassWithBrokenConstructor {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-
     def ATestClassWithBrokenConstructor() {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 
     @Test
@@ -99,11 +94,9 @@ public class ATestClassWithBrokenConstructor {
 }
 
 public class ATestClassWithBrokenBeforeMethod {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-
     @Before
     public void setup() {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 
     @Test
@@ -112,17 +105,14 @@ public class ATestClassWithBrokenBeforeMethod {
 }
 
 public class ATestClassWithBrokenBeforeAndAfterMethod {
-    static def beforeFailure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-    static def afterFailure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-
     @Before
     public void setup() {
-        throw beforeFailure.rawFailure
+        throw new RuntimeException("setup")
     }
 
     @After
     public void teardown() {
-        throw afterFailure.rawFailure
+        throw new RuntimeException("teardown")
     }
 
     @Test
@@ -131,11 +121,9 @@ public class ATestClassWithBrokenBeforeAndAfterMethod {
 }
 
 public class ATestClassWithBrokenBeforeClassMethod {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-
     @BeforeClass
     public static void setup() {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 
     @Test
@@ -160,10 +148,8 @@ public class AJunit3TestThatRenamesItself extends TestCase {
 }
 
 public class ABrokenJunit3TestClass extends TestCase {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-
     public void testBroken() {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 }
 
@@ -174,22 +160,18 @@ public class ATestClassWithSuiteMethod {
 }
 
 public class ATestClassWithBrokenSuiteMethod {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException('broken'))
-
     public static junit.framework.Test suite() {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 }
 
 public class ATestSetUpWithBrokenSetUp extends TestSetup {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException('broken'))
-
     def ATestSetUpWithBrokenSetUp() {
         super(new TestSuite(AJunit3TestClass.class))
     }
 
     protected void setUp() {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 
     public static junit.framework.Test suite() {
@@ -201,7 +183,6 @@ public class ATestSetUpWithBrokenSetUp extends TestSetup {
 public class ATestClassWithRunner {}
 
 public class CustomRunner extends Runner {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException('broken custom runner'))
     Class<?> type
 
     def CustomRunner(Class<?> type) {
@@ -223,7 +204,7 @@ public class CustomRunner extends Runner {
         Description test2 = Description.createTestDescription(type, 'ok')
         runNotifier.fireTestStarted(test1)
         runNotifier.fireTestStarted(test2)
-        runNotifier.fireTestFailure(new Failure(test1, failure.rawFailure))
+        runNotifier.fireTestFailure(new Failure(test1, new RuntimeException('broken custom runner')))
         runNotifier.fireTestFinished(test2)
         runNotifier.fireTestFinished(test1)
     }
@@ -233,10 +214,8 @@ public class CustomRunner extends Runner {
 public class ATestClassWithUnconstructibleRunner {}
 
 public class CustomRunnerWithBrokenConstructor extends Runner {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-
     def CustomRunnerWithBrokenConstructor(Class<?> type) {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 
     Description getDescription() {
@@ -252,7 +231,6 @@ public class CustomRunnerWithBrokenConstructor extends Runner {
 public class ATestClassWithBrokenRunner {}
 
 public class CustomRunnerWithBrokenRunMethod extends Runner {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
     final Class<?> type
 
     def CustomRunnerWithBrokenRunMethod(Class<?> type) {
@@ -264,7 +242,7 @@ public class CustomRunnerWithBrokenRunMethod extends Runner {
     }
 
     void run(RunNotifier notifier) {
-        throw failure.rawFailure
+        throw new RuntimeException("broken")
     }
 }
 
@@ -272,7 +250,6 @@ public class CustomRunnerWithBrokenRunMethod extends Runner {
 public class ATestClassWithRunnerThatBreaksAfterRunningSomeTests {}
 
 public class CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests extends Runner {
-    static def failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
     final Class<?> type
 
     def CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests(Class<?> type) {
@@ -287,7 +264,7 @@ public class CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests extends Ru
         notifier.fireTestStarted(Description.createTestDescription(type, "ok1"))
         notifier.fireTestFinished(Description.createTestDescription(type, "ok1"))
         notifier.fireTestStarted(Description.createTestDescription(type, "broken"))
-        throw failure.rawFailure
+        throw new RuntimeException("after tests")
     }
 }
 

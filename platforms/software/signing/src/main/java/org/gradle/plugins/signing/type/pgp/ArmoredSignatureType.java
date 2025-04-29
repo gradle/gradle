@@ -36,7 +36,7 @@ public class ArmoredSignatureType extends AbstractSignatureType {
 
     @Override
     public void sign(Signatory signatory, InputStream toSign, OutputStream destination) {
-        try (OutputStream armoredOutputStream = new ArmoredOutputStream(destination)) {
+        try (OutputStream armoredOutputStream = ArmoredOutputStream.builder().build(destination)) {
             super.sign(signatory, toSign, armoredOutputStream);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

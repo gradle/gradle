@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
@@ -27,7 +26,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -65,40 +63,6 @@ public abstract class GenerateMavenPom extends DefaultTask {
     @Deprecated
     protected VersionRangeMapper getVersionRangeMapper() {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * The values set by this method are ignored.
-     *
-     * @deprecated This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public GenerateMavenPom withCompileScopeAttributes(ImmutableAttributes compileScopeAttributes) {
-
-        DeprecationLogger.deprecateMethod(GenerateMavenPom.class, "withCompileScopeAttributes(ImmutableAttributes)")
-            .withContext("This method was never intended for public use.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "generate_maven_pom_method_deprecations")
-            .nagUser();
-
-        return this;
-    }
-
-    /**
-     * The values set by this method are ignored.
-     *
-     * @deprecated This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public GenerateMavenPom withRuntimeScopeAttributes(ImmutableAttributes runtimeScopeAttributes) {
-
-        DeprecationLogger.deprecateMethod(GenerateMavenPom.class, "runtimeScopeAttributes(ImmutableAttributes)")
-            .withContext("This method was never intended for public use.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "generate_maven_pom_method_deprecations")
-            .nagUser();
-
-        return this;
     }
 
     /**

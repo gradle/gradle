@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.ResultAssertion
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
@@ -32,7 +33,6 @@ import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.GradleVersion
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
@@ -253,14 +253,7 @@ class SmokeTestGradleRunner extends GradleRunner {
         // TODO: Use problems API to verify deprecation warnings instead of parsing output.
         ExecutionResult execResult = OutputScrapingExecutionResult.from(result.output, "")
 
-        maybeExpectedDeprecationWarnings.add(
-            "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                "This will fail with an error in Gradle 9.0. " +
-                "Use JVM 17 or greater to execute Gradle. " +
-                "Projects can continue to use older JVM versions via toolchains. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"
-        )
+        maybeExpectedDeprecationWarnings.add(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)
 
         List<String> deprecationWarningsToCheck = []
         if (!ignoreDeprecationWarnings) {

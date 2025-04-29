@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -29,6 +28,7 @@ import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.process.internal.JvmOptions;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.Arrays;
@@ -237,7 +237,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public static class NativeServicesOption extends StringBuildOption<DaemonParameters> {
         public NativeServicesOption() {
             super(NATIVE_SERVICES_OPTION);

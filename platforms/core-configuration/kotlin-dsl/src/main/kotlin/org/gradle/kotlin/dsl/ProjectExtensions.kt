@@ -273,7 +273,7 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
  *
  * @see [Project.container]
  */
-inline fun <reified T> Project.container(): NamedDomainObjectContainer<T> =
+inline fun <reified T : Any> Project.container(): NamedDomainObjectContainer<T> =
     container(T::class.java)
 
 

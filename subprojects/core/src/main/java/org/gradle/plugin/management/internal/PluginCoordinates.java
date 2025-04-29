@@ -16,14 +16,13 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public final class PluginCoordinates {
 
     private final PluginId id;

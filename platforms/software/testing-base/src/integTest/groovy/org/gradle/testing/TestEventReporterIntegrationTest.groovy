@@ -101,7 +101,7 @@ Custom test root > My Suite > another failing test FAILED
         suiteTestOps.size() == 1
         def suiteTestOpDetails = suiteTestOps[0].details as Map<String, Map<String, ?>>
         (suiteTestOpDetails.testDescriptor.name as String).startsWith("My Suite")
-        suiteTestOpDetails.testDescriptor.className == null
+        suiteTestOpDetails.testDescriptor.className == "My Suite"
         suiteTestOpDetails.testDescriptor.composite
 
         def firstLevelTestOps = operations.children(suiteTestOps[0], ExecuteTestBuildOperationType).sort {
@@ -111,7 +111,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstLevelTestOpDetails = firstLevelTestOps*.details as List<Map<String, Map<String, ?>>>
         firstLevelTestOpDetails*.testDescriptor.name == ["myTestInternal", "myTestInternal2", "myTestInternal3"]
         firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!", "My failing test :(", "another failing test"]
-        firstLevelTestOpDetails*.testDescriptor.className == ["myTestInternal", "myTestInternal2", "myTestInternal3"]
+        firstLevelTestOpDetails*.testDescriptor.className == ["My Suite", "My Suite", "My Suite"]
         firstLevelTestOpDetails*.testDescriptor.composite == [false, false, false]
 
         def firstTestOutputProgress = firstLevelTestOps[0].progress
@@ -790,7 +790,7 @@ Custom test root > My Suite > another failing test FAILED
         assert suiteTestOps.size() == 1
         def suiteTestOpDetails = suiteTestOps[0].details as Map<String, Map<String, ?>>
         assert (suiteTestOpDetails.testDescriptor.name as String).startsWith("My Suite")
-        assert suiteTestOpDetails.testDescriptor.className == null
+        assert suiteTestOpDetails.testDescriptor.className == "My Suite"
         assert suiteTestOpDetails.testDescriptor.composite
 
         def firstLevelTestOps = operations.children(suiteTestOps[0], ExecuteTestBuildOperationType).sort {
@@ -800,7 +800,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstLevelTestOpDetails = firstLevelTestOps*.details as List<Map<String, Map<String, ?>>>
         assert firstLevelTestOpDetails*.testDescriptor.name == ["MyTestInternal"]
         assert firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!"]
-        assert firstLevelTestOpDetails*.testDescriptor.className == ["MyTestInternal"]
+        assert firstLevelTestOpDetails*.testDescriptor.className == ["My Suite"]
         assert firstLevelTestOpDetails*.testDescriptor.composite == [false]
 
         return firstLevelTestOps[0].progress(ExecuteTestBuildOperationType.Metadata)

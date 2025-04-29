@@ -93,41 +93,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         'out'        | false      | 'reconfigured build directory'
     }
 
-    def "production class files outside of 'build' are removed"() {
-        given:
-        def javaProject = new StaleOutputJavaProject(testDirectory, 'out')
-        buildFile << """
-            apply plugin: 'java'
-
-            sourceSets {
-                main {
-                    java.destinationDirectory.set(file('out/classes/java/main'))
-                }
-            }
-        """.stripIndent()
-
-        when:
-        result = runWithMostRecentFinalRelease(JAR_TASK_NAME)
-
-        then:
-        javaProject.mainClassFile.assertIsFile()
-        javaProject.redundantClassFile.assertIsFile()
-
-        when:
-        forceDelete(javaProject.redundantSourceFile)
-        succeeds JAR_TASK_NAME
-
-        then:
-        javaProject.mainClassFile.assertIsFile()
-        javaProject.redundantClassFile.assertDoesNotExist()
-
-        when:
-        succeeds JAR_TASK_NAME
-
-        then:
-        javaProject.assertBuildTasksSkipped(result)
-    }
-
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
     @Issue("https://github.com/gradle/gradle/issues/821")
     @UnsupportedWithConfigurationCache

@@ -19,8 +19,8 @@ package org.gradle.internal.build;
 import com.google.common.collect.ImmutableList;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;

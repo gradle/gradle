@@ -16,7 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 
 class WarPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,6 +34,7 @@ class WarPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "assemble"
 
         then:
+        executed(":war")
         file("build/libs/test.war").exists();
     }
 
@@ -78,21 +78,6 @@ class WarPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/libs/empty.war").exists();
-    }
-
-    def "calling configureConfigurations is deprecated"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'war'
-            }
-
-            plugins.withType(WarPlugin).configureEach(plugin -> plugin.configureConfigurations(project.configurations))
-        """
-
-        expect:
-        executer.expectDeprecationWarning("The WarPlugin.configureConfigurations(ConfigurationContainer) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#war_plugin_configure_configurations")
-        fails("help")
     }
 
 }

@@ -18,7 +18,6 @@
 package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
@@ -182,47 +181,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.failed == [test]
     }
 
-    @TargetGradleVersion(">=3.0 <3.6")
-    def "receive task progress events when tasks are executed in parallel"() {
-        given:
-        server.start()
-        buildFile << """
-            @ParallelizableTask
-            class ParTask extends DefaultTask {
-                @TaskAction zzz() { ${server.callFromBuildUsingExpression('name')} }
-            }
-
-            task para1(type:ParTask)
-            task para2(type:ParTask)
-            task parallelTasks(dependsOn:[para1,para2])
-        """
-        server.expectConcurrent("para1", "para2")
-
-        when:
-        def events = ProgressEvents.create()
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild().withArguments("-Dorg.gradle.parallel.intra=true", '--parallel', '--max-workers=2').forTasks('parallelTasks').addProgressListener(events).run()
-        }
-
-        then:
-        events.tasks.size() == 3
-
-        def runTasks = events.operation("Run tasks")
-
-        def t1 = events.operation("Task :para1")
-        def t2 = events.operation("Task :para2")
-        def t3 = events.operation("Task :parallelTasks")
-
-        t1.parent == runTasks
-        t2.parent == runTasks
-        t3.parent == runTasks
-
-        cleanup:
-        server.stop()
-    }
-
-    @TargetGradleVersion(">=3.6")
     def "receive task progress events when tasks are executed in parallel (with async work)"() {
         given:
         server.start()
@@ -308,7 +266,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         """
     }
 
-    @ToolingApiVersion("<8.12")
+    @ToolingApiVersion(">=8.0 <8.12")
     def "task operations have a build operation as parent iff build listener is attached  (Tooling API client < 8.12)"() {
         given:
         goodCode()
@@ -362,7 +320,6 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.tasks.every { it.descriptor.parent == null }
     }
 
-    @TargetGradleVersion(">=3.4")
     def "task with empty skipwhenempty inputs marked as skipped with NO-SOURCE"() {
         given:
         buildFile << """

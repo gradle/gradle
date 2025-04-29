@@ -17,7 +17,7 @@
 /**
  * Gradle Flow API.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.flow;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

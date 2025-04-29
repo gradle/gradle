@@ -16,7 +16,7 @@
 
 package org.gradle.internal.metaobject;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DynamicInvokeResult {
 

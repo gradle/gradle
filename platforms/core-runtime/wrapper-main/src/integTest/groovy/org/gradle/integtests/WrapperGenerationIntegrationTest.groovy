@@ -35,7 +35,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("c53125e84f59ad902632e947151cf766d0f3dacac4834781acac335f005e7b17")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("12327f16ddd31136e57308dbf3ac309522f12a2e372b9043b3709f7aa5778a07")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -183,9 +183,12 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         Manifest manifest = contents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) } as Manifest
         with(manifest.mainAttributes) {
-            size() == 2
+            size() == 5
             getValue(Attributes.Name.MANIFEST_VERSION) == '1.0'
             getValue(Attributes.Name.IMPLEMENTATION_TITLE) == 'Gradle Wrapper'
+            getValue(Attributes.Name.MAIN_CLASS) == org.gradle.wrapper.GradleWrapperMain.class.getName()
+            getValue("SPDX-License-Identifier") == "Apache-2.0"
+            getValue("Enable-Native-Access") == "ALL-UNNAMED"
         }
     }
 

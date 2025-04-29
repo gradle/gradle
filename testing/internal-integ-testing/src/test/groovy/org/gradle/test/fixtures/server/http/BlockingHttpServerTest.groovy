@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -1290,7 +1291,14 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                succeeds("a")
+                // On Java 24, the URL connection will properly throw an IOException when trying to read the response (because of the fix for https://bugs.openjdk.org/browse/JDK-8335135)
+                // Expect it here, which will prevent noExceptionThrown() from triggering
+                if (JavaVersion.current() >= JavaVersion.VERSION_24) {
+                    def ex = fails("a")
+                    assert ex.message == "Premature EOF"
+                } else {
+                    succeeds("a")
+                }
             }
             start {
                 handle.waitForAllPendingCalls()
@@ -1300,7 +1308,6 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         }
 
         then:
-        // TODO - reading from the URL should fail
         noExceptionThrown()
 
         when:

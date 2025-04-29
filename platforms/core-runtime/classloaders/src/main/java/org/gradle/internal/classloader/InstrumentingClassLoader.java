@@ -16,7 +16,8 @@
 
 package org.gradle.internal.classloader;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.security.ProtectionDomain;
 
 /**
@@ -44,8 +45,7 @@ public interface InstrumentingClassLoader {
      * @param classfileBuffer the buffer that contains class implementation bytes in class file format - must not be modified
      * @return new class implementation bytes in class file format or {@code null} to continue loading the original implementation
      */
-    @Nullable
-    byte[] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer);
+    byte @Nullable [] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer);
 
     /**
      * This is called by the agent if a throwable is thrown while instrumenting a class during the call of the {@link #instrumentClass(String, ProtectionDomain, byte[])} method,

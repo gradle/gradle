@@ -19,15 +19,14 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
-import org.gradle.kotlin.dsl.ScriptHandlerScope
 import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
+import org.gradle.kotlin.dsl.ScriptHandlerScope
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
@@ -116,7 +115,6 @@ open class CompiledKotlinInitScript(
         override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
         override fun getLogging(): LoggingManager = host.target.serviceOf()
         override fun getFileOperations(): FileOperations = host.fileOperations
-        override fun getProcessOperations(): ProcessOperations = host.processOperations
     }
 }
 

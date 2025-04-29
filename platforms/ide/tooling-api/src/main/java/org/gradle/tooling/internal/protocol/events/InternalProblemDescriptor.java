@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface InternalProblemDescriptor extends InternalOperationDescriptor {
 }

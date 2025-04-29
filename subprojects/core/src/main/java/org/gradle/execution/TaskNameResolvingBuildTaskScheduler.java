@@ -16,7 +16,6 @@
 package org.gradle.execution;
 
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.configuration.project.BuiltInCommand;
@@ -24,10 +23,11 @@ import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -89,7 +89,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private class EntryTaskSelectorContext implements EntryTaskSelector.Context {
         final GradleInternal gradle;
 

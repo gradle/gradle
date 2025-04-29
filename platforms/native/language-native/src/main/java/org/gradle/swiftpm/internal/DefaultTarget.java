@@ -17,8 +17,8 @@
 package org.gradle.swiftpm.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;

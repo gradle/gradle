@@ -16,7 +16,8 @@
 
 package org.gradle.internal.serialize;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.OutputStream;
 

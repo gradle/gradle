@@ -17,8 +17,7 @@
 package org.gradle.deployment.internal;
 
 import org.gradle.internal.concurrent.Stoppable;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class RegisteredDeployment implements Stoppable {
     private final String id;

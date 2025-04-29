@@ -17,8 +17,8 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Function;
 
 class HasPropertyMissingDynamicObject extends BeanDynamicObject {

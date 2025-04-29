@@ -16,9 +16,9 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A factory for creating low level {@link ClientExecHandleBuilder} instances.
@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * This is very low level process API factory. It is not intended to be used directly except in very specific cases.
  * For starting a process prefer using ExecFactory.
  */
-@NonNullApi
+@NullMarked
 @ServiceScope({Scope.Global.class})
 public interface ClientExecHandleBuilderFactory {
 

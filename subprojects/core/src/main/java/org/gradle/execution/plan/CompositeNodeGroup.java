@@ -17,8 +17,8 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**

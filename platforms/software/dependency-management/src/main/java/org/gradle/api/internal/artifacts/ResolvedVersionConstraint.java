@@ -16,8 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ResolvedVersionConstraint {
     @Nullable

@@ -120,7 +120,7 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
-    def "can remove configuration without dependencies and resolve it"() {
+    def "cannot remove configuration without dependencies and resolve it"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
 
@@ -132,9 +132,11 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
             assert conf.files.empty
         """
 
-        expect:
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
-        succeeds("help")
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Expected resolvable configuration 'conf' to be present in root project")
     }
 
     def "removing a configuration with dependencies and resolving it fails"() {
@@ -154,6 +156,6 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("Expected root variant 'conf' to be present in root project :")
+        failure.assertHasCause("Expected resolvable configuration 'conf' to be present in root project")
     }
 }

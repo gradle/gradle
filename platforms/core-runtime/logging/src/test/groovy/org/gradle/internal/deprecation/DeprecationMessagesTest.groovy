@@ -347,6 +347,7 @@ class DeprecationMessagesTest extends Specification {
 
         then:
         expectMessage "Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published."
+        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == '' })
     }
 
     def "logs documentation reference"() {

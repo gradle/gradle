@@ -16,6 +16,10 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Project.class)
 public interface TypeConverter {
     /**
      * @param type The target type. Should be the boxed type for primitives.

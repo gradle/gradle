@@ -178,6 +178,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             return false;
         }
 
+        @SuppressWarnings("MixedMutabilityReturnType")
         Set<T> collect() {
             if (store.isEmpty()) {
                 return Collections.emptySet();

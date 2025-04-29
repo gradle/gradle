@@ -166,7 +166,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
         }
     }
 
-    private static class OutputFileMap {
+    static class OutputFileMap {
         private Map<String, Entry> entries = new HashMap<String, Entry>();
 
         public Builder root() {
@@ -228,6 +228,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             }
         }
 
+        @SuppressWarnings("unused") // Used by Gson
         private static class Entry {
             private String dependencies;
             private String object;

@@ -71,6 +71,9 @@ public class TaskMutator {
                 case MULTI_REMOVE:
                     method = String.format("%s.%s", listname, "removeAll()");
                     break;
+                case NONE:
+                default:
+                    break;
             }
         }
         if (method == null) {

@@ -123,7 +123,7 @@ include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencies
 [[sec:identifying-reason-dependency-selection]]
 == Identify the selected version using the `dependencyInsight` task
 
-A project may request two different versions of the same dependency either directly or transitively that may result in a <<dependency_resolution_model.adoc#sec:version-conflict,version conflict>>.
+A project may request two different versions of the same dependency either directly or transitively that may result in a <<graph_resolution.adoc#sec:version-conflict,version conflict>>.
 
 The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
 
@@ -182,7 +182,7 @@ May be followed by a `because` text.
 
 | By conflict resolution : between versions <version>
 | The dependency appeared multiple times, with different version requests.
-This resulted in <<dependency_resolution_model.adoc#sec:version-conflict, conflict resolution>> to select the most appropriate version.
+This resulted in <<graph_resolution.adoc#sec:version-conflict, conflict resolution>> to select the most appropriate version.
 
 | By constraint
 | A <<dependency_constraints#sec:adding-constraints-transitive-deps, dependency constraint>> participated in the version selection.
@@ -199,7 +199,7 @@ May be followed by a `because` text.
 | A `ComponentSelection.reject` link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[rejected the given version] of the dependency.
 
 | Rejection: version <version>: <attributes information>
-| The dependency has a dynamic version and some versions did not match the <<variant_model#sec:variant-aware-matching, requested attributes>>.
+| The dependency has a dynamic version and some versions did not match the <<variant_aware_resolution.adoc#sec:variant-aware-matching, requested attributes>>.
 
 | Forced
 | The build enforces the version of the dependency through an enforced platform or resolution strategy.
@@ -237,6 +237,6 @@ For example:
 * Project configurations are resolved in the settings file.
 
 In most cases, this issue can be resolved by creating a cross-project dependency on the other project.
-See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
+See the how-to guide for <<how_to_share_outputs_between_projects.adoc#variant-aware-sharing, sharing outputs between projects>> for more information.
 
 If you find a use case that can't be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.

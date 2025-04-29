@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.file.collections.FailingFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
@@ -29,11 +30,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -69,12 +69,6 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependen
 public abstract class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
     private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
-
-    private static final List<String> GROOVY_LIBS = Arrays.asList(
-        "groovy",
-        "groovy-ant", "groovy-astbuilder", "groovy-console", "groovy-datetime", "groovy-dateutil",
-        "groovy-nio", "groovy-sql", "groovy-test",
-        "groovy-templates", "groovy-json", "groovy-xml", "groovy-groovydoc");
 
     private final ProjectInternal project;
 
@@ -165,12 +159,12 @@ public abstract class GroovyRuntime {
                 // We may already have the required pieces on classpath via localGroovy()
                 Set<String> groovyJarNames = groovyJarNamesFor(groovyVersion);
                 List<File> groovyClasspath = collectJarsFromClasspath(classpath, groovyJarNames);
-                if (groovyClasspath.size() == GROOVY_LIBS.size()) {
+                if (groovyClasspath.size() == DependencyClassPathProvider.GROOVY_MODULES.size()) {
                     return project.getLayout().files(groovyClasspath);
                 }
 
                 return detachedRuntimeClasspath(
-                    GROOVY_LIBS.stream()
+                    DependencyClassPathProvider.GROOVY_MODULES.stream()
                         .map(libName -> project.getDependencies().create(groovyModuleDependency(libName, groovyVersion)))
                         .toArray(Dependency[]::new)
                 );
@@ -199,7 +193,7 @@ public abstract class GroovyRuntime {
     }
 
     private static Set<String> groovyJarNamesFor(VersionNumber groovyVersion) {
-        return GROOVY_LIBS.stream()
+        return DependencyClassPathProvider.GROOVY_MODULES.stream()
             .map(libName -> libName + "-" + groovyVersion + ".jar")
             .collect(toSet());
     }

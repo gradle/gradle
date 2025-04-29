@@ -18,8 +18,7 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Specialised event emitter for cross-cutting type progress events not tied more deeply to operation execution.

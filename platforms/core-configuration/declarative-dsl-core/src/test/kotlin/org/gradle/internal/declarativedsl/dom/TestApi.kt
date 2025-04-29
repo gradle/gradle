@@ -71,10 +71,19 @@ class TestApi {
         var number: Int
 
         @get:Restricted
+        var otherNumber: Int
+
+        @get:Restricted
         var enum: Enum
 
         @Adding
         fun add(): MyNestedElement
+
+        @get:Restricted
+        var listOfComplexValueOne: List<ComplexValueOne>
+
+        @Restricted
+        fun <T> mySingletonList(t: T): List<T>
 
         @Configuring
         fun configure(configure: NestedReceiver.() -> Unit)

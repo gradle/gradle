@@ -6,7 +6,12 @@ plugins {
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
-gradlebuildJava.usedInToolingApi()
+gradleModule {
+    usedInClient = true
+
+    // JSpecify annotations on static inner type return types
+    usesJdkInternals = true
+}
 
 tasks.named<Jar>("sourcesJar") {
     // duplicate package-info.java because of split packages
@@ -30,29 +35,30 @@ errorprone {
 }
 
 dependencies {
-    shadedImplementation(libs.slf4jApi)
-
-    runtimeOnly(projects.coreApi)
-
-    implementation(projects.core)
-    implementation(projects.buildProcessServices)
-    implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
-
-    implementation(libs.guava)
-
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.concurrent)
     api(projects.enterpriseLogging)
-    api(projects.logging)
     api(projects.messaging)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.wrapperShared)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
+
+    implementation(projects.core)
+    implementation(projects.buildProcessServices)
+    implementation(projects.logging)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
+
+    implementation(libs.guava)
+    implementation(libs.jsr305)
+
+    shadedImplementation(libs.slf4jApi)
+
+    runtimeOnly(projects.coreApi)
 
     testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)
@@ -62,14 +68,17 @@ dependencies {
     testFixturesImplementation(projects.baseServicesGroovy)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(testFixtures(projects.buildProcessStartup))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.problems)
+    crossVersionTestImplementation(testFixtures(projects.buildProcessStartup))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)

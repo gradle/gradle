@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
@@ -38,14 +37,16 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
     private final ImmutableList.Builder<InternalProblem> problems = ImmutableList.builder();
     private final TypeOriginInspector typeOriginInspector;
+    private final InternalProblems problemsService;
 
-    public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector) {
+    public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector, InternalProblems problemsService) {
         this.typeOriginInspector = typeOriginInspector;
+        this.problemsService = problemsService;
     }
 
     @Override
     public InternalProblems getProblemsService() {
-        return ProblemsProgressEventEmitterHolder.get();
+        return problemsService;
     }
 
     @Override

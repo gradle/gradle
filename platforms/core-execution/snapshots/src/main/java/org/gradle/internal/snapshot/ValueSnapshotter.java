@@ -18,8 +18,7 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A factory for creating snapshots and hashes of an object graph. This should be used instead of {@link org.gradle.internal.isolation.IsolatableFactory} when

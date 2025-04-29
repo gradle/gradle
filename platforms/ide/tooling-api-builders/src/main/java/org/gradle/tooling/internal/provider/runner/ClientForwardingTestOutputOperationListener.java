@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.build.event.types.DefaultTestOutputDescriptor;
@@ -30,11 +29,12 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Test listener that forwards the test output events.
  */
-@NonNullApi
+@NullMarked
 class ClientForwardingTestOutputOperationListener implements BuildOperationListener {
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;

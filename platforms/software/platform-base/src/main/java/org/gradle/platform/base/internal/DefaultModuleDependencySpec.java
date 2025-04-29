@@ -21,8 +21,7 @@ import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpecBuilder;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 

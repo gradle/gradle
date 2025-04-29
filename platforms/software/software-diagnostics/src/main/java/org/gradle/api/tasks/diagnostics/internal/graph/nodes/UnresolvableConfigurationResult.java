@@ -38,7 +38,7 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
         );
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "MixedMutabilityReturnType"})
     private static Set<? extends RenderableDependency> unresolvableChildren(Configuration configuration) {
         final DependencySet dependencies = configuration.getDependencies();
         if (dependencies.isEmpty()) {

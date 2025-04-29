@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * The JUnit specific test options.
  */
-public class JUnitOptions extends TestFrameworkOptions {
+public abstract class JUnitOptions extends TestFrameworkOptions {
     private Set<String> includeCategories = new LinkedHashSet<String>();
 
     private Set<String> excludeCategories = new LinkedHashSet<String>();

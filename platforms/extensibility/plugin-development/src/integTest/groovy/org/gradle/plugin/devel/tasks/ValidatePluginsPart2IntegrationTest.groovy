@@ -835,7 +835,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         assertValidationSucceeds()
     }
 
-    def "missing Java Toolchain plugin causes a deprecation warning"() {
+    def "missing Java Toolchain plugin causes a build failure"() {
         given:
         source("producer/settings.gradle") << ""
         source("producer/build.gradle") << "plugins { id 'java' }"
@@ -855,21 +855,15 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             .run()
 
         executer.inDirectory(file("consumer"))
-            .expectDocumentedDeprecationWarning(
-                "Using task ValidatePlugins without applying the Java Toolchain plugin. " +
-                    "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain"
-            )
 
         then:
-        succeeds "validatePlugins"
+        fails "validatePlugins"
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:missing-java-toolchain-plugin'
-            contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin. This behavior has been deprecated.'
+            fqid == 'validation:missing-java-toolchain-plugin'
+            contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.'
+            definition.documentationLink.url.endsWith("/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain_90")
         }
-
     }
 }

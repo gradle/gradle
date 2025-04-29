@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.results.AggregateTestEventReporter;
@@ -25,8 +24,9 @@ import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class TestingBasePluginServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -48,14 +48,14 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
         registration.addProvider(new TestingBuildScopeServices());
     }
 
-    @NonNullApi
+    @NullMarked
     public static class TestingGlobalScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(MetadataRendererRegistry.class);
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public static class TestingBuildSessionScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(TestListenerBuildOperationAdapter.class);
@@ -63,14 +63,14 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public static class TestingBuildTreeScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(AggregateTestEventReporter.class);
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public static class TestingBuildScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(TestEventReporterFactory.class, DefaultTestEventReporterFactory.class);

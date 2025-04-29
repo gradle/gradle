@@ -16,13 +16,13 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -31,7 +31,7 @@ import java.util.List;
  * It should be used by tooling model builders when they need to aggregate models
  * from <b>multiple projects of the same build</b>.
  */
-@NonNullApi
+@NullMarked
 @ServiceScope(Scope.Build.class)
 public interface IntermediateToolingModelProvider {
 

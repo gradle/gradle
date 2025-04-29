@@ -21,9 +21,12 @@ import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.IOException;
 
+@ServiceScope(Scope.BuildTree.class)
 public class CapabilitySelectorSerializer implements Serializer<CapabilitySelector> {
 
     private static final int SPECIFIC_CAPABILITY_SELECTOR = 1;

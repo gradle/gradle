@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialization;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A value that gets discarded during serialization.

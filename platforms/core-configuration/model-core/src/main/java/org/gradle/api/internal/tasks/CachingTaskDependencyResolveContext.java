@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Buildable;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -49,7 +49,7 @@ import static java.lang.String.format;
  *
  * </ul>
  */
-@NonNullApi
+@NullMarked
 public class CachingTaskDependencyResolveContext<T> extends AbstractTaskDependencyResolveContext {
     private final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, T> walker;

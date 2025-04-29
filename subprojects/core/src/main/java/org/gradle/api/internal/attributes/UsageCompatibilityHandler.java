@@ -34,6 +34,8 @@ class UsageCompatibilityHandler {
     }
 
     public <T> ImmutableAttributes doConcat(DefaultAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+        factory.assertAttributeNotAlreadyPresent(node, key);
+
         assert key.getName().equals(Usage.USAGE_ATTRIBUTE.getName()) : "Should only be invoked for 'org.gradle.usage', got '" + key.getName() + "'";
         // Replace deprecated usage values
         String val;

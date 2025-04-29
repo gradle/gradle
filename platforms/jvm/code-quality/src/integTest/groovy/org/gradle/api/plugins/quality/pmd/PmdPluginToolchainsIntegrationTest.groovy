@@ -34,9 +34,10 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     def "uses jdk from toolchains set through java plugin"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
+
         given:
         goodCode()
-        def jdk = setupExecutorForToolchains()
+        withInstallations(jdk)
         writeBuildFileWithToolchainsFromJavaPlugin(jdk)
 
         when:
@@ -44,13 +45,17 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
         then:
         outputContains("Running pmd with toolchain '${jdk.javaHome.absolutePath}'.")
+
+        where:
+        jdk << AvailableJavaHomes.getSupportedWorkerJdks()
     }
 
     def "uses jdk from toolchains set through pmd task"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
+
         given:
         goodCode()
-        def jdk = setupExecutorForToolchains()
+        withInstallations(jdk)
         writeBuildFileWithToolchainsFromCheckstyleTask(jdk)
 
         when:
@@ -58,6 +63,9 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
         then:
         outputContains("Running pmd with toolchain '${jdk.javaHome.absolutePath}'.")
+
+        where:
+        jdk << AvailableJavaHomes.getSupportedWorkerJdks()
     }
 
     def "uses current jdk if not specified otherwise"() {
@@ -76,7 +84,6 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
     def "uses current jdk if pmd plugin is not applied"() {
         given:
         goodCode()
-        setupExecutorForToolchains()
         writeBuildFileWithoutApplyingPmdPlugin()
         buildFile << """
             Map<String, String> excludeProperties(String group, String module) {
@@ -114,12 +121,6 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
         then:
         outputContains("Running pmd with toolchain '${Jvm.current().javaHome.absolutePath}'.")
-    }
-
-    Jvm setupExecutorForToolchains() {
-        Jvm jdk = AvailableJavaHomes.getDifferentVersion()
-        withInstallations(jdk)
-        return jdk
     }
 
     private void writeBuildFile() {

@@ -15,7 +15,8 @@
  */
 package org.gradle.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,7 +83,6 @@ public class SystemProperties {
      * @deprecated Using the temporary directory on UNIX-based systems can lead to local privilege escalation or local sensitive information disclosure vulnerabilities.
      */
     @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public String getJavaIoTmpDir() {
         return System.getProperty("java.io.tmpdir");
     }

@@ -75,7 +75,6 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
     )
 
     DefaultJvmLanguageUtilities jvmLanguageUtilities = new DefaultJvmLanguageUtilities(
-        TestUtil.providerFactory(),
         instanceGenerator,
         project
     )

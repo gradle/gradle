@@ -17,8 +17,7 @@ package org.gradle.api.internal.catalog.parser;
 
 import com.google.common.collect.Interner;
 import org.gradle.api.InvalidUserCodeException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class StrictVersionParser {
     private final Interner<String> stringInterner;

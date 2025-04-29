@@ -41,7 +41,6 @@ What exactly the `xcode` plugin generates depends on which other plugins are use
 
 | <<xctest_plugin.adoc#xctest_plugin,XCTest>>
 | Adds a target representing the XCTest bundle to the project file.
-| The tested target is also configured to enable a seamless workflow from the IDE.
 |===
 
 [[sec:xcode_usage]]

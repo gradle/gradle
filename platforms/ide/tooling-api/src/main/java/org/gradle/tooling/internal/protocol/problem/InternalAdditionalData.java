@@ -18,6 +18,9 @@ package org.gradle.tooling.internal.protocol.problem;
 
 import java.util.Map;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol. </p>
+ */
 public interface InternalAdditionalData {
 
     Map<String, Object> getAsMap();

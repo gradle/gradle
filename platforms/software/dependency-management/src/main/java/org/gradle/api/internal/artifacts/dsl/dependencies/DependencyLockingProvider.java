@@ -22,12 +22,15 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Set;
 
 /**
  * Provides dependency locking support for dependency resolution.
  */
+@ServiceScope(Scope.Project.class)
 public interface DependencyLockingProvider {
 
     /**

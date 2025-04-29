@@ -29,7 +29,7 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -43,13 +43,14 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTy
 import static org.hamcrest.CoreMatchers.equalTo
 
 class DefaultSourceDirectorySetTest extends Specification {
-    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TestFile testDir = tmpDir.testDirectory
     private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir)
     private TaskDependencyFactory taskDependencyFactory = TestFiles.taskDependencyFactory()
     private DirectoryFileTreeFactory directoryFileTreeFactory = TestFiles.directoryFileTreeFactory()
     private ObjectFactory objectFactory = TestUtil.objectFactory()
-    private org.gradle.internal.Factory<PatternSet> patternSetFactory = TestFiles.patternSetFactory
+    private PatternSetFactory patternSetFactory = TestFiles.patternSetFactory
     private DefaultSourceDirectorySet set
 
     void setup() {
@@ -88,7 +89,7 @@ class DefaultSourceDirectorySetTest extends Specification {
 
     void addsResolvedSourceDirectories() {
         when:
-        set.srcDir {-> ['dir1', 'dir2'] }
+        set.srcDir { -> ['dir1', 'dir2'] }
 
         then:
         set.srcDirs equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set)
@@ -286,7 +287,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         when:
         set.srcDir 'dir1'
         set.srcDir 'dir2'
-        set.include'**/subdir2/**' // Only include subdir2
+        set.include '**/subdir2/**' // Only include subdir2
 
         then:
         def trees = set.getSrcDirTrees()

@@ -21,7 +21,6 @@ import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.vmplugin.v8.CacheableCallSite;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.InstrumentedClosuresHelper;
 import org.gradle.internal.classpath.InstrumentedGroovyCallsTracker;
 import org.gradle.internal.instrumentation.api.groovybytecode.AbstractCallInterceptor;
@@ -30,8 +29,9 @@ import org.gradle.internal.instrumentation.api.groovybytecode.CompositeCallInter
 import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
 import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -48,7 +48,7 @@ import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallK
 /**
  * Holds a collection of interceptors and can decorate a Groovy CallSite if it is within a scope of a registered interceptor.
  */
-@NonNullApi
+@NullMarked
 public class DefaultCallSiteDecorator implements CallSiteDecorator, CallInterceptorResolver {
     private static final MethodHandle MAYBE_INSTRUMENTED_DYNAMIC_CALL_MH;
 
@@ -121,7 +121,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
     }
 
     private void maybeApplyInterceptor(
-        CacheableCallSite cs, MethodHandles.Lookup caller, @Nullable InstrumentedGroovyCallsTracker.CallKind callKind, String name, int flags, @Nullable CallInterceptor interceptor
+        CacheableCallSite cs, MethodHandles.Lookup caller, InstrumentedGroovyCallsTracker.@Nullable CallKind callKind, String name, int flags, @Nullable CallInterceptor interceptor
     ) {
         if (interceptor == null) {
             return;
@@ -360,7 +360,7 @@ public class DefaultCallSiteDecorator implements CallSiteDecorator, CallIntercep
         }
     }
 
-    @NonNullApi
+    @NullMarked
     enum CallStrategy {
         CALL_CURRENT, CALL_GET_PROPERTY, CALL_GROOVY_OBJECT_GET_PROPERTY
     }

@@ -20,8 +20,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface FileCollectionFingerprinter {
     /**

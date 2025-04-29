@@ -18,8 +18,8 @@ package org.gradle.util.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**

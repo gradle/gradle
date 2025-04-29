@@ -16,7 +16,7 @@
 /**
  * Utility functions for dealing with lambdas in a configuration-cache compatible way.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.internal.lambdas;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

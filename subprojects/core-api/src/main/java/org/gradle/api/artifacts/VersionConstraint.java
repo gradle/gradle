@@ -18,8 +18,8 @@ package org.gradle.api.artifacts;
 import org.gradle.api.Describable;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

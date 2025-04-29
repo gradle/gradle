@@ -17,7 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Develocity specific extensions of {@link TaskOutputsInternal}.
@@ -27,7 +27,7 @@ import org.gradle.api.NonNullApi;
  *
  * @since 8.2
  */
-@NonNullApi
+@NullMarked
 public interface TaskOutputsEnterpriseInternal extends TaskOutputsInternal {
 
     /**

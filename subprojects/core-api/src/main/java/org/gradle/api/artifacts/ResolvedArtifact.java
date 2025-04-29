@@ -16,8 +16,8 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**

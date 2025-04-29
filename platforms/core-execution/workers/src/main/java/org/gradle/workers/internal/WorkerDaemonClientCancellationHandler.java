@@ -16,11 +16,11 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A handler that stops all worker daemons when the build is cancelled.
  */
 @ServiceScope(Scope.BuildSession.class)
-@NonNullApi
+@NullMarked
 public class WorkerDaemonClientCancellationHandler implements Stoppable {
     private final WorkerDaemonClientsManager workerDaemonClientsManager;
     private final BuildCancellationToken buildCancellationToken;
@@ -54,7 +54,7 @@ public class WorkerDaemonClientCancellationHandler implements Stoppable {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private class KillWorkers implements Runnable {
         @Override
         public void run() {

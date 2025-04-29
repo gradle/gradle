@@ -1,0 +1,28 @@
+[versions]
+slf4j = "2.0.13"
+jackson = "2.17.1"
+groovy = "3.0.5"
+checkstyle = "8.37"
+commonsLang = "3.9"
+
+[libraries]
+# SLF4J
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+
+# Jackson
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-dataformatCsv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv", version.ref = "jackson" }
+
+# Groovy bundle
+groovy-core = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
+groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
+groovy-nio = { module = "org.codehaus.groovy:groovy-nio", version.ref = "groovy" }
+
+# Apache Commons Lang
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = { strictly = "[3.8, 4.0[", prefer = "3.9" } }
+
+[bundles]
+groovy = ["groovy-core", "groovy-json", "groovy-nio"]
+
+[plugins]
+versions = { id = "com.github.ben-manes.versions", version = "0.45.0" }

@@ -17,5 +17,7 @@
 /**
  * Contains formatting utilities for rendering resolution failure information.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.internal.component.resolution.failure.formatting;
+
+import org.jspecify.annotations.NullMarked;

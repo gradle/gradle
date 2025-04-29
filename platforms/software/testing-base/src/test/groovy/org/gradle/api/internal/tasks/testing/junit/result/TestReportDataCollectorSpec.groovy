@@ -16,9 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.internal.tasks.testing.*
+
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
+import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.internal.serialize.PlaceholderException
+import org.junit.AssumptionViolatedException
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -26,21 +34,25 @@ import static java.util.Arrays.asList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
 class TestReportDataCollectorSpec extends Specification {
-    def Map<String, TestClassResult> results = [:]
-    def TestOutputStore.Writer writer = Mock()
+    Map<String, TestClassResult> results = [:]
+    TestOutputStore.Writer writer = Mock()
     def collector = new TestReportDataCollector(results, writer)
 
     def "keeps track of test results"() {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
         def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "FooTest"), root)
         def test1 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod"), clazz)
-        def result1 = new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, [])
+        def result1 = new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, [], null)
 
         def test2 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2"), clazz)
-        def result2 = new DefaultTestResult(FAILURE, 250, 300, 1, 0, 1, asList(org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))))
+        def result2 = new DefaultTestResult(FAILURE, 250, 300, 1, 0, 1, asList(TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))), null)
+
+        def test3 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.3", "FooTest", "testMethod3"), clazz)
+        def result3 = new DefaultTestResult(SKIPPED, 350, 400, 1, 0, 0, [], DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("Assumption violeted!")))
 
         when:
         //simulating TestNG, where we don't receive beforeSuite for classes
@@ -48,23 +60,26 @@ class TestReportDataCollectorSpec extends Specification {
 
         collector.beforeTest(test1)
         collector.beforeTest(test2)
+        collector.beforeTest(test3)
 
         collector.afterTest(test1, result1)
         collector.afterTest(test2, result2)
+        collector.afterTest(test3, result3)
 
-        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, []))
+        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, [], null))
 
         then:
         results.size() == 1
         def fooTest = results.values().toList().first()
         fooTest.className == 'FooTest'
         fooTest.startTime == 100
-        fooTest.testsCount == 2
+        fooTest.testsCount == 3
         fooTest.failuresCount == 1
-        fooTest.duration == 200
-        fooTest.results.size() == 2
+        fooTest.duration == 300
+        fooTest.results.size() == 3
         fooTest.results.find { it.name == 'testMethod' && it.endTime == 200 && it.duration == 100 }
         fooTest.results.find { it.name == 'testMethod2' && it.endTime == 300 && it.duration == 50 }
+        fooTest.results.find { it.name == 'testMethod3' && it.endTime == 400 && it.duration == 50 }
     }
 
     def "writes test outputs for interleaved tests"() {
@@ -105,7 +120,7 @@ class TestReportDataCollectorSpec extends Specification {
     def "writes test outputs for failed suite"() {
         def suite = new DefaultTestSuiteDescriptor("1", "Suite")
         def failure = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure"))
-        def result = new DefaultTestResult(FAILURE, 0, 0, 0, 0, 0, [failure])
+        def result = new DefaultTestResult(FAILURE, 0, 0, 0, 0, 0, [failure], null)
 
         when:
         collector.beforeSuite(suite)
@@ -121,7 +136,7 @@ class TestReportDataCollectorSpec extends Specification {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
         def failure1 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure1"))
         def failure2 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new IOException("failure2"))
-        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1, failure2])
+        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1, failure2], null)
 
         when:
         collector.beforeTest(test)
@@ -138,10 +153,26 @@ class TestReportDataCollectorSpec extends Specification {
         failures[1].stackTrace.startsWith(failure2.rawFailure.toString())
     }
 
+    def "collects assumption failure for test"() {
+        def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
+        def assumptionFailure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("assumption"))
+        def result = new DefaultTestResult(SKIPPED, 0, 0, 1, 0, 0, [], assumptionFailure)
+
+        when:
+        collector.beforeTest(test)
+        collector.afterTest(test, result)
+
+        then:
+        def failure = results["FooTest"].results[0].assumptionFailure
+        failure.exceptionType == AssumptionViolatedException.name
+        failure.message == assumptionFailure.rawFailure.message
+        failure.stackTrace.startsWith(assumptionFailure.rawFailure.toString())
+    }
+
     def "handle PlaceholderExceptions for test failures"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
         def failure = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new PlaceholderException("OriginalClassName", "failure2", null, "toString()", null, null))
-        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure])
+        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure], null)
 
         when:
         collector.beforeTest(test)
@@ -164,7 +195,7 @@ class TestReportDataCollectorSpec extends Specification {
                 throw failure2.rawFailure
             }
         })
-        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1])
+        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1], null)
 
         when:
         collector.beforeTest(test)
@@ -186,7 +217,7 @@ class TestReportDataCollectorSpec extends Specification {
                 throw failure2.rawFailure
             }
         })
-        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1])
+        def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1], null)
 
         when:
         collector.beforeTest(test)
@@ -207,8 +238,8 @@ class TestReportDataCollectorSpec extends Specification {
         //simulating a scenario with suite failing badly enough so that no tests are executed
         collector.beforeSuite(root)
         collector.beforeSuite(testWorker)
-        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))]))
-        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, []))
+        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))], null))
+        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, [], null))
 
         then:
         results.size() == 1
@@ -229,7 +260,7 @@ class TestReportDataCollectorSpec extends Specification {
         when:
         collector.beforeTest(test)
         collector.onOutput(test, new DefaultTestOutputEvent(1, StdOut, "suite-out"))
-        collector.afterTest(test, new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, asList()))
+        collector.afterTest(test, new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, asList(), null))
 
         then:
         results.get("FooTest").startTime == 100

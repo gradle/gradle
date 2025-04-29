@@ -80,3 +80,23 @@ Gradle lets you declare what kind of artifacts are found in a repository using t
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
 ====
+
+[[sec:ivy_dynamic_resolve_mode]]
+== Enabling Ivy dynamic resolve mode
+
+Normally, in an Ivy repository, dependencies are specified using the `rev` (revision) attribute in `ivy.xml`.
+However, dynamic resolve mode allows Gradle to prefer the `revConstraint` attribute over `rev`:
+
+- If `revConstraint` is present in `ivy.xml`, Gradle will use it instead of `rev`.
+- If `revConstraint` is **not** present, Gradle falls back to `rev`.
+
+This provides more flexibility in dependency resolution, particularly when working with Ivy repositories that define constraints on acceptable versions.
+
+You need to explicitly enable dynamic resolve mode when declaring an Ivy repository:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+====
+
+NOTE: Dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.

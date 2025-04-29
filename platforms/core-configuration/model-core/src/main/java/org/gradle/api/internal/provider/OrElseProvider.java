@@ -17,8 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.internal.evaluation.EvaluationScopeContext;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     private final ProviderInternal<T> left;

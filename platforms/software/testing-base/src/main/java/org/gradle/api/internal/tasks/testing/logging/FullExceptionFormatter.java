@@ -23,8 +23,8 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +51,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
 
     private void printException(TestDescriptor descriptor, Throwable exception,
                                 @Nullable List<StackTraceElement> parentTrace, int exceptionLevel, StringBuilder builder) {
+        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
         String exceptionIndent = Strings.repeat(INDENT, exceptionLevel + 1);
         String exceptionText = exceptionLevel == 0 ? exception.toString() : "\nCaused by:\n" + exception.toString();
         String indentedText = TextUtil.indent(exceptionText, exceptionIndent);

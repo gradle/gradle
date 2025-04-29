@@ -96,12 +96,13 @@ class DefaultProblemsReportCreator(
     }
 }
 
+@Suppress("USELESS_ELVIS")
 fun JsonWriter.problemId(id: ProblemId) {
     property("problemId") {
         val list = generateSequence(id.group) { it.parent }.toList() + listOf(ProblemGroup.create(id.name, id.displayName))
         jsonObjectList(list) { group ->
-            property("name", group.name)
-            property("displayName", group.displayName)
+            property("name", group.name ?: "<no name provided>")
+            property("displayName", group.displayName ?: "<no display name provided>")
         }
     }
 }
@@ -124,14 +125,15 @@ class JsonProblemWriter(private val problem: InternalProblem, private val failur
                 }
 
                 val id = problem.definition.id
-                property("problem") { writeStructuredMessage(StructuredMessage.forText(id.displayName)) }
+                property("problem") {
+                    writeStructuredMessage(StructuredMessage.forText(id.displayName))
+                }
                 property("severity", problem.definition.severity.toString().uppercase())
 
                 problem.details?.let {
                     property("problemDetails") {
                         writeStructuredMessage(
-                            StructuredMessage.Builder()
-                                .text(it).build()
+                            StructuredMessage.forText(it)
                         )
                     }
                 }
@@ -147,8 +149,7 @@ class JsonProblemWriter(private val problem: InternalProblem, private val failur
                     property("solutions") {
                         jsonList(solutions) { solution ->
                             writeStructuredMessage(
-                                StructuredMessage.Builder()
-                                    .text(solution).build()
+                                StructuredMessage.forText(solution)
                             )
                         }
                     }

@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ public class ProcessArgumentsSpec {
             allArgs = new ArrayList<>(args);
         }
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
-            Iterables.addAll(allArgs, argumentProvider.asArguments());
+            Iterables.addAll(allArgs, CollectionUtils.toStringList(argumentProvider.asArguments()));
         }
         return allArgs;
     }

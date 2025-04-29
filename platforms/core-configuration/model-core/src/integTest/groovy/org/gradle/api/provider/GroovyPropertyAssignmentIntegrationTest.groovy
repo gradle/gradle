@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
 class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {

@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GFileUtils
 
@@ -157,7 +156,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         file(EXPIRATION_EVENT).text.startsWith "onExpirationEvent fired with: expiring daemon with TestExpirationStrategy uuid:"
     }
 
-    @Requires(IntegTestPreconditions.NotDaemonExecutor)
     def "captures single use daemons"() {
         setup:
         buildFile << """

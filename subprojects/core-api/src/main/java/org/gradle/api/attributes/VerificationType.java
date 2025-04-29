@@ -37,12 +37,12 @@ public interface VerificationType extends Named {
     String MAIN_SOURCES = "main-sources";
 
     /**
-     * Binary results of running tests containing pass/fail information
+     * Binary test coverage data gathered by JaCoCo
      */
     String JACOCO_RESULTS = "jacoco-coverage";
 
     /**
-     * Binary test coverage data gathered by JaCoCo
+     * Binary results of running tests containing pass/fail information
      */
     String TEST_RESULTS = "test-results";
 }

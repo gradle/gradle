@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
 
@@ -46,7 +47,7 @@ plugins {
     id 'scala'
 }
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.11.12'
+    implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
 }
 """
         settingsFile << """

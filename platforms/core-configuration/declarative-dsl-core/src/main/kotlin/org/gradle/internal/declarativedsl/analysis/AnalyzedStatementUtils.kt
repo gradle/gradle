@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.data.nodeDataOf
-import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AssignmentLikeStatement
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.BlockElement
 import org.gradle.internal.declarativedsl.language.DataStatement
@@ -35,7 +35,7 @@ object AnalyzedStatementUtils {
     private fun collectIncludedStatements(topLevelBlock: Block, statementFilter: AnalysisStatementFilter): Set<DataStatement> = buildSet {
         fun directlyNestedStatementsOf(statement: DataStatement): List<DataStatement> = when (statement) {
             is FunctionCall -> statement.args.filterIsInstance<FunctionArgument.Lambda>().flatMap { it.block.statements }
-            is Assignment -> directlyNestedStatementsOf(statement.lhs) + directlyNestedStatementsOf(statement.rhs)
+            is AssignmentLikeStatement -> directlyNestedStatementsOf(statement.lhs) + directlyNestedStatementsOf(statement.rhs)
             is LocalValue -> directlyNestedStatementsOf(statement.rhs)
             is Expr -> emptyList()
         }

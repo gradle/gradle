@@ -6,7 +6,7 @@ description = "Execution engine that takes a unit of work and makes it happen"
 
 dependencies {
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.slf4jApi)
 
     api(projects.concurrent)
@@ -36,6 +36,7 @@ dependencies {
 
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
+    implementation(libs.jsr305)
 
     testImplementation(projects.native)
     testImplementation(projects.logging)

@@ -82,7 +82,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
-        DirectoryBuildCacheEntryRetention entryExpiration = new DirectoryBuildCacheEntryRetention(buildCacheConfig, cacheConfigurations);
+        DirectoryBuildCacheEntryRetention entryExpiration = new DirectoryBuildCacheEntryRetention(cacheConfigurations);
 
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).

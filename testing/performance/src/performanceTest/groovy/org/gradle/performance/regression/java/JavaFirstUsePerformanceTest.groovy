@@ -20,7 +20,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.mutator.RetryingClearGradleUserHomeMutator
-import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.AbstractScheduledMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -38,10 +38,10 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.runs = (runner.testProject == (LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL.projectName) ? 5 : 10)
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
-            new RetryingClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+            new RetryingClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractScheduledMutator.Schedule.BUILD)
         }
         runner.addBuildMutator { invocationSettings ->
-            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.BUILD)
+            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractScheduledMutator.Schedule.BUILD)
         }
 
         when:
@@ -56,7 +56,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
-            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.BUILD)
+            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractScheduledMutator.Schedule.BUILD)
         }
 
         when:

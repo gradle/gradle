@@ -17,28 +17,36 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultInternalPayloadSerializedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultInternalProxiedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
-import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NonNull;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.Map;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
 
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    public ProblemAdditionalDataRemapper(PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public ProblemAdditionalDataRemapper(PayloadSerializer payloadSerializer, BuildEventConsumer delegate, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
+        this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
     @Override
@@ -57,43 +65,38 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
             return;
         }
         InternalAdditionalData additionalData = ((DefaultProblemDetails) details).getAdditionalData();
-        if (!(additionalData instanceof InternalPayloadSerializedAdditionalData)) {
+        if (!(additionalData instanceof DefaultInternalPayloadSerializedAdditionalData)) {
             return;
         }
-
-        InternalPayloadSerializedAdditionalData serializedAdditionalData = (InternalPayloadSerializedAdditionalData) additionalData;
+        DefaultInternalPayloadSerializedAdditionalData serializedAdditionalData = (DefaultInternalPayloadSerializedAdditionalData) additionalData;
         SerializedPayload serializedType = (SerializedPayload) serializedAdditionalData.getSerializedType();
-        Map<String, Object> state = serializedAdditionalData.getAsMap();
+
         Class<?> type = (Class<?>) payloadSerializer.deserialize(serializedType);
         if (type == null) {
             return;
         }
 
-        Object proxy = createProxy(type, state);
+        byte[] isolatableBytes = serializedAdditionalData.getBytesForIsolatadObject();
 
-        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, proxy, serializedType));
+        List<URL> classPath = getClassPath(type);
+
+        VisitableURLClassLoader visitableURLClassLoader = new VisitableURLClassLoader("name", getClass().getClassLoader(), classPath);
+        Object o = ClassLoaderUtils.executeInClassloader(visitableURLClassLoader, () -> {
+            Isolatable<?> isolatable = isolatableSerializerRegistry.deserialize(isolatableBytes);
+            return isolatable.isolate();
+        });
+        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(o, serializedType));
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T createProxy(Class<T> interfaceType, Map<String, Object> state) {
-        return (T) Proxy.newProxyInstance(
-            interfaceType.getClassLoader(),
-            new Class<?>[]{interfaceType},
-            new DeepCopyInvocationHandler(state)
-        );
-    }
-
-    private static class DeepCopyInvocationHandler implements InvocationHandler {
-
-        private final Map<String, Object> state;
-
-        public DeepCopyInvocationHandler(Map<String, Object> state) {
-            this.state = state;
-        }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            return state.get(method.getName());
-        }
+    @NonNull
+    private static List<URL> getClassPath(Class<?> type) {
+        List<URL> classPath = new ArrayList<>();
+        ((VisitableURLClassLoader) type.getClassLoader()).visit(new ClassLoaderVisitor() {
+            @Override
+            public void visitClassPath(URL[] urls) {
+                Collections.addAll(classPath, urls);
+            }
+        });
+        return classPath;
     }
 }

@@ -723,7 +723,7 @@ gradle@MacBook-Pro temp1 % ./gradlew :app:build
 
 Gradle can reuse results from past builds using the build cache.
 
-To enable this feature, activate the build cache by using the `--build-cache` <<command_line_interface#command_line_interface,command line>> parameter or by setting `org.gradle.caching=true` in your <<build_environment#sec:gradle_configuration_properties,`gradle.properties`>> file.
+To enable this feature, activate the build cache by using the `--build-cache` <<command_line_interface#command_line_interface_reference,command line>> parameter or by setting `org.gradle.caching=true` in your <<build_environment#sec:gradle_configuration_properties,`gradle.properties`>> file.
 
 This optimization has the potential to accelerate your builds significantly:
 

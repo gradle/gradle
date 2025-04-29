@@ -29,6 +29,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
+import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -74,7 +75,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         dynamicLookupRoutine.setProperty(dynamicObject, property, newValue);
     }
 
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         return dynamicLookupRoutine.getProperties(dynamicObject);
     }
 
@@ -115,7 +116,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         }
 
         @Override
-        public Map<String, ?> getProperties() {
+        public Map<String, ? extends @Nullable Object> getProperties() {
             return dynamicTarget.getProperties();
         }
 
@@ -153,6 +154,11 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         @Override
         public DynamicInvokeResult trySetProperty(String property, Object newValue) {
             return dynamicTarget.trySetProperty(property, newValue);
+        }
+
+        @Override
+        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, Object value) {
+            return dynamicTarget.trySetPropertyWithoutInstrumentation(name, value);
         }
 
         @Override

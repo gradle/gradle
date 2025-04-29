@@ -24,6 +24,6 @@ import org.gradle.internal.service.ServiceRegistration
  * @param ImplementationType The implementation type of the service.
  * @see [ServiceRegistration.add]
  */
-inline fun <reified ServiceType, reified ImplementationType : ServiceType> ServiceRegistration.add() {
+inline fun <reified ServiceType : Any, reified ImplementationType : ServiceType> ServiceRegistration.add() {
     add(ServiceType::class.java, ImplementationType::class.java)
 }

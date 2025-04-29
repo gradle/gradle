@@ -24,8 +24,8 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +70,7 @@ public class BuildLogLevelMixIn {
             );
     }
 
-    @Nonnull
+    @NonNull
     private static Optional<LogLevel> getLogLevelFromCommandLineOptions(LoggingConfigurationBuildOptions loggingBuildOptions, ParsedCommandLine parsedCommandLine) {
         return loggingBuildOptions.getLongLogLevelOptions().stream()
             .filter(parsedCommandLine::hasOption)

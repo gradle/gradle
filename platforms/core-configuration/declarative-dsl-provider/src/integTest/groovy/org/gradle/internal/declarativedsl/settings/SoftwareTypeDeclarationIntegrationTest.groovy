@@ -187,7 +187,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         if (GradleDsl.KOTLIN == currentDsl()) {
-            failure.assertThatDescription(Matchers.containsString("Unresolved reference: nonPublic"))
+            failure.assertThatDescription(Matchers.containsString("Unresolved reference 'nonPublic'"))
         } else if (GradleDsl.DECLARATIVE == currentDsl()) {
             failure.assertThatCause(Matchers.containsString("Failed to interpret the declarative DSL file"))
             failure.assertThatCause(Matchers.containsString("unresolved reference 'nonPublic'"))
@@ -349,6 +349,33 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         then:
         failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
         failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'testSoftwareType' does not match the value of the property.")
+    }
+
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy can use a property value on the assignment RHS")
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
+    def 'sensible error when declarative script uses a property as value for another property'() {
+        given:
+        withSoftwareTypePluginThatRegistersItsOwnExtension().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testSoftwareType {
+                id = "test"
+
+                foo {
+                    bar = id
+                }
+            }
+        """
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        errorOutput.contains(
+            "6:27: property cannot be used as a value: 'id'"
+        )
     }
 
     static String getPluginsFromIncludedBuild() {

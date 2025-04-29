@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -26,6 +25,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Generates ProgressLogger updates for test events.
  */
-@NonNullApi
+@NullMarked
 public class TestEventProgressListener implements TestListenerInternal {
 
     private static final int MAX_TEST_NAME_LENGTH = 60;

@@ -17,8 +17,8 @@
 package org.gradle.internal.instrumentation.agent;
 
 import org.gradle.internal.classloader.InstrumentingClassLoader;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,9 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class DefaultClassFileTransformer implements ClassFileTransformer {
     private static final AtomicBoolean INSTALLED = new AtomicBoolean();
 
-    @Nullable
     @Override
-    public byte[] transform(
+    public byte @Nullable [] transform(
         @Nullable ClassLoader loader,
         @Nullable String className,
         @Nullable Class<?> classBeingRedefined,

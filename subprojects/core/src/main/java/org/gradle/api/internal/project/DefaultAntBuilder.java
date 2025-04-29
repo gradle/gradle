@@ -36,8 +36,8 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;

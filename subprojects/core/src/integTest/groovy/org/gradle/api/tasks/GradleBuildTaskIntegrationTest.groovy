@@ -89,29 +89,6 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
     }
 
-    def "setting custom build file is deprecated"() {
-        given:
-        settingsFile << "rootProject.name = 'parent'"
-        buildFile << """
-            task otherBuild(type:GradleBuild) {
-                buildFile = 'other.gradle'
-            }
-        """
-
-        file('other.gradle') << '''
-            println "other build file"
-        '''
-
-        executer.expectDocumentedDeprecationWarning("The GradleBuild.buildFile property has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting custom build file to select the root of the nested build has been deprecated. Please use the dir property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configuring_custom_build_layout")
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
-
-        when:
-        run 'otherBuild'
-
-        then:
-        output.contains("other build file")
-    }
-
     def "nested build can use Gradle home directory that is different to outer build"() {
         given:
         def dir = file("other-home")

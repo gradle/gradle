@@ -46,7 +46,7 @@
  *     Note that this class and <code>AbstractCollectionProperty</code> have a lot of duplication, as they implement very similar contracts.
  * </ul>
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

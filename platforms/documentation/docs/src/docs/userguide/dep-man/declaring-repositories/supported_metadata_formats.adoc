@@ -38,6 +38,8 @@ When Gradle publishes to a Maven repository, it publishes both a Gradle Module M
 This metadata plays a crucial role in dependency resolution, by allowing the dependencies of binary artifacts to be tracked alongside the artifact itself.
 By reading dependency metadata, Gradle is able to determine which versions of other artifacts a given dependency requires.
 
+TIP: In Maven, a module can have **one and only one artifact**. In Gradle and Ivy, a module can have **multiple artifacts**.
+
 [[sec:supported-metadata-formats]]
 == Supported metadata formats
 
@@ -99,12 +101,12 @@ Gradle will first look for an `ivy.xml` file, but if this file contains a specia
 [[sec:supported-metadata-sources]]
 == Supported metadata sources
 
-When searching for a component in a repository, Gradle checks for supported metadata file formats by default.
+When searching for a component in a repository, Gradle checks for supported metadata file formats by default:
 
-Gradle first looks for `.module` (Gradle module metadata) files.
-In a Maven repository, Gradle then looks for `.pom` files.
-In an Ivy repository, it checks for `ivy.xml` files.
-And in a flat directory repository, it looks directly for `.jar` files without expecting any metadata.
+* Gradle first looks for `.module` (Gradle module metadata) files.
+* In a Maven repository, Gradle then looks for `.pom` files.
+* In an Ivy repository, it checks for `ivy.xml` files.
+* In a flat directory repository, it looks directly for `.jar` files without expecting any metadata.
 
 If you define a custom repository, you can configure how Gradle searches for metadata.
 For instance, you can set up a Maven repository will optionally resolve JARs that don't have associated POM files.
@@ -162,6 +164,23 @@ mavenCentral {
 ----
 
 The above example instructs Gradle to first look for component metadata from a POM file, and if not present, to derive metadata from the artifact itself.
+
+For example, if you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom`, or `ivy.xml`) in the repositories.
+If such a module metadata file exists, it is parsed, and the artifacts of this module (e.g., `hibernate-3.0.5.jar`) as well as its dependencies (e.g., `cglib`) are downloaded.
+If no such module metadata file exists, you need to configure metadata sources definitions to look for an artifact file called `hibernate-3.0.5.jar` directly:
+
+[source,groovy]
+----
+repositories {
+    maven {
+        url "https://repo.example.com/maven"
+        metadataSources {
+            mavenPom()   // Look for a POM file
+            artifact()   // If no metadata is found, look for JARs directly
+        }
+    }
+}
+----
 
 When parsing metadata files (Ivy or Maven), Gradle checks for a marker that indicates the presence of a matching Gradle Module Metadata file.
 If found, Gradle will prefer the Gradle metadata.

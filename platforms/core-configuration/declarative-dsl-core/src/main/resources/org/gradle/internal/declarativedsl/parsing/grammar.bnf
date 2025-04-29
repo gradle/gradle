@@ -20,6 +20,7 @@
     COMA=','
     DOT='.'
     EQ='='
+    PLUSEQ='+='
     LP='('
     RP=')'
     LB='{'
@@ -45,7 +46,7 @@ root ::= statements
 statement ::= (assignment | block | functionChain)
 statements ::= (statement SEMI*)*
 
-assignment ::= directlyAssignableExpression EQ assignmentValue {pin=2}
+assignment ::= directlyAssignableExpression (EQ|PLUSEQ) assignmentValue {pin=2}
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
 assignmentValue ::= (simpleIdentifier (navigationSuffix* valueArguments)?) | literalOrIdentifier
 

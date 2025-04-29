@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Element
 import org.gradle.internal.declarativedsl.language.ErroneousStatement
@@ -138,9 +139,20 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
                 appendLine()
                 appendIndented(")")
             }
+            is AugmentingAssignment -> {
+                append("AugmentingAssignment [${source()}] (\n")
+                appendNextIndented("lhs = ")
+                recurseDeeper(current.lhs)
+                appendLine()
+                appendNextIndented("rhs = ")
+                recurseDeeper(current.rhs)
+                appendLine()
+                appendNextIndented("operator = ${current.augmentationKind.operatorToken}")
+                appendIndented(")")
+            }
 
             is FunctionCall -> {
-                append("FunctionCall [${source()}] (\n")
+                append("FunctionCall ${if (current.isInfix) "<infix> " else ""}[${source()}] (\n")
                 appendNextIndented("name = ${current.name}\n")
                 current.receiver?.let {
                     appendNextIndented("receiver = ")

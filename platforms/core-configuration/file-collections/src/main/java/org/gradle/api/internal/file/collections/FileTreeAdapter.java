@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
@@ -40,13 +40,13 @@ public final class FileTreeAdapter extends AbstractFileTree {
     private final MinimalFileTree tree;
     private final FileCollectionObservationListener listener;
 
-    public FileTreeAdapter(MinimalFileTree tree, FileCollectionObservationListener listener, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    public FileTreeAdapter(MinimalFileTree tree, FileCollectionObservationListener listener, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         super(taskDependencyFactory, patternSetFactory);
         this.tree = tree;
         this.listener = listener;
     }
 
-    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         this(tree, fileCollection -> {}, taskDependencyFactory, patternSetFactory);
     }
 

@@ -60,14 +60,14 @@ public final class ConfigurationCreationTest {
     @ArchTest
     public static final ArchRule maybe_create_and_resolvable_dependency_scope_factory_methods_are_avoided = freeze(
         ArchRuleDefinition.noClasses()
-            .should().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeUnlocked", String.class.getName(), Action.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateConsumableUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeUnlocked", String.class.getName(), boolean.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateMigratingUnlocked", String.class.getName(), ConfigurationRole.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableDependencyScopeUnlocked", String.class.getName())
+            .should().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeLocked", String.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeLocked", String.class.getName(), Action.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableLocked", String.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateConsumableLocked", String.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeLocked", String.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeLocked", String.class.getName(), boolean.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateMigratingLocked", String.class.getName(), ConfigurationRole.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableDependencyScopeLocked", String.class.getName())
             .because("Resolvable + dependency scope configurations should be avoided and we are migrating away from maybeCreate methods")
     );
 }

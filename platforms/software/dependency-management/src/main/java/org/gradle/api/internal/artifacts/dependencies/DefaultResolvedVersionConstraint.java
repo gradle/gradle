@@ -22,10 +22,12 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 public class DefaultResolvedVersionConstraint implements ResolvedVersionConstraint {
+    @Nullable
     private final VersionSelector preferredVersionSelector;
     private final VersionSelector requiredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
@@ -74,6 +76,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         return rejectedVersions.isEmpty() ? null : scheme.parseSelector(rejectedVersions.get(0));
     }
 
+    @Nullable
     @Override
     public VersionSelector getPreferredSelector() {
         return preferredVersionSelector;

@@ -34,8 +34,8 @@ import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestExecuter;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestSelection;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestTestExecutionSpec;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;

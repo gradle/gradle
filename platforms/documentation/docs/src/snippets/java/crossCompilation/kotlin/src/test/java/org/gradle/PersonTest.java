@@ -16,9 +16,4 @@ public class PersonTest {
         Person person = new Person("");
         person.getName();
     }
-
-    @Test
-    public void testJavaVersion() {
-        assertEquals(System.getProperty("java.version").substring(0, 3), System.getProperty("targetJavaVersion"));
-    }
 }

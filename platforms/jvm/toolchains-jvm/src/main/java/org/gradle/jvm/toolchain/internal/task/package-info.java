@@ -17,7 +17,7 @@
 /**
  * JVM toolchain related tasks.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.jvm.toolchain.internal.task;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

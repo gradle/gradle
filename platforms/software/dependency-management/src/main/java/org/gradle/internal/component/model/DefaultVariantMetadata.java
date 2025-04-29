@@ -20,8 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final String name;

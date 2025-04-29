@@ -17,7 +17,6 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import vcsroots.gradlePromotionBranches
 
 class PublishNightlySnapshotFromQuickFeedbackStepCheckReady(
     branch: VersionedSettingsBranch,
@@ -25,7 +24,6 @@ class PublishNightlySnapshotFromQuickFeedbackStepCheckReady(
         promotedBranch = branch.branchName,
         prepTask = branch.prepNightlyTaskName(),
         triggerName = "QuickFeedback",
-        vcsRootId = gradlePromotionBranches,
         cleanCheckout = false,
     ) {
     init {

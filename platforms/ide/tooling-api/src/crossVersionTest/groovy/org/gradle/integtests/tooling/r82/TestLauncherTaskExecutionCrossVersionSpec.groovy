@@ -17,10 +17,8 @@ package org.gradle.integtests.tooling.r82
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestLauncher
 
-@ToolingApiVersion(">=7.6")
 @TargetGradleVersion(">=8.4")
 class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
 

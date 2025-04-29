@@ -23,16 +23,16 @@
 /settings.gradle*                           @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 platforms/build-infrastructure/             @gradle/bt-developer-productivity
-subprojects/internal-build-reports/         @gradle/bt-developer-productivity
+packaging/internal-build-reports/           @gradle/bt-developer-productivity
 testing/internal-architecture-testing/      @gradle/bt-developer-productivity
 testing/internal-integ-testing/             @gradle/bt-developer-productivity
 testing/internal-performance-testing/       @gradle/bt-developer-productivity
 testing/internal-testing/                   @gradle/bt-developer-productivity
 
 # Release coordination
-subprojects/core-platform/              @gradle/bt-product-operations
-subprojects/distributions-dependencies/ @gradle/bt-product-operations
-subprojects/distributions-full/         @gradle/bt-product-operations
+packaging/core-platform/                @gradle/bt-product-operations
+packaging/distributions-dependencies/   @gradle/bt-product-operations
+packaging/distributions-full/           @gradle/bt-product-operations
 testing/performance/                    @gradle/bt-product-operations
 testing/smoke-test/                     @gradle/bt-product-operations
 testing/soak/                           @gradle/bt-product-operations
@@ -96,7 +96,6 @@ platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 # JVM platform
 build-logic/java-api-extractor              @gradle/bt-jvm
 platforms/jvm/                              @gradle/bt-jvm
-subprojects/plugins/                        @gradle/bt-jvm
 
 # JVM testing services also shared by GE testing plugins
 platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/dv-testing-team
@@ -120,28 +119,28 @@ platforms/ide/problems/           @gradle/bt-ide-experience
 platforms/ide/ide-native/         @gradle/bt-ide-experience @gradle/bt-native-maintainers
 
 # Documentation
-platforms/documentation/docs/src/docs/                                                        @gradle/bt-devrel-education
-platforms/documentation/docs/src/samples/                                                     @gradle/bt-devrel-education
-platforms/documentation/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-devrel-education
-platforms/documentation/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-devrel-education
-platforms/documentation/samples/                                                       	      @gradle/bt-devrel-education
+platforms/documentation/docs/src/docs/                                                        @gradle/bt-docs-reviewers
+platforms/documentation/docs/src/samples/                                                     @gradle/bt-docs-reviewers
+platforms/documentation/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-docs-reviewers
+platforms/documentation/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-docs-reviewers
+platforms/documentation/samples/                                                       	      @gradle/bt-docs-reviewers
 
-platforms/documentation/docs/src/snippets/kotlinDsl/                                                @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
-platforms/documentation/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
-platforms/documentation/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-devrel-education @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/snippets/kotlinDsl/                                                @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
 
-platforms/documentation/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/dep-man/                                      @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/jvm/                                          @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-devrel-education @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-devrel-education @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/dep-man/                                      @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/jvm/                                          @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-docs-reviewers @gradle/bt-jvm

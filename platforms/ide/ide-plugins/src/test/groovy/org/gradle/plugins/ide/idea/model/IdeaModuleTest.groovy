@@ -44,8 +44,8 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         project.getPlugins().apply(IdeaPlugin)
         project.getPlugins().apply(JavaPlugin)
         moduleProject.getPlugins().apply(JavaPlugin)
-        moduleProject.sourceCompatibility = 1.5
-        project.sourceCompatibility = 1.5
+        moduleProject.java.sourceCompatibility = 1.5
+        project.java.sourceCompatibility = 1.5
 
         def iml = Mock(IdeaModuleIml)
         def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
@@ -68,8 +68,8 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
        project.getPlugins().apply(IdeaPlugin)
        project.getPlugins().apply(JavaPlugin)
        moduleProject.getPlugins().apply(JavaPlugin)
-       moduleProject.targetCompatibility = 1.5
-       project.targetCompatibility = 1.5
+       moduleProject.java.targetCompatibility = 1.5
+       project.java.targetCompatibility = 1.5
 
        def iml = Mock(IdeaModuleIml)
        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)

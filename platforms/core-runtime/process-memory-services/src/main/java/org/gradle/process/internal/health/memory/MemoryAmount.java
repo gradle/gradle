@@ -18,8 +18,8 @@ package org.gradle.process.internal.health.memory;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 public class MemoryAmount {

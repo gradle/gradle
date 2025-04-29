@@ -19,8 +19,8 @@ package org.gradle.api.reporting.dependents.internal;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;

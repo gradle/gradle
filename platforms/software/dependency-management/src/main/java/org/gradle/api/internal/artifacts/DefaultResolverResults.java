@@ -19,8 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of {@link ResolverResults}.
@@ -100,17 +99,11 @@ public class DefaultResolverResults implements ResolverResults {
      * Default implementation of {@link LegacyResolverResults}.
      */
     public static class DefaultLegacyResolverResults implements LegacyResolverResults {
-        private final LegacyVisitedArtifactSet artifacts;
-        private final ResolvedConfiguration configuration;
 
-        private DefaultLegacyResolverResults(LegacyVisitedArtifactSet artifacts, @Nullable ResolvedConfiguration configuration) {
-            this.artifacts = artifacts;
+        private final @Nullable ResolvedConfiguration configuration;
+
+        private DefaultLegacyResolverResults(@Nullable ResolvedConfiguration configuration) {
             this.configuration = configuration;
-        }
-
-        @Override
-        public LegacyVisitedArtifactSet getLegacyVisitedArtifactSet() {
-            return artifacts;
         }
 
         @Override
@@ -125,15 +118,17 @@ public class DefaultResolverResults implements ResolverResults {
         /**
          * Create a new legacy result representing the result of resolving build dependencies.
          */
-        public static LegacyResolverResults buildDependenciesResolved(LegacyVisitedArtifactSet artifacts) {
-            return new DefaultLegacyResolverResults(artifacts, null);
+        public static LegacyResolverResults buildDependenciesResolved() {
+            return new DefaultLegacyResolverResults(null);
         }
 
         /**
          * Create a new legacy result representing the result of resolving the dependency graph.
          */
-        public static LegacyResolverResults graphResolved(LegacyVisitedArtifactSet artifacts, ResolvedConfiguration configuration) {
-            return new DefaultLegacyResolverResults(artifacts, configuration);
+        public static LegacyResolverResults graphResolved(ResolvedConfiguration configuration) {
+            return new DefaultLegacyResolverResults(configuration);
         }
+
     }
+
 }

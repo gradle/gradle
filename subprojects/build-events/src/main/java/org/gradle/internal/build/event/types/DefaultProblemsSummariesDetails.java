@@ -16,15 +16,15 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalProblemSummariesDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemSummary;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblemsSummariesDetails implements InternalProblemSummariesDetails, Serializable {
 
     private final List<InternalProblemSummary> problemIdCounts;

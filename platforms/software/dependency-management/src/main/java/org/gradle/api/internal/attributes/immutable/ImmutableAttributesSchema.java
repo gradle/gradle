@@ -27,8 +27,8 @@ import org.gradle.api.internal.attributes.CompatibilityCheckResult;
 import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.MultipleCandidatesResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 /**

@@ -29,13 +29,13 @@ import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
+import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,16 +143,30 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
                 ExternalResource resource = wrapInOperation("Examining toolchain URI " + uri, () -> downloader.getResourceFor(uri, authentications));
-                File archiveFile = new File(downloadFolder, getFileName(uri, resource));
+                File archiveFile = new File(downloadFolder, buildFileNameWithDetails(uri, resource, spec));
                 final FileLock fileLock = cacheDirProvider.acquireWriteLock(archiveFile, "Downloading toolchain");
+                boolean archiveAlreadyExists = archiveFile.exists();
                 try {
-                    if (!archiveFile.exists()) {
+                    if (!archiveAlreadyExists) {
                         wrapInOperation("Downloading toolchain from URI " + uri, () -> {
                             downloader.download(uri, archiveFile, resource);
                             return null;
                         });
                     }
-                    return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
+                    try {
+                        return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
+                    } catch (Exception e) {
+                        if (archiveAlreadyExists) { // re-download and retry in case the archive is corrupted
+                            LOGGER.info("Re-downloading toolchain from URI {} because unpacking the existing archive {} failed with an exception", uri, archiveFile.getName(), e);
+                            wrapInOperation("Re-downloading toolchain from URI " + uri, () -> {
+                                downloader.download(uri, archiveFile, resource);
+                                return null;
+                            });
+                            return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
+                        } else {
+                            throw e;
+                        }
+                    }
                 } finally {
                     fileLock.close();
                 }

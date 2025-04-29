@@ -4,16 +4,18 @@ plugins {
 
 description = "Implementation of the service registry framework"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.concurrent)
+    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.inject)
 }

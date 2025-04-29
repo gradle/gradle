@@ -11,6 +11,7 @@ import common.VersionedSettingsBranch
 import common.toCamelCase
 import common.toCapitalized
 import configurations.BuildDistributions
+import configurations.BuildLogicTest
 import configurations.CheckLinks
 import configurations.CheckTeamCityKotlinDSL
 import configurations.CompileAll
@@ -118,6 +119,7 @@ data class CIBuildModel(
                     listOf(
                         SpecificBuild.CompileAll,
                         SpecificBuild.SanityCheck,
+                        SpecificBuild.BuildLogicTest,
                     ),
                 functionalTests =
                     listOf(
@@ -652,6 +654,12 @@ enum class SpecificBuild {
             model: CIBuildModel,
             stage: Stage,
         ): OsAwareBaseGradleBuildType = SanityCheck(model, stage)
+    },
+    BuildLogicTest {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+        ): OsAwareBaseGradleBuildType = BuildLogicTest(model, stage)
     },
     BuildDistributions {
         override fun create(

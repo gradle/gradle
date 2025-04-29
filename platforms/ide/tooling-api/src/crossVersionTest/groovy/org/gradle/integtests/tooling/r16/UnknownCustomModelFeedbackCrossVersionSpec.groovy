@@ -39,7 +39,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
         assertHasConfigureFailedLogging()
     }
 
-    @TargetGradleVersion(">=3.0 <5.1")
+    @TargetGradleVersion(">=4.0 <5.1")
     def "fails gracefully when unknown model requested for version that does not log failure"() {
         when:
         withConnection {

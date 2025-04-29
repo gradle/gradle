@@ -149,6 +149,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
             attributes.put("nofooter", true);
+            attributes.put("javadocPath", "../javadoc");
             attributes.put("sectanchors", true);
             attributes.put("sectlinks", true);
             attributes.put("linkattrs", true);
@@ -232,16 +233,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-html").get().getAsFile());
         });
 
-        TaskProvider<AsciidoctorTask> userguideSinglePagePdf = tasks.register("userguideSinglePagePdf", AsciidoctorTask.class, task -> {
-            task.setDescription("Generates PDF single-page user manual.");
-            configureForUserGuideSinglePage(task, extension, project);
-            task.outputOptions(options -> options.setBackends(singletonList("pdf")));
-            // TODO: This breaks the provider
-            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-pdf").get().getAsFile());
-            // The PDF rendering needs at least 2GB of heap
-            task.jvm(options -> options.setMaxHeapSize("3g"));
-        });
-
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generates multi-page user manual.");
@@ -280,7 +271,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setDescription("Stages rendered user manual documentation.");
 
             task.from(userguideSinglePageHtml);
-            task.from(userguideSinglePagePdf);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
             // TODO: Eliminate this duplication with the flatten task
@@ -288,8 +278,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
                 sub.into("img");
             });
-
-            task.rename("userguide_single.pdf", "userguide.pdf");
         });
 
         extension.userManual(userManual -> {

@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

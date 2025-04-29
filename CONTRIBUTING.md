@@ -338,7 +338,7 @@ To create a Gradle distribution from the source tree you can run either of the f
 
     ./gradlew :distributions-full:binDistributionZip
 
-This will create a minimal distribution at `subprojects/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
+This will create a minimal distribution at `packaging/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
 
 You can then use it as a Gradle Wrapper local distribution in a Gradle based project by using a `file:/` URL pointing to the built distribution:
 
@@ -348,7 +348,7 @@ To create a full distribution (includes sources and docs):
 
     ./gradlew :distributions-full:allDistributionZip
 
-The full distribution will be created at `subprojects/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
+The full distribution will be created at `packaging/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
 
     ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
 

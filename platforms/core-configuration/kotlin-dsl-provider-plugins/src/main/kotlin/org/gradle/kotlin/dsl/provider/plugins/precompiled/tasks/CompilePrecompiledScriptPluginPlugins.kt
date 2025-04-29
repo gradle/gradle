@@ -28,7 +28,6 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -84,12 +83,6 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     internal
     abstract val javaLauncher: Property<JavaLauncher>
 
-    @get:Optional
-    @get:Input
-    @Deprecated("Configure a Java Toolchain instead")
-    internal
-    abstract val jvmTarget: Property<JavaVersion>
-
     @get:Input
     protected
     val compilerOptions: Provider<KotlinCompilerOptions> = project.provider {
@@ -116,9 +109,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
         }
     }
 
-    @Suppress("DEPRECATION")
     private
     fun resolveJvmTarget(): JavaVersion =
-        if (jvmTarget.isPresent) jvmTarget.get()
-        else JavaVersion.toVersion(javaLauncher.get().metadata.languageVersion.asInt())
+        JavaVersion.toVersion(javaLauncher.get().metadata.languageVersion.asInt())
 }

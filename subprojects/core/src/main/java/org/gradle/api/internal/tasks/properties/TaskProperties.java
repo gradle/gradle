@@ -17,12 +17,12 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A view of the properties of a task.
@@ -33,7 +33,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
  *
  * Created by {@link DefaultTaskProperties#resolve(PropertyWalker, FileCollectionFactory, TaskInternal)}.
  */
-@NonNullApi
+@NullMarked
 public interface TaskProperties {
     /**
      * The lifecycle aware values.

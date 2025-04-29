@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r33
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.precondition.Requires
@@ -69,7 +68,6 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    @TargetGradleVersion(">=3.3")
     def "can use plugin built with Gradle 3.0 with"() {
         expect:
         buildPluginWith("3.0")
@@ -79,18 +77,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
     // newer versions of Gradle.
     @Ignore
-    @TargetGradleVersion(">=3.3")
     def "can use plugin built with Gradle 3.2.1 with"() {
-        expect:
-        buildPluginWith("3.2.1")
-        assertWorks()
-    }
-
-    // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
-    // older versions of Gradle.
-    @Ignore
-    @TargetGradleVersion("=3.0")
-    def "can use plugin built with Gradle 3.2.1 with old version"() {
         expect:
         buildPluginWith("3.2.1")
         assertWorks()

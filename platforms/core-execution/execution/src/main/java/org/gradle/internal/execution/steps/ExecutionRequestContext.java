@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.WorkValidationContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class ExecutionRequestContext implements Context {

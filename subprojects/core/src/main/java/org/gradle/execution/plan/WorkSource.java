@@ -19,8 +19,8 @@ package org.gradle.execution.plan;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.List;

@@ -16,7 +16,7 @@
 
 package org.gradle.api;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>

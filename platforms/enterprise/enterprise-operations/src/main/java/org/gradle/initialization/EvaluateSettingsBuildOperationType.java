@@ -17,8 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.operations.BuildOperationType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class EvaluateSettingsBuildOperationType implements BuildOperationType<EvaluateSettingsBuildOperationType.Details, EvaluateSettingsBuildOperationType.Result> {
     public interface Details {

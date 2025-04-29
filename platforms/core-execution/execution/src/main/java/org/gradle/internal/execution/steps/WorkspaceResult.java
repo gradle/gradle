@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class WorkspaceResult extends CachingResult implements ExecutionEngine.Result {

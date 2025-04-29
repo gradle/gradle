@@ -522,8 +522,10 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         }
     }
 
+    // TODO #9591: This does not reflect desired behavior. The recursive copy is a detached configuration, which
+    // effectively replaces the root component, preventing the consumable configuration from being selected.
     @Issue('GRADLE-3280')
-    def "can resolve recursive copy of configuration with cyclic project dependencies"() {
+    def "cannot resolve recursive copy of configuration with cyclic project dependencies"() {
         given:
         settingsFile << "include 'a', 'b', 'c'"
         def common = """
@@ -583,12 +585,14 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         """
 
         expect:
-        succeeds ':a:assertCanResolve'
+        succeeds(":a:assertCanResolve")
 
-        and:
+        when:
         executer.expectDocumentedDeprecationWarning("The resCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'resCopy', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
-        succeeds ':a:assertCanResolveRecursiveCopy'
+        fails(":a:assertCanResolveRecursiveCopy")
+
+        then:
+        failure.assertHasCause("Cannot select root node 'resCopy' as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
@@ -859,23 +863,5 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         declaredDependency   | projectDescription  | expectedCommand
         "project(':')"       | "root project :"         | ":outgoingVariants"
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
-    }
-
-    def "getDependencyProject is deprecated"() {
-        buildFile << """
-            configurations {
-                dependencyScope("foo")
-            }
-
-            dependencies {
-                foo(project)
-            }
-
-            configurations.foo.dependencies.iterator().next().getDependencyProject()
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The ProjectDependency.getDependencyProject() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_get_dependency_project")
-        succeeds("help")
     }
 }

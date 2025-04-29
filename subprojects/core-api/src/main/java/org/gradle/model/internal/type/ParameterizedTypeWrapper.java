@@ -17,8 +17,8 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.collect.ImmutableList;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
 

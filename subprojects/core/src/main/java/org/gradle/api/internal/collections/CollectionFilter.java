@@ -18,8 +18,7 @@ package org.gradle.api.internal.collections;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class CollectionFilter<T> implements Spec<Object> {
 

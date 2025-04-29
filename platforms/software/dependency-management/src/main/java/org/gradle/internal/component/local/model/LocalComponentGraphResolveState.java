@@ -20,8 +20,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
+import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 
@@ -32,22 +33,6 @@ import java.util.List;
  */
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
-
-    /**
-     * Get a variant derived from the configuration with the given name, or null if no such
-     * variant exists.
-     *
-     * This method should only be used to fetch the root variant of a resolution. There are plans
-     * to migrate away from this method for that purpose.
-     *
-     * TODO: This is a legacy mechanism, and does not verify that the named configuration is
-     * consumable. Prefer {@link GraphSelectionCandidates#getVariantByConfigurationName(String)}.
-     *
-     * <strong>Do not use this method, as it will be removed in Gradle 9.0.</strong>
-     */
-    @Nullable
-    @Deprecated
-    LocalVariantGraphResolveState getConfigurationLegacy(String configurationName);
 
     ModuleVersionIdentifier getModuleVersionId();
 
@@ -87,5 +72,12 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
          */
         List<LocalVariantGraphResolveState> getAllSelectableVariants();
 
+        /**
+         * Returns the variant that is identified by the given configuration name.
+         */
+        @Nullable
+        VariantGraphResolveState getVariantByConfigurationName(String name);
+
     }
+
 }

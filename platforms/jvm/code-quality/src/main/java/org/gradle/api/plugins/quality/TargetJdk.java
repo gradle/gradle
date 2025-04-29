@@ -16,7 +16,8 @@
 
 package org.gradle.api.plugins.quality;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Locale;
 
 /**

@@ -18,9 +18,9 @@ package org.gradle.internal.classpath.intercept;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * Provides a set of implementation classes for call interception in JVM bytecode, specified by the full class name as in {@link Class#getName()}.
  * The referenced classes should implement {@link org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor}.
  */
-@NonNullApi
+@NullMarked
 public interface JvmBytecodeInterceptorFactoryProvider {
 
     @SuppressWarnings("ClassInitializationDeadlock")
@@ -45,7 +45,7 @@ public interface JvmBytecodeInterceptorFactoryProvider {
         return new CompositeJvmBytecodeInterceptorFactoryProvider(this, other);
     }
 
-    @NonNullApi
+    @NullMarked
     class ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider implements JvmBytecodeInterceptorFactoryProvider {
 
         private final Lazy<List<JvmBytecodeCallInterceptor.Factory>> factories;
@@ -75,7 +75,7 @@ public interface JvmBytecodeInterceptorFactoryProvider {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     class CompositeJvmBytecodeInterceptorFactoryProvider implements JvmBytecodeInterceptorFactoryProvider {
         private final JvmBytecodeInterceptorFactoryProvider first;
         private final JvmBytecodeInterceptorFactoryProvider second;

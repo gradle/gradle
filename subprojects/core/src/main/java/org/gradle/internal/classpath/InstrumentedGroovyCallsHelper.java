@@ -16,11 +16,10 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public class InstrumentedGroovyCallsHelper {
     /**
      * Executes the given {@code callable} in the context of an entry point produced from entering a dynamically dispatched
@@ -37,7 +36,7 @@ public class InstrumentedGroovyCallsHelper {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public interface ThrowingCallable<T> {
         @Nullable
         T call() throws Throwable;

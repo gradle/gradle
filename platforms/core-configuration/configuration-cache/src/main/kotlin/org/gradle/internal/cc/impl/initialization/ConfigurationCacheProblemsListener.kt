@@ -44,10 +44,10 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scope.BuildTree::class)
+@ListenerService
 interface ConfigurationCacheProblemsListener : ExecutionAccessListener, TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener
 
 
-@ListenerService
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
     private val problemFactory: ProblemFactory,

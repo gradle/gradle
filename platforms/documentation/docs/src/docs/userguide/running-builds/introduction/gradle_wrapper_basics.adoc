@@ -13,58 +13,81 @@
 // limitations under the License.
 
 [[gradle_wrapper_basics]]
-= Gradle Wrapper Basics
+= Wrapper Basics
 
 The **recommended way to execute any Gradle build** is with the Gradle Wrapper.
 
 image::gradle-basic-2.png[]
 
-The _Wrapper_ script invokes a declared version of Gradle, downloading it beforehand if necessary.
+The wrapper script invokes a declared version of Gradle, downloading it beforehand if necessary.
 
 image::wrapper-workflow.png[]
 
-The Wrapper is available as a `gradlew` or `gradlew.bat` file.
+It is available as a `gradlew` or `gradlew.bat` file in the project root directory:
 
-The Wrapper provides the following benefits:
+[source,text]
+----
+root
+├── gradlew     // THE WRAPPER
+├── gradlew.bat // THE WRAPPER
+└── ...
+----
 
-- Standardizes a project on a given Gradle version.
-- Provisions the same Gradle version for different users.
-- Provisions the Gradle version for different execution environments (IDEs, CI servers...).
+If your project does not include these files, it is likely *not* a Gradle project—or the wrapper has not been set up yet.
+
+The wrapper is *not* something you download from the internet.
+You must generate it by running `gradle wrapper` from a machine with Gradle <<installation.adoc#installation,installed>>.
+
+The wrapper provides the following benefits:
+
+1. *Automatically downloads* and uses a specific *Gradle* version.
+2. *Standardizes* a project on *a* given *Gradle version*.
+3. *Provisions the same Gradle version for different users* and environments (IDEs, CI servers...).
+4. Makes it easy to *run Gradle builds without installing Gradle* manually.
 
 [[sec:using_the_wrapper]]
 == Using the Gradle Wrapper
 
-It is always recommended to execute a build with the Wrapper to ensure a reliable, controlled, and standardized execution of the build.
+It’s important to distinguish between two ways of running Gradle:
 
-Depending on the operating system, you run `gradlew` or `gradlew.bat` instead of the `gradle` command.
+1. *Using a system-installed Gradle distribution* — by running the `gradle` command.
+2. *Using the Gradle Wrapper* — by running the `gradlew` or `gradlew.bat` script included in a Gradle project.
 
-Typical Gradle invocation:
+The Gradle Wrapper is always the recommended to execute a build with the wrapper to ensure a reliable, controlled, and standardized execution of the build.
 
+1. Using a system-installed Gradle distribution:
++
+[source,bash]
 ----
 $ gradle build
 ----
 
-To run the Wrapper on a Linux or OSX machine:
+2. Using the Gradle Wrapper:
 
+- Wrapper invocation on a Linux or OSX machine:
++
+[source,bash]
 ----
 $ ./gradlew build
 ----
 
-To run the Wrapper on Windows PowerShell:
-
+- Wrapper invocation on Windows PowerShell:
++
+[source,bash]
 ----
-$ .\gradlew.bat build
+$ gradlew.bat build
 ----
 
-The command is run in the same directory that the Wrapper is located in.
-If you want to run the command in a different directory, you must provide the relative path to the Wrapper:
+If you want to run the command in a different directory, you must provide the relative path to the wrapper:
 
+[source,bash]
 ----
 $ ../gradlew build
 ----
 
-The following console output demonstrates the use of the Wrapper on a Windows machine, in the command prompt (cmd), for a Java-based project:
+The following console output demonstrates the use of the wrapper on a Windows machine, in the command prompt (cmd), for a Java-based project:
 
+[source,bash]
 ----
 $ gradlew.bat build
 
@@ -72,7 +95,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
 [[sec:view_the_wrapper]]
-== Understanding the Wrapper files
+== Understanding the wrapper files
 
 The following files are part of the Gradle Wrapper:
 
@@ -93,8 +116,7 @@ The following files are part of the Gradle Wrapper:
 
 IMPORTANT: You should never alter these files.
 
-If you want to view or update the Gradle version of your project, use the command line.
-Do not edit the wrapper files manually:
+If you want to view or update the Gradle version of your project, use the command line:
 
 [source, bash]
 ----
@@ -108,7 +130,9 @@ $ gradlew.bat --version
 $ gradlew.bat wrapper --gradle-version 7.2
 ----
 
-Consult the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper reference>> to learn more.
+WARNING: Do not edit the wrapper files manually.
+
+You can consult the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper reference>> to learn more.
 
 [.text-right]
 **Next Step:** <<command_line_interface_basics.adoc#command_line_interface_basics,Learn about the Gradle CLI>> >>

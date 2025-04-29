@@ -42,9 +42,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 doLast { files.files }
             }
         """
-        if (deprecationWarning) {
-            executer.expectDocumentedDeprecationWarning(deprecationWarning)
-        }
 
         when:
         succeeds 'resolve'
@@ -64,16 +61,15 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         ])
 
         where:
-        repo                   | repoBlock                     | expectedRepo                     | deprecationWarning
-        'maven'                | mavenRepoBlock()              | expectedMavenRepo()              | null
-        'ivy'                  | ivyRepoBlock()                | expectedIvyRepo()                | null
-        'ivy-no-url'           | ivyRepoNoUrlBlock()           | expectedIvyRepoNoUrl()           | null
-        'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()            | null
-        'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()         | null
-        'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()       | null
-        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 9.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
-        'google'               | googleRepoBlock()             | expectedGoogleRepo()             | null
-        'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo() | null
+        repo                   | repoBlock                     | expectedRepo
+        'maven'                | mavenRepoBlock()              | expectedMavenRepo()
+        'ivy'                  | ivyRepoBlock()                | expectedIvyRepo()
+        'ivy-no-url'           | ivyRepoNoUrlBlock()           | expectedIvyRepoNoUrl()
+        'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()
+        'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()
+        'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()
+        'google'               | googleRepoBlock()             | expectedGoogleRepo()
+        'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo()
     }
 
     def "repositories used in buildscript blocks are exposed via build operation"() {
@@ -562,24 +558,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 AUTHENTICATION_SCHEMES: [],
                 METADATA_SOURCES: ['mavenPom'],
                 URL: 'https://repo.maven.apache.org/maven2/',
-            ]
-        ]
-    }
-
-    private static String jcenterRepoBlock() {
-        "repositories { jcenter() }"
-    }
-
-    private static Map expectedJcenterRepo() {
-        [
-            name: 'BintrayJCenter',
-            type: 'MAVEN',
-            properties: [
-                ARTIFACT_URLS: [],
-                METADATA_SOURCES: ['mavenPom'],
-                AUTHENTICATED: false,
-                AUTHENTICATION_SCHEMES: [],
-                URL: 'https://jcenter.bintray.com/',
             ]
         ]
     }

@@ -25,8 +25,8 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -99,23 +99,23 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
-    default Map<String, Object> getSystemProperties() {
+    default Map<String, @Nullable Object> getSystemProperties() {
         return getDelegate().getSystemProperties();
     }
 
     @Override
-    default void setSystemProperties(Map<String, ?> properties) {
+    default void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         getDelegate().setSystemProperties(properties);
     }
 
     @Override
-    default JavaForkOptions systemProperties(Map<String, ?> properties) {
+    default JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
         getDelegate().systemProperties(properties);
         return this;
     }
 
     @Override
-    default JavaForkOptions systemProperty(String name, Object value) {
+    default JavaForkOptions systemProperty(String name, @Nullable Object value) {
         getDelegate().systemProperty(name, value);
         return this;
     }

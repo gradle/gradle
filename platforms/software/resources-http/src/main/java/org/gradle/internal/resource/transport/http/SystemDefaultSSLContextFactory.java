@@ -16,11 +16,11 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -37,7 +37,7 @@ import java.security.KeyStore;
  * including keyStore and trustStore managers.
  * There is no way to reset these caches because they are private and are initialized in static sections.
  */
-@NonNullApi
+@NullMarked
 public class SystemDefaultSSLContextFactory {
     private static final String NONE = "NONE";
     private static final String P11KEYSTORE = "PKCS11";
@@ -87,7 +87,7 @@ public class SystemDefaultSSLContextFactory {
         String keyStorePath,
         String keyStoreType,
         String keyStoreProvider,
-        @Nullable char[] keyStorePassword,
+        char @Nullable [] keyStorePassword,
         boolean errorOnMissingFile
     ) throws Exception {
         if (keyStoreType.isEmpty()) {
@@ -117,15 +117,15 @@ public class SystemDefaultSSLContextFactory {
         return keyStore;
     }
 
-    private static String getDefaultSecurityPath(){
+    private static String getDefaultSecurityPath() {
         return System.getProperty("java.home") + File.separator + "lib" + File.separator + "security";
     }
 
-    private static String getDefaultTrustStore(){
+    private static String getDefaultTrustStore() {
         return getDefaultSecurityPath() + File.separator + "cacerts";
     }
 
-    private static String getDefaultJsseTrustStore(){
+    private static String getDefaultJsseTrustStore() {
         return getDefaultSecurityPath() + File.separator + "jssecacerts";
     }
 

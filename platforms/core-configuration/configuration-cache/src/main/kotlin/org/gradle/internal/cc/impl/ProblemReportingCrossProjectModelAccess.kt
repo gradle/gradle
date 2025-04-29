@@ -71,9 +71,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
-import org.gradle.process.JavaExecSpec
 import org.gradle.util.Path
 import java.io.File
 import java.net.URI
@@ -202,7 +199,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.relativePath(path)
         }
 
-        override fun files(vararg paths: Any?): ConfigurableFileCollection {
+        override fun files(vararg paths: Any): ConfigurableFileCollection {
             onIsolationViolation("files")
             return super.files(*paths)
         }
@@ -267,7 +264,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.mkdir(path)
         }
 
-        override fun delete(vararg paths: Any?): Boolean {
+        override fun delete(vararg paths: Any): Boolean {
             onIsolationViolation("delete")
             return super.delete(*paths)
         }
@@ -275,34 +272,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun delete(action: Action<in DeleteSpec>): WorkResult {
             onIsolationViolation("delete")
             return super.delete(action)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun javaexec(closure: Closure<*>): ExecResult {
-            onIsolationViolation("javaexec")
-            @Suppress("DEPRECATION")
-            return super.javaexec(closure)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
-            onIsolationViolation("javaexec")
-            @Suppress("DEPRECATION")
-            return super.javaexec(action)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun exec(closure: Closure<*>): ExecResult {
-            onIsolationViolation("exec")
-            @Suppress("DEPRECATION")
-            return super.exec(closure)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun exec(action: Action<in ExecSpec>): ExecResult {
-            onIsolationViolation("exec")
-            @Suppress("DEPRECATION")
-            return super.exec(action)
         }
 
         override fun getResources(): ResourceHandler {
@@ -355,7 +324,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.configure(objects, configureClosure)
         }
 
-        override fun <T : Any?> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
+        override fun <T : Any> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
             onIsolationViolation("configure")
             return super.configure(objects, configureAction)
         }

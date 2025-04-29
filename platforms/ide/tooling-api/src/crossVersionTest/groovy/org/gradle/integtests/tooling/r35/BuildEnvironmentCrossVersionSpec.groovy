@@ -21,12 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.model.build.BuildEnvironment
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=3.5")
     @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "old versions can mutate environment on JDK < 9"() {
         given:
@@ -69,18 +66,5 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         out.toString().contains("<${["var": "val"]}>")
-    }
-
-    @TargetGradleVersion(">=3.0 <3.5")
-    def "long running operation should fail when environment vars specified but not supported by target"() {
-        when:
-        withConnection {
-            def model = it.model(BuildEnvironment.class)
-            model.setEnvironmentVariables(["var": "val"]).get()
-        }
-
-        then:
-        UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the environment variables customization feature. Support for this is available in Gradle 3.5 and all later versions."
     }
 }

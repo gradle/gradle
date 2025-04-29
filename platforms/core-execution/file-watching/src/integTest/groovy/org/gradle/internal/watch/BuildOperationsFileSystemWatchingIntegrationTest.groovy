@@ -16,12 +16,15 @@
 
 package org.gradle.internal.watch
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType
 
 @LocalOnly
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)

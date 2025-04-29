@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.failure;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultThrowableToTestFailureMapper implements ThrowableToTestFailureMapper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultThrowableToTestFailureMapper.class);

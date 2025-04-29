@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r32
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.GradleConnectionException
@@ -80,7 +80,6 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     @Issue("GRADLE-3307")
-    @TargetGradleVersion(">=3.2")
     def "returns proper error message when non-serializable RuntimeException is thrown while executing a broken build action"() {
         when:
         withConnection { connection ->

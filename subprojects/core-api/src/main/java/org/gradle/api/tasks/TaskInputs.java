@@ -18,8 +18,8 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**

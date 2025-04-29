@@ -61,7 +61,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     def applyToJavaProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'java')
-        project.sourceCompatibility = 1.6
+        project.java.sourceCompatibility = 1.6
         wtpPlugin.apply(project)
 
         then:
@@ -80,7 +80,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         wtpPlugin.apply(project)
         project.apply(plugin: 'java')
-        project.sourceCompatibility = 1.7
+        project.java.sourceCompatibility = 1.7
 
         then:
         [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
@@ -98,7 +98,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'java')
         wtpPlugin.apply(project)
-        project.sourceCompatibility = 1.3
+        project.java.sourceCompatibility = 1.3
 
         project.eclipse.wtp {
             facet {
@@ -117,7 +117,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'war')
-        project.sourceCompatibility = 1.5
+        project.java.sourceCompatibility = 1.5
         project.apply(plugin: 'eclipse-wtp')
 
         then:
@@ -138,7 +138,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'eclipse-wtp')
         project.apply(plugin: 'war')
-        project.sourceCompatibility = 1.8
+        project.java.sourceCompatibility = 1.8
 
         then:
         [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
@@ -158,7 +158,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.sourceCompatibility = 1.4
+        project.java.sourceCompatibility = 1.4
 
         project.eclipse.wtp {
             facet {
@@ -180,7 +180,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.webAppDirName = 'foo'
+        project.war.webAppDirectory = project.layout.projectDirectory.dir('foo')
 
         then:
         project.eclipse.wtp.component.resources == [new WbResource('/', 'foo')]
@@ -190,7 +190,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.webAppDirName = 'foo'
+        project.war.webAppDirectory = project.layout.projectDirectory.dir('foo')
 
         project.eclipse.wtp {
             component {
@@ -222,7 +222,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
             checkEclipseWtpComponentForEar(project.sourceSets.main.allSource.srcDirs)
         } else {
             checkEclipseClasspath([])
-            checkEclipseWtpComponentForEar(project.layout.files(project.appDirName) as Set)
+            checkEclipseWtpComponentForEar(project.layout.files(project.tasks['ear'].appDirectory.asFile) as Set)
         }
         checkEclipseWtpFacet([
                 new Facet(FacetType.fixed, "jst.ear", null),
@@ -284,7 +284,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.sourceCompatibility = 1.4
+        project.java.sourceCompatibility = 1.4
 
         project.eclipse.wtp {
             facet {
@@ -305,7 +305,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'java')
         project.apply(plugin: 'eclipse-wtp')
-        project.sourceCompatibility = 1.8
+        project.java.sourceCompatibility = 1.8
 
         project.eclipse.wtp {
             facet {
@@ -326,7 +326,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'java')
         wtpPlugin.apply(project)
-        project.sourceCompatibility = 1.7
+        project.java.sourceCompatibility = 1.7
 
         project.eclipse.wtp {
             component {
@@ -393,7 +393,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         assert wtp.minusConfigurations == [project.configurations.providedRuntime] as Set
         assert wtp.deployName == project.name
         assert wtp.contextPath == project.war.archiveBaseName.get()
-        assert wtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
+        assert wtp.resources == [new WbResource('/', project.projectDir.toPath().relativize(project.war.webAppDirectory.get().asFile.toPath()).toString())]
         assert wtp.classesDeployPath == "/WEB-INF/classes"
         assert wtp.libDeployPath == "/WEB-INF/lib"
     }
@@ -418,6 +418,6 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'ear')
         project.apply(plugin: 'eclipse-wtp')
         then:
-        project.eclipse.wtp.component.sourceDirs == [project.file(project.appDirName)] as Set
+        project.eclipse.wtp.component.sourceDirs == [project.file(project.tasks['ear'].appDirectory.asFile)] as Set
     }
 }

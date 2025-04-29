@@ -19,8 +19,8 @@ package org.gradle.internal.reflect.annotations.impl;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public class DefaultFunctionAnnotationMetadata extends AbstractHasAnnotationMeta
      * Compares this metadata to another metadata by comparing the method name and the parameter types.
      */
     @Override
-    public int compareTo(@Nonnull FunctionAnnotationMetadata o) {
+    public int compareTo(@NonNull FunctionAnnotationMetadata o) {
         int result = getMethod().getName().compareTo(o.getMethod().getName());
         if (result == 0) {
             // This is the same method name, compare the number of parameters

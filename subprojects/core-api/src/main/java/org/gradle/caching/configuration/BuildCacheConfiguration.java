@@ -20,8 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Configuration for the <a href="https://docs.gradle.org/current/userguide/build_cache.html" target="_top">build cache</a> for an entire Gradle build.

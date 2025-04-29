@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 class ForkOptionsTest extends Specification {
@@ -34,10 +36,20 @@ class ForkOptionsTest extends Specification {
         forkOptions.jvmArgs == []
     }
 
-    def 'options can be defined via a map'() {
-        when:
-        forkOptions.define(PROPS.collectEntries { [it, "${it}Value" as String ] })
-        then:
-        PROPS.each { assert forkOptions."${it}" == "${it}Value" as String }
+    @Issue("https://github.com/gradle/gradle/issues/32606")
+    def "getAllJvmArgs() returns only String"() {
+        given:
+        def commandLineArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ["${'make this a GString'}"]
+            }
+        }
+        forkOptions.jvmArgumentProviders.add(commandLineArgumentProvider)
+
+        expect:
+        commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
+        forkOptions.allJvmArgs.size() == 1
+        forkOptions.allJvmArgs[0] instanceof String
     }
 }

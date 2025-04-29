@@ -17,7 +17,7 @@
 /**
  * Internal types for handling deployments.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.deployment.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

@@ -20,8 +20,8 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerific
 import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.PublicKeyServiceChain;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class BuildTreeDefinedKeys {
@@ -35,7 +35,7 @@ public class BuildTreeDefinedKeys {
 
     public BuildTreeDefinedKeys(
         File keyringsRoot,
-        @Nullable DependencyVerificationConfiguration.KeyringFormat effectiveFormat
+        DependencyVerificationConfiguration.@Nullable KeyringFormat effectiveFormat
     ) {
         this.keyringsRoot = keyringsRoot;
 

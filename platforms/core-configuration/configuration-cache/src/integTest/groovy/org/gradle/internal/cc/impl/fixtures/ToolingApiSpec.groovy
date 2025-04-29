@@ -106,15 +106,23 @@ trait ToolingApiSpec {
         addModelImplementation("buildSrc")
 
         addModelBuilderImplementation("buildSrc", """
-            def message = "project \${project.path} classpath = \${project.configurations.implementation.files.size()}"
+            def message = "project \${project.path} classpath = \${project.configurations.runtimeClasspath.files.size()}"
             return new MyModel(message)
         """)
 
         addBuilderRegisteringPluginImplementation("buildSrc", "MyModelBuilder", """
-            def implementation = project.configurations.create("implementation")
-            implementation.attributes.attribute(${Attribute.name}.of("thing", String), "custom")
-            def artifact = project.layout.buildDirectory.file("out.txt")
-            implementation.outgoing.artifact(artifact)
+            def implementation = project.configurations.dependencyScope("implementation")
+            def runtimeClasspath = project.configurations.resolvable("runtimeClasspath") {
+                extendsFrom(implementation.get())
+                attributes.attribute(${Attribute.name}.of("thing", String), "custom")
+            }
+            def runtimeElements = project.configurations.consumable("runtimeElements") {
+                extendsFrom(implementation.get())
+                attributes.attribute(${Attribute.name}.of("thing", String), "custom")
+
+                def artifact = project.layout.buildDirectory.file("out.txt")
+                outgoing.artifact(artifact)
+            }
         """)
     }
 

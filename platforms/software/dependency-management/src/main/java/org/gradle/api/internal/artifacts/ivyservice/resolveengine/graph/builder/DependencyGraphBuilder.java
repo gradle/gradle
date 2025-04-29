@@ -56,12 +56,13 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +78,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+@ServiceScope(Scope.Project.class)
 public class DependencyGraphBuilder {
 
     static final Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
@@ -432,22 +434,6 @@ public class DependencyGraphBuilder {
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
-        }
-
-        if (resolveState.getRoot().wasIncomingEdgeAdded()) {
-            String rootNodeName = resolveState.getRoot().getMetadata().getName();
-            DeprecationLogger.deprecate(
-                    String.format(
-                        "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
-                            "Depending on the resolved configuration in this manner",
-                        rootNodeName
-                    ))
-                .withProblemIdDisplayName("Configurations should not act as both a resolution root and a variant simultaneously.")
-                .withProblemId("configurations-acting-as-both-root-and-variant")
-                .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "depending_on_root_configuration")
-                .nagUser();
         }
     }
 

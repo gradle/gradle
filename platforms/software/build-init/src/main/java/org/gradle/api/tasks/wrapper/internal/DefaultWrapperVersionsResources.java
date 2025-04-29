@@ -20,8 +20,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.wrapper.WrapperVersionsResources;
 import org.gradle.internal.exceptions.ResolutionProvider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

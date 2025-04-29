@@ -19,7 +19,9 @@ package org.gradle.declarative.dsl.schema
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
-@ToolingModelContract(subTypes = [VarargParameter::class])
+@ToolingModelContract(subTypes = [
+    VarargParameter::class
+])
 interface DataParameter : Serializable {
 
     val name: String?

@@ -19,10 +19,10 @@ package org.gradle.testfixtures
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.internal.jvm.SupportedJavaVersionsDeprecations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 
@@ -91,7 +91,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
-    def "using project builder on Java versions earlier than 17 emits a deprecation warning"() {
+    def "using project builder on deprecated java version emits a deprecation warning"() {
         given:
         withTest("""
             expect:
@@ -103,11 +103,11 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         testExecuted()
-        assertTestStdout(containsString("Executing Gradle on JVM versions 16 and lower has been deprecated. This will fail with an error in Gradle 9.0. Use JVM 17 or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_daemon_jvm_version"))
+        assertTestStdout(containsString(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning))
     }
 
     @Requires(UnitTestPreconditions.NonDeprecatedDaemonJdkVersion)
-    def "using project builder on Java versions 17 and later does not emit a deprecation warning"() {
+    def "using project builder on non-deprecated java version does not emit a deprecation warning"() {
         given:
         withTest("""
             expect:
@@ -119,7 +119,7 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         testExecuted()
-        assertTestStdout(not(containsString("Executing Gradle on JVM versions 16 and lower has been deprecated")))
+        assertTestStdout(not(containsString(SupportedJavaVersionsDeprecations.expectedDaemonDeprecationWarning)))
     }
 
     void withTest(String body) {

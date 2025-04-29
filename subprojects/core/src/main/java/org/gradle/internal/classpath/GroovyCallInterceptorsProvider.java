@@ -18,10 +18,10 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.groovybytecode.FilterableCallInterceptor;
 import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,7 +30,7 @@ import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@NonNullApi
+@NullMarked
 public interface GroovyCallInterceptorsProvider {
 
     @SuppressWarnings("ClassInitializationDeadlock")
@@ -42,7 +42,7 @@ public interface GroovyCallInterceptorsProvider {
         return new CompositeGroovyCallInterceptorsProvider(this, other);
     }
 
-    @NonNullApi
+    @NullMarked
     class ClassLoaderSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final Lazy<List<FilterableCallInterceptor>> interceptors;
@@ -76,7 +76,7 @@ public interface GroovyCallInterceptorsProvider {
      * Use {@link ClassLoaderSourceGroovyCallInterceptorsProvider} instead that loads classes via SPI.
      * Kept to support old case where we loaded a class directly.
      */
-    @NonNullApi
+    @NullMarked
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
     class ClassSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
@@ -123,7 +123,7 @@ public interface GroovyCallInterceptorsProvider {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     class CompositeGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final GroovyCallInterceptorsProvider first;

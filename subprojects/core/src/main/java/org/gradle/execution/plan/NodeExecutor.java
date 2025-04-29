@@ -17,7 +17,10 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Gradle.class)
 public interface NodeExecutor {
     boolean execute(Node node, NodeExecutionContext context);
 }

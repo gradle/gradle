@@ -17,9 +17,11 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol. </p>
+ */
 public interface InternalBasicProblemDetailsVersion2 extends InternalBasicProblemDetails {
 
     @Nullable

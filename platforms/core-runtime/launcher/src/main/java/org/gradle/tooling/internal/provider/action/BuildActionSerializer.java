@@ -30,7 +30,6 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.buildoption.Option;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -112,13 +111,7 @@ public class BuildActionSerializer {
             stringSetSerializer.write(encoder, startParameter.getExcludedTaskNames());
 
             // Layout
-            @SuppressWarnings("deprecation")
-            File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
-            nullableFileSerializer.write(encoder, customBuildFile);
             nullableFileSerializer.write(encoder, startParameter.getProjectDir());
-            @SuppressWarnings("deprecation")
-            File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
-            nullableFileSerializer.write(encoder, customSettingsFile);
             FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
             FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
             nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
@@ -153,6 +146,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
             encoder.writeBoolean(startParameter.isConfigurationCacheParallel());
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
+            encoder.writeBoolean(startParameter.isConfigurationCacheIntegrityCheckEnabled());
             encoder.writeSmallInt(startParameter.getConfigurationCacheEntriesPerKey());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
@@ -206,13 +200,7 @@ public class BuildActionSerializer {
             startParameter.setExcludedTaskNames(stringSetSerializer.read(decoder));
 
             // Layout
-            DeprecationLogger.whileDisabledThrowing(() ->
-                startParameter.setBuildFile(nullableFileSerializer.read(decoder))
-            );
             startParameter.setProjectDir(nullableFileSerializer.read(decoder));
-            DeprecationLogger.whileDisabledThrowing(() ->
-                startParameter.setSettingsFile(nullableFileSerializer.read(decoder))
-            );
             startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
@@ -247,6 +235,7 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
             startParameter.setConfigurationCacheParallel(decoder.readBoolean());
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
+            startParameter.setConfigurationCacheIntegrityCheckEnabled(decoder.readBoolean());
             startParameter.setConfigurationCacheEntriesPerKey(decoder.readSmallInt());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());

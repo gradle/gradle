@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReport;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTe
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@NonNullApi
+@NullMarked
 public class GenericTestReportGenerator implements TestReportGenerator {
     private final List<SerializableTestResultStore> stores;
     private final MetadataRendererRegistry metadataRendererRegistry;

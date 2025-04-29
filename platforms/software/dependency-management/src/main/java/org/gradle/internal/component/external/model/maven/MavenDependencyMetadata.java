@@ -17,19 +17,12 @@
 package org.gradle.internal.component.external.model.maven;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ExternalModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -55,17 +48,6 @@ public class MavenDependencyMetadata extends ExternalModuleDependencyMetadata {
     @Override
     public MavenDependencyDescriptor getDependencyDescriptor() {
         return dependencyDescriptor;
-    }
-
-    @Override
-    protected GraphVariantSelectionResult selectLegacyConfigurations(
-        GraphVariantSelector variantSelector,
-        ImmutableAttributes consumerAttributes,
-        ComponentGraphResolveState targetComponentState,
-        ImmutableAttributesSchema consumerSchema
-    ) {
-        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
-        return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 
     @Override

@@ -48,19 +48,7 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         gce.cause instanceof NullPointerException
     }
 
-    @TargetGradleVersion("<3.0")
-    def "retries if daemon seems to have disappeared and a daemon that did not do anything is idling (<3.0)"() {
-        given:
-        iteration++
-
-        when:
-        throwWhen(new IOException("Some action failed", new GradleException("Timeout waiting to connect to Gradle daemon.\n more infos")), iteration == 1)
-
-        then:
-        true
-    }
-
-    @TargetGradleVersion(">=3.0")
+    @TargetGradleVersion(">=4.0")
     def "does not retry for 3.0 or later"() {
         given:
         iteration++

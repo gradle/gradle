@@ -16,15 +16,15 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
-@NonNullApi
+@NullMarked
 public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
 
     private final OperationIdentifier id;

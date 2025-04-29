@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Modifier;
 
@@ -27,7 +28,7 @@ import java.lang.reflect.Modifier;
  * us to use a decorated instantiator for types that need it (such as software type plugins) and continue
  * using the injected instantiator for types that do not need it (such as plugin types marked as final).
  */
-@NonNullApi
+@NullMarked
 public class PluginInstantiator implements Instantiator {
     private final Instantiator injectedInstantiator;
     private final Instantiator decoratedInstantiator;
@@ -38,7 +39,7 @@ public class PluginInstantiator implements Instantiator {
     }
 
     @Override
-    public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
+    public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
         // If the plugin type is abstract, it likely has abstract methods that should be implemented
         // during class generation. In this case, we should use the decorated instantiator to create
         // the plugin instance.  Otherwise, we should use the injected instantiator to create the plugin

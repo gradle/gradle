@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.tooling.r33
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Issue
 
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=3.3")
     def "Included builds are present in the model"() {
         given:
         def rootDir = singleProjectBuildInRootFolder("root") {
@@ -50,7 +49,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
-    @TargetGradleVersion(">=3.3")
     def "Included builds are present in the model when substitutions are used"() {
         given:
         singleProjectBuildInRootFolder("root") {
@@ -74,22 +72,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         def includedBuild = model.includedBuilds[0]
         includedBuild.rootProject.name == "includedBuild"
         includedBuild.projects.size() == 4
-    }
-
-    @TargetGradleVersion(">=3.1 <3.3")
-    def "No included builds for old Gradle versions"() {
-        singleProjectBuildInRootFolder("root") {
-            settingsFile << """
-                rootProject.name = 'root'
-                includeBuild 'includedBuild'
-            """
-        }
-        multiProjectBuildInSubFolder("includedBuild", ["a", "b", "c"])
-        when:
-        GradleBuild model = loadToolingModel(GradleBuild)
-
-        then:
-        model.includedBuilds.empty
     }
 
     def "No included builds for single root project"() {

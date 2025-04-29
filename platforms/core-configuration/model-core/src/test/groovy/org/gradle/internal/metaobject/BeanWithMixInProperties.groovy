@@ -16,6 +16,8 @@
 
 package org.gradle.internal.metaobject
 
+import javax.annotation.Nullable
+
 class BeanWithMixInProperties implements PropertyMixIn {
     String prop
 
@@ -37,6 +39,14 @@ class BeanWithMixInProperties implements PropertyMixIn {
 
             @Override
             DynamicInvokeResult trySetProperty(String name, Object value) {
+                if (name == "dyno") {
+                    return DynamicInvokeResult.found();
+                }
+                return DynamicInvokeResult.notFound();
+            }
+
+            @Override
+            DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
                 if (name == "dyno") {
                     return DynamicInvokeResult.found();
                 }

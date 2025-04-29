@@ -17,8 +17,8 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.plugin.management.PluginRequest;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface PluginRequestInternal extends PluginRequest {

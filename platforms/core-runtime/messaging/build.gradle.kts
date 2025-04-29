@@ -4,7 +4,9 @@ plugins {
 
 description = "Implementation of messaging between Gradle processes"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.concurrent)
@@ -13,7 +15,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.slf4jApi)
 
     implementation(projects.classloaders)
@@ -21,6 +23,7 @@ dependencies {
     implementation(projects.buildOperations)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
 
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))

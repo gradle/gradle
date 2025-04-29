@@ -22,11 +22,11 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
-import org.gradle.process.internal.health.memory.OsMemoryStatusAspect;
 import org.gradle.process.internal.health.memory.OsMemoryStatus;
+import org.gradle.process.internal.health.memory.OsMemoryStatusAspect;
 import org.gradle.process.internal.health.memory.OsMemoryStatusListener;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;

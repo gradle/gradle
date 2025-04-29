@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
@@ -28,8 +27,9 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.StaticValue;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;

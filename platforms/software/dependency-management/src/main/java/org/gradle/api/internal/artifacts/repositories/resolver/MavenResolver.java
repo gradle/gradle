@@ -44,8 +44,8 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,7 +66,7 @@ public class MavenResolver extends ExternalResourceResolver {
         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
         ImmutableMetadataSources metadataSources,
         MetadataArtifactProvider metadataArtifactProvider,
-        MavenMetadataLoader mavenMetadataLoader,
+        MavenMetadataLoader mavenMetaDataLoader,
         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
         Instantiator injector,
@@ -82,7 +82,7 @@ public class MavenResolver extends ExternalResourceResolver {
             versionListerFactory,
             injector,
             checksumService);
-        this.mavenMetaDataLoader = mavenMetadataLoader;
+        this.mavenMetaDataLoader = mavenMetaDataLoader;
         this.root = rootUri;
     }
 

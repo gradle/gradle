@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl
 
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -31,7 +32,12 @@ object Workarounds {
      * but it's even uglier with a lot of weird lazy types involved and the code for doing so becomes very brittle.
      */
     internal fun kFunctionSignature(function: KFunction<*>): String {
-        return function::class.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }.call(function) as String
+        return kFunctionImplSignature(function)
+    }
+
+    private val kFunctionImplSignature: (KFunction<*>) -> String by lazy {
+        val property: KProperty<*> = Class.forName("kotlin.reflect.jvm.internal.KFunctionImpl").kotlin.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }
+        return@lazy { kFunction: KFunction<*> -> property.call(kFunction) as String }
     }
 
     /**
@@ -47,11 +53,14 @@ object Workarounds {
         if (left == right)
             return true
 
-        fun KClassifier.descriptor() =
-            Class.forName("kotlin.reflect.jvm.internal.KClassifierImpl").methods.single { it.name == "getDescriptor" }.invoke(this)
+        fun KClassifier.descriptor(): Any? = descriptorMethod.invoke(this)
 
         val leftDescriptor = left.descriptor()
         val rightDescriptor = right.descriptor()
         return leftDescriptor == rightDescriptor
+    }
+
+    private val descriptorMethod by lazy {
+        Class.forName("kotlin.reflect.jvm.internal.KClassifierImpl").methods.single { it.name == "getDescriptor" }
     }
 }

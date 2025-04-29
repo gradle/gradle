@@ -20,8 +20,11 @@ import org.gradle.internal.cc.impl.InstrumentedExecutionAccessListener
 import org.gradle.internal.classpath.InstrumentedExecutionAccess
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.scopes.ListenerService
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+@ServiceScope(Scope.BuildTree::class)
 @ListenerService
 internal
 class InstrumentedExecutionAccessListenerRegistry(

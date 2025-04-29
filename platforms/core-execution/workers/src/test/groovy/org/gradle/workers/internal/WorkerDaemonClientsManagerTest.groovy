@@ -25,7 +25,7 @@ import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.session.BuildSessionLifecycleListener
-import org.gradle.process.internal.ExecException
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.health.memory.DefaultMBeanAttributeProvider
 import org.gradle.process.internal.health.memory.MBeanOsMemoryInfo
 import org.gradle.process.internal.health.memory.MemoryManager
@@ -104,7 +104,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
         then:
         noExceptionThrown()
-        1 * client1.stop() >> { throw new ExecException("FAILED!") }
+        1 * client1.stop() >> { throw new ProcessExecutionException("FAILED!") }
         1 * client2.stop()
     }
 
@@ -120,7 +120,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
         then:
         noExceptionThrown()
-        1 * client1.stop() >> { throw new ExecException("FAILED!") }
+        1 * client1.stop() >> { throw new ProcessExecutionException("FAILED!") }
         1 * client2.stop()
 
         and:

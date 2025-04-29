@@ -36,10 +36,9 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.model.InMemoryCacheFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -61,9 +60,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final InMemoryCacheFactory cacheFactory;
     private final ComponentIdentifier overrideComponentId;
-
-    // The graph resolve state for variants selected by name
-    private final InMemoryLoadingCache<String, LocalVariantGraphResolveState> variants;
 
     // The variants to use for variant selection during graph resolution
     private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
@@ -91,7 +87,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         this.overrideComponentId = overrideComponentId;
 
         // Mutable state
-        this.variants = cacheFactory.createCalculatedValueCache(Describables.of("variants"), this::doCreateLegacyConfiguration);
         initCalculatedValues();
     }
 
@@ -100,7 +95,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         // TODO: This is not really thread-safe.
         //       We should atomically clear all the different fields at once.
         //       Or better yet, we should not allow reevaluation of the state.
-        variants.invalidate();
         variantFactory.invalidate();
         initCalculatedValues();
     }
@@ -217,24 +211,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
                 null
             ))
             .collect(Collectors.toList());
-    }
-
-    @Nullable
-    @Override
-    @Deprecated
-    public LocalVariantGraphResolveState getConfigurationLegacy(String configurationName) {
-        return variants.get(configurationName);
-    }
-
-    private @Nullable LocalVariantGraphResolveState doCreateLegacyConfiguration(String n) {
-        LocalVariantGraphResolveState variant = variantFactory.getVariantByConfigurationName(n);
-        if (variant == null) {
-            return null;
-        }
-        if (overrideComponentId != null) {
-            return variant.copyWithComponentId(overrideComponentId);
-        }
-        return variant;
     }
 
     private static class LocalComponentArtifactResolveMetadata implements ComponentArtifactResolveMetadata {

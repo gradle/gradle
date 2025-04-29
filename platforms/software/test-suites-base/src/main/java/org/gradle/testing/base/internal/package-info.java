@@ -17,5 +17,5 @@
 /**
  * Plugin classes for generic support for testing.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.testing.base.internal;

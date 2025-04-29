@@ -19,6 +19,8 @@ package org.gradle.integtests.tooling.r22
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
 
@@ -61,6 +63,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.daemons.daemon.stops()
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
     def "cleans up busy daemons once they become idle when tooling API session is shutdown"() {
         given:
         server.start()
@@ -106,6 +109,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
         noExceptionThrown()
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
     def "shutdown ignores daemons that were not started by client"() {
         given:
         daemonExecutor().run()

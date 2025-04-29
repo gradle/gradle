@@ -16,9 +16,12 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol. </p>
+ */
+@NullMarked
 public interface InternalSeverity {
 
     int getSeverity();

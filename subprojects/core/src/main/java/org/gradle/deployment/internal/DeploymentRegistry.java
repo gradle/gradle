@@ -16,9 +16,9 @@
 
 package org.gradle.deployment.internal;
 
-import javax.annotation.concurrent.ThreadSafe;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A registry of deployment handles.

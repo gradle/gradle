@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.ide.tooling.r28
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
-    @TargetGradleVersion(">=3.0")
     def "makes sure module names are unique in gradle"() {
         given:
         file('build.gradle').text = """

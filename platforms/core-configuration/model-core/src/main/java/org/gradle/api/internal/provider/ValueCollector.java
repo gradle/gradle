@@ -17,8 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ValueCollector<T> {
     void add(@Nullable T value, ImmutableCollection.Builder<T> dest);

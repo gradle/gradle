@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.Describable;
+import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.internal.Describables;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,12 +32,16 @@ import java.util.Set;
 
 public class DependencyGraphPathResolver {
 
-    public static Collection<List<ComponentIdentifier>> calculatePaths(List<DependencyGraphNode> fromNodes, DependencyGraphNode toNode) {
+    public static Collection<List<Describable>> calculatePaths(
+        List<DependencyGraphNode> fromNodes,
+        DependencyGraphNode toNode,
+        DomainObjectContext owner
+    ) {
         // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
 
-        Map<ResolvedGraphComponent, List<ComponentIdentifier>> shortestPaths = new LinkedHashMap<>();
-        List<ComponentIdentifier> rootPath = new ArrayList<>();
-        rootPath.add(toNode.getOwner().getComponentId());
+        Map<ResolvedGraphComponent, List<Describable>> shortestPaths = new LinkedHashMap<>();
+        List<Describable> rootPath = new ArrayList<>();
+        rootPath.add(Describables.of(owner.getDisplayName()));
         shortestPaths.put(toNode.getOwner(), rootPath);
 
         Set<DependencyGraphComponent> directDependees = new LinkedHashSet<>();
@@ -55,9 +61,9 @@ public class DependencyGraphPathResolver {
                 }
             } else {
                 queue.remove();
-                List<ComponentIdentifier> shortest = null;
+                List<Describable> shortest = null;
                 for (DependencyGraphComponent incomingVersion : version.getDependents()) {
-                    List<ComponentIdentifier> candidate = shortestPaths.get(incomingVersion);
+                    List<Describable> candidate = shortestPaths.get(incomingVersion);
                     if (candidate == null) {
                         continue;
                     }
@@ -71,15 +77,15 @@ public class DependencyGraphPathResolver {
                 if (shortest == null) {
                     continue;
                 }
-                List<ComponentIdentifier> path = new ArrayList<>(shortest);
-                path.add(version.getComponentId());
+                List<Describable> path = new ArrayList<>(shortest);
+                path.add(Describables.of(version.getComponentId().getDisplayName()));
                 shortestPaths.put(version, path);
             }
         }
 
-        List<List<ComponentIdentifier>> paths = new ArrayList<>();
+        List<List<Describable>> paths = new ArrayList<>();
         for (DependencyGraphComponent version : directDependees) {
-            List<ComponentIdentifier> path = shortestPaths.get(version);
+            List<Describable> path = shortestPaths.get(version);
             paths.add(path);
         }
         return paths;

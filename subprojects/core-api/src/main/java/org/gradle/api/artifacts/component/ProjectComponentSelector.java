@@ -34,15 +34,6 @@ public interface ProjectComponentSelector extends ComponentSelector {
     String getBuildPath();
 
     /**
-     * The name of the build to select a project from.
-     *
-     * @return The build name
-     * @deprecated Use {@link #getBuildPath()} instead.
-     */
-    @Deprecated
-    String getBuildName();
-
-    /**
      * The path of the project to select the component from.
      *
      * @return Project path

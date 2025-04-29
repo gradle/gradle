@@ -16,32 +16,24 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
 
-import java.util.Map;
-
 /**
- * General additional data type that can be used to attach arbitrary data to a problem with a string map.
- *
- * @since 8.13
+ * additional data type that can be used to attach arbitrary data to a problem using isolated serialized data.
  */
-@Incubating
 public interface TypedAdditionalData extends AdditionalData {
 
     /**
-     * provides data to reconstruct the object
+     * the serialized isolated additional data
      *
-     * @return data
-     * @since 8.13
+     * @return the data
      */
-    Map<String, Object> getData();
+    byte[] getBytesForIsolatedObject();
 
     /**
      * the serialized type/class of the object
      *
      * @return the data
-     * @since 8.13
      */
     Object getSerializedType();
 }

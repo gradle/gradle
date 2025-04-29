@@ -110,7 +110,7 @@ The JaCoCo Report Aggregation plugin adds the following dependency configuration
 | `jacocoAggregation`
 | The configuration used to declare all project dependencies having code coverage data to be aggregated.
 | `aggregateCodeCoverageReportResults`
-| Consumes the project dependencies from the `jacocoAggregation` configuration using <<variant_model#sec:variant-aware-matching,variant-aware matching>> to find the appropriate test suite type.
+| Consumes the project dependencies from the `jacocoAggregation` configuration using <<variant_aware_resolution.adoc#sec:variant-aware-matching,variant-aware matching>> to find the appropriate test suite type.
 |===
 
 It is not necessary to explicitly add dependencies to the `jacocoAggregation` configuration if the project also applies the `jvm-test-suite` plugin.

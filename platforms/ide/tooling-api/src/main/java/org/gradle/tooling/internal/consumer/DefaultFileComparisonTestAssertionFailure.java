@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.FileComparisonTestAssertionFailure;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure implements FileComparisonTestAssertionFailure {
 
     private final byte[] expectedContent;
@@ -34,15 +34,15 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;
     }
-    @Nullable
+
     @Override
-    public byte[] getExpectedContent() {
+    public byte @Nullable [] getExpectedContent() {
         return expectedContent;
     }
 
-    @Nullable
+
     @Override
-    public byte[] getActualContent() {
+    public byte @Nullable [] getActualContent() {
         return actualContent;
     }
 }

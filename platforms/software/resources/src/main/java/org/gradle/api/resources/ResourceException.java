@@ -18,8 +18,8 @@ package org.gradle.api.resources;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 
 /**

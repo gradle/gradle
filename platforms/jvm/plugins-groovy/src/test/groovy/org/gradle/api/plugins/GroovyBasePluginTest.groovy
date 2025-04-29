@@ -22,56 +22,66 @@ import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
+import spock.lang.Specification
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertTrue
 
-class GroovyBasePluginTest {
+class GroovyBasePluginTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(GroovyBasePluginTest)
+
     private ProjectInternal project
 
-    @Before
-    void before() {
+    def setup() {
         project = TestUtil.create(temporaryFolder).rootProject()
         project.pluginManager.apply(GroovyBasePlugin)
     }
 
-    @Test void appliesTheJavaBasePluginToTheProject() {
-        assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin));
+    def "applies the java base plugin to the project"() {
+        expect:
+        project.plugins.hasPlugin(JavaBasePlugin)
     }
 
-    @Test void appliesMappingsToNewSourceSet() {
+    def "applies mappings to new source set"() {
+        when:
         def sourceSet = project.sourceSets.create('custom')
-        assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
-        assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/custom/groovy"))))
+
+        then:
+        sourceSet.groovy.displayName == "custom Groovy source"
+        sourceSet.groovy.srcDirs == toLinkedSet(project.file("src/custom/groovy"))
     }
 
-    @Test void addsCompileTaskToNewSourceSet() {
+    def "adds compile task to new source set"() {
+        when:
         project.sourceSets.create('custom')
-
         def task = project.tasks['compileCustomGroovy']
-        assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.description, equalTo('Compiles the custom Groovy source.'))
-        assertThat(task, dependsOn('compileCustomJava'))
+
+        then:
+        task instanceof GroovyCompile
+        task.description == 'Compiles the custom Groovy source.'
+        task dependsOn('compileCustomJava')
     }
 
-    @Test void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
+    def "dependencies of java plugin tasks include groovy compile tasks"() {
+        when:
         project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
+
+        then:
         assertThat(task, dependsOn(hasItem('compileCustomGroovy')))
     }
 
-    @Test void configuresAdditionalTasksDefinedByTheBuildScript() {
+    def "configures additional tasks defined by the build script"() {
+        when:
         def task = project.task('otherGroovydoc', type: Groovydoc)
-        assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
-        assertThat(task.docTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-        assertThat(task.windowTitle, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+
+        then:
+        task.destinationDir == project.java.docsDir.file('groovydoc').get().asFile
+        task.docTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.windowTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 }

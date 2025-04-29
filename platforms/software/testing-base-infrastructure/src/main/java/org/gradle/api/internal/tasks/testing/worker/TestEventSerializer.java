@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.AssertionFailureDetails;
+import org.gradle.api.internal.tasks.testing.AssumptionFailureDetails;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
@@ -27,10 +28,12 @@ import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
+import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.CompositeIdGenerator;
@@ -40,6 +43,7 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,7 +67,7 @@ public class TestEventSerializer {
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
-        registry.register(DefaultTestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
+        registry.register(TestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
         return registry;
     }
 
@@ -169,8 +173,8 @@ public class TestEventSerializer {
         }
     }
 
-    @NonNullApi
-    private static class DefaultTestFailureSerializer implements Serializer<DefaultTestFailure> {
+    @NullMarked
+    private static class DefaultTestFailureSerializer implements Serializer<TestFailure> {
         private final Serializer<Throwable> throwableSerializer;
 
         public DefaultTestFailureSerializer(Serializer<Throwable> throwableSerializer) {
@@ -178,18 +182,31 @@ public class TestEventSerializer {
         }
 
         @Override
-        public DefaultTestFailure read(Decoder decoder) throws Exception {
-            String message = decoder.readNullableString();
-            String className = decoder.readString();
-            String stacktrace = decoder.readString();
-            boolean isAssertionFailure = decoder.readBoolean();
-            String expected = decoder.readNullableString();
-            String actual = decoder.readNullableString();
+        public TestFailure read(Decoder decoder) throws Exception {
+            // Read raw throwable
+            Throwable rawFailure = readThrowableCatchingFailure(decoder);
+
+            // Read all causes
             int numOfCauses = decoder.readSmallInt();
             List<TestFailure> causes = new ArrayList<TestFailure>(numOfCauses);
             for (int i = 0; i < numOfCauses; i++) {
                 causes.add(read(decoder));
             }
+
+            // Fields available to all details
+            String message = decoder.readNullableString();
+            String className = decoder.readString();
+            String stacktrace = decoder.readString();
+
+            // assumption failure
+            boolean isAssumptionFailure = decoder.readBoolean();
+
+            // assertion failure
+            boolean isAssertionFailure = decoder.readBoolean();
+            String expected = decoder.readNullableString();
+            String actual = decoder.readNullableString();
+
+            // file comparison failure
             boolean isFileComparisonFailure = decoder.readBoolean();
 
             int expectedContentSize = decoder.readInt();
@@ -209,8 +226,21 @@ public class TestEventSerializer {
                 actualContent = new byte[actualContentSize];
                 decoder.readBytes(actualContent);
             }
-            Throwable rawFailure = readThrowableCatchingFailure(decoder);
-            return new DefaultTestFailure(rawFailure, new DefaultTestFailureDetails(message, className, stacktrace, isAssertionFailure, isFileComparisonFailure, expected, actual, expectedContent, actualContent), causes);
+
+            // Order is important here because a file comparison is _also_ an assertion failure
+            if (isFileComparisonFailure) {
+                TestFailureDetails details = new FileComparisonFailureDetails(message, className, stacktrace, expected, actual, expectedContent, actualContent);
+                return new DefaultTestFailure(rawFailure, details, causes);
+            } else if (isAssertionFailure) {
+                TestFailureDetails details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
+                return new DefaultTestFailure(rawFailure, details, causes);
+            } else if (isAssumptionFailure) {
+                TestFailureDetails details = new AssumptionFailureDetails(message, className, stacktrace);
+                return new DefaultTestFailure(rawFailure, details, causes);
+            } else {
+                TestFailureDetails details = new DefaultTestFailureDetails(message, className, stacktrace);
+                return new DefaultTestFailure(rawFailure, details, causes);
+            }
         }
 
         /**
@@ -229,40 +259,56 @@ public class TestEventSerializer {
         }
 
         @Override
-        public void write(Encoder encoder, DefaultTestFailure value) throws Exception {
-            encoder.writeNullableString(value.getDetails().getMessage());
-            encoder.writeString(value.getDetails().getClassName());
-            encoder.writeString(value.getDetails().getStacktrace());
-            encoder.writeBoolean(value.getDetails().isAssertionFailure());
-            encoder.writeNullableString(value.getDetails().getExpected());
-            encoder.writeNullableString(value.getDetails().getActual());
+        public void write(Encoder encoder, TestFailure value) throws Exception {
+            // Write out raw throwable
+            writeThrowableWithType(encoder, value, value.getRawFailure());
+
+            // Write out all causes
             encoder.writeSmallInt(value.getCauses().size());
             for (TestFailure cause : value.getCauses()) {
-                write(encoder, (DefaultTestFailure) cause);
+                write(encoder, cause);
             }
-            encoder.writeBoolean(value.getDetails().isFileComparisonFailure());
-            byte[] expectedContent = value.getDetails().getExpectedContent();
+
+            // Fields available to all details
+            TestFailureDetails details = value.getDetails();
+            encoder.writeNullableString(details.getMessage());
+            encoder.writeString(details.getClassName());
+            encoder.writeString(details.getStacktrace());
+
+            // TODO: These could be optimized to only write out fields when necessary
+            // based on the type of details
+
+            // assumption failure
+            encoder.writeBoolean(details.isAssumptionFailure());
+
+            // assertion failure
+            encoder.writeBoolean(details.isAssertionFailure());
+            encoder.writeNullableString(details.getExpected());
+            encoder.writeNullableString(details.getActual());
+
+            // file comparison failure
+            encoder.writeBoolean(details.isFileComparisonFailure());
+            byte[] expectedContent = details.getExpectedContent();
             if (expectedContent == null) {
                 encoder.writeInt(-1);
             } else {
                 encoder.writeInt(expectedContent.length);
                 encoder.writeBytes(expectedContent);
             }
-            byte[] actualContent = value.getDetails().getActualContent();
+            byte[] actualContent = details.getActualContent();
             if (actualContent == null) {
                 encoder.writeInt(-1);
             } else {
                 encoder.writeInt(actualContent.length);
                 encoder.writeBytes(actualContent);
             }
-            writeThrowableWithType(encoder, value, value.getRawFailure());
         }
 
         /**
          * Serializes the exception thrown by the test and also writes the exception type so that if there is a failure recreating the exception, we can at least
          * provide the user with some information about what type of exception was thrown.
          */
-        private void writeThrowableWithType(Encoder encoder, DefaultTestFailure value, Throwable rawFailure) throws Exception {
+        private void writeThrowableWithType(Encoder encoder, TestFailure value, Throwable rawFailure) throws Exception {
             encoder.writeString(rawFailure.getClass().getName());
             throwableSerializer.write(encoder, value.getRawFailure());
         }
@@ -306,7 +352,7 @@ public class TestEventSerializer {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class DefaultParameterizedTestDescriptorSerializer implements Serializer<DefaultParameterizedTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 

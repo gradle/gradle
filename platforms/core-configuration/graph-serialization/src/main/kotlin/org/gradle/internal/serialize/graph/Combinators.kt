@@ -45,11 +45,11 @@ fun <T> codec(
 }
 
 
-inline fun <reified T> IsolateContext.ownerService() =
+inline fun <reified T : Any> IsolateContext.ownerService() =
     ownerService(T::class.java)
 
 
-fun <T> IsolateContext.ownerService(serviceType: Class<T>) =
+fun <T : Any> IsolateContext.ownerService(serviceType: Class<T>) =
     isolate.owner.service(serviceType)
 
 

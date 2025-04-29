@@ -19,8 +19,8 @@ package org.gradle.internal.component.model;
 import com.google.common.io.Files;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 import static com.google.common.base.Objects.equal;

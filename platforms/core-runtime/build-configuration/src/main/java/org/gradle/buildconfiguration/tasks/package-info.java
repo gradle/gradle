@@ -17,7 +17,7 @@
 /**
  * Public types for updating the Gradle Daemon JVM criteria.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.buildconfiguration.tasks;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

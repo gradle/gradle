@@ -35,6 +35,7 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -94,7 +95,7 @@ class FileCollectionCodec(
                     is File -> element
                     is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                     is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
-                    is ProviderBackedFileCollectionSpec -> element.provider
+                    is ProviderBackedFileCollectionSpec -> fileCollectionFactory.withResolver(element.resolver).resolving(element.provider)
                     is FileTree -> element
                     is ResolutionBackedFileCollectionSpec -> artifactSetConverter.asFileCollection(element.displayName, element.lenient, element.elements)
                     is BeanSpec -> element.bean
@@ -115,7 +116,7 @@ class FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spe
 
 
 private
-class ProviderBackedFileCollectionSpec(val provider: ProviderInternal<*>)
+class ProviderBackedFileCollectionSpec(val resolver: PathToFileResolver, val provider: ProviderInternal<*>)
 
 
 private
@@ -161,7 +162,7 @@ class CollectingVisitor : AbstractVisitor() {
                 // being referenced from a different task.
                 val provider = fileCollection.provider
                 if (provider !is TaskProvider<*>) {
-                    elements.add(ProviderBackedFileCollectionSpec(provider))
+                    elements.add(ProviderBackedFileCollectionSpec(fileCollection.resolver, provider))
                     false
                 } else {
                     true

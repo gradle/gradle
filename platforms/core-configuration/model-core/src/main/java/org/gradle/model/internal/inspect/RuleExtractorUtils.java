@@ -23,8 +23,7 @@ import org.gradle.model.internal.core.ModelSpec;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.registry.ModelRegistry;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class RuleExtractorUtils {
     public static void configureRuleAction(MethodModelRuleApplicationContext context, RuleApplicationScope ruleApplicationScope, ModelActionRole role, MethodRuleAction ruleAction) {

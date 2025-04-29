@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;

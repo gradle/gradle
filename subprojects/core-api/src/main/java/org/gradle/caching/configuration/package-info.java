@@ -19,7 +19,7 @@
  *
  * @since 3.5
  */
-@NonNullApi
+@NullMarked
 package org.gradle.caching.configuration;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

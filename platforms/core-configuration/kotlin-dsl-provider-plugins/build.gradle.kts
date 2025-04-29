@@ -42,6 +42,7 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinReflect)
@@ -53,3 +54,7 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
 }
+
+// Kotlin DSL provider plugins should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())

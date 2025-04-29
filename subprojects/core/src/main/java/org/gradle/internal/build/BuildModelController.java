@@ -23,8 +23,7 @@ import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Transitions the model of an individual build in the build tree through its lifecycle.

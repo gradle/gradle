@@ -27,7 +27,7 @@ abstract class MyIntroTask : DefaultTask() {
 val configurationProvider: Provider<String> = project.provider { "Hello, Gradle!" }
 
 tasks.register("myIntroTask", MyIntroTask::class) {
-    configuration.set(configurationProvider)
+    configuration = configurationProvider
 }
 // end::introduction[]
 
@@ -51,7 +51,7 @@ tasks.register<MyPropertyTask>("myPropertyTask") {
 // Provider
 // tag::prov-managed[]
 abstract class MyProviderTask : DefaultTask() {
-    final val messageProvider: Provider<String> = project.providers.provider { "Hello, Gradle!" } // message provider
+    val messageProvider: Provider<String> = project.providers.provider { "Hello, Gradle!" } // message provider
 
     @TaskAction
     fun printMessage() {

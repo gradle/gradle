@@ -48,13 +48,10 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
-        // TODO Restore AndroidTestProject.useAgpLatestStableOrRcVersion(runner) and AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
-        //      The project is using an incompatible version (AGP x.y.z) of the Android Gradle plugin.
-        //      Latest supported version is AGP 8.4.0.
-        //      Can't upgrade to Studio > Jellyfish with the current infra because no more ZIP available for mac.
-        //      Same problem with Kotlin >= 2.1.0 that requires higher AGP versions
-        AndroidTestProject.configureForAgpVersion(runner, "8.4.0")
-        AndroidTestProject.configureForKotlinVersion(runner, "2.0.21")
+        def agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
+        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
+        AndroidTestProject.configureBuildToolsForAgpVersion(runner, agpVersion)
+
         runner.warmUpRuns = 20
         runner.runs = 20
         runner.setupAndroidStudioSync()

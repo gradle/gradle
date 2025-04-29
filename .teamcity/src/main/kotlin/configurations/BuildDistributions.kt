@@ -33,7 +33,7 @@ class BuildDistributions(
 
         artifactRules =
             """$artifactRules
-subprojects/distributions-full/build/distributions/*.zip => distributions
+packaging/distributions-full/build/distributions/*.zip => distributions
 platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
 """
     })

@@ -92,7 +92,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 == Which parts of metadata can be modified?
 
 The Component Metadata Rules API focuses on the features supported by Gradle Module Metadata and the dependencies API.
-The key difference between using metadata rules and defining dependencies/artifacts in a build script is that component metadata rules operate directly on <<variant_model.adoc#sec:understanding-variant-selection,variants>>, whereas build scripts often affect multiple variants at once (e.g., an `api` dependency is applied to both `api` and `runtime` variants of a Java library).
+The key difference between using metadata rules and defining dependencies/artifacts in a build script is that component metadata rules operate directly on <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variants>>, whereas build scripts often affect multiple variants at once (e.g., an `api` dependency is applied to both `api` and `runtime` variants of a Java library).
 
 Variants can be modified through the following methods:
 
@@ -102,7 +102,7 @@ Variants can be modified through the following methods:
 
 The following variant details can be modified:
 
-- **Attributes**: Use the `attributes {}` block to adjust <<variant_model.adoc#sec:abm-configuration-attributes,attributes>> that identify the variant.
+- **Attributes**: Use the `attributes {}` block to adjust <<variant_aware_resolution.adoc#sec:abm-configuration-attributes,attributes>> that identify the variant.
 - **Capabilities**: Use the `withCapabilities {}` block to define the <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>> the variant provides.
 - **Dependencies**: Use the `withDependencies {}` block to manage the variant’s dependencies, including <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints.
 - **Dependency Constraints**: Use the `withDependencyConstraints {}` block to define the variant’s <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>, including rich versions.
@@ -112,7 +112,7 @@ Additionally, several component-level properties can be changed:
 
 - **Component Attributes**: The only <<sec:custom-status-scheme,meaningful attribute>> here is `org.gradle.status`.
 - **Status Scheme**: Influence how the `org.gradle.status` attribute is interpreted during version selection.
-- **BelongsTo Property**: Used for <component_capabilities.adoc#sec:declaring-capabilities-external-modules,version alignment>> via virtual platforms.
+- **BelongsTo Property**: Used for <<component_capabilities.adoc#sec:declaring-capabilities-external-modules,version alignment>> via virtual platforms.
 
 The format of a module's metadata affects how it maps to the variant-centric representation:
 
@@ -144,7 +144,7 @@ In the `withDependencies` block, you have access to the full list of dependencie
 Similarly, you can inspect and modify dependency constraints within the `withDependencyConstraints` block.
 
 In Jaxen version `1.1.4`, the `dom4j`, `jdom`, and `xerces` dependencies are still present but marked as **optional**.
-Optional dependencies are not processed automatically by Gradle or Maven, as they indicate <<feature_variants.adoc#feature_variants,feature variants>> that require additional dependencies.
+Optional dependencies are not processed automatically by Gradle or Maven, as they indicate <<how_to_create_feature_variants_of_a_library#feature_variants,feature variants>> that require additional dependencies.
 However, the `pom` file lacks information about these features and their corresponding dependencies.
 This can be represented in Gradle Module Metadata through variants and <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>>, which we can add via a component metadata rule.
 
@@ -265,21 +265,14 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 Gradle fails to select a variant because a machine architecture needs to be chosen:
 
-----
-> Could not resolve all files for configuration ':runtimeClasspath'.
-   > Could not resolve org.lwjgl:lwjgl:3.2.3.
-     Required by:
-         project :
-      > The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. There are several available matching variants of org.lwjgl:lwjgl:3.2.3
-       The only attribute distinguishing these variants is 'org.gradle.native.architecture'. Add this attribute to the consumer's configuration to resolve the ambiguity:
-          - Value: 'x86-64' selects variant: 'natives-windows-runtime'
-          - Value: 'x86' selects variant: 'natives-windows-x86-runtime'
-----
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/tests",files="failRuntimeClasspathResolve.out"]
+====
 
 [[sec:making-library-flavors]]
 == Making different flavors of a library available through capabilities
 
-Because it is difficult to model <<feature_variants.adoc#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes comprise different jars with different feature sets.
+Because it is difficult to model <<how_to_create_feature_variants_of_a_library#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes comprise different jars with different feature sets.
 That is, instead of composing your flavor of the library from different feature variants, you select one of the pre-composed variants (offering everything in one jar).
 One such library is the well-known dependency injection framework Guice, published on link:https://repo1.maven.org/maven2/com/google/inject/guice/4.2.2[Maven central], which offers a complete flavor (the main jar) and a reduced variant without aspect-oriented programming support (`guice-4.2.2-no_aop.jar`).
 That second variant with a classifier is not mentioned in the pom metadata.
@@ -340,10 +333,10 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 == Modifying metadata on the component level for alignment
 
 While all the examples above made modifications to variants of a component, there is also a limited set of modifications that can be done to the metadata of the component itself.
-This information can influence the <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
+This information can influence the <<graph_resolution.adoc#sec:conflict-resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
-It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
+It is explained in detail in the section on <<how_to_align_dependency_versions.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
 
 [[sec:custom-status-scheme]]
 == Modifying metadata on the component level for version selection based on status

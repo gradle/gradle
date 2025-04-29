@@ -23,8 +23,8 @@ import org.gradle.api.tasks.VerificationException;
 import org.gradle.execution.plan.edges.DependencyNodesSet;
 import org.gradle.execution.plan.edges.DependentNodesSet;
 import org.gradle.internal.resources.ResourceLock;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
@@ -499,8 +499,7 @@ public abstract class Node {
         }
     }
 
-    @Nullable
-    protected Node.ExecutionState getInitialState() {
+    protected Node.@Nullable ExecutionState getInitialState() {
         return null;
     }
 

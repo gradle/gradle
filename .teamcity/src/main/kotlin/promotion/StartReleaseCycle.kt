@@ -20,9 +20,8 @@ import common.gradleWrapper
 import common.promotionBuildParameters
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.RelativeId
-import vcsroots.gradlePromotionMaster
 
-object StartReleaseCycle : BasePromotionBuildType(vcsRootId = gradlePromotionMaster) {
+object StartReleaseCycle : BasePromotionBuildType() {
     init {
         id("Promotion_StartReleaseCycle")
         name = "Start Release Cycle"

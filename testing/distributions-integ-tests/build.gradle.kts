@@ -24,9 +24,12 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
+// Using lazy makes sure we do not invalidate CC entries when head commit changes
+// The hack is needed because Gradle does not support `Provider<?>` in systemProperty
+// See https://github.com/gradle/gradle/issues/12247
 tasks.forkingIntegTest {
-    systemProperty("gradleBuildBranch", buildBranch.get())
-    systemProperty("gradleBuildCommitId", buildCommitId.get())
+    systemProperty("gradleBuildBranch", lazy(buildBranch::get))
+    systemProperty("gradleBuildCommitId", lazy(buildCommitId::get))
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

@@ -19,6 +19,8 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/4951")
@@ -52,6 +54,7 @@ class JavaIncrementalCompilationWithCachingIntegrationTest extends AbstractJavaG
         outputs.recompiledClasses("A")
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
     def "classpath analysis is restored from the build cache"() {
         requireOwnGradleUserHomeDir().requireDaemon().requireIsolatedDaemons()
         buildFile << "dependencies { implementation 'org.apache.commons:commons-lang3:3.8' }\n"

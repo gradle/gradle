@@ -75,7 +75,7 @@ class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScri
         assertHasExceptionMessage(
             model,
             spec.scripts.a,
-            "Unresolved reference: script_body_compilation_error"
+            "script_body_compilation_error"
         )
     }
 

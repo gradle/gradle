@@ -18,12 +18,13 @@ package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.initialization.Settings
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
-import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ElementResolution.SuccessfulElementResolution.ConfiguringElementResolved
 import org.gradle.internal.declarativedsl.dom.data.NodeData
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureLocation.FailedAtNode
@@ -49,14 +50,14 @@ object SettingsBlocksCheck : DocumentCheck {
         PLUGIN_MANAGEMENT, PLUGINS
     }
 
-    override fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer, isAnalyzedNode: NodeData<Boolean>): List<DocumentCheckFailure> {
+    override fun detectFailures(documentWithResolution: DocumentWithResolution, isAnalyzedNode: NodeData<Boolean>): List<DocumentCheckFailure> {
         val outOfOrderNodes = mutableListOf<DocumentNode>()
         val duplicates = mutableListOf<DocumentNode>()
 
         var seenBlock: SpecialOrderBlock? = null
 
-        document.content.forEach { node ->
-            val specialBlockKind = isSpecialBlock(node, resolutionContainer)
+        documentWithResolution.document.content.forEach { node ->
+            val specialBlockKind = isSpecialBlock(node, documentWithResolution.resolutionContainer)
             when {
                 /** In the "plugins" step, the pluginManagement { ... } block is not resolved and is fine to appear above plugins { ... }; don't report it. */
                 !isAnalyzedNode.data(node) && isPluginManagementNode(node) -> Unit

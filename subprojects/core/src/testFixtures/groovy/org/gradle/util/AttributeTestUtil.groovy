@@ -37,7 +37,7 @@ class AttributeTestUtil {
     }
 
     static DefaultAttributesFactory attributesFactory() {
-        return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+        return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator(), TestUtil.propertyFactory())
     }
 
     /**

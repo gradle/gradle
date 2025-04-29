@@ -19,8 +19,8 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.EOFException;
 import java.io.Serializable;
 import java.util.Calendar;

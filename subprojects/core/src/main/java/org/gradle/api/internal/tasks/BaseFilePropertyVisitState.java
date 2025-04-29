@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -27,13 +26,14 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.operations.execution.FilePropertyVisitor;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Set;
 
-@NonNullApi
+@NullMarked
 public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.VisitState, FileSystemSnapshotHierarchyVisitor {
     private final Map<String, InputFilePropertySpec> propertySpecsByName;
     private final Deque<DirectorySnapshot> unvisitedDirectories = new ArrayDeque<>();

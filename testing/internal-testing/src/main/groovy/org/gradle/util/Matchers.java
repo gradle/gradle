@@ -20,7 +20,6 @@ import org.gradle.internal.SystemProperties;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 import java.io.BufferedReader;
@@ -34,7 +33,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 
 public class Matchers {
 
-    @Factory
     public static <T extends CharSequence> Matcher<T> matchesRegexp(final String pattern) {
         return new BaseMatcher<T>() {
             @Override
@@ -49,7 +47,6 @@ public class Matchers {
         };
     }
 
-    @Factory
     public static <T extends CharSequence> Matcher<T> matchesRegexp(final Pattern pattern) {
         return new BaseMatcher<T>() {
             @Override
@@ -64,7 +61,6 @@ public class Matchers {
         };
     }
 
-    @Factory
     public static <T extends CharSequence> Matcher<T> containsText(final String pattern) {
         return new BaseMatcher<T>() {
             @Override
@@ -78,7 +74,6 @@ public class Matchers {
         };
     }
 
-    @Factory
     public static <T> Matcher<T> strictlyEqual(final T other) {
         return new BaseMatcher<T>() {
             @Override
@@ -110,7 +105,6 @@ public class Matchers {
         return a.hashCode() == b.hashCode();
     }
 
-    @Factory
     public static Matcher<String> containsLine(final Matcher<? super String> matcher) {
         return new BaseMatcher<String>() {
             @Override
@@ -145,7 +139,6 @@ public class Matchers {
         return false;
     }
 
-    @Factory
     public static Matcher<Iterable<?>> isEmpty() {
         return new BaseMatcher<Iterable<?>>() {
             @Override
@@ -161,7 +154,6 @@ public class Matchers {
         };
     }
 
-    @Factory
     public static Matcher<Object> isSerializable() {
         return new BaseMatcher<Object>() {
             @Override
@@ -181,7 +173,6 @@ public class Matchers {
         };
     }
 
-    @Factory
     public static Matcher<Throwable> hasMessage(final Matcher<String> matcher) {
         return new BaseMatcher<Throwable>() {
             @Override
@@ -197,7 +188,6 @@ public class Matchers {
         };
     }
 
-    @Factory
     public static Matcher<String> normalizedLineSeparators(final Matcher<? super String> matcher) {
         return new BaseMatcher<String>() {
             @Override

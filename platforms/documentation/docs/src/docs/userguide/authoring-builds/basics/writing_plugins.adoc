@@ -150,7 +150,7 @@ include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[ta
 include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply-conv]"]
 ====
 
-The `createFileTask` task from the plugin is now available in your subproject.
+The `createMyFileTaskInConventionPlugin` task from the plugin is now available in your subproject.
 
 == Binary Plugins
 

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.language.base.internal.compile.CompileSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 

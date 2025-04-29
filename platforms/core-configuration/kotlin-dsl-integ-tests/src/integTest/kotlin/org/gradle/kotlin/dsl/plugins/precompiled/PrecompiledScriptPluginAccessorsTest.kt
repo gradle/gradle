@@ -113,7 +113,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         buildAndFail("compileKotlin").apply {
             assertHasCause("Compilation error.")
-            assertHasErrorOutput("Unresolved reference: after")
+            assertHasErrorOutput("Unresolved reference 'after'.")
         }
     }
 
@@ -694,7 +694,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    fun `plugin application errors fail the build by default`() {
+    fun `plugin application errors fail the build`() {
 
         val pluginId = "invalid.plugin"
         val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
@@ -710,51 +710,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         gradleExecuterFor(arrayOf("classes"))
             .withStackTraceChecksDisabled()
             .runWithFailure()
-            .assertions()
-
-        executer.beforeExecute {
-            it.expectDeprecationWarning(
-                "The org.gradle.kotlin.dsl.precompiled.accessors.strict system property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors-by-default"
-            )
-        }
-
-        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict="))
-            .withStackTraceChecksDisabled()
-            .runWithFailure()
-            .assertions()
-
-        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=true"))
-            .withStackTraceChecksDisabled()
-            .runWithFailure()
-            .assertions()
-    }
-
-    @Test
-    fun `plugin application errors can be ignored but are reported`() {
-
-        val pluginId = "invalid.plugin"
-        val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
-
-        withPrecompiledScriptApplying(pluginId, pluginJar)
-
-        executer.beforeExecute {
-            it.expectDeprecationWarning(
-                "The org.gradle.kotlin.dsl.precompiled.accessors.strict system property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors-by-default"
-            )
-        }
-
-        val assertions: ExecutionResult.() -> Unit = {
-            assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
-            assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
-        }
-
-        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=false"))
-            .withStackTraceChecksDisabled()
-            .run()
             .assertions()
     }
 

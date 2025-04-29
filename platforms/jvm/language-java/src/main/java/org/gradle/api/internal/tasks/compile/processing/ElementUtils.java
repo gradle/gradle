@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -34,6 +35,7 @@ public class ElementUtils {
         return getTopLevelTypeNames(Arrays.asList(originatingElements));
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     public static Set<String> getTopLevelTypeNames(Collection<? extends Element> originatingElements) {
         if (originatingElements == null || originatingElements.size() == 0) {
             return Collections.emptySet();

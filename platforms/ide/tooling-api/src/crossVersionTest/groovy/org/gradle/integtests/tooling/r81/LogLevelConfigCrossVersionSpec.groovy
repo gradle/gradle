@@ -33,7 +33,7 @@ class LogLevelConfigCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @ToolingApiVersion('>=8.1')
-    @TargetGradleVersion('>=3.0 <=8.0')
+    @TargetGradleVersion('>=4.0 <=8.0')
     def "tooling api uses log level set in arguments over gradle properties TAPI >= 8.1"() {
         when:
         def stdOut = runLogScript(toolingApi, arguments)
@@ -48,7 +48,7 @@ class LogLevelConfigCrossVersionSpec extends ToolingApiSpecification {
         LogLevel.LIFECYCLE  | ["-Dorg.gradle.logging.level=info"]
     }
 
-    @ToolingApiVersion(">=7.0 <8.1")
+    @ToolingApiVersion(">=8.0 <8.1")
     @TargetGradleVersion('>=8.1')
     def "tooling api uses log level set in arguments over gradle properties TAPI < 8.1"() {
         when:

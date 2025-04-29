@@ -18,12 +18,15 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Adapts the new `ComponentSelector` types to legacy types.
  * Note that for `ProjectComponentSelector` this requires looking up the target project in order
  * to determine the project coordinates.
  */
+@ServiceScope(Scope.Project.class)
 public interface ComponentSelectorConverter {
     ModuleIdentifier getModule(ComponentSelector selector);
     ModuleVersionSelector getSelector(ComponentSelector selector);

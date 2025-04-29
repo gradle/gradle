@@ -17,8 +17,8 @@
 package org.gradle.tooling.events.task.java;
 
 import org.gradle.tooling.events.task.TaskOperationResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 

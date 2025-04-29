@@ -17,7 +17,7 @@
 /**
  * Types for Java language support.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.language.java.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

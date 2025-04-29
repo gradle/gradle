@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.testing.redirector;
 
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.PrintStream;
 
 public class DefaultStandardOutputRedirector implements StandardOutputRedirector {

@@ -17,8 +17,7 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.util.Path;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An identifier for a {@link org.gradle.platform.base.ComponentSpec}, which has a name.

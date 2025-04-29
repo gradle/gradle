@@ -40,7 +40,11 @@ class OverlayRoutedNodeDataContainer<DNode, DElement : DNode, DProperty : DNode,
     override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): DProperty = when (val from = overlayOriginContainer.data(node)) {
         is FromUnderlay -> underlay.data(node)
         is FromOverlay -> overlay.data(node)
-        is OverlayNodeOrigin.ShadowedProperty -> overlay.data(from.overlayProperty)
+        is OverlayNodeOrigin.MergedProperties -> when (node) {
+            in from.effectivePropertiesFromUnderlay -> underlay.data(node)
+            in from.effectivePropertiesFromOverlay -> overlay.data(node)
+            else -> error("expected $node to be in the effective property nodes of the overlay origin $from")
+        }
     }
 
     override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): DError = when (overlayOriginContainer.data(node)) {

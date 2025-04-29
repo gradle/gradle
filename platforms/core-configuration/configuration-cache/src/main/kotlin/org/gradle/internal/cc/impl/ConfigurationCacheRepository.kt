@@ -314,7 +314,7 @@ class ConfigurationCacheRepository(
     }
 
     private
-    fun <T> withExclusiveAccessToCache(baseDir: File, action: (File) -> T): T =
+    fun <T : Any> withExclusiveAccessToCache(baseDir: File, action: (File) -> T): T =
         cache.withFileLock(
             Supplier {
                 action(baseDir)

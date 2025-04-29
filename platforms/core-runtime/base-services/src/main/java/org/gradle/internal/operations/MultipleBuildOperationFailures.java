@@ -17,8 +17,8 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class MultipleBuildOperationFailures extends DefaultMultiCauseException {

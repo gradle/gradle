@@ -20,7 +20,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.external.model.ivy.DefaultIvyComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultExternalModuleComponentGraphResolveState;
 import org.gradle.internal.service.scopes.Scope;
@@ -47,12 +46,5 @@ public class ModuleComponentGraphResolveStateFactory {
         throw new IllegalArgumentException("Unsupported module component metadata type: " + metadata);
     }
 
-    /**
-     * @deprecated only used for client module components.
-     */
-    @Deprecated
-    public ComponentGraphResolveState stateFor(ExternalModuleComponentGraphResolveMetadata graphMetadata, ExternalComponentResolveMetadata artifactMetadata) {
-        return new DefaultExternalModuleComponentGraphResolveState<>(idGenerator.nextComponentId(), graphMetadata, artifactMetadata, attributeDesugaring, idGenerator);
-    }
 }
 

@@ -40,8 +40,10 @@ import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
+import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
@@ -112,6 +114,9 @@ class DefaultFunctionExtractor(
         }
 
         val returnClassifier = function.returnType.classifier ?: error("return type must have a classifier")
+
+        checkReturnType(host, function.returnType)
+
         val fnParams = function.parameters
 
         val semanticsFromSignature = inferFunctionSemanticsFromSignature(host, function, inType, preIndex, configureLambdas)
@@ -125,10 +130,11 @@ class DefaultFunctionExtractor(
                 param != function.instanceParameter && run {
                     // is value parameter, not a configuring block:
                     val isNotLastParameter = index != fnParams.lastIndex
-                    val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(param.type)?.let { typeConfiguredByLambda ->
-                        param.parameterTypeToRefOrError(host) { typeConfiguredByLambda } != maybeConfigureTypeRef
-                    } ?: true
-                    isNotLastParameter || isNotConfigureLambda
+                    isNotLastParameter || run isNotAConfigureLambda@{
+                        configureLambdas.getTypeConfiguredByLambda(param.type)?.let { typeConfiguredByLambda ->
+                            param.parameterTypeToRefOrError(host) { typeConfiguredByLambda } != maybeConfigureTypeRef
+                        } ?: true
+                    }
                 }
             }
             .map { fnParam -> dataParameter(host, function, fnParam, returnClassifier, semanticsFromSignature, preIndex) }
@@ -194,6 +200,17 @@ class DefaultFunctionExtractor(
             params,
             semanticsFromSignature
         )
+    }
+
+    private fun checkReturnType(host: SchemaBuildingHost, kType: KType) {
+        host.withTag(SchemaBuildingTags.returnValueType(kType)) {
+            if ((kType.classifier as? KClass<*>)?.isSubclassOf(Map::class) == true) {
+                host.schemaBuildingFailure("Illegal type '${kType}': functions returning Map types are not supported")
+            }
+            if (kType.classifier == Pair::class) {
+                host.schemaBuildingFailure("Illegal type '${kType}': functions returning Pair are not supported")
+            }
+        }
     }
 
     private
@@ -269,7 +286,9 @@ class DefaultFunctionExtractor(
                     "an @Adding function with a Unit return type may not accept configuring lambdas"
                 }
 
-                FunctionSemanticsInternal.DefaultAddAndConfigure(function.returnTypeToRefOrError(host), blockRequirement)
+                val returnType = function.returnTypeToRefOrError(host)
+                configuredType?.let(host::checkConfiguredType)
+                FunctionSemanticsInternal.DefaultAddAndConfigure(returnType, blockRequirement)
             }
 
             function.annotations.any { it is Configuring } -> {
@@ -281,6 +300,7 @@ class DefaultFunctionExtractor(
                 val propertyName = annotationPropertyName.ifEmpty { function.name }
 
                 check(configuredType != null) { "@Configuring function $function must accept a configuring lambda" }
+                host.checkConfiguredType(configuredType)
 
                 val propertyType = preIndex.getPropertyType(inType, propertyName)
                 check(propertyType == null || propertyType.isSubtypeOf(configuredType)) {
@@ -316,4 +336,14 @@ class DefaultFunctionExtractor(
     private
     fun KType.toKClass() = (classifier ?: error("unclassifiable type $this is used in the schema")) as? KClass<*>
         ?: error("type $this classified as a non-class is used in the schema")
+}
+
+private fun SchemaBuildingHost.checkConfiguredType(configuredType: KType) {
+    withTag(SchemaBuildingTags.configuredType(configuredType)) {
+        when (val classifier = configuredType.classifier) {
+            is KClass<*> -> containerTypeRef(classifier)
+            is KTypeParameter -> schemaBuildingFailure("Illegal usage of a type parameter")
+            else -> Unit
+        }
+    }
 }

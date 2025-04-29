@@ -17,7 +17,7 @@ dependencies {
     api(projects.publish)
     api(projects.resources)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.functional)

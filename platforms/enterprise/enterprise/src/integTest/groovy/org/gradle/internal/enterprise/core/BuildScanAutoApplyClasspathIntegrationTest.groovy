@@ -21,13 +21,11 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.BaseBuildScanPluginCheckInFixture
 import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
-import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
-import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
-abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER
 
-    private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
+abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegrationSpec {
 
     protected final DevelocityPluginCheckInFixture autoAppliedPluginFixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
@@ -84,8 +82,8 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
         autoAppliedPluginFixture.publishDummyPlugin(executer)
 
         transitivePluginFixture.publishDummyPlugin(executer)
-        transitivePluginFixture.runtimeVersion = PLUGIN_MINIMUM_NON_DEPRECATED_VERSION
-        transitivePluginFixture.artifactVersion = PLUGIN_MINIMUM_NON_DEPRECATED_VERSION
+        transitivePluginFixture.runtimeVersion = MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER
+        transitivePluginFixture.artifactVersion = MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER
 
         file("build-src/my-plugin/build.gradle") << """
             plugins {

@@ -38,14 +38,13 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [
-        "-language-version", "1.8",
-        "-api-version", "1.8",
+        "-language-version", "2.1",
+        "-api-version", "2.1",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
+        "-Xjspecify-annotations=strict",
         "-Xskip-prerelease-check",
         "-Xallow-unstable-dependencies",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
         "-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading",
     ],
 )
@@ -64,9 +63,6 @@ abstract class KotlinSettingsScript(
 
     override val fileOperations
         get() = host.fileOperations
-
-    override val processOperations
-        get() = host.processOperations
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)

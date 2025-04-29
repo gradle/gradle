@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -26,6 +28,7 @@ import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NonNull;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -44,7 +47,6 @@ import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.WillCloseWhenClosed;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -105,7 +107,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
-        public void execute(@Nonnull String testClassName) {
+        public void execute(@NonNull String testClassName) {
             Class<?> klass = loadClass(testClassName);
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
@@ -319,6 +321,16 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     private static class BackwardsCompatibleLauncherSession implements AutoCloseable {
 
         static BackwardsCompatibleLauncherSession open() {
+            try {
+                Class.forName("org.junit.platform.launcher.core.LauncherFactory");
+            } catch (ClassNotFoundException e) {
+                throw new InvalidUserCodeException(
+                    "Failed to load JUnit Platform. " +
+                    "Please ensure that the JUnit Platform is available on the test runtime classpath. " +
+                    "See the user guide for more details: " + new DocumentationRegistry().getDocumentationFor("java_testing", "using_junit5")
+                );
+            }
+
             try {
                 LauncherSession launcherSession = LauncherFactory.openSession();
                 return new BackwardsCompatibleLauncherSession(launcherSession);

@@ -70,6 +70,7 @@ public class IdeaDependenciesProvider {
         return result;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private Set<SingleEntryModuleLibrary> getOutputLocations(IdeaModule ideaModule) {
         if (ideaModule.getSingleEntryLibraries() == null) {
             return Collections.emptySet();

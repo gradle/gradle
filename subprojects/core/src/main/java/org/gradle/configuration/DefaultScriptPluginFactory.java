@@ -31,7 +31,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Factory;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -45,14 +45,14 @@ import org.gradle.plugin.use.internal.PluginsAwareScript;
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ServiceRegistry scriptServices;
     private final ScriptCompilerFactory scriptCompilerFactory;
-    private final Factory<LoggingManagerInternal> loggingFactoryManager;
+    private final LoggingManagerFactory loggingFactoryManager;
     private final PluginHandler pluginHandler;
     private final PluginRequestApplicator pluginRequestApplicator;
     private final CompileOperationFactory compileOperationFactory;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(
-        ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
+        ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, LoggingManagerFactory loggingFactoryManager,
         PluginHandler pluginHandler, PluginRequestApplicator pluginRequestApplicator,
         CompileOperationFactory compileOperationFactory
     ) {
@@ -102,7 +102,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 .provider(registration -> {
                     registration.add(ScriptPluginFactory.class, scriptPluginFactory);
                     registration.add(ClassLoaderScope.class, baseScope);
-                    registration.add(LoggingManagerInternal.class, loggingFactoryManager.create());
+                    registration.add(LoggingManagerInternal.class, loggingFactoryManager.createLoggingManager());
                     registration.add(ScriptHandler.class, scriptHandler);
                 })
                 .build();

@@ -22,7 +22,7 @@ import java.io.Serializable
 @ToolingModelContract(
     subTypes = [
         SchemaMemberOrigin::class,
-        ContainerElementFactory::class
+            ContainerElementFactory::class
     ]
 )
 sealed interface SchemaItemMetadata : Serializable

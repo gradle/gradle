@@ -29,12 +29,11 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.DeferredUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Set;
@@ -43,16 +42,16 @@ import java.util.function.Consumer;
 public class UnpackingVisitor {
     private final Consumer<FileCollectionInternal> visitor;
     private final PathToFileResolver resolver;
-    private final Factory<PatternSet> patternSetFactory;
+    private final PatternSetFactory patternSetFactory;
     private final boolean includeBuildable;
     private final ProviderResolutionStrategy providerResolutionStrategy;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         this(visitor, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, true);
     }
 
-    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, boolean includeBuildable) {
+    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, boolean includeBuildable) {
         this.visitor = visitor;
         this.resolver = resolver;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -119,7 +118,7 @@ public class UnpackingVisitor {
         private final PathToFileResolver resolver;
         private File resolved;
 
-        public SingleFileResolvingFileCollection(Object element, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        public SingleFileResolvingFileCollection(Object element, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
             super(taskDependencyFactory, patternSetFactory);
             this.element = element;
             this.resolver = resolver;
@@ -144,7 +143,7 @@ public class UnpackingVisitor {
         private final Object element;
         private final PathToFileResolver resolver;
 
-        public BuildableElementFileCollection(Object element, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        public BuildableElementFileCollection(Object element, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
             super(taskDependencyFactory, patternSetFactory);
             this.element = element;
             this.resolver = resolver;

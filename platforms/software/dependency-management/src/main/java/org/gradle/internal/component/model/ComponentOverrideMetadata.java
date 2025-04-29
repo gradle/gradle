@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Metadata about a component that will override the information obtained when resolving, typically specified by a dependency descriptor.
@@ -30,13 +30,6 @@ public interface ComponentOverrideMetadata {
      */
     @Nullable
     IvyArtifactName getArtifact();
-
-    /**
-     * If the request originated from a ClientModule, return it. Null otherwise.
-     */
-    @Nullable
-    @Deprecated
-    org.gradle.api.artifacts.ClientModule getClientModule();
 
     /**
      * Return true if the dependency declaration defines this component as changing.

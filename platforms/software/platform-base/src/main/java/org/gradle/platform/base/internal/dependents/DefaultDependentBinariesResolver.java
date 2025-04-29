@@ -63,7 +63,6 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
         boolean hasNotBuildables = false;
         boolean hasTestSuites = false;
         LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = LinkedListMultimap.create();
-        List<DependentBinariesResolvedResult> allChildren = new ArrayList<>();
         for (DependentBinariesResolvedResult result : results) {
             if (!result.isBuildable()) {
                 hasNotBuildables = true;
@@ -71,7 +70,6 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
             if (result.isTestSuite()) {
                 hasTestSuites = true;
             }
-            allChildren.addAll(result.getChildren());
             for (DependentBinariesResolvedResult child : result.getChildren()) {
                 index.put(child.getId(), child);
             }

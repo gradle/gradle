@@ -19,8 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class EnumValueSnapshot implements ValueSnapshot {
     private final String className;

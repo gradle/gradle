@@ -59,6 +59,6 @@ class WarTest extends AbstractArchiveTaskTest {
 
         then:
         def someWar = project.tasks.create('someWar', War)
-        someWar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        someWar.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
     }
 }

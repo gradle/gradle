@@ -19,6 +19,7 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 
+import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 /**
@@ -73,7 +74,7 @@ public abstract class TestFailure {
      * @param causes the list of cause failures; can be {@code null}
      * @return the new instance
      */
-    public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, List<TestFailure> causes) {
+    public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
         return DefaultTestFailure.fromTestAssertionFailure(failure, expected, actual, causes);
     }
 
@@ -81,7 +82,7 @@ public abstract class TestFailure {
      * Todo
      * @since 8.3
      */
-    public static TestFailure fromFileComparisonFailure(Throwable failure, String expected, String actual, byte[] expectedContent, byte[] actualContent, List<TestFailure> causes) {
+    public static TestFailure fromFileComparisonFailure(Throwable failure, String expected, String actual, byte[] expectedContent, byte[] actualContent, @Nullable List<TestFailure> causes) {
         return DefaultTestFailure.fromFileComparisonTestAssertionFailure(failure, expected, actual, causes, expectedContent, actualContent);
     }
 
@@ -102,7 +103,7 @@ public abstract class TestFailure {
      * @param causes the list of cause failures; can be {@code null}
      * @return the new instance
      */
-    public static TestFailure fromTestFrameworkFailure(Throwable failure, List<TestFailure> causes) {
+    public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
         return DefaultTestFailure.fromTestFrameworkFailure(failure, causes);
     }
 }

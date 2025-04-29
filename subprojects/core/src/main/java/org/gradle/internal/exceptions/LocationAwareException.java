@@ -18,8 +18,7 @@ package org.gradle.internal.exceptions;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code LocationAwareException} is an exception which can be annotated with a location in a script.

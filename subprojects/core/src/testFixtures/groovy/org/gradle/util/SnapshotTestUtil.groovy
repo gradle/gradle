@@ -16,7 +16,6 @@
 
 package org.gradle.util
 
-
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes

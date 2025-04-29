@@ -17,6 +17,8 @@
 package org.gradle.internal.declarativedsl.dom.fromLanguageTree
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode.PropertyAugmentation.None
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode.PropertyAugmentation.Plus
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultErrorNode
 import org.gradle.internal.declarativedsl.dom.DefaultLiteralNode
@@ -28,9 +30,12 @@ import org.gradle.internal.declarativedsl.dom.SyntaxError
 import org.gradle.internal.declarativedsl.dom.UnsupportedKotlinFeature
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntax
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause
-import org.gradle.internal.declarativedsl.dom.data.NodeData
+import org.gradle.internal.declarativedsl.dom.data.NodeDataContainer
 import org.gradle.internal.declarativedsl.dom.data.ValueData
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AssignmentLikeStatement
+import org.gradle.internal.declarativedsl.language.AugmentationOperatorKind
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.BlockElement
 import org.gradle.internal.declarativedsl.language.ErroneousStatement
@@ -42,9 +47,9 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.ParsingError
-import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
@@ -60,7 +65,7 @@ fun convertBlockToDocument(block: Block): LanguageTreeBackedDocument {
 }
 
 
-interface LanguageTreeMappingContainer : NodeData<BlockElement>, ValueData<Expr>
+interface LanguageTreeMappingContainer : NodeDataContainer<BlockElement, FunctionCall, AssignmentLikeStatement, BlockElement>, ValueData<Expr>
 
 
 private
@@ -72,8 +77,8 @@ class LanguageTreeToDomContext {
     val valueMapping: MutableMap<DeclarativeDocument.ValueNode, Expr> = mutableMapOf()
 
     val languageTreeMappingContainer = object : LanguageTreeMappingContainer {
-        override fun data(node: DeclarativeDocument.DocumentNode.ElementNode): BlockElement = nodeMapping.getValue(node)
-        override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): BlockElement = nodeMapping.getValue(node)
+        override fun data(node: DeclarativeDocument.DocumentNode.ElementNode): FunctionCall = nodeMapping.getValue(node) as FunctionCall
+        override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): AssignmentLikeStatement = nodeMapping.getValue(node) as AssignmentLikeStatement
         override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): BlockElement = nodeMapping.getValue(node)
         override fun data(node: DeclarativeDocument.ValueNode.ValueFactoryNode): Expr = valueMapping.getValue(node)
         override fun data(node: DeclarativeDocument.ValueNode.LiteralValueNode): Expr = valueMapping.getValue(node)
@@ -88,6 +93,17 @@ class LanguageTreeToDomContext {
                 when (val rhs = exprToValue(blockElement.rhs)) {
                     is ExprConversion.Failed -> errorDocumentNode(blockElement, rhs.errors)
                     is ExprConversion.Converted -> propertyDocumentNode(blockElement, rhs.valueNode)
+                }
+            }
+        }
+
+        is AugmentingAssignment -> {
+            if ((blockElement.lhs.receiver != null))
+                errorDocumentNode(blockElement, listOf(UnsupportedSyntax(UnsupportedSyntaxCause.AssignmentWithExplicitReceiver)))
+            else {
+                when (val rhs = exprToValue(blockElement.rhs)) {
+                    is ExprConversion.Failed -> errorDocumentNode(blockElement, rhs.errors)
+                    is ExprConversion.Converted -> augmentedDocumentNode(blockElement, rhs.valueNode)
                 }
             }
         }
@@ -183,7 +199,7 @@ class LanguageTreeToDomContext {
             errors += values.filterIsInstance<ExprConversion.Failed>().flatMap { it.errors }
             if (errors.isEmpty()) {
                 checkNotNull(name)
-                ExprConversion.Converted(DefaultValueFactoryNode(name, expr.sourceData, values.map { (it as ExprConversion.Converted).valueNode }))
+                ExprConversion.Converted(DefaultValueFactoryNode(name, expr.sourceData, expr.isInfix, values.map { (it as ExprConversion.Converted).valueNode }))
             } else {
                 ExprConversion.Failed(errors)
             }
@@ -228,7 +244,19 @@ class LanguageTreeBackedDocument internal constructor(
 
 private
 fun propertyDocumentNode(blockElement: Assignment, valueNode: DeclarativeDocument.ValueNode) =
-    DefaultPropertyNode(blockElement.lhs.name, blockElement.sourceData, valueNode)
+    DefaultPropertyNode(blockElement.lhs.name, blockElement.sourceData, valueNode, augmentation = None)
+
+
+private
+fun augmentedDocumentNode(blockElement: AugmentingAssignment, valueNode: DeclarativeDocument.ValueNode) =
+    DefaultPropertyNode(
+        blockElement.lhs.name,
+        blockElement.sourceData,
+        valueNode,
+        augmentation = when (blockElement.augmentationKind) {
+            AugmentationOperatorKind.PlusAssign -> Plus
+        }
+    )
 
 
 private

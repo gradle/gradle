@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resolve.result;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultBuildableTypedResolveResult<T, E extends Throwable> extends DefaultResourceAwareResolveResult implements BuildableTypedResolveResult<T, E> {
     private T result;

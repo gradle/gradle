@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.Test
 
 
-val schema =
+private val schema =
     schemaFromTypes(TopLevel::class, listOf(TopLevel::class, MyClass::class))
 
 

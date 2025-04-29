@@ -22,9 +22,9 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.ImmutableActionSet;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultConfigurableIncludedBuild implements ConfigurableIncludedBuild {
@@ -40,31 +40,31 @@ public class DefaultConfigurableIncludedBuild implements ConfigurableIncludedBui
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public String getName() {
         return name;
     }
 
     @Override
-    public void setName(@Nonnull String name) {
+    public void setName(@NonNull String name) {
         Preconditions.checkNotNull(name, "name must not be null");
         this.name = name;
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public File getProjectDir() {
         return projectDir;
     }
 
     @Override
-    public void dependencySubstitution(@Nonnull Action<? super DependencySubstitutions> action) {
+    public void dependencySubstitution(@NonNull Action<? super DependencySubstitutions> action) {
         Preconditions.checkNotNull(action, "action must not be null");
         dependencySubstitutionActions = dependencySubstitutionActions.add(action);
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public TaskReference task(@Nullable String path) {
         throw new IllegalStateException("IncludedBuild.task() cannot be used while configuring the included build");
     }

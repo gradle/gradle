@@ -155,7 +155,7 @@ public class JUnitXmlResultWriter {
                     case SUCCESS:
                         return Collections.singleton(success(classId, execution.getId()));
                     case SKIPPED:
-                        return Collections.singleton(skipped(classId, execution.getId()));
+                        return Collections.singleton(skipped(classId, execution.getId(), execution.getAssumptionFailure()));
                     case FAILURE:
                         return failures(classId, execution, allFailed
                             ? execution == firstExecution ? FailureType.FAILURE : FailureType.RERUN_FAILURE
@@ -220,7 +220,7 @@ public class JUnitXmlResultWriter {
             case FAILURE:
                 return failures(classId, methodResult, FailureType.FAILURE);
             case SKIPPED:
-                return Collections.singleton(skipped(classId, methodResult.getId()));
+                return Collections.singleton(skipped(classId, methodResult.getId(), methodResult.getAssumptionFailure()));
             case SUCCESS:
                 return Collections.singleton(success(classId, methodResult.getId()));
             default:
@@ -299,13 +299,25 @@ public class JUnitXmlResultWriter {
 
 
     private static class TestCaseExecutionSkipped extends TestCaseExecution {
-        TestCaseExecutionSkipped(OutputProvider outputProvider, JUnitXmlResultOptions options) {
+        private final SerializableFailure assumptionFailure;
+        TestCaseExecutionSkipped(
+            OutputProvider outputProvider,
+            JUnitXmlResultOptions options,
+            SerializableFailure assumptionFailure
+        ) {
             super(outputProvider, options);
+            this.assumptionFailure = assumptionFailure;
         }
 
         @Override
         public void write(SimpleXmlWriter writer) throws IOException {
-            writer.startElement("skipped").endElement();
+            writer.startElement("skipped");
+            if (assumptionFailure != null) {
+                writer.attribute("message", assumptionFailure.getMessage());
+                writer.attribute("type", assumptionFailure.getExceptionType());
+                writer.write(assumptionFailure.getStackTrace());
+            }
+            writer.endElement();
             writeOutput(writer);
         }
     }
@@ -358,8 +370,8 @@ public class JUnitXmlResultWriter {
         return new TestCaseExecutionSuccess(outputProvider(classId, id), options);
     }
 
-    private TestCaseExecution skipped(long classId, long id) {
-        return new TestCaseExecutionSkipped(outputProvider(classId, id), options);
+    private TestCaseExecution skipped(long classId, long id, SerializableFailure assumptionFailure) {
+        return new TestCaseExecutionSkipped(outputProvider(classId, id), options, assumptionFailure);
     }
 
     private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {

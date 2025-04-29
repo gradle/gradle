@@ -114,12 +114,12 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
+    NodeExecutor createLocalTaskNodeExecutor() {
         return new LocalTaskNodeExecutor();
     }
 
     @Provides
-    WorkNodeExecutor createWorkNodeExecutor() {
+    NodeExecutor createWorkNodeExecutor() {
         return new WorkNodeExecutor();
     }
 

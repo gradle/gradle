@@ -122,6 +122,8 @@ public interface JavaPluginExtension {
     void disableAutoTargetJvm();
 
     /**
+     * Enables generating a Javadoc artifact for the main feature of this project. If no components with a main feature are defined for this project, this has no effect.
+     * <P>
      * Adds a task {@code javadocJar} that will package the output of the {@code javadoc} task in a JAR with classifier {@code javadoc}.
      * <P>
      * The produced artifact is registered as a documentation variant on the {@code java} component and added as a dependency on the {@code assemble} task.
@@ -138,6 +140,8 @@ public interface JavaPluginExtension {
     void withJavadocJar();
 
     /**
+     * Enables generating a sources artifact for the main feature of this project. If no components with a main feature are defined for this project, this has no effect.
+     * <P>
      * Adds a task {@code sourcesJar} that will package the Java sources of the main {@link org.gradle.api.tasks.SourceSet SourceSet} in a JAR with classifier {@code sources}.
      * <P>
      * The produced artifact is registered as a documentation variant on the {@code java} component and added as a dependency on the {@code assemble} task.
@@ -184,7 +188,9 @@ public interface JavaPluginExtension {
     JavaToolchainSpec toolchain(Action<? super JavaToolchainSpec> action);
 
     /**
-     * Configure the dependency resolution consistency for this Java project.
+     * Configure the dependency resolution consistency for this Java project. If no components, features or source sets are added to this project, this has no effect.
+     * <p>
+     * The given {@link JavaResolutionConsistency} is used to configure consistent resolution for this project.
      *
      * @param action the configuration action
      *

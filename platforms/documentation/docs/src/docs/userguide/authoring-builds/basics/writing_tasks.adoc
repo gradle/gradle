@@ -59,6 +59,7 @@ include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[ta
 
 Once a task is added to a group, it is visible when listing tasks.
 
+[[task_inputs_and_outputs]]
 == Task input and outputs
 
 For the task to do useful work, it typically needs some *inputs*.

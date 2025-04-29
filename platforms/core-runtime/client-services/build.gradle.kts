@@ -37,6 +37,7 @@ dependencies {
     api(projects.processServices)
     api(projects.resources)
     api(projects.resourcesHttp)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
@@ -52,7 +53,7 @@ dependencies {
     api(projects.fileCollections)
     api(projects.fileTemp)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.nativePlatform)
 
     implementation(projects.baseAsm)
@@ -69,6 +70,7 @@ dependencies {
 
     implementation(libs.guava)
     implementation(libs.asm)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core)) {

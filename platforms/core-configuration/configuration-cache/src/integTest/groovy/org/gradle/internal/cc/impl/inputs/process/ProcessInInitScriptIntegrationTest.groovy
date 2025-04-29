@@ -17,8 +17,6 @@
 package org.gradle.internal.cc.impl.inputs.process
 
 
-import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.exec
-import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.javaexec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.processBuilder
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.internal.cc.impl.fixtures.ExternalProcessFixture.stringArrayExecute
@@ -50,13 +48,9 @@ class ProcessInInitScriptIntegrationTest extends AbstractProcessIntegrationTest 
 
         where:
         snippetsFactory             | file
-        exec().groovy               | "exec.init.gradle"
-        javaexec().groovy           | "exec.init.gradle"
         processBuilder().groovy     | "exec.init.gradle"
         stringArrayExecute().groovy | "exec.init.gradle"
         runtimeExec().groovy        | "exec.init.gradle"
-        exec().kotlin               | "exec.init.gradle.kts"
-        javaexec().kotlin           | "exec.init.gradle.kts"
         processBuilder().kotlin     | "exec.init.gradle.kts"
         stringArrayExecute().kotlin | "exec.init.gradle.kts"
         runtimeExec().kotlin        | "exec.init.gradle.kts"

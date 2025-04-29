@@ -51,8 +51,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -65,8 +65,8 @@ import org.gradle.security.internal.PGPUtils;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -536,7 +536,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         PublicKeyService publicKeyService,
         BuildTreeDefinedKeys existingKeyring,
         Set<String> publicKeys,
-        @Nullable DependencyVerificationConfiguration.KeyringFormat keyringFormat
+        DependencyVerificationConfiguration.@Nullable KeyringFormat keyringFormat
     ) throws IOException {
         List<PGPPublicKeyRing> existingRings = loadExistingKeyRing(existingKeyring);
         PGPPublicKeyRingListBuilder builder = new PGPPublicKeyRingListBuilder();

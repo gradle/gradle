@@ -72,10 +72,10 @@ class BeanPropertyWriter(
         }
 
     private
-    fun getConventionValue(bean: Any, field: Field, fieldValue: Any?) =
+    fun getConventionValue(bean: Any, field: Field, fieldValue: Any?): Any? =
         bean.uncheckedCast<IConventionAware>()
             .conventionMapping
-            .getConventionValue<Any?>(fieldValue, field.name, false)
+            .getConventionValue(fieldValue, field.name, false)
 
     private
     fun Field.debugFrameName() =

@@ -20,8 +20,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of the {@code JvmTestOperationDescriptor} interface.

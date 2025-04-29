@@ -58,9 +58,9 @@ class IdeaProjectTest extends AbstractProjectBuilderSpec {
         anotherChildProject.apply(plugin: JavaPlugin)
 
         and:
-        project.targetCompatibility = JavaVersion.VERSION_1_5
-        childProject.targetCompatibility = JavaVersion.VERSION_1_6
-        anotherChildProject.targetCompatibility = JavaVersion.VERSION_1_7
+        project.java.targetCompatibility = JavaVersion.VERSION_1_5
+        childProject.java.targetCompatibility = JavaVersion.VERSION_1_6
+        anotherChildProject.java.targetCompatibility = JavaVersion.VERSION_1_7
 
         then:
         project.idea.project.targetBytecodeVersion == JavaVersion.VERSION_1_7

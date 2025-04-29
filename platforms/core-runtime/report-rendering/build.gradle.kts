@@ -24,10 +24,9 @@ dependencies {
     api(projects.core)
 
     implementation(projects.baseServices)
-    implementation(projects.logging)
 
     implementation(libs.commonsLang)
-    implementation(libs.jsr305)
+    implementation(libs.jspecify)
 
     testImplementation(libs.jsoup)
 }

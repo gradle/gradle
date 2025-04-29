@@ -17,8 +17,6 @@
 package gradlebuild.jvm.extension
 
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.kotlin.dsl.*
 
 /**
  * An extension intended for configuring the manner in which a project is
@@ -35,7 +33,7 @@ abstract class UnitTestAndCompileExtension {
 
     /**
      * Set this flag to true if the project compiles against Java standard library APIs
-     * that were introduced after the [targetVersion] of the project.
+     * that were introduced after the target JVM bytecode version of the project.
      *
      * This workaround should be used sparingly.
      */
@@ -43,52 +41,42 @@ abstract class UnitTestAndCompileExtension {
 
     /**
      * Set this flag to true if the project compiles against dependencies that target a
-     * higher JVM version than the [targetVersion] of the project.
+     * higher JVM version than the target JVM bytecode version of the project.
      *
      * This workaround should be used sparingly.
      */
     abstract val usesIncompatibleDependencies: Property<Boolean>
 
     /**
-     * Stores the mutable value of the target bytecode version for this project,
-     * but is protected to prevent the user from setting it directly.
+     * Declare that this Gradle module runs as part of an entrypoint to user-executed
+     * processes, and therefore should compile to a lower version of Java --
+     * in order to ensure comprehensible error messages when executing Gradle
+     * on an unsupported JVM version.
+     * <p>
+     * This runtime target should only be used by the various
+     * "-main" modules containing main methods.
      */
-    protected abstract val targetVersionProperty: Property<Int>
+    abstract val usedForStartup: Property<Boolean>
 
     /**
-     * Get the target bytecode version for this project.
-     *
-     * To configure this value, call a `usedIn*` method.
+     * Declare that this Gradle module runs as part of the Gradle Wrapper.
      */
-    val targetVersion: Provider<Int>
-        get() = targetVersionProperty
+    abstract val usedInWrapper: Property<Boolean>
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Declare that this Gradle module runs as part of worker process.
      */
-    fun usedInWorkers() {
-        targetVersionProperty = 6
-    }
+    abstract val usedInWorkers: Property<Boolean>
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Declare that this Gradle module runs as part of a client process, such
+     * as the Tooling API client or CLI client.
      */
-    fun usedForStartup() {
-        targetVersionProperty = 6
-    }
+    abstract val usedInClient: Property<Boolean>
 
     /**
-     * Enforces **Java 7** compatibility.
+     * Declare that this Gradle module runs as part of the Gradle daemon.
      */
-    fun usedInToolingApi() {
-        targetVersionProperty = 7
-    }
-
-    /**
-     * Enforces **Java 8** compatibility.
-     */
-    fun usedInDaemon() {
-        targetVersionProperty = 8
-    }
+    abstract val usedInDaemon: Property<Boolean>
 
 }

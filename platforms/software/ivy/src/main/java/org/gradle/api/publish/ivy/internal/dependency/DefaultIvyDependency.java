@@ -19,8 +19,8 @@ package org.gradle.api.publish.ivy.internal.dependency;
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 public class DefaultIvyDependency implements IvyDependency {

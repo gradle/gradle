@@ -26,6 +26,8 @@ import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanBuildStartedTi
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanClock;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanScopeIds;
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService;
+import org.gradle.internal.scan.config.BuildScanConfigProvider;
+import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
 import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
 import org.gradle.internal.scan.time.BuildScanClock;
@@ -59,7 +61,7 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
 
         // legacy
         registration.add(BuildScanScopeIds.class, DefaultBuildScanScopeIds.class);
-        registration.add(LegacyGradleEnterprisePluginCheckInService.class);
+        registration.add(BuildScanConfigProvider.class, BuildScanEndOfBuildNotifier.class, LegacyGradleEnterprisePluginCheckInService.class);
     }
 
 }

@@ -35,8 +35,7 @@ import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;

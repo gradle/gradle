@@ -17,8 +17,8 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.tasks.WorkResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class DefaultWorkResult implements WorkResult, Serializable {

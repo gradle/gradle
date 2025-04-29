@@ -46,7 +46,7 @@ inline fun <reified T : Named> ObjectFactory.named(name: String): T =
  *
  * @see [ObjectFactory.newInstance]
  */
-inline fun <reified T> ObjectFactory.newInstance(vararg parameters: Any): T =
+inline fun <reified T : Any> ObjectFactory.newInstance(vararg parameters: Any): T =
     newInstance(T::class.java, *parameters)
 
 
@@ -55,7 +55,7 @@ inline fun <reified T> ObjectFactory.newInstance(vararg parameters: Any): T =
  *
  * @see [ObjectFactory.property]
  */
-inline fun <reified T> ObjectFactory.property(): Property<T> =
+inline fun <reified T : Any> ObjectFactory.property(): Property<T> =
     property(T::class.java)
 
 
@@ -64,7 +64,7 @@ inline fun <reified T> ObjectFactory.property(): Property<T> =
  *
  * @see [ObjectFactory.setProperty]
  */
-inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
+inline fun <reified T : Any> ObjectFactory.setProperty(): SetProperty<T> =
     setProperty(T::class.java)
 
 
@@ -73,7 +73,7 @@ inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
  *
  * @see [ObjectFactory.listProperty]
  */
-inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
+inline fun <reified T : Any> ObjectFactory.listProperty(): ListProperty<T> =
     listProperty(T::class.java)
 
 
@@ -82,5 +82,5 @@ inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
  *
  * @see [ObjectFactory.mapProperty]
  */
-inline fun <reified K, reified V> ObjectFactory.mapProperty(): MapProperty<K, V> =
+inline fun <reified K : Any, reified V : Any> ObjectFactory.mapProperty(): MapProperty<K, V> =
     mapProperty(K::class.java, V::class.java)

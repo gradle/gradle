@@ -17,7 +17,6 @@
 package org.gradle.language.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.language.nativeplatform.internal.Names
@@ -36,7 +35,7 @@ class DefaultNativeBinaryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    Configuration implementation = Stub(ConfigurationInternal)
+    def implementation = project.configurations.dependencyScope("implementation").get()
 
     def "has implementation dependencies"() {
         given:

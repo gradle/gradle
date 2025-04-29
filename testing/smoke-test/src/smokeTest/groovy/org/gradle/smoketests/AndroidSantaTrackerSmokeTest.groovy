@@ -16,8 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scripts.DefaultScriptFileResolver
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import java.util.jar.JarOutputStream
@@ -38,7 +40,9 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = buildLocation(checkoutDir, agpVersion)
+        def result = runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
+            .build()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -87,15 +91,8 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        // TODO - this is here because AGP >=7.4 and <8.1.0 reads build/generated/source/kapt/debug at configuration time
-        if (agpVersion.startsWith('7.3') || VersionNumber.parse(agpVersion) >= VersionNumber.parse('8.1.0')) {
-            if (GradleContextualExecuter.isConfigCache()) {
-                result.assertConfigurationCacheStateLoaded()
-            }
-        } else {
-            if (GradleContextualExecuter.isConfigCache()) {
-                result.assertConfigurationCacheStateStored()
-            }
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
         }
         md5After != md5Before
 
@@ -122,7 +119,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
-        def result = runner.buildAndFail()
+        def result = runner
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
+            .buildAndFail()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -136,8 +135,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        runner.withArguments(runner.arguments + "--continue")
-        result = runner.buildAndFail()
+        result = runner.withArguments(runner.arguments + "--continue")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
+            .buildAndFail()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -182,7 +182,7 @@ class SantaTrackerConfigurationCacheWorkaround {
             androidFakeDependency.parentFile.mkdirs()
             new JarOutputStream(new FileOutputStream(androidFakeDependency)).close()
         }
-        File androidSdkRoot = new File(System.getenv("ANDROID_SDK_ROOT"))
+        File androidSdkRoot = new File(AndroidHome.get())
         File androidSdkPackageXml = new File(androidSdkRoot, "platform-tools/package.xml")
         if (!androidSdkPackageXml.exists()) {
             androidSdkPackageXml.parentFile.mkdirs()

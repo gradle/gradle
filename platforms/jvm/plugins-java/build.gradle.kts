@@ -14,12 +14,10 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServices)
-    implementation(projects.execution)
     implementation(projects.languageJvm)
     implementation(projects.ivy)
     implementation(projects.maven)
     implementation(projects.modelCore)
-    implementation(projects.serviceLookup)
     implementation(projects.softwareDiagnostics)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.platformBase)

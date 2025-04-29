@@ -18,12 +18,11 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @FluidDependenciesResolveTest
-abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
+abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
     abstract String getTypeDefs()
 
@@ -645,7 +644,6 @@ All of them match the consumer attributes:
         file("b/build.gradle") << """
             $typeDefs
 
-            apply plugin: 'base'
             configurations {
                 foo
                 bar
@@ -656,7 +654,6 @@ All of them match the consumer attributes:
         """
 
         when:
-        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -735,7 +732,6 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasCause "A dependency was declared on configuration 'someConf' of 'project :b' but no variant with that configuration name exists."
-
     }
 
     def "gives details about failing matches when it cannot select default configuration when no match is found and default configuration is not consumable"() {
@@ -744,7 +740,6 @@ All of them match the consumer attributes:
 
         file("a/build.gradle") << """
             $typeDefs
-
             configurations {
                 _compileFreeDebug.attributes { $freeDebug }
             }
@@ -760,9 +755,6 @@ All of them match the consumer attributes:
 
         file("b/build.gradle") << """
             $typeDefs
-
-            apply plugin: 'base'
-
             configurations {
                 foo.attributes { $freeRelease }
                 bar.attributes { $paid; $release }
@@ -770,12 +762,10 @@ All of them match the consumer attributes:
                     canBeConsumed = false
                 }
             }
-
             ${fooAndBarJars()}
         """
 
         when:
-        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -784,7 +774,6 @@ All of them match the consumer attributes:
       - Incompatible because this component declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'paid' and the consumer needed attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'
   - Variant 'foo' declares attribute 'flavor' with value 'free':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
-
     }
 
     def "chooses a configuration when partial match is found"() {

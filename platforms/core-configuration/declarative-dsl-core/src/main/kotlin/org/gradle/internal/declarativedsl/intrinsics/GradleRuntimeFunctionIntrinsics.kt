@@ -16,16 +16,32 @@
 
 package org.gradle.internal.declarativedsl.intrinsics
 
-import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 
-val gradleRuntimeIntrinsicsKClass = (::self as KFunction<*>).javaMethod!!.declaringClass.kotlin
+val gradleRuntimeIntrinsicsKClass = ::self.javaMethod!!.declaringClass.kotlin
 
 /**
  * Intrinsic bridge for invoking [kotlin.collections.listOf], which cannot be invoked via reflection due to its containing class not being public.
  */
+@JvmSynthetic
+@Deprecated("should only be invoked via reflection", level =  DeprecationLevel.HIDDEN)
 @IntrinsicTopLevelFunctionBridge("kotlin.collections.listOf")
-fun <T> listOf(vararg elements: T): List<T> = kotlin.collections.listOf(*elements)
+fun <T> listOf(vararg elements: T): List<T> = listOf(*elements)
+
+/**
+ * Intrinsic bridge for invoking [kotlin.collections.mapOf], which cannot be invoked via reflection due to its containing class not being public.
+ */
+@JvmSynthetic
+@Deprecated("should only be invoked via reflection", level =  DeprecationLevel.HIDDEN)
+@IntrinsicTopLevelFunctionBridge("kotlin.collections.mapOf")
+fun <K, V> mapOf(vararg pairs: Pair<K, V>): Map<K, V> = mapOf(*pairs)
+
+/**
+ * Intrinsic bridge for [kotlin.to] needed in order not to convert the [first] value argument into the receiver argument in DCL runtime function invocation code.
+ */
+@JvmSynthetic
+@Deprecated("meant to only be invoked via reflection", level = DeprecationLevel.HIDDEN)
+fun to(first: Any, second: Any): Pair<Any, Any> = first to second
 
 // Used just to get the reference to the containing class, as the other functions here are generic and cannot easily be referenced
 private fun self(): Nothing = error("should never be invoked")

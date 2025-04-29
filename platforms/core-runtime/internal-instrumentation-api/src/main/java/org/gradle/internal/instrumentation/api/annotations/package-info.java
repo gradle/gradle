@@ -17,5 +17,7 @@
 /**
  * Annotations for generating build logic instrumentation.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.internal.instrumentation.api.annotations;
+
+import org.jspecify.annotations.NullMarked;

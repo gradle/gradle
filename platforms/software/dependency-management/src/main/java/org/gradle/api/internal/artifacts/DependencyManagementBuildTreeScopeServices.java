@@ -54,7 +54,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
@@ -71,6 +73,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
@@ -114,8 +117,8 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         registration.add(ThisBuildTreeOnlyComponentResultSerializer.class);
         registration.add(AdhocHandlingComponentResultSerializer.class);
         registration.add(ConnectionFailureRepositoryDisabler.class);
-        registration.add(DefaultProjectLocalComponentProvider.class);
-        registration.add(DefaultProjectPublicationRegistry.class);
+        registration.add(LocalComponentProvider.class, DefaultProjectLocalComponentProvider.class);
+        registration.add(ProjectPublicationRegistry.class, HoldsProjectState.class, DefaultProjectPublicationRegistry.class);
         registration.add(LocalVariantGraphResolveStateBuilder.class, DefaultLocalVariantGraphResolveStateBuilder.class);
         registration.add(ResolvedVariantCache.class);
         registration.add(VariantArtifactSetCache.class);

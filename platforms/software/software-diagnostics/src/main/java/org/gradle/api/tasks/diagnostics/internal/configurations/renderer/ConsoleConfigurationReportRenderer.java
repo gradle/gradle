@@ -26,8 +26,8 @@ import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportConf
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportSecondaryVariant;
 import org.gradle.api.tasks.diagnostics.internal.configurations.spec.AbstractConfigurationReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;

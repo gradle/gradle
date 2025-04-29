@@ -19,26 +19,32 @@ plugins {
 }
 
 description = """A problems description API
-    |
-    |This project provides base classes to describe problems and their
-    |solutions, in a way that enforces the creation of good error messages.
-    |
-    |It's a stripped down version of the original code available
-    |at https://github.com/melix/jdoctor/
-""".trimMargin()
 
-gradlebuildJava.usedInWorkers()
+This project provides base classes to describe problems and their
+solutions, in a way that enforces the creation of good error messages.
+
+It's a stripped down version of the original code available
+at https://github.com/melix/jdoctor/
+"""
+
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.enterpriseOperations)
+    api(projects.serialization)
+    api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(projects.serialization)
+
+    implementation(libs.jsr305)
 
     testImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)

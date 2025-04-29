@@ -16,7 +16,7 @@
 
 package org.gradle.internal.evaluation;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A scope context. One can obtain an instance by calling {@link EvaluationContext#open(EvaluationOwner)}.

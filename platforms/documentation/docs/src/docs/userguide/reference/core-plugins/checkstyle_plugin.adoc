@@ -129,7 +129,31 @@ dependencies {
 [[sec:checkstyle_configuration]]
 == Configuration
 
-See the link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html[CheckstyleExtension] class in the API documentation.
+See the link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html[CheckstyleExtension] class in the API documentation for comprehensive configuration options.
+
+[[sec:checkstyle_configuration_toolchains]]
+=== Configuring Checkstyle with Java Toolchains
+
+Checkstyle imposes a minimum requirement of JDK 11, with an anticipated transition to JDK 17 in forthcoming releases. For projects targeting earlier JDK versions, such as JDK 8, this presents a compatibility challenge. Historically, users have resorted to backport dependencies (e.g., `com.puppycrawl.tools:checkstyle-backport-jre8`) to bridge this gap. However, as both Checkstyle and Gradle align with modern Java versions, a more robust and future-proof solution is available through Gradle's Java toolchains.
+
+By leveraging the `javaLauncher` property, you can explicitly configure Checkstyle tasks to execute with a designated JDK version, independent of the JDK used for your project’s compilation or Gradle’s runtime. The following configuration ensures that Checkstyle operates with JDK 17:
+
+[source,groovy]
+----
+tasks.withType(Checkstyle).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+----
+
+This approach offers several advantages:
+
+- **Decoupling**: Checkstyle execution is isolated from the project's JDK, enabling compatibility without altering your build’s core environment.
+- **Automation**: Gradle’s toolchain support automatically provisions the specified JDK, streamlining setup and ensuring consistency across environments.
+- **Sustainability**: It eliminates reliance on community-maintained backports, which may lag behind official releases or introduce maintenance overhead.
+
+We strongly recommend adopting this configuration as the preferred method for managing Checkstyle’s JDK requirements, particularly as the ecosystem progresses toward JDK 17 and beyond.
 
 [[sec:checkstyle_built_in_variables]]
 === Built-in variables
@@ -176,4 +200,3 @@ You can change the amount of memory for Checkstyle by configuring the link:{groo
 include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=customize-checkstyle-memory]"]
 include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=customize-checkstyle-memory]"]
 ====
-

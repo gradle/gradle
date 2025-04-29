@@ -19,8 +19,8 @@ package org.gradle.operations.dependencies.transforms;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.operations.execution.FilePropertyVisitor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -47,16 +47,14 @@ public final class SnapshotTransformInputsBuildOperationType implements BuildOpe
          * <p>
          * Null if the overall key was not calculated because the inputs were invalid.
          */
-        @Nullable
-        byte[] getHashBytes();
+        byte @Nullable [] getHashBytes();
 
         /**
          * The hash of the classloader that loaded the transform action implementation.
          * <p>
          * Null if the classloader is not managed by Gradle.
          */
-        @Nullable
-        byte[] getClassLoaderHashBytes();
+        byte @Nullable [] getClassLoaderHashBytes();
 
         /**
          * The class name of the transform's action.

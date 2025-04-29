@@ -20,10 +20,14 @@ plugins {
 
 description = "Utilities for working with temporary files & directories"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
+
+    implementation(libs.jsr305)
 }

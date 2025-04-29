@@ -26,7 +26,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.functional)
 
-    implementation(libs.jsr305)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     integTestImplementation(projects.launcher)

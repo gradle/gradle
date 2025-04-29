@@ -18,8 +18,11 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 
+@ServiceScope(Scope.Project.class)
 public class TaskInstantiator implements NamedEntityInstantiator<Task> {
     private static final Object[] NO_PARAMS = new Object[0];
 

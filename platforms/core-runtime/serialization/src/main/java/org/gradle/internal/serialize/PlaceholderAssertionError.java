@@ -17,8 +17,7 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.internal.UncheckedException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code PlaceholderException} is used when an assertion error cannot be serialized or deserialized.

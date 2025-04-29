@@ -18,8 +18,7 @@ package org.gradle.api.internal.collections;
 import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.ImmutableActionSet;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface CollectionEventRegister<T> extends EventSubscriptionVerifier<T> {
 

@@ -4,6 +4,6 @@ plugins {
     java
     jacoco
     `maven-publish`
-    id("org.springframework.boot") version "2.7.8"
+    id("org.springframework.boot") version "3.4.4"
 }
 // end::script[]

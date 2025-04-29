@@ -21,33 +21,38 @@ plugins {
 description = "Worker RequestHandler that hosts long-running daemon server which can execute arbitrary WorkerAction requests. " +
     "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
-// TODO: These classes _are_ used in workers, but require Java 8. We should
-// enable this flag in Gradle 9.0 when workers target Java 8.
-// gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
 
     api(projects.classloaders)
     api(projects.coreApi)
-    api(projects.hashing)
     api(projects.modelCore)
     api(projects.requestHandlerWorker)
     api(projects.serialization)
     api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.concurrent)
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
     implementation(projects.fileTemp)
+    implementation(projects.hashing)
+    implementation(projects.messaging)
     implementation(projects.persistentCache)
-    implementation(projects.serviceProvider)
+    implementation(projects.problemsApi)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.workerMain)
 
     // The worker infrastructure should _not_ depend on :core. :core contains much
     // of the Gradle daemon implementation, and brings in a much larger classpath

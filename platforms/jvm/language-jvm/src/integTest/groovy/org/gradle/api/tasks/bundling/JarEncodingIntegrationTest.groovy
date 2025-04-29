@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import java.util.jar.JarFile
@@ -31,6 +33,7 @@ import java.util.jar.Manifest
 class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     // Only works on Java 8, see https://bugs.openjdk.java.net/browse/JDK-7050570
     @Issue(['GRADLE-1506'])
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildFile """
@@ -82,6 +85,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "write manifest encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildFile """
@@ -107,6 +111,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3374")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "merge manifest read using UTF-8 by default"() {
         given:
         buildFile """
@@ -133,6 +138,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache
     @Issue('GRADLE-3374')
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "write manifests using a user defined character set"() {
         given:
         buildFile """
@@ -158,6 +164,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "merge manifests using user defined character sets"() {
         given:
         buildFile """
@@ -188,6 +195,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "can merge manifests containing split multi-byte chars using #taskType task"() {
         // Note that there's no need to cover this case with merge read charsets
         // other than UTF-8 because it's not supported by the JVM.
@@ -239,6 +247,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "reports error for unsupported manifest content charsets, write #writeCharset, read #readCharset"() {
         given:
         settingsFile << "rootProject.name = 'root'"

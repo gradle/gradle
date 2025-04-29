@@ -33,61 +33,24 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
     def classesDir = tmpDir.file("classes")
     def srcDir = tmpDir.file("source")
 
-    def "mixes GroovyObject into JavaPluginConvention"() {
-        given:
-        def className = "org.gradle.api.plugins.JavaPluginConvention"
-
-        def original = compileJavaToDir(className, """
-            package org.gradle.api.plugins;
-            class JavaPluginConvention {
-                String _prop;
-                String getProp() { return _prop; }
-                void setProp(String value) { _prop = value; }
-                String doSomething(String arg) { return arg; }
-            }
-        """)
-        !GroovyObject.isAssignableFrom(original)
-
-        expect:
-        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, DefaultClassPath.of(classesDir), new DefaultLegacyTypesSupport())
-
-        def cl = loader.loadClass(className)
-        cl.classLoader.is(loader)
-        cl.protectionDomain.codeSource.location == classesDir.toURI().toURL()
-        cl.package.name == "org.gradle.api.plugins"
-
-        def obj = JavaReflectionUtil.newInstance(cl)
-        obj instanceof GroovyObject
-        obj.getMetaClass()
-        obj.metaClass
-        obj.setProperty("prop", "value")
-        obj.getProperty("prop") == "value"
-        obj.invokeMethod("doSomething", "arg") == "arg"
-
-        def newMetaClass = new MetaClassImpl(cl)
-        newMetaClass.initialize()
-        obj.setMetaClass(newMetaClass) == null
-    }
 
     def "add getters for String constants"() {
         given:
-        def className = "org.gradle.api.plugins.JavaPluginConvention"
+        def className = "org.gradle.api.plugins.JavaLibraryDistributionPlugin"
 
         def original = compileJavaToDir(className, """
             package org.gradle.api.plugins;
-            class JavaPluginConvention {
+            class JavaLibraryDistributionPlugin {
                 public static final String SOME_CONST = "Value";
                 public static final String SOME_CONST_WITH_GETTER = "Other Value";
                 public static final String SOME_CONST_WITH_RHS_EXPRESSION = doSomething("Derived Value");
                 public static final String SOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER = doSomething("Other Derived Value");
-
                 public static String getSomeStuff() { return SOME_CONST; }
                 public static String getSOME_CONST_WITH_GETTER() { return SOME_CONST_WITH_GETTER; }
                 public static String getSOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER() { return SOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER; }
                 String _prop;
                 String getProp() { return _prop; }
                 void setProp(String value) { _prop = value; }
-
                 private static String doSomething(String arg) { return arg; }
             }
         """)
@@ -125,22 +88,19 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
     def "add getters for booleans"() {
         given:
-        def className = "org.gradle.api.plugins.JavaPluginConvention"
+        def className = "org.gradle.api.plugins.JavaLibraryDistributionPlugin"
 
         def original = compileJavaToDir(className, """
             package org.gradle.api.plugins;
-            class JavaPluginConvention {
+            class JavaLibraryDistributionPlugin {
                 private boolean someBoolean = true;
                 private boolean booleanWithGetter = false;
                 private static boolean staticBoolean = true;
-
                 public boolean publicBoolean = true;
-
                 public boolean isSomeBoolean() { return someBoolean; }
                 public boolean isBooleanWithGetter() { return booleanWithGetter; }
                 public boolean getBooleanWithGetter() { return booleanWithGetter; }
                 public boolean isWithoutField() { return true; }
-
                 public static boolean isStaticBoolean() { return true; }
             }
         """)
@@ -183,7 +143,6 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         then:
         thrown java.lang.NoSuchMethodException
     }
-
     def "does not mix GroovyObject into other types"() {
         given:
         def className = "org.gradle.api.plugins.Thing"

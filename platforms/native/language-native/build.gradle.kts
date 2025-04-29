@@ -31,13 +31,14 @@ dependencies {
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.platformNative)
+    api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
 
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.loggingApi)

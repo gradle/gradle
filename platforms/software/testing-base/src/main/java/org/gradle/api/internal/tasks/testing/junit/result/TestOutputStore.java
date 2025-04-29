@@ -24,8 +24,8 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.file.nio.PositionTrackingFileChannelInputStream;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;

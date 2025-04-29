@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
@@ -34,6 +35,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         file('src/main/scala/Person.scala') << "class Person(name: String)"
     }
 
+    @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
     def "compile is out of date when changing the #changedVersion version"() {
         buildFile(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
@@ -65,10 +67,11 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         changedVersion = defaultScalaVersion != newScalaVersion ? 'scala' : 'zinc'
     }
 
-    @Requires([
+    @Requires(value = [
         IntegTestPreconditions.Java8HomeAvailable,
-        IntegTestPreconditions.Java11HomeAvailable
-    ])
+        IntegTestPreconditions.Java11HomeAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with specific JDK versions")
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
@@ -125,7 +128,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:${ScalaCoverage.SCALA_2.last()}"
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}"
             }
 
             scala {
@@ -183,7 +186,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:${ScalaCoverage.SCALA_2.last()}"
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}"
             }
 
             scala {

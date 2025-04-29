@@ -59,13 +59,16 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
     implementation(projects.logging)
     implementation(projects.messaging)
+    implementation(projects.modelCore)
     implementation(projects.serialization)
+    implementation(projects.serviceLookup)
+    implementation(projects.snapshots)
 
     implementation(libs.guava)
     implementation(libs.fastutil)
@@ -87,3 +90,7 @@ dependencies {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+// Problems should not be part of the public API, this only contains internal types
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())

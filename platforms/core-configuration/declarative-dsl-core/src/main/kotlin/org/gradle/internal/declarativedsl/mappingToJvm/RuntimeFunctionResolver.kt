@@ -55,7 +55,7 @@ object DefaultRuntimeFunctionCandidatesProvider : RuntimeFunctionCandidatesProvi
     override fun candidatesForMember(
         ownerKClass: KClass<*>,
         schemaFunction: SchemaMemberFunction
-    ): List<KFunction<*>> = ownerKClass.memberFunctions.filter { isMatchByNameAndAnnotations(schemaFunction, ownerKClass, it) }
+    ): List<KFunction<*>> = ownerKClass.memberFunctions.filter { it.name == schemaFunction.simpleName }
 
     override fun candidatesForTopLevelFunction(schemaFunction: DataTopLevelFunction, scopeClassLoader: ClassLoader): List<KFunction<*>> {
         val ownerClass = try {
@@ -66,29 +66,10 @@ object DefaultRuntimeFunctionCandidatesProvider : RuntimeFunctionCandidatesProvi
 
         return ownerClass.methods.mapNotNull {
             if (it.name == schemaFunction.simpleName)
-                it.kotlinFunction?.takeIf { kotlinFunction -> isMatchByNameAndAnnotations(schemaFunction, ownerClass.kotlin, kotlinFunction) }
+                it.kotlinFunction?.takeIf { kotlinFunction -> kotlinFunction.name == schemaFunction.simpleName }
             else null
         }
     }
-
-    private fun isMatchByNameAndAnnotations(
-        schemaFunction: SchemaFunction,
-        ownerKClass: KClass<*>,
-        kFunction: KFunction<*>,
-    ): Boolean = kFunction.name == schemaFunction.simpleName &&
-        (schemaFunction is DataTopLevelFunction ||
-            matchesAnnotationsRecursively(kFunction, ownerKClass, hasDeclarativeAnnotation))
-
-    private fun matchesAnnotationsRecursively(function: KFunction<*>, receiverClass: KClass<*>, predicate: (Annotation) -> Boolean): Boolean =
-        if (function.annotations.any(predicate)) {
-            true
-        } else {
-            val functionSignature = Workarounds.kFunctionSignature(function)
-            receiverClass.allSuperclasses.any { parentClass ->
-                val parentFunction = parentClass.memberFunctions.firstOrNull { Workarounds.kFunctionSignature(it) == functionSignature }
-                parentFunction?.annotations?.any(predicate) ?: false
-            }
-        }
 }
 
 
@@ -113,7 +94,13 @@ class DefaultRuntimeFunctionResolver(
             0 -> RuntimeFunctionResolver.Resolution.Unresolved
             1 -> RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(matchingCandidates[0], configureLambdaHandler))
             else -> {
-                val refinedResolutions = matchingCandidates.filter { function -> parametersMatch(function, schemaFunction) }
+                val refinedResolutions = buildList {
+                    addAll(matchingCandidates)
+                    removeIf { !parametersMatch(it, schemaFunction) }
+                    if (size > 1) {
+                        removeIf { !matchesAnnotationsRecursively(it, receiverClass, hasDeclarativeAnnotation) }
+                    }
+                }
                 val finalResolution = if (refinedResolutions.size == 1) refinedResolutions[0] else
                     error(
                         "Failed disambiguating between following functions (matches ${refinedResolutions.size}): ${
@@ -129,6 +116,17 @@ class DefaultRuntimeFunctionResolver(
 
     }
 
+    private fun matchesAnnotationsRecursively(function: KFunction<*>, receiverClass: KClass<*>, predicate: (Annotation) -> Boolean): Boolean =
+        if (function.annotations.any(predicate)) {
+            true
+        } else {
+            val functionSignature = Workarounds.kFunctionSignature(function)
+            receiverClass.allSuperclasses.any { parentClass ->
+                val parentFunction = parentClass.memberFunctions.firstOrNull { Workarounds.kFunctionSignature(it) == functionSignature }
+                parentFunction?.annotations?.any(predicate) ?: false
+            }
+        }
+
     private fun isMatchBySignature(
         kFunction: KFunction<*>,
         parameterBindingStub: Map<DataParameter, Any>,
@@ -136,7 +134,7 @@ class DefaultRuntimeFunctionResolver(
     ): Boolean = FunctionBinding.convertBinding(kFunction, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null
 
     private fun parametersMatch(function: KFunction<*>, schemaFunction: SchemaFunction): Boolean {
-        val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size)
+        val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size).filter { configureLambdaHandler.getTypeConfiguredByLambda(it.type) == null }
         return if (actualParameters.size == schemaFunction.parameters.size) {
             actualParameters.zip(schemaFunction.parameters).all { (kp, dp) ->
                 when (val classifier = kp.type.classifier) {

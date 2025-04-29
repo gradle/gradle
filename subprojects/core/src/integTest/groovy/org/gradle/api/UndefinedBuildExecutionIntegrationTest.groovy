@@ -20,6 +20,8 @@ import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.scripts.ScriptFileUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
@@ -241,6 +243,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
     def "does not fail when executing #flag in undefined build"() {
         when:
         executer.requireDaemon().requireIsolatedDaemons()

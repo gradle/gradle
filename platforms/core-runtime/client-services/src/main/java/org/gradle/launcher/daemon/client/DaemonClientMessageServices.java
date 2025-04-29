@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
@@ -39,6 +38,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.UUID;
 
@@ -50,7 +50,7 @@ import java.util.UUID;
  * @see DaemonStopClient
  * @see NotifyDaemonAboutChangedPathsClient
  */
-@NonNullApi
+@NullMarked
 public class DaemonClientMessageServices implements ServiceRegistrationProvider {
 
     @Provides
@@ -103,7 +103,7 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
         return new UnavailableDaemonStarter();
     }
 
-    @NonNullApi
+    @NullMarked
     private static class UnavailableDaemonStarter implements DaemonStarter {
         @Override
         public DaemonStartupInfo startDaemon(boolean singleRun) {

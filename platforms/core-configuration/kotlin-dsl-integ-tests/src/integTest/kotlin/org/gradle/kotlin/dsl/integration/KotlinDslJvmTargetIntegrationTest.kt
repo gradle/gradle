@@ -71,44 +71,13 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk11OrLater::class)
-    fun `can use a different jvmTarget to compile precompiled scripts`() {
-
-        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
-
-        withDefaultSettingsIn("buildSrc")
-        withKotlinDslPluginIn("buildSrc").appendText("""
-
-            java {
-                sourceCompatibility = JavaVersion.VERSION_11
-                targetCompatibility = JavaVersion.VERSION_11
-            }
-
-            kotlinDslPluginOptions {
-                jvmTarget.set("11")
-            }
-
-            dependencies {
-                implementation(files("utils.jar"))
-            }
-        """)
-
-        withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
-        withBuildScript("""plugins { id("some") }""")
-
-        executer.expectDocumentedDeprecationWarning("The KotlinDslPluginOptions.jvmTarget property has been deprecated. This is scheduled to be removed in Gradle 9.0. Configure a Java Toolchain instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains")
-
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_11)))
-    }
-
-    @Test
     @LeaksFileHandles("Kotlin compiler daemon  taking time to shut down")
     fun `can use Java Toolchain to compile precompiled scripts`() {
 
         val currentJvm = Jvm.current()
         assumeNotNull(currentJvm)
 
-        val newerJvm = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJvm.javaVersion }
+        val newerJvm = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJvm.javaVersion!! }
         assumeNotNull(newerJvm)
 
         val installationPaths = listOf(currentJvm, newerJvm!!)
@@ -177,12 +146,12 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin compiler daemon  taking time to shut down")
-    fun `can use Java Toolchain to compile precompiled scripts on Java 23, with a warning`() {
+    fun `can use Java Toolchain to compile precompiled scripts on Java 24, with a warning`() {
 
         val currentJvm = Jvm.current()
         assumeNotNull(currentJvm)
 
-        val newerJvm = AvailableJavaHomes.getJdk23()
+        val newerJvm = AvailableJavaHomes.getJdk24()
         assumeNotNull(newerJvm)
 
         val installationPaths = listOf(currentJvm, newerJvm!!)
@@ -225,7 +194,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .withJvm(currentJvm)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
-        assertThat(pluginCompile.output, containsString("w: Inconsistent JVM-target compatibility detected for tasks 'compileJava' (23) and 'compileKotlin' (22)."))
+        assertThat(pluginCompile.output, containsString("Inconsistent JVM-target compatibility detected for tasks 'compileJava' (24) and 'compileKotlin' (23)."))
 
         withSettingsIn("consumer", """
             pluginManagement {

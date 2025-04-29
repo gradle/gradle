@@ -18,11 +18,11 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A model reference is a speculative reference to a potential model element.
@@ -49,7 +49,7 @@ public class ModelReference<T> {
 
     private int hashCode;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, ModelNode.@Nullable State state, @Nullable String description) {
         this.path = path;
         this.type = Preconditions.checkNotNull(type, "type");
         this.scope = scope;

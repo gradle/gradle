@@ -19,7 +19,6 @@ package org.gradle.api.internal.project.taskfactory;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
@@ -31,13 +30,14 @@ import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.work.InputChanges;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@NonNullApi
+@NullMarked
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
     private final CrossBuildInMemoryCache<Class<?>, TaskClassInfo> classInfos;
     private final TypeMetadataStore typeMetadataStore;

@@ -19,14 +19,12 @@ package org.gradle.integtests.tooling.r73
 import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import spock.lang.Timeout
 
 import java.util.concurrent.TimeUnit
 
-@ToolingApiVersion(">=7.3")
 @TargetGradleVersion(">=7.3")
 @Timeout(value = 10, unit = TimeUnit.MINUTES)
 class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHttpCrossVersionSpec {
@@ -200,7 +198,7 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         !events.operations.any { it.download }
     }
 
-    @TargetGradleVersion(">=3.5 <7.3")
+    @TargetGradleVersion(">=4.0 <7.3")
     def "older versions do not generate typed events for downloads during dependency resolution"() {
         setupBuildWithArtifactDownloadDuringConfiguration()
 
@@ -216,7 +214,7 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.operations.empty
     }
 
-    @TargetGradleVersion(">=3.5 <7.3")
+    @TargetGradleVersion(">=4.0 <7.3")
     def "older versions generate generic events for downloads during dependency resolution"() {
         def modules = setupBuildWithArtifactDownloadDuringConfiguration()
 
@@ -225,23 +223,6 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         withConnection { connection ->
             connection.newBuild()
                 .addProgressListener(events)
-                .run()
-        }
-
-        then:
-        events.operation("Download ${modules.projectB.pom.uri}")
-        events.operation("Download ${modules.projectB.artifact.uri}")
-    }
-
-    @ToolingApiVersion(">=7.0 <7.3")
-    def "generates generic events for older tooling api clients"() {
-        def modules = setupBuildWithArtifactDownloadDuringConfiguration()
-
-        when:
-        def events = ProgressEvents.create()
-        withConnection { connection ->
-            connection.newBuild()
-                .addProgressListener(events, OperationType.GENERIC)
                 .run()
         }
 

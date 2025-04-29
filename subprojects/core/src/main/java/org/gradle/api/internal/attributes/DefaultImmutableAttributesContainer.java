@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
@@ -24,15 +25,21 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class DefaultImmutableAttributesContainer implements ImmutableAttributes, AttributeValue<Object> {
+/**
+ * Note: The fact that this type is both a <em>container</em> and a <em>value stored in a container</em> is strange.  This is
+ * probably something that ought to be addressed, this shouldn't implement {@link AttributeValue}, but it does it in order to
+ * build "linked lists" of immutable containers through concatenation to save memory.
+ */
+public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes, AttributeValue<Object> {
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = Comparator.comparing(Attribute::getName);
     // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
     // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
@@ -62,12 +69,10 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     DefaultImmutableAttributesContainer(DefaultImmutableAttributesContainer parent, Attribute<?> key, Isolatable<?> value) {
         this.attribute = key;
         this.value = value;
-        Map<Attribute<?>, DefaultImmutableAttributesContainer> hierarchy = new LinkedHashMap<>();
-        hierarchy.putAll(parent.hierarchy);
+        Map<Attribute<?>, DefaultImmutableAttributesContainer> hierarchy = new LinkedHashMap<>(parent.hierarchy);
         hierarchy.put(attribute, this);
         this.hierarchy = ImmutableMap.copyOf(hierarchy);
-        Map<String, DefaultImmutableAttributesContainer> hierarchyByName = new LinkedHashMap<>();
-        hierarchyByName.putAll(parent.hierarchyByName);
+        Map<String, DefaultImmutableAttributesContainer> hierarchyByName = new LinkedHashMap<>(parent.hierarchyByName);
         hierarchyByName.put(attribute.getName(), this);
         this.hierarchyByName = ImmutableMap.copyOf(hierarchyByName);
         int hashCode = parent.hashCode();
@@ -85,7 +90,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -100,7 +105,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         }
 
         for (Map.Entry<Attribute<?>, DefaultImmutableAttributesContainer> entry : hierarchy.entrySet()) {
-            if (!entry.getValue().value.isolate().equals(that.getAttribute(entry.getKey()))) {
+            if (!Objects.requireNonNull(entry.getValue().value.isolate()).equals(that.getAttribute(entry.getKey()))) {
                 return false;
             }
         }
@@ -128,29 +133,78 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
-    public <T> T getAttribute(Attribute<T> key) {
-        Isolatable<T> isolatable = getIsolatableAttribute(key);
-        return isolatable == null ? null : isolatable.isolate();
-    }
-
     @Nullable
-    protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
-        DefaultImmutableAttributesContainer attributes = hierarchy.get(key);
-        return Cast.uncheckedCast(attributes == null ? null : attributes.value);
+    public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
+
+        Isolatable<T> isolatable = getIsolatableAttribute(key);
+        if (isolatable == null) {
+            return null;
+        }
+        Object value = isolatable.isolate();
+
+        // Ensure that the resulting value is of the requested type after coercion, to satisfy the promise of the method signature
+        if (!isAppropriateType(value, key)) {
+            value = isolatable.coerce(key.getType());
+        }
+
+        return Cast.uncheckedCast(value);
     }
 
     /**
-     * Locates the entry for the given attribute. Returns a 'missing' value when not present.
+     * Determines if the value is of the appropriate type for the given key; meaning that
+     * it can be assigned to it.
+     * <p>This method is used to ensure potential results of a call to {@link #getAttribute(Attribute)} satisfy the signature of
+     * that method, where when asked for a {@code <T>} we must return one.
+     * <p>
+     * One interesting potential complication is caused by different classloaders
+     * loading the same type when a typed attribute is put into a container vs. when it is retrieved.
+     * <p>
+     * When a request for a key with type X1
+     * is being made in a container holding an attribute with type X2, where X1 and X2 are
+     * actually THE SAME CLASS loaded by 2 different classloaders.  In this case we want to both
+     * 1) find a match and return the value and 2) coerce this returned attribute value, typed as X2,
+     * to the requested X1 type.
+     * <p>
+     * Doing so avoids the confusing situation where a build author can request an attribute
+     * from a resolved variant of an external dep and have a typed attribute request succeed (because the external attribute is
+     * desugared internally); but then if the build author replaces the external dep with an included build
+     * generating the same exact variants, the same typed attribute request fails, since the desugaring
+     * now doesn't happen and the attribute is typed with the non-identical class with the same name loaded
+     * from a different classloader.  This is seriously confusing and unintuitive to a build
+     * author.  When we detect this case, we want to coerce the value of X2 to X1, instead of returning {@code null}.
+     *
+     * @param value the value to check
+     * @param key the key containing the type to check against
+     * @return {@code true} if so; {@code false} otherwise
      */
+    private boolean isAppropriateType(@Nullable Object value, Attribute<?> key) {
+        return value != null && key.getType().isAssignableFrom(value.getClass());
+    }
+
+    /**
+     * We lookup by name here to avoid issues with attributes with the type class from different classloaders.  This
+     * should only happen with immutable attribute containers, as mutable containers will not cross classloader boundaries
+     * when included builds are used, and this is the typical failure case.
+     * <p>
+     * This lookup requires that only a single attribute with a given name (regardless of type) is present in this container.  This invariant
+     * must be enforced by the factory construction logic for immutable containers such as
+     * {@link DefaultAttributesFactory#assertAttributeNotAlreadyPresent(AttributeContainer, Attribute)}.
+     */
+    @Nullable
+    /* package */ <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
+        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(key.getName());
+        return Cast.uncheckedCast(attributes == null ? null : attributes.value);
+    }
+
     @Override
     public <T> AttributeValue<T> findEntry(Attribute<T> key) {
         DefaultImmutableAttributesContainer attributes = hierarchy.get(key);
         return Cast.uncheckedNonnullCast(attributes == null ? MISSING : attributes);
     }
 
-    /**
-     * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
-     */
     @Override
     public AttributeValue<?> findEntry(String name) {
         //noinspection StringEquality
@@ -163,7 +217,16 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
+    @Nullable
+    public Attribute<?> findAttribute(String name) {
+        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(name);
+        return attributes == null ? null : attributes.attribute;
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    @Override
     public Object get() {
+        Preconditions.checkState(value != null, "When calling get() value should never be null");
         return value.isolate();
     }
 
@@ -191,6 +254,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
 
     @Override
     public <S> S coerce(Attribute<S> otherAttribute) {
+        Preconditions.checkState(value != null, "When coercing, value should never be null");
         S s = Cast.uncheckedCast(coercionCache.get(otherAttribute));
         if (s == null) {
             s = uncachedCoerce(otherAttribute);
@@ -248,6 +312,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         return this;
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public Map<Attribute<?>, ?> asMap() {
         ImmutableMap.Builder<Attribute<?>, ?> builder = ImmutableMap.builder();
@@ -258,11 +323,6 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
-    public AttributeContainer getAttributes() {
-        return this;
-    }
-
-    @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<>(ATTRIBUTE_NAME_COMPARATOR);
         for (Map.Entry<Attribute<?>, DefaultImmutableAttributesContainer> entry : hierarchy.entrySet()) {
@@ -270,5 +330,4 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         }
         return sorted.toString();
     }
-
 }

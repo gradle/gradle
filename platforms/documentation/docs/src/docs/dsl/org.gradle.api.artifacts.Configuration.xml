@@ -66,12 +66,6 @@
                 <td>extendsFrom</td>
             </tr>
             <tr>
-                <td>files</td>
-            </tr>
-            <tr>
-                <td>fileCollection</td>
-            </tr>
-            <tr>
                 <td>exclude</td>
             </tr>
             <tr>

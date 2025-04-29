@@ -22,10 +22,10 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -61,7 +61,7 @@ public class DownloadAction implements ExternalResource.ContentAndMetadataAction
         return null;
     }
 
-    @Nonnull
+    @NonNull
     public File getDestination() {
         return destination;
     }

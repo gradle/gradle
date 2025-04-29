@@ -19,14 +19,16 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 import static org.gradle.util.internal.TextUtil.escapeString
 
-@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
-@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+    @ToBeFixedForIsolatedProjects(because = "subprojects, rootProject access")
     def "publishes a platform with native alignment"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -198,17 +200,17 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                     byConstraint("platform alignment")
                     byConflictResolution("between versions 1.1 and 1.0")
                     variant "apiElements", [
-                        'org.gradle.category':'library',
-                        'org.gradle.dependency.bundling':'external',
+                        'org.gradle.category': 'library',
+                        'org.gradle.dependency.bundling': 'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                        'org.gradle.status':'release',
+                        'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-api',
                         'org.gradle.libraryelements': 'jar',
                     ]
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
-                            'org.gradle.category':'platform',
-                            'org.gradle.status':'release',
+                            'org.gradle.category': 'platform',
+                            'org.gradle.status': 'release',
                             'org.gradle.usage': 'java-api']
                         constraint('com.acme.foo:core:1.1')
                         constraint('com.acme.foo:lib:1.1')
@@ -217,10 +219,10 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                     }
                     module('com.acme.foo:lib:1.1') {
                         variant "apiElements", [
-                            'org.gradle.category':'library',
-                            'org.gradle.dependency.bundling':'external',
+                            'org.gradle.category': 'library',
+                            'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                            'org.gradle.status':'release',
+                            'org.gradle.status': 'release',
                             'org.gradle.usage': 'java-api',
                             'org.gradle.libraryelements': 'jar',
                         ]
@@ -230,17 +232,17 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                 }
                 module('com.acme.foo:lib:1.1') {
                     variant "apiElements", [
-                        'org.gradle.category':'library',
-                        'org.gradle.dependency.bundling':'external',
+                        'org.gradle.category': 'library',
+                        'org.gradle.dependency.bundling': 'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                        'org.gradle.status':'release',
+                        'org.gradle.status': 'release',
                         'org.gradle.usage': 'java-api',
                         'org.gradle.libraryelements': 'jar',
                     ]
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
-                            'org.gradle.category':'platform',
-                            'org.gradle.status':'release',
+                            'org.gradle.category': 'platform',
+                            'org.gradle.status': 'release',
                             'org.gradle.usage': 'java-api']
                     }
                 }

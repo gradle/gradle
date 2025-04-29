@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r76
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.OperationType
@@ -29,7 +28,6 @@ import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent
 import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
-@ToolingApiVersion('>=7.6')
 @TargetGradleVersion('>=7.6')
 class BuildPhaseOperationEventCrossVersionTest extends ToolingApiSpecification {
 

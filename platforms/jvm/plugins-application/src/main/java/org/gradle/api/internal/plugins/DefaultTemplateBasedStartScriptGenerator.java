@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.CharSource;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
@@ -34,6 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator {
@@ -89,7 +89,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
                 if (stream == null) {
                     throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
                 }
-                return new BufferedReader(new InputStreamReader(stream, Charsets.UTF_8));
+                return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
             }
         });
     }

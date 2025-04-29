@@ -24,8 +24,8 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.internal.GroovyDependencyUtil
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
@@ -59,7 +59,6 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
                 }
             """
         } else {
-            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
             buildFile << """
                 compileGroovy {
                     options.fork = true
@@ -205,7 +204,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
 
         buildFile << """
             dependencies {
-                testImplementation "org.spockframework:spock-core:${getSpockVersion(versionNumber)}"
+                testImplementation "${GroovyDependencyUtil.spockModuleDependency("spock-core", versionNumber)}"
             }
 
             testing.suites.test.useJUnitJupiter()
@@ -236,10 +235,6 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
 
         where:
         javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && GroovyCoverage.supportsJavaVersion("$versionNumber", it) }
-    }
-
-    private def getSpockVersion(VersionNumber groovyVersion) {
-        return "2.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
     }
 
     private TestFile configureTool(Jvm jdk) {

@@ -932,7 +932,8 @@ $ gradle -q myCustomZip
 include::{snippetsPath}/files/archiveNaming/tests/zipWithCustomName.out[]
 ----
 
-You can also override the default `archiveBaseName` value for _all_ the archive tasks in your build by using the _project_ property `archivesBaseName`, as demonstrated by the following example:
+You can also override the default `archiveBaseName` value for _all_ the archive tasks in your build by configuring the `archivesName` property in the `base` block, as demonstrated by the following example.
+The block is defined by the `base` plugin and backed by the `BasePluginExtension` class.
 
 ====
 include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[]"]

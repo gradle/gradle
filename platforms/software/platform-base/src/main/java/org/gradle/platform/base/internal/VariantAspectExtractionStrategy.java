@@ -27,8 +27,8 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtracti
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorExtractionContext;
 import org.gradle.platform.base.Variant;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class VariantAspectExtractionStrategy implements ModelSchemaAspectExtractionStrategy {

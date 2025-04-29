@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 /**
@@ -26,10 +26,10 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 public class ComponentVariantIdentifier {
 
     private final ComponentIdentifier componentId;
-    private final AttributeContainer attributes;
+    private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
 
-    public ComponentVariantIdentifier(ComponentIdentifier componentId, AttributeContainer attributes, ImmutableCapabilities capabilities) {
+    public ComponentVariantIdentifier(ComponentIdentifier componentId, ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
         this.componentId = componentId;
         this.attributes = attributes;
         this.capabilities = capabilities;
@@ -39,7 +39,7 @@ public class ComponentVariantIdentifier {
         return componentId;
     }
 
-    public AttributeContainer getAttributes() {
+    public ImmutableAttributes getAttributes() {
         return attributes;
     }
 

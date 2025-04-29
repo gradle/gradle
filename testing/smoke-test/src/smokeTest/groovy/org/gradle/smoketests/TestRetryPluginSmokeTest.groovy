@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
@@ -61,7 +62,7 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         def result = runner('test').buildAndFail()
         then:
         assertTaskFailed(result, ":test")
-        assertHasFlakyOutput(result)
+        assertTestResults()
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
@@ -94,19 +95,24 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         def result = runner('test').buildAndFail()
         then:
         assertTaskFailed(result, ":test")
-        assertHasFlakyOutput(result)
+        assertTestResults()
+    }
+
+    private void assertTestResults() {
+        def testResult = new DefaultTestExecutionResult(file(""))
+        // Our test fixture doesn't handle retried tests
+        testResult.testClass("org.acme.AcmeTest")
+            .assertTestFailedIgnoreMessages("failing")
+            .assertTestSkipped("skipped")
+            .assertTestPassed("flaky")
+            .assertTestPassed("successful")
+            .assertTestCount(7, 4, 0) // failing runs 3 times, flaky twice (once with a failure)
     }
 
     static void assertTaskFailed(BuildResult result, String task) {
         assert result.task(task).outcome == TaskOutcome.FAILED
     }
 
-    static void assertHasFlakyOutput(BuildResult result) {
-        def output = result.output
-        assert output.findAll("flaky\\(\\) FAILED").size() == 1
-        assert output.findAll("failing\\(\\) FAILED").size() == 3
-        assert output.contains("6 tests completed, 4 failed")
-    }
 
     private TestFile testSourceFile() {
         file("src/test/java/org/acme/AcmeTest.java") << """
@@ -114,6 +120,7 @@ package org.acme;
 
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.Assumptions;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class AcmeTest {
@@ -131,6 +138,11 @@ class AcmeTest {
     @Test
     void failing() {
         fail();
+    }
+
+    @Test
+    void skipped() {
+        Assumptions.assumeTrue(false);
     }
 }
         """

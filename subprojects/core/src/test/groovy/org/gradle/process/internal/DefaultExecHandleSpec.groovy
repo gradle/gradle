@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
+import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
@@ -99,7 +100,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         result.assertNormalExitValue()
 
         then:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.message.contains "finished with non-zero exit value 72"
     }
 
@@ -110,7 +111,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.start()
 
         then:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.message == "A problem occurred starting process 'awesome'"
     }
 
@@ -234,7 +235,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener._
 
         and:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.cause == failure
     }
 
@@ -254,7 +255,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener._
 
         and:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.cause == failure
     }
 
@@ -274,7 +275,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener._
 
         and:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.cause == failure
     }
 

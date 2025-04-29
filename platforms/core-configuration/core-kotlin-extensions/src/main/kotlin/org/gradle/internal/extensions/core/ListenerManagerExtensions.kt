@@ -19,5 +19,5 @@ package org.gradle.internal.extensions.core
 import org.gradle.internal.event.ListenerManager
 
 
-inline fun <reified T> ListenerManager.getBroadcaster(): T =
+inline fun <reified T : Any> ListenerManager.getBroadcaster(): T =
     getBroadcaster(T::class.java)

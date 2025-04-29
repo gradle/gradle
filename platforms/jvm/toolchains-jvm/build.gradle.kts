@@ -48,6 +48,7 @@ dependencies {
     implementation(projects.modelCore)
 
     implementation(libs.guava)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))

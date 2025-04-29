@@ -70,6 +70,6 @@ public class BlockPointer implements Comparable<BlockPointer> {
 
     @Override
     public int compareTo(BlockPointer o) {
-        return Longs.compare(pos, o.pos);
+        return Long.compare(pos, o.pos);
     }
 }

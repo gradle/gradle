@@ -37,6 +37,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsResolver;
 
@@ -45,6 +47,7 @@ import javax.inject.Inject;
 /**
  * Creates fully initialized {@link ResolutionStrategyInternal} instances.
  */
+@ServiceScope(Scope.Project.class)
 public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInternal> {
 
     private final BuildState currentBuild;

@@ -55,7 +55,7 @@ class KeyServer extends HttpServer {
         def keyFile = baseDirectory.createFile("${longKeyId}.asc")
         keyFile.deleteOnExit()
         keyFile.newOutputStream().withCloseable { out ->
-            new ArmoredOutputStream(out).withCloseable {
+            ArmoredOutputStream.builder().build(out).withCloseable {
                 key.encode(it)
             }
         }

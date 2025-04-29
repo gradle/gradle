@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link PublishArtifact} whose properties can be modified.

@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.provider.Provider;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ProjectComponentPublication extends ProjectPublication {
     /**

@@ -20,7 +20,7 @@ dependencies {
         because("Used by class analysis")
     }
 
-    implementation(kotlin("compiler-embeddable") as String) {
+    compileOnly(kotlin("compiler-embeddable") as String) {
         because("Required by KotlinSourceParser")
     }
     implementation(kotlin("gradle-plugin") as String) {
@@ -28,4 +28,10 @@ dependencies {
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

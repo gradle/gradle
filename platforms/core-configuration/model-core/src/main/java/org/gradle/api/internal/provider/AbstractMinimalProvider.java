@@ -23,13 +23,11 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
@@ -38,7 +36,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
 
     @Override
-    public <S> ProviderInternal<S> map(final Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer) {
+    public <S> ProviderInternal<S> map(final Transformer<? extends @Nullable S, ? super T> transformer) {
         // Could do a better job of inferring the type
         return new TransformBackedProvider<>(null, this, transformer);
     }
@@ -49,7 +47,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public <S> Provider<S> flatMap(final Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends S>, ? super T> transformer) {
+    public <S> Provider<S> flatMap(final Transformer<? extends @Nullable Provider<? extends S>, ? super T> transformer) {
         return new FlatMapProvider<>(this, transformer);
     }
 
@@ -125,17 +123,6 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public Provider<T> orElse(Provider<? extends T> provider) {
         return new OrElseProvider<>(this, Providers.internal(provider));
-    }
-
-    @Deprecated
-    @Override
-    public final Provider<T> forUseAtConfigurationTime() {
-        DeprecationLogger.deprecateMethod(Provider.class, "forUseAtConfigurationTime")
-            .withAdvice("Simply remove the call.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "for_use_at_configuration_time_deprecation")
-            .nagUser();
-        return this;
     }
 
     @Override

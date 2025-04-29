@@ -20,6 +20,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver;
 import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
@@ -30,6 +32,7 @@ import java.util.List;
  * in the sense that resolution failures in most cases will not cause exceptions
  * to be thrown. Instead, recoverable failures are packaged in the result type.
  */
+@ServiceScope(Scope.Project.class)
 public interface ConfigurationResolver {
     /**
      * Traverses enough of the graph to calculate the build dependencies of the given configuration. All failures are packaged in the result.

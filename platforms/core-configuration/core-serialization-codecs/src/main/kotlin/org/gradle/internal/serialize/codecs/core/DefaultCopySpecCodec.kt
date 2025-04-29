@@ -27,7 +27,9 @@ import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -36,13 +38,11 @@ import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.Factory
 import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.internal.reflect.Instantiator
 
 
 class DefaultCopySpecCodec(
-    private val patternSetFactory: Factory<PatternSet>,
+    private val patternSetFactory: PatternSetFactory,
     private val fileCollectionFactory: FileCollectionFactory,
     private val propertyFactory: PropertyFactory,
     private val instantiator: Instantiator,

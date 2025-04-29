@@ -54,12 +54,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @TargetGradleVersion(">=6.9.4 <=8.5")
     def "Problems not exposed in target version 8.5 and lower"() {
         given:
-
         buildFile """
             plugins {
               id 'java-library'
             }
-            repositories.jcenter()
             task bar {}
             task baz {}
         """

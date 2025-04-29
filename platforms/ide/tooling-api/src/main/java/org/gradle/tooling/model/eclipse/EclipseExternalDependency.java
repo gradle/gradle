@@ -17,8 +17,7 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.tooling.model.ComponentSelector;
 import org.gradle.tooling.model.ExternalDependency;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents an Eclipse-specific external artifact dependency.

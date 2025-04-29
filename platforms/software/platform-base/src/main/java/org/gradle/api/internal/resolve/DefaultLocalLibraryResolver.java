@@ -33,6 +33,7 @@ public class DefaultLocalLibraryResolver implements LocalLibraryResolver {
     private static final ModelType<ModelMap<ComponentSpec>> COMPONENT_MAP_TYPE = ModelTypes.modelMap(ComponentSpec.class);
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public Collection<VariantComponent> resolveCandidates(ModelRegistry projectModel, String libraryName) {
         List<VariantComponent> librarySpecs = new ArrayList<>();
         collectLocalComponents(projectModel, "components", librarySpecs);

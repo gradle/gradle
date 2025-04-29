@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.internal.id.LongIdGenerator
@@ -40,7 +41,7 @@ class TestNGTestClassProcessorTest extends Specification {
         filterSpec,
         "Gradle suite", "Gradle test", null, -1, 1, false, null,
         [] as Set, [] as Set, [] as Set,
-        TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY, false, false, false))
+        TestNGTestRunner.DEFAULT_CONFIG_FAILURE_POLICY, false, false, false))
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
@@ -153,7 +154,7 @@ class TestNGTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 1 } , _)
         then: 1 * processor.started({ it.id == 2 } , _)
         then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
-        then: 1 * processor.failure(3, ATestNGClassWithBrokenSetupMethod.failure)
+        then: 1 * processor.failure(3, { assertRuntimExceptionWith(it, "broken") })
         then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
 
         then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
@@ -172,7 +173,7 @@ class TestNGTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 2 } , _)
         then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
 
-        then: 1 * processor.failure(3, ATestNGClassWithBrokenDependencyMethod.failure)
+        then: 1 * processor.failure(3, { assertRuntimExceptionWith(it, "broken") })
         then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
 
         then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
@@ -341,5 +342,10 @@ class TestNGTestClassProcessorTest extends Specification {
 
         then:
         UnsupportedOperationException uoe = thrown()
+    }
+
+    void assertRuntimExceptionWith(TestFailure testFailure, String message) {
+        assert testFailure.rawFailure instanceof RuntimeException
+        assert testFailure.details.message == message
     }
 }

@@ -21,8 +21,7 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
 

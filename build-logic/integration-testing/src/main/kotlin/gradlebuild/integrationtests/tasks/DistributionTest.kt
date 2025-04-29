@@ -127,6 +127,7 @@ abstract class DistributionTest : Test() {
 
 
 class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
+    private val projectName = project.name
 
     @Internal
     val localRepo = project.objects.fileCollection()
@@ -135,6 +136,11 @@ class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgument
     val jars: SortedSet<File>
         get() = localRepo.asFileTree.matching {
             include("**/*.jar")
+            // https://github.com/gradle/gradle-private/issues/4253
+            // Only a few tests need the sources jar in tooling-api subproject
+            if (projectName != "tooling-api") {
+                exclude("**/*-sources.jar")
+            }
             exclude("**/*-javadoc.jar")
         }.files.toSortedSet()
 

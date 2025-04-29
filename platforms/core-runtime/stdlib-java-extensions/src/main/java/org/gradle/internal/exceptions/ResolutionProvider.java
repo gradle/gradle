@@ -16,7 +16,7 @@
 
 package org.gradle.internal.exceptions;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ import java.util.List;
  * Exceptions can be derived from this interface to provide a list of resolutions that are then displayed in the suggestion section of the error message.
  */
 
-@NonNullApi
+@NullMarked
 public interface ResolutionProvider {
     List<String> getResolutions();
 }

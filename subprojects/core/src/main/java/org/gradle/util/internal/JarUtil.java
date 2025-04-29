@@ -18,8 +18,8 @@ package org.gradle.util.internal;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.internal.IoActions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;

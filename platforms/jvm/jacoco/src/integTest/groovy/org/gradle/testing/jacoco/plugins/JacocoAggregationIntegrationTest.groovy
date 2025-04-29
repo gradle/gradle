@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import spock.lang.Issue
 
@@ -24,6 +25,8 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
+
         multiProjectBuild("root", ["application", "direct", "transitive"]) {
             buildFile << """
                 allprojects {

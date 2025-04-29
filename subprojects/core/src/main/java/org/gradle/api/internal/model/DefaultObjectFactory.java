@@ -47,10 +47,8 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
-import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
@@ -58,19 +56,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFactory {
+public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final Factory<PatternSet> patternSetFactory;
+    private final PatternSetFactory patternSetFactory;
     private final PropertyFactory propertyFactory;
     private final FilePropertyFactory filePropertyFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-                                PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public DefaultObjectFactory(
+        Instantiator instantiator,
+        NamedObjectInstantiator namedObjectInstantiator,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        PatternSetFactory patternSetFactory,
+        PropertyFactory propertyFactory,
+        FilePropertyFactory filePropertyFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory
+    ) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;

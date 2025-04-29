@@ -29,8 +29,8 @@ import org.gradle.internal.service.scopes.ListenerService;
 import org.gradle.internal.service.scopes.ParallelListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

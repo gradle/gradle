@@ -17,5 +17,5 @@
 /**
  * Package with declarations for various configuration code interceptors for bytecode instrumentation, e.g. for configuration cache.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.classpath.declarations;

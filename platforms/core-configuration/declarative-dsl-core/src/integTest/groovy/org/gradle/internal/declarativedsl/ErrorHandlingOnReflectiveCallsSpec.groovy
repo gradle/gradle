@@ -18,17 +18,28 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.junit.Before
+import org.junit.Test
 
-class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
+import static org.hamcrest.Matchers.containsString
 
-    def 'can disambiguate between methods based on parameters'() {
+class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
+
+    @Before
+    void clearDefaultSettings() {
+        if (!file("settings.gradle.kts").delete()) {
+            throw new RuntimeException("Failed to delete default settings script")
+        }
+    }
+
+    @Test
+    void 'can disambiguate between methods based on parameters'() {
         given:
 
-        file("build-logic/build.gradle") << defineBuildLogic([
+        file("build-logic/build.gradle.kts") << defineBuildLogic([
             "id(\"java-gradle-plugin\")",
-            "id(\"org.jetbrains.kotlin.jvm\").version(\"${new KotlinGradlePluginVersions().latest}\")"
+            "`kotlin-dsl`"
         ])
 
         file("build-logic/src/main/kotlin/com/example/restricted/Extension.kt") << """
@@ -69,20 +80,19 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Boom Int")
+        failure.assertThatCause(containsString("Boom Int"))
     }
 
-
-
-    def 'can disambiguate between annotated and non-annotated methods'() {
+    @Test
+    void 'can disambiguate between annotated and non-annotated methods'() {
         given:
 
-        file("build-logic/build.gradle") << defineBuildLogic([
+        file("build-logic/build.gradle.kts") << defineBuildLogic([
             "id(\"java-gradle-plugin\")",
-            "id(\"org.jetbrains.kotlin.jvm\").version(\"${new KotlinGradlePluginVersions().latest}\")"
+            "`kotlin-dsl`"
         ])
 
         file("build-logic/src/main/kotlin/com/example/restricted/Extension.kt") << """
@@ -115,7 +125,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
                 abstract class Access {
                     @get:Restricted
-                    abstract val name: Property<String?>?
+                    abstract val name: Property<String>?
                 }
             }
         """
@@ -136,18 +146,18 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Boom Action")
+        failure.assertThatCause(containsString("Boom Action"))
     }
 
-    def 'fails disambiguating between two annotated, semantically equivalent methods'() {
+    @Test
+    void 'fails disambiguating between two annotated, semantically equivalent methods'() {
         given:
-
-        file("build-logic/build.gradle") << defineBuildLogic([
+        file("build-logic/build.gradle.kts") << defineBuildLogic([
             "id(\"java-gradle-plugin\")",
-            "id(\"org.jetbrains.kotlin.jvm\").version(\"${new KotlinGradlePluginVersions().latest}\")"
+            "`kotlin-dsl`"
         ])
 
         file("build-logic/src/main/kotlin/com/example/restricted/Extension.kt") << """
@@ -181,7 +191,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
                 abstract class Access {
                     @get:Restricted
-                    abstract val name: Property<String?>?
+                    abstract val name: Property<String>?
                 }
             }
         """
@@ -202,18 +212,18 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
-
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Failed disambiguating between following functions (matches 0):")
-        failureCauseContains("fun com.example.restricted.Extension.access(org.gradle.api.Action<com.example.restricted.Extension.Access>): kotlin.Unit")
-        failureCauseContains("fun com.example.restricted.Extension.access((com.example.restricted.Extension.Access) -> kotlin.Unit): kotlin.Unit")
+        failure.assertThatCause(containsString("Failed disambiguating between following functions (matches 2):"))
+        failure.assertThatCause(containsString("fun com.example.restricted.Extension.access(org.gradle.api.Action<com.example.restricted.Extension.Access>): kotlin.Unit"))
+        failure.assertThatCause(containsString("fun com.example.restricted.Extension.access((com.example.restricted.Extension.Access) -> kotlin.Unit): kotlin.Unit"))
     }
 
-    def 'when reflective invocation fails the cause is identified correctly'() {
+    @Test
+    void 'when reflective invocation fails the cause is identified correctly'() {
         given:
-        file("build-logic/build.gradle") << defineBuildLogic(["id('java-gradle-plugin')"])
+        file("build-logic/build.gradle.kts") << defineBuildLogic(["id(\"java-gradle-plugin\")"])
 
         file("build-logic/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
@@ -270,10 +280,10 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Boom")
+        failure.assertThatCause(containsString("Boom"))
     }
 
     private static String defineBuildLogic(ArrayList<String> plugins) {

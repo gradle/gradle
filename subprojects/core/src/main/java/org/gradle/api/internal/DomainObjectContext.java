@@ -20,11 +20,10 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Represents a node in the tree of builds/projects.
+ * The owner/context of a Dependency Management instance.
  */
 public interface DomainObjectContext extends Describable {
 

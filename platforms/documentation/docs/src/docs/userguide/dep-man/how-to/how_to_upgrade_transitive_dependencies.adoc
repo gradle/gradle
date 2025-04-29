@@ -1,0 +1,58 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[how_to_upgrade_transitive_dependencies]]
+= How to Upgrade Transitive Dependencies in Gradle
+
+This guide explains how to manage and upgrade versions of **transitive dependencies** in Gradle using **dependency constraints**.
+
+== Why Upgrade a Transitive Dependency?
+
+There are many reasons to upgrade a version of a dependency:
+
+* *Bug fixes* resolve issues present in older versions.
+* *Security patches* address vulnerabilities to keep the project safe.
+* *Performance improvements* make builds faster and more efficient.
+* *New features* provide additional functionality and better compatibility.
+
+== Step 1: Setting Dependency Constraints on Transitive Dependencies
+
+<<dependency_constraints.adoc#dependency-constraints,Dependency constraints>> allow you to define the **version** or **version range** of both direct dependencies and transitive dependencies.
+
+Dependency constraints can also **override transitive dependencies** and enforce strict versions, even <<how_to_downgrade_transitive_dependencies.adoc#how_to_downgrade_dependencies,**downgrading**>> if necessary.
+
+To enforce specific versions of transitive dependencies, use the link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html[`constraints`] block inside link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`dependencies {}`]:
+
+====
+include::sample[dir="snippets/how-to/upgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/how-to/upgrade-transitives/groovy",files="build.gradle[tags=dependency-full]"]
+====
+
+- The `implementation` dependency **omits the version**.
+- The `constraints` block **enforces specific versions** for `httpclient` and `commons-codec`.
+- The constraint for `commons-codec` **only applies if it is pulled transitively**.
+
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+====
+include::sample[dir="snippets/how-to/upgrade-transitives/tests",files="dependencies.out"]
+====
+
+== Summary
+
+Use dependency constraints when:
+
+- You want to **override transitive dependencies** with a specific version.
+- You need to enforce **a strict version or range** across multiple dependencies.
+- You want to **prevent dependency conflicts** without manually adding transitive dependencies.

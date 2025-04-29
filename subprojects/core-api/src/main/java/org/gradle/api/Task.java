@@ -36,9 +36,8 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
@@ -189,29 +188,6 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     @Internal
     @Override
     String getName();
-
-    /**
-     * An implementation of the namer interface for tasks that returns {@link #getName()}.
-     *
-     * @deprecated Use {@link Named.Namer#INSTANCE} instead (since {@link Task} now extends {@link Named}).
-     */
-    @Deprecated
-    class Namer implements org.gradle.api.Namer<Task> {
-
-        public Namer() {
-            DeprecationLogger.deprecateType(Namer.class)
-                .replaceWith("Named.Namer.INSTANCE")
-                .withContext("Task implements Named, so you can use Named.Namer.INSTANCE instead of Task.Namer")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "deprecated_namers")
-                .nagUser();
-        }
-
-        @Override
-        public String determineName(Task task) {
-            return Named.Namer.INSTANCE.determineName(task);
-        }
-    }
 
     /**
      * <p>Returns the {@link Project} which this task belongs to.</p>

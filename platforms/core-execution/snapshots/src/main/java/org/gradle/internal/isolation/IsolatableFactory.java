@@ -18,8 +18,7 @@ package org.gradle.internal.isolation;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A factory for creating {@link Isolatable} instances from an object graph. These hold a snapshot of the object graph's state and can be used to:
@@ -32,7 +31,7 @@ import javax.annotation.Nullable;
  *
  * @see org.gradle.internal.snapshot.ValueSnapshotter
  */
-@ServiceScope(Scope.UserHome.class)
+@ServiceScope({Scope.UserHome.class, Scope.Global.class})  //Global scope is needed for the usage in process isolated worker actions
 public interface IsolatableFactory {
     /**
      * Creates an {@link Isolatable} that reflects the <em>current</em> state of the given value. Any changes made to the value will not be visible to the {@link Isolatable} and vice versa.

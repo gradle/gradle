@@ -21,7 +21,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -38,6 +38,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -214,9 +215,8 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         reason = "Class path isolation, tested here, is not correct in embedded mode"
     )
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
-
-        val differentKotlinVersion = "1.6.0"
-        val expectedKotlinCompilerVersionString = "1.6.0"
+        val differentKotlinVersion = KotlinGradlePluginVersions().latestsStable.last { VersionNumber.parse(it) < VersionNumber.parse(embeddedKotlinVersion) }
+        val expectedKotlinCompilerVersionString = differentKotlinVersion
 
         assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
 
@@ -250,33 +250,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             }
             """
         )
-
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation"
-        )
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.util.WrapUtil type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
-        )
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-        )
-        if (GradleContextualExecuter.isConfigCache()) {
-            executer.expectDocumentedDeprecationWarning(
-                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Simply remove the call. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation"
-            )
-        }
 
         assertThat(
             build("print-kotlin-version").output,
@@ -429,7 +402,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
         assertThat(
             buildFailureOutput("tasks"),
-            containsString("e: ${clickableUrlFor(buildFile)}:3:44: Unresolved reference: fooBarVersion")
+            containsString("e: ${clickableUrlFor(buildFile)}:3:44: Unresolved reference 'fooBarVersion'.")
         )
     }
 
@@ -652,7 +625,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 Script compilation error:
 
                   Line 1: foo
-                          ^ Unresolved reference: foo
+                          ^ Unresolved reference 'foo'.
 
                 1 error
                 """
@@ -668,18 +641,15 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         assertThat(
             buildFailureOutput().normaliseLineSeparators(),
             containsMultiLineString(
-                """
+            """
                 * What went wrong:
-                Script compilation errors:
+                Script compilation error:
 
                   Line 1: publishing { }
-                          ^ Expression 'publishing' cannot be invoked as a function. The function 'invoke()' is not found
+                          ^ Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+                              val PluginDependenciesSpec.publishing: PluginDependencySpec
 
-                  Line 1: publishing { }
-                          ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:${' '}
-                              public val PluginDependenciesSpec.publishing: PluginDependencySpec defined in org.gradle.kotlin.dsl
-
-                2 errors
+                1 error
                 """
             )
         )
@@ -708,13 +678,13 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 containsString(
                     """
                     |  Line 01: println(foo)
-                    |                   ^ Unresolved reference: foo
+                    |                   ^ Unresolved reference 'foo'.
                     |
                     |  Line 06: println("foo").bar.bazar
-                    |                          ^ Unresolved reference: bar
+                    |                          ^ Unresolved reference 'bar'.
                     |
                     |  Line 10: println(cathedral)
-                    |                   ^ Unresolved reference: cathedral
+                    |                   ^ Unresolved reference 'cathedral'.
                     """.trimMargin()
                 )
             )
@@ -1189,7 +1159,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 @TaskAction
                 fun action() {
-                    val modelName = KotlinBuildScriptModel::class.qualifiedName
+                    val modelName = KotlinBuildScriptModel::class.qualifiedName!!
                     val builder = builderRegistry.getBuilder(modelName)
                     val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
                     if (model.classPath.any { it.name.startsWith("gradle-kotlin-dsl") }) {
@@ -1265,7 +1235,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
             }
 
-            task<PrintInputToFile>("writeInputToFile") {
+            tasks.register<PrintInputToFile>("writeInputToFile") {
                 inputSource = providers.gradleProperty("inputString")
                 outputFile = project.layout.buildDirectory.file("output.txt")
             }

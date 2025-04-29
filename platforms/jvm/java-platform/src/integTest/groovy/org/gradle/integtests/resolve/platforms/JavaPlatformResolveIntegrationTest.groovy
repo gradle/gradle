@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.platforms
 
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.hamcrest.Matchers
 
@@ -27,11 +28,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     ResolveTestFixture resolve
 
     def setup() {
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << """
-            apply plugin: 'java-library'
-
-            allprojects {
+        settingsFile << """
+            rootProject.name = 'test'
+            gradle.lifecycle.beforeProject {
                 repositories {
                     maven { url = "${mavenHttpRepo.uri}" }
                 }
@@ -39,8 +38,12 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 version = '1.9'
             }
         """
+        buildFile << """
+            apply plugin: 'java-library'
+        """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ResolveTestFixture#prepare isn't IP compatible")
     def "can get recommendations from a platform subproject"() {
         def module = mavenHttpRepo.module("org", "foo", "1.1").publish()
 
@@ -80,6 +83,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ResolveTestFixture#prepare isn't IP compatible")
     def "can get different recommendations from a platform runtime subproject"() {
         def module1 = mavenHttpRepo.module("org", "foo", "1.1").publish()
         def module2 = mavenHttpRepo.module("org", "bar", "1.2").publish()
@@ -130,6 +134,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ResolveTestFixture#prepare isn't IP compatible")
     def "fails when using a regular project dependency instead of a platform dependency"() {
         def module = mavenHttpRepo.module("org", "foo", "1.1").publish()
 
@@ -159,6 +164,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         failure.assertThatCause(Matchers.startsWith("No matching variant of project :platform was found."))
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ResolveTestFixture#prepare isn't IP compatible")
     def "can enforce a local platform dependency"() {
         def module1 = mavenHttpRepo.module("org", "foo", "1.1").publish()
         def module2 = mavenHttpRepo.module("org", "foo", "1.2").publish()
@@ -201,7 +207,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
-    def "Can handle a published platform dependency that is resolved to a local platform project"() {
+    def "can handle a published platform dependency that is resolved to a local platform project"() {
         given:
         file("src/main/java/SomeClass.java") << "public class SomeClass {}"
         platformModule('')
@@ -234,6 +240,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         succeeds ":compileJava"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ResolveTestFixture#prepare isn't IP compatible")
     def 'constraint from platform does not erase excludes (platform: #platform)'() {
         given:
         platformModule("""

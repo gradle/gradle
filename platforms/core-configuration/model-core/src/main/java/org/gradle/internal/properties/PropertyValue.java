@@ -17,8 +17,8 @@
 package org.gradle.internal.properties;
 
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 /**

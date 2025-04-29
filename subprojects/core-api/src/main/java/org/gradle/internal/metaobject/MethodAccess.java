@@ -16,7 +16,7 @@
 
 package org.gradle.internal.metaobject;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides dynamic access to methods of some object.

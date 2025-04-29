@@ -81,9 +81,9 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     test("MyTestInternal") {
-                        testDisplayName "My test!"
+                        displayName "My test!"
                     }
                 }
             }
@@ -140,10 +140,10 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     composite("My Suite") {
                         test("MyTestInternal") {
-                            testDisplayName "My test!"
+                            displayName "My test!"
                         }
                     }
                 }
@@ -211,14 +211,14 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                composite("Custom test root") {
+                root("Custom test root") {
                     composite("My Suite") {
                         composite("myTestMethod") {
                             test("myTestMethod[0]") {
-                                testDisplayName "My test method! (foo=0)"
+                                displayName "My test method! (foo=0)"
                             }
                             test("myTestMethod[1]") {
-                                testDisplayName "My test method! (foo=1)"
+                                displayName "My test method! (foo=1)"
                             }
                         }
                     }

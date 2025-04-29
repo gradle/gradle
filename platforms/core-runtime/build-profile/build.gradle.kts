@@ -19,6 +19,7 @@ dependencies {
     implementation(projects.serviceLookup)
 
     implementation(libs.guava)
+    implementation(libs.jspecify)
 
     testImplementation(projects.internalTesting)
 

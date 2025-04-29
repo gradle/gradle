@@ -26,8 +26,8 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolutionResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.reporting.ReportRenderer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;

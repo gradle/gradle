@@ -33,9 +33,12 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class GroovyToJavaConversionIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires to fork a daemon for Class-Decoration")
     def "For every boolean is getter there is a get Getter"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons() // We need to fork - if we do not fork Class-Decoration does not happen

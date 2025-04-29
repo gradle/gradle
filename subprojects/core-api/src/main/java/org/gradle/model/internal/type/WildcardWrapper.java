@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.type;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface WildcardWrapper extends TypeWrapper {
     TypeWrapper getUpperBound();

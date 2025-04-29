@@ -132,7 +132,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> [javaTree, resourcesTree]
         return new SourceFoldersCreator().configureProjectRelativeFolders([sourceSet], [], { File file -> file.path },
-            defaultOutputFolder, baseSourceOutputFolder.absolutePath)
+            defaultOutputFolder, baseSourceOutputFolder)
     }
 
     private List<SourceFolder> externalSourceFolders(String... paths) {

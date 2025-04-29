@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy
@@ -48,17 +48,6 @@ public interface Dependency {
      */
     @Nullable
     String getVersion();
-
-    /**
-     * Returns whether two dependencies have identical values for their properties. A dependency is an entity with a
-     * key. Therefore dependencies might be equal and yet have different properties.
-     *
-     * @param dependency The dependency to compare this dependency with
-     *
-     * @deprecated Use {@link Object#equals(Object)} instead.
-     */
-    @Deprecated
-    boolean contentEquals(Dependency dependency);
 
     /**
      * Creates and returns a new dependency with the property values of this one.

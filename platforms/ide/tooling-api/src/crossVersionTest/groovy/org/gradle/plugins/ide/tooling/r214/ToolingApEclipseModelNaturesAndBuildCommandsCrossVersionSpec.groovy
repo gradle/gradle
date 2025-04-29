@@ -16,12 +16,11 @@
 
 package org.gradle.plugins.ide.tooling.r214
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
 
-@TargetGradleVersion(">=3.0")
 class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends ToolingApiSpecification {
 
     static final def JAVA_NATURES = ['org.eclipse.jdt.core.javanature']

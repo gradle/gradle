@@ -131,6 +131,8 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         long duration
         List<SerializableFailure> failures = []
 
+        SerializableFailure assumptionFailure = null
+
         TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
 
         private final List<BuildableOutputEvent> outputEvents
@@ -145,6 +147,11 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         void failure(String message, String stackTrace) {
             failures.add(new SerializableFailure(message, stackTrace, "ExceptionType"))
             resultType = TestResult.ResultType.FAILURE
+        }
+
+        void assumptionFailure(String message, String stackTrace) {
+            assumptionFailure = new SerializableFailure(message, stackTrace, "ExceptionType")
+            resultType = TestResult.ResultType.SKIPPED
         }
 
         void ignore() {

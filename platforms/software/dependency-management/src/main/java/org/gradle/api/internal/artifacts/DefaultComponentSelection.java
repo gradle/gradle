@@ -20,8 +20,7 @@ import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MetadataProvider;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultComponentSelection implements ComponentSelectionInternal {
     private final ModuleComponentIdentifier candidate;

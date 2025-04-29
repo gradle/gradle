@@ -17,7 +17,7 @@
 package org.gradle.internal.extensions.stdlib
 
 
-fun <V> Map<String, V>.filterKeysByPrefix(prefix: String): Map<String, V?> =
+fun <V> Map<String, V>.filterKeysByPrefix(prefix: String): Map<String, V> =
     filterKeys { key -> key.length > prefix.length && key.startsWith(prefix) }
 
 

@@ -9,4 +9,5 @@ dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly("org.ow2.asm:asm-tree")
     compileOnly("com.google.code.findbugs:jsr305")
+    compileOnly("org.jspecify:jspecify")
 }

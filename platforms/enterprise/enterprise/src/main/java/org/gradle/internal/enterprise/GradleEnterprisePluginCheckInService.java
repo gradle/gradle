@@ -20,7 +20,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * The plugin uses this to announce its presence and provide its service.
+ * The Gradle Enterprise/Develocity plugin 3.4+ uses this to announce its presence and provide its service.
  *
  * It is obtained via the settings object's service registry for the root build only.
  */

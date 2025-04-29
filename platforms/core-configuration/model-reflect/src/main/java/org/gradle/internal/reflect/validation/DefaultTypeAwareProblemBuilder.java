@@ -16,20 +16,20 @@
 
 package org.gradle.internal.reflect.validation;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-@NonNullApi
+@NullMarked
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
 
     public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder) {
@@ -73,7 +73,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
         String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
         String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
-        return problem.toBuilder(getAdditionalDataBuilderFactory(), getInstantiator(), getPayloadSerializer()).contextualLabel(prefix + text).build();
+        return problem.toBuilder(getInfrastructure()).contextualLabel(prefix + text).build();
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {

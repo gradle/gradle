@@ -28,8 +28,7 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Adds various reporting tasks that provide information about a software project, such as information about
@@ -38,7 +37,7 @@ import javax.annotation.Nonnull;
  * @since 8.13
  */
 @Incubating
-@Nonnull
+@NullMarked
 public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

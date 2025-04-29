@@ -1,5 +1,5 @@
 tasks.register('compileTest') {
     doLast {
-        println 'compiling unit tests'
+        println("compiling unit tests")
     }
 }

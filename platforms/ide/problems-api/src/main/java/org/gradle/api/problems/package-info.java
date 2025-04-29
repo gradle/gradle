@@ -18,7 +18,7 @@
  * new Problems API
  */
 
-@NonNullApi
+@NullMarked
 package org.gradle.api.problems;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

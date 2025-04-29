@@ -175,6 +175,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-process-startup",
+    "path": "platforms/core-runtime/build-process-startup",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-profile",
     "path": "platforms/core-runtime/build-profile",
     "unitTests": true,
@@ -274,7 +281,7 @@
   },
   {
     "name": "core-platform",
-    "path": "subprojects/core-platform",
+    "path": "packaging/core-platform",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -311,7 +318,7 @@
     "name": "daemon-server-worker",
     "path": "platforms/core-execution/daemon-server-worker",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -400,14 +407,14 @@
   },
   {
     "name": "distributions-dependencies",
-    "path": "subprojects/distributions-dependencies",
+    "path": "packaging/distributions-dependencies",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "distributions-full",
-    "path": "subprojects/distributions-full",
+    "path": "packaging/distributions-full",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -588,6 +595,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "graph-isolation",
+    "path": "platforms/core-configuration/graph-isolation",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "graph-serialization",
     "path": "platforms/core-configuration/graph-serialization",
     "unitTests": false,
@@ -633,7 +647,7 @@
     "name": "input-tracking",
     "path": "platforms/core-configuration/input-tracking",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -687,7 +701,7 @@
   },
   {
     "name": "internal-build-reports",
-    "path": "subprojects/internal-build-reports",
+    "path": "packaging/internal-build-reports",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -730,6 +744,13 @@
   {
     "name": "io",
     "path": "platforms/core-runtime/io",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "isolated-action-services",
+    "path": "platforms/core-configuration/isolated-action-services",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -982,7 +1003,7 @@
   {
     "name": "plugins-java",
     "path": "platforms/jvm/plugins-java",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
   },
@@ -1072,7 +1093,7 @@
   },
   {
     "name": "public-api",
-    "path": "subprojects/public-api",
+    "path": "packaging/public-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1159,6 +1180,13 @@
     "path": "platforms/jvm/scala",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scoped-persistent-cache",
+    "path": "platforms/core-execution/scoped-persistent-cache",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

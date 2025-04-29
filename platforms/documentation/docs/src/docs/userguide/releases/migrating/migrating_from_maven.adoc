@@ -349,7 +349,7 @@ You are likely to encounter two situations regarding optional dependencies:
 For the first scenario, Gradle behaves the same way as Maven and simply ignores any transitive dependencies that are declared as optional.
 They are not resolved and have no impact on the versions selected if the same dependencies appear elsewhere in the dependency graph as non-optional.
 
-As for publishing dependencies as optional, Gradle provides a richer model called <<feature_variants#feature_variants, feature variants>>, which will let you declare the "optional features" your library provides.
+As for publishing dependencies as optional, Gradle provides a richer model called <<how_to_create_feature_variants_of_a_library.adoc#feature_variants, feature variants>>, which will let you declare the "optional features" your library provides.
 
 [[migmvn:using_boms]]
 == Using bills of materials (BOMs)

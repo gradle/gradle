@@ -116,11 +116,6 @@ public abstract class AbstractIntegrationTest implements HasGradleExecutor {
         return getExecuter().inDirectory(directory);
     }
 
-    @Deprecated
-    protected GradleExecuter usingBuildFile(File file) {
-        return getExecuter().usingBuildScript(file);
-    }
-
     protected GradleExecuter usingProjectDir(File projectDir) {
         return getExecuter().usingProjectDirectory(projectDir);
     }

@@ -450,7 +450,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
 
-    @TargetGradleVersion(">=3.0 <4.8")
+    @TargetGradleVersion(">=4.0 <4.8")
     def "exception when not supported gradle version"() {
         def version = targetDist.version.version
         IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()

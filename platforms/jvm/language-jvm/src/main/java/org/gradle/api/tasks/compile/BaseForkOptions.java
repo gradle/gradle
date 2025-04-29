@@ -15,12 +15,14 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,8 +32,7 @@ import java.util.stream.Collectors;
  * Fork options for compilation. Only take effect if {@code fork}
  * is {@code true}.
  */
-@SuppressWarnings("deprecation")
-public class BaseForkOptions extends AbstractOptions {
+public class BaseForkOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     private String memoryInitialSize;
@@ -96,8 +97,7 @@ public class BaseForkOptions extends AbstractOptions {
     public void setJvmArgs(@Nullable List<String> jvmArgs) {
         this.jvmArgs = jvmArgs == null ? null : jvmArgs.stream()
             .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(string -> !string.isEmpty())
+            .filter(string -> !StringUtils.isBlank(string))
             .collect(Collectors.toList());
     }
 }

@@ -18,16 +18,18 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
  */
+@Requires(UnitTestPreconditions.Jdk17OrLater)
 class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
-    static bomVersion = "2.0.4.RELEASE"
-    static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'" // TODO:Finalize Upload Removal - Issue #21439
+    static bomVersion = "3.4.4"
+    static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'"
     // This comes from the BOM
-    static springVersion = "5.0.8.RELEASE"
+    static springVersion = "6.2.5"
 
     def 'bom support is provided by #bomSupportProvider'() {
         given:
@@ -61,20 +63,47 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
 
         when:
         def runner = runner('checkDep')
-        if (bomSupportProvider == "nebula recommender plugin") {
-            runner.expectDeprecationWarning(
-                "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getStrictMode' with the same behavior and mark the old one with @Deprecated, or change the type of 'netflix.nebula.dependency.recommender.provider.RecommendationProviderContainer.isStrictMode' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
-                "https://github.com/nebula-plugins/nebula-dependency-recommender-plugin/issues/127"
-            )
-        }
         runner.build()
 
         then:
+        def micrometerObservationDeps = {
+            edge("io.micrometer:micrometer-commons:1.14.5", "io.micrometer:micrometer-commons:1.14.5").byReason(reason)
+        }
         def junitDeps = {
-            module("org.hamcrest:hamcrest-core:1.3").byReason(reason3)
+            switch (bomSupportProvider) {
+                case "gradle":
+                    edge("org.hamcrest:hamcrest-core:1.3", "org.hamcrest:hamcrest-core:2.2") {
+                        byReason("conflict resolution: between versions 2.2 and 1.3")
+                        edge("org.hamcrest:hamcrest:2.2", "org.hamcrest:hamcrest:2.2")
+                    }
+                    break
+                case "nebula recommender plugin":
+                    module("org.hamcrest:hamcrest-core:1.3").byReason(reason)
+                    break
+                case "spring dependency management plugin":
+                    edge("org.hamcrest:hamcrest-core:1.3", "org.hamcrest:hamcrest-core:2.2") {
+                        byReason(reason)
+                        variant("compile", [
+                            'org.gradle.category': 'library',
+                            'org.gradle.libraryelements': 'jar',
+                            'org.gradle.status': 'release',
+                            'org.gradle.usage': 'java-api'
+                        ])
+                        edge("org.hamcrest:hamcrest:2.2", "org.hamcrest:hamcrest:2.2") {
+                            byReason(reason)
+                            variant("compile", [
+                                'org.gradle.category': 'library',
+                                'org.gradle.libraryelements': 'jar',
+                                'org.gradle.status': 'release',
+                                'org.gradle.usage': 'java-api'
+                            ])
+                        }
+                    }
+                    break
+            }
         }
         def springCoreDeps = {
-            module("org.springframework:spring-jcl:${springVersion}").byReason(reason3)
+            module("org.springframework:spring-jcl:${springVersion}").byReason(reason)
         }
         def springExpressionDeps = {
             module("org.springframework:spring-core:${springVersion}")
@@ -87,27 +116,30 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.springframework:spring-core:${springVersion}")
         }
         def springContextDeps = {
-            module("org.springframework:spring-aop:${springVersion}", springAopDeps).byReason(reason3)
-            module("org.springframework:spring-beans:${springVersion}", springBeansDeps).byReason(reason3)
+            module("org.springframework:spring-aop:${springVersion}", springAopDeps).byReason(reason)
+            module("org.springframework:spring-beans:${springVersion}", springBeansDeps).byReason(reason)
             module("org.springframework:spring-core:${springVersion}")
-            module("org.springframework:spring-expression:${springVersion}", springExpressionDeps).byReason(reason3)
+            module("org.springframework:spring-expression:${springVersion}", springExpressionDeps).byReason(reason)
+            module("io.micrometer:micrometer-observation:1.14.5", micrometerObservationDeps).byReason(reason)
         }
         def springTestDeps = {
             module("org.springframework:spring-core:${springVersion}")
         }
         def springBootDeps = {
-            module("org.springframework:spring-core:${springVersion}", springCoreDeps).byReason(reason3)
-            module("org.springframework:spring-context:${springVersion}", springContextDeps).byReason(reason3)
+            module("org.springframework:spring-core:${springVersion}", springCoreDeps).byReason(reason)
+            module("org.springframework:spring-context:${springVersion}", springContextDeps).byReason(reason)
         }
         def springBootAutoconfigureDeps = {
             module("org.springframework.boot:spring-boot:$bomVersion")
         }
         def springBootTestDeps = {
             module("org.springframework.boot:spring-boot:$bomVersion")
+            module("org.springframework:spring-test:$springVersion")
         }
         def springBootTestAutoconfigureDeps = {
             module("org.springframework.boot:spring-boot-test:$bomVersion")
             module("org.springframework.boot:spring-boot-autoconfigure:$bomVersion")
+            module("org.springframework.boot:spring-boot:$bomVersion")
         }
 
         resolve.expectDefaultConfiguration('compile')
@@ -126,31 +158,34 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
                         constraint("org.springframework.boot:spring-boot-test:$bomVersion")
                         constraint("org.springframework.boot:spring-boot-autoconfigure:$bomVersion")
                         constraint("org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion")
-                        constraint("junit:junit:4.12")
-                        constraint("org.hamcrest:hamcrest-core:1.3")
+                        constraint("junit:junit:4.13.2")
+                        constraint("org.hamcrest:hamcrest:2.2")
+                        constraint("org.hamcrest:hamcrest-core:2.2")
+                        constraint("io.micrometer:micrometer-commons:1.14.5")
+                        constraint("io.micrometer:micrometer-observation:1.14.5")
                         noArtifacts()
                     }
                 }
-                edge("org.springframework.boot:spring-boot-test-autoconfigure", "org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion", springBootTestAutoconfigureDeps).byReason(reason1)
-                edge("org.springframework.boot:spring-boot-test", "org.springframework.boot:spring-boot-test:$bomVersion", springBootTestDeps).byReason(reason2)
-                edge("org.springframework.boot:spring-boot-autoconfigure", "org.springframework.boot:spring-boot-autoconfigure:$bomVersion", springBootAutoconfigureDeps).byReason(reason2)
-                edge("org.springframework.boot:spring-boot", "org.springframework.boot:spring-boot:$bomVersion", springBootDeps).byReason(reason2)
-                edge("org.springframework:spring-test", "org.springframework:spring-test:${springVersion}", springTestDeps).byReason(reason2)
-                edge("junit:junit", "junit:junit:4.12", junitDeps).byReason(reason2)
+                edge("org.springframework.boot:spring-boot-test-autoconfigure", "org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion", springBootTestAutoconfigureDeps).byReason(reason)
+                edge("org.springframework.boot:spring-boot-test", "org.springframework.boot:spring-boot-test:$bomVersion", springBootTestDeps).byReason(reason)
+                edge("org.springframework.boot:spring-boot-autoconfigure", "org.springframework.boot:spring-boot-autoconfigure:$bomVersion", springBootAutoconfigureDeps).byReason(reason)
+                edge("org.springframework.boot:spring-boot", "org.springframework.boot:spring-boot:$bomVersion", springBootDeps).byReason(reason)
+                edge("org.springframework:spring-test", "org.springframework:spring-test:${springVersion}", springTestDeps).byReason(reason)
+                edge("junit:junit", "junit:junit:4.13.2", junitDeps).byReason(reason)
             }
             nodes.each {
                 if (directBomDependency) {
                     it.maybeByConstraint()
-                } else if (reason1 == "requested") {
+                } else if (reason == "requested") {
                     it.maybeSelectedByRule()
                 }
             }
         }
 
         where:
-        bomSupportProvider                    | directBomDependency | reason1            | reason2            | reason3            | bomDeclaration                                        | dependencyManagementPlugin
-        "gradle"                              | true                | "requested"        | "requested"        | "requested"        | "dependencies { implementation platform($bom) }"      | ""
-        "nebula recommender plugin"           | false               | "requested"        | "requested"        | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'com.netflix.nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
-        "spring dependency management plugin" | false               | "selected by rule" | "selected by rule" | "selected by rule" | "dependencyManagement { imports { mavenBom $bom } }"  | "id 'io.spring.dependency-management' version '${AbstractSmokeTest.TestedVersions.springDependencyManagement}'"
+        bomSupportProvider                    | directBomDependency | reason             | bomDeclaration                                        | dependencyManagementPlugin
+        "gradle"                              | true                | "requested"        | "dependencies { implementation platform($bom) }"      | ""
+        "nebula recommender plugin"           | false               | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'com.netflix.nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
+        "spring dependency management plugin" | false               | "selected by rule" | "dependencyManagement { imports { mavenBom $bom } }"  | "id 'io.spring.dependency-management' version '${AbstractSmokeTest.TestedVersions.springDependencyManagement}'"
     }
 }

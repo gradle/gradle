@@ -30,8 +30,8 @@ import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;

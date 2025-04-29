@@ -25,8 +25,8 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
@@ -58,7 +58,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     @Override
     protected void recordProblem(InternalProblem problem) {
-        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) { // TODO (donat) is already fixed on master
+        if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) {
             return;
         }
         problems.add(problem);

@@ -22,6 +22,7 @@ import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
@@ -49,7 +50,10 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec implement
     // This test deletes a JDK installation while the daemon is running.
     // This is difficult to setup on Windows since you can't delete files
     // that are in use.
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(value = [
+        UnitTestPreconditions.NotWindows,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with specific JDK that will be removed")
     @Issue("https://github.com/gradle/gradle/issues/16816")
     def "can successful start after a running daemon's JDK has been removed"() {
         def installedJdk = Jvm.current()

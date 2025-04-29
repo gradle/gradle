@@ -17,6 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 
 class ScalaCompileMultiProjectTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
@@ -36,7 +37,7 @@ class ScalaCompileMultiProjectTest extends AbstractIntegrationSpec implements Ja
                 apply plugin: "java"
 
                 dependencies {
-                    implementation ("org.scala-lang:scala3-library_3:3.3.1")
+                    implementation ("org.scala-lang:scala3-library_3:${ScalaCoverage.latestSupportedScala3Version}")
                     implementation project(":a")
                 }
             }

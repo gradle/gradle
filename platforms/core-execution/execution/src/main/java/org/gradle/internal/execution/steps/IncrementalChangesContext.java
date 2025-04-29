@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class IncrementalChangesContext extends ValidationFinishedContext {

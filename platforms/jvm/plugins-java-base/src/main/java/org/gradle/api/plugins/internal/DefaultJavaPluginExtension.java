@@ -40,7 +40,6 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -48,14 +47,11 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainSpecInternal;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.regex.Pattern;
 
-import static org.gradle.api.attributes.DocsType.JAVADOC;
-import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
@@ -260,42 +256,12 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void withJavadocJar() {
-        maybeEmitMissingJavaComponentDeprecation("withJavadocJar()");
-
-        if (isJavaComponentPresent(project)) {
-            project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withJavadocJar);
-        } else {
-            SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            JvmPluginsHelper.createDocumentationVariantWithArtifact(
-                main.getJavadocElementsConfigurationName(),
-                null,
-                JAVADOC,
-                Collections.emptySet(),
-                main.getJavadocJarTaskName(),
-                project.getTasks().named(main.getJavadocTaskName()),
-                project
-            );
-        }
+        project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withJavadocJar);
     }
 
     @Override
     public void withSourcesJar() {
-        maybeEmitMissingJavaComponentDeprecation("withSourcesJar()");
-
-        if (isJavaComponentPresent(project)) {
-            project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withSourcesJar);
-        } else {
-            SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            JvmPluginsHelper.createDocumentationVariantWithArtifact(
-                main.getSourcesElementsConfigurationName(),
-                null,
-                SOURCES,
-                Collections.emptySet(),
-                main.getSourcesJarTaskName(),
-                main.getAllSource(),
-                project
-            );
-        }
+       project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withSourcesJar);
     }
 
     @Override
@@ -316,8 +282,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void consistentResolution(Action<? super JavaResolutionConsistency> action) {
-        maybeEmitMissingJavaComponentDeprecation("consistentResolution(Action)");
-
         final SoftwareComponentContainer components = project.getComponents();
         final ConfigurationContainer configurations = project.getConfigurations();
         final SourceSetContainer sourceSets = getSourceSets();
@@ -331,62 +295,28 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return name;
     }
 
-    private static boolean isJavaComponentPresent(ProjectInternal project) {
-        return project.getComponents().stream().anyMatch(JvmSoftwareComponentInternal.class::isInstance);
-    }
-
-    private void maybeEmitMissingJavaComponentDeprecation(String name) {
-        if (!isJavaComponentPresent(project)) {
-            DeprecationLogger.deprecateBehaviour(name + " was called without the presence of the java component.")
-                .withAdvice("Apply a JVM component plugin such as: java-library, application, groovy, or scala")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "java_extension_without_java_component")
-                .nagUser();
-        }
-    }
-
     public static class DefaultJavaResolutionConsistency implements JavaResolutionConsistency {
         private final SoftwareComponentContainer components;
         private final SourceSetContainer sourceSets;
         private final ConfigurationContainer configurations;
-        private final ProjectInternal project;
 
         @Inject
-        public DefaultJavaResolutionConsistency(SoftwareComponentContainer components, SourceSetContainer sourceSets, ConfigurationContainer configurations, ProjectInternal project) {
+        public DefaultJavaResolutionConsistency(SoftwareComponentContainer components, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
             this.components = components;
             this.sourceSets = sourceSets;
             this.configurations = configurations;
-            this.project = project;
         }
 
         @Override
         public void useCompileClasspathVersions() {
             sourceSets.configureEach(this::applyCompileClasspathConsistency);
             components.withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::useCompileClasspathConsistency);
-
-            if (!isJavaComponentPresent(project)) {
-                SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                SourceSet testSourceSet = sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME);
-                Configuration mainCompileClasspath = findConfiguration(mainSourceSet.getCompileClasspathConfigurationName());
-                Configuration testCompileClasspath = findConfiguration(testSourceSet.getCompileClasspathConfigurationName());
-
-                testCompileClasspath.shouldResolveConsistentlyWith(mainCompileClasspath);
-            }
         }
 
         @Override
         public void useRuntimeClasspathVersions() {
             sourceSets.configureEach(this::applyRuntimeClasspathConsistency);
             components.withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::useRuntimeClasspathConsistency);
-
-            if (!isJavaComponentPresent(project)) {
-                SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                SourceSet testSourceSet = sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME);
-                Configuration mainRuntimeClasspath = findConfiguration(mainSourceSet.getRuntimeClasspathConfigurationName());
-                Configuration testRuntimeClasspath = findConfiguration(testSourceSet.getRuntimeClasspathConfigurationName());
-
-                testRuntimeClasspath.shouldResolveConsistentlyWith(mainRuntimeClasspath);
-            }
         }
 
         private void applyCompileClasspathConsistency(SourceSet sourceSet) {

@@ -102,20 +102,4 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         then:
         !result.getOutput().contains("See the report at:")
     }
-
-    def "nags users about deprecations"() {
-        given:
-        buildFile << """
-            projectReportDirName = "custom"
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.ProjectReportsPluginConvention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#project_report_convention_deprecation"
-        )
-        succeeds("projectReport")
-    }
 }

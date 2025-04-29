@@ -22,8 +22,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Iterator;

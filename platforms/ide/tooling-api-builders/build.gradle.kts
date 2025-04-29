@@ -4,12 +4,6 @@ plugins {
 
 description = "Provider-side implementation for running tooling model builders"
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineMeSuggester", // 1 occurrences
-    )
-}
-
 dependencies {
     implementation(projects.baseServicesGroovy) // for 'Specs'
     implementation(projects.coreApi)
@@ -34,7 +28,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     runtimeOnly(projects.compositeBuilds)
     runtimeOnly(libs.groovy) // for 'Closure'

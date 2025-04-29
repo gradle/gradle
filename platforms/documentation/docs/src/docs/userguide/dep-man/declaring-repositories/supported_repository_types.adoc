@@ -46,6 +46,15 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 
 Gradle will first look for POMs and artifacts at the base URL, and if the artifact is not found, it will check the additional `artifactUrls`.
 
+[[strict_limitation_to_declared_repositories]]
+=== Strict limitation for Maven repositories
+
+Maven POM metadata can specify additional repositories, but Gradle ignores them.
+Instead, Gradle strictly uses only the repositories declared in the build script.
+
+NOTE: This serves as both a reproducibility safeguard and a security measure.
+Without this restriction, an updated dependency version could unexpectedly introduce artifacts from unverified sources into your build.
+
 [[sec:accessing_secured_maven_repositories]]
 === Authenticated Maven repository
 
@@ -79,7 +88,45 @@ If a `settings.xml` file is defined in the user’s home directory (`~/.m2/setti
 Otherwise, Gradle defaults to `~/.m2/repository`.
 
 [[sec:case-for-maven-local]]
-TIP: As a general recommendation, avoid using `mavenLocal()`. Unlike Maven builds, Gradle can share artifacts between projects using project dependencies. Publishing to the local maven repo is not necessary for sharing artifacts between projects.
+==== The case against `mavenLocal()`
+
+As a general rule, you should avoid adding `mavenLocal()` as a repository in your Gradle builds.
+There are several issues with relying on it:
+
+1. **Not a true repository, just a cache**:
+* Maven treats `mavenLocal()` as a cache, not a reliable repository.
+* It may contain incomplete modules—for example, missing sources or Javadoc files—leading to issues in Gradle when resolving dependencies.
+2. **Trust and security issues**
+* Gradle does **not** trust local repositories because artifacts’ origins cannot be verified.
+* Dependencies can be easily overwritten, creating risks for *security, correctness, and reproducibility*.
+3. **Performance degradation**
+* Since metadata and artifacts can change at any time (see item 2), Gradle **disables caching** for local repositories.
+* This results in *slower builds*—especially when `mavenLocal()` is declared **before remote repositories**, as Gradle checks it first.
+
+Despite its drawbacks, there are rare cases where `mavenLocal()` can be useful:
+
+1. **Interoperability with Maven**:
+* Example: If *Project A (Maven)* and *Project B (Gradle)* share artifacts during development, `mavenLocal()` can act as a temporary bridge.
+* Prefer an internal repository instead, but if that’s not feasible, limit `mavenLocal()` to local builds only.
+2. **Interoperability with Gradle (Multi-Repo Development)**:
+* Example: If you need to validate that *Project A’s changes work with Project B*, `mavenLocal()` might be used.
+* Prefer composite builds for better dependency resolution.
+* Only use `mavenLocal()` as a last resort.
+
+To mitigate risks, consider restricting `mavenLocal()` to specific dependencies using a repository filter:
+
+[source,groovy]
+----
+repositories {
+    mavenLocal {
+        content {
+            includeGroup("com.example.myproject") // Only allow this group from mavenLocal
+        }
+    }
+}
+----
+
+This ensures that `mavenLocal()` is only used for expected dependencies and avoids unexpected resolution issues.
 
 [[sec:ivy-repositories]]
 == Ivy repositories

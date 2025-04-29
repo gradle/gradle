@@ -521,93 +521,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         executedAndNotSkipped ":api:jar"
     }
 
-    void "can replace client module dependency with project dependency"() {
-        settingsFile << 'include "api", "impl"'
-
-        buildFile << common
-        file("api/build.gradle") << common
-
-        file("impl/build.gradle") << """
-            $common
-
-            dependencies {
-                conf module(group: "org.utils", name: "api", version: "1.5")
-            }
-
-            configurations.conf.resolutionStrategy.dependencySubstitution {
-                substitute module("org.utils:api") using project(":api")
-            }
-
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
-
-                    assert deps[0].requested.matchesStrictly(moduleId("org.utils", "api", "1.5"))
-                    assert deps[0].selected.componentId == projectId(":api")
-
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
-                }
-            }
-        """
-
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
-        run ":impl:checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", ":api", "depsub:api:") {
-                    variant "default"
-                    selectedByRule()
-                }
-            }
-        }
-    }
-
-    void "can replace client module's transitive dependency with project dependency"() {
-        settingsFile << 'include "api", "impl"'
-        mavenRepo.module("org.utils", "bela", '1.5').publish()
-
-        buildFile << common
-        file("api/build.gradle") << common
-
-        file("impl/build.gradle") << """
-            $common
-
-            dependencies {
-                conf module(group: "org.utils", name: "bela", version: "1.5") {
-                    dependencies group: "org.utils", name: "api", version: "1.5"
-                }
-            }
-
-            configurations.conf.resolutionStrategy.dependencySubstitution {
-                substitute module("org.utils:api") using project(":api")
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Declaring client module dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use component metadata rules instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#declaring_client_module_dependencies")
-        run ":impl:checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":impl", "depsub:impl:") {
-                module("org.utils:bela:1.5") {
-                    variant "default"
-                    edge("org.utils:api:1.5", ":api", "depsub:api:") {
-                        variant "default"
-                        selectedByRule()
-                    }
-                }
-            }
-        }
-    }
-
     void "can replace external dependency declared in extended configuration with project dependency"() {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
@@ -1149,7 +1062,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Could not resolve all dependencies for configuration ':conf'.")
         failure.assertHasCause("""Could not resolve org.utils:impl:1.3.
 Required by:
-    root project :""")
+    root project 'root'""")
         failure.assertHasCause("Unhappy :(")
     }
 

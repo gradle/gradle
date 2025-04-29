@@ -27,8 +27,8 @@ import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.operations.execution.ExecuteDeferredWorkProgressDetails;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceResult> implements DeferredExecutionAwareStep<C, R> {

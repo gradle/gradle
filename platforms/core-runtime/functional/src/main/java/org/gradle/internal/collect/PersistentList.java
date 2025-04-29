@@ -17,9 +17,9 @@
 package org.gradle.internal.collect;
 
 import com.google.common.collect.AbstractIterator;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;

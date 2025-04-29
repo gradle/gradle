@@ -29,8 +29,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -41,6 +39,8 @@ import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -52,8 +52,8 @@ import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver;
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -167,6 +167,7 @@ public class ModuleMetadataSpecBuilder {
         return new MergeProvider<>(variants);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Artifact> artifactsOf(SoftwareComponentVariant variant) {
         if (variant.getArtifacts().isEmpty()) {
             return emptyList();
@@ -181,8 +182,7 @@ public class ModuleMetadataSpecBuilder {
         return artifacts;
     }
 
-    @Nullable
-    private ModuleMetadataSpec.Artifact artifactFor(PublishArtifact artifact) {
+    private ModuleMetadataSpec.@Nullable Artifact artifactFor(PublishArtifact artifact) {
         if (shouldNotBePublished(artifact)) {
             return null;
         }
@@ -297,6 +297,7 @@ public class ModuleMetadataSpecBuilder {
         );
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Capability> capabilitiesFor(Collection<? extends Capability> capabilities) {
         if (capabilities.isEmpty()) {
             return emptyList();
@@ -315,6 +316,7 @@ public class ModuleMetadataSpecBuilder {
         return metadataCapabilities;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private static List<ModuleMetadataSpec.Capability> capabilitySelectorsFor(
         Set<CapabilitySelector> capabilitySelectors,
         ModuleMetadataSpec.DependencyCoordinates targetComponent
@@ -353,6 +355,7 @@ public class ModuleMetadataSpecBuilder {
         }
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Attribute> attributesFor(AttributeContainer attributes) {
         if (attributes.isEmpty()) {
             return emptyList();
@@ -392,6 +395,7 @@ public class ModuleMetadataSpecBuilder {
         }
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
         if (variant.getDependencies().isEmpty()) {
             return emptyList();
@@ -424,6 +428,7 @@ public class ModuleMetadataSpecBuilder {
         return dependencies;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
         if (variant.getDependencyConstraints().isEmpty()) {
             return emptyList();
@@ -437,8 +442,7 @@ public class ModuleMetadataSpecBuilder {
         return dependencyConstraints;
     }
 
-    @Nullable
-    private ModuleMetadataSpec.Version versionFor(
+    private ModuleMetadataSpec.@Nullable Version versionFor(
         ImmutableVersionConstraint versionConstraint,
         @Nullable String resolvedVersion
     ) {

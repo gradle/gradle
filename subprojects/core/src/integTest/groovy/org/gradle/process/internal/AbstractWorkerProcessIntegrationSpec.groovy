@@ -38,10 +38,10 @@ import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
+import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.services.DefaultLoggingManagerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.DefaultBuildOperationRef
@@ -160,7 +160,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     }
 
     static LoggingManagerInternal loggingManager(LogLevel logLevel) {
-        def loggingManager = LoggingServiceRegistry.newEmbeddableLogging().get(DefaultLoggingManagerFactory).create()
+        def loggingManager = LoggingServiceRegistry.newEmbeddableLogging().get(LoggingManagerFactory).createLoggingManager()
         loggingManager.setLevelInternal(logLevel)
         return loggingManager
     }

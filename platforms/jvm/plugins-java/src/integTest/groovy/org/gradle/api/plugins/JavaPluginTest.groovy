@@ -295,7 +295,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.classpath.is(project.sourceSets.main.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
-        task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
+        task.options.generatedSourceOutputDirectory.asFile.orNull == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
         task.destinationDirectory.get().asFile == project.sourceSets.main.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.main.java.files
@@ -324,7 +324,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.classpath.is(project.sourceSets.test.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
-        task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
+        task.options.generatedSourceOutputDirectory.asFile.orNull == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
         task.destinationDirectory.get().asFile == project.sourceSets.test.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.test.java.files
@@ -342,7 +342,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof Jar
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
-        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
         task.mainSpec.sourcePaths == [project.sourceSets.main.output] as Set
         task.manifest != null
         task.manifest.mergeSpecs.size() == 0
@@ -370,7 +370,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.destinationDir == project.file("$project.docsDir/javadoc")
+        task.destinationDir == project.java.docsDir.file("javadoc").get().asFile
         task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
 
         when:
@@ -425,11 +425,17 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task('customTest', type: org.gradle.api.tasks.testing.Test.class)
 
         then:
-        task.classpath.files == project.sourceSets.test.runtimeClasspath.files
-        task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
+        task.classpath.files.empty
+        task.testClassesDirs.empty
         task.workingDir == project.projectDir
-        task.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
-        task.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
+        task.reports.junitXml.outputLocation.get().asFile == project.java.testResultsDir.file('customTest').get().asFile
+        task.reports.html.outputLocation.get().asFile == project.java.testReportDir.file('customTest').get().asFile
+
+        and:
+        project.java.modularity.inferModulePath.set(true)
+        task.modularity.inferModulePath.get() == true
+        project.java.modularity.inferModulePath.set(false)
+        task.modularity.inferModulePath.get() == false
     }
 
     def "build other projects"() {

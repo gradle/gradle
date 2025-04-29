@@ -23,8 +23,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -105,12 +105,16 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             case FORCED_DEPENDENCIES_ONLY:
                 filtered = withConstraints(false, filtered);
                 break;
+            default:
+                break;
         }
         switch (dependencyFilter) {
             case FORCED_ALL:
             case FORCED_CONSTRAINTS_ONLY:
             case FORCED_DEPENDENCIES_ONLY:
                 filtered = force(filtered);
+                break;
+            default:
                 break;
         }
         filteredConfigDependencies = filtered;
@@ -214,6 +218,8 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     return FORCED_CONSTRAINTS_ONLY;
                 case DEPENDENCIES_ONLY:
                     return FORCED_DEPENDENCIES_ONLY;
+                default:
+                    break;
             }
             return this;
         }
@@ -226,6 +232,8 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     return FORCED_DEPENDENCIES_ONLY;
                 case DEPENDENCIES_ONLY:
                     return this;
+                default:
+                    break;
             }
             throw new IllegalStateException("Cannot set dependencies only when constraints only has already been called");
         }
@@ -238,6 +246,8 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     return FORCED_CONSTRAINTS_ONLY;
                 case CONSTRAINTS_ONLY:
                     return this;
+                default:
+                    break;
             }
             throw new IllegalStateException("Cannot set constraints only when dependencies only has already been called");
         }

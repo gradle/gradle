@@ -98,14 +98,6 @@ public interface FileTreeElement {
     RelativePath getRelativePath();
 
     /**
-     * Returns the UNIX-style file permission mode of this file.
-     *
-     * @deprecated Use {@link #getPermissions()} instead. This method is scheduled for removal in Gradle 9.0.
-     */
-    @Deprecated
-    int getMode();
-
-    /**
      * Provides a read-only view of access permissions of this file.
      * For details see {@link FilePermissions}.
      *

@@ -17,6 +17,7 @@
 /**
  * Contains registry for classes with property upgrades.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.internal.instrumentation.property.upgrades;
 
+import org.jspecify.annotations.NullMarked;

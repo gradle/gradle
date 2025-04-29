@@ -50,7 +50,7 @@ class GroovyCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         then:
         // If the joint compilation is working correctly, we should exercise the JdkJavaCompiler and we should have detailed problems events
         verifyAll(receivedProblem(0)) {
-            fqid == 'compilation:java:compiler-err-expected'
+            fqid == 'compilation:java:compiler.err.expected'
             contextualLabel == "';' expected"
         }
 

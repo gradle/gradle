@@ -205,6 +205,17 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         verifyAll(receivedProblem(7)) {
             fqid == 'deprecation:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
+            details == 'This is scheduled to be removed in Gradle 9.0.'
+            additionalData.asMap == ['type': 'USER_CODE_DIRECT']
+        }
+        if (getReceivedProblems().size() == 9) {
+            //The deduplication based on hash seems to miss it some times. I assume because of slightly different stack traces
+            verifyAll(receivedProblem(8)) {
+                fqid == 'deprecation:typed-task'
+                contextualLabel == 'Typed task has been deprecated.'
+                details == 'This is scheduled to be removed in Gradle 9.0.'
+                additionalData.asMap == ['type': 'USER_CODE_DIRECT']
+            }
         }
         // The second one of this deprecation is not reported as it is dropped by the hash based deduplication
     }

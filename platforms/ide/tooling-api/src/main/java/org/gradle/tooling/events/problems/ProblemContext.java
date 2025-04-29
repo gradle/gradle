@@ -18,8 +18,8 @@ package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.Failure;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

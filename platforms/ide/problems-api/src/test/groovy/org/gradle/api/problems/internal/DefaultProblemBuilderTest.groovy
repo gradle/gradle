@@ -16,9 +16,10 @@
 
 package org.gradle.api.problems.internal
 
-import org.gradle.api.problems.AdditionalData
+
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
@@ -48,7 +49,7 @@ class DefaultProblemBuilderTest extends Specification {
     }
 
     DefaultProblemBuilder createProblemBuilder() {
-        new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory(), Mock(Instantiator.class), Mock(PayloadSerializer.class))
+        new DefaultProblemBuilder(new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator.class), Mock(PayloadSerializer.class), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), EMPTY_STREAM))
     }
 
     def 'additionalData accepts DeprecationDataInternalSpec'() {
@@ -121,80 +122,6 @@ class DefaultProblemBuilderTest extends Specification {
 
         then:
         data == null
-    }
-
-    interface InvalidAdditionalData extends AdditionalData {
-        void someMethod();
-    }
-
-    def 'additionalData fails with invalid type'() {
-        when:
-        DefaultProblemBuilder.validateMethods(InvalidAdditionalData)
-
-        then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "InvalidAdditionalData must have only getters or setters using the following types: String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, or File."
-    }
-
-    // interface containing all valid types.
-    // this makes sure all of these are passing the validation
-    interface ValidAdditionalData extends AdditionalData {
-
-        void setStringProperty(String value);
-
-        void setBooleanProperty(Boolean value);
-
-        void setCharacterProperty(Character value);
-
-        void setByteProperty(Byte value);
-
-        void setShortProperty(Short value);
-
-        void setIntegerProperty(Integer value);
-
-        void setFloatProperty(Float value);
-
-        void setLongProperty(Long value);
-
-        void setDoubleProperty(Double value);
-
-        void setBigIntegerProperty(BigInteger value);
-
-        void setBigDecimalProperty(BigDecimal value);
-
-        void setFileProperty(File value);
-
-        String getStringProperty();
-
-        Boolean getBooleanProperty();
-
-        Character getCharacterProperty();
-
-        Byte getByteProperty();
-
-        Short getShortProperty();
-
-        Integer getIntegerProperty();
-
-        Float getFloatProperty();
-
-        Long getLongProperty();
-
-        Double getDoubleProperty();
-
-        BigInteger getBigIntegerProperty();
-
-        BigDecimal getBigDecimalProperty();
-
-        File getFileProperty();
-    }
-
-    def 'additionalData succeeds with valid type'() {
-        when:
-        DefaultProblemBuilder.validateMethods(ValidAdditionalData)
-
-        then:
-        noExceptionThrown()
     }
 
     def "can define contextual locations"() {

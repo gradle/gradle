@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -26,13 +25,14 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.PathToFileResolver;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.concurrent.Executor;
 
 import static java.util.Objects.requireNonNull;
 
-@NonNullApi
+@NullMarked
 public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory {
 
     private final PathToFileResolver fileResolver;
@@ -76,7 +76,7 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
      *
      * This is only used in DefaultDaemonStarter, and it should also stay this way. Ideally we would even remove it at one point.
      */
-    @NonNullApi
+    @NullMarked
     public static class RootClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory, Stoppable {
         private final DefaultClientExecHandleBuilderFactory delegate;
 

@@ -21,8 +21,8 @@ import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
 import org.gradle.platform.base.ProjectDependencySpecBuilder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

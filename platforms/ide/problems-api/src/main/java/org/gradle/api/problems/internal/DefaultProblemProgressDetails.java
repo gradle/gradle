@@ -26,9 +26,9 @@ import org.gradle.operations.problems.ProblemGroup;
 import org.gradle.operations.problems.ProblemLocation;
 import org.gradle.operations.problems.ProblemSeverity;
 import org.gradle.operations.problems.ProblemUsageProgressDetails;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
@@ -88,7 +88,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         return convertProblemLocations(problem.getContextualLocations());
     }
 
-    @Nonnull
+    @NonNull
     private ImmutableList<ProblemLocation> convertProblemLocations(List<org.gradle.api.problems.ProblemLocation> locations) {
         ImmutableList.Builder<ProblemLocation> builder = ImmutableList.builder();
         for (org.gradle.api.problems.ProblemLocation location : locations) {
@@ -103,20 +103,27 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
     @Nullable
     private static ProblemLocation convertToLocation(final org.gradle.api.problems.ProblemLocation location) {
         if (location instanceof org.gradle.api.problems.FileLocation) {
-            if (location instanceof org.gradle.api.problems.LineInFileLocation) {
-                return new DevelocityLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);
-            } else if (location instanceof org.gradle.api.problems.OffsetInFileLocation) {
-                return new DevelocityOffsetInFileLocation((org.gradle.api.problems.OffsetInFileLocation) location);
-            } else {
-                return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
-            }
+            return convertToDevelocityFileLocation(location);
         } else if (location instanceof TaskLocation) {
             // The Develocity plugin will infer the task location from the build operation hierarchy - no need to send this contextual information
             return null;
         } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
             return new DevelocityPluginIdLocation((PluginIdLocation) location);
+        } else if (location instanceof org.gradle.api.problems.internal.StackTraceLocation) {
+            return new DevelocityStackTraceLocation((StackTraceLocation) location);
         }
         throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
+    }
+
+    @NonNull
+    private static FileLocation convertToDevelocityFileLocation(org.gradle.api.problems.ProblemLocation location) {
+        if (location instanceof org.gradle.api.problems.LineInFileLocation) {
+            return new DevelocityLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);
+        } else if (location instanceof org.gradle.api.problems.OffsetInFileLocation) {
+            return new DevelocityOffsetInFileLocation((org.gradle.api.problems.OffsetInFileLocation) location);
+        } else {
+            return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
+        }
     }
 
     @Nullable
@@ -247,6 +254,32 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
                 location += ":" + getLength();
             }
             return "file '" + location + "'";
+        }
+    }
+
+    private static class DevelocityStackTraceLocation implements org.gradle.operations.problems.StackTraceLocation {
+        private final org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation;
+
+        public DevelocityStackTraceLocation(org.gradle.api.problems.internal.StackTraceLocation stackTraceLocation) {
+            this.stackTraceLocation = stackTraceLocation;
+        }
+
+        @Nullable
+        @Override
+        public FileLocation getFileLocation() {
+            return stackTraceLocation.getFileLocation() == null
+                ? null
+                : convertToDevelocityFileLocation(stackTraceLocation.getFileLocation());
+        }
+
+        @Override
+        public List<StackTraceElement> getStackTrace() {
+            return stackTraceLocation.getStackTrace();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "stack trace location " + stackTraceLocation.getFileLocation();
         }
     }
 

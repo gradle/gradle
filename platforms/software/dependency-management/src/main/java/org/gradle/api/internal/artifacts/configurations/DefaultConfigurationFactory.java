@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -40,8 +41,9 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -49,6 +51,7 @@ import javax.inject.Inject;
 /**
  * Factory for creating {@link org.gradle.api.artifacts.Configuration} instances.
  */
+@ServiceScope(Scope.Project.class)
 @ThreadSafe
 public class DefaultConfigurationFactory {
 
@@ -66,11 +69,11 @@ public class DefaultConfigurationFactory {
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final ProjectStateRegistry projectStateRegistry;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final InternalProblems problemsService;
+    private final DocumentationRegistry documentationRegistry;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -87,11 +90,11 @@ public class DefaultConfigurationFactory {
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        DocumentationRegistry documentationRegistry
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -107,11 +110,11 @@ public class DefaultConfigurationFactory {
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.taskDependencyFactory = taskDependencyFactory;
         this.problemsService = problemsService;
+        this.documentationRegistry = documentationRegistry;
     }
 
     /**
@@ -146,13 +149,13 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
             role,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -189,12 +192,12 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -231,12 +234,12 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -273,12 +276,12 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;

@@ -17,8 +17,8 @@
 package org.gradle.internal.configuration.inputs;
 
 import com.google.common.primitives.Primitives;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -96,7 +96,6 @@ public class AccessTrackingProperties extends Properties {
         void onClear();
     }
 
-    // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
     private final Listener listener;
 
@@ -113,7 +112,7 @@ public class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<String> stringPropertyNames() {
-        return new AccessTrackingSet<>(delegate.stringPropertyNames(), trackingListener());
+        return new AccessTrackingSet<>(delegate.stringPropertyNames(), keyTrackingListener());
     }
 
     @Override
@@ -142,7 +141,7 @@ public class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Object> keySet() {
-        return new AccessTrackingSet<>(delegate.keySet(), trackingListener());
+        return new AccessTrackingSet<>(delegate.keySet(), keyTrackingListener());
     }
 
     @Override
@@ -187,7 +186,7 @@ public class AccessTrackingProperties extends Properties {
     }
 
     @Override
-    public Object putIfAbsent(Object key, Object value) {
+    public @Nullable Object putIfAbsent(Object key, Object value) {
         Object oldValue;
         synchronized (delegate) {
             oldValue = delegate.putIfAbsent(key, value);
@@ -556,7 +555,7 @@ public class AccessTrackingProperties extends Properties {
         return clazz == String.class || Primitives.isWrapperType(clazz);
     }
 
-    private AccessTrackingSet.Listener trackingListener() {
+    private AccessTrackingSet.Listener keyTrackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
             public void onAccess(@Nullable Object o) {

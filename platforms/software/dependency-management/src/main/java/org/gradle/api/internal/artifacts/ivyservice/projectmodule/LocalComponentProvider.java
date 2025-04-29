@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -25,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * <p>In general, you should be using {@link LocalComponentRegistry} instead of this type.</p>
  */
+@ServiceScope(Scope.BuildTree.class)
 @ThreadSafe
 public interface LocalComponentProvider {
     /**

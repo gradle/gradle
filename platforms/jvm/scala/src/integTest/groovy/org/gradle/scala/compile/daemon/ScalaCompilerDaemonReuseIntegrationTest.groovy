@@ -17,6 +17,7 @@
 package org.gradle.scala.compile.daemon
 
 import org.gradle.api.tasks.compile.AbstractCompilerDaemonReuseIntegrationTest
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.fixtures.TestScalaComponent
@@ -39,7 +40,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation 'org.scala-lang:scala-library:2.11.12'
+                implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
             }
         """
     }

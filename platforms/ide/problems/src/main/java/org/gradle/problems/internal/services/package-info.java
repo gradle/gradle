@@ -17,7 +17,7 @@
 /**
  * Internal services for the Problems API, used by the dependency injection framework.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.problems.internal.services;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

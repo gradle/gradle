@@ -16,8 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.artifacts.DependencyArtifactSelector;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultDependencyArtifactSelector implements DependencyArtifactSelector {
     private final String type;

@@ -27,8 +27,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
