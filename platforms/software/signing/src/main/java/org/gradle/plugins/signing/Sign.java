@@ -73,7 +73,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class Sign extends DefaultTask implements SignatureSpec {
 
-    private SignatureType signatureType;
+    final Property<SignatureType> signatureType;
     private Signatory signatory;
     final Property<Boolean> required;
     private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
@@ -97,6 +97,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     @Inject
     public Sign() {
+        signatureType = getProject().getObjects().property(SignatureType.class);
         required = getProject().getObjects().property(Boolean.class).convention(true);
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
@@ -348,12 +349,12 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @Nested
     @Optional
     public SignatureType getSignatureType() {
-        return signatureType;
+        return signatureType.getOrNull();
     }
 
     @Override
     public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
+        this.signatureType.set(signatureType);
     }
 
     /**

@@ -43,7 +43,7 @@ abstract public class SignOperation implements SignatureSpec {
     /**
      * The file representation of the signature(s).
      */
-    private SignatureType signatureType;
+    final Property<SignatureType> signatureType;
 
     /**
      * The signatory to the generated digital signatures.
@@ -58,6 +58,7 @@ abstract public class SignOperation implements SignatureSpec {
     private final List<Signature> signatures = new ArrayList<Signature>();
 
     protected SignOperation(ObjectFactory objects) {
+        signatureType = objects.property(SignatureType.class);
         required = objects.property(Boolean.class).convention(false);
     }
 
@@ -73,13 +74,13 @@ abstract public class SignOperation implements SignatureSpec {
 
     @Override
     public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
+        this.signatureType.set(signatureType);
     }
 
     @Override
     @ToBeReplacedByLazyProperty
     public SignatureType getSignatureType() {
-        return signatureType;
+        return signatureType.getOrNull();
     }
 
     @Override
@@ -147,7 +148,7 @@ abstract public class SignOperation implements SignatureSpec {
      * Change the signature type for signature generation.
      */
     public SignOperation signatureType(SignatureType type) {
-        this.signatureType = type;
+        this.signatureType.set(type);
         return this;
     }
 

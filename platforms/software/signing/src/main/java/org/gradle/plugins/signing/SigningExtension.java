@@ -305,11 +305,14 @@ public abstract class SigningExtension {
 
         ConventionMapping conventionMapping = ((IConventionAware) spec).getConventionMapping();
         conventionMapping.map("signatory", this::getSignatory);
-        conventionMapping.map("signatureType", this::getSignatureType);
         if (spec instanceof Sign) {
-            ((Sign) spec).required.convention(this.required);
+            Sign signTask = (Sign) spec;
+            signTask.signatureType.convention(project.provider(this::getSignatureType));
+            signTask.required.convention(this.required);
         } else if (spec instanceof SignOperation) {
-            ((SignOperation) spec).required.convention(this.required);
+            SignOperation signOperation = (SignOperation) spec;
+            signOperation.signatureType.convention(project.provider(this::getSignatureType));
+            signOperation.required.convention(this.required);
         } else {
             throw new InvalidUserDataException("Cannot add conventions to signature spec '" + spec + "' as it is not a Sign or SignOperation");
         }
