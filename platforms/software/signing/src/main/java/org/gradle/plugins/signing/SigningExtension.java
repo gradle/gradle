@@ -25,8 +25,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -299,19 +297,15 @@ public abstract class SigningExtension {
      * Adds conventions to the given spec, using this settings object's default signatory and signature type as the default signatory and signature type for the spec.
      */
     protected void addSignatureSpecConventions(SignatureSpec spec) {
-        if (!(spec instanceof IConventionAware)) {
-            throw new InvalidUserDataException("Cannot add conventions to signature spec '" + spec + "' as it is not convention aware");
-        }
-
-        ConventionMapping conventionMapping = ((IConventionAware) spec).getConventionMapping();
-        conventionMapping.map("signatory", this::getSignatory);
         if (spec instanceof Sign) {
             Sign signTask = (Sign) spec;
             signTask.signatureType.convention(project.provider(this::getSignatureType));
+            signTask.signatory.convention(project.provider(this::getSignatory));
             signTask.required.convention(this.required);
         } else if (spec instanceof SignOperation) {
             SignOperation signOperation = (SignOperation) spec;
             signOperation.signatureType.convention(project.provider(this::getSignatureType));
+            signOperation.signatory.convention(project.provider(this::getSignatory));
             signOperation.required.convention(this.required);
         } else {
             throw new InvalidUserDataException("Cannot add conventions to signature spec '" + spec + "' as it is not a Sign or SignOperation");

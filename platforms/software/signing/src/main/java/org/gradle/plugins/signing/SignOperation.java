@@ -48,7 +48,7 @@ abstract public class SignOperation implements SignatureSpec {
     /**
      * The signatory to the generated digital signatures.
      */
-    private Signatory signatory;
+    final Property<Signatory> signatory;
 
     /**
      * Whether or not it is required that this signature be generated.
@@ -59,6 +59,7 @@ abstract public class SignOperation implements SignatureSpec {
 
     protected SignOperation(ObjectFactory objects) {
         signatureType = objects.property(SignatureType.class);
+        signatory = objects.property(Signatory.class);
         required = objects.property(Boolean.class).convention(false);
     }
 
@@ -85,13 +86,13 @@ abstract public class SignOperation implements SignatureSpec {
 
     @Override
     public void setSignatory(Signatory signatory) {
-        this.signatory = signatory;
+        this.signatory.set(signatory);
     }
 
     @Override
     @ToBeReplacedByLazyProperty
     public Signatory getSignatory() {
-        return signatory;
+        return signatory.getOrNull();
     }
 
     @Override
@@ -156,7 +157,7 @@ abstract public class SignOperation implements SignatureSpec {
      * Change the signatory for signature generation.
      */
     public SignOperation signatory(Signatory signatory) {
-        this.signatory = signatory;
+        this.signatory.set(signatory);
         return this;
     }
 
