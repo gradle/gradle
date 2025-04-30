@@ -59,8 +59,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.wrapperShared)
-
     implementation(libs.ant)
     implementation(libs.commonsIo)
     implementation(libs.groovyTemplates)
