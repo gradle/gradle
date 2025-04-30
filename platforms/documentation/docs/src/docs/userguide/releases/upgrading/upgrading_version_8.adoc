@@ -956,20 +956,20 @@ propertyName(value)
 propertyName value
 ----
 
-The=latter one, "space-assignment", is a Gradle-specific feature that is not part of the Groovy language.
-In=regular Groovy, this is just a method call: `propertyName(value)`, and Gradle generates `propertyName` method in the runtime if this method hasn't been present already.
-This=feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
-Sometimes,=classes declare methods with the same name, and these may even have semantics that are different from a plain assignment.
+The latter one, "space-assignment", is a Gradle-specific feature that is not part of the Groovy language.
+In regular Groovy, this is just a method call: `propertyName(value)`, and Gradle generates `propertyName` method in the runtime if this method hasn't been present already.
+This feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
+Sometimes, classes declare methods with the same name, and these may even have semantics that are different from a plain assignment.
 
-These=generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
-Use=explicit assignment `propertyName = value` instead.
+These generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
+Use explicit assignment `propertyName = value` instead.
 
-For=explicit methods, consider using the `propertyName(value)` syntax instead of `propertyName value` for clarity.
-For=example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
+For explicit methods, consider using the `propertyName(value)` syntax instead of `propertyName value` for clarity.
+For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
 
-If=you have a big project, to replace occurrences of space-assignment syntax you can use, for example, the following `sed` command:
+If you have a big project, to replace occurrences of space-assignment syntax you can use, for example, the following `sed` command:
 
-[source,text]=
+[source,text]
 ----
 find . -name 'build.gradle' -type f -exec sed -i.bak -E 's/([^A-Za-z]|^)(replaceme)[ \t]*([^= \t{])/\1\2 = \3/g' {} +
 ----
