@@ -69,7 +69,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -173,10 +172,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private final ConfigurableFileCollection testClassesDirs;
+    private final ConfigurableFileCollection testClassesDirs = getObjectFactory().fileCollection();
     private final PatternFilterable patternSet;
-    private final ConfigurableFileCollection classpath;
-    private final ConfigurableFileCollection stableClasspath;
+    private final ConfigurableFileCollection classpath = getObjectFactory().fileCollection();
+    private final ConfigurableFileCollection stableClasspath = getObjectFactory().fileCollection();
     private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -186,16 +185,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
-        testClassesDirs = getProject().files();
-        classpath = getProject().files();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
-        stableClasspath = objectFactory.fileCollection();
-        stableClasspath.from(new Callable<Object>() {
-            @Override
-            public Object call() {
-                return getClasspath();
-            }
-        });
+        stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
@@ -842,33 +833,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ToBeReplacedByLazyProperty
     public FileCollection getTestClassesDirs() {
         return testClassesDirs;
-    }
-
-
-    /**
-     * Added only for transitioning away from conventions. Should not be used not be used by plugins or build scripts.
-     *
-     * @return the property representing test classes directories.
-     * @since 9.0
-     */
-    @Internal
-    @Incubating
-    @NotToBeReplacedByLazyProperty(because = "")
-    public FileCollection getTestClassesDirsInternalProperty() {
-        return testClassesDirs;
-    }
-
-    /**
-     * Added only for transitioning away from conventions. Should not be used not be used by plugins or build scripts.
-     *
-     * @return the property representing test classes directories.
-     * @since 9.0
-     */
-    @Internal
-    @Incubating
-    @NotToBeReplacedByLazyProperty(because = "")
-    public FileCollection getClasspathInternalProperty() {
-        return classpath;
     }
 
     /**
