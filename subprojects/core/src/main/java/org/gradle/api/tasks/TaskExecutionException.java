@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -27,7 +28,7 @@ public class TaskExecutionException extends DefaultMultiCauseException {
     private final Task task;
 
     public TaskExecutionException(Task task, Throwable cause) {
-        super(String.format("Execution failed for %s.", task), cause);
+        super(String.format("Execution failed for %s created by %s.", task, ((DefaultTask) task).getUserCodeSource().getDisplayName()), cause);
         this.task = task;
     }
 
