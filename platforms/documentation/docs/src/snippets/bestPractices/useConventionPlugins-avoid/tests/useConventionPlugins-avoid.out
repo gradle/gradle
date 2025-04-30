@@ -1,0 +1,4 @@
+:project-a:compileJava SKIPPED
+:project-b:compileJava SKIPPED
+
+BUILD SUCCESSFUL in 0s

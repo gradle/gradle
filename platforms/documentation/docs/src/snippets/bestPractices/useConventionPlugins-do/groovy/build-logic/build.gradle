@@ -1,0 +1,5 @@
+// tag::do-this[]
+plugins {
+    id("groovy-gradle-plugin") // <2>
+}
+// end::do-this[]
