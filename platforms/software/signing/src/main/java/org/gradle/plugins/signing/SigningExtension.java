@@ -30,6 +30,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -80,7 +81,7 @@ public abstract class SigningExtension {
      */
     private Configuration configuration;
 
-    private Object required = true;
+    private final Property<Boolean> required;
 
     /**
      * The provider of signature types.
@@ -100,6 +101,8 @@ public abstract class SigningExtension {
         this.configuration = getDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
         this.signatories = createSignatoryProvider();
+        this.required = project.getObjects().property(Boolean.class);
+        this.required.convention(true);
         project.getTasks().withType(Sign.class, this::addSignatureSpecConventions);
     }
 
@@ -113,7 +116,7 @@ public abstract class SigningExtension {
      * @since 4.0
      */
     public void setRequired(boolean required) {
-        this.required = required;
+        this.required.set(required);
     }
 
     /**
@@ -139,7 +142,11 @@ public abstract class SigningExtension {
      * </pre>
      */
     public void setRequired(Object required) {
-        this.required = required;
+        if (DeferredUtil.isDeferred(required)) {
+            this.required.set(project.provider(() -> castToBoolean(DeferredUtil.unpack(required))));
+        } else {
+            this.required.set(castToBoolean(required));
+        }
     }
 
     /**
@@ -151,7 +158,7 @@ public abstract class SigningExtension {
      */
     @ToBeReplacedByLazyProperty
     public boolean isRequired() {
-        return castToBoolean(force(required));
+        return required.getOrElse(true);
     }
 
     /**
@@ -299,7 +306,13 @@ public abstract class SigningExtension {
         ConventionMapping conventionMapping = ((IConventionAware) spec).getConventionMapping();
         conventionMapping.map("signatory", this::getSignatory);
         conventionMapping.map("signatureType", this::getSignatureType);
-        conventionMapping.map("required", this::isRequired);
+        if (spec instanceof Sign) {
+            ((Sign) spec).required.convention(this.required);
+        } else if (spec instanceof SignOperation) {
+            ((SignOperation) spec).required.convention(this.required);
+        } else {
+            throw new InvalidUserDataException("Cannot add conventions to signature spec '" + spec + "' as it is not a Sign or SignOperation");
+        }
     }
 
     /**
@@ -397,8 +410,7 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
-        @SuppressWarnings("deprecation")
-        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
+        @SuppressWarnings("deprecation") final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
             task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
             task.sign(publicationToSign);
         });
@@ -427,8 +439,7 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
-        @SuppressWarnings("deprecation")
-        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
+        @SuppressWarnings("deprecation") final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;
     }
@@ -533,10 +544,6 @@ public abstract class SigningExtension {
     @ToBeReplacedByLazyProperty
     public SignatoryProvider<?> getSignatories() {
         return signatories;
-    }
-
-    private Object force(Object maybeCallable) {
-        return DeferredUtil.unpack(maybeCallable);
     }
 
     private static class DefaultDerivedArtifactFile implements PublicationInternal.DerivedArtifact {

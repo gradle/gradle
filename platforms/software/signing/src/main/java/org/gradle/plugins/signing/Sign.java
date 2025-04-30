@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -74,7 +75,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private SignatureType signatureType;
     private Signatory signatory;
-    private boolean required = true;
+    final Property<Boolean> required;
     private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
 
     private final Cached<Collection<Signature.Generator>> generators = Cached.of(this::computeCachedSignatures);
@@ -96,6 +97,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     @Inject
     public Sign() {
+        required = getProject().getObjects().property(Boolean.class).convention(true);
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf("Signing is required, or signatory is set", spec(task -> isRequired() || getSignatory() != null));
     }
@@ -380,12 +382,12 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     @Input
     @ToBeReplacedByLazyProperty
     public boolean isRequired() {
-        return required;
+        return required.get();
     }
 
     @Override
     public void setRequired(boolean required) {
-        this.required = required;
+        this.required.set(required);
     }
 
     /**

@@ -19,6 +19,8 @@ import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -51,9 +53,13 @@ abstract public class SignOperation implements SignatureSpec {
     /**
      * Whether or not it is required that this signature be generated.
      */
-    private boolean required;
+    final Property<Boolean> required;
 
     private final List<Signature> signatures = new ArrayList<Signature>();
+
+    protected SignOperation(ObjectFactory objects) {
+        required = objects.property(Boolean.class).convention(false);
+    }
 
     @ToBeReplacedByLazyProperty
     public String getDisplayName() {
@@ -89,13 +95,13 @@ abstract public class SignOperation implements SignatureSpec {
 
     @Override
     public void setRequired(boolean required) {
-        this.required = required;
+        this.required.set(required);
     }
 
     @Override
     @ToBeReplacedByLazyProperty
     public boolean isRequired() {
-        return required;
+        return required.get();
     }
 
     /**
