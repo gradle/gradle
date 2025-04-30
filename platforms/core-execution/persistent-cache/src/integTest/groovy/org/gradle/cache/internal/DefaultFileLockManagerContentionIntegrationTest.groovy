@@ -316,7 +316,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
     void assertConfirmationCount(GradleHandle build, FileLock lock = receivingLock) {
-        assert (build.standardOutput =~ "Gradle process at port ${communicator.port} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
+        assert (build.standardOutput =~ "Process at port ${communicator.port} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
     }
 
     void assertReleaseSignalTriggered(GradleHandle build, FileLock lock = receivingLock) {

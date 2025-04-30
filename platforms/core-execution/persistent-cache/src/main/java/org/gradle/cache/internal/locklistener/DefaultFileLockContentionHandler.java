@@ -176,14 +176,14 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private void acceptConfirmationAsLockRequester(FileLockPacketPayload payload, Integer port) {
         long lockId = payload.getLockId();
         if (payload.getType() == LOCK_RELEASE_CONFIRMATION) {
-            LOGGER.debug("Gradle process at port {} confirmed lock release for lock with id {}.", port, lockId);
+            LOGGER.debug("Process at port {} confirmed lock release for lock with id {}.", port, lockId);
             FileLockReleasedSignal signal = lockReleasedSignals.get(lockId);
             if (signal != null) {
                 LOGGER.debug("Triggering lock release signal for lock with id {}.", lockId);
                 signal.trigger();
             }
         } else {
-            LOGGER.debug("Gradle process at port {} confirmed unlock request for lock with id {}.", port, lockId);
+            LOGGER.debug("Process at port {} confirmed unlock request for lock with id {}.", port, lockId);
             unlocksConfirmedFrom.put(lockId, port);
         }
     }
