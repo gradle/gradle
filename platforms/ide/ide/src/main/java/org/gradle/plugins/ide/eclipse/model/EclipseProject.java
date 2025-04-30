@@ -20,7 +20,10 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -133,9 +136,10 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class EclipseProject {
 
     public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
+
     private String name;
 
-    private String comment;
+//    private Property<String> comment;
 
     private Set<String> referencedProjects = new LinkedHashSet<>();
 
@@ -143,7 +147,8 @@ public abstract class EclipseProject {
 
     private List<BuildCommand> buildCommands = new ArrayList<>();
 
-    private Set<Link> linkedResources = new LinkedHashSet<>();
+//    private Set<Link> linkedResources = new LinkedHashSet<>();
+//    private SetProperty<Link> linkedResources = project.pr;
 
     private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
@@ -183,8 +188,17 @@ public abstract class EclipseProject {
     }
 
     public String getComment() {
-        return comment;
+        return getCommentProperty().getOrNull();
     }
+
+    /**
+     * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     * @since 9.0
+     */
+    @Incubating
+    abstract public Property<String> getCommentProperty();
 
     /**
      * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
@@ -192,7 +206,7 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void setComment(String comment) {
-        this.comment = comment;
+        this.getCommentProperty().set(comment);
     }
 
 
@@ -283,7 +297,7 @@ public abstract class EclipseProject {
     }
 
     public Set<Link> getLinkedResources() {
-        return linkedResources;
+        return getlinkedResourcesProperty().getOrElse(ImmutableSet.of());
     }
 
     /**
@@ -292,8 +306,17 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void setLinkedResources(Set<Link> linkedResources) {
-        this.linkedResources = linkedResources;
+        this.getlinkedResourcesProperty().set(linkedResources);
     }
+
+    /**
+     * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     * @since 9.0
+     */
+    @Incubating
+    public abstract SetProperty<Link> getlinkedResourcesProperty();
 
     /**
      * Adds a resource link (aka 'source link') to the eclipse project. <p> For example see docs for {@link EclipseProject}
@@ -306,7 +329,7 @@ public abstract class EclipseProject {
             throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs + ". Valid link args are: " + VALID_LINKED_RESOURCE_ARGS);
         }
 
-        linkedResources.add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
+        getlinkedResourcesProperty().add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
     }
 
     /**

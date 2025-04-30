@@ -67,6 +67,9 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 public abstract class EclipseModel {
 
+
+    @SuppressWarnings("unused")
+    private final Project gradleProject;
     private EclipseProject project;
 
     private EclipseClasspath classpath;
@@ -82,6 +85,7 @@ public abstract class EclipseModel {
     public EclipseModel() {
         synchronizationTasks = new DefaultTaskDependency();
         autoBuildTasks = new DefaultTaskDependency();
+        gradleProject = null;
     }
 
     /**
@@ -91,6 +95,7 @@ public abstract class EclipseModel {
      */
     @Inject
     public EclipseModel(Project project) {
+        this.gradleProject = project;
         TaskDependencyFactory taskDependencyFactory = ((ProjectInternal) project).getTaskDependencyFactory();
         this.synchronizationTasks = taskDependencyFactory.configurableDependency();
         this.autoBuildTasks = taskDependencyFactory.configurableDependency();
