@@ -20,11 +20,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
+
+import java.util.concurrent.Callable;
 
 /**
  * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
@@ -59,8 +62,12 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         testing.getSuites().withType(JvmTestSuite.class).all(testSuite -> {
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
-                    ((ConfigurableFileCollection)test.getTestClassesDirsInternalProperty()).convention(project.provider(() -> testSuite.getSources().getOutput().getClassesDirs()));
-                    ((ConfigurableFileCollection)test.getClasspathInternalProperty()).convention(project.provider(() -> testSuite.getSources().getRuntimeClasspath()));
+                    ((ConfigurableFileCollection)test.getTestClassesDirs()).convention((Callable<FileCollection>) () ->
+                        testSuite.getSources().getOutput().getClassesDirs()
+                    );
+                    ((ConfigurableFileCollection)test.getClasspath()).convention((Callable<FileCollection>) () ->
+                        testSuite.getSources().getRuntimeClasspath()
+                    );
                 });
                 target.getBinaryResultsDirectory().convention(target.getTestTask().flatMap(Test::getBinaryResultsDirectory));
             });
