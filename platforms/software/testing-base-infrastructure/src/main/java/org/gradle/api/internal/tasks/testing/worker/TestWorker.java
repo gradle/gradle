@@ -60,6 +60,7 @@ import java.util.concurrent.BlockingQueue;
  * any of the methods from {@link RemoteTestClassProcessor} are supported, the commands will still be executed sequentially in the
  * main thread in order of arrival.
  */
+@SuppressWarnings("removal")
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
     private enum State {INITIALIZING, STARTED, STOPPED}
 

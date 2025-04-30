@@ -49,7 +49,7 @@ import java.util.Collection;
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasAnnotation;
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasExtraOfType;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrumentationProcessor {
 
     @Override
@@ -63,9 +63,9 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
                 ToBeReplacedByLazyProperty.class
             ),
 
-            new AnnotationCallInterceptionRequestReaderImpl(),
+            new AnnotationCallInterceptionRequestReaderImpl(processingEnv.getElementUtils()),
 
-            new WithExtensionReferencesReader(),
+            new WithExtensionReferencesReader(processingEnv.getElementUtils()),
             new WithExtensionReferencesPostProcessor(),
             new AddGeneratedClassNameFlagFromClassLevelAnnotation(processingEnv.getElementUtils(),
                 ifHasExtraOfType(WithExtensionReferencesExtra.ProducedSynthetically.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new

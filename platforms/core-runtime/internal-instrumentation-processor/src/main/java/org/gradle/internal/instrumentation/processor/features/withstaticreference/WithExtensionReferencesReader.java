@@ -29,10 +29,17 @@ import org.objectweb.asm.Type;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import java.util.Collection;
 import java.util.Collections;
 
 public class WithExtensionReferencesReader implements RequestPostProcessorExtension {
+    private final Elements elements;
+
+    public WithExtensionReferencesReader(Elements elements) {
+        this.elements = elements;
+    }
+
     @Override
     public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
         if (shouldPostProcess(originalRequest)) {
@@ -41,7 +48,7 @@ public class WithExtensionReferencesReader implements RequestPostProcessorExtens
                 AnnotationUtils.findAnnotationMirror(element, WithExtensionReferences.class).ifPresent(annotation ->
                     AnnotationUtils.findAnnotationValue(annotation, "toClass").ifPresent(value -> {
                         TypeMirror typeMirror = (TypeMirror) value.getValue();
-                        Type type = TypeUtils.extractType(typeMirror);
+                        Type type = TypeUtils.extractType(elements, typeMirror);
                         String methodName = extractMethodName(originalRequest, annotation);
                         originalRequest.getRequestExtras().add(new WithExtensionReferencesExtra(type, methodName));
                     }));

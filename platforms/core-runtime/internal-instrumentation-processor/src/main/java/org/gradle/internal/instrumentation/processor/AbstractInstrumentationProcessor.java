@@ -66,7 +66,7 @@ import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getExecutableElementsFromElements;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_17)
 public abstract class AbstractInstrumentationProcessor extends AbstractProcessor {
 
     public static final String PROJECT_NAME_OPTIONS = "org.gradle.annotation.processing.instrumented.project";

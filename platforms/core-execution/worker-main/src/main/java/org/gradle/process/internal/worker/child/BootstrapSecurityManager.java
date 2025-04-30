@@ -29,6 +29,7 @@ import java.security.Permission;
 /**
  * Used to bootstrap the system classpath.
  */
+@SuppressWarnings("removal")
 public class BootstrapSecurityManager extends SecurityManager {
     private boolean initialised;
     private final URLClassLoader target;

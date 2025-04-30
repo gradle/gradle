@@ -206,7 +206,7 @@ public class AnnotationProcessorDetector {
             return processors.build();
         }
 
-        private class MetadataLineProcessor implements LineProcessor<List<String>> {
+        private static class MetadataLineProcessor implements LineProcessor<List<String>> {
             private List<String> lines = new ArrayList<>();
 
             @Override

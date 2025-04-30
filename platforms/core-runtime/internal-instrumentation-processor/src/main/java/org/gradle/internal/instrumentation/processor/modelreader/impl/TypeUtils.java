@@ -28,6 +28,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -35,8 +36,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TypeUtils {
-    public static Type extractType(TypeMirror typeMirror) {
-        return typeMirror.accept(new TypeMirrorToType(), null);
+    public static Type extractType(Elements elements, TypeMirror typeMirror) {
+        return typeMirror.accept(new TypeMirrorToType(elements), null);
     }
 
     public static Type extractRawType(TypeName typeName) {
@@ -80,14 +81,14 @@ public class TypeUtils {
         return Type.getType("L" + className.reflectionName().replace('.', '/') + ";");
     }
 
-    public static Type extractReturnType(ExecutableElement methodElement) {
-        return extractType(methodElement.getReturnType());
+    public static Type extractReturnType(Elements elements, ExecutableElement methodElement) {
+        return extractType(elements, methodElement.getReturnType());
     }
 
-    public static String extractMethodDescriptor(ExecutableElement methodElement) {
+    public static String extractMethodDescriptor(Elements elements, ExecutableElement methodElement) {
         return Type.getMethodDescriptor(
-            extractReturnType(methodElement),
-            methodElement.getParameters().stream().map(it -> extractType(it.asType())).toArray(Type[]::new)
+            extractReturnType(elements, methodElement),
+            methodElement.getParameters().stream().map(it -> extractType(elements, it.asType())).toArray(Type[]::new)
         );
     }
 

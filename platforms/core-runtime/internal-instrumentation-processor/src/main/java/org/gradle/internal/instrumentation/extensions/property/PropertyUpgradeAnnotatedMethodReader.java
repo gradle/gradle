@@ -239,7 +239,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String implementationMethodPrefix = accessor.accessorType == AccessorType.GETTER ? "get" : "set";
         String interceptorsClassName = getGroovyInterceptorsClassName(accessor.interceptorType);
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, accessor.interceptorType));
-        List<ParameterInfo> callableParameters = prependReceiverParameter(accessor.parameters, extractType(method.getEnclosingElement().asType()));
+        List<ParameterInfo> callableParameters = prependReceiverParameter(accessor.parameters, extractType(elements, method.getEnclosingElement().asType()));
         Type returnType = TypeUtils.extractRawType(accessor.returnType);
         return new CallInterceptionRequestImpl(
             extractCallableInfo(callableKindInfo, method, returnType, callableMethodName, callableParameters),
@@ -333,7 +333,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             ));
     }
 
-    private static AccessorSpec bridgedMethodToAccessorSpec(
+    private AccessorSpec bridgedMethodToAccessorSpec(
         ExecutableElement method,
         String generatedClassName,
         BridgeType bridgeType,
@@ -350,7 +350,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         List<ParameterInfo> parameters = method.getParameters().stream().skip(skipParameters)
             .map(parameter -> new ParameterInfoImpl(
                 parameter.getSimpleName().toString(),
-                TypeUtils.extractType(parameter.asType()),
+                TypeUtils.extractType(elements, parameter.asType()),
                 METHOD_PARAMETER
             ))
             .collect(Collectors.toList());
@@ -382,17 +382,17 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .collect(Collectors.toList());
     }
 
-    private static void validateBridgedMethods(Element adapter, Element upgradedElement, List<ExecutableElement> methods) {
+    private void validateBridgedMethods(Element adapter, Element upgradedElement, List<ExecutableElement> methods) {
         List<String> errors = new ArrayList<>();
         if (!isPackagePrivate(adapter)) {
             errors.add(String.format("Adapter class '%s' should be package private, but it's not.", adapter));
         }
 
-        Type upgradedType = TypeUtils.extractType(upgradedElement.asType());
+        Type upgradedType = TypeUtils.extractType(elements, upgradedElement.asType());
         for (ExecutableElement method : methods) {
             if (method.getParameters().isEmpty()) {
                 errors.add(String.format("Adapter method '%s.%s' has no parameters, but it should have at least one of type '%s'.", adapter, method, upgradedElement));
-            } else if (!TypeUtils.extractType(method.getParameters().get(0).asType()).equals(upgradedType)) {
+            } else if (!TypeUtils.extractType(elements, method.getParameters().get(0).asType()).equals(upgradedType)) {
                 errors.add(String.format("Adapter method '%s.%s' should have first parameter of type '%s', but first parameter is of type '%s'.", adapter, method, upgradedElement, method.getParameters().get(0).asType()));
             }
             if (!method.getModifiers().contains(Modifier.STATIC)) {
@@ -635,7 +635,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         String implementationClass = accessor.generatedClassName;
         TypeName newPropertyType = TypeName.get(method.getReturnType());
         String propertyName = getPropertyName(method);
-        String methodDescriptor = extractMethodDescriptor(method);
+        String methodDescriptor = extractMethodDescriptor(elements, method);
         extras.add(new PropertyUpgradeRequestExtra(
             propertyName,
             method.getSimpleName().toString(),
@@ -652,14 +652,14 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         return extras;
     }
 
-    private static CallableInfo extractCallableInfo(CallableKindInfo kindInfo, ExecutableElement methodElement, Type returnType, String callableName, List<ParameterInfo> parameters) {
-        CallableOwnerInfo owner = new CallableOwnerInfo(extractType(methodElement.getEnclosingElement().asType()), true);
+    private CallableInfo extractCallableInfo(CallableKindInfo kindInfo, ExecutableElement methodElement, Type returnType, String callableName, List<ParameterInfo> parameters) {
+        CallableOwnerInfo owner = new CallableOwnerInfo(extractType(elements, methodElement.getEnclosingElement().asType()), true);
         CallableReturnTypeInfo returnTypeInfo = new CallableReturnTypeInfo(returnType);
         return new CallableInfoImpl(kindInfo, owner, callableName, returnTypeInfo, parameters);
     }
 
-    private static ImplementationInfoImpl extractImplementationInfo(AccessorSpec accessor, ExecutableElement method, Type returnType, String interceptedMethodName, String methodPrefix, List<ParameterInfo> parameters) {
-        Type owner = extractType(method.getEnclosingElement().asType());
+    private ImplementationInfoImpl extractImplementationInfo(AccessorSpec accessor, ExecutableElement method, Type returnType, String interceptedMethodName, String methodPrefix, List<ParameterInfo> parameters) {
+        Type owner = extractType(elements, method.getEnclosingElement().asType());
         Type implementationOwner = Type.getObjectType(accessor.generatedClassName);
         String implementationName = "access_" + methodPrefix + "_" + interceptedMethodName;
         String implementationDescriptor = Type.getMethodDescriptor(returnType, toArray(owner, parameters));

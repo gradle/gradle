@@ -145,11 +145,11 @@ fun enforceCompatibility(gradleModule: UnitTestAndCompileExtension) {
 fun UnitTestAndCompileExtension.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
     val targetRuntimeJavaVersions = mapOf(
-        usedForStartup to 6,
-        usedInWrapper to 6, // TODO: Should be 8
-        usedInWorkers to 8,
-        usedInClient to 8,
-        usedInDaemon to 8
+        usedForStartup to 17,
+        usedInWrapper to 17, // TODO: Should be 8
+        usedInWorkers to 17,
+        usedInClient to 17,
+        usedInDaemon to 17
     )
 
     return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(provider {

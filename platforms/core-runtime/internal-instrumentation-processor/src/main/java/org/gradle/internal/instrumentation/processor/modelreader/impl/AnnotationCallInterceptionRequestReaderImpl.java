@@ -45,6 +45,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,6 +67,12 @@ import static org.gradle.internal.instrumentation.processor.modelreader.impl.Typ
 
 public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMethodReaderExtension {
 
+    private final Elements elements;
+
+    public AnnotationCallInterceptionRequestReaderImpl(Elements elements) {
+        this.elements = elements;
+    }
+
     @Override
     public Collection<Result> readRequest(ExecutableElement input, ReadRequestContext context) {
         if (input.getKind() != ElementKind.METHOD) {
@@ -86,22 +93,22 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         }
     }
 
-    private static CallableInfo extractCallableInfo(ExecutableElement methodElement) {
+    private CallableInfo extractCallableInfo(ExecutableElement methodElement) {
         CallableKindInfo kindInfo = extractCallableKind(methodElement);
         Type ownerType = extractOwnerClass(methodElement);
         boolean interceptInherited = isInterceptInherited(methodElement);
         CallableOwnerInfo owner = new CallableOwnerInfo(ownerType, interceptInherited);
         String callableName = getCallableName(methodElement, kindInfo);
-        CallableReturnTypeInfo returnType = new CallableReturnTypeInfo(extractReturnType(methodElement));
+        CallableReturnTypeInfo returnType = new CallableReturnTypeInfo(extractReturnType(elements, methodElement));
         List<ParameterInfo> parameterInfos = extractParameters(methodElement);
         return new CallableInfoImpl(kindInfo, owner, callableName, returnType, parameterInfos);
     }
 
     @NonNull
-    private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement input) {
-        Type implementationOwner = extractType(input.getEnclosingElement().asType());
+    private ImplementationInfoImpl extractImplementationInfo(ExecutableElement input) {
+        Type implementationOwner = extractType(elements, input.getEnclosingElement().asType());
         String implementationName = input.getSimpleName().toString();
-        String implementationDescriptor = extractMethodDescriptor(input);
+        String implementationDescriptor = extractMethodDescriptor(elements, input);
         return new ImplementationInfoImpl(implementationOwner, implementationName, implementationDescriptor);
     }
 
@@ -164,7 +171,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         return methodElement.getAnnotation(InterceptInherited.class) != null;
     }
 
-    private static List<ParameterInfo> extractParameters(ExecutableElement methodElement) {
+    private List<ParameterInfo> extractParameters(ExecutableElement methodElement) {
         List<ParameterInfo> list = new ArrayList<>();
         List<? extends VariableElement> parameters = methodElement.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
@@ -176,8 +183,8 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         return list;
     }
 
-    private static ParameterInfo extractParameter(VariableElement parameterElement, boolean isVararg) {
-        Type parameterType = extractType(parameterElement.asType());
+    private ParameterInfo extractParameter(VariableElement parameterElement, boolean isVararg) {
+        Type parameterType = extractType(elements, parameterElement.asType());
         ParameterKindInfo parameterKindInfo = extractParameterKind(parameterElement, isVararg);
 
         if (parameterKindInfo == ParameterKindInfo.VARARG_METHOD_PARAMETER) {
@@ -208,7 +215,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         }
     }
 
-    private static Type extractOwnerClass(ExecutableElement executableElement) {
+    private Type extractOwnerClass(ExecutableElement executableElement) {
         Optional<? extends AnnotationMirror> maybeStaticMethod = findAnnotationMirror(executableElement, CallableKind.StaticMethod.class);
         List<VariableElement> receivers = executableElement.getParameters().stream()
             .filter(it -> it.getAnnotation(ParameterKind.Receiver.class) != null)
@@ -219,7 +226,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
                 throw new Failure("Static method interceptors should not declare @" + ParameterKind.Receiver.class.getSimpleName() + " parameters");
             }
             TypeMirror staticMethodOwner = (TypeMirror) findAnnotationValue(maybeStaticMethod.get(), "ofClass").orElseThrow(() -> new IllegalStateException("missing annotation value")).getValue();
-            return extractType(staticMethodOwner);
+            return extractType(elements, staticMethodOwner);
         }
 
         if (receivers.size() == 0) {
@@ -233,7 +240,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         if (receiverType.getKind() != TypeKind.DECLARED) {
             throw new Failure("Receiver should be a class or interface, got " + receiverType);
         }
-        return extractType(receiverType);
+        return extractType(elements, receiverType);
     }
 
     private static class Failure extends RuntimeException {

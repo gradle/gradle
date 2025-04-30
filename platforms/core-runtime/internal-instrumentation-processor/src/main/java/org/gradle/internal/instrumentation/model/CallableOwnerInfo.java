@@ -25,6 +25,9 @@ public class CallableOwnerInfo {
     private final boolean interceptSubtypes;
 
     public CallableOwnerInfo(Type type, boolean interceptSubtypes) {
+        if (type.getClassName().startsWith("$")) {
+            throw new IllegalStateException("bad type got: " + type);
+        }
         this.type = type;
         this.interceptSubtypes = interceptSubtypes;
     }

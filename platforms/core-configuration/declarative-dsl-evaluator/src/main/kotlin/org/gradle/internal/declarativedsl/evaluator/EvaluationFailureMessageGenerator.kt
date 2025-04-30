@@ -38,34 +38,34 @@ object EvaluationFailureMessageGenerator {
         stageFailures.forEach { stageFailure ->
             when (stageFailure) {
                 is StageFailure.FailuresInLanguageTree -> {
-                    appendLine("Failures in building the language tree:".indent(1))
+                    appendLine("Failures in building the language tree:".indentWithTwoSpaces(1))
                     if (stageFailure.failures.isNotEmpty()) {
                         formatFailuresInLanguageTree(stageFailure.failures).forEach {
-                            appendLine(it.indent(2))
+                            appendLine(it.indentWithTwoSpaces(2))
                         }
                     }
                 }
 
                 is StageFailure.FailuresInResolution -> {
-                    appendLine("Failures in resolution:".indent(1))
+                    appendLine("Failures in resolution:".indentWithTwoSpaces(1))
                     stageFailure.errors.forEach {
-                        appendLine(formatResolutionError(it).indent(2))
+                        appendLine(formatResolutionError(it).indentWithTwoSpaces(2))
                     }
                 }
 
                 StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
                 is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.scriptContext}")
                 is StageFailure.PropertyLinkErrors -> {
-                    appendLine("Failures in property links:".indent(1))
+                    appendLine("Failures in property links:".indentWithTwoSpaces(1))
                     stageFailure.usages.forEach { unassigned ->
-                        appendLine(describePropertyLinkIssue(unassigned).indent(2))
+                        appendLine(describePropertyLinkIssue(unassigned).indentWithTwoSpaces(2))
                     }
                 }
 
                 is StageFailure.DocumentCheckFailures -> {
-                    appendLine("Failures in document checks:".indent(1))
+                    appendLine("Failures in document checks:".indentWithTwoSpaces(1))
                     stageFailure.failures.forEach { failure ->
-                        appendLine(describeDocumentCheckFailure(failure).indent(2))
+                        appendLine(describeDocumentCheckFailure(failure).indentWithTwoSpaces(2))
                     }
                 }
             }
@@ -160,5 +160,5 @@ object EvaluationFailureMessageGenerator {
         if (ast.lineRange.first != -1) "${ast.lineRange.first}:${ast.startColumn}" else ""
 
     private
-    fun String.indent(level: Int = 1) = " ".repeat(level * 2) + this
+    fun String.indentWithTwoSpaces(level: Int = 1) = " ".repeat(level * 2) + this
 }

@@ -127,15 +127,21 @@ packageCycles {
 
 integTest.usesJavadocCodeSnippets = true
 
+// This project accesses JDK internals, which we need to open up so that javac & javadoc can access them
+val requiredExports = listOf(
+    "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+    "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+    "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
+)
+tasks.compileJava {
+    options.compilerArgs.addAll(
+        requiredExports.map { "--add-exports=$it" }
+    )
+}
 tasks.javadoc {
     options {
         this as StandardJavadocDocletOptions
-        // This project accesses JDK internals, which we need to open up so that javadoc can access them
-        addMultilineStringsOption("-add-exports").value = listOf(
-            "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-            "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-            "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
-        )
+        addMultilineStringsOption("-add-exports").value = requiredExports
     }
 }
 tasks.isolatedProjectsIntegTest {

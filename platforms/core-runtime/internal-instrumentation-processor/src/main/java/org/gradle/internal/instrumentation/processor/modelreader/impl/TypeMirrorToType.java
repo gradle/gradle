@@ -18,8 +18,7 @@ package org.gradle.internal.instrumentation.processor.modelreader.impl;
 
 import org.objectweb.asm.Type;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
@@ -34,11 +33,15 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor8;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import javax.lang.model.util.Elements;
 
 public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
+
+    private final Elements elements;
+
+    public TypeMirrorToType(Elements elements) {
+        this.elements = elements;
+    }
 
     @Override
     public Type visitPrimitive(PrimitiveType t, Void unused) {
@@ -87,29 +90,7 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
 
     @Override
     public Type visitDeclared(DeclaredType t, Void unused) {
-        List<Element> typeNesting = new ArrayList<>();
-        Element current = t.asElement();
-        while (current != null) {
-            typeNesting.add(current);
-            current = current.getEnclosingElement();
-        }
-        Collections.reverse(typeNesting);
-
-        // TODO: replace with javax.lang.model.util.Elements.getBinaryName, which is a more universal way but requires refactoring and passing the utility around
-        StringBuilder typeName = new StringBuilder("L");
-        typeNesting.forEach(element -> {
-            if (element instanceof PackageElement) {
-                typeName.append(((PackageElement) element).getQualifiedName().toString().replace(".", "/")).append("/");
-            } else {
-                typeName.append(element.getSimpleName().toString());
-                if (element != typeNesting.get(typeNesting.size() - 1)) {
-                    typeName.append("$");
-                }
-            }
-        });
-        typeName.append(";");
-
-        return Type.getType(typeName.toString());
+        return Type.getType("L" + elements.getBinaryName((TypeElement) t.asElement()).toString().replace('.', '/') + ";");
     }
 
     @Override
