@@ -46,7 +46,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static org.gradle.architecture.test.ArchUnitFixture.beAbstract;
+import static org.gradle.architecture.test.ArchUnitFixture.beAbstractClass;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
 import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
@@ -96,7 +96,7 @@ public class PublicApiCorrectnessTest {
     @ArchTest
     public static final ArchRule public_api_tasks_and_plugins_are_abstract = classes()
             .that(are(public_api_tasks_or_plugins))
-            .should(beAbstract());
+            .should(beAbstractClass());
 
 
     @ArchTest

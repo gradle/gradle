@@ -38,6 +38,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.test.precondition.Requires;
 import org.gradle.test.precondition.TestPrecondition;
 import org.gradle.util.EmptyStatement;
@@ -119,6 +120,19 @@ public interface ArchUnitFixture {
         .and(not(kotlin_internal_methods))
         .as("public API methods");
 
+    DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
+        @Override
+        public boolean test(JavaMethod input) {
+            PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
+            if (accessorType == PropertyAccessorType.IS_GETTER) {
+                // PropertyAccessorType.IS_GETTER doesn't handle names that start with is
+                // but are not getters, e.g. issueManagement is detected as IS_GETTER
+                return !Character.isLowerCase(input.getName().charAt(2));
+            }
+            return accessorType == PropertyAccessorType.GET_GETTER;
+        }
+    };
+
     static ArchRule freeze(ArchRule rule) {
         return new FreezeInstructionsPrintingArchRule(FreezingArchRule.freeze(rule));
     }
@@ -174,7 +188,7 @@ public interface ArchUnitFixture {
         };
     }
 
-    static ArchCondition<JavaClass> beAbstract() {
+    static ArchCondition<JavaClass> beAbstractClass() {
         return new ArchCondition<JavaClass>("be abstract") {
             @Override
             public void check(JavaClass input, ConditionEvents events) {
@@ -182,6 +196,19 @@ public interface ArchUnitFixture {
                     events.add(new SimpleConditionEvent(input, true, input.getFullName() + " is abstract"));
                 } else {
                     events.add(new SimpleConditionEvent(input, false, input.getFullName() + " is not abstract"));
+                }
+            }
+        };
+    }
+
+    static ArchCondition<JavaMethod> beAbstractMethod() {
+        return new ArchCondition<JavaMethod>("be abstract") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                if (method.getModifiers().contains(JavaModifier.ABSTRACT)) {
+                    events.add(new SimpleConditionEvent(method, true, method.getDescription() + " is abstract"));
+                } else {
+                    events.add(new SimpleConditionEvent(method, false, method.getDescription() + " is not abstract"));
                 }
             }
         };
@@ -326,12 +353,12 @@ public interface ArchUnitFixture {
                 method.getSourceCodeLocation())
 
                 : String.format("%s has arguments/return type %s that %s not %s in %s",
-                method.getDescription(),
-                String.join(", ", matchedClasses),
-                matchedClasses.size() == 1 ? "is" : "are",
-                types.getDescription(),
-                method.getSourceCodeLocation()
-            );
+                    method.getDescription(),
+                    String.join(", ", matchedClasses),
+                    matchedClasses.size() == 1 ? "is" : "are",
+                    types.getDescription(),
+                    method.getSourceCodeLocation()
+                );
             events.add(new SimpleConditionEvent(method, fulfilled, message));
         }
 
