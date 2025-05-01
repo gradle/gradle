@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.plugins.ide.eclipse.internal.DefaultEclipseProject
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -86,7 +87,7 @@ class EclipseModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        model.project = TestUtil.newInstance(EclipseProject, xmlMerger)
+        model.project = TestUtil.newInstance(DefaultEclipseProject, xmlMerger)
 
         when: "configure project"
         model.project({ p -> p.comment = 'something' } as Action<EclipseProject>)

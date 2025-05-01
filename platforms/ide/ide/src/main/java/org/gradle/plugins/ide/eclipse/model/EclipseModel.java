@@ -28,6 +28,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.internal.DefaultEclipseProject;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -120,7 +121,7 @@ public abstract class EclipseModel {
         if (project == null) {
             XmlTransformer xmlTransformer = new XmlTransformer();
             xmlTransformer.setIndentation("\t");
-            project = getObjectFactory().newInstance(EclipseProject.class, new XmlFileContentMerger(xmlTransformer));
+            project = getObjectFactory().newInstance(DefaultEclipseProject.class, new XmlFileContentMerger(xmlTransformer));
         }
         return project;
     }

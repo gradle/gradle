@@ -77,18 +77,21 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
 
     public void initGradleCommand() {
         final File gradlew = new File(IdePlugin.toGradleCommand(getProject()));
-        gradleExeCallable = () -> {
-            final String rootDir = transformer.get().transform(getProject().getRootDir());
-            String args = "";
-            if (!rootDir.equals(".")) {
-                args = " -p \"" + rootDir + "\"";
-            }
+        gradleExeCallable = new Callable<String>() {
+            @Override
+            public String call() {
+                final String rootDir = transformer.get().transform(GenerateProjectFileTask.this.getProject().getRootDir());
+                String args = "";
+                if (!rootDir.equals(".")) {
+                    args = " -p \"" + rootDir + "\"";
+                }
 
-            if (gradlew.isFile()) {
-                return "\"" + transformer.get().transform(gradlew) + "\"" + args;
-            }
+                if (gradlew.isFile()) {
+                    return "\"" + transformer.get().transform(gradlew) + "\"" + args;
+                }
 
-            return "\"gradle\"" + args;
+                return "\"gradle\"" + args;
+            }
         };
     }
 

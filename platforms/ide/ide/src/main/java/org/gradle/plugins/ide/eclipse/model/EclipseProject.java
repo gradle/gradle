@@ -16,27 +16,21 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.ConfigureUtil;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
@@ -136,25 +130,13 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 public abstract class EclipseProject {
 
     public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
-
-    private String name;
-
-//    private Property<String> comment;
-
-    private Set<String> referencedProjects = new LinkedHashSet<>();
-
-    private List<String> natures = new ArrayList<>();
-
-    private List<BuildCommand> buildCommands = new ArrayList<>();
-
-//    private Set<Link> linkedResources = new LinkedHashSet<>();
-//    private SetProperty<Link> linkedResources = project.pr;
-
+    protected final XmlFileContentMerger file;
+    protected String name;
+    protected Set<String> referencedProjects = new LinkedHashSet<>();
+    protected List<String> natures = new ArrayList<>();
+    protected List<BuildCommand> buildCommands = new ArrayList<>();
     private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
-    private final XmlFileContentMerger file;
-
-    @Inject
     public EclipseProject(XmlFileContentMerger file) {
         this.file = file;
     }
@@ -188,7 +170,7 @@ public abstract class EclipseProject {
     }
 
     public String getComment() {
-        return getCommentProperty().getOrNull();
+        return getCommentImpl();
     }
 
     /**
@@ -198,7 +180,7 @@ public abstract class EclipseProject {
      * @since 9.0
      */
     @Incubating
-    abstract public Property<String> getCommentProperty();
+    protected abstract String getCommentImpl();
 
     /**
      * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
@@ -206,9 +188,17 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void setComment(String comment) {
-        this.getCommentProperty().set(comment);
+        setCommentImpl(comment);
     }
 
+    /**
+     * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     * @since 9.0
+     */
+    @Incubating
+    protected abstract void setCommentImpl(String comment);
 
     public Set<String> getReferencedProjects() {
         return referencedProjects;
@@ -241,6 +231,7 @@ public abstract class EclipseProject {
     public List<String> getNatures() {
         return natures;
     }
+
     /**
      * The natures to be added to this Eclipse project.
      * <p>
@@ -297,8 +288,17 @@ public abstract class EclipseProject {
     }
 
     public Set<Link> getLinkedResources() {
-        return getlinkedResourcesProperty().getOrElse(ImmutableSet.of());
+        return getLinkedResourcesImpl();
     }
+
+    /**
+     * The linked resources to be added to this Eclipse project.
+     * <p>
+     * For example see docs for {@link EclipseProject}
+     * @since 9.0
+     */
+    @Incubating
+    protected abstract Set<Link> getLinkedResourcesImpl();
 
     /**
      * The linked resources to be added to this Eclipse project.
@@ -306,17 +306,18 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void setLinkedResources(Set<Link> linkedResources) {
-        this.getlinkedResourcesProperty().set(linkedResources);
+        setLinkedResourcesImpl(linkedResources);
     }
 
+
     /**
-     * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
+     * The linked resources to be added to this Eclipse project.
      * <p>
      * For example see docs for {@link EclipseProject}
      * @since 9.0
      */
     @Incubating
-    public abstract SetProperty<Link> getlinkedResourcesProperty();
+    protected abstract void setLinkedResourcesImpl(Set<Link> linkedResources);
 
     /**
      * Adds a resource link (aka 'source link') to the eclipse project. <p> For example see docs for {@link EclipseProject}
@@ -324,16 +325,21 @@ public abstract class EclipseProject {
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
     public void linkedResource(Map<String, String> args) {
-        Set<String> illegalArgs = Sets.difference(args.keySet(), VALID_LINKED_RESOURCE_ARGS);
-        if (!illegalArgs.isEmpty()) {
-            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs + ". Valid link args are: " + VALID_LINKED_RESOURCE_ARGS);
-        }
-
-        getlinkedResourcesProperty().add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
+        linkedResourceImpl(args);
     }
 
     /**
+     * Adds a resource link (aka 'source link') to the eclipse project. <p> For example see docs for {@link EclipseProject}
+     *
+     * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
+     * @since 9.0
+     */
+    @Incubating
+    protected abstract void linkedResourceImpl(Map<String, String> args);
+
+    /**
      * The resource filters of the eclipse project.
+     *
      * @since 3.5
      */
     public Set<ResourceFilter> getResourceFilters() {
@@ -348,7 +354,7 @@ public abstract class EclipseProject {
      * @param configureClosure The closure to use to configure the resource filter.
      * @since 3.5
      */
-    public ResourceFilter resourceFilter(@DelegatesTo(value=ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public ResourceFilter resourceFilter(@DelegatesTo(value = ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         return resourceFilter(new ClosureBackedAction<ResourceFilter>(configureClosure));
     }
 
@@ -374,7 +380,7 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        configure(closure, file);
+        ConfigureUtil.configure(closure, file);
     }
 
     /**

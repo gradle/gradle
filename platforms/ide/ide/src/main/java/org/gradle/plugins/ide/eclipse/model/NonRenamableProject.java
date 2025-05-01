@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,12 +106,12 @@ class NonRenamableProject extends Project {
     }
 
     @Override
-    public void load(Node xml) {
+    protected void load(Node xml) {
         delegate.load(xml);
     }
 
     @Override
-    public void store(Node xml) {
+    protected void store(Node xml) {
         delegate.store(xml);
     }
 
