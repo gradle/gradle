@@ -42,8 +42,8 @@ include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin",files="gr
 ====
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/do-this",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
 ====
 
 Avoid misusing version catalogs for unrelated concerns:
@@ -56,8 +56,8 @@ Avoid misusing version catalogs for unrelated concerns:
 Use a centralized `libs.versions.toml` file in your `gradle/` directory:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/avoid-this",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/avoid-this",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/kotlin/do-this",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs/groovy/do-this",files="build.gradle[tags=do-this]"]
 ====
 
 === References
