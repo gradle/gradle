@@ -412,7 +412,7 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     // From android-84 branch
-    ref = "01bc7b4808561e7c829763ce02604723618c19ca"
+    ref = "99e95eb1aa1d9c190ed1162f2b7915e765650f49"
 }
 
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
