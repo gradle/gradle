@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributeSchemaServices
+import org.gradle.api.internal.attributes.AttributeValue
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Issue
@@ -496,6 +498,104 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         attributeMatcher.isMatchingCandidate(finalAttributes, requested) >> false
 
         0 * attributeMatcher._
+    }
+
+    @Issue("gradle/gradle#33298")
+    def "long compatible transform chains with no path to source don't lead to combinatorial explosion of explored transform paths"() {
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+        def unrelatedTransforms = (0..10).collect {
+            registration(
+                AttributeTestUtil.attributes("a$it": "a"),
+                AttributeTestUtil.attributes("a$it": "b"),
+            )
+        }
+        def sourceVariant = variant([usage: "source"])
+
+        given:
+        transformRegistry.registrations >> unrelatedTransforms
+
+        when:
+        def result = transformations.findCandidateTransformationChains([ sourceVariant ], requested)
+
+        then:
+        result.empty
+
+        _ * attributeMatcher.isMatchingCandidate(_, _) >> { c, r -> return fakeIsMatchingCandidate(c, r) }
+    }
+
+    @Issue("gradle/gradle#33298")
+    def "transform can only apply once in a transform chain"() {
+        def by = AttributeTestUtil.attributes([first: "b", second: "y"])
+        def ax = variant([first: "a", second: "x"])
+
+        def a = AttributeTestUtil.attributes(first: "a")
+        def b = AttributeTestUtil.attributes(first: "b")
+        def ay = AttributeTestUtil.attributes([first: "a", second: "y"])
+        def bx = AttributeTestUtil.attributes([first: "b", second: "x"])
+
+        given:
+        transformRegistry.registrations >> [
+            registration(a, b),
+            registration(bx, ay)
+        ]
+
+        when:
+        def result = transformations.findCandidateTransformationChains([ ax ], by)
+
+        then:
+        result.empty
+
+        _ * attributeMatcher.isMatchingCandidate(_, _) >> { c, r -> return fakeIsMatchingCandidate(c, r) }
+    }
+
+    @Issue("gradle/gradle#33298")
+    def "diamond transform graph returns both paths"() {
+        def source = variant([a: "start", l: "start", r: "start", b: "start"])
+
+        def aStart = AttributeTestUtil.attributes([a: "start"])
+        def aEnd = AttributeTestUtil.attributes([a: "end"])
+
+        def alStart = AttributeTestUtil.attributes([a: "end", l: "start"])
+        def alEnd = AttributeTestUtil.attributes([a: "end", l: "end"])
+
+        def arStart = AttributeTestUtil.attributes([a: "end", r: "start"])
+        def arEnd = AttributeTestUtil.attributes([a: "end", r: "end"])
+
+        def ablrStart = AttributeTestUtil.attributes([a: "end", l: "end", r: "end", b: "start"])
+        def ablrEnd = AttributeTestUtil.attributes([a: "end", l: "end", r: "end", b: "end"])
+
+        def start = registration(aStart, aEnd)
+        def left = registration(alStart, alEnd)
+        def right = registration(arStart, arEnd)
+        def end = registration(ablrStart, ablrEnd)
+
+        given:
+        transformRegistry.registrations >> [start, left, right, end]
+
+        when:
+        def result = transformations.findCandidateTransformationChains([ source ], ablrEnd)
+
+        then:
+        result.size() == 2
+        assertTransformChain(result[0], source, ablrEnd, start, right, left, end)
+        assertTransformChain(result[1], source, ablrEnd, start, left, right, end)
+
+        _ * attributeMatcher.isMatchingCandidate(_, _) >> { c, r -> return fakeIsMatchingCandidate(c, r) }
+    }
+
+    // Reproduce the matching algorithm in a simplified form
+    private boolean fakeIsMatchingCandidate(ImmutableAttributes candidate, ImmutableAttributes requested) {
+        for (key in requested.keySet()) {
+            def requestedValue = requested.findEntry(key)
+            def candidateValue = candidate.findEntry(key)
+            if (candidateValue == AttributeValue.MISSING) {
+                continue
+            }
+            if (requestedValue.value != candidateValue.value) {
+                return false
+            }
+        }
+        return true
     }
 
     private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, TransformRegistration... registrations) {
