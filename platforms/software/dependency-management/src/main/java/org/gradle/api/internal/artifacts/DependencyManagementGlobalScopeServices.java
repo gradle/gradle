@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyCollector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -52,19 +54,25 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.generator.ManagedObjectCreator;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
+
+import java.util.Set;
 
 class DependencyManagementGlobalScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
@@ -74,6 +82,8 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
         registration.add(ExcludeRuleConverter.class, DefaultExcludeRuleConverter.class);
         registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
         registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactDependenciesAnnotationHandler.class);
+
+        // Now registry project scope service creator
     }
 
     @Provides
@@ -159,4 +169,30 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
         );
         return new TransformActionScheme(instantiationScheme, inspectionScheme);
     }
+
+    @Provides
+    ManagedObjectCreator createDependencyCollectorCreator(
+        InstantiatorFactory instantiatorFactory
+    ) {
+        return new ManagedObjectCreator() {
+
+            @Override
+            public Set<Class<?>> getSupportedTypes() {
+                return ImmutableSet.of(DependencyCollector.class);
+            }
+
+            @Override
+            public <T> T create(ServiceLookup services, Class<T> type, Class<?>... typeParameters) {
+                if (type == DependencyCollector.class) {
+                    Instantiator instantiator = instantiatorFactory.decorate(services);
+                    DefaultDependencyCollector instance = instantiator.newInstance(DefaultDependencyCollector.class);
+                    return Cast.uncheckedNonnullCast(instance);
+                }
+
+                throw new IllegalArgumentException("Cannot create instance of " + type);
+            }
+
+        };
+    }
+
 }

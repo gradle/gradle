@@ -16,7 +16,14 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -36,11 +43,13 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -63,6 +72,7 @@ import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -78,6 +88,9 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.generator.DefaultManagedObjectRegistry;
+import org.gradle.internal.instantiation.generator.ManagedObjectCreator;
+import org.gradle.internal.instantiation.generator.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -99,9 +112,11 @@ import org.gradle.internal.scripts.ScriptFileResolverListeners;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -124,8 +139,11 @@ import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
 import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
@@ -154,6 +172,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         registration.add(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
         registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
+        registration.add(ManagedObjectRegistry.class, DefaultManagedObjectRegistry.class);
     }
 
     @Provides
@@ -281,10 +300,12 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
+        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator,
+        ManagedObjectRegistry managedObjectRegistry
     ) {
         return new DefaultObjectFactory(
-            instantiatorFactory.decorate(services),
+            instantiatorFactory,
+            services,
             instantiator,
             directoryFileTreeFactory,
             patternSetFactory,
@@ -292,7 +313,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             filePropertyFactory,
             taskDependencyFactory,
             fileCollectionFactory,
-            domainObjectCollectionFactory);
+            domainObjectCollectionFactory,
+            managedObjectRegistry
+        );
     }
 
     @Provides
@@ -385,5 +408,92 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Provides
     ScriptSourceHasher createScriptSourceHasher() {
         return new DefaultScriptSourceHasher();
+    }
+
+    @Provides
+    ManagedObjectCreator createConfigurableFileCollection(
+        InstantiatorFactory instantiatorFactory
+    ) {
+        return new ManagedObjectCreator() {
+            @Override
+            public Set<Class<?>> getSupportedTypes() {
+                return ImmutableSet.of(
+                    ConfigurableFileCollection.class,
+                    ConfigurableFileTree.class
+                );
+            }
+
+            @Nullable
+            @Override
+            public <T> T create(ServiceLookup services, Class<T> type, Class<?>... typeParameters) {
+                FileCollectionFactory o = Cast.uncheckedNonnullCast(services.get(FileCollectionFactory.class));
+                if (type == ConfigurableFileTree.class) {
+                    return Cast.uncheckedCast(o.fileTree());
+                } else if (type == ConfigurableFileCollection.class) {
+                    return Cast.uncheckedCast(o.configurableFiles());
+                }
+
+                return null;
+            }
+        };
+    }
+
+    @Provides
+    ManagedObjectCreator createProperty(
+        InstantiatorFactory instantiatorFactory
+    ) {
+        return new ManagedObjectCreator() {
+
+            @Override
+            public Set<Class<?>> getSupportedTypes() {
+                return ImmutableSet.of(
+                    Property.class
+                );
+            }
+
+            @Override
+            public <T> T create(ServiceLookup services, Class<T> type, Class<?>... typeParameters) {
+                if (type == Property.class) {
+                    return Cast.uncheckedCast(createProperty(services, typeParameters));
+                }
+
+                throw new UnsupportedOperationException("Does not support instantiating " + type.getName());
+            }
+
+            private Property<?> createProperty(ServiceLookup services, Class<?>... typeParameters) {
+                Class<?> valueType = typeParameters[0];
+                PropertyFactory propertyFactory = Cast.uncheckedNonnullCast(services.get(PropertyFactory.class));
+
+                if (valueType.isPrimitive()) {
+                    // Kotlin passes these types for its own basic types
+                    Class<?> primitiveTypeWrapper = AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(valueType);
+                    DefaultProperty<?> property = propertyFactory.property(primitiveTypeWrapper);
+                    return Cast.uncheckedNonnullCast(property);
+                }
+
+                if (List.class.isAssignableFrom(valueType)) {
+                    // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
+                    // Allow this one type to be used with Property until we can fix this elsewhere
+                    if (!ExternalModuleDependencyBundle.class.isAssignableFrom(valueType)) {
+                        throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
+                    }
+                } else if (Set.class.isAssignableFrom(valueType)) {
+                    throw new InvalidUserCodeException(invalidPropertyCreationError("setProperty()", "Set<T>"));
+                } else if (Map.class.isAssignableFrom(valueType)) {
+                    throw new InvalidUserCodeException(invalidPropertyCreationError("mapProperty()", "Map<K, V>"));
+                } else if (Directory.class.isAssignableFrom(valueType)) {
+                    throw new InvalidUserCodeException(invalidPropertyCreationError("directoryProperty()", "Directory"));
+                } else if (RegularFile.class.isAssignableFrom(valueType)) {
+                    throw new InvalidUserCodeException(invalidPropertyCreationError("fileProperty()", "RegularFile"));
+                }
+
+                return propertyFactory.property(valueType);
+            }
+
+            private String invalidPropertyCreationError(String correctMethodName, String propertyType) {
+                return "Please use the ObjectFactory." + correctMethodName + " method to create a property of type " + propertyType + ".";
+            }
+
+        };
     }
 }

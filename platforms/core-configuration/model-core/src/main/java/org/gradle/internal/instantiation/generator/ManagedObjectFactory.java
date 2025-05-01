@@ -21,8 +21,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.artifacts.dsl.DependencyCollector;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
@@ -43,6 +41,7 @@ import org.gradle.internal.state.OwnerAware;
  * A helper used by generated classes to create managed instances.
  */
 public class ManagedObjectFactory {
+
     private final ServiceLookup serviceLookup;
     private final InstanceGenerator instantiator;
     private final PropertyRoleAnnotationHandler roleHandler;
@@ -68,29 +67,33 @@ public class ManagedObjectFactory {
 
     // Called from generated code
     public Object newInstance(ModelObject owner, String propertyName, Class<?> type) {
-        if (type.isAssignableFrom(ConfigurableFileCollection.class)) {
-            return attachOwner(getObjectFactory().fileCollection(), owner, propertyName);
-        }
-        if (type.isAssignableFrom(ConfigurableFileTree.class)) {
-            return attachOwner(getObjectFactory().fileTree(), owner, propertyName);
-        }
+//        if (type.isAssignableFrom(ConfigurableFileCollection.class)) {
+//            return attachOwner(getObjectFactory().fileCollection(), owner, propertyName);
+//        }
+//        if (type.isAssignableFrom(ConfigurableFileTree.class)) {
+//            return attachOwner(getObjectFactory().fileTree(), owner, propertyName);
+//        }
         if (type.isAssignableFrom(DirectoryProperty.class)) {
             return attachOwner(getObjectFactory().directoryProperty(), owner, propertyName);
         }
         if (type.isAssignableFrom(RegularFileProperty.class)) {
             return attachOwner(getObjectFactory().fileProperty(), owner, propertyName);
         }
-        if (type.isAssignableFrom(DependencyCollector.class)) {
-            return attachOwner(getObjectFactory().dependencyCollector(), owner, propertyName);
+//        if (type.isAssignableFrom(DependencyCollector.class)) {
+//            return attachOwner(getObjectFactory().dependencyCollector(), owner, propertyName);
+//        }
+        Object instance = getManagedObjectRegistry().newInstance(type, serviceLookup);
+        if (instance != null) {
+            return attachOwner(instance, owner, propertyName);
         }
         return attachOwner(instantiator.newInstanceWithDisplayName(type, displayNameFor(owner, propertyName)), owner, propertyName);
     }
 
     // Called from generated code
     public Object newInstance(ModelObject owner, String propertyName, Class<?> type, Class<?> paramType) {
-        if (type.isAssignableFrom(Property.class)) {
-            return attachOwner(getObjectFactory().property(paramType), owner, propertyName);
-        }
+//        if (type.isAssignableFrom(Property.class)) {
+//            return attachOwner(getObjectFactory().property(paramType), owner, propertyName);
+//        }
         if (type.isAssignableFrom(ListProperty.class)) {
             return attachOwner(getObjectFactory().listProperty(paramType), owner, propertyName);
         }
@@ -105,6 +108,10 @@ public class ManagedObjectFactory {
         }
         if (type.isAssignableFrom(ExtensiblePolymorphicDomainObjectContainer.class)) {
             return attachOwner(getObjectFactory().polymorphicDomainObjectContainer(paramType), owner, propertyName);
+        }
+        Object instance = getManagedObjectRegistry().newInstance(type, serviceLookup, paramType);
+        if (instance != null) {
+            return attachOwner(instance, owner, propertyName);
         }
         throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
     }
@@ -138,6 +145,10 @@ public class ManagedObjectFactory {
 
     private ObjectFactory getObjectFactory() {
         return (ObjectFactory) serviceLookup.get(ObjectFactory.class);
+    }
+
+    private ManagedObjectRegistry getManagedObjectRegistry() {
+        return (ManagedObjectRegistry) serviceLookup.get(ManagedObjectRegistry.class);
     }
 
     private static class ManagedPropertyName implements DisplayName {

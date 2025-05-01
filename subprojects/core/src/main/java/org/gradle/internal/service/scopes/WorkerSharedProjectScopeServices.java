@@ -47,6 +47,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.generator.ManagedObjectRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
@@ -140,10 +141,12 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, ServiceRegistry services, PatternSetFactory patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator
+        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator,
+        ManagedObjectRegistry managedObjectRegistry
     ) {
         return new DefaultObjectFactory(
-            instantiatorFactory.decorate(services),
+            instantiatorFactory,
+            services,
             namedObjectInstantiator,
             directoryFileTreeFactory,
             patternSetFactory,
@@ -151,6 +154,8 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
             filePropertyFactory,
             taskDependencyFactory,
             fileCollectionFactory,
-            domainObjectCollectionFactory);
+            domainObjectCollectionFactory,
+            managedObjectRegistry
+        );
     }
 }

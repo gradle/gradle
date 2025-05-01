@@ -65,6 +65,7 @@ import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.generator.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.ErrorReportingMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
@@ -75,6 +76,7 @@ import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -123,10 +125,13 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
+        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator,
+        ManagedObjectRegistry managedObjectRegistry
     ) {
+        ServiceRegistry services = buildTree.getServices();
         return new DefaultObjectFactory(
-            instantiatorFactory.decorate(buildTree.getServices()),
+            instantiatorFactory,
+            services,
             instantiator,
             directoryFileTreeFactory,
             patternSetFactory,
@@ -134,7 +139,9 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
             filePropertyFactory,
             taskDependencyFactory,
             fileCollectionFactory,
-            domainObjectCollectionFactory);
+            domainObjectCollectionFactory,
+            managedObjectRegistry
+        );
     }
 
     @Provides

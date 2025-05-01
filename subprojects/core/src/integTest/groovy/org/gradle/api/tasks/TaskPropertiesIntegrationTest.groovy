@@ -100,43 +100,6 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
-    def "reports failure to query read-only unmanaged Property<T>"() {
-        given:
-        file("buildSrc/src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.provider.*;
-            import org.gradle.api.tasks.*;
-
-            public abstract class MyTask extends DefaultTask {
-                private final Property<Integer> count = getProject().getObjects().property(Integer.class);
-
-                @Internal
-                public Property<Integer> getCount() {
-                    return count;
-                }
-
-                @TaskAction
-                void go() {
-                    System.out.println("count = " + count.get());
-                }
-            }
-        """
-
-        buildFile << """
-            tasks.create("thing", MyTask) {
-                println("property = \$count")
-            }
-        """
-
-        when:
-        fails("thing")
-
-        then:
-        outputContains("property = task ':thing' property 'count'")
-        failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
-    }
-
     def "can define task with abstract read-only ConfigurableFileCollection property"() {
         given:
         buildFile << """

@@ -17,12 +17,35 @@
 package org.gradle.api.artifacts.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.util.internal.ConfigureUtil
 
 /**
  * Tests {@link org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyCollector}.
  */
 class DependencyCollectorIntegrationTest extends AbstractIntegrationSpec {
+
+    def "cannot add dependencies after dependency set has been observed at the build scope"() {
+        given:
+        settingsFile << """
+            abstract class MyDependencies implements Dependencies {
+                abstract DependencyCollector getImplementation()
+
+                void call(Closure closure) {
+                    ${ConfigureUtil.class.name}.configure(closure, this)
+                }
+            }
+
+            def dependencies = services.get(${InstantiatorFactory.name}).decorate(services).newInstance(MyDependencies)
+
+            dependencies.implementation 'com:foo:1.0'
+            dependencies.implementation 'com:bar:1.0'
+        """
+
+        expect:
+        succeeds("help", '--stacktrace')
+    }
+
     def "cannot add dependencies after dependency set has been observed"() {
         given:
         buildFile << """
@@ -36,7 +59,7 @@ class DependencyCollectorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("help")
+        fails("help", '--stacktrace')
 
         then:
         failure.assertHasErrorOutput("The value for property 'implementation' property 'dependencies' is final and cannot be changed any further.")
@@ -116,7 +139,7 @@ class DependencyCollectorIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def dependencies = objects.newInstance(MyDependencies)
+            def dependencies = services.get(${InstantiatorFactory.name}).decorate(services).newInstance(MyDependencies)
 
             def conf = configurations.dependencyScope("conf").get()
             conf.fromDependencyCollector(dependencies.implementation)

@@ -116,6 +116,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
      * @implNote Keep in sync with platforms/documentation/docs/src/docs/userguide/authoring-builds/gradle-properties/properties_providers.adoc
      * @see ManagedObjectFactory#newInstance
      */
+    // TODO: Get rid of this list by annotating each managed type with @ManagedType and checking for the presence of that annotation
     private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
         ConfigurableFileCollection.class,
         ConfigurableFileTree.class,

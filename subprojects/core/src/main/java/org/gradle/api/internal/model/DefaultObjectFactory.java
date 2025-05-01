@@ -30,10 +30,10 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyCollector;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -49,7 +49,10 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.generator.ManagedObjectRegistry;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.util.List;
@@ -57,7 +60,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultObjectFactory implements ObjectFactory {
+
     private final Instantiator instantiator;
+    private final ServiceRegistry serviceRegistry;
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final PatternSetFactory patternSetFactory;
@@ -66,9 +71,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final TaskDependencyFactory taskDependencyFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+    private final ManagedObjectRegistry managedObjectRegistry;
 
     public DefaultObjectFactory(
-        Instantiator instantiator,
+        InstantiatorFactory instantiatorFactory,
+        ServiceRegistry serviceRegistry,
         NamedObjectInstantiator namedObjectInstantiator,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         PatternSetFactory patternSetFactory,
@@ -76,9 +83,11 @@ public class DefaultObjectFactory implements ObjectFactory {
         FilePropertyFactory filePropertyFactory,
         TaskDependencyFactory taskDependencyFactory,
         FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        ManagedObjectRegistry managedObjectRegistry
     ) {
-        this.instantiator = instantiator;
+        this.serviceRegistry = serviceRegistry;
+        this.instantiator = instantiatorFactory.decorate(serviceRegistry);
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patternSetFactory = patternSetFactory;
@@ -87,6 +96,7 @@ public class DefaultObjectFactory implements ObjectFactory {
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
+        this.managedObjectRegistry = managedObjectRegistry;
     }
 
     @Override
@@ -101,12 +111,12 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public ConfigurableFileCollection fileCollection() {
-        return fileCollectionFactory.configurableFiles();
+        return managedObjectRegistry.newInstance(ConfigurableFileCollection.class, serviceRegistry);
     }
 
     @Override
     public ConfigurableFileTree fileTree() {
-        return fileCollectionFactory.fileTree();
+        return managedObjectRegistry.newInstance(ConfigurableFileTree.class, serviceRegistry);
     }
 
     @Override
@@ -126,7 +136,7 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public DependencyCollector dependencyCollector() {
-        return newInstance(DefaultDependencyCollector.class);
+        return managedObjectRegistry.newInstance(DependencyCollector.class, serviceRegistry);
     }
 
     @Override
@@ -160,37 +170,13 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Property<T> property(Class<T> valueType) {
         if (valueType == null) {
             throw new IllegalArgumentException("Class cannot be null");
         }
 
-        if (valueType.isPrimitive()) {
-            // Kotlin passes these types for its own basic types
-            return Cast.uncheckedNonnullCast(property(AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(valueType)));
-        }
-
-        if (List.class.isAssignableFrom(valueType)) {
-            // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
-            // Allow this one type to be used with Property until we can fix this elsewhere
-            if (!ExternalModuleDependencyBundle.class.isAssignableFrom(valueType)) {
-                throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
-            }
-        } else if (Set.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("setProperty()", "Set<T>"));
-        } else if (Map.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("mapProperty()", "Map<K, V>"));
-        } else if (Directory.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("directoryProperty()", "Directory"));
-        } else if (RegularFile.class.isAssignableFrom(valueType)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("fileProperty()", "RegularFile"));
-        }
-
-        return propertyFactory.property(valueType);
-    }
-
-    private String invalidPropertyCreationError(String correctMethodName, String propertyType) {
-        return "Please use the ObjectFactory." + correctMethodName + " method to create a property of type " + propertyType + ".";
+        return managedObjectRegistry.newInstance(Property.class, serviceRegistry, valueType);
     }
 
     @Override
