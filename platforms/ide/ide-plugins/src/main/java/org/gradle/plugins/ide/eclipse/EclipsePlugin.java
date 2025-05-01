@@ -148,13 +148,6 @@ public abstract class EclipsePlugin extends IdePlugin {
         projectModel.setName(uniqueProjectNameProvider.getUniqueName(project));
 
         final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
-        convention.map("comment", new Callable<String>() {
-            @Override
-            public String call() {
-                return project.getDescription();
-            }
-
-        });
 
         final TaskProvider<GenerateEclipseProject> task = project.getTasks().register(ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, model.getProject());
         task.configure(new Action<GenerateEclipseProject>() {

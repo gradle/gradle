@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.provider.Property;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
@@ -135,7 +137,7 @@ public abstract class EclipseProject {
     public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
     private String name;
 
-    private String comment;
+    private Property<Optional> comment;
 
     private Set<String> referencedProjects = new LinkedHashSet<>();
 
@@ -150,8 +152,10 @@ public abstract class EclipseProject {
     private final XmlFileContentMerger file;
 
     @Inject
-    public EclipseProject(XmlFileContentMerger file) {
+    public EclipseProject(XmlFileContentMerger file, org.gradle.api.Project project) {
         this.file = file;
+        this.comment = project.getObjects().property(Optional.class);
+        this.comment.convention(project.provider(() ->  Optional.ofNullable(project.getDescription())));
     }
 
     public String getName() {
@@ -182,8 +186,10 @@ public abstract class EclipseProject {
         this.name = name;
     }
 
+    @SuppressWarnings("unchecked")
     public String getComment() {
-        return comment;
+        Optional<String> c = (Optional<String>) comment.getOrNull();
+        return c.orElse((String) null);
     }
 
     /**
@@ -192,7 +198,7 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void setComment(String comment) {
-        this.comment = comment;
+        this.comment.set(Optional.ofNullable(comment));
     }
 
 

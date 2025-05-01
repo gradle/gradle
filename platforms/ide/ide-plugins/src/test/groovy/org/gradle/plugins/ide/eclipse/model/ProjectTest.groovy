@@ -53,7 +53,8 @@ class ProjectTest extends Specification {
     }
 
     def configureMergesValues() {
-        EclipseProject eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger))
+        TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+        EclipseProject eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger), TestUtil.create(temporaryFolder).rootProject())
         eclipseProject.name = 'constructorName'
         eclipseProject.comment = 'constructorComment'
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
@@ -94,7 +95,8 @@ class ProjectTest extends Specification {
     }
 
     def toXml_shouldContainCustomValues() {
-        EclipseProject eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger))
+        TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+        EclipseProject eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger), TestUtil.create(temporaryFolder).rootProject())
         eclipseProject.name = 'constructorName'
         eclipseProject.comment = 'constructorComment'
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet

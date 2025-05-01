@@ -106,6 +106,11 @@ public abstract class EclipseModel {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected Project getApiProject() {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Configures eclipse project information
      * <p>
@@ -115,7 +120,7 @@ public abstract class EclipseModel {
         if (project == null) {
             XmlTransformer xmlTransformer = new XmlTransformer();
             xmlTransformer.setIndentation("\t");
-            project = getObjectFactory().newInstance(EclipseProject.class, new XmlFileContentMerger(xmlTransformer));
+            project = getObjectFactory().newInstance(EclipseProject.class, new XmlFileContentMerger(xmlTransformer), getApiProject());
         }
         return project;
     }
