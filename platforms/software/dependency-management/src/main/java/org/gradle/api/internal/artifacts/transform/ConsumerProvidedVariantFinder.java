@@ -31,8 +31,12 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
@@ -141,11 +145,24 @@ public class ConsumerProvidedVariantFinder {
      * candidate transforms linked to the previous level's chains.
      */
     private List<CachedVariant> doFindTransformedVariants(List<ImmutableAttributes> sources, ImmutableAttributes requested) {
+        ImmutableFilteredList<TransformRegistration> allRegisteredTransforms =
+            ImmutableFilteredList.allOf(new ArrayList<>(variantTransforms.getRegistrations()));
         AttributeMatcher attributeMatcher = matcher.get();
+
+        // Perform a memoized reachability check before trying to find all shortest paths through the transforms graph
+        boolean areSourcesPotentiallyReachable = areSourcesAttributesPotentiallyReachableFromRequested(
+            sources,
+            requested,
+            allRegisteredTransforms,
+            attributeMatcher
+        );
+        if (!areSourcesPotentiallyReachable) {
+            return new ArrayList<>();
+        }
 
         List<ChainState> toProcess = new ArrayList<>();
         List<ChainState> nextDepth = new ArrayList<>();
-        toProcess.add(new ChainState(null, requested, ImmutableFilteredList.allOf(new ArrayList<>(variantTransforms.getRegistrations()))));
+        toProcess.add(new ChainState(null, requested, allRegisteredTransforms));
 
         List<CachedVariant> results = new ArrayList<>(1);
         while (results.isEmpty() && !toProcess.isEmpty()) {
@@ -158,13 +175,11 @@ public class ConsumerProvidedVariantFinder {
                 for (TransformRegistration candidate : candidates) {
                     for (int i = 0; i < sources.size(); i++) {
                         ImmutableAttributes sourceAttrs = sources.get(i);
-                        if (attributeMatcher.isMatchingCandidate(sourceAttrs, candidate.getFrom())) {
-                            ImmutableAttributes rootAttrs = attributesFactory.concat(sourceAttrs, candidate.getTo());
-                            if (attributeMatcher.isMatchingCandidate(rootAttrs, state.requested)) {
-                                DefaultVariantDefinition rootTransformedVariant = new DefaultVariantDefinition(null, rootAttrs, candidate.getTransformStep());
-                                VariantDefinition variantChain = createVariantChain(state.chain, rootTransformedVariant);
-                                results.add(new CachedVariant(i, variantChain));
-                            }
+                        ImmutableAttributes rootAttrs = sourceMatchingAttributesOrNull(candidate, sourceAttrs, state.requested, attributeMatcher);
+                        if (rootAttrs != null) {
+                            DefaultVariantDefinition rootTransformedVariant = new DefaultVariantDefinition(null, rootAttrs, candidate.getTransformStep());
+                            VariantDefinition variantChain = createVariantChain(state.chain, rootTransformedVariant);
+                            results.add(new CachedVariant(i, variantChain));
                         }
                     }
                 }
@@ -195,8 +210,64 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * Constructs a complete cacheable variant chain given a root transformed variant and the chain of variants
-     * to apply to that root variant.
+     * The transform chain in doFindTransformedVariants is expected to be short. To avoid a potentially expensive search, we check that source attributes might be reached from the requested by:
+     * - looking at all registered transforms instead of the remaining compatible transforms
+     * - walking each attributes vertex once
+     *
+     * Theoretically this means 1 transform can be applied multiple times and transforms ruled incompatible at previous depths can be considered again. Therefore, this algorithm can find paths that
+     * will be deemed invalid by doFindTransformedVariants.
+     */
+    private boolean areSourcesAttributesPotentiallyReachableFromRequested(
+        List<ImmutableAttributes> sources,
+        ImmutableAttributes requested,
+        ImmutableFilteredList<TransformRegistration> allRegisteredTransforms,
+        AttributeMatcher attributeMatcher
+    ) {
+        Deque<ImmutableAttributes> attributesQueue = new ArrayDeque<>();
+        attributesQueue.addLast(requested);
+        Set<Object> seenAttributes = new HashSet<>();
+
+        while (!attributesQueue.isEmpty()) {
+            ImmutableAttributes attributes = attributesQueue.removeFirst();
+            ImmutableFilteredList<TransformRegistration> candidates =
+                allRegisteredTransforms.matching(transform -> attributeMatcher.isMatchingCandidate(transform.getTo(), attributes));
+
+            for (TransformRegistration candidate : candidates) {
+                for (ImmutableAttributes sourceAttrs : sources) {
+                    ImmutableAttributes rootAttrs = sourceMatchingAttributesOrNull(candidate, sourceAttrs, attributes, attributeMatcher);
+                    if (rootAttrs != null) {
+                        return true;
+                    }
+                }
+                ImmutableAttributes next = attributesFactory.concat(attributes, candidate.getFrom());
+                if (seenAttributes.add(next.asMap())) {
+                    attributesQueue.addLast(next);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Nullable
+    ImmutableAttributes sourceMatchingAttributesOrNull(
+        TransformRegistration candidate,
+        ImmutableAttributes sourceAttrs,
+        ImmutableAttributes requestedAttrs,
+        AttributeMatcher attributeMatcher
+    ) {
+        if (attributeMatcher.isMatchingCandidate(sourceAttrs, candidate.getFrom())) {
+            ImmutableAttributes rootAttrs = attributesFactory.concat(sourceAttrs, candidate.getTo());
+            if (attributeMatcher.isMatchingCandidate(rootAttrs, requestedAttrs)) {
+                return rootAttrs;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Constructs a complete cacheable transformation chain given an initial transform and the chain of transforms
+     * to apply after it.
      *
      * @param stateChain The transform chain from the search state to apply to the root transformed variant.
      * @param root The root variant to apply the chain to.

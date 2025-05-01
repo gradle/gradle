@@ -347,6 +347,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         // compatible is compatible with requested attributes
         attributeMatcher.isMatchingCandidate(compatible, requested) >> true
 
+        _ * attributeMatcher.isMatchingCandidate(_, _) >> false
         0 * attributeMatcher._
 
         where:
@@ -396,6 +397,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         attributeMatcher.isMatchingCandidate(intermediate, requested) >> false
         attributeMatcher.isMatchingCandidate(compatible, requested) >> true
 
+        _ * attributeMatcher.isMatchingCandidate(_, _) >> false
         0 * attributeMatcher._
     }
 
@@ -497,6 +499,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         // attributes that are the result of the transform are not compatible with the request
         attributeMatcher.isMatchingCandidate(finalAttributes, requested) >> false
 
+        _ * attributeMatcher.isMatchingCandidate(_, _) >> false
         0 * attributeMatcher._
     }
 
