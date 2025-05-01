@@ -47,7 +47,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.testing.base.TestingExtension;
@@ -270,9 +269,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
             .add(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
 
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
-        configureSourceSets(buildOutputCleanupRegistry, sourceSets);
-
         configureTestTaskOrdering(project.getTasks());
         configureDiagnostics(project, javaComponent.getMainFeature());
         configureBuild(project);
@@ -286,7 +282,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
             sourceSet,
             Collections.emptySet(),
             project,
-            false,
             false
         );
 
@@ -330,11 +325,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
                 strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
             });
         });
-    }
-
-    private static void configureSourceSets(final BuildOutputCleanupRegistry buildOutputCleanupRegistry, SourceSetContainer sourceSets) {
-        // Register the project's source set output directories
-        sourceSets.all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
     }
 
     /**

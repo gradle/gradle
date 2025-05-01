@@ -359,7 +359,7 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
 tasks.register("buildBuilder", RemoteProject) {
     remoteUri = 'https://github.com/gradle/build-builder.git'
     // From master branch
-    ref = '39037ebf30b9eab5bdceff259ce50126f94a5561'
+    ref = '76349287aac653e500a4c2581707cae98fe85e79'
 }
 
 tasks.register("installBuildBuilder", GradleBuild) {
@@ -561,7 +561,7 @@ performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "e53dc7182fafcf9fedf07920cbbea8b40ee4eef4"
+    ref = "4f5fcfbd5a9f03aae0386e12f0ceddfae8100d5a"
     subdirectory = 'parallel-downloads'
 }
 

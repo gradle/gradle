@@ -425,7 +425,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             AttributesSchemaInternal attributesSchema,
             DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
-            ResolutionStrategyFactory resolutionStrategyFactory
+            ResolutionStrategyFactory resolutionStrategyFactory,
+            InternalProblems problemsService
         ) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
@@ -435,7 +436,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributesSchema,
                 rootComponentMetadataBuilderFactory,
                 defaultConfigurationFactory,
-                resolutionStrategyFactory
+                resolutionStrategyFactory,
+                problemsService
             );
         }
 

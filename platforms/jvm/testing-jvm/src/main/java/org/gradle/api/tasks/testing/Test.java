@@ -72,6 +72,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
@@ -201,7 +202,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
-        testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -696,11 +697,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @TaskAction
     public void executeTests() {
         JavaVersion javaVersion = getJavaVersion();
-        if (!javaVersion.isJava6Compatible()) {
-            throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
-        }
-        if (!javaVersion.isJava8Compatible()) {
-            throw new UnsupportedJavaRuntimeException("Support for test execution using Java 7 or earlier was removed in Gradle 9.0.");
+        if (!javaVersion.isCompatibleWith(JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION))) {
+            throw new UnsupportedJavaRuntimeException(String.format(
+                "Gradle does not support executing tests using JVM %s or earlier.",
+                SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION - 1
+            ));
         }
 
         if (getDebug()) {
@@ -984,7 +985,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        useTestFramework(getObjectFactory().newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
     /**
@@ -1023,7 +1024,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), getDryRun()));
+        useTestFramework(getObjectFactory().newInstance(JUnitPlatformTestFramework.class, getFilter(), getDryRun()));
     }
 
     /**
@@ -1050,7 +1051,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
-        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getObjectFactory()));
+        useTestFramework(getObjectFactory().newInstance(TestNGTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun(), this.getReports().getHtml()));
 
     }
 

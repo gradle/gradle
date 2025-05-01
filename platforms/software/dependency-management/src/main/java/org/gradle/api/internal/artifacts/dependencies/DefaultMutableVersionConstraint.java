@@ -131,10 +131,6 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
        return rejectedVersions;
     }
 
-    public String getVersion() {
-        return requiredVersion.isEmpty() ? preferredVersion : requiredVersion;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

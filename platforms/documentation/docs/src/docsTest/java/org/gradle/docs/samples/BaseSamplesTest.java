@@ -32,6 +32,7 @@ import org.gradle.integtests.fixtures.logging.EmptyLineTrimmerOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.PlatformInOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.RepositoryMirrorOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SpringBootWebAppTestOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ZincScalaCompilerOutputNormalizer;
@@ -52,7 +53,8 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     ZincScalaCompilerOutputNormalizer.class,
     PlatformInOutputNormalizer.class,
     SpringBootWebAppTestOutputNormalizer.class,
-    EmptyLineTrimmerOutputNormalizer.class
+    EmptyLineTrimmerOutputNormalizer.class,
+    RepositoryMirrorOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,

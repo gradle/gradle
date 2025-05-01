@@ -19,6 +19,7 @@ package org.gradle.api.plugins.antlr;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -28,7 +29,6 @@ import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -55,7 +55,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
 
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
-        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeUnlocked(ANTLR_CONFIGURATION_NAME)
+        final Configuration antlrConfiguration = ((ProjectInternal) project).getConfigurations().resolvableDependencyScopeLocked(ANTLR_CONFIGURATION_NAME)
             .setVisible(false);
 
         antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
@@ -64,7 +64,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         apiConfiguration.extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
-        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
+        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.antlrClasspath.convention(antlrConfiguration));
 
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
             new Action<SourceSet>() {
@@ -82,23 +82,28 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     //    naming conventions via call to sourceSet.getTaskName()
                     final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 
-                    // 3) Set up the Antlr output directory
+                    // 3) Set up the Antlr output directory (adding to javac inputs!)
                     final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
                     final File outputDirectory = new File(outputDirectoryName);
+                    sourceSet.getJava().srcDir(outputDirectory);
 
-                    // 4) Register a source-generating task, and
-                    TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
+                    project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
                         @Override
                         public void execute(AntlrTask antlrTask) {
                             antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
-                            // 4.1) set up convention mapping for default sources (allows user to not have to specify)
+                            // 4) set up convention mapping for default sources (allows user to not have to specify)
                             antlrTask.setSource(antlrSourceSet);
                             antlrTask.setOutputDirectory(outputDirectory);
                         }
                     });
 
-                    // 5) Add that task's outputs to the Java source set
-                    sourceSet.getJava().srcDir(antlrTask);
+                    // 5) register fact that antlr should be run before compiling
+                    project.getTasks().named(sourceSet.getCompileJavaTaskName(), new Action<Task>() {
+                        @Override
+                        public void execute(Task task) {
+                            task.dependsOn(taskName);
+                        }
+                    });
                 }
             });
     }

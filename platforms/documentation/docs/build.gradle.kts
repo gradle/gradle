@@ -47,6 +47,12 @@ configurations.docsTestImplementation {
     exclude("org.slf4j", "slf4j-simple")
 }
 
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(sourceSets.docsTest.name)
+    }
+}
+
 dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
@@ -73,6 +79,7 @@ dependencies {
     docsTestImplementation(project(":logging"))
     docsTestImplementation(libs.junit5Vintage)
     docsTestImplementation(libs.junit)
+    docsTestRuntimeOnly(libs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
@@ -689,6 +696,11 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*")
             // PMD doesn't support Java 23
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // Kotlin does not yet support 24 JDK target
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {

@@ -52,7 +52,7 @@ public class ProjectDependencyFactory {
             @MapKey("path") String path,
             @MapKey("configuration") @Nullable String configuration
         ) {
-            ProjectDependency defaultProjectDependency = factory.create(projectFinder.getProject(path));
+            ProjectDependency defaultProjectDependency = factory.create(projectFinder.getProject(path).getOwner());
             if (configuration != null) {
                 defaultProjectDependency.setTargetConfiguration(configuration);
             }

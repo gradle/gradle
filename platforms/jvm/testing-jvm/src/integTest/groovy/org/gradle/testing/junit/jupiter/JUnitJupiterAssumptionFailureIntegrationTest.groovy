@@ -75,6 +75,62 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
         }
     }
 
+    def "test aborted failures are avaliable as assumptionFailures"() {
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                        targets {
+                            all {
+                                testTask.configure {
+                                    addTestListener(new TestListener() {
+                                        void beforeSuite(TestDescriptor suite) {}
+                                        void afterSuite(TestDescriptor suite, TestResult result) {}
+                                        void beforeTest(TestDescriptor testDescriptor) {}
+                                        void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                                            assert result.assumptionFailure != null
+                                            println("Assumption failure: " + result.assumptionFailure.details.message)
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("src/test/java/com/example/MyTest.java") << """
+            package com.example;
+
+            import org.junit.jupiter.api.Test;
+            import org.opentest4j.TestAbortedException;
+
+
+            public class MyTest {
+                @Test
+                public void theTest() {
+                    throw new TestAbortedException();
+                }
+            }
+        """
+        when:
+        succeeds("test")
+        then:
+        outputContains("Assumption failure: ")
+        def testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
+            assert it.message == "(no message)"
+            assert it.type == "org.opentest4j.TestAbortedException"
+            assert !it.text.empty
+        }
+    }
+
     def "does not capture ignored tests as assumption failures"() {
         buildFile << """
             plugins {

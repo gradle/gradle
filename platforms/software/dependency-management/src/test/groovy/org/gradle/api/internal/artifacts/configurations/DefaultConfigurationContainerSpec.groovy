@@ -94,7 +94,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         Mock(AttributesSchemaInternal),
         rootComponentMetadataBuilderFactory,
         configurationFactory,
-        Mock(ResolutionStrategyFactory)
+        Mock(ResolutionStrategyFactory),
+        TestUtil.problemsService(),
     )
 
     def setup() {

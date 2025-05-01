@@ -122,3 +122,118 @@ include::sample[dir="snippets/bestPractices/versionCatalogNaming/groovy",files="
 === Tags
 
 `<<tags_reference.adoc#tag:version-catalog,#version-catalog>>`
+
+[[set_up_repositories_in_settings]]
+== Set up your dependency repositories in `settings.gradle.kts`
+
+Declare your repositories for your plugins and dependencies in `settings.gradle.kts`.
+
+=== Explanation
+
+Using `settings.gradle.kts` file to declare repositories has several benefits:
+
+ - Avoids repetition: Centralizing repository declarations eliminates the need to repeat them in each project's `build.gradle.kts`.
+ - Improves debuggability: Ensures all projects resolve dependencies during resolution from the same repositories, in a consistent order.
+ - Matches the build model: Repositories are not part of the project definition; they are part of global build logic, so settings is a more appropriate place for them.
+
+Note: While https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories` is an incubating API], it is the preferred way of declaring repositories.
+
+=== Example
+
+==== Don't Do This
+
+You could set up repositories in individual `build.gradle.kts` files with:
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDont/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+Instead, you should set them up in `settings.gradle.kts` like this:
+
+====
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/kotlin",files="settings.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/settingsRepositoriesDo/groovy",files="settings.gradle[tags=do-this]"]
+====
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[dont_depend_on_kotlin_stdlib]]
+== Don't Explicitly Depend on the Kotlin Standard Library
+:keywords: dependencies
+
+The Kotlin Gradle Plugin automatically adds a dependency on the Kotlin standard library (`stdlib`) to each source set, so there is no need to declare it explicitly.
+
+=== Explanation
+
+The version of the standard library added is the same as the version of the Kotlin Gradle Plugin applied to the project.
+If your build does not require a specific or different version of the standard library, you should avoid adding it manually.
+
+NOTE: Setting the `kotlin.stdlib.default.dependency` property to `false` prevents the Kotlin plugin from automatically adding the Kotlin standard library dependency to your project. This can be useful in specific scenarios, such as when you want to manage the Kotlin standard library dependency version manually.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/kotlinStdLib-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *`stdlib` is explicitly depended upon*: This project contains an implicit dependency on the Kotlin standard library, which is required to compile its source code.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/kotlinStdLib-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/kotlinStdLib-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+*`stdlib` dependency is not included explicitly*: The standard library remains available for use, and source code requiring it can be compiled without any issues.
+
+=== References
+
+- https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.kotlin.dsl/kotlin.html[the `kotlin()` function]
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+[[avoid_duplicate_dependencies]]
+== Avoid Redundant Dependency Declarations
+
+Avoid declaring the same dependency multiple times, especially when it is already available transitively or through another configuration.
+
+=== Explanation
+
+Duplicating dependencies in Gradle build scripts can lead to:
+
+* Increased maintenance: Declaring a dependency in multiple places makes it harder to manage.
+* Unexpected behavior: Declaring the same dependency in multiple configurations (e.g., `compileOnly` and `implementation`) can result in hard-to-diagnose classpath issues.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin/avoid-this",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/avoid-this",files="build.gradle[]"]
+====
+
+<1> Redundant dependency in `implementation` scope.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/kotlin/do-this",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies/groovy/do-this",files="build.gradle[]"]
+====
+
+<1> Declare dependency once
+
+=== Tags
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`

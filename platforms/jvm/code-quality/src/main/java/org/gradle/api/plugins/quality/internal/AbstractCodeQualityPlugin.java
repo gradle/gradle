@@ -100,7 +100,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     @SuppressWarnings("deprecation")
     protected void createConfigurations() {
-        Configuration configuration = project.getConfigurations().resolvableDependencyScopeUnlocked(getConfigurationName());
+        Configuration configuration = project.getConfigurations().resolvableDependencyScopeLocked(getConfigurationName());
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");

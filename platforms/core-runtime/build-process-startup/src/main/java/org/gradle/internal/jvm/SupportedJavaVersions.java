@@ -22,19 +22,31 @@ package org.gradle.internal.jvm;
 public class SupportedJavaVersions {
 
     /**
-     * The minimum version of Java that is required to run a Gradle daemon client.
+     * The minimum JVM version that is required to run the Gradle wrapper.
+     */
+    public static final int MINIMUM_WRAPPER_JAVA_VERSION = 8;
+
+    /**
+     * The minimum JVM version that is required to run a Gradle daemon client.
      * <p>
      * The Tooling API client and CLI Client are both Gradle daemon clients.
      */
     public static final int MINIMUM_CLIENT_JAVA_VERSION = 8;
 
     /**
-     * The minimum version of Java that is required to run the Gradle daemon.
+     * The minimum JVM version that is required to run a Gradle worker process.
+     * <p>
+     * The Worker API, JVM tests, and JVM compiler daemons all run within a Gradle worker process.
+     */
+    public static final int MINIMUM_WORKER_JAVA_VERSION = 8;
+
+    /**
+     * The minimum JVM version that is required to run the Gradle daemon.
      */
     public static final int MINIMUM_DAEMON_JAVA_VERSION = 8;
 
     /**
-     * The minimum version of Java that will be required to run the Gradle daemon in the next major version.
+     * The minimum JVM version that will be required to run the Gradle daemon in the next major Gradle version.
      * <p>
      * If this is the same version as {@link #MINIMUM_DAEMON_JAVA_VERSION}, then the next major
      * version will not require a newer minimum Java version. When you update this version,

@@ -17,11 +17,16 @@
 package org.gradle.plugin.devel.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -38,9 +43,8 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
@@ -93,13 +97,20 @@ public abstract class ValidatePlugins extends DefaultTask {
                 if (getLauncher().isPresent()) {
                     spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
                 } else {
-                    DeprecationLogger.deprecateBehaviour("Using task ValidatePlugins without applying the Java Toolchain plugin.")
-                        .withProblemIdDisplayName("Using task ValidatePlugins without applying the Java Toolchain plugin.")
-                        .withProblemId("missing-java-toolchain-plugin")
-                        .willBecomeAnErrorInGradle9()
-                        .withUpgradeGuideSection(8, "validate_plugins_without_java_toolchain")
-                        .nagUser();
-                    spec.getForkOptions().setExecutable(Jvm.current().getJavaExecutable());
+                    ProblemId problemId = ProblemId.create(
+                        "missing-java-toolchain-plugin",
+                        "Using task ValidatePlugins without applying the Java Toolchain plugin",
+                        GradleCoreProblemGroup.validation().thisGroup()
+                    );
+                    ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
+                    GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
+                    throw problemReporter.throwing(
+                        exception,
+                        problemReporter.create(problemId, problemSpec -> {
+                            problemSpec.documentedAt(Documentation.upgradeGuide(8, "validate_plugins_without_java_toolchain_90").getUrl());
+                            problemSpec.contextualLabel(exception.getMessage());
+                        })
+                    );
                 }
                 spec.getClasspath().setFrom(getClasses(), getClasspath());
             })

@@ -6,8 +6,9 @@ plugins {
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
-gradlebuildJava {
-    usedInToolingApi()
+gradleModule {
+    usedInClient = true
+
     // JSpecify annotations on static inner type return types
     usesJdkInternals = true
 }
@@ -73,6 +74,7 @@ dependencies {
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(testFixtures(projects.buildProcessStartup))
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.problems)

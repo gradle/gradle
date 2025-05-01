@@ -217,6 +217,9 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                                 if (merged instanceof ExcludeEverything) {
                                     return merged;
                                 }
+                                // TODO Improve this - if we are here, we always have a anyOf with two members.
+                                // We should flatten the anyOf to its members, since we are building a union
+                                // Doing that would allow us to remove the special case for 2 elements below
                                 left = merged;
                                 asArray[i] = merged;
                                 asArray[j] = null;
@@ -237,13 +240,18 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
             ExcludeSpec second = specIterator.next();
 
             if (first instanceof ExcludeAnyOf || second instanceof ExcludeAnyOf) {
-                if (!(first instanceof ExcludeAnyOf)) {
-                    builder.add(first);
+                ImmutableSet.Builder<ExcludeSpec> newBuilder = ImmutableSet.builder();
+                if (first instanceof ExcludeAnyOf) {
+                    newBuilder.addAll(((ExcludeAnyOf)first).getComponents());
+                } else {
+                    newBuilder.add(first);
                 }
-                if (!(second instanceof ExcludeAnyOf)) {
-                    builder.add(second);
+                if (second instanceof ExcludeAnyOf) {
+                    newBuilder.addAll(((ExcludeAnyOf)second).getComponents());
+                } else {
+                    newBuilder.add(second);
                 }
-                elements = builder.build();
+                elements = newBuilder.build();
             }
         }
         return Optimizations.optimizeCollection(this, elements, delegate::anyOf);

@@ -29,7 +29,7 @@ val junit5Version = "5.8.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
 val nativePlatformVersion = "0.22-milestone-28"
-val slf4jVersion = "1.7.36"
+val slf4jVersion = "2.0.17"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
 
@@ -216,8 +216,8 @@ dependencies {
         api(libs.mySqlConnector)        { version { strictly("9.2.0") }}
         api(libs.netty)                 { version { strictly("4.1.63.Final") }}
         api(libs.opentest4j)            { version { strictly("1.3.0") }}
-        api(libs.samplesCheck)          { version { strictly("1.0.0") }}
-        api(libs.samplesDiscovery)      { version { strictly("1.0.0") }}
+        api(libs.samplesCheck)          { version { strictly("1.0.3") }}
+        api(libs.samplesDiscovery)      { version { strictly("1.0.3") }}
         api(libs.snappy)                { version { strictly("0.5") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
         api(libs.spock)                 { version { strictly(spockVersion) }}

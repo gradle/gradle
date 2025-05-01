@@ -17,11 +17,7 @@ If you need to debug something other than the Daemon, follow the steps below.
 
 For most cases, use [listening debugger](https://www.jetbrains.com/help/idea/attaching-to-local-process.html#attach-to-remote]).
 
-The build should create debugging run configurations for you [automatically](../build-logic/idea/src/main/kotlin/gradlebuild.ide.gradle.kts#L82). 
-However, make sure to enable the automatic restart of the debugging session once the debuggee is gone.
-Unfortunately, this setup is [not fully automated yet](https://github.com/JetBrains/gradle-idea-ext-plugin/issues/84).
-
-![](./images/auto-restart-debugger.png)
+The build should create debugging run configurations for you [automatically](../build-logic/idea/src/main/kotlin/gradlebuild.ide.gradle.kts#L82) if you're using Intellij version 2025.1 or later.
 
 Before you start debugging, start the "Daemon debug" or "Debug Launcher" configuration. 
 It will be automatically reused for subsequent test runs.
@@ -129,12 +125,9 @@ which communicates with a Gradle daemon to fetch the models needed to update the
 Since the IDE operates in a separate process, remote debugging is required.
 
 TIP: Use different *versions* of IntelliJ for viewing Gradle-sources-to-be-debugged and the target build.
-Since a locally built Gradle distribution is typically used for debugging,
-
-you may need to completely restart the IDE used for syncing the target build.  
+Since a locally built Gradle distribution is typically used for debugging, you may need to completely restart the IDE used for syncing the target build.  
 In this case, it is handy to keep the IDE with Gradle sources independent.
-For instance, use **IntelliJ Ultimate** to view Gradle sources
-and **IntelliJ Community** to sync the target build.
+For instance, use **IntelliJ Ultimate** to view Gradle sources and **IntelliJ Community** to sync the target build.
 
 Terminology:
 
@@ -143,8 +136,7 @@ Terminology:
 
 ### Setting up the target build IDE
 
-To debug sync with a patched version of Gradle,  
-[install Gradle locally](../CONTRIBUTING.md#install-gradle-locally):
+To debug sync with a patched version of Gradle, [install Gradle locally](../CONTRIBUTING.md#install-gradle-locally):
 
 ```bash
 ./gradlew install -Pgradle_installPath=~/.local/gradle_install

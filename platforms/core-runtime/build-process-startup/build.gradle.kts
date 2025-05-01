@@ -25,8 +25,8 @@ description = """
     as they are used by process entry-points in order to verify java version compatibility.
     """
 
-gradlebuildJava {
-    usedForStartup()
+gradleModule {
+    usedForStartup = true
     usesIncompatibleDependencies = true // For testFixtures
 }
 

@@ -21,7 +21,9 @@ plugins {
 
 description = "I/O utilities"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    usedInWorkers = true
+}
 
 dependencies {
     api(libs.jspecify)

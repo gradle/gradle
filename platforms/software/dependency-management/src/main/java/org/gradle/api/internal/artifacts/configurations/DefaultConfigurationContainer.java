@@ -37,12 +37,15 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.jspecify.annotations.Nullable;
@@ -71,6 +74,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
+    private final InternalProblems problemsService;
 
     @Inject
     public DefaultConfigurationContainer(
@@ -81,7 +85,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         AttributesSchemaInternal schema,
         DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        ResolutionStrategyFactory resolutionStrategyFactory
+        ResolutionStrategyFactory resolutionStrategyFactory,
+        InternalProblems problemsService
     ) {
         super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 
@@ -91,6 +96,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.resolutionStrategyFactory = resolutionStrategyFactory;
 
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(owner, this, rootComponentIdentity, schema);
+        this.problemsService = problemsService;
+
         this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
         this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
@@ -147,6 +154,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
+    @Nullable
     public ConfigurationInternal findByName(String name) {
         return (ConfigurationInternal) super.findByName(name);
     }
@@ -166,44 +174,33 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
+    private RuntimeException failOnAttemptToAdd(String behavior) {
+        GradleException ex = new GradleException(behavior);
+        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            spec.contextualLabel(ex.getMessage());
+            spec.severity(Severity.ERROR);
+        });
+    }
+
     @Override
-    public boolean add(Configuration o) {
-        DeprecationLogger.deprecateBehaviour("Adding a configuration directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        return super.add(o);
+    public boolean add(@Nullable Configuration o) {
+        throw failOnAttemptToAdd("Adding a configuration directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public boolean addAll(Collection<? extends Configuration> c) {
-        DeprecationLogger.deprecateBehaviour("Adding a collection of configurations directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        return super.addAll(c);
+        throw failOnAttemptToAdd("Adding a collection of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addLater(Provider<? extends Configuration> provider) {
-        DeprecationLogger.deprecateBehaviour("Adding a configuration provider directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        super.addLater(provider);
+        throw failOnAttemptToAdd("Adding a configuration provider directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
     public void addAllLater(Provider<? extends Iterable<Configuration>> provider) {
-        DeprecationLogger.deprecateBehaviour("Adding a provider of configurations directly to the configuration container.")
-            .withAdvice("Use a factory method instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "adding_to_configuration_container")
-            .nagUser();
-        super.addAllLater(provider);
+        throw failOnAttemptToAdd("Adding a provider of configurations directly to the configuration container is not allowed.  Use a factory method instead to create a new configuration in the container.");
     }
 
     @Override
@@ -247,20 +244,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action) {
-        assertCanMutate("resolvableUnlocked(String, Action)");
+        assertCanMutate("resolvable(String, Action)");
         return registerResolvableConfiguration(name, action);
     }
 
     @Override
-    public Configuration resolvableUnlocked(String name) {
-        assertCanMutate("resolvableUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
+    public Configuration resolvableLocked(String name) {
+        assertCanMutate("resolvableLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
     }
 
     @Override
-    public Configuration resolvableUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("resolvableUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
+    public Configuration resolvableLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("resolvableLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
     }
 
     @Override
@@ -276,15 +273,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration consumableUnlocked(String name) {
-        assertCanMutate("consumableUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
+    public Configuration consumableLocked(String name) {
+        assertCanMutate("consumableLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
     }
 
     @Override
-    public Configuration consumableUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("consumableUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
+    public Configuration consumableLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("consumableLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
     }
 
     @Override
@@ -300,102 +297,109 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public Configuration dependencyScopeUnlocked(String name) {
-        assertCanMutate("dependencyScopeUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+    public Configuration dependencyScopeLocked(String name) {
+        assertCanMutate("dependencyScopeLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
-    public Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("dependencyScopeUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
-    }
-
-    @Override
-    @Deprecated
-    public Configuration resolvableDependencyScopeUnlocked(String name) {
-        assertCanMutate("resolvableDependencyScopeUnlocked(String)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
+    public Configuration dependencyScopeLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("dependencyScopeLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
     }
 
     @Override
     @Deprecated
-    public Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("resolvableDependencyScopeUnlocked(String, Action)");
-        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
+    public Configuration resolvableDependencyScopeLocked(String name) {
+        assertCanMutate("resolvableDependencyScopeLocked(String)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
-    public Configuration migratingUnlocked(String name, ConfigurationRole role) {
-        assertCanMutate("migratingUnlocked(String, ConfigurationRole)");
-        return migratingUnlocked(name, role, Actions.doNothing());
+    @Deprecated
+    public Configuration resolvableDependencyScopeLocked(String name, Action<? super Configuration> action) {
+        assertCanMutate("resolvableDependencyScopeLocked(String, Action)");
+        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
     }
 
     @Override
-    public Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
-        assertCanMutate("migratingUnlocked(String, ConfigurationRole, Action)");
+    public Configuration migratingLocked(String name, ConfigurationRole role) {
+        assertCanMutate("migratingLocked(String, ConfigurationRole)");
+        return migratingLocked(name, role, Actions.doNothing());
+    }
+
+    @Override
+    public Configuration migratingLocked(String name, ConfigurationRole role, Action<? super Configuration> action) {
+        assertCanMutate("migratingLocked(String, ConfigurationRole, Action)");
 
         if (ConfigurationRolesForMigration.ALL.contains(role)) {
-            return createLegacyConfiguration(name, role, action);
+            return createLockedLegacyConfiguration(name, role, action);
         } else {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
     }
 
     @Override
-    public Configuration maybeCreateResolvableUnlocked(String name) {
-        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE), true);
+    public Configuration maybeCreateResolvableLocked(String name) {
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE, problemsService), true);
     }
 
     @Override
-    public Configuration maybeCreateConsumableUnlocked(String name) {
-        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE), true);
+    public Configuration maybeCreateConsumableLocked(String name) {
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.CONSUMABLE, problemsService), true);
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(String name) {
-        return maybeCreateDependencyScopeUnlocked(name, true);
+    public Configuration maybeCreateDependencyScopeLocked(String name) {
+        return maybeCreateDependencyScopeLocked(name, true);
     }
 
     @Override
-    public Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting) {
-        return doMaybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE), verifyPrexisting);
+    public Configuration maybeCreateDependencyScopeLocked(String name, boolean verifyPrexisting) {
+        return doMaybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService), verifyPrexisting);
     }
 
     @Override
-    public Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role) {
-        AbstractRoleBasedConfigurationCreationRequest request = new NoContextRoleBasedConfigurationCreationRequest(name, role);
+    public Configuration maybeCreateMigratingLocked(String name, ConfigurationRole role) {
+        AbstractRoleBasedConfigurationCreationRequest request = new NoContextRoleBasedConfigurationCreationRequest(name, role, problemsService);
 
-        Configuration conf = findByName(request.getConfigurationName());
+        ConfigurationInternal conf = findByName(request.getConfigurationName());
         if (null != conf) {
-            return request.verifyExistingConfigurationUsage(conf);
+            request.verifyExistingConfigurationUsage(conf);
+            conf.preventUsageMutation();
+            return conf;
         } else {
-            return migratingUnlocked(request.getConfigurationName(), request.getRole());
+            return migratingLocked(request.getConfigurationName(), request.getRole());
         }
     }
 
     @Override
     @Deprecated
-    public Configuration maybeCreateResolvableDependencyScopeUnlocked(String name) {
-        return maybeCreate(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE));
+    public Configuration maybeCreateResolvableDependencyScopeLocked(String name) {
+        return maybeCreateLocked(new NoContextRoleBasedConfigurationCreationRequest(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, problemsService));
     }
 
     @Override
-    public Configuration maybeCreate(RoleBasedConfigurationCreationRequest request) {
-        return doMaybeCreate(request, true);
+    public Configuration maybeCreateLocked(RoleBasedConfigurationCreationRequest request) {
+        return doMaybeCreateLocked(request, true);
     }
 
-    private Configuration doMaybeCreate(RoleBasedConfigurationCreationRequest request, boolean verifyPrexisting) {
-        Configuration conf = findByName(request.getConfigurationName());
+    private Configuration doMaybeCreateLocked(RoleBasedConfigurationCreationRequest request, boolean verifyPrexisting) {
+        ConfigurationInternal conf = findByName(request.getConfigurationName());
         if (null != conf) {
             if (verifyPrexisting) {
-                return request.verifyExistingConfigurationUsage(conf);
+                request.verifyExistingConfigurationUsage(conf);
+                conf.preventUsageMutation();
+                return conf;
             } else {
+                // We should also prevent usage mutation here, but we can't because this would break
+                // existing undeprecated behavior.
+                // Introduce locking here in Gradle 9.x.
                 return getByName(request.getConfigurationName());
             }
         } else {
             if (VALID_MAYBE_CREATE_ROLES.contains(request.getRole())) {
-                return createLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
+                return createLockedLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
             } else {
                 throw new GradleException("Cannot maybe create invalid role: " + request.getRole());
             }
@@ -420,12 +424,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         );
     }
 
-    private Configuration createLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+    private ConfigurationInternal createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
-        Configuration configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
+        ConfigurationInternal configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
         super.add(configuration);
         configureAction.execute(configuration);
+        configuration.preventUsageMutation();
         return configuration;
     }
 
@@ -439,13 +444,14 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return configuration;
     }
 
-    private static void validateNameIsAllowed(String name) {
+    private void validateNameIsAllowed(String name) {
         if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
-            DeprecationLogger.deprecateAction("Creating a configuration with a name that starts with 'detachedConfiguration'")
-                .withAdvice(String.format("Use a different name for the configuration '%s'.", name))
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "reserved_configuration_names")
-                .nagUser();
+            GradleException ex = new GradleException(String.format("Creating a configuration with a name that starts with 'detachedConfiguration' is not allowed.  Use a different name for the configuration '%s'", name));
+            ProblemId id = ProblemId.create("name-not-allowed", "Configuration name not allowed", GradleCoreProblemGroup.configurationUsage());
+            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+                spec.contextualLabel(ex.getMessage());
+                spec.severity(Severity.ERROR);
+            });
         }
     }
 

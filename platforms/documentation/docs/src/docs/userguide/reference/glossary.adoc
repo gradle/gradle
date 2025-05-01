@@ -161,6 +161,25 @@ For more information, see the sections on <<dependency_constraints.adoc#dependen
 
 == E
 
+[[sub:terminology_eager]]
+Eager::
+Many Gradle APIs come in two forms: `eager` and <<sub:terminology_lazy,`lazy`>>.
+The difference lies in when values are calculated or resolved.
++
+Eager means immediate.
+Values are evaluated right away during the configuration phase.
+This can lead to unnecessary work, especially in large builds.
+It’s more prone to performance issues.
++
+[source,kotlin]
+.build.gradle.kts
+----
+// Eager: evaluated as soon as the build script runs
+val myValue = file("output.txt")
+// Lazy: evaluated only when required
+val myValue = layout.buildDirectory.file("output.txt")
+----
+
 [[sub:terminology_ecosystem_plugin]]
 Ecosystem Plugin::
 A <<sub:terminology_plugin>> responsible for building a language, such as Java (`java` and `java-library`), Groovy, Scala, Android, Kotlin, etc.
@@ -209,6 +228,24 @@ An init or initialization script, is backed by an instance of the `Gradle` type.
 == K
 
 == L
+
+[[sub:terminology_lazy]]
+Lazy::
+Many Gradle APIs come in two forms: <<sub:terminology_eager,`eager`>> and `lazy`.
+The difference lies in when values are calculated or resolved.
++
+Lazy means deferred.
+Values are deferred until they’re actually needed, usually during the execution phase.
+This is more efficient and supports things like configuration caching and up-to-date checking.
++
+[source,kotlin]
+.build.gradle.kts
+----
+// Lazy: evaluated only when required
+val myValue = layout.buildDirectory.file("output.txt")
+// Eager: evaluated as soon as the build script runs
+val myValue = file("output.txt")
+----
 
 == M
 

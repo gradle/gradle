@@ -159,7 +159,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             resolutionContext = buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.resolvableDependencyScopeUnlocked(CLASSPATH_CONFIGURATION);
+            classpathConfiguration = configContainer.resolvableDependencyScopeLocked(CLASSPATH_CONFIGURATION);
             configContainer.beforeCollectionChanges(methodName -> {
                 throw new InvalidUserCodeException(
                     "Cannot mutate " + configContainer.getDisplayName() + " using " + methodName + ". " +

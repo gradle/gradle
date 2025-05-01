@@ -49,6 +49,6 @@ configure<DependencyAnalysisSubExtension> {
             exclude(":internal-instrumentation-processor")
         }
 
-        ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures", "smokeIdeTest")
+        ignoreSourceSet("archTest", "crossVersionTest", "integTest", "jmh", "testFixtures")
     }
 }

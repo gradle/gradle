@@ -53,4 +53,5 @@ Class <org.gradle.plugins.ide.idea.model.Project> extends/implements org.gradle.
 Class <org.gradle.plugins.ide.idea.model.Workspace> extends/implements org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject that is Gradle Internal API in (Workspace.java:0)
 Class <org.gradle.plugins.signing.Signature> extends/implements org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact that is Gradle Internal API in (Signature.java:0)
 Class <org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider> extends/implements org.gradle.security.internal.pgp.BasePgpSignatoryProvider, org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider that are Gradle Internal API in (PgpSignatoryProvider.java:0)
+Class <org.gradle.process.ProcessExecutionException> extends/implements org.gradle.process.internal.ExecException that is Gradle Internal API in (ProcessExecutionException.java:0)
 Class <org.gradle.workers.WorkerExecutionException> extends/implements org.gradle.internal.exceptions.DefaultMultiCauseException that is Gradle Internal API in (WorkerExecutionException.java:0)

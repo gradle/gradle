@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,7 +28,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -45,6 +43,7 @@ import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
@@ -61,7 +60,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.configurations.AbstractRoleBasedConfigurationCreationRequest;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -125,13 +123,15 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final PropertyFactory propertyFactory;
     private final JvmPluginServices jvmPluginServices;
+    private final InternalProblems problemsService;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices, PropertyFactory propertyFactory) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices, PropertyFactory propertyFactory, InternalProblems problemsService) {
         this.objectFactory = objectFactory;
         this.propertyFactory = propertyFactory;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = jvmPluginServices;
+        this.problemsService = problemsService;
     }
 
     @Inject
@@ -274,37 +274,37 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        SourceSetConfigurationCreationRequest implementationRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), implementationConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration implementationConfiguration = configurations.maybeCreate(implementationRequest);
+        SourceSetConfigurationCreationRequest implementationRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), implementationConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService);
+        Configuration implementationConfiguration = configurations.maybeCreateLocked(implementationRequest);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
-        SourceSetConfigurationCreationRequest compileOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyRequest);
+        SourceSetConfigurationCreationRequest compileOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateLocked(compileOnlyRequest);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        SourceSetConfigurationCreationRequest compileClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration compileClasspathConfiguration = configurations.maybeCreate(compileClasspathRequest);
+        SourceSetConfigurationCreationRequest compileClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), compileClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, problemsService);
+        Configuration compileClasspathConfiguration = configurations.maybeCreateLocked(compileClasspathRequest);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
         @SuppressWarnings("deprecation")
-        SourceSetConfigurationCreationRequest annotationProcessorRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
-        Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorRequest);
+        SourceSetConfigurationCreationRequest annotationProcessorRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), annotationProcessorConfigurationName, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, problemsService);
+        Configuration annotationProcessorConfiguration = configurations.maybeCreateLocked(annotationProcessorRequest);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        SourceSetConfigurationCreationRequest runtimeOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyRequest);
+        SourceSetConfigurationCreationRequest runtimeOnlyRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeOnlyConfigurationName, ConfigurationRoles.DEPENDENCY_SCOPE, problemsService);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateLocked(runtimeOnlyRequest);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        SourceSetConfigurationCreationRequest runtimeClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE);
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathRequest);
+        SourceSetConfigurationCreationRequest runtimeClasspathRequest = new SourceSetConfigurationCreationRequest(sourceSet.getName(), runtimeClasspathConfigurationName, ConfigurationRoles.RESOLVABLE, problemsService);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateLocked(runtimeClasspathRequest);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
@@ -405,47 +405,23 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private static final class SourceSetConfigurationCreationRequest extends AbstractRoleBasedConfigurationCreationRequest {
         private final String sourceSetName;
 
-        private SourceSetConfigurationCreationRequest(String sourceSetName, String configurationName, ConfigurationRole role) {
-            super(configurationName, role);
+        private SourceSetConfigurationCreationRequest(String sourceSetName, String configurationName, ConfigurationRole role, InternalProblems problemsService) {
+            super(configurationName, role, problemsService);
             this.sourceSetName = sourceSetName;
         }
 
         @Override
-        public void warnAboutNeedToMutateUsage(DeprecatableConfiguration conf) {
-            String msgDiscovery = getUsageDiscoveryMessage(conf);
-            String msgExpectation = getUsageExpectationMessage();
-
-            DeprecationLogger.deprecate(msgDiscovery + msgExpectation)
-                .withAdvice(getUsageMutationAdvice())
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("building_java_projects", "sec:implicit_sourceset_configurations")
-                .nagUser();
-        }
-
-        private String getUsageDiscoveryMessage(DeprecatableConfiguration conf) {
+        protected String getUsageDiscoveryMessage(DeprecatableConfiguration conf) {
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(conf);
             return String.format("When creating configurations during sourceSet %s setup, Gradle found that configuration %s already exists with permitted usage(s):\n" +
                 "%s\n", sourceSetName, getConfigurationName(), currentUsageDesc);
         }
 
-        private String getUsageExpectationMessage() {
-            String expectedUsageDesc = UsageDescriber.describeRole(getRole());
-            return String.format("Yet Gradle expected to create it with the usage(s):\n" +
-                "%s\n" +
-                "Gradle will mutate the usage of configuration %s to match the expected usage. This may cause unexpected behavior. Creating configurations with reserved names", expectedUsageDesc, getConfigurationName());
-        }
-
         @Override
-        public void failOnInabilityToMutateUsage() {
-            List<String> resolutions = ImmutableList.of(
-                RoleBasedConfigurationCreationRequest.getDefaultReservedNameAdvice(getConfigurationName()),
-                getUsageMutationAdvice()
-            );
-            throw new UnmodifiableUsageException(getConfigurationName(), resolutions);
-        }
-
-        private String getUsageMutationAdvice() {
-            return String.format("Create source set %s prior to creating or accessing the configurations associated with it.", sourceSetName);
+        protected String getUsageExpectationMessage() {
+            String expectedUsageDesc = UsageDescriber.describeRole(getRole());
+            return String.format("Yet Gradle expected it to exist with the usage(s):\n" +
+                "%s\n", expectedUsageDesc);
         }
     }
 }

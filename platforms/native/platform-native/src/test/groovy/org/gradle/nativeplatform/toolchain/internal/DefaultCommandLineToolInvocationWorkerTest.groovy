@@ -18,9 +18,9 @@ package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.internal.operations.BuildOperationFailure
 import org.gradle.internal.operations.logging.BuildOperationLogger
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.process.internal.ExecException
 import spock.lang.Specification
 
 class DefaultCommandLineToolInvocationWorkerTest extends Specification {
@@ -41,7 +41,7 @@ class DefaultCommandLineToolInvocationWorkerTest extends Specification {
 
         then:
         1 * execAction.executable(executable)
-        1 * execAction.execute() >> { throw new ExecException("fail") }
+        1 * execAction.execute() >> { throw new ProcessExecutionException("fail") }
         BuildOperationFailure e = thrown()
         e.getMessage().contains('Tool failed while doing something')
 

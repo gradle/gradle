@@ -72,8 +72,8 @@ public class TestMethodResult {
         return this;
     }
 
-    public TestMethodResult setAssumptionFailure(String message, String stackTrace, String exceptionType) {
-        this.assumptionFailure = new SerializableFailure(message, stackTrace, exceptionType);
+    public TestMethodResult setAssumptionFailure(@Nullable String message, String stackTrace, String exceptionType) {
+        this.assumptionFailure = new SerializableFailure(message == null ? "(no message)" : message, stackTrace, exceptionType);
         return this;
     }
 

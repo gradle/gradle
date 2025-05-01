@@ -16,12 +16,10 @@
 
 package org.gradle.kotlin.dsl.precompile
 
-import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.fileOperationsFor
-import org.gradle.kotlin.dsl.support.serviceOf
 
 
 /**
@@ -41,6 +39,4 @@ open class PrecompiledInitScript(target: Gradle) : @Suppress("deprecation") Init
     }
 
     override val fileOperations by lazy { fileOperationsFor(delegate, null) }
-
-    override val processOperations by lazy { delegate.serviceOf<ProcessOperations>() }
 }
