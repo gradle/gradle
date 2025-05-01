@@ -134,7 +134,7 @@ class DefaultVersionCatalogIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails when calling from twice on the different custom catalog file"() {
-        String message = "In version catalog custom, you can only call the 'from' method a single time."
+        String message = "When defining version catalog 'custom', you can only call the 'from' method a single time."
         def customToml1 = file("gradle/custom1.versions.toml")
         customToml1.text = """
         [versions]
