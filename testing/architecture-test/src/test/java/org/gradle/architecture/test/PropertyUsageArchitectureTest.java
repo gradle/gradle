@@ -26,8 +26,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.conditions.ArchPredicates;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.options.OptionValues;
 
@@ -49,9 +48,7 @@ public class PropertyUsageArchitectureTest {
         @Override
         public boolean test(JavaMethod method) {
             JavaClass returnType = method.getRawReturnType();
-            return returnType.isAssignableTo(Provider.class) ||
-                returnType.isAssignableTo(ConfigurableFileCollection.class) ||
-                returnType.isAssignableTo(ConfigurableFileTree.class);
+            return returnType.isAssignableTo(Provider.class) || returnType.isAssignableTo(FileCollection.class);
         }
     };
 
@@ -63,7 +60,7 @@ public class PropertyUsageArchitectureTest {
     };
 
     @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
-    private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(declaredIn(assignableTo(Task.class)))
+    private static final DescribedPredicate<JavaMethod> rich_task_property_getters = ArchPredicates.<JavaMethod>are(declaredIn(assignableTo(Task.class)))
         .and(are(ArchUnitFixture.getters))
         .and(are(hasRichPropertyReturnType))
         .and(are(not(isPrivate)))
@@ -77,7 +74,7 @@ public class PropertyUsageArchitectureTest {
     @ArchTest
     @SuppressWarnings("deprecation")
     public static final ArchRule task_implementations_should_define_properties_as_abstract_getters = freeze(methods()
-        .that(are(task_properties))
+        .that(are(rich_task_property_getters))
         .should(beAbstractMethod()));
 
 }
