@@ -18,8 +18,6 @@ package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelMapDslIntegrationTest extends AbstractIntegrationSpec {
@@ -244,7 +242,6 @@ configure test
         outputContains("value = 12")
     }
 
-    @Requires(UnitTestPreconditions.IsGroovy4)
     def "nested rule cannot reference method of delegate of outer closure with Groovy 4"() {
         buildFile << '''
 model {

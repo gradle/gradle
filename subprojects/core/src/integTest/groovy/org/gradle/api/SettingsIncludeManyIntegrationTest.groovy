@@ -17,8 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/13018")
@@ -37,7 +35,6 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         }) as String[])
     }
 
-    @Requires(UnitTestPreconditions.IsGroovy4)
     def "including over 250 projects is not possible via varargs in Groovy 4"() {
         createProjectDirectories(254, includeFunction)
         // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
@@ -57,7 +54,6 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         includeFunction << ["include", "includeFlat"]
     }
 
-    @Requires(UnitTestPreconditions.IsGroovy4)
     def "including large amounts of projects is not possible via varargs in Groovy 4"() {
         createProjectDirectories(projectNames.size(), includeFunction)
         settingsFile << """
