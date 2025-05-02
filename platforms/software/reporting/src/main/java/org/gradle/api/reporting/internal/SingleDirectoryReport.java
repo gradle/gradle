@@ -43,9 +43,7 @@ public abstract class SingleDirectoryReport extends SimpleReport implements Dire
     }
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     @Override
     public File getEntryPoint() {

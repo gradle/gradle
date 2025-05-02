@@ -1274,52 +1274,32 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 
     @Inject
-    protected ActorFactory getActorFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ActorFactory getActorFactory();
 
     @Inject
-    protected WorkerProcessFactory getProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerProcessFactory getProcessBuilderFactory();
 
     @Inject
-    protected PatternSetFactory getPatternSetFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PatternSetFactory getPatternSetFactory();
 
     @Inject
-    protected JavaForkOptionsFactory getForkOptionsFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaForkOptionsFactory getForkOptionsFactory();
 
     @Inject
-    protected ModuleRegistry getModuleRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ModuleRegistry getModuleRegistry();
 
     @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaModuleDetector getJavaModuleDetector();
 }

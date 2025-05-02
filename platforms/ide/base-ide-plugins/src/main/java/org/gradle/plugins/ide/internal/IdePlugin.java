@@ -48,9 +48,7 @@ public abstract class IdePlugin implements Plugin<Project> {
     protected Project project;
 
     @Inject
-    protected ExecOperations getExecOperations() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ExecOperations getExecOperations();
 
     /**
      * Returns the path to the correct Gradle distribution to use. The wrapper of the generating project will be used only if the execution context of the currently running Gradle is in the Gradle home (typical of a wrapper execution context). If this isn't the case, we try to use the current Gradle home, if available, as the distribution. Finally, if nothing matches, we default to the system-wide Gradle distribution.

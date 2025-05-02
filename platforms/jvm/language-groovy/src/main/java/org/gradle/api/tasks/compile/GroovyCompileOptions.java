@@ -72,9 +72,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -190,6 +188,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * <p>
      * <b>This feature is only available if compiling with Groovy 2.1 or later.</b>
      * </p>
+     *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
@@ -293,7 +292,9 @@ public abstract class GroovyCompileOptions implements Serializable {
      * </dl>
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
     }

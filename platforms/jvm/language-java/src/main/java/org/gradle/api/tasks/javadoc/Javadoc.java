@@ -186,8 +186,8 @@ public abstract class Javadoc extends SourceTask {
         File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-                customExecutable, "Toolchain from `executable` property",
-                toolchainExecutable, "toolchain from `javadocTool` property");
+            customExecutable, "Toolchain from `executable` property",
+            toolchainExecutable, "toolchain from `javadocTool` property");
     }
 
     private boolean isModule() {
@@ -408,37 +408,23 @@ public abstract class Javadoc extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaModuleDetector getJavaModuleDetector();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 }

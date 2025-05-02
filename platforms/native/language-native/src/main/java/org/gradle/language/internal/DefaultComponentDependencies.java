@@ -27,29 +27,30 @@ import javax.inject.Inject;
 
 public class DefaultComponentDependencies implements ComponentDependencies {
     private final Configuration implementation;
+    private final DependencyHandler dependencyHandler;
 
     @Inject
-    public DefaultComponentDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName) {
+    public DefaultComponentDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName, DependencyHandler dependencyHandler) {
         implementation = configurations.dependencyScopeLocked(implementationName);
+        this.dependencyHandler = dependencyHandler;
+    }
+
+    protected DependencyHandler getDependencyHandler() {
+        return dependencyHandler;
     }
 
     public Configuration getImplementationDependencies() {
         return implementation;
     }
 
-    @Inject
-    protected DependencyHandler getDependencyHandler() {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public void implementation(Object notation) {
-        implementation.getDependencies().add(getDependencyHandler().create(notation));
+        implementation.getDependencies().add(dependencyHandler.create(notation));
     }
 
     @Override
     public void implementation(Object notation, Action<? super ExternalModuleDependency> action) {
-        ExternalModuleDependency dependency = (ExternalModuleDependency) getDependencyHandler().create(notation);
+        ExternalModuleDependency dependency = (ExternalModuleDependency) dependencyHandler.create(notation);
         action.execute(dependency);
         implementation.getDependencies().add(dependency);
     }
