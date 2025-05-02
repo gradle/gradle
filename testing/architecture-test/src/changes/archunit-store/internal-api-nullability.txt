@@ -4271,7 +4271,6 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$HasDocker> is not ann
 Class <org.gradle.test.preconditions.UnitTestPreconditions$HasXCTest> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$HasXCode> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$HighPerformance> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
-Class <org.gradle.test.preconditions.UnitTestPreconditions$IsGroovy4> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Java8OnMacOs> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk10OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk10OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
