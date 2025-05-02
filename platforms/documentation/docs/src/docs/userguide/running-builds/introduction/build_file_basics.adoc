@@ -99,7 +99,7 @@ include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts
 include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-app]"]
 ====
 
-In this example, the main class (i.e., the point where the program's execution begins) is `com.example.Main`.
+In this example, the main class (i.e., the point where the program's execution begins) is `org.example.App`.
 
 Build scripts are evaluated during the configuration phase of a build, and they serve as the main entry point for defining a (sub)project’s build logic.
 In addition to applying plugins and setting convention properties, build scripts can:
