@@ -36,6 +36,7 @@ dependencies {
     implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslCore)
 
+    implementation(libs.kotlinScriptingCompilerImplEmbeddable)
     implementation(libs.kotlinCompilerEmbeddable)
 
     compileOnly(libs.kotlinReflect)

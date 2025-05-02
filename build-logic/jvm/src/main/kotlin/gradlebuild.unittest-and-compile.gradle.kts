@@ -157,20 +157,20 @@ fun configureCompileTask(options: CompileOptions) {
 
 fun addDependencies() {
     dependencies {
-        testCompileOnly(libs.junit)
-        testRuntimeOnly(libs.junit5Vintage)
-        testImplementation(libs.groovy)
-        testImplementation(libs.groovyAnt)
-        testImplementation(libs.groovyJson)
-        testImplementation(libs.groovyTest)
-        testImplementation(libs.groovyXml)
-        testImplementation(libs.spock)
-        testImplementation(libs.junit5Vintage)
-        testImplementation(libs.spockJUnit4)
-        testImplementation(libs.develocityTestAnnotation)
-        testRuntimeOnly(libs.bytebuddy)
-        testRuntimeOnly(libs.objenesis)
-        testRuntimeOnly(libs.junitPlatform)
+        testCompileOnly(oldLibs.junit)
+        testRuntimeOnly(oldLibs.junit5Vintage)
+        testImplementation(oldLibs.groovy)
+        testImplementation(oldLibs.groovyAnt)
+        testImplementation(oldLibs.groovyJson)
+        testImplementation(oldLibs.groovyTest)
+        testImplementation(oldLibs.groovyXml)
+        testImplementation(oldLibs.spock)
+        testImplementation(oldLibs.junit5Vintage)
+        testImplementation(oldLibs.spockJUnit4)
+        testImplementation(oldLibs.develocityTestAnnotation)
+        testRuntimeOnly(oldLibs.bytebuddy)
+        testRuntimeOnly(oldLibs.objenesis)
+        testRuntimeOnly(oldLibs.junitPlatform)
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
         val platformImplementation by configurations.creating

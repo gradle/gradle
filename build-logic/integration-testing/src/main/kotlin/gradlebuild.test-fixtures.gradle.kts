@@ -66,11 +66,11 @@ if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* r
         testFixturesImplementation(platform(project(":distributions-dependencies")))
 
         // add a set of default dependencies for fixture implementation
-        testFixturesImplementation(libs.junit)
-        testFixturesImplementation(libs.groovy)
-        testFixturesImplementation(libs.spock)
-        testFixturesRuntimeOnly(libs.bytebuddy)
-        testFixturesRuntimeOnly(libs.cglib)
+        testFixturesImplementation(oldLibs.junit)
+        testFixturesImplementation(oldLibs.groovy)
+        testFixturesImplementation(oldLibs.spock)
+        testFixturesRuntimeOnly(oldLibs.bytebuddy)
+        testFixturesRuntimeOnly(oldLibs.cglib)
     }
 }
 
