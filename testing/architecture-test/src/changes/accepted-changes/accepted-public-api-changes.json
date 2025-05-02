@@ -545,6 +545,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.ApplicationPlugin",
+            "member": "Method org.gradle.api.plugins.ApplicationPlugin.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.ApplicationPluginConvention",
             "member": "Class org.gradle.api.plugins.ApplicationPluginConvention",
             "acceptation": "Remove deprecated feature",
@@ -1145,11 +1153,107 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getProjectLayout()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.getWorkerProcessBuilderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
+            "member": "Method org.gradle.api.plugins.quality.CheckstylePlugin.getToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdPlugin",
+            "member": "Method org.gradle.api.plugins.quality.PmdPlugin.getToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.provider.Provider",
             "member": "Method org.gradle.api.provider.Provider.forUseAtConfigurationTime()",
             "acceptation": "Deprecated method removed",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
+            "member": "Method org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getDuplicatePublicationTracker()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.PublishToIvyRepository",
+            "member": "Method org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.getIvyPublisher()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getDuplicatePublicationTracker()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.AbstractPublishToMaven",
+            "member": "Method org.gradle.api.publish.maven.tasks.AbstractPublishToMaven.getMavenPublishers()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.getVersionRangeMapper()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1166,6 +1270,46 @@
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.PublishToMavenRepository",
+            "member": "Method org.gradle.api.publish.maven.tasks.PublishToMavenRepository.getListenerManager()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getBuildInvocationScopeId()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getChecksumService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getFileCollectionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getProjectDependencyPublicationResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1225,11 +1369,187 @@
             ]
         },
         {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getBinaryRenderer()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getModelRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.components.ComponentReport",
+            "member": "Method org.gradle.api.reporting.components.ComponentReport.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getCallbackActionDecorator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionComparator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionParser()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionSelectorScheme()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getModelRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependents.DependentComponentsReport",
+            "member": "Method org.gradle.api.reporting.dependents.DependentComponentsReport.getWorkerLeaseService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.getModelRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.model.ModelReport",
+            "member": "Method org.gradle.api.reporting.model.ModelReport.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.specs.AndSpec",
             "member": "Method org.gradle.api.specs.AndSpec.and(org.gradle.api.specs.Spec[])",
             "acceptation": "Method made final to allow @SafeVarargs annotation",
             "changes": [
                 "Method is now final"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getDirectoryFileTreeFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getDocumentationRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileLookup()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileResolver()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileSystem()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractCopyTask",
+            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1246,6 +1566,30 @@
             "acceptation": "[API is being remove in Gradle 9.0]",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecActionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Delete",
+            "member": "Method org.gradle.api.tasks.Delete.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1314,6 +1658,46 @@
         },
         {
             "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getExecActionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
             "member": "Method org.gradle.api.tasks.JavaExec.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
@@ -1358,6 +1742,22 @@
             "acceptation": "Remove deprecated API",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.SourceTask",
+            "member": "Method org.gradle.api.tasks.SourceTask.getPatternSetFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Sync",
+            "member": "Method org.gradle.api.tasks.Sync.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1626,6 +2026,14 @@
         },
         {
             "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
             "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.setForkOptions(org.gradle.api.tasks.compile.GroovyForkOptions)",
             "acceptation": "Remove deprecated method",
             "changes": [
@@ -1641,11 +2049,187 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getIncrementalCompilerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getProjectLayout()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.getClientMetaData()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.getClientMetaData()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getClientMetaData()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
             "acceptation": "Remove deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getImmutableAttributesFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionComparator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionParser()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionSelectorScheme()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getBuildStateRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getProjectStateRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getProjectTaskLister()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1658,10 +2242,74 @@
         },
         {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setAntGroovydoc(org.gradle.api.internal.tasks.AntGroovydoc)",
             "acceptation": "these methods were deprecated",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getProjectLayout()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1706,11 +2354,155 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBuildOperationExecutor()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBuildOperationRunner()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFailOnNoDiscoveredTests()",
             "acceptation": "Adding as a stable opt-out for new behavior in 9.0",
             "changes": [
                 "Method added to public class",
                 "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getFileSystemOperations()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getHostnameLookup()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getListenerManager()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getProgressLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getTextOutputFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getActorFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getForkOptionsFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getJavaToolchainService()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getModuleRegistry()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getPatternSetFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getProcessBuilderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getPropertyFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getProviderFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1794,6 +2586,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.wrapper.Wrapper",
+            "member": "Method org.gradle.api.tasks.wrapper.Wrapper.getFileLookup()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.caching.BuildCacheKey",
             "member": "Method org.gradle.caching.BuildCacheKey.getDisplayName()",
             "acceptation": "Removed deprecated method",
@@ -1819,10 +2619,26 @@
         },
         {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getJavaModuleDetector()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClassName()",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -3026,6 +3842,54 @@
             ]
         },
         {
+            "type": "org.gradle.language.jvm.tasks.ProcessResources",
+            "member": "Method org.gradle.language.jvm.tasks.ProcessResources.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getFileCollectionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getIncrementalCompilerBuilder()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getOperationLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getTaskFileVarFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
             "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setForkOptions(org.gradle.api.tasks.scala.ScalaForkOptions)",
             "acceptation": "Remove deprecated method",
@@ -3050,6 +3914,70 @@
             ]
         },
         {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getOperationLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "member": "Method org.gradle.nativeplatform.tasks.CreateStaticLibrary.getOperationLoggerFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getFileSystem()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getFileSystemOperations()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getFileSystem()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getFileSystemOperations()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getSwiftStdlibToolLocator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
             "member": "Constructor org.gradle.plugin.devel.GradlePluginDevelopmentExtension(org.gradle.api.Project,org.gradle.api.tasks.SourceSet,org.gradle.api.tasks.SourceSet[])",
             "acceptation": "Deprecated in 8.x",
@@ -3063,6 +3991,14 @@
             "acceptation": "Deprecated in 8.x",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.GeneratePluginDescriptors",
+            "member": "Method org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.getDeleter()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -3170,6 +4106,46 @@
             ]
         },
         {
+            "type": "org.gradle.plugins.ide.api.GeneratorTask",
+            "member": "Method org.gradle.plugins.ide.api.GeneratorTask.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseModel",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseModel.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseWtp",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseWtp.getObjectFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.Sign",
+            "member": "Method org.gradle.plugins.signing.Sign.getCallbackActionDecorator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.Sign",
+            "member": "Method org.gradle.plugins.signing.Sign.getFileCollectionFactory()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.process.JavaForkOptions",
             "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
@@ -3211,6 +4187,14 @@
             "acceptation": "Removed protected method injecting internal class",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getInstantiator()",
+            "acceptation": "Making all injecting getters abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {

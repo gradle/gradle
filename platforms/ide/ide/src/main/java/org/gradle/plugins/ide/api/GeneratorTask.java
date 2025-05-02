@@ -89,7 +89,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
             } catch (RuntimeException e) {
                 throw new GradleException(String.format("Cannot parse file '%s'.\n"
                         + "       Perhaps this file was tinkered with? In that case try delete this file and then retry.",
-                        inputFile), e);
+                    inputFile), e);
             }
         } else {
             domainObject = generator.defaultInstance();
@@ -102,9 +102,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
     }
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     /**
      * The input file to load the initial configuration from. Defaults to the output file. If the specified input file
@@ -118,7 +116,8 @@ public abstract class GeneratorTask<T> extends ConventionTask {
     }
 
     // Workaround for when the task is given an input file that doesn't exist
-    @Nullable  @Optional
+    @Nullable
+    @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     protected File getInputFileIfExists() {

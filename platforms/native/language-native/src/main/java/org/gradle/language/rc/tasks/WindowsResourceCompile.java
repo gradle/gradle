@@ -17,6 +17,7 @@ package org.gradle.language.rc.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.Providers;
@@ -102,14 +103,10 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     }
 
     @Inject
-    public IncrementalCompilerBuilder getIncrementalCompilerBuilder() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract IncrementalCompilerBuilder getIncrementalCompilerBuilder();
 
     @Inject
-    public BuildOperationLoggerFactory getOperationLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildOperationLoggerFactory getOperationLoggerFactory();
 
     @TaskAction
     public void compile(InputChanges inputs) {
@@ -201,7 +198,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     }
 
     /**
-     * Adds a set of source files to be compiled. The provided sourceFiles object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of source files to be compiled. The provided sourceFiles object is evaluated as per {@link Project#files(Object...)}.
      */
     public void source(Object sourceFiles) {
         source.from(sourceFiles);
