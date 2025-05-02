@@ -21,14 +21,18 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +149,7 @@ public abstract class EclipseProject {
 
     private List<BuildCommand> buildCommands = new ArrayList<>();
 
-    private Set<Link> linkedResources = new LinkedHashSet<>();
+    private final SetProperty<Link> linkedResources;
 
     private Set<ResourceFilter> resourceFilters = new LinkedHashSet<>();
 
@@ -156,6 +160,14 @@ public abstract class EclipseProject {
         this.file = file;
         this.comment = project.getObjects().property(Optional.class);
         this.comment.convention(project.provider(() ->  Optional.ofNullable(project.getDescription())));
+        this.linkedResources = project.getObjects().setProperty(Link.class);
+        this.linkedResources.convention(project.provider(() -> {
+            if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
+                return new LinkedResourcesCreator().links(project);
+            } else {
+                return Collections.emptySet();
+            }
+        }));
     }
 
     public String getName() {
@@ -289,7 +301,7 @@ public abstract class EclipseProject {
     }
 
     public Set<Link> getLinkedResources() {
-        return linkedResources;
+        return linkedResources.get();
     }
 
     /**
@@ -298,7 +310,7 @@ public abstract class EclipseProject {
      * For example see docs for {@link EclipseProject}
      */
     public void setLinkedResources(Set<Link> linkedResources) {
-        this.linkedResources = linkedResources;
+        this.linkedResources.set(linkedResources);
     }
 
     /**
