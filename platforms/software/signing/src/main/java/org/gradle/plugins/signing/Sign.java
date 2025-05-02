@@ -317,10 +317,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     }
 
     @Inject
-    protected FileCollectionFactory getFileCollectionFactory() {
-        // Implementation provided by decoration
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileCollectionFactory getFileCollectionFactory();
 
     /**
      * All of the files that will be signed by this task.
@@ -394,7 +391,5 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
      * @since 5.1
      */
     @Inject
-    protected CollectionCallbackActionDecorator getCallbackActionDecorator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract CollectionCallbackActionDecorator getCallbackActionDecorator();
 }

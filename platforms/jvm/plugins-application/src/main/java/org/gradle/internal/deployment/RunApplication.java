@@ -80,14 +80,10 @@ public abstract class RunApplication extends DefaultTask {
     }
 
     @Inject
-    protected DeploymentRegistry getDeploymentRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DeploymentRegistry getDeploymentRegistry();
 
     @Inject
-    protected JavaExecHandleFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaExecHandleFactory getExecActionFactory();
 
     @Internal
     public DeploymentRegistry.ChangeBehavior getChangeBehavior() {

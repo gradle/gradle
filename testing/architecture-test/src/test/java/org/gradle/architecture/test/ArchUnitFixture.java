@@ -205,6 +205,10 @@ public interface ArchUnitFixture {
         return new ArchCondition<JavaMethod>("be abstract") {
             @Override
             public void check(JavaMethod method, ConditionEvents events) {
+                if (method.getModifiers().contains(JavaModifier.SYNTHETIC)) {
+                    // Ignore synthetic methods, as they cannot be modified by the developer.
+                    return;
+                }
                 if (method.getModifiers().contains(JavaModifier.ABSTRACT)) {
                     events.add(new SimpleConditionEvent(method, true, method.getDescription() + " is abstract"));
                 } else {

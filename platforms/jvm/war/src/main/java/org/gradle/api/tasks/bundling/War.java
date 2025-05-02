@@ -82,9 +82,7 @@ public abstract class War extends Jar {
 
     @Inject
     @Override
-    public ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ObjectFactory getObjectFactory();
 
     @Internal
     @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")

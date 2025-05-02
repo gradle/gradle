@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
+import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class IdePluginTest extends AbstractProjectBuilderSpec {
@@ -52,6 +53,11 @@ class IdePluginTest extends AbstractProjectBuilderSpec {
 }
 
 class TestIdePlugin extends IdePlugin {
+    @Override
+    protected ExecOperations getExecOperations() {
+        throw new UnsupportedOperationException()
+    }
+
     @Override protected String getLifecycleTaskName() {
         return 'testIde'
     }

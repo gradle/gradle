@@ -35,7 +35,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.internal.serialization.Transient.varOf;
 
 /**
- * Base class for tasks that publish a {@link org.gradle.api.publish.maven.MavenPublication}.
+ * Base class for tasks that publish a {@link MavenPublication}.
  *
  * @since 2.4
  */
@@ -47,9 +47,9 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
         getInputs().files((Callable<FileCollection>) () -> {
-            MavenPublicationInternal publicationInternal = getPublicationInternal();
-            return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-        })
+                MavenPublicationInternal publicationInternal = getPublicationInternal();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
+            })
             .withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
@@ -102,12 +102,8 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
     }
 
     @Inject
-    protected MavenPublishers getMavenPublishers() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract MavenPublishers getMavenPublishers();
 
     @Inject
-    protected MavenDuplicatePublicationTracker getDuplicatePublicationTracker() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract MavenDuplicatePublicationTracker getDuplicatePublicationTracker();
 }

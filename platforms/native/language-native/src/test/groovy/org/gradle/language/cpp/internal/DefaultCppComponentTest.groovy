@@ -17,7 +17,6 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.DisplayName
 import org.gradle.language.ComponentDependencies
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -138,10 +137,10 @@ class DefaultCppComponentTest extends Specification {
         c2.privateHeaderDirs.files == [h2] as Set
     }
 
-    static class TestComponent extends DefaultCppComponent {
+    static abstract class TestComponent extends DefaultCppComponent {
         @Inject
-        TestComponent(String name, ObjectFactory objectFactory) {
-            super(name, objectFactory)
+        TestComponent(String name) {
+            super(name)
         }
 
         @Override

@@ -104,6 +104,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final InputFingerprinter inputFingerprinter;
     private final AttributesFactory attributesFactory;
     private final CapabilityNotationParser capabilityNotationParser;
+    private final Problems problemsService;
     private final List<DefaultVersionCatalog> models = new ArrayList<>();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
 
@@ -122,7 +123,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser
+        CapabilityNotationParser capabilityNotationParser,
+        Problems problemsService
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
@@ -133,11 +135,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         this.inputFingerprinter = inputFingerprinter;
         this.attributesFactory = attributesFactory;
         this.capabilityNotationParser = capabilityNotationParser;
-    }
-
-    @Inject
-    protected Problems getProblemsService() {
-        throw new UnsupportedOperationException("not implemented");
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -422,8 +420,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         @Override
         protected List<ClassSource> getClassSources() {
             return Arrays.asList(
-                new DependenciesAccessorClassSource(model.getName(), model, getProblemsService()),
-                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, getProblemsService())
+                new DependenciesAccessorClassSource(model.getName(), model, problemsService),
+                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model, problemsService)
             );
         }
 

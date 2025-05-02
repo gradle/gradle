@@ -196,7 +196,6 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
-import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -751,8 +750,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DefaultScriptCompilationHandler createScriptCompilationHandler(Deleter deleter, ImportsReader importsReader, ObjectFactory objectFactory) {
-        return objectFactory.newInstance(DefaultScriptCompilationHandler.class, deleter, importsReader);
+    protected DefaultScriptCompilationHandler createScriptCompilationHandler(ImportsReader importsReader, ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultScriptCompilationHandler.class, importsReader);
     }
 
     @Provides

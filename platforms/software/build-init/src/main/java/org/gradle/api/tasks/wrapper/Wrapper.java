@@ -505,7 +505,5 @@ public abstract class Wrapper extends DefaultTask {
     public abstract Property<Boolean> getValidateDistributionUrl();
 
     @Inject
-    protected FileLookup getFileLookup() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileLookup getFileLookup();
 }
